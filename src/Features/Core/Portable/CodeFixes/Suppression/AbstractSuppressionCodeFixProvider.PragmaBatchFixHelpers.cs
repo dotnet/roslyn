@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
 
                 var currentDocument = document;
-                for (int i = 0; i < pragmaActions.Length; i++)
+                for (var i = 0; i < pragmaActions.Length; i++)
                 {
                     var originalpragmaAction = pragmaActions[i];
                     var diagnostic = diagnostics[i];

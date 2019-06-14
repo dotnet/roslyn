@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var position = SymbolCompletionItem.GetContextPosition(item);
 
             // What EditorBrowsable settings were we previously passed in (if it mattered)?
-            bool hideAdvancedMembers = false;
+            var hideAdvancedMembers = false;
             if (item.Properties.TryGetValue(HideAdvancedMembers, out var hideAdvancedMembersString))
             {
                 bool.TryParse(hideAdvancedMembersString, out hideAdvancedMembers);

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             IDictionary<INamedTypeSymbol, string> anonymousTypeToName)
         {
             var result = parts;
-            for (int i = 0; i < result.Count; i++)
+            for (var i = 0; i < result.Count; i++)
             {
                 var part = result[i];
                 if (part.Symbol is INamedTypeSymbol type && anonymousTypeToName.TryGetValue(type, out var name) && part.ToString() != name)

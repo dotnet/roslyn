@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // create builder only if there is suppressed diagnostics
                 ImmutableArray<DiagnosticData>.Builder builder = null;
-                for (int i = 0; i < diagnostics.Length; i++)
+                for (var i = 0; i < diagnostics.Length; i++)
                 {
                     var diagnostic = diagnostics[i];
                     if (diagnostic.IsSuppressed)
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         if (builder == null)
                         {
                             builder = ImmutableArray.CreateBuilder<DiagnosticData>();
-                            for (int j = 0; j < i; j++)
+                            for (var j = 0; j < i; j++)
                             {
                                 builder.Add(diagnostics[j]);
                             }

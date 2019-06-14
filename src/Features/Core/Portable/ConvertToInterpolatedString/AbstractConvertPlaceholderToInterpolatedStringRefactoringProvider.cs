@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             ISyntaxFactsService syntaxFactsService)
         {
             var builder = ArrayBuilder<TExpressionSyntax>.GetInstance();
-            for (int i = 1; i < arguments.Count; i++)
+            for (var i = 1; i < arguments.Count; i++)
             {
                 var argumentExpression = syntaxFactsService.GetExpressionOfArgument(GetArgument(arguments, i, syntaxFactsService));
                 var convertedType = semanticModel.GetTypeInfo(argumentExpression).ConvertedType;

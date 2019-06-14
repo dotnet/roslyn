@@ -104,13 +104,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     return false;
                 }
 
-                for (int i = 0; i < this.ParameterTypes.Length; i++)
+                for (var i = 0; i < this.ParameterTypes.Length; i++)
                 {
                     var ctorParameter = ctor.Parameters[i];
                     var result = SymbolEquivalenceComparer.Instance.Equals(ctorParameter.Type, this.ParameterTypes[i]) &&
                         ctorParameter.RefKind == this.ParameterRefKinds[i];
 
-                    string parameterName = GetParameterName(service, i);
+                    var parameterName = GetParameterName(service, i);
                     if (!string.IsNullOrEmpty(parameterName))
                     {
                         result &= service.IsCaseSensitive

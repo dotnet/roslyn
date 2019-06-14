@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     var parts = new List<SymbolDisplayPart>();
                     parts.AddLineBreak();
                     parts.AddText(WorkspacesResources.Variables_captured_colon);
-                    bool first = true;
+                    var first = true;
                     foreach (var captured in captures)
                     {
                         if (!first)
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 var typeArguments = symbol.GetAllTypeArguments().ToList();
                 var typeParameters = symbol.GetAllTypeParameters().ToList();
 
-                for (int i = 0; i < typeArguments.Count; i++)
+                for (var i = 0; i < typeArguments.Count; i++)
                 {
                     var typeArgument = typeArguments[i];
                     var typeParameter = typeParameters[i];
@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 var parts = new List<SymbolDisplayPart>();
 
                 var count = typeParameters.Count;
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
                     parts.AddRange(TypeParameterName(typeParameters[i].Name));
                     parts.AddRange(Space());
@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             protected IEnumerable<SymbolDisplayPart> LineBreak(int count = 1)
             {
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
                     yield return new SymbolDisplayPart(SymbolDisplayPartKind.LineBreak, null, "\r\n");
                 }

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var originalParameterList = originalConfiguration.ToListOfParameters();
             var updatedParameterList = updatedConfiguration.ToListOfParameters();
 
-            for (int i = 0; i < originalParameterList.Count; i++)
+            for (var i = 0; i < originalParameterList.Count; i++)
             {
                 var parameter = originalParameterList[i];
                 var updatedIndex = updatedParameterList.IndexOf(parameter);

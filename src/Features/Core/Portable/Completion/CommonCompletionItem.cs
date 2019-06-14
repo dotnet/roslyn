@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var parts = encoded.Split(s_descriptionSeparators).Select(t => t.Unescape('\\')).ToArray();
 
             var builder = ImmutableArray<TaggedText>.Empty.ToBuilder();
-            for (int i = 0; i < parts.Length; i += 2)
+            for (var i = 0; i < parts.Length; i += 2)
             {
                 builder.Add(new TaggedText(parts[i], parts[i + 1]));
             }

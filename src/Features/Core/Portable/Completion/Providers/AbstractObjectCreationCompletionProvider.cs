@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // Unwrap an array type fully.  We only want to offer the underlying element type in the
             // list of completion items.
-            bool isArray = false;
+            var isArray = false;
             while (type is IArrayTypeSymbol)
             {
                 isArray = true;

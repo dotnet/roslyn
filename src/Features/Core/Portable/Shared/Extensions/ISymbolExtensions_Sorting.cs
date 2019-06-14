@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return diff;
             }
 
-            int paramCount = xParameters.Length;
-            for (int i = 0; i < paramCount; i++)
+            var paramCount = xParameters.Length;
+            for (var i = 0; i < paramCount; i++)
             {
                 var xParam = xParameters[i];
                 var yParam = yParameters[i];

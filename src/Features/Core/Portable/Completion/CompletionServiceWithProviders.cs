@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // If two items have the same display text choose which one to keep.
             // If they don't actually match keep both.
 
-            for (int i = 0; i < sameNamedItems.Count; i++)
+            for (var i = 0; i < sameNamedItems.Count; i++)
             {
                 var existingItem = sameNamedItems[i];
 
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             var result = new Dictionary<CompletionProvider, int>(completionProviders.Length);
 
-            int i = 0;
+            var i = 0;
             foreach (var completionProvider in completionProviders)
             {
                 result[completionProvider] = i;

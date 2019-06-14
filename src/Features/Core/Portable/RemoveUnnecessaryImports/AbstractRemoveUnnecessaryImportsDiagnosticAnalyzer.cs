@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                 var fadeOut = workspaceOptions.Services.Workspace.Options.GetOption(FadingOptions.FadeOutUnusedImports, language);
                 var descriptor = fadeOut ? _unnecessaryClassificationIdDescriptor : _classificationIdDescriptor;
 
-                Func<SyntaxNode, SyntaxToken> getLastTokenFunc = GetLastTokenDelegateForContiguousSpans();
+                var getLastTokenFunc = GetLastTokenDelegateForContiguousSpans();
                 var contiguousSpans = unnecessaryImports.GetContiguousSpans(getLastTokenFunc);
                 var diagnostics =
                     CreateClassificationDiagnostics(contiguousSpans, tree, descriptor, cancellationToken).Concat(

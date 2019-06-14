@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             while (true)
             {
                 var task = _tasks.Take();
-                bool ret = this.TryExecuteTask(task);
+                var ret = this.TryExecuteTask(task);
             }
         }
 

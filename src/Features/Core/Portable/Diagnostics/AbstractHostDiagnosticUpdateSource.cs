@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, DiagnosticData diagnosticData, Project project)
         {
-            bool raiseDiagnosticsUpdated = true;
+            var raiseDiagnosticsUpdated = true;
 
             var dxs = ImmutableInterlocked.AddOrUpdate(ref _analyzerHostDiagnosticsMap,
                 analyzer,

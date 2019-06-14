@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
             protected async Task<Document> GetOrCreateSuppressionsDocumentAsync(CancellationToken c)
             {
-                int index = 1;
+                var index = 1;
                 var suppressionsFileName = s_globalSuppressionsFileName + Fixer.DefaultFileExtension;
                 var suppressionsFilePath = GetSuppressionsFilePath(suppressionsFileName);
 

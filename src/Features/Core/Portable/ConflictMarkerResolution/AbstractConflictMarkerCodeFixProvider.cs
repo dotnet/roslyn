@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         {
             if (token.HasLeadingTrivia)
             {
-                int i = 0;
+                var i = 0;
                 foreach (var trivia in token.LeadingTrivia)
                 {
                     if (IsConflictMarker(text, trivia, '='))

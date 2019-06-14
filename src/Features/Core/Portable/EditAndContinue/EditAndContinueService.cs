@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return null;
                 }
 
-                Document primaryDocument = _debuggingSession.InitialSolution.Workspace.CurrentSolution.GetDocument(baseActiveStatement.PrimaryDocumentId);
+                var primaryDocument = _debuggingSession.InitialSolution.Workspace.CurrentSolution.GetDocument(baseActiveStatement.PrimaryDocumentId);
                 var documentAnalysis = await _editSession.GetDocumentAnalysis(primaryDocument).GetValueAsync(cancellationToken).ConfigureAwait(false);
                 var currentActiveStatements = documentAnalysis.ActiveStatements;
                 if (currentActiveStatements.IsDefault)

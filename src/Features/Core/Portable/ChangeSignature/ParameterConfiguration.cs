@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 parameters.RemoveAt(parameters.Count - 1);
             }
 
-            bool seenDefaultValues = false;
+            var seenDefaultValues = false;
             foreach (var param in parameters)
             {
                 if (param.HasExplicitDefaultValue)

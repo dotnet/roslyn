@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             // bind Z off of Y as well.
 
             string rightName = null;
-            bool isAttributeName = false;
+            var isAttributeName = false;
             if (syntaxFacts.IsLeftSideOfDot(simpleName))
             {
                 var rightSide = syntaxFacts.GetRightSideOfDot(simpleName.Parent);

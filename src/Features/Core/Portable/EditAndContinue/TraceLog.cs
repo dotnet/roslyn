@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private void Append(Entry entry)
         {
-            int index = Interlocked.Increment(ref _currentLine);
+            var index = Interlocked.Increment(ref _currentLine);
             _log[(index - 1) % _log.Length] = entry;
         }
 

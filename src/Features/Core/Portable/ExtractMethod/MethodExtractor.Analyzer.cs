@@ -101,8 +101,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var returnTypeTuple = AdjustReturnType(model, returnType);
 
                 returnType = returnTypeTuple.Item1;
-                bool returnTypeHasAnonymousType = returnTypeTuple.Item2;
-                bool awaitTaskReturn = returnTypeTuple.Item3;
+                var returnTypeHasAnonymousType = returnTypeTuple.Item2;
+                var awaitTaskReturn = returnTypeTuple.Item3;
 
                 // create new document
                 var newDocument = await CreateDocumentWithAnnotationsAsync(_semanticDocument, parameters, CancellationToken).ConfigureAwait(false);
@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 Contract.ThrowIfFalse(parameters.Count == arguments.Count);
 
                 var typeParameters = new List<ITypeParameterSymbol>();
-                for (int i = 0; i < parameters.Count; i++)
+                for (var i = 0; i < parameters.Count; i++)
                 {
                     var parameter = parameters[i];
 

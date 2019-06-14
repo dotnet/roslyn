@@ -79,12 +79,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             private List<ITypeSymbol> MergeClassTypes(List<ITypeSymbol> classTypes, CancellationToken cancellationToken)
             {
                 var compilation = this.Document.SemanticModel.Compilation;
-                for (int i = classTypes.Count - 1; i >= 0; i--)
+                for (var i = classTypes.Count - 1; i >= 0; i--)
                 {
                     // For example, 'Attribute'.
                     var type1 = classTypes[i];
 
-                    for (int j = 0; j < classTypes.Count; j++)
+                    for (var j = 0; j < classTypes.Count; j++)
                     {
                         if (j != i)
                         {

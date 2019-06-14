@@ -201,8 +201,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 state.Document, state.Expression,
                 allOccurrences: false, isConstant: state.IsConstant, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            SyntaxNode destination = result.Item2;
-            int insertionIndex = result.Item3;
+            var destination = result.Item2;
+            var insertionIndex = result.Item3;
 
             if (!destination.OverlapsHiddenPosition(cancellationToken))
             {

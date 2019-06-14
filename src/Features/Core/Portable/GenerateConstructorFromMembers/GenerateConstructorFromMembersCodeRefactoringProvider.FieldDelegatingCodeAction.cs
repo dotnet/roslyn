@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
                 var parameterToExistingFieldMap = new Dictionary<string, ISymbol>();
-                for (int i = 0; i < _state.Parameters.Length; i++)
+                for (var i = 0; i < _state.Parameters.Length; i++)
                 {
                     parameterToExistingFieldMap[_state.Parameters[i].Name] = _state.SelectedMembers[i];
                 }
