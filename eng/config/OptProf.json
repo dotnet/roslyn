@@ -491,15 +491,15 @@
           "container": "ManagedLangs",
           "filteredTestCases": [
             {
-              "filename": "/Content/MSBuild/Current/Bin/Roslyn/System.Threading.Tasks.Extensions.dll",
+              "filename": "/Contents/MSBuild/Current/Bin/Roslyn/System.Threading.Tasks.Extensions.dll",
               "testCases":[ "ManagedLangs.OptProfTests.DDRIT_RPS_ManagedLangs" ]
             },
             {
-              "filename": "/Content/MSBuild/Current/Bin/Roslyn/csc.exe",
+              "filename": "/Contents/MSBuild/Current/Bin/Roslyn/csc.exe",
               "testCases":[ "ManagedLangs.OptProfTests.DDRIT_RPS_ManagedLangs" ]
             },
             {
-              "filename": "/Content/MSBuild/Current/Bin/Roslyn/VBCSCompiler.exe",
+              "filename": "/Contents/MSBuild/Current/Bin/Roslyn/VBCSCompiler.exe",
               "testCases":[ "ManagedLangs.OptProfTests.DDRIT_RPS_ManagedLangs" ]
             }
           ]
@@ -508,11 +508,11 @@
           "container": "TeamEng",
           "filteredTestCases": [
             {
-              "filename": "/Content/MSBuild/Current/Bin/Roslyn/System.Threading.Tasks.Extensions.dll",
+              "filename": "/Contents/MSBuild/Current/Bin/Roslyn/System.Threading.Tasks.Extensions.dll",
               "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
             },
             {
-              "filename": "/Content/MSBuild/Current/Bin/Roslyn/VBCSCompiler.exe",
+              "filename": "/Contents/MSBuild/Current/Bin/Roslyn/VBCSCompiler.exe",
               "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
             }
           ]
@@ -521,11 +521,11 @@
           "container": "VSPE",
           "filteredTestCases": [
             {
-              "filename": "/Content/MSBuild/Current/Bin/Roslyn/System.Threading.Tasks.Extensions.dll",
+              "filename": "/Contents/MSBuild/Current/Bin/Roslyn/System.Threading.Tasks.Extensions.dll",
               "testCases":[ "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment" ]
             },
             {
-              "filename": "/Content/MSBuild/Current/Bin/Roslyn/VBCSCompiler.exe",
+              "filename": "/Contents/MSBuild/Current/Bin/Roslyn/VBCSCompiler.exe",
               "testCases":[ "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment" ]
             }
           ]
