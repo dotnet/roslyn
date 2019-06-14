@@ -20,7 +20,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return false;
             }
 
-            serializableNamingRule = new SerializableNamingRule(namingRuleTitle, symbolSpec.ID, namingStyle.ID, severity);
+            serializableNamingRule = new SerializableNamingRule()
+            {
+                EnforcementLevel = severity,
+                NamingStyleID = namingStyle.ID,
+                SymbolSpecificationID = symbolSpec.ID
+            };
+
             return true;
         }
 

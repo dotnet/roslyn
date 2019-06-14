@@ -1896,21 +1896,21 @@ class ClassA
         {
             var specificationStyles = new[]
             {
-                SpecificationStyle("fields", new SymbolKindOrTypeKind(SymbolKind.Field), "Field"),
-                SpecificationStyle("properties", new SymbolKindOrTypeKind(SymbolKind.Property), "Property"),
-                SpecificationStyle("methods", new SymbolKindOrTypeKind(MethodKind.Ordinary), "Method"),
-                SpecificationStyle("locals", new SymbolKindOrTypeKind(SymbolKind.Local), "Local"),
-                SpecificationStyle("local_functions", new SymbolKindOrTypeKind(MethodKind.LocalFunction), "LocalFunction"),
+                SpecificationStyle(new SymbolKindOrTypeKind(SymbolKind.Field), "Field"),
+                SpecificationStyle(new SymbolKindOrTypeKind(SymbolKind.Property), "Property"),
+                SpecificationStyle(new SymbolKindOrTypeKind(MethodKind.Ordinary), "Method"),
+                SpecificationStyle(new SymbolKindOrTypeKind(SymbolKind.Local), "Local"),
+                SpecificationStyle(new SymbolKindOrTypeKind(MethodKind.LocalFunction), "LocalFunction"),
             };
 
             return new NamingStylePreferences(
                 specificationStyles.Select(t => t.specification).ToImmutableArray(),
                 specificationStyles.Select(t => t.style).ToImmutableArray(),
-                specificationStyles.Select(t => CreateRule(t.name, t.specification, t.style)).ToImmutableArray());
+                specificationStyles.Select(t => CreateRule(t.specification, t.style)).ToImmutableArray());
 
             // Local functions
 
-            (string name, SymbolSpecification specification, NamingStyle style) SpecificationStyle(string name, SymbolKindOrTypeKind kind, string suffix)
+            (SymbolSpecification specification, NamingStyle style) SpecificationStyle(SymbolKindOrTypeKind kind, string suffix)
             {
                 var symbolSpecification = new SymbolSpecification(
                     id: null,
@@ -1927,12 +1927,17 @@ class ClassA
                     suffix: suffix,
                     wordSeparator: "");
 
-                return (name, symbolSpecification, namingStyle);
+                return (symbolSpecification, namingStyle);
             }
 
-            SerializableNamingRule CreateRule(string name, SymbolSpecification specification, NamingStyle style)
+            SerializableNamingRule CreateRule(SymbolSpecification specification, NamingStyle style)
             {
-                return new SerializableNamingRule(name, specification.ID, style.ID, ReportDiagnostic.Error);
+                return new SerializableNamingRule()
+                {
+                    SymbolSpecificationID = specification.ID,
+                    NamingStyleID = style.ID,
+                    EnforcementLevel = ReportDiagnostic.Error
+                };
             }
         }
     }
