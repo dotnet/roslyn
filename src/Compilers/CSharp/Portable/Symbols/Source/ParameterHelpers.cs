@@ -149,11 +149,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            foreach (var parameter in parameters)
+            if (parameters.Length > 0 && compilation.ShouldEmitNullableAttributes(container))
             {
-                if (compilation.ShouldEmitNullableAttributes(container) && parameter.TypeWithAnnotations.NeedsNullableAttribute())
+                foreach (var parameter in parameters)
                 {
-                    compilation.EnsureNullableAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilation);
+                    if (parameter.TypeWithAnnotations.NeedsNullableAttribute())
+                    {
+                        compilation.EnsureNullableAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilation);
+                    }
                 }
             }
         }
