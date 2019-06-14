@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 
         public IEnumerable<InlineRenameReplacement> GetReplacements(DocumentId documentId)
         {
-            return _info.GetReplacements(documentId).Select(x =>
+            return _info.GetReplacements(documentId)?.Select(x =>
                 new InlineRenameReplacement(FSharpInlineRenameReplacementKindHelpers.ConvertTo(x.Kind), x.OriginalSpan, x.NewSpan));
         }
     }

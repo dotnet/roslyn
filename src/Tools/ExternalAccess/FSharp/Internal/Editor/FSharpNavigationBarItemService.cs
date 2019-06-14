@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
                     item.Text,
                     FSharpGlyphHelpers.ConvertTo(item.Glyph),
                     item.Spans,
-                    item.ChildItems.Select(x => ConvertToNavigationBarItem(x)).ToList(),
+                    item.ChildItems?.Select(x => ConvertToNavigationBarItem(x)).ToList(),
                     item.Indent,
                     item.Bolded,
                     item.Grayed);
