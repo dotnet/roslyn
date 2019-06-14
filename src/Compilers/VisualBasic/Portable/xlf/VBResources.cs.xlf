@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
-        <target state="new">Please use language version {0} or greater to use comments after line continuation character.</target>
+        <target state="translated">Použijte prosím verzi jazyka {0} nebo vyšší, abyste mohli používat komentáře za znakem pro pokračování řádku.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
-        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
+        <target state="translated">Ve stejném adresáři nemůže být více konfiguračních souborů analyzátoru ({0}).</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
-        <target state="new">comments after line continuation</target>
+        <target state="translated">komentáře po pokračování řádku</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -3235,7 +3235,7 @@
       </trans-unit>
       <trans-unit id="ERR_LineContWithCommentOrNoPrecSpace">
         <source>The line continuation character '_' must be preceded by at least one white space and it must be followed by a comment or the '_' must be the last character on the line.</source>
-        <target state="needs-review-translation">Před znakem pokračování řádku _ musí předcházet aspoň jeden mezerový znak a musí se jednat o poslední znak na řádku.</target>
+        <target state="translated">Před znakem pro pokračování řádku _ musí předcházet alespoň jeden prázdný znak a po něm musí následovat komentář nebo posledním znakem na řádku musí být _.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadModuleFile1">
@@ -3965,7 +3965,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnableToReadUacManifest2">
         <source>Unable to open Win32 manifest file '{0}' : {1}</source>
-        <target state="translated">Nejde otevřít soubor manifestu {0} : {1}.</target>
+        <target state="translated">Nejde otevřít soubor manifestu Win32 {0} : {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseValueForXmlExpression3">

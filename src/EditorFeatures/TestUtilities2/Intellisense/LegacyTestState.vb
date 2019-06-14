@@ -186,6 +186,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional isHardSelected As Boolean? = Nothing,
                                Optional shouldFormatOnCommit As Boolean? = Nothing,
                                Optional inlineDescription As String = Nothing,
+                               Optional automationText As String = Nothing,
                                Optional projectionsView As ITextView = Nothing) As Task
             ' projectionsView is not used in this implementation.
 
@@ -221,6 +222,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     document, Me.CurrentCompletionPresenterSession.SelectedItem)
                 Assert.Equal(description, itemDescription.Text)
             End If
+
+            ' AutomationText property is only supported by Modern Completion
+            Assert.Null(automationText)
         End Function
 
         Public Overrides Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
