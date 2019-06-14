@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -18,6 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new AddConstructorParametersFromMembersCodeRefactoringProvider();
+
+        private readonly NamingStylesTestOptionSets options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
@@ -1206,6 +1209,151 @@ class C : ISerializable
     }
 }
 ");
+        }
+
+        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestNoFieldNamingStyle()
+        {
+            var source =
+@"
+class C
+{
+    private int [|v|];
+    public C()
+    {
+    }
+}
+";
+
+            var expected =
+@"
+class C
+{
+    private int v;
+    public C(int p_v)
+    {
+        v = p_v;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix);
+        }
+
+        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestCommonFieldNamingStyle()
+        {
+            var source =
+@"
+class C
+{
+    private int [|t_v|];
+    public C()
+    {
+    }
+}
+";
+
+            var expected =
+@"
+class C
+{
+    private int t_v;
+    public C(int p_v)
+    {
+        t_v = p_v;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix);
+        }
+
+        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestSpecifiedFieldNamingStyle()
+        {
+            var source =
+@"
+class C
+{
+    private int [|field_v|];
+    public C()
+    {
+    }
+}
+";
+
+            var expected =
+@"
+class C
+{
+    private int field_v;
+    public C(int p_v)
+    {
+        field_v = p_v;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.MergeStyles(options.FieldNamesAreCamelCaseBeginWithField_, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+        }
+
+        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestSpecifiedAndCommonFieldNamingStyle()
+        {
+            var source =
+@"
+class C
+{
+    private int [|field_s_v|];
+    public C()
+    {
+    }
+}
+";
+
+            var expected =
+@"
+class C
+{
+    private int field_s_v;
+    public C(int p_v)
+    {
+        field_s_v = p_v;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.MergeStyles(options.FieldNamesAreCamelCaseBeginWithField_, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+        }
+
+        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestSpecifiedAndCommonFieldNamingStyle2()
+        {
+            var source =
+@"
+class C
+{
+    private int [|s_field_v|];
+    public C()
+    {
+    }
+}
+";
+
+            var expected =
+@"
+class C
+{
+    private int s_field_v;
+    public C(int p_v)
+    {
+        s_field_v = p_v;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.MergeStyles(options.FieldNamesAreCamelCaseBeginWithField_, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
         }
     }
 }

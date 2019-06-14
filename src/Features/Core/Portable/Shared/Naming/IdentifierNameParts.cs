@@ -22,7 +22,17 @@ namespace Microsoft.CodeAnalysis.Shared.Naming
 
         public static IdentifierNameParts GetIdentifierBaseName(ISymbol symbol, ImmutableArray<NamingRule> rules)
         {
-            var baseName = symbol.Name;
+            var baseName = RemovePrefixesAndSuffixes(symbol, rules, symbol.Name);
+
+            var parts = StringBreaker.GetWordParts(baseName);
+            var result = CreateWords(parts, baseName);
+
+            return new IdentifierNameParts(baseName, result);
+        }
+
+        private static string RemovePrefixesAndSuffixes(ISymbol symbol, ImmutableArray<NamingRule> rules, string baseName)
+        {
+            var newBaseName = baseName;
 
             foreach (var rule in rules)
             {
@@ -30,27 +40,31 @@ namespace Microsoft.CodeAnalysis.Shared.Naming
                 {
                     // remove specified prefix
                     var prefix = rule.NamingStyle.Prefix;
-                    baseName = baseName.StartsWith(prefix)
-                        ? baseName.Substring(prefix.Length)
-                        : baseName;
+                    newBaseName = newBaseName.StartsWith(prefix)
+                        ? newBaseName.Substring(prefix.Length)
+                        : newBaseName;
 
                     // remove specified suffix
                     var suffix = rule.NamingStyle.Suffix;
-                    baseName = symbol.Name.EndsWith(suffix)
-                        ? baseName.Substring(0, baseName.Length - suffix.Length)
-                        : baseName;
+                    newBaseName = newBaseName.EndsWith(suffix)
+                        ? newBaseName.Substring(0, newBaseName.Length - suffix.Length)
+                        : newBaseName;
 
                     break;
                 }
             }
 
             // remove any common prefixes
-            baseName = NamingStyle.StripCommonPrefixes(baseName, out var _);
+            newBaseName = NamingStyle.StripCommonPrefixes(newBaseName, out var _);
 
-            var parts = StringBreaker.GetWordParts(baseName);
-            var result = CreateWords(parts, baseName);
+            // If no changes were made to the basename passed in, we're done
+            if (newBaseName == baseName)
+            {
+                return baseName;
+            }
 
-            return new IdentifierNameParts(baseName, result);
+            // otherwise, see if any other prefixes exist
+            return RemovePrefixesAndSuffixes(symbol, rules, newBaseName);
         }
 
         private static ImmutableArray<string> CreateWords(ArrayBuilder<TextSpan> parts, string name)

@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -16,6 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpInitializeMemberFromParameterCodeRefactoringProvider();
+
+        private readonly NamingStylesTestOptionSets options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestInitializeFieldWithSameName()
@@ -946,6 +949,121 @@ struct S
         this.test = test;
     }
 }", index: 1, parameters: Always_Warning);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNoParameterNamingStyle()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    public C([||]string s)
+    {
+    }
+}",
+    @"
+class C
+{
+    private string _s;
+
+    public C(string s)
+    {
+        _s = s;
+    }
+}", parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscore));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCommonParameterNamingStyle()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    public C([||]string t_s)
+    {
+    }
+}",
+    @"
+class C
+{
+    private string s;
+
+    public C(string t_s)
+    {
+        _s = t_s;
+    }
+}", parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscore));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSpecifiedParameterNamingStyle()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    public C([||]string p_s)
+    {
+    }
+}",
+    @"
+class C
+{
+    private string _s;
+
+    public C(string p_s)
+    {
+        _s = p_s;
+    }
+}", parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscore, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCommonAndSpecifiedParameterNamingStyle()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    public C([||]string t_p_s)
+    {
+    }
+}",
+    @"
+class C
+{
+    private string s;
+
+    public C(string t_p_s)
+    {
+        _s = t_p_s;
+    }
+}", parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscore, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCommonAndSpecifiedParameterNamingStyle2()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+class C
+{
+    public C([||]string p_t_s)
+    {
+    }
+}",
+        @"
+class C
+{
+    private string _s;
+
+    public C([||]string p_t_s)
+    {
+        _s = p_t_s;
+    }
+}", parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscore, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp)));
         }
 
         private TestParameters OmitIfDefault_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption.Warning));

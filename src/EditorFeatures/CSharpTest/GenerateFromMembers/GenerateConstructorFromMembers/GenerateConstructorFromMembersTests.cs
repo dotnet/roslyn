@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.GenerateConstructorFromMembers;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -18,6 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructorFrom
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new GenerateConstructorFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
+
+        private readonly NamingStylesTestOptionSets options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSingleField()
@@ -1387,6 +1390,106 @@ chosenSymbols: null);
         this.b = b;
     }
 }");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestNoFieldNamingStyle()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Z
+{
+    int [|a|] = 2;
+}",
+@"class Z
+{
+    int a = 2;
+
+    public Z(int p_a{|Navigation:)|}
+    {
+        a = p_a;
+    }
+}", options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix);
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestCommonFieldNamingStyle()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Z
+{
+    int [|s_a|] = 2;
+}",
+@"class Z
+{
+    int s_a = 2;
+
+    public Z(int p_a{|Navigation:)|}
+    {
+        s_a = p_a;
+    }
+}", options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix);
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestSpecifiedNamingStyle()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Z
+{
+    int [|field_a|] = 2;
+}",
+@"class Z
+{
+    int field_a = 2;
+
+    public Z(int p_a{|Navigation:)|}
+    {
+        field_a = p_a;
+    }
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseBeginWithField_, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestSpecifiedAndCommonFieldNamingStyle()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Z
+{
+    int [|field_s_a|] = 2;
+}",
+@"class Z
+{
+    int field_s_a = 2;
+
+    public Z(int p_a{|Navigation:)|}
+    {
+        field_s_a = p_a;
+    }
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseBeginWithField_, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestSpecifiedAndCommonFieldNamingStyle2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Z
+{
+    int [|s_field_a|] = 2;
+}",
+@"class Z
+{
+    int s_field_a = 2;
+
+    public Z(int p_a{|Navigation:)|}
+    {
+        s_field_a = p_a;
+    }
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseBeginWithField_, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
         }
 
         [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]

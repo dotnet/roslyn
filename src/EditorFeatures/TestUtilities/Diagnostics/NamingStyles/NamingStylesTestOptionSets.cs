@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project rot for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -38,6 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
 
         public IDictionary<OptionKey, object> FieldNamesAreCamelCaseWithUnderscore =>
             Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), FieldNamesAreCamelCaseWithUnderscoreOption());
+
+        public IDictionary<OptionKey, object> FieldNamesAreCamelCaseBeginWithField_ =>
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), FieldNamesAreCamelCaseBeginWithField_Option());
 
         public IDictionary<OptionKey, object> MethodNamesArePascalCase =>
             Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), MethodNamesArePascalCaseOption());
@@ -162,6 +166,38 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
                 capitalizationScheme: Capitalization.CamelCase,
                 name: "Name",
                 prefix: "_",
+                suffix: "",
+                wordSeparator: "");
+
+            var namingRule = new SerializableNamingRule()
+            {
+                SymbolSpecificationID = symbolSpecification.ID,
+                NamingStyleID = namingStyle.ID,
+                EnforcementLevel = ReportDiagnostic.Error
+            };
+
+            var info = new NamingStylePreferences(
+                ImmutableArray.Create(symbolSpecification),
+                ImmutableArray.Create(namingStyle),
+                ImmutableArray.Create(namingRule));
+
+            return info;
+        }
+
+        private NamingStylePreferences FieldNamesAreCamelCaseBeginWithField_Option()
+        {
+            var symbolSpecification = new SymbolSpecification(
+                null,
+                "Name",
+                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
+                accessibilityList: default,
+                modifiers: default);
+
+            var namingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme: Capitalization.CamelCase,
+                name: "Name",
+                prefix: "field_",
                 suffix: "",
                 wordSeparator: "");
 
