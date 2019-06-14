@@ -1320,7 +1320,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal bool TryGetHierarchy(ProjectId projectId, out IVsHierarchy hierarchy)
         {
-            hierarchy = this.GetHierarchy(projectId);
+            hierarchy = GetHierarchy(projectId);
+            if (hierarchy != null)
+            {
+                return true;
+            }
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            var project = _projectTracker.GetProject(projectId);
+#pragma warning restore CS0618
+
+            if (project != null)
+            {
+                hierarchy = project.Hierarchy;
+            }
+
             return hierarchy != null;
         }
 
