@@ -100503,6 +100503,124 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "iy.B(x)").WithLocation(29, 9));
         }
 
+        [Fact]
+        [WorkItem(36018, "https://github.com/dotnet/roslyn/issues/36018")]
+        public void InterfaceMethods_03()
+        {
+            var source =
+@"
+#nullable enable
+
+interface IEquatable<T> {
+  bool Equals(T other);    
+}
+
+interface I1 : IEquatable<I1?>, IEquatable<string?>
+{ }
+
+class C1 : I1
+{
+    public bool Equals(string? other)
+    {
+        return true;
+    }
+
+    public bool Equals(I1? other)
+    {
+        return true;
+    }
+}
+
+class C2
+{
+    void M(I1 x, string y)
+    {
+        x.Equals(y);
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(36018, "https://github.com/dotnet/roslyn/issues/36018")]
+        public void InterfaceMethods_04()
+        {
+            var source =
+@"
+#nullable enable
+
+interface IEquatable<T> {
+  bool Equals(T other);    
+}
+
+interface I1 : IEquatable<I1>, IEquatable<string>
+{ }
+
+class C1 : I1
+{
+    public bool Equals(string other)
+    {
+        return true;
+    }
+
+    public bool Equals(I1 other)
+    {
+        return true;
+    }
+}
+
+class C2
+{
+    void M(I1 x, string? y)
+    {
+        x.Equals(y);
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (28,18): warning CS8604: Possible null reference argument for parameter 'other' in 'bool IEquatable<string>.Equals(string other)'.
+                //         x.Equals(y);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("other", "bool IEquatable<string>.Equals(string other)").WithLocation(28, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(36018, "https://github.com/dotnet/roslyn/issues/36018")]
+        public void InterfaceMethods_05()
+        {
+            var source =
+@"
+#nullable enable
+
+interface IEquatable<T> {
+  bool Equals(T other);    
+}
+
+interface I1<T> : IEquatable<I1<T>>, IEquatable<T>
+{ }
+
+class C2
+{
+    void M(string? y, string z)
+    {
+        GetI1(y).Equals(y);
+        GetI1(z).Equals(y);
+    }
+
+    I1<T> GetI1<T>(T x) => throw null!; 
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,25): warning CS8604: Possible null reference argument for parameter 'other' in 'bool IEquatable<string>.Equals(string other)'.
+                //         GetI1(z).Equals(y);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("other", "bool IEquatable<string>.Equals(string other)").WithLocation(16, 25)
+                );
+        }
+
         [Fact, WorkItem(33347, "https://github.com/dotnet/roslyn/issues/33347")]
         public void NestedNullConditionalAccess()
         {
