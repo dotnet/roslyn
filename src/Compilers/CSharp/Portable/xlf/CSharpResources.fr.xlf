@@ -803,14 +803,14 @@
         <target state="new">stackalloc in nested expressions</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureNotNullGenericTypeConstraint">
+        <source>notnull generic type constraint</source>
+        <target state="new">notnull generic type constraint</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
         <source>nullable reference types</source>
         <target state="translated">types référence Nullable</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureObjectGenericTypeConstraint">
-        <source>object generic type constraint</source>
-        <target state="translated">contrainte de type générique d'objet</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureObsoleteOnPropertyAccessor">
@@ -896,11 +896,6 @@
       <trans-unit id="IDS_NULL">
         <source>&lt;null&gt;</source>
         <target state="translated">&lt;Null&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_NotNullGenericTypeConstraint">
-        <source>notnull generic type constraint</source>
-        <target state="new">notnull generic type constraint</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_OverrideWithConstraints">
@@ -1701,16 +1696,6 @@
       <trans-unit id="WRN_NullableValueTypeMayBeNull_Title">
         <source>Nullable value type may be null.</source>
         <target state="translated">Le type valeur Nullable peut avoir une valeur null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_SpecialTypeAsBound">
-        <source>Constraint cannot be special class '{0}'</source>
-        <target state="new">Constraint cannot be special class '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_SpecialTypeAsBound_Title">
-        <source>Constraint cannot be special class</source>
-        <target state="new">Constraint cannot be special class</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">

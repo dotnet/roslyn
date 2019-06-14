@@ -289,7 +289,9 @@ A `class?` constraint is allowed, which, like class, requires the type argument 
 [Nullable strawman](https://github.com/dotnet/csharplang/issues/790)
 [4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
 
-An explicit `object` (or `System.Object`) constraint is allowed, which requires the type to be non-nullable (value or reference type).
+Explicit `object` (or `System.Object`) constraints of any nullability are disallowed. However, type substitution can lead to
+`object!` or `object~` constraints to appear among the constraint types, when their nullability is significant by comparison to
+other constraints. An `object!` constraint requires the type to be non-nullable (value or reference type).
 However, an explicit `object?` constraint is not allowed.
 An unconstrained (here it means - no type constraints, and no `class`, `struct`, or `unmanaged` constraints) type parameter is essentially
 equivalent to one constrained by `object?` when it is declared in a context where nullable annotations are enabled. If annotations are disabled,
