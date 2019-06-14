@@ -56,6 +56,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out failedThroughTypeCheck, within.DeclaringCompilation, ref useSiteDiagnostics, basesBeingResolved);
         }
 
+        /// <summary>
+        /// Returns true if the symbol is effectively public or internal based on
+        /// the declared accessibility of the symbol and any containing symbols.
+        /// </summary>
         internal static bool IsPublicOrInternal(Symbol symbol, out bool isInternal)
         {
             Debug.Assert(!(symbol is null));

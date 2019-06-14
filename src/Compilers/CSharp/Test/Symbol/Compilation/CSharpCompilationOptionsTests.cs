@@ -365,8 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "AllowUnsafe",
                 "Usings",
                 "TopLevelBinderFlags",
-                "NullableContextOptions",
-                "EmitPublicNullableMetadataOnly");
+                "NullableContextOptions");
         }
 
         [Fact]
@@ -410,14 +409,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var topLevelBinderFlags = BinderFlags.None;
             var publicSign = false;
             NullableContextOptions nullableContextOptions = NullableContextOptions.Disable;
-            bool emitPrivateNullableMetadata = false;
 
             return new CSharpCompilationOptions(OutputKind.ConsoleApplication, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, usings,
                 optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
                 platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,
                 concurrentBuild, deterministic, currentLocalTime, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
-                assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, publicSign, topLevelBinderFlags,
-                nullableContextOptions, emitPrivateNullableMetadata);
+                assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, publicSign, topLevelBinderFlags, nullableContextOptions);
         }
 
         private sealed class MetadataReferenceResolverWithEquality : MetadataReferenceResolver
