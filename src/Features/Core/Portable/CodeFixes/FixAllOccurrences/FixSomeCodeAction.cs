@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private static readonly HashSet<string> s_predefinedCodeFixProviderNames = GetPredefinedCodeFixProviderNames();
 
         internal readonly FixAllState FixAllState;
-        private bool _showPreviewChangesDialog;
+        private readonly bool _showPreviewChangesDialog;
 
         internal FixSomeCodeAction(
             FixAllState fixAllState, bool showPreviewChangesDialog)
