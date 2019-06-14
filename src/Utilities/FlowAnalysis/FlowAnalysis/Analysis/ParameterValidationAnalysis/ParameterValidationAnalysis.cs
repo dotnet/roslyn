@@ -53,14 +53,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
 
             var cfg = topmostBlock.GetEnclosingControlFlowGraph();
             var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
-            var pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
+            var pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
                 interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt: null, pessimisticAnalysis);
-            var result = GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
-                interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResult);
-            return result.HazardousParameterUsages;
+            if (pointsToAnalysisResult != null)
+            {
+                var result = TryGetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
+                    interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResult);
+                if (result != null)
+                {
+                    return result.HazardousParameterUsages;
+                }
+            }
+
+            return ImmutableDictionary<IParameterSymbol, SyntaxNode>.Empty;
         }
 
-        private static ParameterValidationAnalysisResult GetOrComputeResult(
+        private static ParameterValidationAnalysisResult TryGetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
             WellKnownTypeProvider wellKnownTypeProvider,
@@ -71,15 +79,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             Debug.Assert(pointsToAnalysisResult != null);
 
             var analysisContext = ParameterValidationAnalysisContext.Create(ParameterValidationAbstractValueDomain.Default,
-                wellKnownTypeProvider, cfg, owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResult, GetOrComputeResultForAnalysisContext);
-            return GetOrComputeResultForAnalysisContext(analysisContext);
+                wellKnownTypeProvider, cfg, owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResult, TryGetOrComputeResultForAnalysisContext);
+            return TryGetOrComputeResultForAnalysisContext(analysisContext);
         }
 
-        private static ParameterValidationAnalysisResult GetOrComputeResultForAnalysisContext(ParameterValidationAnalysisContext analysisContext)
+        private static ParameterValidationAnalysisResult TryGetOrComputeResultForAnalysisContext(ParameterValidationAnalysisContext analysisContext)
         {
             var operationVisitor = new ParameterValidationDataFlowOperationVisitor(analysisContext);
             var analysis = new ParameterValidationAnalysis(ParameterValidationAnalysisDomainInstance, operationVisitor);
-            return analysis.GetOrComputeResultCore(analysisContext, cacheResult: true);
+            return analysis.TryGetOrComputeResultCore(analysisContext, cacheResult: true);
         }
 
         protected override ParameterValidationAnalysisResult ToResult(

@@ -17,6 +17,21 @@
         <target state="translated">A lista de símbolos banidos contém uma duplicata</target>
         <note />
       </trans-unit>
+      <trans-unit id="RestrictedInternalsVisibleToDescription">
+        <source>RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.</source>
+        <target state="translated">RestrictedInternalsVisibleToAttribute habilita uma versão restrita do InternalsVisibleToAttribute que limita o acesso a símbolos internos aos que estão nos namespaces especificados. Cada assembly de referência só pode acessar os símbolos internos definidos nos namespaces restritos que o assembly referenciado permite.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RestrictedInternalsVisibleToMessage">
+        <source>External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'</source>
+        <target state="translated">O acesso externo ao símbolo interno '{0}' é proibido. O assembly '{1}' permite somente o acesso a símbolos internos definidos nos seguintes namespaces: '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RestrictedInternalsVisibleToTitle">
+        <source>External access to internal symbols outside the restricted namespace(s) is prohibited</source>
+        <target state="translated">O acesso externo a símbolos internos fora dos namespaces restritos é proibido</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SymbolIsBannedDescription">
         <source>The symbol has been marked as banned in this project, and an alternate should be used instead.</source>
         <target state="translated">O símbolo foi marcado como banido neste projeto. Nesse caso, é necessário usar um símbolo alternativo.</target>

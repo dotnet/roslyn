@@ -18,7 +18,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
         }
 
-        internal static TaintedDataAnalysisResult GetOrComputeResult(
+        internal static TaintedDataAnalysisResult TryGetOrComputeResult(
             ControlFlowGraph cfg,
             Compilation compilation,
             ISymbol containingMethod,
@@ -31,11 +31,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                 analyzerOptions, rule, InterproceduralAnalysisKind.ContextSensitive, cancellationToken);
-            return GetOrComputeResult(cfg, compilation, containingMethod, taintedSourceInfos,
+            return TryGetOrComputeResult(cfg, compilation, containingMethod, taintedSourceInfos,
                 taintedSanitizerInfos, taintedSinkInfos, interproceduralAnalysisConfig);
         }
 
-        private static TaintedDataAnalysisResult GetOrComputeResult(
+        private static TaintedDataAnalysisResult TryGetOrComputeResult(
             ControlFlowGraph cfg,
             Compilation compilation,
             ISymbol containingMethod,
@@ -45,7 +45,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig)
         {
             WellKnownTypeProvider wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
-            PointsToAnalysisResult pointsToAnalysisResult = PointsToAnalysis.GetOrComputeResult(
+            PointsToAnalysisResult pointsToAnalysisResult = PointsToAnalysis.TryGetOrComputeResult(
                 cfg,
                 containingMethod,
                 wellKnownTypeProvider,
@@ -53,6 +53,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 interproceduralAnalysisPredicateOpt: null,
                 pessimisticAnalysis: true,
                 performCopyAnalysis: false);
+            if (pointsToAnalysisResult == null)
+            {
+                return null;
+            }
 
             TaintedDataAnalysisContext analysisContext = TaintedDataAnalysisContext.Create(
                 TaintedDataAbstractValueDomain.Default,
@@ -62,19 +66,19 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 interproceduralAnalysisConfig,
                 pessimisticAnalysis: false,
                 pointsToAnalysisResult: pointsToAnalysisResult,
-                getOrComputeAnalysisResult: GetOrComputeResultForAnalysisContext,
+                tryGetOrComputeAnalysisResult: TryGetOrComputeResultForAnalysisContext,
                 taintedSourceInfos: taintedSourceInfos,
                 taintedSanitizerInfos: taintedSanitizerInfos,
                 taintedSinkInfos: taintedSinkInfos);
 
-            return GetOrComputeResultForAnalysisContext(analysisContext);
+            return TryGetOrComputeResultForAnalysisContext(analysisContext);
         }
 
-        private static TaintedDataAnalysisResult GetOrComputeResultForAnalysisContext(TaintedDataAnalysisContext analysisContext)
+        private static TaintedDataAnalysisResult TryGetOrComputeResultForAnalysisContext(TaintedDataAnalysisContext analysisContext)
         {
             TaintedDataOperationVisitor visitor = new TaintedDataOperationVisitor(analysisContext);
             TaintedDataAnalysis analysis = new TaintedDataAnalysis(visitor);
-            return analysis.GetOrComputeResultCore(analysisContext, cacheResult: true);
+            return analysis.TryGetOrComputeResultCore(analysisContext, cacheResult: true);
         }
 
         protected override TaintedDataAnalysisResult ToResult(

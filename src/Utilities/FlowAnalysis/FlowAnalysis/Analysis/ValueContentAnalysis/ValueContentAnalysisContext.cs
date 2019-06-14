@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             bool pessimisticAnalysis,
             CopyAnalysisResult copyAnalysisResultOpt,
             PointsToAnalysisResult pointsToAnalysisResultOpt,
-            Func<ValueContentAnalysisContext, ValueContentAnalysisResult> getOrComputeAnalysisResult,
+            Func<ValueContentAnalysisContext, ValueContentAnalysisResult> tryGetOrComputeAnalysisResult,
             ControlFlowGraph parentControlFlowGraphOpt,
             InterproceduralValueContentAnalysisData interproceduralAnalysisDataOpt,
             InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt)
             : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, interproceduralAnalysisConfig,
                   pessimisticAnalysis, predicateAnalysis: true, exceptionPathsAnalysis: false, copyAnalysisResultOpt,
-                  pointsToAnalysisResultOpt, valueContentAnalysisResultOpt: null, getOrComputeAnalysisResult, parentControlFlowGraphOpt,
+                  pointsToAnalysisResultOpt, valueContentAnalysisResultOpt: null, tryGetOrComputeAnalysisResult, parentControlFlowGraphOpt,
                   interproceduralAnalysisDataOpt, interproceduralAnalysisPredicateOpt)
         {
         }
@@ -48,13 +48,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             bool pessimisticAnalysis,
             CopyAnalysisResult copyAnalysisResultOpt,
             PointsToAnalysisResult pointsToAnalysisResultOpt,
-            Func<ValueContentAnalysisContext, ValueContentAnalysisResult> getOrComputeAnalysisResult,
+            Func<ValueContentAnalysisContext, ValueContentAnalysisResult> tryGetOrComputeAnalysisResult,
             InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt)
         {
             return new ValueContentAnalysisContext(
                 valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol,
                 interproceduralAnalysisConfig, pessimisticAnalysis, copyAnalysisResultOpt, pointsToAnalysisResultOpt,
-                getOrComputeAnalysisResult, parentControlFlowGraphOpt: null, interproceduralAnalysisDataOpt: null, interproceduralAnalysisPredicateOpt);
+                tryGetOrComputeAnalysisResult, parentControlFlowGraphOpt: null, interproceduralAnalysisDataOpt: null, interproceduralAnalysisPredicateOpt);
         }
 
         public override ValueContentAnalysisContext ForkForInterproceduralAnalysis(
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             Debug.Assert(valueContentAnalysisResultOpt == null);
 
             return new ValueContentAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedControlFlowGraph, invokedMethod, InterproceduralAnalysisConfiguration,
-                PessimisticAnalysis, copyAnalysisResultOpt, pointsToAnalysisResultOpt, GetOrComputeAnalysisResult, ControlFlowGraph, interproceduralAnalysisData,
+                PessimisticAnalysis, copyAnalysisResultOpt, pointsToAnalysisResultOpt, TryGetOrComputeAnalysisResult, ControlFlowGraph, interproceduralAnalysisData,
                 InterproceduralAnalysisPredicateOpt);
         }
 
