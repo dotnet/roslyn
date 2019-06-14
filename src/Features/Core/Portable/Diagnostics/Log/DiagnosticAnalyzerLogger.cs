@@ -4,10 +4,10 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Internal.Log;
-using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Log
 {
