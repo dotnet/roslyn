@@ -19,17 +19,17 @@
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToDescription">
         <source>RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.</source>
-        <target state="new">RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.</target>
+        <target state="translated">RestrictedInternalsVisibleToAttribute 是受限版的 InternalsVisibleToAttribute，會限制對指定命名空間中內部符號的存取。參考的每一個組件都只能存取所參考組件允許之受限命名空間中定義的內部符號。</target>
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToMessage">
         <source>External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'</source>
-        <target state="new">External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'</target>
+        <target state="translated">外部無法存取內部符號 '{0}'。組件 '{1}' 只允許存取下列命名空間中定義的內部符號: '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToTitle">
         <source>External access to internal symbols outside the restricted namespace(s) is prohibited</source>
-        <target state="new">External access to internal symbols outside the restricted namespace(s) is prohibited</target>
+        <target state="translated">外部無法存取受限命名空間外部的內部符號</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedDescription">
