@@ -386,23 +386,22 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             if (typeInfo.Type?.SpecialType == SpecialType.System_String &&
                 typeInfo.ConvertedType?.IsFormattableString() == true)
             {
-                return typeInfo.ConvertedType.WithNullability(typeInfo.Nullability.FlowState);
+                return typeInfo.GetConvertedTypeWithFlowNullability();
             }
 
             if (typeInfo.Type != null)
             {
-                return typeInfo.Type.WithNullability(typeInfo.Nullability.FlowState);
+                return typeInfo.GetTypeWithFlowNullability();
             }
 
             if (typeInfo.ConvertedType != null)
             {
-                return typeInfo.ConvertedType.WithNullability(typeInfo.ConvertedNullability.FlowState);
+                return typeInfo.GetConvertedTypeWithFlowNullability();
             }
 
             if (objectAsDefault)
             {
-                return semanticModel.Compilation.GetSpecialType(SpecialType.System_Object)
-                    .WithNullability(typeInfo.Nullability.FlowState);
+                return semanticModel.Compilation.GetSpecialType(SpecialType.System_Object);
             }
 
             return null;
