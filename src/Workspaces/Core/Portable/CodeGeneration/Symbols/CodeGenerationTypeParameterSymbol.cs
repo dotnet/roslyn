@@ -92,6 +92,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public NullableAnnotation ReferenceTypeConstraintNullableAnnotation => throw new System.NotImplementedException();
 
-        public ImmutableArray<NullableAnnotation> ConstraintNullableAnnotations => throw new System.NotImplementedException();
+        public ImmutableArray<NullableAnnotation> ConstraintNullableAnnotations => ConstraintTypes.SelectAsArray(t => t.GetNullability());
     }
 }
