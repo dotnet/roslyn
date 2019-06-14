@@ -39,52 +39,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </summary>
         private Dictionary<FieldSymbol, NamedTypeSymbol> _fixedImplementationTypes;
 
-        private bool _needsGeneratedIsReadOnlyAttribute_Value;
-        private bool _needsGeneratedIsUnmanagedAttribute_Value;
+        private int _needsGeneratedAttributes;
         private bool _needsGeneratedAttributes_IsFrozen;
-        private bool _needsGeneratedNullableAttribute_Value;
 
         /// <summary>
-        /// Returns a value indicating whether this builder has a symbol that needs IsReadOnlyAttribute to be generated during emit phase.
-        /// The value is set during lowering the symbols that need that attribute, and is frozen on first trial to get it.
+        /// Returns a value indicating which embedded attributes should be generated during emit phase.
+        /// The value is set during binding the symbols that need those attributes, and is frozen on first trial to get it.
         /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
         /// </summary>
-        protected bool NeedsGeneratedIsReadOnlyAttribute
+        internal EmbeddedAttributes GetNeedsGeneratedAttributes()
         {
-            get
-            {
-                _needsGeneratedAttributes_IsFrozen = true;
-                return Compilation.NeedsGeneratedIsReadOnlyAttribute || _needsGeneratedIsReadOnlyAttribute_Value;
-            }
+            _needsGeneratedAttributes_IsFrozen = true;
+            return GetNeedsGeneratedAttributesInternal();
         }
 
-        /// <summary>
-        /// Returns a value indicating whether this builder has a symbol that needs IsByRefLikeAttribute to be generated during emit phase.
-        /// </summary>
-        protected bool NeedsGeneratedIsByRefLikeAttribute
+        private EmbeddedAttributes GetNeedsGeneratedAttributesInternal()
         {
-            get
-            {
-                return Compilation.NeedsGeneratedIsByRefLikeAttribute;
-            }
+            return (EmbeddedAttributes)_needsGeneratedAttributes | Compilation.GetNeedsGeneratedAttributes();
         }
 
-        internal bool NeedsGeneratedIsUnmanagedAttribute
+        internal void SetNeedsGeneratedAttributes(EmbeddedAttributes attributes)
         {
-            get
-            {
-                _needsGeneratedAttributes_IsFrozen = true;
-                return Compilation.NeedsGeneratedIsUnmanagedAttribute || _needsGeneratedIsUnmanagedAttribute_Value;
-            }
-        }
-
-        protected bool NeedsGeneratedNullableAttribute
-        {
-            get
-            {
-                _needsGeneratedAttributes_IsFrozen = true;
-                return Compilation.NeedsGeneratedNullableAttribute || _needsGeneratedNullableAttribute_Value;
-            }
+            Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
+            ThreadSafeFlagOperations.Set(ref _needsGeneratedAttributes, (int)attributes);
         }
 
         internal PEModuleBuilder(
@@ -1535,6 +1512,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(member, arguments, isOptionalUse: true);
         }
 
+        internal virtual SynthesizedAttributeData SynthesizeNullablePublicOnlyAttribute()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor);
+        }
+
         protected virtual SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
@@ -1553,52 +1536,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor);
         }
 
-        internal void EnsureIsReadOnlyAttributeExists()
+        private void EnsureEmbeddedAttributeExists(EmbeddedAttributes attribute)
         {
             Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
 
-            if (_needsGeneratedIsReadOnlyAttribute_Value || Compilation.NeedsGeneratedIsReadOnlyAttribute)
+            if ((GetNeedsGeneratedAttributesInternal() & attribute) != 0)
             {
                 return;
             }
 
             // Don't report any errors. They should be reported during binding.
-            if (Compilation.CheckIfIsReadOnlyAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null))
+            if (Compilation.CheckIfAttributeShouldBeEmbedded(attribute, diagnosticsOpt: null, locationOpt: null))
             {
-                _needsGeneratedIsReadOnlyAttribute_Value = true;
+                SetNeedsGeneratedAttributes(attribute);
             }
+        }
+
+        internal void EnsureIsReadOnlyAttributeExists()
+        {
+            EnsureEmbeddedAttributeExists(EmbeddedAttributes.IsReadOnlyAttribute);
         }
 
         internal void EnsureIsUnmanagedAttributeExists()
         {
-            Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
-
-            if (_needsGeneratedIsUnmanagedAttribute_Value || Compilation.NeedsGeneratedIsUnmanagedAttribute)
-            {
-                return;
-            }
-
-            // Don't report any errors. They should be reported during binding.
-            if (Compilation.CheckIfIsUnmanagedAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null))
-            {
-                _needsGeneratedIsUnmanagedAttribute_Value = true;
-            }
+            EnsureEmbeddedAttributeExists(EmbeddedAttributes.IsUnmanagedAttribute);
         }
 
         internal void EnsureNullableAttributeExists()
         {
-            Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
+            EnsureEmbeddedAttributeExists(EmbeddedAttributes.NullableAttribute);
+        }
 
-            if (_needsGeneratedNullableAttribute_Value || Compilation.NeedsGeneratedNullableAttribute)
-            {
-                return;
-            }
-
-            // Don't report any errors. They should be reported during binding.
-            if (Compilation.CheckIfNullableAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null))
-            {
-                _needsGeneratedNullableAttribute_Value = true;
-            }
+        internal void EnsureNullablePublicOnlyAttributeExists()
+        {
+            EnsureEmbeddedAttributeExists(EmbeddedAttributes.NullablePublicOnlyAttribute);
         }
     }
 }

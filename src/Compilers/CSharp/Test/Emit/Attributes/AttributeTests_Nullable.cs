@@ -71,7 +71,7 @@ class C
         }
 
         [Fact]
-        public void ExplicitAttribute_MissingParameterlessConstructor()
+        public void ExplicitAttribute_MissingSingleByteConstructor()
         {
             var source =
 @"namespace System.Runtime.CompilerServices

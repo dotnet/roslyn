@@ -3277,6 +3277,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (diagnostic == null) || (diagnostic.Severity != DiagnosticSeverity.Error);
         }
 
+        internal bool EmitNullablePublicOnly
+        {
+            get
+            {
+                if (!_lazyEmitNullablePublicOnly.HasValue())
+                {
+                    bool value = SyntaxTrees.FirstOrDefault()?.Options?.Features?.ContainsKey("nullablePublicOnly") == true;
+                    _lazyEmitNullablePublicOnly = value.ToThreeState();
+                }
+                return _lazyEmitNullablePublicOnly.Value();
+            }
+        }
+
         internal bool ShouldEmitNullableAttributes(Symbol symbol)
         {
             Debug.Assert(!(symbol is null));
@@ -3288,13 +3301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (!_lazyEmitNullablePublicOnly.HasValue())
-            {
-                bool value = SyntaxTrees.FirstOrDefault()?.Options?.Features?.ContainsKey("nullablePublicOnly") == true;
-                _lazyEmitNullablePublicOnly = value.ToThreeState();
-            }
-
-            if (_lazyEmitNullablePublicOnly != ThreeState.True)
+            if (!EmitNullablePublicOnly)
             {
                 return true;
             }
