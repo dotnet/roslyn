@@ -137,26 +137,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private ImmutableArray<TypeWithAnnotations> GetDeclaredConstraintTypes()
+        private ImmutableArray<TypeWithAnnotations> GetDeclaredConstraintTypes(ConsList<PETypeParameterSymbol> inProgress)
         {
+            Debug.Assert(!inProgress.ContainsReference(this));
+            Debug.Assert(!inProgress.Any() || ReferenceEquals(inProgress.Head.ContainingSymbol, this.ContainingSymbol));
+
             if (_lazyDeclaredConstraintTypes.IsDefault)
             {
                 ImmutableArray<TypeWithAnnotations> declaredConstraintTypes;
 
-                PEMethodSymbol containingMethod = null;
-                PENamedTypeSymbol containingType;
-
-                if (_containingSymbol.Kind == SymbolKind.Method)
-                {
-                    containingMethod = (PEMethodSymbol)_containingSymbol;
-                    containingType = (PENamedTypeSymbol)containingMethod.ContainingSymbol;
-                }
-                else
-                {
-                    containingType = (PENamedTypeSymbol)_containingSymbol;
-                }
-
-                var moduleSymbol = containingType.ContainingPEModule;
+                var moduleSymbol = ((PEModuleSymbol)this.ContainingModule);
                 PEModule peModule = moduleSymbol.Module;
                 GenericParameterConstraintHandleCollection constraints = GetConstraintHandleCollection(peModule);
 
@@ -165,50 +155,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (constraints.Count > 0)
                 {
                     var symbolsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                    MetadataDecoder tokenDecoder;
+                    MetadataDecoder tokenDecoder = GetDecoderForConstraintTypes(moduleSymbol);
 
-                    if ((object)containingMethod != null)
-                    {
-                        tokenDecoder = new MetadataDecoder(moduleSymbol, containingMethod);
-                    }
-                    else
-                    {
-                        tokenDecoder = new MetadataDecoder(moduleSymbol, containingType);
-                    }
+                    TypeWithAnnotations bestObjectConstraint = default;
 
                     var metadataReader = peModule.MetadataReader;
                     foreach (var constraintHandle in constraints)
                     {
-                        var constraint = metadataReader.GetGenericParameterConstraint(constraintHandle);
-                        var typeSymbol = tokenDecoder.DecodeGenericParameterConstraint(constraint.Type, out bool hasUnmanagedModreq);
+                        TypeWithAnnotations type = GetConstraintTypeOrDefault(moduleSymbol, metadataReader, tokenDecoder, constraintHandle, ref hasUnmanagedModreqPattern);
 
-                        if (typeSymbol.SpecialType == SpecialType.System_ValueType)
+                        if (!type.HasType)
                         {
-                            // recognize "(class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType" pattern as "unmanaged"
-                            if (hasUnmanagedModreq)
-                            {
-                                hasUnmanagedModreqPattern = true;
-                            }
-
-                            // Drop 'System.ValueType' constraint type if the 'valuetype' constraint was also specified.
-                            if (((_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0))
-                            {
-                                continue;
-                            }
+                            // Dropped 'System.ValueType' constraint type when the 'valuetype' constraint was also specified.
+                            continue;
                         }
 
-                        var type = TypeWithAnnotations.Create(typeSymbol);
-                        type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol);
-
-                        // Drop 'System.Object?' constraint type.
-                        if (type.SpecialType == SpecialType.System_Object && type.NullableAnnotation.IsAnnotated())
+                        // Drop 'System.Object' constraint type.
+                        if (ConstraintsHelper.IsObjectConstraint(type, ref bestObjectConstraint))
                         {
                             continue;
                         }
 
-                        type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, constraintHandle, moduleSymbol);
-
                         symbolsBuilder.Add(type);
+                    }
+
+                    if (bestObjectConstraint.HasType)
+                    {
+                        // See if we need to put Object! or Object~ back in order to preserve nullability information for the type parameter.
+                        if (ConstraintsHelper.IsObjectConstraintSignificant(CalculateIsNotNullableFromNonTypeConstraints(), bestObjectConstraint))
+                        {
+                            Debug.Assert(!HasNotNullConstraint && !HasValueTypeConstraint);
+                            if (symbolsBuilder.Count == 0)
+                            {
+                                if (bestObjectConstraint.NullableAnnotation.IsOblivious() && !HasReferenceTypeConstraint)
+                                {
+                                    bestObjectConstraint = default;
+                                }
+                            }
+                            else
+                            {
+                                inProgress = inProgress.Prepend(this);
+                                foreach (TypeWithAnnotations constraintType in symbolsBuilder)
+                                {
+                                    if (!ConstraintsHelper.IsObjectConstraintSignificant(IsNotNullableIfReferenceTypeFromConstraintType(constraintType, inProgress, out _), bestObjectConstraint))
+                                    {
+                                        bestObjectConstraint = default;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (bestObjectConstraint.HasType)
+                            {
+                                symbolsBuilder.Insert(0, bestObjectConstraint);
+                            }
+                        }
                     }
 
                     declaredConstraintTypes = symbolsBuilder.ToImmutableAndFree();
@@ -235,6 +236,147 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return _lazyDeclaredConstraintTypes;
         }
 
+        private MetadataDecoder GetDecoderForConstraintTypes(PEModuleSymbol moduleSymbol)
+        {
+            MetadataDecoder tokenDecoder;
+            if (_containingSymbol.Kind == SymbolKind.Method)
+            {
+                tokenDecoder = new MetadataDecoder(moduleSymbol, (PEMethodSymbol)_containingSymbol);
+            }
+            else
+            {
+                tokenDecoder = new MetadataDecoder(moduleSymbol, (PENamedTypeSymbol)_containingSymbol);
+            }
+
+            return tokenDecoder;
+        }
+
+        private TypeWithAnnotations GetConstraintTypeOrDefault(PEModuleSymbol moduleSymbol, MetadataReader metadataReader, MetadataDecoder tokenDecoder, GenericParameterConstraintHandle constraintHandle, ref bool hasUnmanagedModreqPattern)
+        {
+            var constraint = metadataReader.GetGenericParameterConstraint(constraintHandle);
+            var typeSymbol = tokenDecoder.DecodeGenericParameterConstraint(constraint.Type, out bool hasUnmanagedModreq);
+
+            if (typeSymbol.SpecialType == SpecialType.System_ValueType)
+            {
+                // recognize "(class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType" pattern as "unmanaged"
+                if (hasUnmanagedModreq)
+                {
+                    hasUnmanagedModreqPattern = true;
+                }
+
+                // Drop 'System.ValueType' constraint type if the 'valuetype' constraint was also specified.
+                if (((_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0))
+                {
+                    return default;
+                }
+            }
+
+            var type = TypeWithAnnotations.Create(typeSymbol);
+            type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol);
+            type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, constraintHandle, moduleSymbol);
+            return type;
+        }
+
+        private static bool? IsNotNullableIfReferenceTypeFromConstraintType(TypeWithAnnotations constraintType, ConsList<PETypeParameterSymbol> inProgress, out bool isNonNullableValueType)
+        {
+            if (!(constraintType.Type is PETypeParameterSymbol typeParameter) ||
+                (object)typeParameter.ContainingSymbol != inProgress.Head.ContainingSymbol ||
+                typeParameter.GetConstraintHandleCollection().Count == 0)
+            {
+                return IsNotNullableIfReferenceTypeFromConstraintType(constraintType, out isNonNullableValueType);
+            }
+
+            bool? isNotNullableIfReferenceType = typeParameter.CalculateIsNotNullableIfReferenceType(inProgress, out isNonNullableValueType);
+
+            if (isNonNullableValueType)
+            {
+                Debug.Assert(isNotNullableIfReferenceType == true);
+                return true;
+            }
+
+            if (constraintType.NullableAnnotation.IsAnnotated() || isNotNullableIfReferenceType == false)
+            {
+                return false;
+            }
+            else if (constraintType.NullableAnnotation.IsOblivious() || isNotNullableIfReferenceType == null)
+            {
+                return null;
+            }
+
+            return true;
+        }
+
+        private bool? CalculateIsNotNullableIfReferenceType(ConsList<PETypeParameterSymbol> inProgress, out bool isNonNullableValueType)
+        {
+            if (inProgress.ContainsReference(this))
+            {
+                isNonNullableValueType = false;
+                return false;
+            }
+
+            if (this.HasValueTypeConstraint)
+            {
+                isNonNullableValueType = true;
+                return true;
+            }
+
+            bool? fromNonTypeConstraints = CalculateIsNotNullableFromNonTypeConstraints();
+
+            ImmutableArray<TypeWithAnnotations> constraintTypes = this.GetDeclaredConstraintTypes(inProgress);
+
+            if (constraintTypes.IsEmpty)
+            {
+                isNonNullableValueType = false;
+                return fromNonTypeConstraints;
+            }
+
+            bool? fromTypes = IsNotNullableIfReferenceTypeFromConstraintTypes(constraintTypes, inProgress, out isNonNullableValueType);
+
+            if (isNonNullableValueType)
+            {
+                Debug.Assert(fromTypes == true);
+                return true;
+            }
+
+            if (fromTypes == true || fromNonTypeConstraints == false)
+            {
+                return fromTypes;
+            }
+
+            Debug.Assert(fromNonTypeConstraints == null || fromNonTypeConstraints == true);
+            Debug.Assert(fromTypes != true);
+            return fromNonTypeConstraints;
+        }
+
+        private static bool? IsNotNullableIfReferenceTypeFromConstraintTypes(ImmutableArray<TypeWithAnnotations> constraintTypes, ConsList<PETypeParameterSymbol> inProgress, out bool isNonNullableValueType)
+        {
+            Debug.Assert(!constraintTypes.IsDefaultOrEmpty);
+
+            isNonNullableValueType = false;
+            bool? result = false;
+            foreach (TypeWithAnnotations constraintType in constraintTypes)
+            {
+                bool? fromType = IsNotNullableIfReferenceTypeFromConstraintType(constraintType, inProgress, out isNonNullableValueType);
+
+                if (isNonNullableValueType)
+                {
+                    Debug.Assert(fromType == true);
+                    return true;
+                }
+
+                if (fromType == true)
+                {
+                    result = true;
+                }
+                else if (fromType == null && result == false)
+                {
+                    result = null;
+                }
+            }
+
+            return result;
+        }
+
         private GenericParameterConstraintHandleCollection GetConstraintHandleCollection(PEModule module)
         {
             GenericParameterConstraintHandleCollection constraints;
@@ -250,6 +392,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return constraints;
+        }
+
+        private GenericParameterConstraintHandleCollection GetConstraintHandleCollection()
+        {
+            return GetConstraintHandleCollection(((PEModuleSymbol)this.ContainingModule).Module);
         }
 
         public override ImmutableArray<Location> Locations
@@ -326,7 +473,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if ((_flags & (GenericParameterAttributes.NotNullableValueTypeConstraint | GenericParameterAttributes.ReferenceTypeConstraint)) == 0 &&
                     !HasNotNullConstraint)
                 {
-                    PEModule module = ((PEModuleSymbol)this.ContainingModule).Module;
+                    var moduleSymbol = ((PEModuleSymbol)this.ContainingModule);
+                    PEModule module = moduleSymbol.Module;
                     GenericParameterConstraintHandleCollection constraints = GetConstraintHandleCollection(module);
 
                     if (constraints.Count == 0)
@@ -337,6 +485,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         }
 
                         return null;
+                    }
+                    else if (GetDeclaredConstraintTypes(ConsList<PETypeParameterSymbol>.Empty).IsEmpty)
+                    {
+                        // We must have filtered out some Object constraints, lets calculate nullability from them.
+                        var symbolsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+                        MetadataDecoder tokenDecoder = GetDecoderForConstraintTypes(moduleSymbol);
+
+                        bool hasUnmanagedModreqPattern = false;
+                        var metadataReader = module.MetadataReader;
+                        foreach (var constraintHandle in constraints)
+                        {
+                            TypeWithAnnotations type = GetConstraintTypeOrDefault(moduleSymbol, metadataReader, tokenDecoder, constraintHandle, ref hasUnmanagedModreqPattern);
+
+                            Debug.Assert(type.HasType && type.SpecialType == SpecialType.System_Object);
+                            if (!type.HasType)
+                            {
+                                continue;
+                            }
+
+                            symbolsBuilder.Add(type);
+                        }
+
+                        return IsNotNullableIfReferenceTypeFromConstraintTypes(symbolsBuilder.ToImmutableAndFree());
                     }
                 }
 
@@ -356,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                GetDeclaredConstraintTypes();
+                GetDeclaredConstraintTypes(ConsList<PETypeParameterSymbol>.Empty);
                 return this._lazyHasIsUnmanagedConstraint.Value();
             }
         }
@@ -429,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (_lazyBounds == TypeParameterBounds.Unset)
             {
-                var constraintTypes = GetDeclaredConstraintTypes();
+                var constraintTypes = GetDeclaredConstraintTypes(ConsList<PETypeParameterSymbol>.Empty);
                 Debug.Assert(!constraintTypes.IsDefault);
 
                 var diagnostics = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();

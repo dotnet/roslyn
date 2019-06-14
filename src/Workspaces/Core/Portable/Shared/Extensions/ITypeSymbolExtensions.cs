@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -894,6 +895,34 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 type = type.GetTypeArguments()[0];
             }
 
+            switch (type.SpecialType)
+            {
+                case SpecialType.System_Boolean:
+                case SpecialType.System_Char:
+                case SpecialType.System_SByte:
+                case SpecialType.System_Byte:
+                case SpecialType.System_Int16:
+                case SpecialType.System_UInt16:
+                case SpecialType.System_Int32:
+                case SpecialType.System_UInt32:
+                case SpecialType.System_Int64:
+                case SpecialType.System_UInt64:
+                case SpecialType.System_Decimal:
+                case SpecialType.System_Single:
+                case SpecialType.System_Double:
+                    return false;
+
+                case SpecialType.System_IntPtr:
+                case SpecialType.System_UIntPtr:
+                    return false;
+
+                case SpecialType.System_DateTime:
+                    return false;
+
+                default:
+                    break;
+            }
+
             if (type.IsErrorType())
             {
                 return null;
@@ -904,12 +933,32 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return false;
             }
 
+            var hasPrivateField = false;
             foreach (var member in type.GetMembers())
             {
-                if (member is IFieldSymbol fieldSymbol &&
-                    !(fieldSymbol.IsConst || fieldSymbol.IsReadOnly || fieldSymbol.IsStatic))
+                if (!(member is IFieldSymbol fieldSymbol))
+                {
+                    continue;
+                }
+
+                hasPrivateField |= fieldSymbol.DeclaredAccessibility == Accessibility.Private;
+                if (!fieldSymbol.IsConst && !fieldSymbol.IsReadOnly && !fieldSymbol.IsStatic)
                 {
                     return true;
+                }
+            }
+
+            if (!hasPrivateField)
+            {
+                // Some reference assemblies omit information about private fields. If we can't be sure the field is
+                // immutable, treat it as potentially mutable.
+                foreach (var attributeData in type.ContainingAssembly.GetAttributes())
+                {
+                    if (attributeData.AttributeClass.Name == nameof(ReferenceAssemblyAttribute)
+                        && attributeData.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName)
+                    {
+                        return null;
+                    }
                 }
             }
 

@@ -337,16 +337,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ITypeSymbol GetMemberType(this ISymbol symbol)
         {
-            switch (symbol.Kind)
+            switch (symbol)
             {
-                case SymbolKind.Field:
-                    return ((IFieldSymbol)symbol).Type;
-                case SymbolKind.Property:
-                    return ((IPropertySymbol)symbol).Type;
-                case SymbolKind.Method:
-                    return ((IMethodSymbol)symbol).ReturnType;
-                case SymbolKind.Event:
-                    return ((IEventSymbol)symbol).Type;
+                case IFieldSymbol fieldSymbol:
+                    return fieldSymbol.Type.WithNullability(fieldSymbol.NullableAnnotation);
+                case IPropertySymbol propertySymbol:
+                    return propertySymbol.Type.WithNullability(propertySymbol.NullableAnnotation);
+                case IMethodSymbol methodSymbol:
+                    return methodSymbol.ReturnType.WithNullability(methodSymbol.ReturnNullableAnnotation);
+                case IEventSymbol eventSymbol:
+                    return eventSymbol.Type.WithNullability(eventSymbol.NullableAnnotation);
             }
 
             return null;

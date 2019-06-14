@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool? result = false;
             foreach (TypeWithAnnotations constraintType in constraintTypes)
             {
-                bool? fromType = IsNotNullableIfReferenceTypeFromConstraintType(constraintType);
+                bool? fromType = IsNotNullableIfReferenceTypeFromConstraintType(constraintType, out _);
                 if (fromType == true)
                 {
                     return true;
@@ -451,8 +451,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        internal static bool? IsNotNullableIfReferenceTypeFromConstraintType(TypeWithAnnotations constraintType)
+        internal static bool? IsNotNullableIfReferenceTypeFromConstraintType(TypeWithAnnotations constraintType, out bool isNonNullableValueType)
         {
+            if (constraintType.Type.IsNonNullableValueType())
+            {
+                isNonNullableValueType = true;
+                return true;
+            }
+
+            isNonNullableValueType = false;
+
             if (constraintType.NullableAnnotation.IsAnnotated())
             {
                 return false;
@@ -505,40 +513,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected bool? CalculateIsNotNullableIfReferenceType()
+        protected bool? CalculateIsNotNullableFromNonTypeConstraints()
         {
-            bool? fromReferenceTypeConstraint = false;
-
-            if (this.HasNotNullConstraint)
+            if (this.HasNotNullConstraint || this.HasValueTypeConstraint)
             {
                 return true;
             }
 
             if (this.HasReferenceTypeConstraint)
             {
-                fromReferenceTypeConstraint = !this.ReferenceTypeConstraintIsNullable;
+                return !this.ReferenceTypeConstraintIsNullable;
+            }
 
-                if (fromReferenceTypeConstraint == true)
-                {
-                    return true;
-                }
+            return false;
+        }
+
+        protected bool? CalculateIsNotNullableIfReferenceType()
+        {
+            bool? fromNonTypeConstraints = CalculateIsNotNullableFromNonTypeConstraints();
+
+            if (fromNonTypeConstraints == true)
+            {
+                return fromNonTypeConstraints;
             }
 
             ImmutableArray<TypeWithAnnotations> constraintTypes = this.ConstraintTypesNoUseSiteDiagnostics;
 
             if (constraintTypes.IsEmpty)
             {
-                return fromReferenceTypeConstraint;
+                return fromNonTypeConstraints;
             }
 
             bool? fromTypes = IsNotNullableIfReferenceTypeFromConstraintTypes(constraintTypes);
 
-            if (fromTypes == true || fromReferenceTypeConstraint == false)
+            if (fromTypes == true || fromNonTypeConstraints == false)
             {
                 return fromTypes;
             }
 
-            Debug.Assert(fromReferenceTypeConstraint == null);
+            Debug.Assert(fromNonTypeConstraints == null);
             Debug.Assert(fromTypes != true);
             return null;
         }

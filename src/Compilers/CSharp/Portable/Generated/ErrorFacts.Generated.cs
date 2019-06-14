@@ -196,6 +196,7 @@
                 case ErrorCode.WRN_NullReferenceArgument:
                 case ErrorCode.WRN_UnboxPossibleNull:
                 case ErrorCode.WRN_NullReferenceIterationVariable:
+                case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
@@ -228,7 +229,6 @@
                 case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                 case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
-                case ErrorCode.WRN_SpecialTypeAsBound:
                     return true;
                 default:
                     return false;

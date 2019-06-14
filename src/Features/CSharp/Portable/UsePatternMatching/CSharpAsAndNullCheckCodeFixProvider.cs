@@ -87,18 +87,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var asExpressionLocation = diagnostic.AdditionalLocations[2];
 
             var declarator = (VariableDeclaratorSyntax)declaratorLocation.FindNode(cancellationToken);
-            var comparison = (BinaryExpressionSyntax)comparisonLocation.FindNode(cancellationToken);
+            var comparison = (ExpressionSyntax)comparisonLocation.FindNode(cancellationToken);
             var asExpression = (BinaryExpressionSyntax)asExpressionLocation.FindNode(cancellationToken);
+
+            var rightSideOfComparison = comparison is BinaryExpressionSyntax binaryExpression
+                ? (SyntaxNode)binaryExpression.Right
+                : ((IsPatternExpressionSyntax)comparison).Pattern;
             var newIdentifier = declarator.Identifier
-                .WithoutTrivia().WithTrailingTrivia(comparison.Right.GetTrailingTrivia());
+                .WithoutTrivia().WithTrailingTrivia(rightSideOfComparison.GetTrailingTrivia());
 
             ExpressionSyntax isExpression = SyntaxFactory.IsPatternExpression(
                 asExpression.Left, SyntaxFactory.DeclarationPattern(
                     ((TypeSyntax)asExpression.Right).WithoutTrivia(),
                     SyntaxFactory.SingleVariableDesignation(newIdentifier)));
 
-            // We should negate the is-expression if we have something like "x == null"
-            if (comparison.IsKind(SyntaxKind.EqualsExpression))
+            // We should negate the is-expression if we have something like "x == null" or "x is null"
+            if (comparison.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.IsPatternExpression))
             {
                 isExpression = SyntaxFactory.PrefixUnaryExpression(
                     SyntaxKind.LogicalNotExpression,
