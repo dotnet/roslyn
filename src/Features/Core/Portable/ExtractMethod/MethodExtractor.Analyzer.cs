@@ -927,7 +927,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         continue;
                     }
 
-                    names = names ?? new List<string>();
+                    names ??= new List<string>();
                     names.Add(field.Name ?? string.Empty);
                 }
 

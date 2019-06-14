@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         protected ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles)
         {
-            roles = roles ?? ImmutableHashSet<string>.Empty;
+            roles ??= ImmutableHashSet<string>.Empty;
 
             lock (_gate)
             {
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var defaultItemSpan = this.GetDefaultCompletionListSpan(text, caretPosition);
 
-            options = options ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            options ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var providers = GetFilteredProviders(roles, trigger, options);
 
             var completionProviderToIndex = GetCompletionProviderToIndex(providers);
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 }
 
                 // first one wins
-                suggestionModeItem = suggestionModeItem ?? context.SuggestionModeItem;
+                suggestionModeItem ??= context.SuggestionModeItem;
             }
 
             if (displayNameToItemsMap.Count == 0)
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Completion
             TextSpan? defaultSpan,
             CancellationToken cancellationToken)
         {
-            options = options ?? document.Project.Solution.Workspace.Options;
+            options ??= document.Project.Solution.Workspace.Options;
 
             if (defaultSpan == null)
             {
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public override bool ShouldTriggerCompletion(
             SourceText text, int caretPosition, CompletionTrigger trigger, ImmutableHashSet<string> roles = null, OptionSet options = null)
         {
-            options = options ?? _workspace.Options;
+            options ??= _workspace.Options;
             if (!options.GetOption(CompletionOptions.TriggerOnTyping, this.Language))
             {
                 return false;

@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     .OfType<INamedTypeSymbol>()
                     .FirstOrDefault();
 
-                containingType = containingType ?? this.Document.SemanticModel.Compilation.ScriptClass;
+                containingType ??= this.Document.SemanticModel.Compilation.ScriptClass;
 
                 if (containingType == null || containingType.TypeKind == TypeKind.Interface)
                 {
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             public SemanticMap GetSemanticMap(CancellationToken cancellationToken)
             {
-                _semanticMap = _semanticMap ?? this.Document.SemanticModel.GetSemanticMap(this.Expression, cancellationToken);
+                _semanticMap ??= this.Document.SemanticModel.GetSemanticMap(this.Expression, cancellationToken);
                 return _semanticMap;
             }
 

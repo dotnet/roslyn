@@ -315,8 +315,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                                                                FieldIsReadOnly(nextAssignedSymbol);
                             }
 
-                            this.AfterThisLocation = this.AfterThisLocation ?? previousAssignedSymbol?.Locations.FirstOrDefault();
-                            this.BeforeThisLocation = this.BeforeThisLocation ?? nextAssignedSymbol?.Locations.FirstOrDefault();
+                            this.AfterThisLocation ??= previousAssignedSymbol?.Locations.FirstOrDefault();
+                            this.BeforeThisLocation ??= nextAssignedSymbol?.Locations.FirstOrDefault();
                         }
                     }
                 }

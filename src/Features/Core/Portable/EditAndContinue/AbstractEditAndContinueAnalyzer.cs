@@ -2986,7 +2986,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (!QueryClauseLambdasTypeEquivalent(oldModel, oldQueryClause, newModel, newQueryClause, cancellationToken))
                     {
-                        lazyNewErroneousClauses = lazyNewErroneousClauses ?? ArrayBuilder<SyntaxNode>.GetInstance();
+                        lazyNewErroneousClauses ??= ArrayBuilder<SyntaxNode>.GetInstance();
                         lazyNewErroneousClauses.Add(newQueryClause);
                     }
                 }

@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return;
                     }
 
-                    locals = locals ?? ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<DiagnosticData>>();
+                    locals ??= ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<DiagnosticData>>();
                     locals.Add(documentId, diagnostics);
                 }
 

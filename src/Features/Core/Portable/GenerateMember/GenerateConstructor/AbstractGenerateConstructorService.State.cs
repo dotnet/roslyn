@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 this.ParameterTypes = this.ParameterTypes.IsDefault
                     ? GetParameterTypes(service, document, cancellationToken)
                     : this.ParameterTypes;
-                this.ParameterRefKinds = this.ParameterRefKinds ?? this.Arguments.Select(service.GetRefKind).ToList();
+                this.ParameterRefKinds ??= this.Arguments.Select(service.GetRefKind).ToList();
 
                 return !ClashesWithExistingConstructor(document, cancellationToken);
             }

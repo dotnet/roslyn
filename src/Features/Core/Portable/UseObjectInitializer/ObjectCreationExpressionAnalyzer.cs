@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 }
 
                 // found a match!
-                seenNames = seenNames ?? new HashSet<string>();
+                seenNames ??= new HashSet<string>();
 
                 // If we see an assignment to the same property/field, we can't convert it
                 // to an initializer.
