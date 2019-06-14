@@ -3295,8 +3295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!(symbol is null));
             Debug.Assert(symbol.IsDefinition);
 
-            var sourceAssembly = SourceAssembly;
-            if (symbol.ContainingAssembly != sourceAssembly)
+            if (symbol.ContainingModule != SourceModule)
             {
                 return false;
             }
@@ -3306,12 +3305,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (!AccessCheck.IsPublicOrInternal(symbol, out bool isInternal))
+            if (!AccessCheck.IsEffectivelyPublicOrInternal(symbol, out bool isInternal))
             {
                 return false;
             }
 
-            return !isInternal || sourceAssembly.InternalsAreVisible;
+            return !isInternal || SourceAssembly.InternalsAreVisible;
         }
 
         internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager)

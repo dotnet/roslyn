@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns true if the symbol is effectively public or internal based on
         /// the declared accessibility of the symbol and any containing symbols.
         /// </summary>
-        internal static bool IsPublicOrInternal(Symbol symbol, out bool isInternal)
+        internal static bool IsEffectivelyPublicOrInternal(Symbol symbol, out bool isInternal)
         {
             Debug.Assert(!(symbol is null));
 
