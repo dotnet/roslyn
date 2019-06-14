@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         {
             // Have to store the trigger location to reuse it to get expanded items and also reuse the snapshot included in 
             // some projections related scenarios where data and session in further calls are able to provide other snapshots.
-            session.Properties.AddProperty(TriggerLocation, triggerLocation);
+            session.Properties[TriggerLocation] = triggerLocation;
 
             return GetCompletionContextWorkerAsync(session, trigger, triggerLocation, applicableToSpan, isExpanded: false, cancellationToken);
         }
@@ -293,17 +293,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     // Store around the span this completion list applies to.  We'll use this later
                     // to pass this value in when we're committing a completion list item.
-                    session.Properties.AddProperty(CompletionListSpan, completionList.Span);
+                    session.Properties[CompletionListSpan] = completionList.Span;
 
                     // This is a code supporting original completion scenarios: 
                     // Controller.Session_ComputeModel: if completionList.SuggestionModeItem != null, then suggestionMode = true
                     // If there are suggestionItemOptions, then later HandleNormalFiltering should set selection to SoftSelection.
-                    session.Properties.AddProperty(HasSuggestionItemOptions, suggestionItemOptions != null);
+                    session.Properties[HasSuggestionItemOptions] = suggestionItemOptions != null;
 
                     var excludedCommitCharacters = GetExcludedCommitCharacters(completionList.Items);
                     if (excludedCommitCharacters.Length > 0)
                     {
-                        session.Properties.AddProperty(ExcludedCommitCharacters, excludedCommitCharacters);
+                        session.Properties[ExcludedCommitCharacters] = excludedCommitCharacters;
                     }
                 }
             }

@@ -211,8 +211,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<CompletionItemRules> rules = default,
             Optional<string> displayTextPrefix = default,
             Optional<string> displayTextSuffix = default,
-            Optional<string> inlineDescription = default,
-            Optional<bool> isExpandedItem = default)
+            Optional<string> inlineDescription = default)
         {
             var newSpan = span.HasValue ? span.Value : this.Span;
             var newDisplayText = displayText.HasValue ? displayText.Value : this.DisplayText;
