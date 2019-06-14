@@ -36,13 +36,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The value is set during binding the symbols that need those attributes, and is frozen on first trial to get it.
         /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
         /// </summary>
-        internal EmbeddedAttributes GetNeedsGeneratedAttributes()
+        internal EmbeddableAttributes GetNeedsGeneratedAttributes()
         {
             _needsGeneratedAttributes_IsFrozen = true;
-            return (EmbeddedAttributes)_needsGeneratedAttributes;
+            return (EmbeddableAttributes)_needsGeneratedAttributes;
         }
 
-        internal void SetNeedsGeneratedAttributes(EmbeddedAttributes attributes)
+        internal void SetNeedsGeneratedAttributes(EmbeddableAttributes attributes)
         {
             Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
             ThreadSafeFlagOperations.Set(ref _needsGeneratedAttributes, (int)attributes);
@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor);
         }
 
-        private void EnsureEmbeddedAttributeExists(EmbeddedAttributes attribute, DiagnosticBag diagnostics, Location location, bool modifyCompilation)
+        private void EnsureEmbeddableAttributeExists(EmbeddableAttributes attribute, DiagnosticBag diagnostics, Location location, bool modifyCompilation)
         {
             Debug.Assert(!modifyCompilation || !_needsGeneratedAttributes_IsFrozen);
 
@@ -460,55 +460,55 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void EnsureIsReadOnlyAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
         {
-            EnsureEmbeddedAttributeExists(EmbeddedAttributes.IsReadOnlyAttribute, diagnostics, location, modifyCompilation);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsReadOnlyAttribute, diagnostics, location, modifyCompilation);
         }
 
         internal void EnsureIsByRefLikeAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
         {
-            EnsureEmbeddedAttributeExists(EmbeddedAttributes.IsByRefLikeAttribute, diagnostics, location, modifyCompilation);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsByRefLikeAttribute, diagnostics, location, modifyCompilation);
         }
 
         internal void EnsureIsUnmanagedAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
         {
-            EnsureEmbeddedAttributeExists(EmbeddedAttributes.IsUnmanagedAttribute, diagnostics, location, modifyCompilation);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsUnmanagedAttribute, diagnostics, location, modifyCompilation);
         }
 
         internal void EnsureNullableAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
         {
-            EnsureEmbeddedAttributeExists(EmbeddedAttributes.NullableAttribute, diagnostics, location, modifyCompilation);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableAttribute, diagnostics, location, modifyCompilation);
         }
 
         internal void EnsureNullablePublicOnlyAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
         {
-            EnsureEmbeddedAttributeExists(EmbeddedAttributes.NullablePublicOnlyAttribute, diagnostics, location, modifyCompilation);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullablePublicOnlyAttribute, diagnostics, location, modifyCompilation);
         }
 
-        internal bool CheckIfAttributeShouldBeEmbedded(EmbeddedAttributes attribute, DiagnosticBag diagnosticsOpt, Location locationOpt)
+        internal bool CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes attribute, DiagnosticBag diagnosticsOpt, Location locationOpt)
         {
             switch (attribute)
             {
-                case EmbeddedAttributes.IsReadOnlyAttribute:
+                case EmbeddableAttributes.IsReadOnlyAttribute:
                     return CheckIfAttributeShouldBeEmbedded(
                         diagnosticsOpt,
                         locationOpt,
                         WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
                         WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
 
-                case EmbeddedAttributes.IsByRefLikeAttribute:
+                case EmbeddableAttributes.IsByRefLikeAttribute:
                     return CheckIfAttributeShouldBeEmbedded(
                         diagnosticsOpt,
                         locationOpt,
                         WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
                         WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor);
 
-                case EmbeddedAttributes.IsUnmanagedAttribute:
+                case EmbeddableAttributes.IsUnmanagedAttribute:
                     return CheckIfAttributeShouldBeEmbedded(
                         diagnosticsOpt,
                         locationOpt,
                         WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor);
 
-                case EmbeddedAttributes.NullableAttribute:
+                case EmbeddableAttributes.NullableAttribute:
                     // Note: if the type exists, we'll check both constructors, regardless of which one(s) we'll eventually need
                     return CheckIfAttributeShouldBeEmbedded(
                         diagnosticsOpt,
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags);
 
-                case EmbeddedAttributes.NullablePublicOnlyAttribute:
+                case EmbeddableAttributes.NullablePublicOnlyAttribute:
                     return CheckIfAttributeShouldBeEmbedded(
                         diagnosticsOpt,
                         locationOpt,

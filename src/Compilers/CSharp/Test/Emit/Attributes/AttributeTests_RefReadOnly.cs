@@ -2347,7 +2347,7 @@ public class Test
 
         private static bool NeedsGeneratedIsReadOnlyAttribute(CSharpCompilation compilation)
         {
-            return (compilation.GetNeedsGeneratedAttributes() & EmbeddedAttributes.IsReadOnlyAttribute) != 0;
+            return (compilation.GetNeedsGeneratedAttributes() & EmbeddableAttributes.IsReadOnlyAttribute) != 0;
         }
     }
 }

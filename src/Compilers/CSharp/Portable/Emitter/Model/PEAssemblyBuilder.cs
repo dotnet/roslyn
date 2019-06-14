@@ -249,64 +249,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private void CreateEmbeddedAttributesIfNeeded(DiagnosticBag diagnostics)
         {
-            EmbeddedAttributes needsAttributes = GetNeedsGeneratedAttributes();
+            EmbeddableAttributes needsAttributes = GetNeedsGeneratedAttributes();
 
-            if ((needsAttributes & EmbeddedAttributes.IsReadOnlyAttribute) != 0)
+            if (needsAttributes == 0)
             {
-                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
+                return;
+            }
 
+            CreateEmbeddedAttributeIfNeeded(
+                ref _lazyEmbeddedAttribute,
+                diagnostics,
+                AttributeDescription.CodeAnalysisEmbeddedAttribute);
+
+            if ((needsAttributes & EmbeddableAttributes.IsReadOnlyAttribute) != 0)
+            {
                 CreateEmbeddedAttributeIfNeeded(
                     ref _lazyIsReadOnlyAttribute,
                     diagnostics,
                     AttributeDescription.IsReadOnlyAttribute);
             }
 
-            if ((needsAttributes & EmbeddedAttributes.IsByRefLikeAttribute) != 0)
+            if ((needsAttributes & EmbeddableAttributes.IsByRefLikeAttribute) != 0)
             {
-                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
-
                 CreateEmbeddedAttributeIfNeeded(
                     ref _lazyIsByRefLikeAttribute,
                     diagnostics,
                     AttributeDescription.IsByRefLikeAttribute);
             }
 
-            if ((needsAttributes & EmbeddedAttributes.IsUnmanagedAttribute) != 0)
+            if ((needsAttributes & EmbeddableAttributes.IsUnmanagedAttribute) != 0)
             {
-                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
-
                 CreateEmbeddedAttributeIfNeeded(
                     ref _lazyIsUnmanagedAttribute,
                     diagnostics,
                     AttributeDescription.IsUnmanagedAttribute);
             }
 
-            if ((needsAttributes & EmbeddedAttributes.NullableAttribute) != 0)
+            if ((needsAttributes & EmbeddableAttributes.NullableAttribute) != 0)
             {
-                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
-
                 CreateEmbeddedNullableAttributeIfNeeded(
                     ref _lazyNullableAttribute,
                     diagnostics);
             }
 
-            if ((needsAttributes & EmbeddedAttributes.NullablePublicOnlyAttribute) != 0)
+            if ((needsAttributes & EmbeddableAttributes.NullablePublicOnlyAttribute) != 0)
             {
-                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
-
                 CreateEmbeddedAttributeIfNeeded(
                     ref _lazyNullablePublicOnlyAttribute,
                     diagnostics,
                     AttributeDescription.NullablePublicOnlyAttribute);
             }
-        }
-
-        private void CreateEmbeddedAttributeItselfIfNeeded(DiagnosticBag diagnostics)
-        {
-            CreateEmbeddedAttributeIfNeeded(
-                ref _lazyEmbeddedAttribute,
-                diagnostics,
-                AttributeDescription.CodeAnalysisEmbeddedAttribute);
         }
 
         private void CreateEmbeddedAttributeIfNeeded(

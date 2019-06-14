@@ -5,7 +5,7 @@ using System;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     [Flags]
-    internal enum EmbeddedAttributes
+    internal enum EmbeddableAttributes
     {
         IsReadOnlyAttribute = 0x01,
         IsByRefLikeAttribute = 0x02,

@@ -306,6 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        // See https://github.com/dotnet/roslyn/blob/master/docs/features/nullable-metadata.md
         internal bool ConstraintsNeedNullableAttribute()
         {
             if (!DeclaringCompilation.ShouldEmitNullableAttributes(ContainingSymbol))

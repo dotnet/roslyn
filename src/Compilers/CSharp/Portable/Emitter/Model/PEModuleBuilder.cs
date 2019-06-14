@@ -47,18 +47,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// The value is set during binding the symbols that need those attributes, and is frozen on first trial to get it.
         /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
         /// </summary>
-        internal EmbeddedAttributes GetNeedsGeneratedAttributes()
+        internal EmbeddableAttributes GetNeedsGeneratedAttributes()
         {
             _needsGeneratedAttributes_IsFrozen = true;
             return GetNeedsGeneratedAttributesInternal();
         }
 
-        private EmbeddedAttributes GetNeedsGeneratedAttributesInternal()
+        private EmbeddableAttributes GetNeedsGeneratedAttributesInternal()
         {
-            return (EmbeddedAttributes)_needsGeneratedAttributes | Compilation.GetNeedsGeneratedAttributes();
+            return (EmbeddableAttributes)_needsGeneratedAttributes | Compilation.GetNeedsGeneratedAttributes();
         }
 
-        internal void SetNeedsGeneratedAttributes(EmbeddedAttributes attributes)
+        internal void SetNeedsGeneratedAttributes(EmbeddableAttributes attributes)
         {
             Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
             ThreadSafeFlagOperations.Set(ref _needsGeneratedAttributes, (int)attributes);
@@ -1536,7 +1536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor);
         }
 
-        private void EnsureEmbeddedAttributeExists(EmbeddedAttributes attribute)
+        private void EnsureEmbeddableAttributeExists(EmbeddableAttributes attribute)
         {
             Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
 
@@ -1554,22 +1554,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal void EnsureIsReadOnlyAttributeExists()
         {
-            EnsureEmbeddedAttributeExists(EmbeddedAttributes.IsReadOnlyAttribute);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsReadOnlyAttribute);
         }
 
         internal void EnsureIsUnmanagedAttributeExists()
         {
-            EnsureEmbeddedAttributeExists(EmbeddedAttributes.IsUnmanagedAttribute);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsUnmanagedAttribute);
         }
 
         internal void EnsureNullableAttributeExists()
         {
-            EnsureEmbeddedAttributeExists(EmbeddedAttributes.NullableAttribute);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableAttribute);
         }
 
         internal void EnsureNullablePublicOnlyAttributeExists()
         {
-            EnsureEmbeddedAttributeExists(EmbeddedAttributes.NullablePublicOnlyAttribute);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullablePublicOnlyAttribute);
         }
     }
 }
