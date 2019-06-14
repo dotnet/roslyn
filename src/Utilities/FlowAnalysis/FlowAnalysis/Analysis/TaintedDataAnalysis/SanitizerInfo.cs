@@ -10,12 +10,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// </summary>
     internal sealed class SanitizerInfo : ITaintedDataInfo, IEquatable<SanitizerInfo>
     {
-        public SanitizerInfo(string fullTypeName, bool isInterface, bool isConstructorSanitizing, ImmutableHashSet<string> sanitizingMethods)
+        public SanitizerInfo(string fullTypeName, bool isInterface, bool isConstructorSanitizing, ImmutableHashSet<string> sanitizingMethods, ImmutableHashSet<string> sanitizingMethods_Instance)
         {
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
             IsInterface = isInterface;
             IsConstructorSanitizing = isConstructorSanitizing;
             SanitizingMethods = sanitizingMethods ?? throw new ArgumentNullException(nameof(sanitizingMethods));
+            SanitizingMethods_Instance = sanitizingMethods_Instance ?? throw new ArgumentNullException(nameof(sanitizingMethods_Instance));
         }
 
         /// <summary>
@@ -37,6 +38,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Methods that untaint tainted data.
         /// </summary>
         public ImmutableHashSet<string> SanitizingMethods { get; }
+
+        public ImmutableHashSet<string> SanitizingMethods_Instance { get; }
 
         public override int GetHashCode()
         {

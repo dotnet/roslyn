@@ -182,6 +182,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 if (AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity analysisEntity))
                 {
+                    if (operation.Parent is IInvocationOperation invocationOperation &&
+                    this.IsSanitizingMethod_Argument(invocationOperation.TargetMethod))
+                    {
+                        this.CurrentAnalysisData.SetAbstractValue(analysisEntity, TaintedDataAbstractValue.NotTainted);
+
+                        return TaintedDataAbstractValue.NotTainted;
+                    }
+
                     return this.CurrentAnalysisData.TryGetValue(analysisEntity, out TaintedDataAbstractValue value) ? value : defaultValue;
                 }
 
@@ -407,6 +415,19 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     }
 
                     if (sanitizerInfo.SanitizingMethods.Contains(method.MetadataName))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            private bool IsSanitizingMethod_Argument(IMethodSymbol method)
+            {
+                foreach (SanitizerInfo sanitizerInfo in this.DataFlowAnalysisContext.SanitizerInfos.GetInfosForType(method.ContainingType))
+                {
+                    if (sanitizerInfo.SanitizingMethods_Instance.Contains(method.MetadataName))
                     {
                         return true;
                     }
