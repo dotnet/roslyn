@@ -217,7 +217,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var diagnostics = DiagnosticBag.GetInstance();
-
             TypeSyntax returnTypeSyntax = _syntax.ReturnType;
             TypeWithAnnotations returnType = _binder.BindType(returnTypeSyntax.SkipRef(), diagnostics);
 
@@ -245,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: false);
                 }
 
-                if (compilation.ShouldEmitNullableAttributes(this) == true &&
+                if (compilation.ShouldEmitNullableAttributes(this) &&
                     returnType.NeedsNullableAttribute())
                 {
                     compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: false);
