@@ -295,7 +295,7 @@ class TestClass
         }
 
         [Fact]
-        public void TestTypeToTrack_HazardousIfStringIsNull_StringEmpty_MaybeFlagged()
+        public void TestTypeToTrack_HazardousIfStringIsNull_StringEmpty_Flagged()
         {
             VerifyCSharp(@"
 using System;
@@ -305,12 +305,12 @@ class TestClass
     void TestMethod()
     /*<bind>*/{
         TestTypeToTrack t = new TestTypeToTrack();
-        t.AString = String.Empty;   // Ideally String.Empty would be NullAbstractValue.NonNull.
+        t.AString = String.Empty;
         t.Method();
     }/*</bind>*/
 }",
                 TestTypeToTrack_HazardousIfStringIsNonNull,
-                (10, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.MaybeFlagged));
+                (10, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
 
         [Fact]
@@ -471,7 +471,7 @@ class TestClass
         }
 
         [Fact]
-        public void TestTypeToTrackWithConstructor_HazardousIfStringIsNull_StringEmpty_MaybeFlagged()
+        public void TestTypeToTrackWithConstructor_HazardousIfStringIsNull_StringEmpty_Flagged()
         {
             VerifyCSharp(@"
 using System;
@@ -480,12 +480,12 @@ class TestClass
 {
     void TestMethod()
     /*<bind>*/{
-        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(default(TestEnum), null, String.Empty);   // Ideally String.Empty would be NullAbstractValue.NonNull.
+        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(default(TestEnum), null, String.Empty);
         t.Method();
     }/*</bind>*/
 }",
                 TestTypeToTrackWithConstructor_HazardousIfStringIsNonNull,
-                (9, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.MaybeFlagged));
+                (9, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
 
         [Fact]

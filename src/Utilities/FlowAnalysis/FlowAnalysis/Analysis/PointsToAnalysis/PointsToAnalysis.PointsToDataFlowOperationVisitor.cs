@@ -907,7 +907,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     (method.ContainingType.IsStatic ||
                      method.ContainingType.SpecialType != SpecialType.None ||
                      method.ReturnType is INamedTypeSymbol namedType &&
-                     method.ContainingType.DerivesFromOrImplementsAnyConstructionOf(namedType));
+                     method.ContainingType.DerivesFromOrImplementsAnyConstructionOf(namedType.OriginalDefinition));
             }
 
             /// <summary>
@@ -928,7 +928,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     (symbol.IsReadOnlyFieldOrProperty() || symbol.Kind == SymbolKind.Method) &&
                     (symbol.ContainingType.SpecialType != SpecialType.None ||
                      symbol.GetMemerType() is INamedTypeSymbol namedType &&
-                     symbol.ContainingType.DerivesFromOrImplementsAnyConstructionOf(namedType));
+                     symbol.ContainingType.DerivesFromOrImplementsAnyConstructionOf(namedType.OriginalDefinition));
             }
 
             public override PointsToAbstractValue VisitInvocation_LocalFunction(
