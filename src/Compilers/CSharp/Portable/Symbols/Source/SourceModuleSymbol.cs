@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private bool EmitNullablePublicOnly
+        private bool EmitNullablePublicOnlyAttribute
         {
             get
             {
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void AfterMembersChecks(DiagnosticBag diagnostics)
         {
-            if (EmitNullablePublicOnly)
+            if (EmitNullablePublicOnlyAttribute)
             {
                 DeclaringCompilation.EnsureNullablePublicOnlyAttributeExists(diagnostics, location: NoLocation.Singleton, modifyCompilation: true);
             }
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (EmitNullablePublicOnly)
+            if (EmitNullablePublicOnlyAttribute)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullablePublicOnlyAttribute());
             }
