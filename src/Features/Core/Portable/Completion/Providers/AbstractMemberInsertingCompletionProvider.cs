@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {

@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.LanguageServices;
-using System.Text;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace

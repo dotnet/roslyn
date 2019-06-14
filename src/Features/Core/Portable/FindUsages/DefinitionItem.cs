@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 

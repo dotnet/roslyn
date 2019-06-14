@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 {

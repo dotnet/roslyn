@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer
 {
