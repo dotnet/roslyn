@@ -70211,6 +70211,219 @@ class B : A<int>
         }
 
         [Fact]
+        public void DynamicConstraint_01()
+        {
+            var source =
+@"
+class B<S>
+{
+    public static void F1<T1>(T1 t1) where T1 : dynamic
+    {
+    }
+
+    public static void F2<T2>(T2 t2) where T2 : B<dynamic>
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyDiagnostics(
+                // (4,49): error CS1967: Constraint cannot be the dynamic type
+                //     public static void F1<T1>(T1 t1) where T1 : dynamic
+                Diagnostic(ErrorCode.ERR_DynamicTypeAsBound, "dynamic").WithLocation(4, 49),
+                // (8,49): error CS1968: Constraint cannot be a dynamic type 'B<dynamic>'
+                //     public static void F2<T2>(T2 t2) where T2 : B<dynamic>
+                Diagnostic(ErrorCode.ERR_ConstructedDynamicTypeAsBound, "B<dynamic>").WithArguments("B<dynamic>").WithLocation(8, 49)
+                );
+
+            var m = comp.SourceModule;
+
+            var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
+            Assert.Equal("void B<S>.F1<T1>(T1 t1)", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+            var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
+            Assert.Equal("void B<S>.F2<T2>(T2 t2)", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+        }
+
+        [Fact]
+        [WorkItem(36276, "https://github.com/dotnet/roslyn/issues/36276")]
+        public void DynamicConstraint_02()
+        {
+            var source1 =
+ @"
+#nullable enable
+class Test1<T>
+{
+    public virtual void M1<S>() where S : T
+    {
+    }
+}
+
+class Test2 : Test1<dynamic>
+{
+    public override void M1<S>()
+    {
+    }
+
+    void Test()
+    {
+        base.M1<object?>();
+        this.M1<object?>();
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics(
+                // (18,9): warning CS8631: The type 'object?' cannot be used as type parameter 'S' in the generic type or method 'Test1<dynamic>.M1<S>()'. Nullability of type argument 'object?' doesn't match constraint type 'object'.
+                //         base.M1<object?>();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "base.M1<object?>").WithArguments("Test1<dynamic>.M1<S>()", "object", "S", "object?").WithLocation(18, 9),
+                // (19,9): warning CS8631: The type 'object?' cannot be used as type parameter 'S' in the generic type or method 'Test2.M1<S>()'. Nullability of type argument 'object?' doesn't match constraint type 'object'.
+                //         this.M1<object?>();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "this.M1<object?>").WithArguments("Test2.M1<S>()", "object", "S", "object?").WithLocation(19, 9)
+                );
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>() where S : System.Object!", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+
+                var baseM1 = m1.OverriddenMethod;
+                Assert.Equal("void Test1<dynamic!>.M1<S>() where S : System.Object!", baseM1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.True(baseM1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        [WorkItem(36276, "https://github.com/dotnet/roslyn/issues/36276")]
+        public void DynamicConstraint_03()
+        {
+            var source1 =
+ @"
+#nullable disable
+class Test1<T>
+{
+    public virtual void M1<S>() where S : T
+    {
+    }
+}
+
+class Test2 : Test1<dynamic>
+{
+    public override void M1<S>()
+    {
+    }
+
+    void Test()
+    {
+#nullable enable
+        base.M1<object?>();
+        this.M1<object?>();
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>()", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+
+                var baseM1 = m1.OverriddenMethod;
+                Assert.Equal("void Test1<dynamic>.M1<S>()", baseM1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Null(baseM1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void DynamicConstraint_04()
+        {
+            var source1 =
+ @"
+#nullable enable
+class Test1<T>
+{
+    public virtual void M1<S>() where S : T
+    {
+    }
+}
+
+class Test2 : Test1<Test1<dynamic>>
+{
+    public override void M1<S>()
+    {
+    }
+
+    void Test()
+    {
+        base.M1<Test1<object?>>();
+        this.M1<Test1<object?>>();
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics(
+                // (18,9): warning CS8631: The type 'Test1<object?>' cannot be used as type parameter 'S' in the generic type or method 'Test1<Test1<dynamic>>.M1<S>()'. Nullability of type argument 'Test1<object?>' doesn't match constraint type 'Test1<object>'.
+                //         base.M1<Test1<object?>>();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "base.M1<Test1<object?>>").WithArguments("Test1<Test1<dynamic>>.M1<S>()", "Test1<object>", "S", "Test1<object?>").WithLocation(18, 9),
+                // (19,9): warning CS8631: The type 'Test1<object?>' cannot be used as type parameter 'S' in the generic type or method 'Test2.M1<S>()'. Nullability of type argument 'Test1<object?>' doesn't match constraint type 'Test1<object>'.
+                //         this.M1<Test1<object?>>();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "this.M1<Test1<object?>>").WithArguments("Test2.M1<S>()", "Test1<object>", "S", "Test1<object?>").WithLocation(19, 9)
+                );
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>() where S : Test1<System.Object!>!", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+
+                var baseM1 = m1.OverriddenMethod;
+                Assert.Equal("void Test1<Test1<dynamic!>!>.M1<S>() where S : Test1<System.Object!>!", baseM1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.True(baseM1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void DynamicConstraint_05()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T>
+{
+    public virtual void M1<S>(S x) where S : I1?, T {}
+}
+
+public interface I1 {}
+
+public class Test2 : Test1<dynamic>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object!, I1?", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+
+                var baseM1 = m1.OverriddenMethod;
+                Assert.Equal("void Test1<dynamic!>.M1<S>(S x) where S : System.Object!, I1?", baseM1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.True(baseM1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
         public void NotNullConstraint_01()
         {
             var source1 =
