@@ -337,6 +337,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                         }
                     }
                 }
+
+                // Mark arguments passed to parameters with ValidatedNotNullAttribute as validated
+                foreach (var argument in arguments)
+                {
+                    var notValidatedLocations = GetNotValidatedLocations(argument);
+                    if (notValidatedLocations.Any())
+                    {
+                        if (HasValidatedNotNullAttribute(argument.Parameter))
+                        {
+                            MarkValidatedLocations(argument);
+                        }
+                    }
+                }
             }
 
             private void ProcessLambdaOrLocalFunctionInvocation(IMethodSymbol targetMethod, IOperation invocation)
