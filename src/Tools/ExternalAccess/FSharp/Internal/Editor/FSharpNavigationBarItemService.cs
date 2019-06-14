@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         public async Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
         {
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
-            return items.Select(x => ConvertToNavigationBarItem(x)).ToList();
+            return items?.Select(x => ConvertToNavigationBarItem(x)).ToList();
         }
 
         public void NavigateToItem(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
