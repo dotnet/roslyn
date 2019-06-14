@@ -529,15 +529,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal bool CheckIfNullablePublicOnlyAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt)
-        {
-            return CheckIfAttributeShouldBeEmbedded(
-                diagnosticsOpt,
-                locationOpt,
-                WellKnownType.System_Runtime_CompilerServices_NullablePublicOnlyAttribute,
-                WellKnownMember.System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor);
-        }
-
         private bool CheckIfAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt, WellKnownType attributeType, WellKnownMember attributeCtor, WellKnownMember? secondAttributeCtor = null)
         {
             var userDefinedAttribute = GetWellKnownType(attributeType);
