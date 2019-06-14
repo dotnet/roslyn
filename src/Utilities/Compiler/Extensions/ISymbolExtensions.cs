@@ -539,6 +539,21 @@ namespace Analyzer.Utilities.Extensions
         {
             switch (symbol.Kind)
             {
+                case SymbolKind.Local:
+                    return ((ILocalSymbol)symbol).Type;
+
+                case SymbolKind.Parameter:
+                    return ((IParameterSymbol)symbol).Type;
+
+                default:
+                    return GetMemerType(symbol);
+            }
+        }
+
+        public static ITypeSymbol GetMemerType(this ISymbol symbol)
+        {
+            switch (symbol.Kind)
+            {
                 case SymbolKind.Event:
                     return ((IEventSymbol)symbol).Type;
 
@@ -551,14 +566,23 @@ namespace Analyzer.Utilities.Extensions
                 case SymbolKind.Property:
                     return ((IPropertySymbol)symbol).Type;
 
-                case SymbolKind.Local:
-                    return ((ILocalSymbol)symbol).Type;
-
-                case SymbolKind.Parameter:
-                    return ((IParameterSymbol)symbol).Type;
-
                 default:
                     return null;
+            }
+        }
+
+        public static bool IsReadOnlyFieldOrProperty(this ISymbol symbol)
+        {
+            switch (symbol)
+            {
+                case IFieldSymbol field:
+                    return field.IsReadOnly;
+
+                case IPropertySymbol property:
+                    return property.IsReadOnly;
+
+                default:
+                    return false;
             }
         }
 
