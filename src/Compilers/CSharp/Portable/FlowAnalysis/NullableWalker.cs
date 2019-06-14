@@ -3108,20 +3108,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.In:
                     {
                         // Note: for lambda arguments, they will be converted in the context/state we saved for that argument
-                        SetResultType(argumentNoConversion,
-                            VisitConversion(
-                                conversionOpt: conversionOpt,
-                                conversionOperand: argumentNoConversion,
-                                conversion: conversion,
-                                targetTypeWithNullability: ApplyLValueAnnotations(parameterType, parameterAnnotations),
-                                operandType: resultType,
-                                checkConversion: true,
-                                fromExplicitCast: false,
-                                useLegacyWarnings: false,
-                                assignmentKind: AssignmentKind.Argument,
-                                target: parameter,
-                                extensionMethodThisArgument: extensionMethodThisArgument,
-                                stateForLambda: result.StateForLambda));
+                        var stateAfterConversion = VisitConversion(
+                            conversionOpt: conversionOpt,
+                            conversionOperand: argumentNoConversion,
+                            conversion: conversion,
+                            targetTypeWithNullability: ApplyLValueAnnotations(parameterType, parameterAnnotations),
+                            operandType: resultType,
+                            checkConversion: true,
+                            fromExplicitCast: false,
+                            useLegacyWarnings: false,
+                            assignmentKind: AssignmentKind.Argument,
+                            target: parameter,
+                            extensionMethodThisArgument: extensionMethodThisArgument,
+                            stateForLambda: result.StateForLambda);
+                        CheckDisallowedNullAssignment(stateAfterConversion, parameterType, parameterAnnotations, argumentNoConversion.Syntax.Location);
+                        SetResultType(argumentNoConversion, stateAfterConversion);
                     }
                     break;
                 case RefKind.Ref:
@@ -3137,6 +3138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // types match, but state would let a null in
                             ReportNullableAssignmentIfNecessary(argumentNoConversion, ApplyLValueAnnotations(parameterType, parameterAnnotations), resultType, useLegacyWarnings: false);
+                            CheckDisallowedNullAssignment(resultType, parameterType, parameterAnnotations, argumentNoConversion.Syntax.Location);
                         }
                     }
 
@@ -3148,6 +3150,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(!this.IsConditionalState);
+        }
+
+        private void CheckDisallowedNullAssignment(TypeWithState state, TypeWithAnnotations type, FlowAnalysisAnnotations annotations, Location location)
+        {
+            if (((annotations & FlowAnalysisAnnotations.DisallowNull) != 0) && type.Type.IsNullableTypeOrTypeParameter() && state.MayBeNull)
+            {
+                ReportDiagnostic(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment, location);
+            }
         }
 
         /// <summary>
@@ -4447,7 +4457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return operandType;
                         }
                     }
-                    if (operandType.Type?.IsTupleType == true)
+                    if (operandType.Type?.IsTupleType == true || conversionOperand.Kind == BoundKind.TupleLiteral)
                     {
                         goto case ConversionKind.ImplicitTuple;
                     }
@@ -4550,7 +4560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    if (checkConversion)
+                    if (checkConversion && !targetType.IsErrorType())
                     {
                         // https://github.com/dotnet/roslyn/issues/29699: Report warnings for user-defined conversions on tuple elements.
                         conversion = GenerateConversion(_conversions, conversionOperand, operandType.Type, targetType, fromExplicitCast, extensionMethodThisArgument);
