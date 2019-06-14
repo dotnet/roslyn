@@ -1240,7 +1240,7 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="NamingSpecification_CSharp_Field" xml:space="preserve">
     <value>field</value>
-    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one).</comment>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# programming language concept of a "field" (which stores data).</comment>
   </data>
   <data name="NamingSpecification_CSharp_Interface" xml:space="preserve">
     <value>interface</value>
@@ -1248,15 +1248,15 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="NamingSpecification_CSharp_Local" xml:space="preserve">
     <value>local</value>
-    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one).</comment>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local variable".</comment>
   </data>
   <data name="NamingSpecification_CSharp_LocalFunction" xml:space="preserve">
     <value>local function</value>
-    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one).</comment>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local function" that exists locally within another function.</comment>
   </data>
   <data name="NamingSpecification_CSharp_Method" xml:space="preserve">
     <value>method</value>
-    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one).</comment>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "method" that can be called by other code.</comment>
   </data>
   <data name="NamingSpecification_CSharp_Namespace" xml:space="preserve">
     <value>namespace</value>
@@ -1264,11 +1264,11 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="NamingSpecification_CSharp_Parameter" xml:space="preserve">
     <value>parameter</value>
-    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one).</comment>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "parameter" being passed to a method.</comment>
   </data>
   <data name="NamingSpecification_CSharp_Property" xml:space="preserve">
     <value>property</value>
-    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one).</comment>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "property" (which allows for the retrieval of data).</comment>
   </data>
   <data name="NamingSpecification_CSharp_Struct" xml:space="preserve">
     <value>struct</value>
@@ -1276,7 +1276,7 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="NamingSpecification_CSharp_TypeParameter" xml:space="preserve">
     <value>type parameter</value>
-    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one).</comment>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "type parameter".</comment>
   </data>
   <data name="NamingSpecification_VisualBasic_Class" xml:space="preserve">
     <value>Class</value>
@@ -1296,7 +1296,7 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="NamingSpecification_VisualBasic_Field" xml:space="preserve">
     <value>Field</value>
-    <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one).</comment>
+    <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "field" (which stores data).</comment>
   </data>
   <data name="NamingSpecification_VisualBasic_Interface" xml:space="preserve">
     <value>Interface</value>
@@ -1304,11 +1304,11 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="NamingSpecification_VisualBasic_Local" xml:space="preserve">
     <value>Local</value>
-    <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one).</comment>
+    <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "local variable".</comment>
   </data>
   <data name="NamingSpecification_VisualBasic_Method" xml:space="preserve">
     <value>Method</value>
-    <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one).</comment>
+    <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "method".</comment>
   </data>
   <data name="NamingSpecification_VisualBasic_Module" xml:space="preserve">
     <value>Module</value>
@@ -1320,7 +1320,7 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="NamingSpecification_VisualBasic_Parameter" xml:space="preserve">
     <value>Parameter</value>
-    <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one).</comment>
+    <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "parameter" which can be passed to a method.</comment>
   </data>
   <data name="NamingSpecification_VisualBasic_Property" xml:space="preserve">
     <value>Property</value>
@@ -1332,6 +1332,6 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="NamingSpecification_VisualBasic_TypeParameter" xml:space="preserve">
     <value>Type Parameter</value>
-    <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one).</comment>
+    <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "type parameter".</comment>
   </data>
 </root>
