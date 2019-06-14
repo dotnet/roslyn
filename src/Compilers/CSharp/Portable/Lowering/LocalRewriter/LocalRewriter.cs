@@ -80,7 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             out bool sawLambdas,
             out bool sawLocalFunctions,
-            out bool sawAwaitInExceptionHandler)
+            out bool sawAwaitInExceptionHandler,
+            out bool sawNullChecked)
         {
             Debug.Assert(statement != null);
             Debug.Assert(compilationState != null);
@@ -102,6 +103,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sawLocalFunctions = localRewriter._sawLocalFunctions;
                 sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
 
+                sawNullChecked = false;
+                foreach (SourceParameterSymbolBase param in method.Parameters)
+                {
+                    if (param.IsNullChecked)
+                    {
+                        sawNullChecked = true;
+                        break;
+                    }
+                }
+
                 if (localRewriter._needsSpilling && !loweredStatement.HasErrors)
                 {
                     // Move spill sequences to a top-level statement. This handles "lifting" await and the switch expression.
@@ -122,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {
                 diagnostics.Add(ex.Diagnostic);
-                sawLambdas = sawLocalFunctions = sawAwaitInExceptionHandler = false;
+                sawLambdas = sawLocalFunctions = sawAwaitInExceptionHandler = sawNullChecked = false;
                 return new BoundBadStatement(statement.Syntax, ImmutableArray.Create<BoundNode>(statement), hasErrors: true);
             }
         }

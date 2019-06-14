@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.CSharp.Lowering;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Debugging;
@@ -1280,7 +1281,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics: diagnostics,
                     sawLambdas: out bool sawLambdas,
                     sawLocalFunctions: out bool sawLocalFunctions,
-                    sawAwaitInExceptionHandler: out bool sawAwaitInExceptionHandler);
+                    sawAwaitInExceptionHandler: out bool sawAwaitInExceptionHandler,
+                    sawNullChecked: out bool sawNullChecked);
 
                 if (loweredBody.HasErrors)
                 {
@@ -1346,10 +1348,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics,
                     out AsyncStateMachine asyncStateMachine);
 
+                if (bodyWithoutAsync.HasErrors)
+                {
+                    return bodyWithoutAsync;
+                }
+
+                BoundStatement bodyWithNullChecks = bodyWithoutAsync;
+                if (sawNullChecked)
+                {
+                    bodyWithNullChecks = (BoundStatement)NullCheckRewriter.Rewrite(bodyWithoutAsync, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics);
+                }
+
                 Debug.Assert((object)iteratorStateMachine == null || (object)asyncStateMachine == null);
                 stateMachineTypeOpt = (StateMachineTypeSymbol)iteratorStateMachine ?? asyncStateMachine;
 
-                return bodyWithoutAsync;
+                return bodyWithNullChecks;
             }
             catch (BoundTreeVisitor.CancelledByStackGuardException ex)
             {
