@@ -43,7 +43,7 @@ The `byte[]` is constructed as follows:
 - Nullable value type: the representation of the type argument only
 - Value type: the representation of the type arguments in order including containing types
 - Array: the nullability (0, 1, or 2), followed by the representation of the element type
-- Tuple: the representation of the tuple elements in order
+- Tuple: the representation of the underlying constructed type
 - Type parameter reference: the nullability (0, 1, or 2, with 0 for unconstrained type parameter)
 
 Note that certain type references are represented by an empty `byte[]`:
