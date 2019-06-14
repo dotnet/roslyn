@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var updatedIndex = updatedSignature.GetUpdatedIndex(originalIndex);
 
                 // If there's no value, then we may be handling a method with more parameters than the original symbol (like BeginInvoke).
-                parameterToIndexMap[decl] = updatedIndex.HasValue ? updatedIndex.Value : -1;
+                parameterToIndexMap[decl] = updatedIndex ?? -1;
             }
 
             // 3. Sort the arguments that need to be reordered
