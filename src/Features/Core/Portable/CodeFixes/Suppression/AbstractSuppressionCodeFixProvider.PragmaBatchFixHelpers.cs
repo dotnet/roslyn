@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         properties: diagnostic.Properties,
                         isSuppressed: diagnostic.IsSuppressed);
 
-                    var newSuppressionFixes = await suppressionFixProvider.GetSuppressionsAsync(currentDocument, currentDiagnosticSpan, SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken).ConfigureAwait(false);
+                    var newSuppressionFixes = await suppressionFixProvider.GetFixesAsync(currentDocument, currentDiagnosticSpan, SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken).ConfigureAwait(false);
                     var newSuppressionFix = newSuppressionFixes.SingleOrDefault();
                     if (newSuppressionFix != null)
                     {

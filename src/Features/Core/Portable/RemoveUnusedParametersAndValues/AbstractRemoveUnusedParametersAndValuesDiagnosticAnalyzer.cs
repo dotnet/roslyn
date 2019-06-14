@@ -83,17 +83,27 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         private static readonly PropertiesMap s_propertiesMap = CreatePropertiesMap();
 
-        protected AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_expressionValueIsUnusedRule, s_valueAssignedIsUnusedRule, s_unusedParameterRule))
+        protected AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer(
+            Option<CodeStyleOption<UnusedValuePreference>> unusedValueExpressionStatementOption,
+            Option<CodeStyleOption<UnusedValuePreference>> unusedValueAssignmentOption,
+            string language)
+            : base(ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption>.Empty
+                        .Add(s_expressionValueIsUnusedRule, unusedValueExpressionStatementOption)
+                        .Add(s_valueAssignedIsUnusedRule, unusedValueAssignmentOption),
+                   ImmutableDictionary<DiagnosticDescriptor, IPerLanguageOption>.Empty
+                        .Add(s_unusedParameterRule, CodeStyleOptions.UnusedParameters),
+                   language)
         {
+            UnusedValueExpressionStatementOption = unusedValueExpressionStatementOption;
+            UnusedValueAssignmentOption = unusedValueAssignmentOption;
         }
 
         protected abstract Location GetDefinitionLocationToFade(IOperation unusedDefinition);
         protected abstract bool SupportsDiscard(SyntaxTree tree);
         protected abstract bool MethodHasHandlesClause(IMethodSymbol method);
         protected abstract bool IsIfConditionalDirective(SyntaxNode node);
-        protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatementOption { get; }
-        protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignmentOption { get; }
+        private Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatementOption { get; }
+        private Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignmentOption { get; }
 
         /// <summary>
         /// Indicates if we should bail from removable assignment analysis for the given

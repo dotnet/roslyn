@@ -8,13 +8,13 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Classification.Classifiers
 {
-    internal abstract class AbstractEmbeddedLanguagesClassifier : AbstractSyntaxClassifier
+    internal class EmbeddedLanguagesClassifier : AbstractSyntaxClassifier
     {
         private readonly IEmbeddedLanguagesProvider _languagesProvider;
 
         public override ImmutableArray<int> SyntaxTokenKinds { get; }
 
-        protected AbstractEmbeddedLanguagesClassifier(IEmbeddedLanguagesProvider languagesProvider)
+        public EmbeddedLanguagesClassifier(IEmbeddedLanguagesProvider languagesProvider)
         {
             _languagesProvider = languagesProvider;
             SyntaxTokenKinds =

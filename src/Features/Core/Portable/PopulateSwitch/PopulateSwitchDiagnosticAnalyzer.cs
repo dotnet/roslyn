@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         public PopulateSwitchDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.PopulateSwitchDiagnosticId,
+                   option: null,
                    s_localizableTitle, s_localizableMessage)
         {
         }
