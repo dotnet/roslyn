@@ -9520,34 +9520,34 @@ class C
     {
         Out(out string s2);
         s2 /*T:string!*/ .ToString();
-        s2 = null; // warn 1
+        s2 = null; // 1
 
         NOut(out string? ns2);
-        ns2 /*T:string?*/ .ToString(); // warn 2
+        ns2 /*T:string?*/ .ToString(); // 2
         ns2 = null;
 
         FalseOut(out string s3);
         s3 /*T:string!*/ .ToString();
-        s3 = null; // warn 3
+        s3 = null; // 3
 
         FalseNOut(out string? ns3);
-        ns3 /*T:string?*/ .ToString(); // warn 4
+        ns3 /*T:string?*/ .ToString(); // 4
         ns3 = null;
 
         Out(out var s4);
         s4 /*T:string!*/ .ToString();
-        s4 = null; // warn 5
+        s4 = null; // 5
 
         NOut(out var ns4);
-        ns4 /*T:string?*/ .ToString(); // warn 6
+        ns4 /*T:string?*/ .ToString(); // 6
         ns4 = null;
 
         FalseOut(out var s5);
         s5 /*T:string!*/ .ToString();
-        s5 = null;
+        s5 = null; // 7
 
         FalseNOut(out var ns5);
-        ns5 /*T:string?*/ .ToString(); // warn 6
+        ns5 /*T:string?*/ .ToString(); // 8
         ns5 = null;
     }
 
@@ -9561,7 +9561,7 @@ class C
     void FalseOut(out string s) => throw null!;
 
 #nullable disable
-    void FalseNOut(out string? ns) => throw null!; // warn 7
+    void FalseNOut(out string? ns) => throw null!; // 9
 }
 ";
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -9569,28 +9569,31 @@ class C
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
                 // (52,30): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //     void FalseNOut(out string? ns) => throw null!; // warn 7
+                //     void FalseNOut(out string? ns) => throw null!; // 9
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(52, 30),
                 // (11,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         s2 = null; // warn 1
+                //         s2 = null; // 1
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 14),
                 // (14,9): warning CS8602: Dereference of a possibly null reference.
-                //         ns2 /*T:string?*/ .ToString(); // warn 2
+                //         ns2 /*T:string?*/ .ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ns2").WithLocation(14, 9),
                 // (19,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         s3 = null; // warn 3
+                //         s3 = null; // 3
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(19, 14),
                 // (22,9): warning CS8602: Dereference of a possibly null reference.
-                //         ns3 /*T:string?*/ .ToString(); // warn 4
+                //         ns3 /*T:string?*/ .ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ns3").WithLocation(22, 9),
                 // (27,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         s4 = null; // warn 5
+                //         s4 = null; // 5
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(27, 14),
                 // (30,9): warning CS8602: Dereference of a possibly null reference.
-                //         ns4 /*T:string?*/ .ToString(); // warn 6
+                //         ns4 /*T:string?*/ .ToString(); // 6
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ns4").WithLocation(30, 9),
+                // (35,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         s5 = null; // 7
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(35, 14),
                 // (38,9): warning CS8602: Dereference of a possibly null reference.
-                //         ns5 /*T:string?*/ .ToString(); // warn 6
+                //         ns5 /*T:string?*/ .ToString(); // 8
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ns5").WithLocation(38, 9)
                 );
         }
@@ -17848,57 +17851,57 @@ class Program
     }
     static void M2<T>(T t2) where T : class
     {
-        _ = F1(t2, out var s3) // 3
-            ? s3.ToString() // 4
+        _ = F1(t2, out var s3)
+            ? s3.ToString() // 3
             : s3.ToString();
 
-        _ = F2(t2, out var s4) // 5
-            ? s4.ToString() // 6
+        _ = F2(t2, out var s4)
+            ? s4.ToString() // 4
             : s4.ToString();
 
         _ = F3(t2, out var s5)
-            ? s5.ToString() // 7
-            : s5.ToString(); // 8
+            ? s5.ToString() // 5
+            : s5.ToString(); // 6
 
-        t2 = null; // 9
+        t2 = null; // 7
         _ = F1(t2, out var s6)
-            ? s6.ToString() // 10
-            : s6.ToString(); // 11
+            ? s6.ToString() // 8
+            : s6.ToString(); // 9
 
-        _ = F2(t2, out var s7) // 12
-            ? s7.ToString() // 13
-            : s7.ToString(); // 14
+        _ = F2(t2, out var s7) // 10
+            ? s7.ToString() // 11
+            : s7.ToString(); // 12
 
-        _ = F3(t2, out var s8) // 15
-            ? s8.ToString() // 16
-            : s8.ToString(); // 17
+        _ = F3(t2, out var s8) // 13
+            ? s8.ToString() // 14
+            : s8.ToString(); // 15
     }
     static void M3<T>(T? t3) where T : class
     {
         _ = F1(t3, out var s9)
-            ? s9.ToString() // 18
-            : s9.ToString(); // 19
+            ? s9.ToString() // 16
+            : s9.ToString(); // 17
 
-        _ = F2(t3, out var s10) // 20
-            ? s10.ToString() // 21
-            : s10.ToString(); // 22
+        _ = F2(t3, out var s10) // 18
+            ? s10.ToString() // 19
+            : s10.ToString(); // 20
 
-        _ = F3(t3, out var s11) // 23
-            ? s11.ToString() // 24
-            : s11.ToString(); // 25
+        _ = F3(t3, out var s11) // 21
+            ? s11.ToString() // 22
+            : s11.ToString(); // 23
 
         if (t3 == null) return;
-        _ = F1(t3, out var s12) // 26
-            ? s12.ToString() // 27
+        _ = F1(t3, out var s12)
+            ? s12.ToString() // 24
             : s12.ToString();
 
-        _ = F2(t3, out var s13) // 28
-            ? s13.ToString() // 29
+        _ = F2(t3, out var s13)
+            ? s13.ToString() // 25
             : s13.ToString();
 
         _ = F3(t3, out var s14)
-            ? s14.ToString() // 30
-            : s14.ToString(); // 31
+            ? s14.ToString() // 26
+            : s14.ToString(); // 27
     }
     static void M4<T>(T t4) where T : struct
     {
@@ -17913,21 +17916,21 @@ class Program
     static void M5<T>(T? t5) where T : struct
     {
         _ = F1(t5, out var s17)
-            ? s17.Value // 32
-            : s17.Value; // 33
+            ? s17.Value // 28
+            : s17.Value; // 29
 
         _ = F5(t5, out var s18)
-            ? s18.Value // 34
-            : s18.Value; // 35
+            ? s18.Value // 30
+            : s18.Value; // 31
 
         if (t5 == null) return;
         _ = F1(t5, out var s19)
-            ? s19.Value // 36
-            : s19.Value; // 37
+            ? s19.Value // 32
+            : s19.Value; // 33
 
         _ = F5(t5, out var s20)
-            ? s20.Value // 38
-            : s20.Value; // 39
+            ? s20.Value // 34
+            : s20.Value; // 35
     }
 }";
             var comp = CreateNullableCompilation(new[] { MaybeNullWhenAttributeDefinition, source });
@@ -17938,116 +17941,104 @@ class Program
                 // (13,15): warning CS8602: Dereference of a possibly null reference.
                 //             : s2.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(13, 15),
-                // (17,24): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         _ = F1(t2, out var s3) // 3
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "var s3").WithLocation(17, 24),
                 // (18,15): warning CS8602: Dereference of a possibly null reference.
-                //             ? s3.ToString() // 4
+                //             ? s3.ToString() // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s3").WithLocation(18, 15),
-                // (21,24): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         _ = F2(t2, out var s4) // 5
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "var s4").WithLocation(21, 24),
                 // (22,15): warning CS8602: Dereference of a possibly null reference.
-                //             ? s4.ToString() // 6
+                //             ? s4.ToString() // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s4").WithLocation(22, 15),
                 // (26,15): warning CS8602: Dereference of a possibly null reference.
-                //             ? s5.ToString() // 7
+                //             ? s5.ToString() // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s5").WithLocation(26, 15),
                 // (27,15): warning CS8602: Dereference of a possibly null reference.
-                //             : s5.ToString(); // 8
+                //             : s5.ToString(); // 6
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s5").WithLocation(27, 15),
                 // (29,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         t2 = null; // 9
+                //         t2 = null; // 7
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(29, 14),
                 // (31,15): warning CS8602: Dereference of a possibly null reference.
-                //             ? s6.ToString() // 10
+                //             ? s6.ToString() // 8
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s6").WithLocation(31, 15),
                 // (32,15): warning CS8602: Dereference of a possibly null reference.
-                //             : s6.ToString(); // 11
+                //             : s6.ToString(); // 9
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s6").WithLocation(32, 15),
                 // (34,13): warning CS8634: The type 'T?' cannot be used as type parameter 'T' in the generic type or method 'Program.F2<T>(T, out T)'. Nullability of type argument 'T?' doesn't match 'class' constraint.
-                //         _ = F2(t2, out var s7) // 12
+                //         _ = F2(t2, out var s7) // 10
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F2").WithArguments("Program.F2<T>(T, out T)", "T", "T?").WithLocation(34, 13),
                 // (35,15): warning CS8602: Dereference of a possibly null reference.
-                //             ? s7.ToString() // 13
+                //             ? s7.ToString() // 11
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s7").WithLocation(35, 15),
                 // (36,15): warning CS8602: Dereference of a possibly null reference.
-                //             : s7.ToString(); // 14
+                //             : s7.ToString(); // 12
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s7").WithLocation(36, 15),
                 // (38,13): warning CS8634: The type 'T?' cannot be used as type parameter 'T' in the generic type or method 'Program.F3<T>(T, out T?)'. Nullability of type argument 'T?' doesn't match 'class' constraint.
-                //         _ = F3(t2, out var s8) // 15
+                //         _ = F3(t2, out var s8) // 13
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F3").WithArguments("Program.F3<T>(T, out T?)", "T", "T?").WithLocation(38, 13),
                 // (39,15): warning CS8602: Dereference of a possibly null reference.
-                //             ? s8.ToString() // 16
+                //             ? s8.ToString() // 14
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s8").WithLocation(39, 15),
                 // (40,15): warning CS8602: Dereference of a possibly null reference.
-                //             : s8.ToString(); // 17
+                //             : s8.ToString(); // 15
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s8").WithLocation(40, 15),
                 // (45,15): warning CS8602: Dereference of a possibly null reference.
-                //             ? s9.ToString() // 18
+                //             ? s9.ToString() // 16
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s9").WithLocation(45, 15),
                 // (46,15): warning CS8602: Dereference of a possibly null reference.
-                //             : s9.ToString(); // 19
+                //             : s9.ToString(); // 17
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s9").WithLocation(46, 15),
                 // (48,13): warning CS8634: The type 'T?' cannot be used as type parameter 'T' in the generic type or method 'Program.F2<T>(T, out T)'. Nullability of type argument 'T?' doesn't match 'class' constraint.
-                //         _ = F2(t3, out var s10) // 20
+                //         _ = F2(t3, out var s10) // 18
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F2").WithArguments("Program.F2<T>(T, out T)", "T", "T?").WithLocation(48, 13),
                 // (49,15): warning CS8602: Dereference of a possibly null reference.
-                //             ? s10.ToString() // 21
+                //             ? s10.ToString() // 19
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s10").WithLocation(49, 15),
                 // (50,15): warning CS8602: Dereference of a possibly null reference.
-                //             : s10.ToString(); // 22
+                //             : s10.ToString(); // 20
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s10").WithLocation(50, 15),
                 // (52,13): warning CS8634: The type 'T?' cannot be used as type parameter 'T' in the generic type or method 'Program.F3<T>(T, out T?)'. Nullability of type argument 'T?' doesn't match 'class' constraint.
-                //         _ = F3(t3, out var s11) // 23
+                //         _ = F3(t3, out var s11) // 21
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F3").WithArguments("Program.F3<T>(T, out T?)", "T", "T?").WithLocation(52, 13),
                 // (53,15): warning CS8602: Dereference of a possibly null reference.
-                //             ? s11.ToString() // 24
+                //             ? s11.ToString() // 22
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s11").WithLocation(53, 15),
                 // (54,15): warning CS8602: Dereference of a possibly null reference.
-                //             : s11.ToString(); // 25
+                //             : s11.ToString(); // 23
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s11").WithLocation(54, 15),
-                // (57,24): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         _ = F1(t3, out var s12) // 26
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "var s12").WithLocation(57, 24),
                 // (58,15): warning CS8602: Dereference of a possibly null reference.
-                //             ? s12.ToString() // 27
+                //             ? s12.ToString() // 24
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s12").WithLocation(58, 15),
-                // (61,24): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         _ = F2(t3, out var s13) // 28
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "var s13").WithLocation(61, 24),
                 // (62,15): warning CS8602: Dereference of a possibly null reference.
-                //             ? s13.ToString() // 29
+                //             ? s13.ToString() // 25
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s13").WithLocation(62, 15),
                 // (66,15): warning CS8602: Dereference of a possibly null reference.
-                //             ? s14.ToString() // 30
+                //             ? s14.ToString() // 26
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s14").WithLocation(66, 15),
                 // (67,15): warning CS8602: Dereference of a possibly null reference.
-                //             : s14.ToString(); // 31
+                //             : s14.ToString(); // 27
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s14").WithLocation(67, 15),
                 // (82,15): warning CS8629: Nullable value type may be null.
-                //             ? s17.Value // 32
+                //             ? s17.Value // 28
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s17").WithLocation(82, 15),
                 // (83,15): warning CS8629: Nullable value type may be null.
-                //             : s17.Value; // 33
+                //             : s17.Value; // 29
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s17").WithLocation(83, 15),
                 // (86,15): warning CS8629: Nullable value type may be null.
-                //             ? s18.Value // 34
+                //             ? s18.Value // 30
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s18").WithLocation(86, 15),
                 // (87,15): warning CS8629: Nullable value type may be null.
-                //             : s18.Value; // 35
+                //             : s18.Value; // 31
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s18").WithLocation(87, 15),
                 // (91,15): warning CS8629: Nullable value type may be null.
-                //             ? s19.Value // 36
+                //             ? s19.Value // 32
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s19").WithLocation(91, 15),
                 // (92,15): warning CS8629: Nullable value type may be null.
-                //             : s19.Value; // 37
+                //             : s19.Value; // 33
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s19").WithLocation(92, 15),
                 // (95,15): warning CS8629: Nullable value type may be null.
-                //             ? s20.Value // 38
+                //             ? s20.Value // 34
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s20").WithLocation(95, 15),
                 // (96,15): warning CS8629: Nullable value type may be null.
-                //             : s20.Value; // 39
+                //             : s20.Value; // 35
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s20").WithLocation(96, 15)
                 );
         }
@@ -18111,6 +18102,59 @@ public class D
                 // (8,15): warning CS8602: Dereference of a possibly null reference.
                 //             : s.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 15)
+                );
+        }
+
+        [Fact]
+        public void MaybeNullWhenFalse_TryGetValue()
+        {
+            var c = CreateNullableCompilation(new[] { @"
+using System.Diagnostics.CodeAnalysis;
+public class Optional<T>
+{
+    public void Main(Optional<string> holder)
+    {
+        _ = holder.TryGetValue(out var item)
+            ? item.ToString()
+            : item.ToString(); // 1
+        item = null;
+    }
+    bool TryGetValue([MaybeNullWhen(false)] out T item) => throw null!;
+}
+", MaybeNullWhenAttributeDefinition });
+
+            c.VerifyDiagnostics(
+                // (9,15): warning CS8602: Dereference of a possibly null reference.
+                //             : item.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "item").WithLocation(9, 15)
+                );
+        }
+
+        [Fact]
+        public void MaybeNull_TryGetValue()
+        {
+            var c = CreateNullableCompilation(new[] { @"
+using System.Diagnostics.CodeAnalysis;
+public class Optional<T>
+{
+    public void Main(Optional<string> holder)
+    {
+        _ = holder.TryGetValue(out var item)
+            ? item.ToString() // 1
+            : item.ToString(); // 2
+        item = null;
+    }
+    bool TryGetValue([MaybeNull] out T item) => throw null!;
+}
+", MaybeNullAttributeDefinition });
+
+            c.VerifyDiagnostics(
+                // (8,15): warning CS8602: Dereference of a possibly null reference.
+                //             ? item.ToString() // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "item").WithLocation(8, 15),
+                // (9,15): warning CS8602: Dereference of a possibly null reference.
+                //             : item.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "item").WithLocation(9, 15)
                 );
         }
 
