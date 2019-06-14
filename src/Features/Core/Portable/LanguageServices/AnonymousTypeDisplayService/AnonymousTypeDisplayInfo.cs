@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             IList<SymbolDisplayPart> anonymousTypesParts)
             : this()
         {
-            this.AnonymousTypeToName = anonymousTypeToName;
-            this.AnonymousTypesParts = anonymousTypesParts;
+            AnonymousTypeToName = anonymousTypeToName;
+            AnonymousTypesParts = anonymousTypesParts;
         }
 
         public IList<SymbolDisplayPart> ReplaceAnonymousTypes(IList<SymbolDisplayPart> parts)
         {
-            return ReplaceAnonymousTypes(parts, this.AnonymousTypeToName);
+            return ReplaceAnonymousTypes(parts, AnonymousTypeToName);
         }
 
         public static IList<SymbolDisplayPart> ReplaceAnonymousTypes(

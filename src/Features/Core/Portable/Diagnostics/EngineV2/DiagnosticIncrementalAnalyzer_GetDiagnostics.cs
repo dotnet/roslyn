@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _builder = null;
             }
 
-            protected StateManager StateManager => this.Owner._stateManager;
+            protected StateManager StateManager => Owner._stateManager;
 
             protected Project CurrentProject => CurrentSolution.GetProject(CurrentProjectId);
             protected Document CurrentDocument => CurrentSolution.GetDocument(CurrentDocumentId);
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
 
-                var stateSet = this.StateManager.GetOrCreateStateSet(CurrentProject, argsId.Analyzer);
+                var stateSet = StateManager.GetOrCreateStateSet(CurrentProject, argsId.Analyzer);
                 if (stateSet == null)
                 {
                     return ImmutableArray<DiagnosticData>.Empty;

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private Task<ImmutableArray<ISymbol>> GetSymbolsWorkerInternal(
             SyntaxContext context, int position, OptionSet options, bool preselect, CancellationToken cancellationToken)
         {
-            var newExpression = this.GetObjectCreationNewExpression(context.SyntaxTree, position, cancellationToken);
+            var newExpression = GetObjectCreationNewExpression(context.SyntaxTree, position, cancellationToken);
             if (newExpression == null)
             {
                 return SpecializedTasks.EmptyImmutableArray<ISymbol>();

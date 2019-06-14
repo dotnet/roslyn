@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
-            context.RegisterSemanticModelAction(this.AnalyzeSemanticModel);
+            context.RegisterSemanticModelAction(AnalyzeSemanticModel);
         }
 
         private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)

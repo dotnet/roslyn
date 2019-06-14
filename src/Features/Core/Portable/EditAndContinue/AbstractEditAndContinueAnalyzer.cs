@@ -773,11 +773,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 Debug.Assert(oldNode != null);
 
-                this.OldNode = oldNode;
-                this.NewTrackedNodeOpt = newTrackedNodeOpt;
-                this.EnclosingLambdaBodyOpt = enclosingLambdaBodyOpt;
-                this.StatementPart = statementPart;
-                this.TrackedSpanOpt = trackedSpanOpt;
+                OldNode = oldNode;
+                NewTrackedNodeOpt = newTrackedNodeOpt;
+                EnclosingLambdaBodyOpt = enclosingLambdaBodyOpt;
+                StatementPart = statementPart;
+                TrackedSpanOpt = trackedSpanOpt;
             }
         }
 
@@ -794,14 +794,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             private LambdaInfo(List<int> activeNodeIndices, Match<SyntaxNode> match, SyntaxNode newLambdaBody)
             {
-                this.ActiveNodeIndices = activeNodeIndices;
-                this.Match = match;
-                this.NewBody = newLambdaBody;
+                ActiveNodeIndices = activeNodeIndices;
+                Match = match;
+                NewBody = newLambdaBody;
             }
 
             public LambdaInfo WithMatch(Match<SyntaxNode> match, SyntaxNode newLambdaBody)
             {
-                return new LambdaInfo(this.ActiveNodeIndices, match, newLambdaBody);
+                return new LambdaInfo(ActiveNodeIndices, match, newLambdaBody);
             }
         }
 

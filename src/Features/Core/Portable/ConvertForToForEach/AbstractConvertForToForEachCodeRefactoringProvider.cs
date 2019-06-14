@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             editor.ReplaceNode(
                 forStatement,
-                (currentFor, _) => this.ConvertForNode(
+                (currentFor, _) => ConvertForNode(
                     (TForStatementSyntax)currentFor, typeNode, foreachIdentifier,
                     collectionExpression, iterationType, options));
 

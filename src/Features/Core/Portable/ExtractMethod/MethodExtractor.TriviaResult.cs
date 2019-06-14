@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public TriviaResult(SemanticDocument document, ITriviaSavedResult result, int endOfLineKind, int whitespaceKind)
             {
-                this.SemanticDocument = document;
+                SemanticDocument = document;
 
                 _result = result;
                 _endOfLineKind = endOfLineKind;

@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
                 // Get the parts of the parameter name and the appropriate naming rules so
                 // that we can name the field/property accordingly.
-                var parameterNameParts = this.GetParameterWordParts(parameter);
+                var parameterNameParts = GetParameterWordParts(parameter);
                 var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
 
                 var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);

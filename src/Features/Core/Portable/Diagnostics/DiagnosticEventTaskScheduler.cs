@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             while (true)
             {
                 var task = _tasks.Take();
-                var ret = this.TryExecuteTask(task);
+                var ret = TryExecuteTask(task);
             }
         }
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // NOTE: TPL will ensure only one task ever run when running scheduled task. and since this is only used
             // in diagnostic events, we know task will always run sequencely. so no worry about reverted order here.
-            return this.TryExecuteTask(task);
+            return TryExecuteTask(task);
         }
 
         protected override IEnumerable<Task> GetScheduledTasks()

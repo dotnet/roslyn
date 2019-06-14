@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 return;
             }
 
-            var syntaxFacts = this.GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFactsService();
             syntaxFacts.GetPartsOfConditionalExpression(
                 conditionalExpression, out var conditionNode, out var whenTrueNode, out var whenFalseNode);
 

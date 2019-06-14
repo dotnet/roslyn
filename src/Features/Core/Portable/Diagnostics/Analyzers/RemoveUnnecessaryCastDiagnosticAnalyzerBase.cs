@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, this.SyntaxKindsOfInterest);
+            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKindsOfInterest);
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {

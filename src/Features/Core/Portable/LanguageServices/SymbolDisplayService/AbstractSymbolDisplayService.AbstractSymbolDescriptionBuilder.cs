@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             {
                 _displayService = displayService;
                 _anonymousTypeDisplayService = anonymousTypeDisplayService;
-                this.Workspace = workspace;
-                this.CancellationToken = cancellationToken;
+                Workspace = workspace;
+                CancellationToken = cancellationToken;
                 _semanticModel = semanticModel;
                 _position = position;
             }
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 await AddPartsAsync(symbolGroup).ConfigureAwait(false);
 
-                return this.BuildDescription(groups);
+                return BuildDescription(groups);
             }
 
             public async Task<IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>> BuildDescriptionSectionsAsync(ImmutableArray<ISymbol> symbolGroup)
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 await AddPartsAsync(symbolGroup).ConfigureAwait(false);
 
-                return this.BuildDescriptionSections();
+                return BuildDescriptionSections();
             }
 
             private async Task AddDescriptionPartAsync(ISymbol symbol)
@@ -385,10 +385,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     AddAwaitablePrefix();
                 }
 
-                var token = await _semanticModel.SyntaxTree.GetTouchingTokenAsync(_position, this.CancellationToken).ConfigureAwait(false);
+                var token = await _semanticModel.SyntaxTree.GetTouchingTokenAsync(_position, CancellationToken).ConfigureAwait(false);
                 if (token != default)
                 {
-                    var syntaxFactsService = this.Workspace.Services.GetLanguageServices(token.Language).GetService<ISyntaxFactsService>();
+                    var syntaxFactsService = Workspace.Services.GetLanguageServices(token.Language).GetService<ISyntaxFactsService>();
                     if (syntaxFactsService.IsAwaitKeyword(token))
                     {
                         AddPrefixTextForAwaitKeyword();

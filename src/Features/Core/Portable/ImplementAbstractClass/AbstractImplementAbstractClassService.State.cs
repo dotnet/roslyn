@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 INamedTypeSymbol abstractClassType,
                 ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers)
             {
-                this.Location = node;
-                this.ClassType = classType;
-                this.AbstractClassType = abstractClassType;
-                this.UnimplementedMembers = unimplementedMembers;
+                Location = node;
+                ClassType = classType;
+                AbstractClassType = abstractClassType;
+                UnimplementedMembers = unimplementedMembers;
             }
 
             public static State Generate(

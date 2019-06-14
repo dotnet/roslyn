@@ -36,12 +36,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             public override bool CanNavigateTo(Workspace workspace)
             {
-                if (this.Properties.ContainsKey(NonNavigable))
+                if (Properties.ContainsKey(NonNavigable))
                 {
                     return false;
                 }
 
-                if (this.Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
+                if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
                 {
                     return CanNavigateToMetadataSymbol(workspace, symbolKey);
                 }
@@ -51,12 +51,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             public override bool TryNavigateTo(Workspace workspace, bool isPreview)
             {
-                if (this.Properties.ContainsKey(NonNavigable))
+                if (Properties.ContainsKey(NonNavigable))
                 {
                     return false;
                 }
 
-                if (this.Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
+                if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
                 {
                     return TryNavigateToMetadataSymbol(workspace, symbolKey);
                 }
@@ -101,8 +101,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             private (Project project, ISymbol symbol) TryResolveSymbolInCurrentSolution(
                 Workspace workspace, string symbolKey)
             {
-                if (!this.Properties.TryGetValue(MetadataSymbolOriginatingProjectIdGuid, out var projectIdGuid) ||
-                    !this.Properties.TryGetValue(MetadataSymbolOriginatingProjectIdDebugName, out var projectDebugName))
+                if (!Properties.TryGetValue(MetadataSymbolOriginatingProjectIdGuid, out var projectIdGuid) ||
+                    !Properties.TryGetValue(MetadataSymbolOriginatingProjectIdDebugName, out var projectDebugName))
                 {
                     return (null, null);
                 }

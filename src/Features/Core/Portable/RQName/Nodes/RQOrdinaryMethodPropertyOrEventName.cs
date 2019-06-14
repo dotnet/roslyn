@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         internal RQOrdinaryMethodPropertyOrEventName(string constructType, string name)
         {
             _constructType = constructType;
-            this.Name = name;
+            Name = name;
         }
 
         public override string OrdinaryNameValue
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 
         public override SimpleGroupNode ToSimpleTree()
         {
-            return new SimpleGroupNode(_constructType, this.Name);
+            return new SimpleGroupNode(_constructType, Name);
         }
     }
 }

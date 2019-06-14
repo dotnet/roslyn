@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             if (_importedProviders == null)
             {
-                var language = this.Language;
+                var language = Language;
                 var mefExporter = (IMefHostExportProvider)_workspace.Services.HostServices;
 
                 var providers = ExtensionOrderer.Order(
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // If the caller passed along specific options that affect snippets,
             // then defer to those.  Otherwise if the caller just wants the default
             // behavior, then get the snippets behavior from our own rules.
-            var optionsRule = options.GetOption(CompletionOptions.SnippetsBehavior, this.Language);
+            var optionsRule = options.GetOption(CompletionOptions.SnippetsBehavior, Language);
             var snippetsRule = optionsRule != SnippetsRule.Default
                 ? optionsRule
                 : GetRules().SnippetsRule;
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var defaultItemSpan = this.GetDefaultCompletionListSpan(text, caretPosition);
+            var defaultItemSpan = GetDefaultCompletionListSpan(text, caretPosition);
 
             options ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var providers = GetFilteredProviders(roles, trigger, options);
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 case CompletionTriggerKind.Insertion:
                 case CompletionTriggerKind.Deletion:
-                    if (this.ShouldTriggerCompletion(text, caretPosition, trigger, roles, options))
+                    if (ShouldTriggerCompletion(text, caretPosition, trigger, roles, options))
                     {
                         triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(text, caretPosition, trigger, options)).ToImmutableArrayOrEmpty();
                         if (triggeredProviders.Length == 0)
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return CompletionList.Create(
                 finalCompletionListSpan,
                 totalItems.ToImmutableArray(),
-                this.GetRules(),
+                GetRules(),
                 suggestionModeItem,
                 isExclusive);
         }
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Completion
             if (defaultSpan == null)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                defaultSpan = this.GetDefaultCompletionListSpan(text, position);
+                defaultSpan = GetDefaultCompletionListSpan(text, position);
             }
 
             var context = new CompletionContext(provider, document, position, defaultSpan.Value, triggerInfo, options, cancellationToken);
@@ -452,12 +452,12 @@ namespace Microsoft.CodeAnalysis.Completion
             SourceText text, int caretPosition, CompletionTrigger trigger, ImmutableHashSet<string> roles = null, OptionSet options = null)
         {
             options ??= _workspace.Options;
-            if (!options.GetOption(CompletionOptions.TriggerOnTyping, this.Language))
+            if (!options.GetOption(CompletionOptions.TriggerOnTyping, Language))
             {
                 return false;
             }
 
-            if (trigger.Kind == CompletionTriggerKind.Deletion && this.SupportsTriggerOnDeletion(options))
+            if (trigger.Kind == CompletionTriggerKind.Deletion && SupportsTriggerOnDeletion(options))
             {
                 return Char.IsLetterOrDigit(trigger.Character) || trigger.Character == '.';
             }
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         internal virtual bool SupportsTriggerOnDeletion(OptionSet options)
         {
-            var opt = options.GetOption(CompletionOptions.TriggerOnDeletion, this.Language);
+            var opt = options.GetOption(CompletionOptions.TriggerOnDeletion, Language);
             return opt == true;
         }
 

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             var cancellationToken = context.CancellationToken;
             var node = (TMemberAccessExpressionSyntax)context.Node;
 
-            var syntaxFacts = this.GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFactsService();
             var expr = syntaxFacts.GetExpressionOfMemberAccessExpression(node);
             if (!(expr is TThisExpressionSyntax))
             {

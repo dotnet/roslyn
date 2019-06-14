@@ -97,12 +97,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
         private TArgumentSyntax TryGetRelevantArgument(
             SyntaxNode initialNode, SyntaxNode node, Diagnostic diagnostic)
         {
-            if (this.TooManyArgumentsDiagnosticIds.Contains(diagnostic.Id))
+            if (TooManyArgumentsDiagnosticIds.Contains(diagnostic.Id))
             {
                 return null;
             }
 
-            if (this.CannotConvertDiagnosticIds.Contains(diagnostic.Id))
+            if (CannotConvertDiagnosticIds.Contains(diagnostic.Id))
             {
                 return null;
             }

@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             public State(SyntaxNode interfaceNode, SyntaxNode classOrStructDecl, INamedTypeSymbol classOrStructType, IEnumerable<INamedTypeSymbol> interfaceTypes, SemanticModel model)
             {
-                this.Location = interfaceNode;
-                this.ClassOrStructDecl = classOrStructDecl;
-                this.ClassOrStructType = classOrStructType;
-                this.InterfaceTypes = interfaceTypes;
-                this.Model = model;
+                Location = interfaceNode;
+                ClassOrStructDecl = classOrStructDecl;
+                ClassOrStructType = classOrStructType;
+                InterfaceTypes = interfaceTypes;
+                Model = model;
             }
 
             public static State Generate(
