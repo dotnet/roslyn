@@ -60,6 +60,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return guid;
         }
 
+        public static Guid GetProjectGuidOrDefault(this IVsHierarchy hierarchy)
+            => hierarchy.TryGetProjectGuid(out var guid) ? guid : Guid.Empty;
+
         public static bool TryGetProjectGuid(this IVsHierarchy hierarchy, out Guid guid)
             => ErrorHandler.Succeeded(hierarchy.GetGuidProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ProjectIDGuid, out guid)) && guid != Guid.Empty;
 
