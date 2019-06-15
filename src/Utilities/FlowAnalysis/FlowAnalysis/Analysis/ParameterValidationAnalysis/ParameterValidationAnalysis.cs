@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
@@ -38,14 +41,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
         {
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                    analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken, defaultMaxInterproceduralMethodCallChain);
+            var nullCheckValidationMethods = analyzerOptions.GetSeparatedStringOptionValue(
+                EditorConfigOptionNames.NullCheckValidationMethods,
+                rule,
+                cancellationToken);
             return GetOrComputeHazardousParameterUsages(topmostBlock, compilation, owningSymbol,
-                interproceduralAnalysisConfig, pessimisticAnalysis);
+                nullCheckValidationMethods, interproceduralAnalysisConfig, pessimisticAnalysis);
         }
 
         private static ImmutableDictionary<IParameterSymbol, SyntaxNode> GetOrComputeHazardousParameterUsages(
             IBlockOperation topmostBlock,
             Compilation compilation,
             ISymbol owningSymbol,
+            ImmutableArray<string> nullCheckValidationMethods,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis = true)
         {
@@ -58,7 +66,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             if (pointsToAnalysisResult != null)
             {
                 var result = TryGetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
-                    interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResult);
+                    nullCheckValidationMethods, interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResult);
                 if (result != null)
                 {
                     return result.HazardousParameterUsages;
@@ -72,6 +80,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
             WellKnownTypeProvider wellKnownTypeProvider,
+            ImmutableArray<string> nullCheckValidationMethods,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             PointsToAnalysisResult pointsToAnalysisResult)
@@ -79,7 +88,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             Debug.Assert(pointsToAnalysisResult != null);
 
             var analysisContext = ParameterValidationAnalysisContext.Create(ParameterValidationAbstractValueDomain.Default,
-                wellKnownTypeProvider, cfg, owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResult, TryGetOrComputeResultForAnalysisContext);
+                wellKnownTypeProvider, cfg, owningSymbol, nullCheckValidationMethods, interproceduralAnalysisConfig,
+                pessimisticAnalysis, pointsToAnalysisResult, TryGetOrComputeResultForAnalysisContext);
             return TryGetOrComputeResultForAnalysisContext(analysisContext);
         }
 
