@@ -891,7 +891,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var xmlText = symbol.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
             if (expandInheritdoc)
             {
-                if (string.IsNullOrEmpty(xmlText))
+                if (string.IsNullOrEmpty(xmlText) && IsEligibleForAutomaticInheritdoc(symbol))
                 {
                     xmlText = $@"<doc><inheritdoc/></doc>";
                 }
@@ -908,6 +908,36 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return string.IsNullOrEmpty(xmlText) ? DocumentationComment.Empty : DocumentationComment.FromXmlFragment(xmlText);
+
+            static bool IsEligibleForAutomaticInheritdoc(ISymbol symbol)
+            {
+                // Only the following symbols are eligible to inherit documentation without an <inheritdoc/> element:
+                //
+                // * Members that override an inherited member
+                // * Members that implement an interface member
+                if (symbol.IsOverride)
+                {
+                    return true;
+                }
+
+                switch (symbol.Kind)
+                {
+                    case SymbolKind.Method:
+                    case SymbolKind.Property:
+                    case SymbolKind.Event:
+                        if (symbol.ExplicitOrImplicitInterfaceImplementations().Any())
+                        {
+                            return true;
+                        }
+
+                        break;
+
+                    default:
+                        break;
+                }
+
+                return false;
+            }
         }
 
         private static XNode[] RewriteInheritdocElements(ISymbol symbol, Compilation compilation, XNode node, CancellationToken cancellationToken)

@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Inherits AbstractIntellisenseQuickInfoBuilderTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Sub InheritedQuickInfoForType()
+        Public Async Sub NoImplicitInheritedQuickInfoForType()
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -38,16 +38,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim expected = New ContainerElement(
                 ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
                 New ContainerElement(
-                    ContainerElementStyle.Stacked,
-                    New ContainerElement(
-                        ContainerElementStyle.Wrapped,
-                        New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.ClassInternal)),
-                        New ClassifiedTextElement(
-                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "class"),
-                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass"))),
+                    ContainerElementStyle.Wrapped,
+                    New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.ClassInternal)),
                     New ClassifiedTextElement(
-                        New ClassifiedTextRun(ClassificationTypeNames.Text, "This is the base class."))))
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "class"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass"))))
 
             AssertEqualAdornments(expected, container)
         End Sub
