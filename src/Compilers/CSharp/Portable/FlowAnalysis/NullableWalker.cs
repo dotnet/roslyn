@@ -3201,23 +3201,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case RefKind.Out:
                     {
-                        var lValueType = result.LValueType;
+                        // compute the fictional parameter state
                         var parameterWithAnnotations = ApplyRValueAnnotations(parameterType, parameterAnnotations);
+                        var parameterWithState = TypeWithState.Create(parameterWithAnnotations, parameterAnnotations);
+
+                        // Adjust parameter state if MaybeNull or MaybeNullWhen are present (for `var` type and for assignment warnings)
+                        var worstCaseParameterWithState = applyPostConditionsUnconditionally(parameterWithState, parameterAnnotations);
+
+                        var lValueType = result.LValueType;
                         if (argument is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
                         {
-                            _variableTypes[local.LocalSymbol] = parameterWithAnnotations;
-                            lValueType = parameterWithAnnotations;
+                            var varType = worstCaseParameterWithState.ToTypeWithAnnotations();
+                            _variableTypes[local.LocalSymbol] = varType;
+                            lValueType = varType;
                         }
 
-                        // assign from a fictional value from the parameter to the argument.
-                        var parameterWithState = TypeWithState.Create(parameterWithAnnotations, parameterAnnotations);
+                        // track state by assigning from a fictional value from the parameter to the argument.
                         var parameterValue = new BoundParameter(argument.Syntax, parameter);
                         trackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argument), parameterWithState, argument.IsSuppressed, parameterAnnotations);
 
-                        // check whether parameter would unsafely let a null out in the worse case
+                        // report warnings if parameter would unsafely let a null out in the worst case
                         if (!argument.IsSuppressed)
                         {
-                            ReportNullableAssignmentIfNecessary(parameterValue, lValueType, applyPostConditionsUnconditionally(parameterWithState, parameterAnnotations), UseLegacyWarnings(argument, result.LValueType));
+                            ReportNullableAssignmentIfNecessary(parameterValue, lValueType, worstCaseParameterWithState, UseLegacyWarnings(argument, result.LValueType));
 
                             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                             if (!_conversions.HasIdentityOrImplicitReferenceConversion(parameterType.Type, lValueType.Type, ref useSiteDiagnostics))
@@ -3786,12 +3792,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             var symbolDef = symbol.OriginalDefinition;
-            var symbolDefContainer = symbolDef.ContainingType;
-            if (symbolDefContainer.IsTupleType)
+            var symbolContainer = symbol.ContainingType;
+            if (symbolContainer.IsTupleType)
             {
                 return AsMemberOfTupleType((TupleTypeSymbol)containingType, symbol);
             }
-            if (symbolDefContainer.IsAnonymousType)
+            if (symbolContainer.IsAnonymousType)
             {
                 int? memberIndex = symbol.Kind == SymbolKind.Property ? symbol.MemberIndexOpt : null;
                 if (!memberIndex.HasValue)
@@ -3800,12 +3806,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return AnonymousTypeManager.GetAnonymousTypeProperty(containingType, memberIndex.GetValueOrDefault());
             }
-            if (!symbolDefContainer.IsGenericType)
+            if (!symbolContainer.IsGenericType)
             {
                 Debug.Assert(symbol.ContainingType.IsDefinition);
                 return symbol;
             }
-            if (symbolDefContainer.IsInterface)
+            if (!containingType.IsGenericType && !containingType.IsTupleType)
+            {
+                return symbol;
+            }
+            if (symbolContainer.IsInterface)
             {
                 if (tryAsMemberOfSingleType(containingType, out Symbol result))
                 {
@@ -3839,7 +3849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool tryAsMemberOfSingleType(NamedTypeSymbol singleType, out Symbol result)
             {
-                if (!singleType.OriginalDefinition.Equals(symbolDefContainer, TypeCompareKind.AllIgnoreOptions))
+                if (!singleType.Equals(symbolContainer, TypeCompareKind.AllIgnoreOptions))
                 {
                     result = null;
                     return false;
