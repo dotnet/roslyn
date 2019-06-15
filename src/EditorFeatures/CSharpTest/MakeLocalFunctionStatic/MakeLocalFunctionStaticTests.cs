@@ -178,5 +178,40 @@ class C
 }",
 parseOptions: CSharp8ParseOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        public async Task TestSurroundingTrivia()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+
+        int [||]fibonacci(int n)
+        {
+            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+        }
+
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+
+        static int fibonacci(int n)
+        {
+            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+        }
+
+    }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
     }
 }
