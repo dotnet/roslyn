@@ -279,14 +279,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             {
                 Debug.Assert(!targetMethod.IsLambdaOrLocalFunctionOrDelegate());
 
-                if (targetMethod.ContainingType.SpecialType == SpecialType.System_String)
+                if (targetMethod.IsArgumentNullCheckMethod())
                 {
-                    if (targetMethod.IsStatic &&
-                        targetMethod.Name.StartsWith("IsNull", StringComparison.Ordinal) &&
-                        targetMethod.Parameters.Length == 1 &&
-                        arguments.Length == 1)
+                    if (arguments.Length == 1)
                     {
-                        // string.IsNullOrXXX check.
+                        // "static bool SomeType.IsNullXXX(obj)" check.
                         MarkValidatedLocations(arguments[0]);
                     }
                 }
@@ -337,6 +334,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                                     break;
                                 }
                             }
+                        }
+                    }
+                }
+
+                // Mark arguments passed to parameters with ValidatedNotNullAttribute as validated
+                foreach (var argument in arguments)
+                {
+                    var notValidatedLocations = GetNotValidatedLocations(argument);
+                    if (notValidatedLocations.Any())
+                    {
+                        if (HasValidatedNotNullAttribute(argument.Parameter))
+                        {
+                            MarkValidatedLocations(argument);
                         }
                     }
                 }
