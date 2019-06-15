@@ -1074,6 +1074,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // Local functions
             static ISymbol GetCandidateSymbol(ISymbol memberSymbol)
             {
+                if (memberSymbol.ExplicitInterfaceImplementations().Any())
+                {
+                    return memberSymbol.ExplicitInterfaceImplementations().First();
+                }
+                else if (memberSymbol.IsOverride)
+                {
+                    return memberSymbol.OverriddenMember();
+                }
+
                 if (memberSymbol is IMethodSymbol methodSymbol)
                 {
                     if (methodSymbol.MethodKind == MethodKind.Constructor || methodSymbol.MethodKind == MethodKind.StaticConstructor)
@@ -1081,31 +1090,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         var baseType = memberSymbol.ContainingType.BaseType;
                         return baseType.Constructors.Where(c => IsSameSignature(methodSymbol, c)).FirstOrDefault();
                     }
-                    else if (methodSymbol.ExplicitInterfaceImplementations.Any())
-                    {
-                        return methodSymbol.ExplicitInterfaceImplementations.First();
-                    }
-                    else if (methodSymbol.IsOverride)
-                    {
-                        return methodSymbol.OverriddenMethod;
-                    }
                     else
                     {
                         // check for implicit interface
-                        var containingType = methodSymbol.ContainingType;
-                        foreach (var namedTypeSymbol in containingType.AllInterfaces)
-                        {
-                            foreach (var symbol in namedTypeSymbol.GetMembers())
-                            {
-                                var implementation = containingType.FindImplementationForInterfaceMember(symbol);
-                                if (Equals(implementation, methodSymbol))
-                                {
-                                    return symbol;
-                                }
-                            }
-                        }
-
-                        return null;
+                        return methodSymbol.ExplicitOrImplicitInterfaceImplementations().FirstOrDefault();
                     }
                 }
                 else if (memberSymbol is INamedTypeSymbol typeSymbol)
@@ -1126,7 +1114,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     }
                 }
 
-                return null;
+                return memberSymbol.ExplicitOrImplicitInterfaceImplementations().FirstOrDefault();
             }
 
             static bool IsSameSignature(IMethodSymbol left, IMethodSymbol right)
