@@ -1,0 +1,58 @@
+trigger:
+  branches:
+    include:
+    - master
+    - validate/*
+  paths:
+    exclude:
+    - doc/
+    - '*.md'
+    - .vscode/
+    
+variables:
+  TreatWarningsAsErrors: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  BuildConfiguration: Release
+  BuildPlatform: Any CPU
+  codecov_token: 4dc9e7e2-6b01-4932-a180-847b52b43d35 # PLACEHOLDER - Get a new one from https://codecov.io/
+
+jobs:
+- job: Windows
+  pool: Hosted Windows 2019 with VS2019
+  steps:
+  - template: azure-pipelines/install-dependencies.yml
+
+  - powershell: |
+      dotnet tool install --tool-path .. nbgv
+      ../nbgv cloud
+    displayName: Set build number
+    workingDirectory: src
+
+  - template: azure-pipelines/dotnet.yml
+  - template: azure-pipelines/collect-deployables.yml
+  - template: azure-pipelines/collect-logs.yml
+
+  - task: NuGetCommand@2
+    displayName: Push packages to CI feed
+    inputs:
+      command: push
+      packagesToPush: $(Build.ArtifactStagingDirectory)/deployables/*.nupkg;$(Build.ArtifactStagingDirectory)/deployables/*.snupkg
+      nuGetFeedType: internal
+      publishVstsFeed: /a5a3bad0-e566-4c53-be83-6458be8d1653 # PLACEHOLDER
+      allowPackageConflicts: true
+
+- job: Linux
+  pool:
+    vmImage: Ubuntu 16.04
+  steps:
+  - template: azure-pipelines/install-dependencies.yml
+  - template: azure-pipelines/dotnet.yml
+  - template: azure-pipelines/collect-logs.yml
+
+- job: macOS
+  pool:
+    vmImage: macOS 10.13
+  steps:
+  - template: azure-pipelines/install-dependencies.yml
+  - template: azure-pipelines/dotnet.yml
+  - template: azure-pipelines/collect-logs.yml

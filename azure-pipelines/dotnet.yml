@@ -1,0 +1,64 @@
+steps:
+- script: dotnet restore  /v:m /bl:"$(Build.ArtifactStagingDirectory)/build_logs/restore.binlog"
+  displayName: dotnet restore
+  workingDirectory: src
+
+- script: dotnet build --no-restore -c $(BuildConfiguration) /v:m /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
+  displayName: dotnet build
+  workingDirectory: src
+
+- script: dotnet pack --no-build -c $(BuildConfiguration) /v:m /bl:"$(Build.ArtifactStagingDirectory)/build_logs/pack.binlog"
+  displayName: dotnet pack
+  workingDirectory: src
+
+- script: dotnet test --no-build -c $(BuildConfiguration) -f net472 --filter "TestCategory!=FailsInCloudTest" -v n -l "trx;LogFileName=$(Build.ArtifactStagingDirectory)/testlogs/net472.trx" /p:CollectCoverage=true
+  displayName: dotnet test -f net472
+  workingDirectory: src
+  condition: eq(variables['Agent.OS'], 'Windows_NT')
+
+- script: dotnet test --no-build -c $(BuildConfiguration) -f netcoreapp2.0 --filter "TestCategory!=FailsInCloudTest" -v n -l "trx;LogFileName=$(Build.ArtifactStagingDirectory)/testlogs/netcoreapp2.0.trx" /p:CollectCoverage=true
+  displayName: dotnet test -f netcoreapp2.0
+  workingDirectory: src
+
+- script: dotnet test --no-build -c $(BuildConfiguration) -f netcoreapp2.1 --filter "TestCategory!=FailsInCloudTest" -v n -l "trx;LogFileName=$(Build.ArtifactStagingDirectory)/testlogs/netcoreapp2.1.trx" /p:CollectCoverage=true
+  displayName: dotnet test -f netcoreapp2.1
+  workingDirectory: src
+    
+- script: dotnet test --no-build -c $(BuildConfiguration) -f netcoreapp2.2 --filter "TestCategory!=FailsInCloudTest" -v n -l "trx;LogFileName=$(Build.ArtifactStagingDirectory)/testlogs/netcoreapp2.2.trx" /p:CollectCoverage=true
+  displayName: dotnet test -f netcoreapp2.2
+  workingDirectory: src
+    
+- task: PublishTestResults@2
+  displayName: Publish test results
+  inputs:
+    testRunner: VSTest
+    #mergeTestResults: true
+    testResultsFormat: trx
+    testResultsFiles: $(Build.ArtifactStagingDirectory)/testlogs/*.trx
+    failTaskOnFailedTests: true
+
+- task: PublishCodeCoverageResults@1
+  displayName: Publish code coverage results to Azure DevOps
+  inputs:
+    codeCoverageTool: cobertura
+    summaryFileLocation: '**/coverage.cobertura.xml'
+
+- bash: bash <(curl -s https://codecov.io/bash)
+  displayName: Publish code coverage results to codecov.io
+  condition: ne(variables['codecov_token'], '')
+
+- task: CopyFiles@1
+  inputs:
+    Contents: |
+      obj/**/project.assets.json
+    TargetFolder: $(Build.ArtifactStagingDirectory)/projectAssetsJson
+  displayName: Collecting project.assets.json artifacts
+  condition: succeededOrFailed()
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: $(Build.ArtifactStagingDirectory)/projectAssetsJson
+    ArtifactName: projectAssetsJson-$(Agent.JobName)
+    ArtifactType: Container
+  displayName: Publish projectAssetsJson artifacts
+  condition: succeededOrFailed()
