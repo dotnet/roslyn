@@ -78,6 +78,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 _projectDirectory = Path.GetDirectoryName(projectFilePath);
             }
 
+            // TODO: https://github.com/dotnet/roslyn/issues/36516
+            // In some cases the IVsHierarchy does not have project GUID set at this point.
+            // Roslyn features that query for the project ID will not get any even if it is later set on IVsHierarchy.
+            if (!hierarchy.TryGetProjectGuid(out var projectGuid))
+            {
+                projectGuid = Guid.Empty;
+            }
+
             var projectFactory = componentModel.GetService<VisualStudioProjectFactory>();
             VisualStudioProject = projectFactory.CreateAndAddToWorkspace(
                 projectSystemName,
@@ -88,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                     // projectSystemName because they'll have a better one eventually.
                     AssemblyName = projectSystemName,
                     FilePath = projectFilePath,
-                    ProjectGuid = hierarchy.GetProjectGuid(),
+                    ProjectGuid = projectGuid,
                 });
 
             ((VisualStudioWorkspaceImpl)Workspace).AddProjectRuleSetFileToInternalMaps(
