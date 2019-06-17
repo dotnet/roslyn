@@ -75,7 +75,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var root = document.GetSyntaxRootSynchronously(executionContext.OperationContext.UserCancellationToken);
 
-            var currentNode = GetStartingNode(document, root, caret);
+            if (!TryGetStartingNode(document, root, caret, out var currentNode))
+            {
+                return;
+            }
+
             MoveCaretToSemicolonPosition(args, document, root, caret, syntaxFacts, currentNode, isInsideDelimiters: false);
         }
 
@@ -87,14 +91,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// <param name="root"></param>
         /// <param name="caret"></param>
         /// <returns></returns>
-        private static SyntaxNode GetStartingNode(Document document, SyntaxNode root, SnapshotPoint caret)
+        private static bool TryGetStartingNode(Document document, SyntaxNode root, SnapshotPoint caret, out SyntaxNode startingNode)
         {
             // on the UI thread
+            startingNode = null;
             var caretPosition = caret.Position;
 
             var token = root.FindTokenOnLeftOfPosition(caretPosition);
 
-            var startingNode = token.Parent;
+            if (CaretIsInComment(token, caretPosition))
+            {
+                return false;
+            }
+
+            startingNode = token.Parent;
 
             // If the caret is right before an opening delimiter or right after a closing delimeter,
             // start analysis with node outside of delimiters.
@@ -107,7 +117,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 startingNode = startingNode.Parent;
             }
 
-            return startingNode;
+            return true;
+        }
+
+        private static bool CaretIsInComment(SyntaxToken token, int caretPosition)
+        {
+            // Because token is to the left of the caret, we only have to look at trailing trivia
+            foreach (var trivia in token.TrailingTrivia)
+            {
+                if (trivia.IsRegularOrDocComment()
+                    && caretPosition > trivia.SpanStart
+                    && caretPosition < trivia.Span.End)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static void MoveCaretToSemicolonPosition(TypeCharCommandArgs args, Document document, SyntaxNode root, SnapshotPoint caret, ISyntaxFactsService syntaxFacts, SyntaxNode currentNode, bool isInsideDelimiters)
@@ -129,7 +155,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 // set caret to just outside the delimited span and analyze again
                 var newCaretPosition = currentNode.Span.End;
                 var newCaret = args.SubjectBuffer.CurrentSnapshot.GetPoint(newCaretPosition);
-                currentNode = GetStartingNode(document, root, newCaret);
+                if (!TryGetStartingNode(document, root, newCaret, out currentNode))
+                {
+                    return;
+                }
+
                 MoveCaretToSemicolonPosition(args, document, root, newCaret, syntaxFacts, currentNode, isInsideDelimiters: true);
             }
             else if (currentNode.IsKind(SyntaxKind.DoStatement))

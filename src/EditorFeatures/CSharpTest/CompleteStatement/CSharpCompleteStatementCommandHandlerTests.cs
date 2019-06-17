@@ -3884,6 +3884,40 @@ class D
             VerifyNoSpecialSemicolonHandling(code);
         }
 
+        [WorkItem(917499, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/917499")]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("/$$* comments */")]
+        [InlineData("/*$$ comments */")]
+        [InlineData("/* comments $$*/")]
+        [InlineData("/* comments *$$/")]
+        [InlineData("3, /* comments$$ */")]
+        [InlineData("/$$/ comments ")]
+        [InlineData("//$$ comments ")]
+        [InlineData("// comments $$")]
+        public void InsideComments(string argument)
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(" + argument + ")");
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(917499, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/917499")]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("$$/* comments */")]
+        [InlineData("/* comments */$$")]
+        [InlineData("3$$, /* comments */")]
+        [InlineData("3, $$/* comments */")]
+        [InlineData("// comments \r\n$$")]
+        public void NearComments(string argument)
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(" + argument + ")");
+
+            var expected = CreateTestWithMethodCall(
+                @"var test = ClassC.MethodM(" + argument.Remove(argument.IndexOf("$$"), 2) + ");$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
         protected override TestWorkspace CreateTestWorkspace(string code)
             => TestWorkspace.CreateCSharp(code);
     }
