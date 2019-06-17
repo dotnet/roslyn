@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Flag indicating if the <see cref="Analyzers"/> include any <see cref="DiagnosticSuppressor"/>
         /// which can suppress reported analyzer/compiler diagnostics.
         /// </summary>
-        public bool _hasDiagnosticSuppressors { get; }
+        private readonly bool _hasDiagnosticSuppressors;
 
         // Lazy fields/properties
         private CancellationTokenRegistration _queueRegistration;
@@ -288,13 +288,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analyzerExecutor = AnalyzerExecutor.Create(
                 compilation, analysisOptions.Options ?? AnalyzerOptions.Empty, addNotCategorizedDiagnosticOpt, newOnAnalyzerException, analysisOptions.AnalyzerExceptionFilter,
                 IsCompilerAnalyzer, AnalyzerManager, ShouldSkipAnalysisOnGeneratedCode, ShouldSuppressGeneratedCodeDiagnostic, IsGeneratedOrHiddenCodeLocation, GetAnalyzerGate,
-                analysisOptions.LogAnalyzerExecutionTime, addCategorizedLocalDiagnosticOpt, addCategorizedNonLocalDiagnosticOpt, AddSuppression, cancellationToken);
+                analysisOptions.LogAnalyzerExecutionTime, addCategorizedLocalDiagnosticOpt, addCategorizedNonLocalDiagnosticOpt, s => _programmaticSuppressions.Add(s), cancellationToken);
 
             Initialize(analyzerExecutor, diagnosticQueue, compilationData, cancellationToken);
         }
-
-        private void AddSuppression(Suppression suppression)
-            => _programmaticSuppressions.Add(suppression);
 
         private SemaphoreSlim GetAnalyzerGate(DiagnosticAnalyzer analyzer)
         {
@@ -641,26 +638,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             //  1. Diagnostics which are already suppressed in source via pragma/suppress message attribute.
             //  2. Diagnostics explicitly tagged as not configurable by analyzer authors - this includes compiler error diagnostics.
             //  3. Diagnostics which are marked as error by default by diagnostic authors.
-            var suppressableDiagnostics = reportedDiagnostics.WhereAsArray(d => !d.IsSuppressed &&
-                                                                                !d.IsNotConfigurable() &&
-                                                                                d.DefaultSeverity != DiagnosticSeverity.Error);
-            if (suppressableDiagnostics.IsEmpty)
+            var suppressableDiagnostics = reportedDiagnostics.Where(d => !d.IsSuppressed &&
+                                                                         !d.IsNotConfigurable() &&
+                                                                         d.DefaultSeverity != DiagnosticSeverity.Error);
+            if (suppressableDiagnostics.IsEmpty())
             {
                 return reportedDiagnostics;
             }
 
-            ExecuteSuppressionActions(suppressableDiagnostics, concurrent: compilation.Options.ConcurrentBuild);
+            executeSuppressionActions(suppressableDiagnostics, concurrent: compilation.Options.ConcurrentBuild);
             if (_programmaticSuppressions.IsEmpty)
             {
                 return reportedDiagnostics;
             }
 
             var builder = ArrayBuilder<Diagnostic>.GetInstance(reportedDiagnostics.Length);
-
-            var programmaticSuppressionsByDiagnostic = _programmaticSuppressions.GroupBy(s => s.SuppressedDiagnostic)
-                .ToImmutableDictionary(g => g.Key,
-                                       g => new ProgrammaticSuppressionInfo(g.Select(s => (s.Descriptor.Id, s.Descriptor.Justification)).ToImmutableHashSet()));
-
+            ImmutableDictionary<Diagnostic, ProgrammaticSuppressionInfo> programmaticSuppressionsByDiagnostic = createProgrammaticSuppressionsByDiagnosticMap(_programmaticSuppressions);
             foreach (var diagnostic in reportedDiagnostics)
             {
                 if (programmaticSuppressionsByDiagnostic.TryGetValue(diagnostic, out var programmaticSuppressionInfo))
@@ -676,47 +669,69 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return builder.ToImmutableAndFree();
-        }
 
-        private void ExecuteSuppressionActions(ImmutableArray<Diagnostic> reportedDiagnostics, bool concurrent)
-        {
-            var suppressors = this.Analyzers.OfType<DiagnosticSuppressor>();
-            if (concurrent)
+            void executeSuppressionActions(IEnumerable<Diagnostic> reportedDiagnostics, bool concurrent)
             {
-                Parallel.ForEach(suppressors, suppressor =>
+                var suppressors = this.Analyzers.OfType<DiagnosticSuppressor>();
+                if (concurrent)
                 {
-                    AnalyzerExecutor.ExecuteSuppressionAction(suppressor, getSuppressableDiagnostics(suppressor));
-                });
-            }
-            else
-            {
-                foreach (var suppressor in suppressors)
-                {
-                    AnalyzerExecutor.ExecuteSuppressionAction(suppressor, getSuppressableDiagnostics(suppressor));
-                }
-            }
-
-            return;
-
-            // Local functions.
-            ImmutableArray<Diagnostic> getSuppressableDiagnostics(DiagnosticSuppressor suppressor)
-            {
-                var supportedSuppressions = AnalyzerManager.GetSupportedSuppressionDescriptors(suppressor, AnalyzerExecutor);
-                if (supportedSuppressions.IsEmpty)
-                {
-                    return ImmutableArray<Diagnostic>.Empty;
-                }
-
-                var builder = ArrayBuilder<Diagnostic>.GetInstance();
-                foreach (var diagnostic in reportedDiagnostics)
-                {
-                    if (supportedSuppressions.Contains(s => s.SuppressedDiagnosticId == diagnostic.Id))
+                    Parallel.ForEach(suppressors, suppressor =>
                     {
-                        builder.Add(diagnostic);
+                        AnalyzerExecutor.ExecuteSuppressionAction(suppressor, getSuppressableDiagnostics(suppressor));
+                    });
+                }
+                else
+                {
+                    foreach (var suppressor in suppressors)
+                    {
+                        AnalyzerExecutor.ExecuteSuppressionAction(suppressor, getSuppressableDiagnostics(suppressor));
                     }
                 }
 
-                return builder.ToImmutableAndFree();
+                return;
+
+                ImmutableArray<Diagnostic> getSuppressableDiagnostics(DiagnosticSuppressor suppressor)
+                {
+                    var supportedSuppressions = AnalyzerManager.GetSupportedSuppressionDescriptors(suppressor, AnalyzerExecutor);
+                    if (supportedSuppressions.IsEmpty)
+                    {
+                        return ImmutableArray<Diagnostic>.Empty;
+                    }
+
+                    var builder = ArrayBuilder<Diagnostic>.GetInstance();
+                    foreach (var diagnostic in reportedDiagnostics)
+                    {
+                        if (supportedSuppressions.Contains(s => s.SuppressedDiagnosticId == diagnostic.Id))
+                        {
+                            builder.Add(diagnostic);
+                        }
+                    }
+
+                    return builder.ToImmutableAndFree();
+                }
+            }
+
+            static ImmutableDictionary<Diagnostic, ProgrammaticSuppressionInfo> createProgrammaticSuppressionsByDiagnosticMap(ConcurrentSet<Suppression> programmaticSuppressions)
+            {
+                var programmaticSuppressionsBuilder = PooledDictionary<Diagnostic, ImmutableHashSet<(string, LocalizableString)>.Builder>.GetInstance();
+                foreach (var programmaticSuppression in programmaticSuppressions)
+                {
+                    if (!programmaticSuppressionsBuilder.TryGetValue(programmaticSuppression.SuppressedDiagnostic, out var set))
+                    {
+                        set = ImmutableHashSet.CreateBuilder<(string, LocalizableString)>();
+                        programmaticSuppressionsBuilder.Add(programmaticSuppression.SuppressedDiagnostic, set);
+                    }
+
+                    set.Add((programmaticSuppression.Descriptor.Id, programmaticSuppression.Descriptor.Justification));
+                }
+
+                var mapBuilder = ImmutableDictionary.CreateBuilder<Diagnostic, ProgrammaticSuppressionInfo>();
+                foreach (var (diagnostic, set) in programmaticSuppressionsBuilder)
+                {
+                    mapBuilder.Add(diagnostic, new ProgrammaticSuppressionInfo(set.ToImmutable()));
+                }
+
+                return mapBuilder.ToImmutable();
             }
         }
 

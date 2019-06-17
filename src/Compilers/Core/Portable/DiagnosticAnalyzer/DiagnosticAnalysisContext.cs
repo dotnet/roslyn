@@ -1465,7 +1465,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Func<SyntaxTree, SemanticModel> _getSemanticModel;
 
         /// <summary>
-        /// Suppress analyzer and/or compiler non-error diagnostics reported for the compilation.
+        /// Analyzer and/or compiler non-error diagnostics reported for the compilation.
+        /// Each <see cref="DiagnosticSuppressor"/> only receives diagnostics whose IDs were declared suppressible in its <see cref="DiagnosticSuppressor.SupportedSuppressions"/>.
         /// This may be a subset of the full set of reported diagnostics, as an optimization for
         /// supporting incremental and partial analysis scenarios.
         /// A diagnostic is considered suppressible by a DiagnosticSuppressor if *all* of the following conditions are met:
