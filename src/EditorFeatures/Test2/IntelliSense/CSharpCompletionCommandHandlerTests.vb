@@ -5052,6 +5052,138 @@ namespace NS2
             End Using
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestExpanderWithImportCompletionDisabled() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(CompletionImplementation.Modern,
+                  <Document><![CDATA[
+namespace NS1
+{
+    class C
+    {
+        public void Foo()
+        {
+            Bar$$
+        }
+    }
+}
+
+namespace NS2
+{
+    public class Bar { }
+}
+]]></Document>)
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, False)
+
+                ' trigger completion with import completion disabled
+                state.SendInvokeCompletionList()
+                Await state.WaitForUIRenderedAsync()
+
+                state.AssertCompletionItemsDoNotContainAny(displayText:={"Bar"})
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
+
+                ' select expander
+                state.SetCompletionItemExpanderState(isSelected:=True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+
+                ' unselect expander
+                state.SetCompletionItemExpanderState(isSelected:=False)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                state.AssertCompletionItemsDoNotContainAny(displayText:={"Bar"})
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
+
+                ' select expander again
+                state.SetCompletionItemExpanderState(isSelected:=True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestExpanderWithImportCompletionEnabled() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(CompletionImplementation.Modern,
+                  <Document><![CDATA[
+namespace NS1
+{
+    class C
+    {
+        public void Foo()
+        {
+            Bar$$
+        }
+    }
+}
+
+namespace NS2
+{
+    public class Bar { }
+}
+]]></Document>)
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+
+                ' trigger completion with import completion enabled
+                state.SendInvokeCompletionList()
+                Await state.WaitForUIRenderedAsync()
+
+                Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+
+                ' unselect expander
+                state.SetCompletionItemExpanderState(isSelected:=False)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                state.AssertCompletionItemsDoNotContainAny(displayText:={"Bar"})
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
+
+                ' select expander
+                state.SetCompletionItemExpanderState(isSelected:=True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+
+                ' unselect expander again
+                state.SetCompletionItemExpanderState(isSelected:=False)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                state.AssertCompletionItemsDoNotContainAny(displayText:={"Bar"})
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NoExpanderAvailableWhenNotInTypeContext() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(CompletionImplementation.Modern,
+                  <Document><![CDATA[
+namespace NS1
+{
+    $$
+}
+]]></Document>)
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+
+                ' trigger completion with import completion enabled
+                state.SendInvokeCompletionList()
+                Await state.WaitForUIRenderedAsync()
+
+                state.AssertCompletionItemExpander(isAvailable:=False, isSelected:=False)
+            End Using
+        End Function
+
         <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>

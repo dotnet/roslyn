@@ -195,6 +195,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public MustOverride Function GetCompletionItemFilters() As ImmutableArray(Of CompletionItemFilter)
 
+        Public MustOverride Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)
+
+        Public MustOverride Sub SetCompletionItemExpanderState(isSelected As Boolean)
+
         Public MustOverride Function HasSuggestedItem() As Boolean
 
         Public MustOverride Function IsSoftSelected() As Boolean
