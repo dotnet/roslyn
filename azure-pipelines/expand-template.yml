@@ -1,0 +1,10 @@
+steps:
+- script: git clean -fdx
+  displayName: Cleaning repo for template expansion
+- powershell: ./Expand-Template.ps1 -LibraryName Calc -Author "Andrew Arnott"
+  displayName: Expanding template
+  failOnStderr: true
+# TODO: Verify that all changes are staged to the git index
+- script: dotnet build
+  workingDirectory: src
+  displayName: dotnet build (expanded template)

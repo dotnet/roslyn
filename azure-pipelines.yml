@@ -8,13 +8,14 @@ trigger:
     - doc/
     - '*.md'
     - .vscode/
-    
+
 variables:
   TreatWarningsAsErrors: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   BuildConfiguration: Release
   BuildPlatform: Any CPU
-  codecov_token: 4dc9e7e2-6b01-4932-a180-847b52b43d35 # PLACEHOLDER - Get a new one from https://codecov.io/
+  codecov_token: 4dc9e7e2-6b01-4932-a180-847b52b43d35 # Get a new one from https://codecov.io/
+  ci_feed: /a5a3bad0-e566-4c53-be83-6458be8d1653 # find guid used by Azure DevOps Artifacts for the feed
 
 jobs:
 - job: Windows
@@ -31,6 +32,7 @@ jobs:
   - template: azure-pipelines/dotnet.yml
   - template: azure-pipelines/collect-deployables.yml
   - template: azure-pipelines/collect-logs.yml
+  - template: azure-pipelines/expand-template.yml
 
   - task: NuGetCommand@2
     displayName: Push packages to CI feed
@@ -38,8 +40,9 @@ jobs:
       command: push
       packagesToPush: $(Build.ArtifactStagingDirectory)/deployables/*.nupkg;$(Build.ArtifactStagingDirectory)/deployables/*.snupkg
       nuGetFeedType: internal
-      publishVstsFeed: /a5a3bad0-e566-4c53-be83-6458be8d1653 # PLACEHOLDER
+      publishVstsFeed: $(ci_feed)
       allowPackageConflicts: true
+    condition: ne(variables['ci_feed'], '')
 
 - job: Linux
   pool:
@@ -48,6 +51,7 @@ jobs:
   - template: azure-pipelines/install-dependencies.yml
   - template: azure-pipelines/dotnet.yml
   - template: azure-pipelines/collect-logs.yml
+  - template: azure-pipelines/expand-template.yml
 
 - job: macOS
   pool:
@@ -56,3 +60,4 @@ jobs:
   - template: azure-pipelines/install-dependencies.yml
   - template: azure-pipelines/dotnet.yml
   - template: azure-pipelines/collect-logs.yml
+  - template: azure-pipelines/expand-template.yml

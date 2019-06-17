@@ -20,12 +20,9 @@
 
 ## Consumption
 
-Once you've expanded this template for your own use, you should:
+Once you've expanded this template for your own use, you should **run the `Expand-Template.ps1` script** to customize the template for your own project.
 
-1. Verify the license is suitable for your goal as it appears in the LICENSE and stylecop.json files
-   and the Directory.Build.props file's `PackageLicenseExpression` property.
-1. Search the repo for all `PLACEHOLDER` occurrences and replace them.
-1. Regenerate `src\strongname.snk` file: `sn -k src\strongname.snk`
-1. Rename project files, directories, namespaces, and update sln file to match.
-1. Reset or remove the `codecov_token` variable in `azure-pipelines.yml`
+Further customize your repo by:
+
+1. Verify the license is suitable for your goal as it appears in the LICENSE and stylecop.json files and the Directory.Build.props file's `PackageLicenseExpression` property.
 1. Reset or replace the badges at the top of this file.

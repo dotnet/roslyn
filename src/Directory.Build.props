@@ -11,8 +11,8 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)\strongname.snk</AssemblyOriginatorKeyFile>
 
-    <Company>PLACEHOLDER</Company>
-    <Authors>PLACEHOLDER</Authors>
+    <Company>COMPANY-PLACEHOLDER</Company>
+    <Authors>COMPANY-PLACEHOLDER</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
