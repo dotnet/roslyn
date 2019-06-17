@@ -5516,6 +5516,22 @@ class Program
         }
 
         [Fact, WorkItem(35748, "https://github.com/dotnet/roslyn/issues/35748")]
+        public void Directive_Annotations_Enable_04()
+        {
+            var source = @"
+class Program
+{
+    static void M(string? s)
+    {
+        _ = s.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypes(NullableContextOptions.Annotations));
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(35748, "https://github.com/dotnet/roslyn/issues/35748")]
         public void Directive_Warnings_Enable_01()
         {
             var source = @"
@@ -5584,6 +5600,28 @@ class Program
                     // (8,13): warning CS8602: Dereference of a possibly null reference.
                     //         _ = s.ToString();
                     Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13));
+        }
+
+        [Fact, WorkItem(35748, "https://github.com/dotnet/roslyn/issues/35748")]
+        public void Directive_Warnings_Enable_04()
+        {
+            var source = @"
+class Program
+{
+    static void M(string? s)
+    {
+        _ = s.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypes(NullableContextOptions.Warnings));
+            comp.VerifyDiagnostics(
+                    // (4,25): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                    //     static void M(string? s)
+                    Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 25),
+                    // (6,13): warning CS8602: Dereference of a possibly null reference.
+                    //         _ = s.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(6, 13));
         }
 
         [Fact, WorkItem(35730, "https://github.com/dotnet/roslyn/issues/35730")]
