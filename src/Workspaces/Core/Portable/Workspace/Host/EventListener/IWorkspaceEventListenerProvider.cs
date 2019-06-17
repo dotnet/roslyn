@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
-    /// Ensure <see cref="IEventListener{TService}.Listen(Workspace, TService)"/> is called for the workspace
+    /// Ensure <see cref="IEventListener{TService}.StartListening(Workspace, TService)"/> is called for the workspace
     /// </summary>
     internal interface IWorkspaceEventListenerService : IWorkspaceService
     {
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Host
 
                     foreach (var listener in _eventListeners)
                     {
-                        listener.Listen(_workspace, serviceOpt: null);
+                        listener.StartListening(_workspace, serviceOpt: null);
                     }
                 }
             }
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Host
 
                     foreach (var listener in _eventListeners.OfType<IEventListenerStoppable>())
                     {
-                        listener.Stop(_workspace);
+                        listener.StopListening(_workspace);
                     }
                 }
             }

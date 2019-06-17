@@ -19,6 +19,6 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     internal interface IEventListenerStoppable
     {
-        void Stop(Workspace workspace);
+        void StopListening(Workspace workspace);
     }
 }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -18,12 +19,18 @@ namespace Microsoft.CodeAnalysis.Host
         /// Workspace kind this event listener is initialized for
         /// </summary>
         private readonly HashSet<string> _eventListenerInitialized;
-        private readonly IEnumerable<Lazy<IEventListener, EventListenerMetadata>> _eventListeners;
+        private readonly ImmutableArray<Lazy<IEventListener, EventListenerMetadata>> _eventListeners;
+
+        public EventListenerTracker(
+            IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners, string kind) :
+            this(eventListeners.Where(el => el.Metadata.Service == kind))
+        {
+        }
 
         public EventListenerTracker(IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
         {
             _eventListenerInitialized = new HashSet<string>();
-            _eventListeners = eventListeners;
+            _eventListeners = eventListeners.ToImmutableArray();
         }
 
         public void EnsureEventListener(Workspace workspace, TService serviceOpt)
@@ -38,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Host
 
                 foreach (var listener in GetListeners(workspace, _eventListeners))
                 {
-                    listener.Listen(workspace, serviceOpt);
+                    listener.StartListening(workspace, serviceOpt);
                 }
             }
         }

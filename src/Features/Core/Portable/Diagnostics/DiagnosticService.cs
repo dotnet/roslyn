@@ -47,8 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _gate = new object();
             _map = new Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>>();
 
-            _eventListenerTracker = new EventListenerTracker<IDiagnosticService>(
-                eventListeners.Where(l => l.Metadata.Service == WellKnownEventListeners.DiagnosticService));
+            _eventListenerTracker = new EventListenerTracker<IDiagnosticService>(eventListeners, WellKnownEventListeners.DiagnosticService);
         }
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated

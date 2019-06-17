@@ -50,16 +50,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         /// <summary>
         /// make sure solution cralwer is registered for the given workspace.
-        /// 
-        /// we need this until https://github.com/dotnet/roslyn/issues/35514 is fixed.
-        /// 
-        /// basically, solution crawler is currently not initialized until a file is opened (package is loaded)
-        /// this force solution crawler to be initialized.
-        /// 
-        /// initializeLazily should be removed once the issue above is fixed. 
         /// </summary>
-        /// <param name="workspace"></param>
-        internal void EnsureRegistration(Workspace workspace, bool initializeLazily)
+        /// <param name="workspace"><see cref="Workspace"/> this solution crawler runs for</param>
+        /// <param name="initializeLazily">
+        /// when true, solution crawler will be initialized when there is the first workspace event fired. 
+        /// otherwise, it will be initialized when workspace is registered right away. 
+        /// something like "Build" will use initializeLazily:false to make sure diagnostic analyzer engine (incremental analyzer)
+        /// is initialized. otherwise, if build is called before workspace is fully populated, we will think some errors from build
+        /// doesn't belong to us since diagnostic analyzer engine is not there yet and 
+        /// let project system to take care of these unknown errors.
+        /// </param>
+        public void EnsureRegistration(Workspace workspace, bool initializeLazily)
         {
             var correlationId = LogAggregator.GetNextId();
 

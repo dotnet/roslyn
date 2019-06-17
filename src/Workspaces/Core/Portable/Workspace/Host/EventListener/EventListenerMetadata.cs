@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Host
                 throw new ArgumentException(nameof(workspaceKinds));
             }
 
-            this.Service = service ?? throw new ArgumentException("service");
+            this.Service = service ?? throw new ArgumentException(nameof(service));
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
         private sealed class RemoteHostWorkspaceEventListener : IEventListener<object>
         {
-            public void Listen(Workspace workspace, object serviceOpt)
+            public void StartListening(Workspace workspace, object serviceOpt)
             {
                 var service = (RemoteHostClientService)workspace.Services.GetService<IRemoteHostClientService>();
                 service.Enable();

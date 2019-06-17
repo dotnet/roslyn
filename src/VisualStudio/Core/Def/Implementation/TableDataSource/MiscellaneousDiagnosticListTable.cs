@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _tableManagerProvider = tableManagerProvider;
         }
 
-        public void Listen(Workspace workspace, IDiagnosticService diagnosticService)
+        public void StartListening(Workspace workspace, IDiagnosticService diagnosticService)
         {
             new MiscellaneousDiagnosticListTable(workspace, diagnosticService, _tableManagerProvider);
         }

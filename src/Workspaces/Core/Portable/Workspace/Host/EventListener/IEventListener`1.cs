@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     internal interface IEventListener<TService> : IEventListener
     {
-        void Listen(Workspace workspace, TService serviceOpt);
+        void StartListening(Workspace workspace, TService serviceOpt);
     }
 }

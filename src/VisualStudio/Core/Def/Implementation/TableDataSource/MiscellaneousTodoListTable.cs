@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _tableManagerProvider = tableManagerProvider;
         }
 
-        public void Listen(Workspace workspace, ITodoListProvider service)
+        public void StartListening(Workspace workspace, ITodoListProvider service)
         {
             new MiscellaneousTodoListTable(workspace, service, _tableManagerProvider);
         }

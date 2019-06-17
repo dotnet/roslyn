@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             [ImportMany]IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
         {
             _todoCommentTokens = todoCommentTokens;
-            _eventListenerTracker = new EventListenerTracker<ITodoListProvider>(
-                eventListeners.Where(l => l.Metadata.Service == WellKnownEventListeners.TodoListProvider));
+            _eventListenerTracker = new EventListenerTracker<ITodoListProvider>(eventListeners, WellKnownEventListeners.TodoListProvider);
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
