@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering
         internal static BoundStatement Rewrite(
             BoundStatement body,
             MethodSymbol method,
-            int methodOrdinal,
-            VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics)
         {

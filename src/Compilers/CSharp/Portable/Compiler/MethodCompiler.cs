@@ -1356,7 +1356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement bodyWithNullChecks = bodyWithoutAsync;
                 if (sawNullChecked)
                 {
-                    bodyWithNullChecks = NullCheckRewriter.Rewrite(bodyWithoutAsync, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics);
+                    bodyWithNullChecks = NullCheckRewriter.Rewrite(bodyWithoutAsync, method, compilationState, diagnostics);
                 }
 
                 Debug.Assert((object)iteratorStateMachine == null || (object)asyncStateMachine == null);
