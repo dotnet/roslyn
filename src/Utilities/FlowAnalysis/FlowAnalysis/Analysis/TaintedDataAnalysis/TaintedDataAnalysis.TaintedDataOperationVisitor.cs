@@ -182,14 +182,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 if (AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity analysisEntity))
                 {
-                    if (operation.Parent is IInvocationOperation invocationOperation &&
-                    this.IsSanitizingMethod_Argument(invocationOperation.TargetMethod))
-                    {
-                        this.CurrentAnalysisData.SetAbstractValue(analysisEntity, TaintedDataAbstractValue.NotTainted);
-
-                        return TaintedDataAbstractValue.NotTainted;
-                    }
-
                     return this.CurrentAnalysisData.TryGetValue(analysisEntity, out TaintedDataAbstractValue value) ? value : defaultValue;
                 }
 
@@ -239,6 +231,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 else if (this.DataFlowAnalysisContext.SourceInfos.IsSourceMethod(method))
                 {
                     return TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
+                }
+                else if (this.IsSanitizingMethod_Instance(method))
+                {
+                    if (AnalysisEntityFactory.TryCreate(visitedInstance, out AnalysisEntity analysisEntity))
+                    {
+                        this.CurrentAnalysisData.SetAbstractValue(analysisEntity, TaintedDataAbstractValue.NotTainted);
+                    }
+
+                    return TaintedDataAbstractValue.NotTainted;
                 }
 
                 return baseVisit;
@@ -423,7 +424,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 return false;
             }
 
-            private bool IsSanitizingMethod_Argument(IMethodSymbol method)
+            private bool IsSanitizingMethod_Instance(IMethodSymbol method)
             {
                 foreach (SanitizerInfo sanitizerInfo in this.DataFlowAnalysisContext.SanitizerInfos.GetInfosForType(method.ContainingType))
                 {
