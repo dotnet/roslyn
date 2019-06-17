@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering
     {
         private readonly MethodSymbol _method;
         private readonly SyntheticBoundNodeFactory _fact;
-        public NullCheckRewriter(
+        private NullCheckRewriter(
             MethodSymbol method,
             SyntaxNode syntax,
             TypeCompilationState compilationState,
@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            List<SourceParameterSymbolBase> toCheck = new List<SourceParameterSymbolBase>();
             return AddNullChecksToBody(node);
         }
 
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering
             {
                 if (param.IsNullChecked)
                 {
-                    var constructedIf = PrependBodyWithNullCheck(body, param);
+                    var constructedIf = ConstructIfStatementForParameter(body, param);
                     if (!(constructedIf is null))
                     {
                         statementList.Add(constructedIf);
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering
             return _fact.Block(body.Locals, statementList.ToImmutableArray());
         }
 
-        private BoundStatement PrependBodyWithNullCheck(BoundBlock body, SourceParameterSymbolBase parameter)
+        private BoundStatement ConstructIfStatementForParameter(BoundBlock body, SourceParameterSymbolBase parameter)
         {
             BoundExpression paramIsNullCondition = _fact.ObjectEqual(_fact.Parameter(parameter), _fact.Literal(ConstantValue.Null, parameter.Type));
 
