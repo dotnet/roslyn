@@ -68,6 +68,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public IOperation CreationOpt { get; }
         public ImmutableStack<IOperation> CreationCallStack { get; }
+
+        /// <summary>
+        /// Returns the top of <see cref="CreationCallStack"/> if this location was created through an interprocedural method invocation, i.e. <see cref="CreationCallStack"/> is non-empty.
+        /// Otherwise, returns <see cref="CreationOpt"/>.
+        /// </summary>
+        public IOperation GetTopOfCreationCallStackOrCreation()
+        {
+            if (CreationCallStack.IsEmpty)
+            {
+                return CreationOpt;
+            }
+
+            return CreationCallStack.Peek();
+        }
+
         public AnalysisEntity AnalysisEntityOpt { get; }
         public ISymbol SymbolOpt { get; }
         public InterproceduralCaptureId? CaptureIdOpt { get; }
