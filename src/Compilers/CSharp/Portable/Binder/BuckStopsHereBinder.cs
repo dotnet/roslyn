@@ -162,6 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (Compilation.Options.NullableContextOptions)
             {
                 case NullableContextOptions.Enable:
+                case NullableContextOptions.Annotations:
                     return true;
 
                 case NullableContextOptions.Disable:

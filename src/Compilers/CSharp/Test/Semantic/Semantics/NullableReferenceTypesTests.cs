@@ -90007,10 +90007,10 @@ partial class Program
         F(null);
     }
 }";
-            AssertDiagnosticOption_NullableWarningsGiven_OnlyWhenEnabledInProject(source);
+            AssertDiagnosticOptions_NullableWarningsGiven_OnlyWhenEnabledInProject(source);
         }
 
-        private static void AssertDiagnosticOption_NullableWarningsGiven_OnlyWhenEnabledInProject(string source)
+        private static void AssertDiagnosticOptions_NullableWarningsGiven_OnlyWhenEnabledInProject(string source)
         {
             string id = MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullAsNonNullable);
 
@@ -90219,8 +90219,10 @@ partial class Program
                 comp.VerifyDiagnostics();
             }
 
+            assertDiagnosticOptions(NullableContextOptions.Disable);
             assertDiagnosticOptions(NullableContextOptions.Enable);
             assertDiagnosticOptions(NullableContextOptions.Warnings);
+            assertDiagnosticOptions(NullableContextOptions.Annotations);
 
             void assertDiagnosticOptions(NullableContextOptions nullableContextOptions)
             {
@@ -90316,7 +90318,7 @@ partial class Program
         F(null);
     }
 }";
-            AssertDiagnosticOption_NullableWarningsGiven_OnlyWhenEnabledInProject(source);
+            AssertDiagnosticOptions_NullableWarningsGiven_OnlyWhenEnabledInProject(source);
         }
 
         [Fact]
@@ -90369,6 +90371,7 @@ partial class Program
             assertDiagnosticOptions(NullableContextOptions.Disable);
             assertDiagnosticOptions(NullableContextOptions.Enable);
             assertDiagnosticOptions(NullableContextOptions.Warnings);
+            assertDiagnosticOptions(NullableContextOptions.Annotations);
 
             void assertDiagnosticOptions(NullableContextOptions nullableContextOptions)
             {
@@ -90681,7 +90684,7 @@ partial class Program
         F(null);
     }
 }";
-            AssertDiagnosticOption_NullableWarningsGiven_OnlyWhenEnabledInProject(source);
+            AssertDiagnosticOptions_NullableWarningsGiven_OnlyWhenEnabledInProject(source);
         }
 
         [Fact]
@@ -90784,7 +90787,7 @@ partial class Program
         F(null);
     }
 }";
-            AssertDiagnosticOption_NullableWarningsGiven_OnlyWhenEnabledInProject(source);
+            AssertDiagnosticOptions_NullableWarningsGiven_OnlyWhenEnabledInProject(source);
         }
 
         [Fact]
@@ -90853,7 +90856,7 @@ partial class Program
         F(null);
     }
 }";
-            AssertDiagnosticOption_NullableWarningsGiven_OnlyWhenEnabledInProject(source);
+            AssertDiagnosticOptions_NullableWarningsGiven_OnlyWhenEnabledInProject(source);
         }
 
         [Fact]
@@ -90870,7 +90873,7 @@ partial class Program
         F(null);
     }
 }";
-            AssertDiagnosticOption_NullableWarningsGiven_OnlyWhenEnabledInProject(source);
+            AssertDiagnosticOptions_NullableWarningsGiven_OnlyWhenEnabledInProject(source);
         }
 
         [Fact]
@@ -90886,10 +90889,10 @@ partial class Program
         x = null;
     }
 }";
-            AssertDiagnosticOptions_NullableW_Warnings_OnlyGivenWhenEnabledInProject(source);
+            AssertDiagnosticOptions_NullableW_WarningsGiven_OnlyWhenEnabledInProject(source);
         }
 
-        private static void AssertDiagnosticOptions_NullableW_Warnings_OnlyGivenWhenEnabledInProject(string source)
+        private static void AssertDiagnosticOptions_NullableW_WarningsGiven_OnlyWhenEnabledInProject(string source)
         {
             var source2 =
 @"
@@ -90908,6 +90911,7 @@ partial class Program
             assertDiagnosticOptions1(NullableContextOptions.Warnings);
 
             assertDiagnosticOptions2(NullableContextOptions.Disable);
+            assertDiagnosticOptions2(NullableContextOptions.Annotations);
 
             void assertDiagnosticOptions1(NullableContextOptions nullableContextOptions)
             {
@@ -91071,7 +91075,7 @@ partial class Program
         x = null;
     }
 }";
-            AssertDiagnosticOptions_NullableW_Warnings_OnlyGivenWhenEnabledInProject(source);
+            AssertDiagnosticOptions_NullableW_WarningsGiven_OnlyWhenEnabledInProject(source);
         }
 
         [Fact]
@@ -91107,6 +91111,7 @@ partial class Program
             assertDiagnosticOptions(NullableContextOptions.Disable);
             assertDiagnosticOptions(NullableContextOptions.Enable);
             assertDiagnosticOptions(NullableContextOptions.Warnings);
+            assertDiagnosticOptions(NullableContextOptions.Annotations);
 
             void assertDiagnosticOptions(NullableContextOptions nullableContextOptions)
             {
@@ -91326,7 +91331,7 @@ partial class Program
         x = null;
     }
 }";
-            AssertDiagnosticOptions_NullableW_Warnings_OnlyGivenWhenEnabledInProject(source);
+            AssertDiagnosticOptions_NullableW_WarningsGiven_OnlyWhenEnabledInProject(source);
         }
 
         [Fact]
@@ -91415,7 +91420,7 @@ partial class Program
         x = null;
     }
 }";
-            AssertDiagnosticOptions_NullableW_Warnings_OnlyGivenWhenEnabledInProject(source);
+            AssertDiagnosticOptions_NullableW_WarningsGiven_OnlyWhenEnabledInProject(source);
         }
 
         [Fact]
@@ -91451,7 +91456,7 @@ partial class Program
         x = null;
     }
 }";
-            AssertDiagnosticOptions_NullableW_Warnings_OnlyGivenWhenEnabledInProject(source);
+            AssertDiagnosticOptions_NullableW_WarningsGiven_OnlyWhenEnabledInProject(source);
         }
 
         [Fact]
@@ -91469,7 +91474,7 @@ partial class Program
         x = null;
     }
 }";
-            AssertDiagnosticOptions_NullableW_Warnings_OnlyGivenWhenEnabledInProject(source);
+            AssertDiagnosticOptions_NullableW_WarningsGiven_OnlyWhenEnabledInProject(source);
         }
 
         [Fact]
@@ -91592,7 +91597,7 @@ partial class Program
         F(null);
     }
 }";
-            AssertDiagnosticOption_NullableWarningsGiven_OnlyWhenEnabledInProject(source);
+            AssertDiagnosticOptions_NullableWarningsGiven_OnlyWhenEnabledInProject(source);
         }
 
         [Fact]
@@ -91609,7 +91614,7 @@ partial class Program
         F(null);
     }
 }";
-            AssertDiagnosticOption_NullableWarningsGiven_OnlyWhenEnabledInProject(source);
+            AssertDiagnosticOptions_NullableWarningsGiven_OnlyWhenEnabledInProject(source);
         }
 
         [Fact]
@@ -91626,7 +91631,7 @@ partial class Program
         F(null);
     }
 }";
-            AssertDiagnosticOption_NullableWarningsGiven_OnlyWhenEnabledInProject(source);
+            AssertDiagnosticOptions_NullableWarningsGiven_OnlyWhenEnabledInProject(source);
         }
 
         [Fact]
@@ -91643,7 +91648,7 @@ partial class Program
         x = null;
     }
 }";
-            AssertDiagnosticOptions_NullableW_Warnings_OnlyGivenWhenEnabledInProject(source);
+            AssertDiagnosticOptions_NullableW_WarningsGiven_OnlyWhenEnabledInProject(source);
         }
 
         [Fact]
@@ -91661,7 +91666,7 @@ partial class Program
         x = null;
     }
 }";
-            AssertDiagnosticOptions_NullableW_Warnings_OnlyGivenWhenEnabledInProject(source);
+            AssertDiagnosticOptions_NullableW_WarningsGiven_OnlyWhenEnabledInProject(source);
         }
 
         [Fact]
@@ -91679,7 +91684,7 @@ partial class Program
         x = null;
     }
 }";
-            AssertDiagnosticOptions_NullableW_Warnings_OnlyGivenWhenEnabledInProject(source);
+            AssertDiagnosticOptions_NullableW_WarningsGiven_OnlyWhenEnabledInProject(source);
         }
 
         [Fact]

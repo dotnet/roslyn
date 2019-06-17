@@ -151,14 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isNullableFlowAnalysisWarning = ErrorFacts.NullableFlowAnalysisWarnings.Contains(id);
             if (isNullableFlowAnalysisWarning)
             {
-                var nullableDirective = tree?.GetNullableDirectiveState(position).WarningsState switch
-                {
-                    null => nullableOption,
-                    true => NullableContextOptions.Enable,
-                    false => NullableContextOptions.Disable
-                };
-
-                if (nullableDirective == NullableContextOptions.Disable)
+                var nullableWarningsGloballyEnabled = nullableOption == NullableContextOptions.Enable || nullableOption == NullableContextOptions.Warnings;
+                var nullableWarningsEnabled = tree?.GetNullableDirectiveState(position).WarningsState ?? nullableWarningsGloballyEnabled;
+                if (!nullableWarningsEnabled)
                 {
                     return ReportDiagnostic.Suppress;
                 }
