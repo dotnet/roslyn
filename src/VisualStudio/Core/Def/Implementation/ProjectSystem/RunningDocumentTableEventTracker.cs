@@ -110,7 +110,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public int OnBeforeDocumentWindowShow(uint docCookie, int fFirstShow, IVsWindowFrame pFrame)
         {
-            return VSConstants.E_NOTIMPL;
+            // Doc data reloaded is not triggered for the underlying aspx.cs file when changes are made to the aspx file, so catch it here.
+            if (fFirstShow != 0 && _runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetMoniker(docCookie, out var moniker) && TryGetBuffer(docCookie, out var buffer))
+            {
+                _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out _);
+                _listener.OnOpenDocument(moniker, buffer, hierarchy);
+            }
+
+            return VSConstants.S_OK;
         }
 
         public int OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame pFrame)
