@@ -41,14 +41,13 @@ represents nullability: 0 for oblivious, 1 for not annotated, and 2 for annotate
 The `byte[]` is constructed as follows:
 - Reference type: the nullability (0, 1, or 2), followed by the representation of the type arguments in order including containing types
 - Nullable value type: the representation of the type argument only
-- Value type: the representation of the type arguments in order including containing types
+- Non-generic value type: skipped
+- Generic value type: 0, followed by the representation of the type arguments in order including containing types
 - Array: the nullability (0, 1, or 2), followed by the representation of the element type
 - Tuple: the representation of the underlying constructed type
 - Type parameter reference: the nullability (0, 1, or 2, with 0 for unconstrained type parameter)
 
-Note that certain type references are represented by an empty `byte[]`:
-- Non-generic value types, and
-- Nullable value types and tuples where all elements are represented by an empty `byte[]`.
+Note that non-generic value types are represented by an empty `byte[]`.
 
 ### Optimizations
 
