@@ -14,6 +14,9 @@ namespace Microsoft.CodeAnalysis.Host
     /// <typeparam name="TService">TService for <see cref="IEventListener{TService}"/></typeparam>
     internal class EventListenerTracker<TService>
     {
+        /// <summary>
+        /// Workspace kind this event listener is initialized for
+        /// </summary>
         private readonly HashSet<string> _eventListenerInitialized;
         private readonly IEnumerable<Lazy<IEventListener, EventListenerMetadata>> _eventListeners;
 
