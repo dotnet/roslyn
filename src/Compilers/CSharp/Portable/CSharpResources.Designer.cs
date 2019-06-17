@@ -1879,7 +1879,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /nullable; must be &apos;disable&apos;, &apos;enable&apos; or &apos;warnings&apos;.
+        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /nullable; must be &apos;disable&apos;, &apos;enable&apos;, &apos;warnings&apos; or &apos;annotations&apos;.
         /// </summary>
         internal static string ERR_BadNullableContextOption {
             get {

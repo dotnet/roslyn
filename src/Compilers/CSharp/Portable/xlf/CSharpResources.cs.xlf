@@ -68,7 +68,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
-        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'warnings'</source>
+        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
         <target state="needs-review-translation">Neplatná možnost {0} pro /nullable; musí mít hodnotu disable, enable, safeonly, warnings nebo safeonlywarnings.</target>
         <note />
       </trans-unit>

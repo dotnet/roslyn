@@ -68,7 +68,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
-        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'warnings'</source>
+        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
         <target state="needs-review-translation">Option '{0}' non valide pour /nullable ; utilisez 'disable', 'enable', 'safeonly', 'warnings' ou 'safeonlywarnings'</target>
         <note />
       </trans-unit>

@@ -68,7 +68,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
-        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'warnings'</source>
+        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
         <target state="needs-review-translation">/nullable 的选项“{0}”无效；必须为 "disable"、"enable"、"safeonly"、"warnings" 或 "safeonlywarnings"</target>
         <note />
       </trans-unit>

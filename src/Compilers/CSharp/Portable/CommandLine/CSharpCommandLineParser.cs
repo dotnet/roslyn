@@ -352,6 +352,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         Debug.Assert(loweredValue == nameof(NullableContextOptions.Warnings).ToLower());
                                         nullableContextOptions = NullableContextOptions.Warnings;
                                         break;
+                                    case "annotations":
+                                        Debug.Assert(loweredValue == nameof(NullableContextOptions.Annotations).ToLower());
+                                        nullableContextOptions = NullableContextOptions.Annotations;
+                                        break;
                                     default:
                                         AddDiagnostic(diagnostics, ErrorCode.ERR_BadNullableContextOption, value);
                                         break;

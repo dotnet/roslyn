@@ -5752,7 +5752,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An expression tree may not contain a null coalescing assignment</value>
   </data>
   <data name="ERR_BadNullableContextOption" xml:space="preserve">
-    <value>Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'warnings'</value>
+    <value>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</value>
   </data>
   <data name="ERR_SwitchGoverningExpressionRequiresParens" xml:space="preserve">
     <value>Parentheses are required around the switch governing expression.</value>
