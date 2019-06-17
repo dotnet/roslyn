@@ -10,13 +10,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// </summary>
     internal sealed class SanitizerInfo : ITaintedDataInfo, IEquatable<SanitizerInfo>
     {
-        public SanitizerInfo(string fullTypeName, bool isInterface, bool isConstructorSanitizing, ImmutableHashSet<string> sanitizingMethods, ImmutableHashSet<string> sanitizingMethods_Instance)
+        public SanitizerInfo(string fullTypeName, bool isInterface, bool isConstructorSanitizing, ImmutableHashSet<string> sanitizingMethods, ImmutableHashSet<string> sanitizingInstanceMethods)
         {
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
             IsInterface = isInterface;
             IsConstructorSanitizing = isConstructorSanitizing;
             SanitizingMethods = sanitizingMethods ?? throw new ArgumentNullException(nameof(sanitizingMethods));
-            SanitizingMethods_Instance = sanitizingMethods_Instance ?? throw new ArgumentNullException(nameof(sanitizingMethods_Instance));
+            SanitizingInstanceMethods = sanitizingInstanceMethods ?? throw new ArgumentNullException(nameof(sanitizingInstanceMethods));
         }
 
         /// <summary>
@@ -39,13 +39,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public ImmutableHashSet<string> SanitizingMethods { get; }
 
-        public ImmutableHashSet<string> SanitizingMethods_Instance { get; }
+        /// <summary>
+        /// Methods that untaint tainted instance.
+        /// </summary>
+        public ImmutableHashSet<string> SanitizingInstanceMethods { get; }
 
         public override int GetHashCode()
         {
             return HashUtilities.Combine(this.SanitizingMethods,
+                HashUtilities.Combine(this.SanitizingInstanceMethods,
                 HashUtilities.Combine(StringComparer.Ordinal.GetHashCode(this.FullTypeName),
-                this.IsConstructorSanitizing.GetHashCode()));
+                this.IsConstructorSanitizing.GetHashCode())));
         }
 
         public override bool Equals(object obj)
@@ -58,7 +62,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             return other != null
                 && this.FullTypeName == other.FullTypeName
                 && this.IsConstructorSanitizing == other.IsConstructorSanitizing
-                && this.SanitizingMethods == other.SanitizingMethods;
+                && this.SanitizingMethods == other.SanitizingMethods
+                && this.SanitizingInstanceMethods == other.SanitizingInstanceMethods;
         }
     }
 }

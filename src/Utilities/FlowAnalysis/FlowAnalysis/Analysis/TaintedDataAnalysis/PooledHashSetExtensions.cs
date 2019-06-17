@@ -81,7 +81,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             bool isInterface,
             bool isConstructorSanitizing,
             string[] sanitizingMethods,
-            string[] sanitizingMethods_Instance = null)
+            string[] sanitizingInstanceMethods = null)
         {
             SanitizerInfo info = new SanitizerInfo(
                 fullTypeName,
@@ -89,7 +89,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 isConstructorSanitizing: isConstructorSanitizing,
                 sanitizingMethods: sanitizingMethods?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty,
-                sanitizingMethods_Instance: sanitizingMethods_Instance?.ToImmutableHashSet(StringComparer.Ordinal)
+                sanitizingInstanceMethods: sanitizingInstanceMethods?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty);
             builder.Add(info);
         }

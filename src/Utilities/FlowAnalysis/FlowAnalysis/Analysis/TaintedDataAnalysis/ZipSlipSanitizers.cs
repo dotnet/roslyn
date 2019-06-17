@@ -30,7 +30,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sanitizingMethods: new[] {
                     "Substring",
                 },
-                sanitizingMethods_Instance: new[] {
+                sanitizingInstanceMethods: new[] {
                     "StartsWith",
                 });
 
