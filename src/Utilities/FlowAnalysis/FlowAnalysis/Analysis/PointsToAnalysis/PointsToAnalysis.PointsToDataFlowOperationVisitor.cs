@@ -927,7 +927,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     symbol.Name.Equals("Empty", StringComparison.Ordinal) &&
                     (symbol.IsReadOnlyFieldOrProperty() || symbol.Kind == SymbolKind.Method) &&
                     (symbol.ContainingType.SpecialType != SpecialType.None ||
-                     symbol.GetMemerType() is INamedTypeSymbol namedType &&
+                     symbol.GetMemberType() is INamedTypeSymbol namedType &&
                      symbol.ContainingType.DerivesFromOrImplementsAnyConstructionOf(namedType.OriginalDefinition));
             }
 
