@@ -5,10 +5,10 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Lowering
 {
-    class NullCheckRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+    internal sealed class NullCheckRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
-        readonly MethodSymbol _method;
-        SyntheticBoundNodeFactory _fact;
+        private readonly MethodSymbol _method;
+        private readonly SyntheticBoundNodeFactory _fact;
         public NullCheckRewriter(
             MethodSymbol method,
             SyntaxNode syntax,
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering
             _fact = new SyntheticBoundNodeFactory(method, syntax, compilationState, diagnostics);
         }
 
-        internal static BoundNode Rewrite(
+        internal static BoundStatement Rewrite(
             BoundStatement body,
             MethodSymbol method,
             int methodOrdinal,
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering
             DiagnosticBag diagnostics)
         {
             var rewriter = new NullCheckRewriter(method, body.Syntax, compilationState, diagnostics);
-            return rewriter.Visit(body);
+            return (BoundStatement)rewriter.Visit(body);
         }
 
         public override BoundNode VisitBlock(BoundBlock node)
@@ -59,9 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering
 
         private BoundStatement PrependBodyWithNullCheck(BoundBlock body, SourceParameterSymbolBase parameter)
         {
-            if (parameter is null)
-                return null;
-
             BoundExpression paramIsNullCondition = _fact.ObjectEqual(_fact.Parameter(parameter), _fact.Literal(ConstantValue.Null, parameter.Type));
 
             // PROTOTYPE : Make ArgumentNullException
