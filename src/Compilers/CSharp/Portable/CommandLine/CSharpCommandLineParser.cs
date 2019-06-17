@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                AddWarnings(warnAsErrors, ReportDiagnostic.Error, ParseWarnings(value));
+                                AddWarnings(warnAsErrors, ReportDiagnostic.Error, ParseWarnAsErrorWarnings(value));
                             }
                             continue;
 
@@ -826,7 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                foreach (var id in ParseWarnings(value))
+                                foreach (var id in ParseWarnAsErrorWarnings(value))
                                 {
                                     ReportDiagnostic ruleSetValue;
                                     if (diagnosticOptions.TryGetValue(id, out ruleSetValue))
@@ -879,7 +879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                AddWarnings(noWarns, ReportDiagnostic.Suppress, ParseWarnings(value));
+                                AddWarnings(noWarns, ReportDiagnostic.Suppress, ParseNoWarnWarnings(value));
                             }
                             continue;
 
@@ -1911,27 +1911,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new ResourceDescription(resourceName, fileName, dataProvider, isPublic, embedded, checkArgs: false);
         }
 
-        private static IEnumerable<string> ParseWarnings(string value)
+        private static string ParseWarning(string id)
+        {
+            if (ushort.TryParse(id, NumberStyles.Integer, CultureInfo.InvariantCulture, out ushort number) &&
+                       ErrorFacts.IsWarning((ErrorCode)number))
+            {
+                // The id refers to a compiler warning.
+                return CSharp.MessageProvider.Instance.GetIdForErrorCode(number);
+            }
+            else
+            {
+                // Previous versions of the compiler used to report a warning (CS1691)
+                // whenever an unrecognized warning code was supplied in /nowarn or 
+                // /warnaserror. We no longer generate a warning in such cases.
+                // Instead we assume that the unrecognized id refers to a custom diagnostic.
+                return id;
+            }
+        }
+
+        private static IEnumerable<string> ParseNoWarnWarnings(string value)
         {
             value = value.Unquote();
             string[] values = value.Split(new char[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string id in values)
             {
-                ushort number;
-                if (ushort.TryParse(id, NumberStyles.Integer, CultureInfo.InvariantCulture, out number) &&
-                    ErrorFacts.IsWarning((ErrorCode)number))
+                if (id.ToLowerInvariant() == "nullable")
                 {
-                    // The id refers to a compiler warning.
-                    yield return CSharp.MessageProvider.Instance.GetIdForErrorCode(number);
+                    foreach (var errorCode in ErrorFacts.NullableFlowAnalysisWarnings)
+                    {
+                        yield return errorCode;
+                    }
                 }
                 else
                 {
-                    // Previous versions of the compiler used to report a warning (CS1691)
-                    // whenever an unrecognized warning code was supplied in /nowarn or 
-                    // /warnaserror. We no longer generate a warning in such cases.
-                    // Instead we assume that the unrecognized id refers to a custom diagnostic.
-                    yield return id;
+                    yield return ParseWarning(id);
                 }
+            }
+        }
+
+        private static IEnumerable<string> ParseWarnAsErrorWarnings(string value)
+        {
+            value = value.Unquote();
+            string[] values = value.Split(new char[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string id in values)
+            {
+                yield return ParseWarning(id);
             }
         }
 
