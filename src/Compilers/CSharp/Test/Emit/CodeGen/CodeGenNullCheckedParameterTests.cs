@@ -94,6 +94,7 @@ public class C
         [Fact]
         public void TestNullCheckedParamWithOptionalNullParameter()
         {
+            // PROTOTYPE : Should give warning that the default value is null on a null-checked parameter.
             var source = @"
 class C
 {
