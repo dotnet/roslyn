@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Lowering
 {
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering
         public override BoundNode VisitBlock(BoundBlock node)
         {
             List<SourceParameterSymbolBase> toCheck = new List<SourceParameterSymbolBase>();
-            for (int i = _method.Parameters.Length - 1; i >= 0; i--)
+            for (int i = 0; i < _method.Parameters.Length; i++)
             {
                 var param = (SourceParameterSymbolBase)_method.Parameters[i];
                 if (param.IsNullChecked)
@@ -53,14 +54,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering
         private BoundNode AddNullChecksToBody(BoundBlock body, List<SourceParameterSymbolBase> toCheck)
         {
             BoundBlock prependedBody = body;
+            var statementList = new List<BoundStatement>();
             foreach (SourceParameterSymbolBase param in toCheck)
             {
-                prependedBody = PrependBodyWithNullCheck(prependedBody, param);
+                statementList.Add(PrependBodyWithNullCheck(body, param));
             }
-            return prependedBody;
+            statementList.AddRange(body.Statements);
+
+            return _fact.Block(body.Locals, statementList.ToImmutableArray());
         }
 
-        private BoundBlock PrependBodyWithNullCheck(BoundBlock body, SourceParameterSymbolBase parameter)
+        private BoundStatement PrependBodyWithNullCheck(BoundBlock body, SourceParameterSymbolBase parameter)
         {
             if (parameter is null)
                 return body;
@@ -72,12 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering
             BoundThrowStatement throwArgNullStatement = _fact.Throw(_fact.New(_fact.WellKnownType(WellKnownType.System_Exception)));
 
             // Assembles the two statements above into if-statement
-            BoundStatement boundIfStatement = _fact.HiddenSequencePoint(_fact.If(paramIsNullCondition, body.Locals, throwArgNullStatement));
-
-            // Reconstruct body block with conditional prepended
-            BoundBlock newBody = _fact.Block(body.Locals, body.Statements.Insert(0, boundIfStatement));
-
-            return newBody;
+            return _fact.HiddenSequencePoint(_fact.If(paramIsNullCondition, body.Locals, throwArgNullStatement));
         }
     }
 }

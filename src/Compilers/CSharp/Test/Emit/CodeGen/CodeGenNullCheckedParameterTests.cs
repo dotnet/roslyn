@@ -257,6 +257,51 @@ class C
         }
 
         [Fact]
+        public void TestManyNullCheckedArgs()
+        {
+            var source = @"
+class C
+{
+    public void M(int x!, int y!) { }
+    public static void Main() { }
+}";
+
+            // Release
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyIL("C.M(int, int)", @"
+{
+    // Code size       19 (0x13)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.2
+    IL_000a:  brtrue.s   IL_0012
+    IL_000c:  newobj     ""System.Exception..ctor()""
+    IL_0011:  throw
+    IL_0012:  ret
+}");
+            // Debug
+            compilation = CompileAndVerify(source, options: TestOptions.DebugExe);
+            compilation.VerifyIL("C.M(int, int)", @"
+{
+    // Code size       20 (0x14)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.2
+    IL_000a:  brtrue.s   IL_0012
+    IL_000c:  newobj     ""System.Exception..ctor()""
+    IL_0011:  throw
+    IL_0012:  nop
+    IL_0013:  ret
+}");
+        }
+
+        [Fact]
         public void TestNullCheckedIndexedProperty()
         {
             var source = @"
