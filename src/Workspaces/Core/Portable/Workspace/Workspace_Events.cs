@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis
         private const string DocumentClosedEventName = "DocumentClosed";
         private const string DocumentActiveContextChangedName = "DocumentActiveContextChanged";
 
-        private volatile bool _listenerInitialized = false;
-
         /// <summary>
         /// An event raised whenever the current solution is changed.
         /// </summary>
@@ -213,30 +211,8 @@ namespace Microsoft.CodeAnalysis
         {
             // this will register features that want to listen to workspace events
             // lazily first time workspace event is actually fired
-            EnsureWorkspaceEventListeners();
-
+            this.Services.GetService<IWorkspaceEventListenerService>()?.EnsureListeners();
             return _eventMap.GetEventHandlers<EventHandler<T>>(eventName);
-
-            // local function
-            void EnsureWorkspaceEventListeners()
-            {
-                if (_listenerInitialized)
-                {
-                    return;
-                }
-
-                _listenerInitialized = true;
-
-                // this is not cancellable.
-                var listenerProvider = this.Services.GetService<IWorkspaceEventListenerProvider>();
-                if (listenerProvider != null)
-                {
-                    foreach (var listener in listenerProvider.GetListeners())
-                    {
-                        listener.Listen(this);
-                    }
-                }
-            }
         }
     }
 }

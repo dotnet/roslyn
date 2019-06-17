@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.EventListener
+namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
     /// MEF metadata class used to find exports declared for a specific <see cref="IEventListener"/>.
@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.EventListener
         public EventListenerMetadata(string service, params string[] workspaceKinds) :
             base(workspaceKinds)
         {
+            if (workspaceKinds?.Length == 0)
+            {
+                throw new ArgumentException(nameof(workspaceKinds));
+            }
+
             this.Service = service ?? throw new ArgumentException("service");
         }
     }

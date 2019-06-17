@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.EventListener;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;

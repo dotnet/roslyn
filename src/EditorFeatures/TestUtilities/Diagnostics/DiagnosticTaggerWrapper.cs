@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.EventListener;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Text.Tagging;

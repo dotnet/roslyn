@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     /// </summary>
     internal class WorkspaceKindMetadata
     {
-        public string[] WorkspaceKinds { get; }
+        public IReadOnlyCollection<string> WorkspaceKinds { get; }
 
         public WorkspaceKindMetadata(IDictionary<string, object> data)
         {

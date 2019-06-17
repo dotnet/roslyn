@@ -6,9 +6,9 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.EventListener;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics

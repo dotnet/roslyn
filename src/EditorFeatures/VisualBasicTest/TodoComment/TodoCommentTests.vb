@@ -2,12 +2,11 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.EventListener
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 Imports Microsoft.CodeAnalysis.Text

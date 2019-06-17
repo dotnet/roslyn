@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Common;
-using Microsoft.CodeAnalysis.EventListener;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 

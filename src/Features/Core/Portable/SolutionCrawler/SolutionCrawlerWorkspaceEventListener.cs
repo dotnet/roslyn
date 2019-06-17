@@ -6,10 +6,10 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    [ExportWorkspaceEventListener(WorkspaceKind.Host), Shared]
-    internal class HostSolutionCrawlerWorkspaceEventListener : IWorkspaceEventListener
+    [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
+    internal class HostSolutionCrawlerWorkspaceEventListener : IEventListener<object>, IEventListenerStoppable
     {
-        public void Listen(Workspace workspace)
+        public void Listen(Workspace workspace, object serviceOpt)
         {
             var registration = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
             registration.Register(workspace);
@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
     }
 
-    [ExportWorkspaceEventListener(WorkspaceKind.MiscellaneousFiles), Shared]
-    internal class MiscSolutionCrawlerWorkspaceEventListener : IWorkspaceEventListener
+    [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.MiscellaneousFiles), Shared]
+    internal class MiscSolutionCrawlerWorkspaceEventListener : IEventListener<object>, IEventListenerStoppable
     {
-        public void Listen(Workspace workspace)
+        public void Listen(Workspace workspace, object serviceOpt)
         {
             // misc workspace will enable syntax errors and semantic errors for script files for
             // all participating projects in the workspace

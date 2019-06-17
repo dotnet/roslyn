@@ -2,15 +2,13 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports System.Windows
 Imports System.Windows.Controls
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Common
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.EventListener
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SolutionCrawler

@@ -3,7 +3,6 @@
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.EventListener;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Shell.TableManager;
 

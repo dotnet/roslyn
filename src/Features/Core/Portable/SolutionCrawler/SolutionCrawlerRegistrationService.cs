@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         private static bool IsDefaultProvider(IncrementalAnalyzerProviderMetadata providerMetadata)
         {
-            return providerMetadata.WorkspaceKinds == null || providerMetadata.WorkspaceKinds.Length == 0;
+            return providerMetadata.WorkspaceKinds == null || providerMetadata.WorkspaceKinds.Count == 0;
         }
 
         private class Registration

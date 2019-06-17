@@ -10,10 +10,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     internal partial class RemoteHostClientServiceFactory : IWorkspaceServiceFactory
     {
-        [ExportWorkspaceEventListener(WorkspaceKind.Host), Shared]
-        private sealed class RemoteHostWorkspaceEventListener : IWorkspaceEventListener
+        [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
+        private sealed class RemoteHostWorkspaceEventListener : IEventListener<object>
         {
-            public void Listen(Workspace workspace)
+            public void Listen(Workspace workspace, object serviceOpt)
             {
                 var service = (RemoteHostClientService)workspace.Services.GetService<IRemoteHostClientService>();
                 service.Enable();

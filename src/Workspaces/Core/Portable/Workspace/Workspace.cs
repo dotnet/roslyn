@@ -225,10 +225,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void ClearSolution()
         {
-            var oldSolution = this.CurrentSolution;
-            this.ClearSolutionData();
+            using (_serializationLock.DisposableWait())
+            {
+                var oldSolution = this.CurrentSolution;
+                this.ClearSolutionData();
 
-            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionCleared, oldSolution, this.CurrentSolution);
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionCleared, oldSolution, this.CurrentSolution);
+            }
         }
 
         /// <summary>
@@ -287,15 +290,7 @@ namespace Microsoft.CodeAnalysis
             {
                 this.ClearSolutionData();
 
-                // tell event listener to stop listening since this workspace is going away
-                var workspaceEventListenerProvider = this.Services.GetService<IWorkspaceEventListenerProvider>();
-                if (workspaceEventListenerProvider != null)
-                {
-                    foreach (var listener in workspaceEventListenerProvider.GetListeners())
-                    {
-                        listener.Stop(this);
-                    }
-                }
+                this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
             }
 
             _workspaceOptionService?.OnWorkspaceDisposed(this);

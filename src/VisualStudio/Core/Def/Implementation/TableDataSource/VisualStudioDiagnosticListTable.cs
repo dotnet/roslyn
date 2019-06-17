@@ -6,7 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.EventListener;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;

@@ -8,7 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Common;
-using Microsoft.CodeAnalysis.EventListener;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
