@@ -546,11 +546,11 @@ namespace Analyzer.Utilities.Extensions
                     return ((IParameterSymbol)symbol).Type;
 
                 default:
-                    return GetMemerType(symbol);
+                    return GetMemberType(symbol);
             }
         }
 
-        public static ITypeSymbol GetMemerType(this ISymbol symbol)
+        public static ITypeSymbol GetMemberType(this ISymbol symbol)
         {
             switch (symbol.Kind)
             {
