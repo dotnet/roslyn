@@ -126,7 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ReportDiagnostic report;
-            SyntaxTree tree = location?.SourceTree;
+            Debug.Assert(location?.SourceTree is null || location.SourceTree is CSharpSyntaxTree);
+            var tree = location?.SourceTree as CSharpSyntaxTree;
             bool isSpecified = false;
 
             if (tree != null && tree.DiagnosticOptions.TryGetValue(id, out var treeReport))
