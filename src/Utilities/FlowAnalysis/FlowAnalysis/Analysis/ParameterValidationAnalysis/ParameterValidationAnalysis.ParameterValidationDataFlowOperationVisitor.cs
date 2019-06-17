@@ -338,13 +338,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                     }
                 }
 
-                // Mark arguments passed to parameters with ValidatedNotNullAttribute as validated
+
+                // Mark arguments passed to parameters of null check validation methods as validated.
+                // Also mark arguments passed to parameters with ValidatedNotNullAttribute as validated.
+                var isNullCheckValidationMethod = DataFlowAnalysisContext.IsNullCheckValidationMethod(targetMethod.OriginalDefinition);
                 foreach (var argument in arguments)
                 {
                     var notValidatedLocations = GetNotValidatedLocations(argument);
                     if (notValidatedLocations.Any())
                     {
-                        if (HasValidatedNotNullAttribute(argument.Parameter))
+                        if (isNullCheckValidationMethod || HasValidatedNotNullAttribute(argument.Parameter))
                         {
                             MarkValidatedLocations(argument);
                         }

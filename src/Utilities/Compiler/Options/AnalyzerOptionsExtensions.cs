@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Analyzer.Utilities.PooledObjects;
 
 #pragma warning disable RS1012 // Start action has no registered actions.
 
@@ -112,6 +113,29 @@ namespace Analyzer.Utilities
         {
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(cancellationToken);
             return analyzerConfigOptions.GetOptionValue(optionName, rule, uint.TryParse, defaultValue);
+        }
+
+        public static ImmutableArray<string> GetSeparatedStringOptionValue(
+            this AnalyzerOptions options,
+            string optionName,
+            DiagnosticDescriptor rule,
+            CancellationToken cancellationToken)
+        {
+            var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(cancellationToken);
+            return analyzerConfigOptions.GetOptionValue<ImmutableArray<string>>(optionName, rule, TryParse, defaultValue: ImmutableArray<string>.Empty);
+
+            // Local functions.
+            bool TryParse(string s, out ImmutableArray<string> parts)
+            {
+                if (string.IsNullOrEmpty(s))
+                {
+                    parts = ImmutableArray<string>.Empty;
+                    return false;
+                }
+
+                parts = s.Split('~').ToImmutableArray();
+                return true;
+            }
         }
 
         private static CategorizedAnalyzerConfigOptions GetOrComputeCategorizedAnalyzerConfigOptions(

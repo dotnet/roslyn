@@ -535,7 +535,7 @@ namespace Analyzer.Utilities.Extensions
             return false;
         }
 
-        public static ITypeSymbol GetMemerOrLocalOrParameterType(this ISymbol symbol)
+        public static ITypeSymbol GetMemberOrLocalOrParameterType(this ISymbol symbol)
         {
             switch (symbol.Kind)
             {

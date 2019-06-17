@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             var indices = ImmutableArray<AbstractIndex>.Empty;
             IOperation instance = null;
-            var type = symbol.GetMemerOrLocalOrParameterType();
+            var type = symbol.GetMemberOrLocalOrParameterType();
             Debug.Assert(type != null);
 
             return TryCreate(symbol, indices, type, instance, out analysisEntity);
