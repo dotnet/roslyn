@@ -166,9 +166,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 addRefReadOnlyModifier: false,
                 diagnostics: diagnostics);
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(parameters, diagnostics, modifyCompilation: false);
-            ParameterHelpers.EnsureNullableAttributeExists(parameters, diagnostics, modifyCompilation: false);
-            // Note: we don't need to warn on annotations used without NonNullTypes context for local functions, as this is handled in binding already
+            var compilation = DeclaringCompilation;
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, parameters, diagnostics, modifyCompilation: false);
+            ParameterHelpers.EnsureNullableAttributeExists(compilation, this, parameters, diagnostics, modifyCompilation: false);
+            // Note: we don't need to warn on annotations used in #nullable disable context for local functions, as this is handled in binding already
 
             var isVararg = arglistToken.Kind() == SyntaxKind.ArgListKeyword;
             if (isVararg)
@@ -219,28 +220,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSyntax returnTypeSyntax = _syntax.ReturnType;
             TypeWithAnnotations returnType = _binder.BindType(returnTypeSyntax.SkipRef(), diagnostics);
 
-            if (this.IsAsync)
-            {
-                if (this.RefKind != RefKind.None)
-                {
-                    ReportBadRefToken(returnTypeSyntax, diagnostics);
-                }
-                else if (returnType.Type.IsBadAsyncReturn(this.DeclaringCompilation))
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
-                }
-            }
+            var compilation = DeclaringCompilation;
 
-            var location = _syntax.ReturnType.Location;
-            if (_refKind == RefKind.RefReadOnly)
+            // Skip some diagnostics when the local function is not associated with a compilation
+            // (specifically, local functions nested in expressions in the EE).
+            if (!(compilation is null))
             {
-                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: false);
-            }
+                if (this.IsAsync)
+                {
+                    if (this.RefKind != RefKind.None)
+                    {
+                        ReportBadRefToken(returnTypeSyntax, diagnostics);
+                    }
+                    else if (returnType.Type.IsBadAsyncReturn(compilation))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
+                    }
+                }
 
-            if (returnType.NeedsNullableAttribute())
-            {
-                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: false);
-                // Note: we don't need to warn on annotations used without NonNullTypes context for local functions, as this is handled in binding already
+                var location = _syntax.ReturnType.Location;
+                if (_refKind == RefKind.RefReadOnly)
+                {
+                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: false);
+                }
+
+                if (compilation.ShouldEmitNullableAttributes(this) &&
+                    returnType.NeedsNullableAttribute())
+                {
+                    compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: false);
+                    // Note: we don't need to warn on annotations used in #nullable disable context for local functions, as this is handled in binding already
+                }
             }
 
             // span-like types are returnable in general
