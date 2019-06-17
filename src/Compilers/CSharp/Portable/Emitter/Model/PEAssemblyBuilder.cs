@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedEmbeddedAttributeSymbol _lazyIsByRefLikeAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsUnmanagedAttribute;
         private SynthesizedEmbeddedNullableAttributeSymbol _lazyNullableAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyNullablePublicOnlyAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -76,30 +77,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
             CreateEmbeddedAttributesIfNeeded(diagnostics);
-            if ((object)_lazyEmbeddedAttribute != null)
-            {
-                builder.Add(_lazyEmbeddedAttribute);
-            }
 
-            if ((object)_lazyIsReadOnlyAttribute != null)
-            {
-                builder.Add(_lazyIsReadOnlyAttribute);
-            }
-
-            if ((object)_lazyIsUnmanagedAttribute != null)
-            {
-                builder.Add(_lazyIsUnmanagedAttribute);
-            }
-
-            if ((object)_lazyIsByRefLikeAttribute != null)
-            {
-                builder.Add(_lazyIsByRefLikeAttribute);
-            }
-
-            if ((object)_lazyNullableAttribute != null)
-            {
-                builder.Add(_lazyNullableAttribute);
-            }
+            builder.AddIfNotNull(_lazyEmbeddedAttribute);
+            builder.AddIfNotNull(_lazyIsReadOnlyAttribute);
+            builder.AddIfNotNull(_lazyIsUnmanagedAttribute);
+            builder.AddIfNotNull(_lazyIsByRefLikeAttribute);
+            builder.AddIfNotNull(_lazyNullableAttribute);
+            builder.AddIfNotNull(_lazyNullablePublicOnlyAttribute);
 
             return builder.ToImmutableAndFree();
         }
@@ -211,6 +195,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.SynthesizeNullableAttribute(member, arguments);
         }
 
+        internal override SynthesizedAttributeData SynthesizeNullablePublicOnlyAttribute()
+        {
+            if ((object)_lazyNullablePublicOnlyAttribute != null)
+            {
+                return new SynthesizedAttributeData(
+                    _lazyNullablePublicOnlyAttribute.Constructors[0],
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.SynthesizeNullablePublicOnlyAttribute();
+        }
+
         protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
         {
             if ((object)_lazyIsReadOnlyAttribute != null)
@@ -252,52 +249,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private void CreateEmbeddedAttributesIfNeeded(DiagnosticBag diagnostics)
         {
-            if (this.NeedsGeneratedIsReadOnlyAttribute)
-            {
-                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
+            EmbeddableAttributes needsAttributes = GetNeedsGeneratedAttributes();
 
+            if (needsAttributes == 0)
+            {
+                return;
+            }
+
+            CreateEmbeddedAttributeIfNeeded(
+                ref _lazyEmbeddedAttribute,
+                diagnostics,
+                AttributeDescription.CodeAnalysisEmbeddedAttribute);
+
+            if ((needsAttributes & EmbeddableAttributes.IsReadOnlyAttribute) != 0)
+            {
                 CreateEmbeddedAttributeIfNeeded(
                     ref _lazyIsReadOnlyAttribute,
                     diagnostics,
                     AttributeDescription.IsReadOnlyAttribute);
             }
 
-            if (this.NeedsGeneratedIsByRefLikeAttribute)
+            if ((needsAttributes & EmbeddableAttributes.IsByRefLikeAttribute) != 0)
             {
-                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
-
                 CreateEmbeddedAttributeIfNeeded(
                     ref _lazyIsByRefLikeAttribute,
                     diagnostics,
                     AttributeDescription.IsByRefLikeAttribute);
             }
 
-            if (this.NeedsGeneratedIsUnmanagedAttribute)
+            if ((needsAttributes & EmbeddableAttributes.IsUnmanagedAttribute) != 0)
             {
-                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
-
                 CreateEmbeddedAttributeIfNeeded(
                     ref _lazyIsUnmanagedAttribute,
                     diagnostics,
                     AttributeDescription.IsUnmanagedAttribute);
             }
 
-            if (this.NeedsGeneratedNullableAttribute)
+            if ((needsAttributes & EmbeddableAttributes.NullableAttribute) != 0)
             {
-                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
-
                 CreateEmbeddedNullableAttributeIfNeeded(
                     ref _lazyNullableAttribute,
                     diagnostics);
             }
-        }
 
-        private void CreateEmbeddedAttributeItselfIfNeeded(DiagnosticBag diagnostics)
-        {
-            CreateEmbeddedAttributeIfNeeded(
-                ref _lazyEmbeddedAttribute,
-                diagnostics,
-                AttributeDescription.CodeAnalysisEmbeddedAttribute);
+            if ((needsAttributes & EmbeddableAttributes.NullablePublicOnlyAttribute) != 0)
+            {
+                CreateEmbeddedAttributeIfNeeded(
+                    ref _lazyNullablePublicOnlyAttribute,
+                    diagnostics,
+                    AttributeDescription.NullablePublicOnlyAttribute);
+            }
         }
 
         private void CreateEmbeddedAttributeIfNeeded(
