@@ -1327,7 +1327,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
 #pragma warning disable CS0618 // Type or member is obsolete
-            var project = _projectTracker.GetProject(projectId);
+            var project = ProjectTracker.GetProject(projectId);
 #pragma warning restore CS0618
 
             if (project != null)
