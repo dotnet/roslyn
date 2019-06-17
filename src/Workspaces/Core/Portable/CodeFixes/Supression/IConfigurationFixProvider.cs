@@ -7,26 +7,29 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
+namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    internal interface ISuppressionFixProvider
+    /// <summary>
+    /// Provides suppression or configuration code fixes.
+    /// </summary>
+    internal interface IConfigurationFixProvider
     {
         /// <summary>
-        /// Returns true if the given diagnostic can be suppressed or unsuppressed.
+        /// Returns true if the given diagnostic can be configured, suppressed or unsuppressed by this provider.
         /// </summary>
-        bool CanBeSuppressedOrUnsuppressed(Diagnostic diagnostic);
+        bool IsFixableDiagnostic(Diagnostic diagnostic);
 
         /// <summary>
-        /// Gets one or more add suppression or remove suppression fixes for the specified diagnostics represented as a list of <see cref="CodeAction"/>'s.
+        /// Gets one or more add suppression, remove suppression, or configuration fixes for the specified diagnostics represented as a list of <see cref="CodeAction"/>'s.
         /// </summary>
         /// <returns>A list of zero or more potential <see cref="CodeFix"/>'es. It is also safe to return null if there are none.</returns>
-        Task<ImmutableArray<CodeFix>> GetSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken);
+        Task<ImmutableArray<CodeFix>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Gets one or more add suppression or remove suppression fixes for the specified no-location diagnostics represented as a list of <see cref="CodeAction"/>'s.
+        /// Gets one or more add suppression, remove suppression, or configuration fixes for the specified no-location diagnostics represented as a list of <see cref="CodeAction"/>'s.
         /// </summary>
         /// <returns>A list of zero or more potential <see cref="CodeFix"/>'es. It is also safe to return null if there are none.</returns>
-        Task<ImmutableArray<CodeFix>> GetSuppressionsAsync(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken);
+        Task<ImmutableArray<CodeFix>> GetFixesAsync(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets an optional <see cref="FixAllProvider"/> that can fix all/multiple occurrences of diagnostics fixed by this fix provider.

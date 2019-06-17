@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 {
@@ -12,7 +12,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
     {
         protected AbstractParenthesesDiagnosticAnalyzer(
             string descriptorId, LocalizableString title, LocalizableString message)
-            : base(descriptorId, title, message)
+            : base(descriptorId,
+                   options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions.ArithmeticBinaryParentheses, CodeStyleOptions.RelationalBinaryParentheses, CodeStyleOptions.OtherBinaryParentheses, CodeStyleOptions.OtherParentheses),
+                   title, message)
         {
         }
 
