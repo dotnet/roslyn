@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                     // projectSystemName because they'll have a better one eventually.
                     AssemblyName = projectSystemName,
                     FilePath = projectFilePath,
-                    ProjectGuid = hierarchy.GetProjectGuidOrDefault(),
+                    ProjectGuid = hierarchy.GetProjectGuidOrEmpty(),
                 });
 
             ((VisualStudioWorkspaceImpl)Workspace).AddProjectRuleSetFileToInternalMaps(
