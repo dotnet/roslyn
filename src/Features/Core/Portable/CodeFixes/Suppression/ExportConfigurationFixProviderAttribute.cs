@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 throw new ArgumentException(nameof(languages));
             }
 
-            this.Languages = languages;
-            this.Name = name ?? throw new ArgumentNullException(nameof(name));
+            Languages = languages;
+            Name = name ?? throw new ArgumentNullException(nameof(name));
         }
     }
 }

@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
-            context.RegisterSemanticModelAction(this.AnalyzeSemanticModel);
+            context.RegisterSemanticModelAction(AnalyzeSemanticModel);
         }
 
         private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                     descriptor = fadeOut ? _unnecessaryClassificationIdDescriptor : _classificationIdDescriptor;
                 }
 
-                Func<SyntaxNode, SyntaxToken> getLastTokenFunc = GetLastTokenDelegateForContiguousSpans();
+                var getLastTokenFunc = GetLastTokenDelegateForContiguousSpans();
                 var contiguousSpans = unnecessaryImports.GetContiguousSpans(getLastTokenFunc);
                 var diagnostics =
                     CreateClassificationDiagnostics(contiguousSpans, tree, descriptor, cancellationToken).Concat(

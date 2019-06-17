@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                         {
                             // We found a rule configuration entry of severity based form:
                             //      "dotnet_diagnostic.<%DiagnosticId%>.severity = %severity%
-                            int diagIdLength = -1;
+                            var diagIdLength = -1;
                             if (key.StartsWith(DiagnosticOptionPrefix, StringComparison.Ordinal) &&
                                 key.EndsWith(DiagnosticOptionSuffix, StringComparison.Ordinal))
                             {
