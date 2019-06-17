@@ -103,15 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sawLocalFunctions = localRewriter._sawLocalFunctions;
                 sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
 
-                sawNullChecked = false;
-                foreach (SourceParameterSymbolBase param in method.Parameters)
-                {
-                    if (param.IsNullChecked)
-                    {
-                        sawNullChecked = true;
-                        break;
-                    }
-                }
+                sawNullChecked = method.Parameters.Any(x => ((SourceParameterSymbolBase)x).IsNullChecked);
 
                 if (localRewriter._needsSpilling && !loweredStatement.HasErrors)
                 {
