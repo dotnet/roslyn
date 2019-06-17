@@ -21,3 +21,4 @@ Sr. No. | Rule ID | Title | Category | Enabled | CodeFix | Description |
 18 | RS0032 | Test exports should not be discoverable | RoslyDiagnosticsReliability | False | True | Test exports should not be discoverable |
 19 | RS0033 | Importing constructor should be [Obsolete] | RoslyDiagnosticsReliability | True | True | Importing constructor should be [Obsolete] |
 20 | RS0034 | Exported parts should have [ImportingConstructor] | RoslyDiagnosticsReliability | True | True | Exported parts should have [ImportingConstructor] |
+21 | RS0035 | External access to internal symbols outside the restricted namespace(s) is prohibited | ApiDesign | True | False | RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows. |
