@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
-        <target state="new">A new namespace will be created</target>
+        <target state="translated">Yeni bir ad alanı oluşturulacak</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_current_file">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
         <source>Enable nullable reference analysis IDE features</source>
-        <target state="new">Enable nullable reference analysis IDE features</target>
+        <target state="translated">Boş değer atanabilir başvuru analizi IDE özelliklerini etkinleştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -144,12 +144,12 @@
       </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to Namespace</source>
-        <target state="new">Move to Namespace</target>
+        <target state="translated">Ad Alanına Taşı</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
         <source>Namespace</source>
-        <target state="new">Namespace</target>
+        <target state="translated">Ad alanı</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0">
@@ -334,7 +334,7 @@
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
-        <target state="translated">Salt okunur alanları tercih et</target>
+        <target state="translated">Saltokunur alanları tercih et</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
@@ -389,12 +389,12 @@
       </trans-unit>
       <trans-unit id="Select_Dependents">
         <source>Select _Dependents</source>
-        <target state="translated">Bağımlıları _seçin</target>
+        <target state="translated">_Bağımlıları Seçin</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_Public">
         <source>Select _Public</source>
-        <target state="translated">Ortak _seçin</target>
+        <target state="translated">_Geneli Seçin</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination_and_members_to_pull_up">
@@ -419,17 +419,17 @@
       </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
-        <target state="translated">Tamamlanma listesini göster</target>
+        <target state="translated">Tamamlama listesini göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
-        <target state="new">Target Namespace:</target>
+        <target state="translated">Hedef Ad Alanı:</target>
         <note />
       </trans-unit>
       <trans-unit id="This_is_an_invalid_namespace">
         <source>This is an invalid namespace</source>
-        <target state="new">This is an invalid namespace</target>
+        <target state="translated">Bu geçersiz bir ad alanı</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
