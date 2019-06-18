@@ -39,7 +39,7 @@ namespace System.Runtime.CompilerServices
                     AttributeTargets.Parameter | // The type of the parameter is a nullable reference type, or has a nullable reference type as one of its constituents
                     AttributeTargets.ReturnValue | // The return type is a nullable reference type, or has a nullable reference type as one of its constituents
                     AttributeTargets.Property | // The type of the property is a nullable reference type, or has a nullable reference type as one of its constituents
-                    AttributeTargets.Class , // Base type has a nullable reference type as one of its constituents
+                    AttributeTargets.Class, // Base type has a nullable reference type as one of its constituents
                    AllowMultiple = false)]
     public class NullableAttribute : Attribute
     {
@@ -51,8 +51,19 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        protected const string AllowNullAttributeDefinition = @"
+        protected const string NullablePublicOnlyAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(AttributeTargets.Module, AllowMultiple = false)]
+    public sealed class NullablePublicOnlyAttribute : Attribute
+    {
+    }
+}";
+
+        // Nullable flow analysis attributes are defined at
+        // https://github.com/dotnet/coreclr/blob/4a1275434fff99206f2a28f5f0e87f124069eb7f/src/System.Private.CoreLib/shared/System/Diagnostics/CodeAnalysis/NullableAttributes.cs
+        protected const string AllowNullAttributeDefinition = @"
+namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property)]
     public sealed class AllowNullAttribute : Attribute
@@ -61,7 +72,7 @@ namespace System.Runtime.CompilerServices
 }";
 
         protected const string DisallowNullAttributeDefinition = @"
-namespace System.Runtime.CompilerServices
+namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property)]
     public sealed class DisallowNullAttribute : Attribute
@@ -70,7 +81,7 @@ namespace System.Runtime.CompilerServices
 }";
 
         protected const string MaybeNullAttributeDefinition = @"
-namespace System.Runtime.CompilerServices
+namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue)]
     public sealed class MaybeNullAttribute : Attribute
@@ -80,7 +91,7 @@ namespace System.Runtime.CompilerServices
 ";
 
         protected const string MaybeNullWhenAttributeDefinition = @"
-namespace System.Runtime.CompilerServices
+namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
     public sealed class MaybeNullWhenAttribute : Attribute
@@ -91,7 +102,7 @@ namespace System.Runtime.CompilerServices
 ";
 
         protected const string NotNullAttributeDefinition = @"
-namespace System.Runtime.CompilerServices
+namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue)]
     public sealed class NotNullAttribute : Attribute
@@ -101,7 +112,7 @@ namespace System.Runtime.CompilerServices
 ";
 
         protected const string NotNullWhenAttributeDefinition = @"
-namespace System.Runtime.CompilerServices
+namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
     public sealed class NotNullWhenAttribute : Attribute
@@ -112,7 +123,7 @@ namespace System.Runtime.CompilerServices
 ";
 
         protected const string AssertsTrueAttributeDefinition = @"
-namespace System.Runtime.CompilerServices
+namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
     public class AssertsTrueAttribute : Attribute
@@ -123,7 +134,7 @@ namespace System.Runtime.CompilerServices
 ";
 
         protected const string AssertsFalseAttributeDefinition = @"
-namespace System.Runtime.CompilerServices
+namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
     public class AssertsFalseAttribute : Attribute

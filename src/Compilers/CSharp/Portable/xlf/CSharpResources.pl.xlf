@@ -802,14 +802,14 @@
         <target state="new">stackalloc in nested expressions</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureNotNullGenericTypeConstraint">
+        <source>notnull generic type constraint</source>
+        <target state="new">notnull generic type constraint</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
         <source>nullable reference types</source>
         <target state="translated">typy referencyjne dopuszczające wartość null</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureObjectGenericTypeConstraint">
-        <source>object generic type constraint</source>
-        <target state="translated">ogólne ograniczenie typu obiektu</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureObsoleteOnPropertyAccessor">
@@ -895,11 +895,6 @@
       <trans-unit id="IDS_NULL">
         <source>&lt;null&gt;</source>
         <target state="translated">&lt;null&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_NotNullGenericTypeConstraint">
-        <source>notnull generic type constraint</source>
-        <target state="new">notnull generic type constraint</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_OverrideWithConstraints">
@@ -1332,6 +1327,16 @@
         <target state="translated">Wyrażenie domyślne wprowadza wartość null dla parametru typu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
+        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
+        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
+        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
+        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
         <source>'{0}' is already listed in the interface list on type '{1}' with different nullability of reference types.</source>
         <target state="translated">Element „{0}” występuje już na liście interfejsów dla typu „{1}” z inną obsługą wartości null typów referencyjnych.</target>
@@ -1680,16 +1685,6 @@
       <trans-unit id="WRN_NullableValueTypeMayBeNull_Title">
         <source>Nullable value type may be null.</source>
         <target state="translated">Typ wartości dopuszczający wartość null może być równy null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_SpecialTypeAsBound">
-        <source>Constraint cannot be special class '{0}'</source>
-        <target state="new">Constraint cannot be special class '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_SpecialTypeAsBound_Title">
-        <source>Constraint cannot be special class</source>
-        <target state="new">Constraint cannot be special class</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">

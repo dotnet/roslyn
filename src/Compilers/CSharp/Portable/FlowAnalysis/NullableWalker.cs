@@ -3110,20 +3110,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.In:
                     {
                         // Note: for lambda arguments, they will be converted in the context/state we saved for that argument
-                        SetResultType(argumentNoConversion,
-                            VisitConversion(
-                                conversionOpt: conversionOpt,
-                                conversionOperand: argumentNoConversion,
-                                conversion: conversion,
-                                targetTypeWithNullability: ApplyLValueAnnotations(parameterType, parameterAnnotations),
-                                operandType: resultType,
-                                checkConversion: true,
-                                fromExplicitCast: false,
-                                useLegacyWarnings: false,
-                                assignmentKind: AssignmentKind.Argument,
-                                target: parameter,
-                                extensionMethodThisArgument: extensionMethodThisArgument,
-                                stateForLambda: result.StateForLambda));
+                        var stateAfterConversion = VisitConversion(
+                            conversionOpt: conversionOpt,
+                            conversionOperand: argumentNoConversion,
+                            conversion: conversion,
+                            targetTypeWithNullability: ApplyLValueAnnotations(parameterType, parameterAnnotations),
+                            operandType: resultType,
+                            checkConversion: true,
+                            fromExplicitCast: false,
+                            useLegacyWarnings: false,
+                            assignmentKind: AssignmentKind.Argument,
+                            target: parameter,
+                            extensionMethodThisArgument: extensionMethodThisArgument,
+                            stateForLambda: result.StateForLambda);
+                        CheckDisallowedNullAssignment(stateAfterConversion, parameterType, parameterAnnotations, argumentNoConversion.Syntax.Location);
+                        SetResultType(argumentNoConversion, stateAfterConversion);
                     }
                     break;
                 case RefKind.Ref:
@@ -3139,6 +3140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // types match, but state would let a null in
                             ReportNullableAssignmentIfNecessary(argumentNoConversion, ApplyLValueAnnotations(parameterType, parameterAnnotations), resultType, useLegacyWarnings: false);
+                            CheckDisallowedNullAssignment(resultType, parameterType, parameterAnnotations, argumentNoConversion.Syntax.Location);
                         }
                     }
 
@@ -3150,6 +3152,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(!this.IsConditionalState);
+        }
+
+        private void CheckDisallowedNullAssignment(TypeWithState state, TypeWithAnnotations type, FlowAnalysisAnnotations annotations, Location location)
+        {
+            if (((annotations & FlowAnalysisAnnotations.DisallowNull) != 0) && type.Type.IsNullableTypeOrTypeParameter() && state.MayBeNull)
+            {
+                ReportDiagnostic(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment, location);
+            }
         }
 
         /// <summary>
@@ -3193,23 +3203,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case RefKind.Out:
                     {
-                        var lValueType = result.LValueType;
+                        // compute the fictional parameter state
                         var parameterWithAnnotations = ApplyRValueAnnotations(parameterType, parameterAnnotations);
+                        var parameterWithState = TypeWithState.Create(parameterWithAnnotations, parameterAnnotations);
+
+                        // Adjust parameter state if MaybeNull or MaybeNullWhen are present (for `var` type and for assignment warnings)
+                        var worstCaseParameterWithState = applyPostConditionsUnconditionally(parameterWithState, parameterAnnotations);
+
+                        var lValueType = result.LValueType;
                         if (argument is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
                         {
-                            _variableTypes[local.LocalSymbol] = parameterWithAnnotations;
-                            lValueType = parameterWithAnnotations;
+                            var varType = worstCaseParameterWithState.ToTypeWithAnnotations();
+                            _variableTypes[local.LocalSymbol] = varType;
+                            lValueType = varType;
                         }
 
-                        // assign from a fictional value from the parameter to the argument.
-                        var parameterWithState = TypeWithState.Create(parameterWithAnnotations, parameterAnnotations);
+                        // track state by assigning from a fictional value from the parameter to the argument.
                         var parameterValue = new BoundParameter(argument.Syntax, parameter);
                         trackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argument), parameterWithState, argument.IsSuppressed, parameterAnnotations);
 
-                        // check whether parameter would unsafely let a null out in the worse case
+                        // report warnings if parameter would unsafely let a null out in the worst case
                         if (!argument.IsSuppressed)
                         {
-                            ReportNullableAssignmentIfNecessary(parameterValue, lValueType, applyPostConditionsUnconditionally(parameterWithState, parameterAnnotations), UseLegacyWarnings(argument, result.LValueType));
+                            ReportNullableAssignmentIfNecessary(parameterValue, lValueType, worstCaseParameterWithState, UseLegacyWarnings(argument, result.LValueType));
 
                             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                             if (!_conversions.HasIdentityOrImplicitReferenceConversion(parameterType.Type, lValueType.Type, ref useSiteDiagnostics))
@@ -3778,12 +3794,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             var symbolDef = symbol.OriginalDefinition;
-            var symbolDefContainer = symbolDef.ContainingType;
-            if (symbolDefContainer.IsTupleType)
+            var symbolContainer = symbol.ContainingType;
+            if (symbolContainer.IsTupleType)
             {
                 return AsMemberOfTupleType((TupleTypeSymbol)containingType, symbol);
             }
-            if (symbolDefContainer.IsAnonymousType)
+            if (symbolContainer.IsAnonymousType)
             {
                 int? memberIndex = symbol.Kind == SymbolKind.Property ? symbol.MemberIndexOpt : null;
                 if (!memberIndex.HasValue)
@@ -3792,12 +3808,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return AnonymousTypeManager.GetAnonymousTypeProperty(containingType, memberIndex.GetValueOrDefault());
             }
-            if (!symbolDefContainer.IsGenericType)
+            if (!symbolContainer.IsGenericType)
             {
                 Debug.Assert(symbol.ContainingType.IsDefinition);
                 return symbol;
             }
-            if (symbolDefContainer.IsInterface)
+            if (!containingType.IsGenericType && !containingType.IsTupleType)
+            {
+                return symbol;
+            }
+            if (symbolContainer.IsInterface)
             {
                 if (tryAsMemberOfSingleType(containingType, out Symbol result))
                 {
@@ -3831,7 +3851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool tryAsMemberOfSingleType(NamedTypeSymbol singleType, out Symbol result)
             {
-                if (!singleType.OriginalDefinition.Equals(symbolDefContainer, TypeCompareKind.AllIgnoreOptions))
+                if (!singleType.Equals(symbolContainer, TypeCompareKind.AllIgnoreOptions))
                 {
                     result = null;
                     return false;
@@ -4449,7 +4469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return operandType;
                         }
                     }
-                    if (operandType.Type?.IsTupleType == true)
+                    if (operandType.Type?.IsTupleType == true || conversionOperand.Kind == BoundKind.TupleLiteral)
                     {
                         goto case ConversionKind.ImplicitTuple;
                     }
@@ -4552,7 +4572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    if (checkConversion)
+                    if (checkConversion && !targetType.IsErrorType())
                     {
                         // https://github.com/dotnet/roslyn/issues/29699: Report warnings for user-defined conversions on tuple elements.
                         conversion = GenerateConversion(_conversions, conversionOperand, operandType.Type, targetType, fromExplicitCast, extensionMethodThisArgument);
