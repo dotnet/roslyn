@@ -51,16 +51,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
 #pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
-            CurrentApplicationDispatcher.Invoke(() => action(cancellationTokenSource.Token), DispatcherPriority.Background, cancellationToken: cancellationTokenSource.Token);
+            var dispatcherOperation = CurrentApplicationDispatcher.InvokeAsync(() => action(cancellationTokenSource.Token), DispatcherPriority.Background, cancellationToken: cancellationTokenSource.Token);
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
+            Task.Run(async () => await dispatcherOperation).Wait(cancellationTokenSource.Token);
         }
 
         protected static T InvokeOnUIThread<T>(Func<CancellationToken, T> action)
         {
             using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
 #pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
-            return CurrentApplicationDispatcher.Invoke(() => action(cancellationTokenSource.Token), DispatcherPriority.Background, cancellationToken: cancellationTokenSource.Token);
+            var dispatcherOperation = CurrentApplicationDispatcher.InvokeAsync(() => action(cancellationTokenSource.Token), DispatcherPriority.Background, cancellationToken: cancellationTokenSource.Token);
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
+            var resultTask = Task.Run(async () => await dispatcherOperation);
+            resultTask.Wait(cancellationTokenSource.Token);
+            return resultTask.Result;
         }
 
         protected static TInterface GetGlobalService<TService, TInterface>()
