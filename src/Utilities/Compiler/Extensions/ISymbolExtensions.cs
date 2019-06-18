@@ -202,7 +202,7 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool MatchMemberDerivedByName(this ISymbol member, INamedTypeSymbol type, string name)
         {
-            return member != null && member.ContainingType.DerivesFrom(type) && member.MetadataName == name;
+            return member != null && member.MetadataName == name && member.ContainingType.DerivesFrom(type);
         }
 
         public static bool MatchMethodDerivedByName(this IMethodSymbol method, INamedTypeSymbol type, string name)
