@@ -11,37 +11,45 @@ steps:
   displayName: dotnet pack
   workingDirectory: src
 
-- script: dotnet test --no-build -c $(BuildConfiguration) -f net472 --filter "TestCategory!=FailsInCloudTest" -v n -l "trx;LogFileName=$(Build.ArtifactStagingDirectory)/testlogs/net472.trx" /p:CollectCoverage=true
+- task: DotNetCoreCLI@2
   displayName: dotnet test -f net472
-  workingDirectory: src
+  inputs:
+    command: test
+    arguments: --no-build -c $(BuildConfiguration) -f net472 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true
+    testRunTitle: net472-$(Agent.JobName)
+    workingDirectory: src
   condition: eq(variables['Agent.OS'], 'Windows_NT')
 
-- script: dotnet test --no-build -c $(BuildConfiguration) -f netcoreapp2.0 --filter "TestCategory!=FailsInCloudTest" -v n -l "trx;LogFileName=$(Build.ArtifactStagingDirectory)/testlogs/netcoreapp2.0.trx" /p:CollectCoverage=true
+- task: DotNetCoreCLI@2
   displayName: dotnet test -f netcoreapp2.0
-  workingDirectory: src
-
-- script: dotnet test --no-build -c $(BuildConfiguration) -f netcoreapp2.1 --filter "TestCategory!=FailsInCloudTest" -v n -l "trx;LogFileName=$(Build.ArtifactStagingDirectory)/testlogs/netcoreapp2.1.trx" /p:CollectCoverage=true
-  displayName: dotnet test -f netcoreapp2.1
-  workingDirectory: src
-    
-- script: dotnet test --no-build -c $(BuildConfiguration) -f netcoreapp2.2 --filter "TestCategory!=FailsInCloudTest" -v n -l "trx;LogFileName=$(Build.ArtifactStagingDirectory)/testlogs/netcoreapp2.2.trx" /p:CollectCoverage=true
-  displayName: dotnet test -f netcoreapp2.2
-  workingDirectory: src
-    
-- task: PublishTestResults@2
-  displayName: Publish test results
   inputs:
-    testRunner: VSTest
-    #mergeTestResults: true
-    testResultsFormat: trx
-    testResultsFiles: $(Build.ArtifactStagingDirectory)/testlogs/*.trx
-    failTaskOnFailedTests: true
+    command: test
+    arguments: --no-build -c $(BuildConfiguration) -f netcoreapp2.0 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true
+    testRunTitle: netcoreapp2.0-$(Agent.JobName)
+    workingDirectory: src
+
+- task: DotNetCoreCLI@2
+  displayName: dotnet test -f netcoreapp2.1
+  inputs:
+    command: test
+    arguments: --no-build -c $(BuildConfiguration) -f netcoreapp2.1 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true
+    testRunTitle: netcoreapp2.1-$(Agent.JobName)
+    workingDirectory: src
+
+- task: DotNetCoreCLI@2
+  displayName: dotnet test -f netcoreapp2.2
+  inputs:
+    command: test
+    arguments: --no-build -c $(BuildConfiguration) -f netcoreapp2.2 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true
+    testRunTitle: netcoreapp2.2-$(Agent.JobName)
+    workingDirectory: src
 
 - task: PublishCodeCoverageResults@1
   displayName: Publish code coverage results to Azure DevOps
   inputs:
     codeCoverageTool: cobertura
     summaryFileLocation: '**/coverage.cobertura.xml'
+    failIfCoverageEmpty: true
 
 - bash: bash <(curl -s https://codecov.io/bash)
   displayName: Publish code coverage results to codecov.io
