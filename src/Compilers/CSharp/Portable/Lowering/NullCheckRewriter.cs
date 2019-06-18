@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Lowering
 {
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering
         private BoundNode AddNullChecksToBody(BoundBlock body)
         {
             BoundBlock prependedBody = body;
-            var statementList = new List<BoundStatement>();
+            var statementList = ArrayBuilder<BoundStatement>.GetInstance();
             foreach (SourceParameterSymbolBase param in _method.Parameters)
             {
                 if (param.IsNullChecked)
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering
             }
             statementList.AddRange(body.Statements);
 
-            return _fact.Block(body.Locals, statementList.ToImmutableArray());
+            return _fact.Block(body.Locals, statementList.ToImmutableAndFree());
         }
 
         private BoundStatement ConstructIfStatementForParameter(BoundBlock body, SourceParameterSymbolBase parameter)
