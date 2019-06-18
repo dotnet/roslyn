@@ -89,9 +89,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// Determines which node the caret is in.  
         /// Must be called on the UI thread.
         /// </summary>
-        /// <param name="document"></param>
         /// <param name="root"></param>
         /// <param name="caret"></param>
+        /// <param name="startingNode"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         private static bool TryGetStartingNode(SyntaxNode root, SnapshotPoint caret,
             out SyntaxNode startingNode, CancellationToken cancellationToken)
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
             var token = root.FindTokenOnLeftOfPosition(caretPosition);
 
-            if (token.IsKind(SyntaxKind.None)
+            if (token.SyntaxTree == null
                 || token.SyntaxTree.IsEntirelyWithinComment(caretPosition, cancellationToken))
             {
                 return false;
