@@ -5297,7 +5297,7 @@ class C<T>
 
                 state.SendTypeChars("T")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem("T", $"T {FeaturesResources.in_} C<T>")
+                Await state.AssertSelectedCompletionItem("T")
             End Using
         End Function
 
@@ -5318,7 +5318,7 @@ class C
 
                 state.SendTypeChars("T")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem("T", $"T {FeaturesResources.in_} C.M<T>")
+                Await state.AssertSelectedCompletionItem("T")
             End Using
         End Function
 
