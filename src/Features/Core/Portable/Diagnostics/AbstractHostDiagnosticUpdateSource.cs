@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
         {
-            this.DiagnosticsUpdated?.Invoke(this, args);
+            DiagnosticsUpdated?.Invoke(this, args);
         }
 
         public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace workspace, ProjectId projectIdOpt)
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, DiagnosticData diagnosticData, Project project)
         {
-            bool raiseDiagnosticsUpdated = true;
+            var raiseDiagnosticsUpdated = true;
 
             var dxs = ImmutableInterlocked.AddOrUpdate(ref _analyzerHostDiagnosticsMap,
                 analyzer,
@@ -114,13 +114,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (newDiags.Count < existing.Count &&
                     ImmutableInterlocked.TryUpdate(ref _analyzerHostDiagnosticsMap, analyzer, newDiags, existing))
                 {
-                    var project = this.Workspace.CurrentSolution.GetProject(projectId);
+                    var project = Workspace.CurrentSolution.GetProject(projectId);
                     RaiseDiagnosticsUpdated(MakeRemovedArgs(analyzer, project));
                 }
             }
             else if (ImmutableInterlocked.TryRemove(ref _analyzerHostDiagnosticsMap, analyzer, out existing))
             {
-                var project = this.Workspace.CurrentSolution.GetProject(projectId);
+                var project = Workspace.CurrentSolution.GetProject(projectId);
                 RaiseDiagnosticsUpdated(MakeRemovedArgs(analyzer, project));
 
                 if (existing.Any(d => d.ProjectId == null))
@@ -133,13 +133,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private DiagnosticsUpdatedArgs MakeCreatedArgs(DiagnosticAnalyzer analyzer, ImmutableHashSet<DiagnosticData> items, Project project)
         {
             return DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                CreateId(analyzer, project), this.Workspace, project?.Solution, project?.Id, documentId: null, diagnostics: items.ToImmutableArray());
+                CreateId(analyzer, project), Workspace, project?.Solution, project?.Id, documentId: null, diagnostics: items.ToImmutableArray());
         }
 
         private DiagnosticsUpdatedArgs MakeRemovedArgs(DiagnosticAnalyzer analyzer, Project project)
         {
             return DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                CreateId(analyzer, project), this.Workspace, project?.Solution, project?.Id, documentId: null);
+                CreateId(analyzer, project), Workspace, project?.Solution, project?.Id, documentId: null);
         }
 
         private HostArgsId CreateId(DiagnosticAnalyzer analyzer, Project project) => new HostArgsId(this, analyzer, project?.Id);

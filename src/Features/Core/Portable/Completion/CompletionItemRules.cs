@@ -175,19 +175,19 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<int> matchPriority = default,
             Optional<CompletionItemSelectionBehavior> selectionBehavior = default)
         {
-            var newFilterRules = filterRules.HasValue ? filterRules.Value : this.FilterCharacterRules;
-            var newCommitRules = commitRules.HasValue ? commitRules.Value : this.CommitCharacterRules;
-            var newEnterKeyRule = enterKeyRule.HasValue ? enterKeyRule.Value : this.EnterKeyRule;
-            var newFormatOnCommit = formatOnCommit.HasValue ? formatOnCommit.Value : this.FormatOnCommit;
-            var newMatchPriority = matchPriority.HasValue ? matchPriority.Value : this.MatchPriority;
-            var newSelectionBehavior = selectionBehavior.HasValue ? selectionBehavior.Value : this.SelectionBehavior;
+            var newFilterRules = filterRules.HasValue ? filterRules.Value : FilterCharacterRules;
+            var newCommitRules = commitRules.HasValue ? commitRules.Value : CommitCharacterRules;
+            var newEnterKeyRule = enterKeyRule.HasValue ? enterKeyRule.Value : EnterKeyRule;
+            var newFormatOnCommit = formatOnCommit.HasValue ? formatOnCommit.Value : FormatOnCommit;
+            var newMatchPriority = matchPriority.HasValue ? matchPriority.Value : MatchPriority;
+            var newSelectionBehavior = selectionBehavior.HasValue ? selectionBehavior.Value : SelectionBehavior;
 
-            if (newFilterRules == this.FilterCharacterRules &&
-                newCommitRules == this.CommitCharacterRules &&
-                newEnterKeyRule == this.EnterKeyRule &&
-                newFormatOnCommit == this.FormatOnCommit &&
-                newMatchPriority == this.MatchPriority &&
-                newSelectionBehavior == this.SelectionBehavior)
+            if (newFilterRules == FilterCharacterRules &&
+                newCommitRules == CommitCharacterRules &&
+                newEnterKeyRule == EnterKeyRule &&
+                newFormatOnCommit == FormatOnCommit &&
+                newMatchPriority == MatchPriority &&
+                newSelectionBehavior == SelectionBehavior)
             {
                 return this;
             }
@@ -205,17 +205,17 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionItemRules WithFilterCharacterRules(ImmutableArray<CharacterSetModificationRule> filterCharacterRules)
         {
-            return this.With(filterRules: filterCharacterRules);
+            return With(filterRules: filterCharacterRules);
         }
 
         internal CompletionItemRules WithFilterCharacterRule(CharacterSetModificationRule rule)
         {
-            return this.With(filterRules: ImmutableArray.Create(rule));
+            return With(filterRules: ImmutableArray.Create(rule));
         }
 
         internal CompletionItemRules WithCommitCharacterRule(CharacterSetModificationRule rule)
         {
-            return this.With(commitRules: ImmutableArray.Create(rule));
+            return With(commitRules: ImmutableArray.Create(rule));
         }
 
         /// <summary>
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionItemRules WithCommitCharacterRules(ImmutableArray<CharacterSetModificationRule> commitCharacterRules)
         {
-            return this.With(commitRules: commitCharacterRules);
+            return With(commitRules: commitCharacterRules);
         }
 
         /// <summary>
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionItemRules WithEnterKeyRule(EnterKeyRule enterKeyRule)
         {
-            return this.With(enterKeyRule: enterKeyRule);
+            return With(enterKeyRule: enterKeyRule);
         }
 
         /// <summary>
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionItemRules WithFormatOnCommit(bool formatOnCommit)
         {
-            return this.With(formatOnCommit: formatOnCommit);
+            return With(formatOnCommit: formatOnCommit);
         }
 
         /// <summary>
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionItemRules WithMatchPriority(int matchPriority)
         {
-            return this.With(matchPriority: matchPriority);
+            return With(matchPriority: matchPriority);
         }
 
         /// <summary>
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionItemRules WithSelectionBehavior(CompletionItemSelectionBehavior selectionBehavior)
         {
-            return this.With(selectionBehavior: selectionBehavior);
+            return With(selectionBehavior: selectionBehavior);
         }
     }
 }

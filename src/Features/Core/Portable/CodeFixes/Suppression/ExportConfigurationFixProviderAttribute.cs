@@ -3,17 +3,17 @@
 using System;
 using System.Composition;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
+namespace Microsoft.CodeAnalysis.CodeFixes
 {
     /// <summary>
-    /// Use this attribute to declare a <see cref="ISuppressionFixProvider"/> implementation so that it can be discovered by the host.
+    /// Use this attribute to declare a <see cref="IConfigurationFixProvider"/> implementation so that it can be discovered by the host.
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportSuppressionFixProviderAttribute : ExportAttribute
+    internal class ExportConfigurationFixProviderAttribute : ExportAttribute
     {
         /// <summary>
-        /// The name of the <see cref="ISuppressionFixProvider"/>.  
+        /// The name of the <see cref="IConfigurationFixProvider"/>.  
         /// </summary>
         public string Name { get; }
 
@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         /// </summary>
         public string[] Languages { get; }
 
-        public ExportSuppressionFixProviderAttribute(
+        public ExportConfigurationFixProviderAttribute(
             string name,
             params string[] languages)
-            : base(typeof(ISuppressionFixProvider))
+            : base(typeof(IConfigurationFixProvider))
         {
             if (languages == null)
             {
@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 throw new ArgumentException(nameof(languages));
             }
 
-            this.Languages = languages;
-            this.Name = name ?? throw new ArgumentNullException(nameof(name));
+            Languages = languages;
+            Name = name ?? throw new ArgumentNullException(nameof(name));
         }
     }
 }

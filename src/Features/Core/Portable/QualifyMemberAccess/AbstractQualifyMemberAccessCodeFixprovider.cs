@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(new MyCodeAction(
-                this.GetTitle(),
+                GetTitle(),
                 c => FixAsync(context.Document, context.Diagnostics[0], c)),
                 context.Diagnostics);
             return Task.CompletedTask;
