@@ -1727,6 +1727,7 @@ class C1<T> { }
 class C2<T, U> { }
 class Program
 {
+    static void F() { }
     int F11;
     int? F12;
 #nullable disable
@@ -1815,6 +1816,7 @@ class Program
             static void validate(ModuleSymbol module)
             {
                 var globalNamespace = module.GlobalNamespace;
+                VerifyBytes(globalNamespace.GetMember<MethodSymbol>("Program.F").ReturnTypeWithAnnotations, new byte[] { 0 }, new byte[] { }, "void");
                 VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F11").TypeWithAnnotations, new byte[] { 0 }, new byte[] { }, "int");
                 VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F12").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { }, "int?");
                 VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F21").TypeWithAnnotations, new byte[] { 0 }, new byte[] { 0 }, "object");
