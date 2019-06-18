@@ -9377,8 +9377,7 @@ End Class"
             Dim suppressors = ImmutableArray.Create(Of DiagnosticAnalyzer)(suppressor)
             output = VerifyOutput(dir, file, expectedInfoCount:=1, expectedWarningCount:=0,
                                   includeCurrentAssemblyAsAnalyzerReference:=False,
-                                  analyzers:=suppressors,
-                                  additionalFlags:={"/features:DiagnosticSuppressor"})
+                                  analyzers:=suppressors)
             Assert.DoesNotContain("warning BC40008", output, StringComparison.Ordinal)
             Assert.Contains("info SP0001", output, StringComparison.Ordinal)
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal)
@@ -9410,7 +9409,7 @@ End Class"
             Assert.Contains("warning BC40008", output, StringComparison.Ordinal)
 
             ' Verify that compiler warning BC40008 is reported as error for /warnaserror.
-            output = VerifyOutput(dir, file, expectedErrorCount:=1, additionalFlags:={"/warnaserror+", "/features:DiagnosticSuppressor"},
+            output = VerifyOutput(dir, file, expectedErrorCount:=1, additionalFlags:={"/warnaserror+"},
                                   includeCurrentAssemblyAsAnalyzerReference:=False)
             Assert.Contains("error BC40008", output, StringComparison.Ordinal)
 
@@ -9420,7 +9419,7 @@ End Class"
 
             Dim suppressors = ImmutableArray.Create(Of DiagnosticAnalyzer)(suppressor)
             output = VerifyOutput(dir, file, expectedInfoCount:=1, expectedWarningCount:=0, expectedErrorCount:=0,
-                                  additionalFlags:={"/warnaserror+", "/features:DiagnosticSuppressor"},
+                                  additionalFlags:={"/warnaserror+"},
                                   includeCurrentAssemblyAsAnalyzerReference:=False,
                                   analyzers:=suppressors)
             Assert.DoesNotContain($"warning BC40008", output, StringComparison.Ordinal)
@@ -9458,8 +9457,7 @@ End Class"
             Dim analyzers = ImmutableArray.Create(Of DiagnosticAnalyzer)(New DiagnosticSuppressorForId("BC30203"))
             output = VerifyOutput(dir, file, expectedErrorCount:=1,
                                   includeCurrentAssemblyAsAnalyzerReference:=False,
-                                  analyzers:=analyzers,
-                                  additionalFlags:={"/features:DiagnosticSuppressor"})
+                                  analyzers:=analyzers)
             Assert.Contains("error BC30203", output, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
@@ -9497,15 +9495,14 @@ End Class"
             Dim analyzerAndSuppressor = ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer, suppressor)
             output = VerifyOutput(dir, file, expectedInfoCount:=1, expectedWarningCount:=0,
                                   includeCurrentAssemblyAsAnalyzerReference:=False,
-                                  analyzers:=analyzerAndSuppressor,
-                                  additionalFlags:={"/features:DiagnosticSuppressor"})
+                                  analyzers:=analyzerAndSuppressor)
             Assert.DoesNotContain($"warning {analyzer.Descriptor.Id}", output, StringComparison.Ordinal)
             Assert.Contains("info SP0001", output, StringComparison.Ordinal)
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal)
 
             ' Verify that analyzer warning is reported as error for /warnaserror.
             output = VerifyOutput(dir, file, expectedErrorCount:=1,
-                                  additionalFlags:={"/warnaserror+", "/features:DiagnosticSuppressor"},
+                                  additionalFlags:={"/warnaserror+"},
                                   includeCurrentAssemblyAsAnalyzerReference:=False,
                                   analyzers:=analyzers)
             Assert.Contains($"error {analyzer.Descriptor.Id}", output, StringComparison.Ordinal)
@@ -9513,7 +9510,7 @@ End Class"
             ' Verify that analyzer warning is suppressed with diagnostic suppressor even with /warnaserror
             ' and info diagnostic is logged with programmatic suppression information.
             output = VerifyOutput(dir, file, expectedInfoCount:=1, expectedWarningCount:=0, expectedErrorCount:=0,
-                                  additionalFlags:={"/warnaserror+", "/features:DiagnosticSuppressor"},
+                                  additionalFlags:={"/warnaserror+"},
                                   includeCurrentAssemblyAsAnalyzerReference:=False,
                                   analyzers:=analyzerAndSuppressor)
             Assert.DoesNotContain($"warning {analyzer.Descriptor.Id}", output, StringComparison.Ordinal)
@@ -9526,8 +9523,7 @@ End Class"
             analyzerAndSuppressor = ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer, suppressor)
             output = VerifyOutput(dir, file, expectedWarningCount:=1,
                                   includeCurrentAssemblyAsAnalyzerReference:=False,
-                                  analyzers:=analyzerAndSuppressor,
-                                  additionalFlags:={"/features:DiagnosticSuppressor"})
+                                  analyzers:=analyzerAndSuppressor)
             Assert.Contains($"warning {analyzer.Descriptor.Id}", output, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
@@ -9556,8 +9552,7 @@ End Class"
             Dim analyzerAndSuppressor = ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer, suppressor)
             output = VerifyOutput(dir, file, expectedErrorCount:=1,
                                   includeCurrentAssemblyAsAnalyzerReference:=False,
-                                  analyzers:=analyzerAndSuppressor,
-                                  additionalFlags:={"/features:DiagnosticSuppressor"})
+                                  analyzers:=analyzerAndSuppressor)
             Assert.Contains($"error {analyzer.Descriptor.Id}", output, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)

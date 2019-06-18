@@ -42,7 +42,7 @@ class C
     }
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithDiagnosticSuppressorFeature);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (7,9): warning CS1522: Empty switch block
                 //         {
@@ -65,7 +65,7 @@ class C
     // warning CS0169: The field 'C.f' is never used
     private readonly int f;
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithDiagnosticSuppressorFeature);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (5,26): warning CS0169: The field 'C.f' is never used
                 //     private readonly int f;
@@ -85,7 +85,7 @@ class C
             string source = @"
 class { }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithDiagnosticSuppressorFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (2,7): error CS1001: Identifier expected
@@ -106,7 +106,7 @@ class C
     void M(UndefinedType x) { }
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithDiagnosticSuppressorFeature);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,12): error CS0246: The type or namespace name 'UndefinedType' could not be found (are you missing a using directive or an assembly reference?)
@@ -123,7 +123,7 @@ class C
         {
             string source1 = @"class C1 { }";
             string source2 = @"class C2 { }";
-            var compilation = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.RegularWithDiagnosticSuppressorFeature);
+            var compilation = CreateCompilation(new[] { source1, source2 });
             compilation.VerifyDiagnostics();
 
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
@@ -141,7 +141,7 @@ class C
         public void TestSuppression_MultipleSuppressors_SameDiagnostic()
         {
             string source = @"class C1 { }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithDiagnosticSuppressorFeature);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
@@ -161,7 +161,7 @@ class C
         public void TestSuppression_MultipleSuppressors_DifferentDiagnostic()
         {
             string source = @"class C1 { private readonly int f; }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithDiagnosticSuppressorFeature);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (1,33): warning CS0169: The field 'C1.f' is never used
                 // class C1 { private readonly int f; }
@@ -184,7 +184,7 @@ class C
         public void TestNoSuppression_SpecificOptionsTurnsOffSuppressor()
         {
             string source = @"class C1 { }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithDiagnosticSuppressorFeature);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
@@ -201,33 +201,11 @@ class C
         }
 
         [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        public void TestDiagnosticOnMissingFeatureFlag()
-        {
-            string source = @"class C1 { }";
-            var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics();
-
-            var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
-            var analyzerDiagnostic = Diagnostic(analyzer.Descriptor.Id, source);
-            VerifyAnalyzerDiagnostics(compilation, new DiagnosticAnalyzer[] { analyzer }, analyzerDiagnostic);
-
-            var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, new DiagnosticSuppressorForId(analyzer.Descriptor.Id, "SPR1001") };
-            var expectedDiagnostics = new[]
-            {
-                analyzerDiagnostic,
-                Diagnostic("AD0001").WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+DiagnosticSuppressorForId",
-                                                   "System.ArgumentException",
-                                                   CodeAnalysisResources.DiagnosticSuppressorFeatureDisabled).WithLocation(1, 1)
-            };
-            VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppressors, expectedDiagnostics);
-        }
-
-        [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
         public void TestSuppression_AnalyzerDiagnostics_SeveritiesAndConfigurableMatrix()
         {
             string source = @"
 class C { }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithDiagnosticSuppressorFeature);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
             var configurations = new[] { false, true };
@@ -286,7 +264,7 @@ class C { }";
             string source = @"
 class C { }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithDiagnosticSuppressorFeature);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
@@ -315,7 +293,7 @@ class C { }";
             string source = @"
 class C { }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithDiagnosticSuppressorFeature);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
             const string supportedSuppressionId = "supportedId";
@@ -342,7 +320,7 @@ class C { }";
         {
             string source = @"
 class C { }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithDiagnosticSuppressorFeature);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
             const string unsupportedSuppressedId = "UnsupportedId";
@@ -368,7 +346,7 @@ class C { }";
         {
             string source = @"
 class C { }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithDiagnosticSuppressorFeature);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
             const string nonReportedDiagnosticId = "NonReportedId";
@@ -393,7 +371,7 @@ class C { }";
         public void TestProgrammaticSuppressionInfo_DiagnosticSuppressor()
         {
             string source = @"class C1 { }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithDiagnosticSuppressorFeature);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);

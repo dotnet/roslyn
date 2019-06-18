@@ -11,7 +11,6 @@ Public Class TestOptions
     Public Shared ReadOnly Regular As New VisualBasicParseOptions(kind:=SourceCodeKind.Regular, languageVersion:=LanguageVersion.VisualBasic16)
     Public Shared ReadOnly Regular15_5 As VisualBasicParseOptions = Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5)
     Public Shared ReadOnly RegularWithLegacyStrongName As VisualBasicParseOptions = Regular.WithFeature("UseLegacyStrongNameProvider")
-    Public Shared ReadOnly RegularWithDiagnosticSuppressorFeature As VisualBasicParseOptions = Regular.WithDiagnosticSuppressorFeature()
 
     Public Shared ReadOnly ReleaseDll As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=OptimizationLevel.Release).WithParseOptions(Regular)
     Public Shared ReadOnly ReleaseExe As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=OptimizationLevel.Release).WithParseOptions(Regular)
@@ -61,10 +60,5 @@ Friend Module TestOptionExtensions
             list.Add(New KeyValuePair(Of String, String)(flagName, "True"))
         Next
         Return options.WithFeatures(options.Features.Concat(list))
-    End Function
-
-    <Extension()>
-    Public Function WithDiagnosticSuppressorFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
-        Return options.WithFeatures(options.Features.Concat({New KeyValuePair(Of String, String)(AnalyzerDriver.DiagnosticSuppressorFeatureName, "true")}))
     End Function
 End Module

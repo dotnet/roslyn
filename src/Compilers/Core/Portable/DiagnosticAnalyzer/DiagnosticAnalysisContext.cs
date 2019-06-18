@@ -1528,11 +1528,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException(message);
             }
 
-            if (!Compilation.SyntaxTrees.Any(t => t.Options.Features.ContainsKey(AnalyzerDriver.DiagnosticSuppressorFeatureName)))
-            {
-                throw new ArgumentException(CodeAnalysisResources.DiagnosticSuppressorFeatureDisabled);
-            }
-
             if (suppression.Descriptor.IsDisabled(Compilation.Options))
             {
                 // Suppression has been disabled by the end user through compilation options.

@@ -660,9 +660,6 @@
   <data name="WRN_InvalidSeverityInAnalyzerConfig_Title" xml:space="preserve">
     <value>Invalid severity in analyzer config file.</value>
   </data>
-  <data name="DiagnosticSuppressorFeatureDisabled" xml:space="preserve">
-    <value>Feature 'DiagnosticSuppressor' is disabled.</value>
-  </data>
   <data name="SuppressionDiagnosticDescriptorTitle" xml:space="preserve">
     <value>Programmatic suppression of an analyzer diagnostic</value>
   </data>

@@ -459,15 +459,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Feature &apos;DiagnosticSuppressor&apos; is disabled..
-        /// </summary>
-        internal static string DiagnosticSuppressorFeatureDisabled {
-            get {
-                return ResourceManager.GetString("DiagnosticSuppressorFeatureDisabled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Argument contains duplicate analyzer instances..
         /// </summary>
         internal static string DuplicateAnalyzerInstances {

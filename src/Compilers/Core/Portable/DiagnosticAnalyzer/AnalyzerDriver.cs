@@ -25,9 +25,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // Protect against vicious analyzers that provide large values for SymbolKind.
         private const int MaxSymbolKind = 100;
 
-        // Feature flag for DiagnosticSuppressor feature
-        internal const string DiagnosticSuppressorFeatureName = "DiagnosticSuppressor";
-
         // Cache delegates for static methods
         private static readonly Func<DiagnosticAnalyzer, bool> s_IsCompilerAnalyzerFunc = IsCompilerAnalyzer;
 

@@ -19,11 +19,6 @@
 “{1}”。</target>
         <note />
       </trans-unit>
-      <trans-unit id="DiagnosticSuppressorFeatureDisabled">
-        <source>Feature 'DiagnosticSuppressor' is disabled.</source>
-        <target state="new">Feature 'DiagnosticSuppressor' is disabled.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
         <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
         <target state="new">Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</target>
