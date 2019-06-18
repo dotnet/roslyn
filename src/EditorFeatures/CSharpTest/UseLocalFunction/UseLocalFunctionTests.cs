@@ -3,6 +3,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UseLocalFunction;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
@@ -3659,6 +3660,34 @@ class C
         static async Task f() => await Task.Yield();
     }
 }", parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithNullableParameterAndReturn()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<string?, string?> [||]f = s => s;
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        static string? f(string? s) => s;
+    }
+}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
         }
     }
 }
