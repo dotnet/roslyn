@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
             {
                 foreach (var typeName in s_disposeOwnershipTransferLikelyTypes)
                 {
-                    INamedTypeSymbol typeSymbol = compilation.GetTypeByMetadataName(typeName);
+                    var typeSymbol = compilation.GetTypeByMetadataName(typeName);
                     if (typeSymbol != null)
                     {
                         builder.Add(typeSymbol);
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
         public ImmutableHashSet<IFieldSymbol> GetDisposableFields(INamedTypeSymbol namedType)
         {
             EnsureDisposableFieldsMap();
-            if (_lazyDisposableFieldsMap.TryGetValue(namedType, out ImmutableHashSet<IFieldSymbol> disposableFields))
+            if (_lazyDisposableFieldsMap.TryGetValue(namedType, out var disposableFields))
             {
                 return disposableFields;
             }
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
             if (method.Name == nameof(IDisposable.Dispose) && method.MethodKind == MethodKind.Ordinary &&
                 method.ReturnsVoid && method.Parameters.Length == 1)
             {
-                IParameterSymbol parameter = method.Parameters[0];
+                var parameter = method.Parameters[0];
                 return parameter.Type != null &&
                     parameter.Type.SpecialType == SpecialType.System_Boolean &&
                     parameter.RefKind == RefKind.None;
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
         /// </summary>
         private static bool IsImplementationOfInterfaceMethod(IMethodSymbol method, ITypeSymbol typeArgument, INamedTypeSymbol interfaceType, string interfaceMethodName)
         {
-            INamedTypeSymbol constructedInterface = typeArgument != null ? interfaceType?.Construct(typeArgument) : interfaceType;
+            var constructedInterface = typeArgument != null ? interfaceType?.Construct(typeArgument) : interfaceType;
 
             return constructedInterface?.GetMembers(interfaceMethodName).Single() is IMethodSymbol interfaceMethod && method.Equals(method.ContainingType.FindImplementationForInterfaceMember(interfaceMethod));
         }

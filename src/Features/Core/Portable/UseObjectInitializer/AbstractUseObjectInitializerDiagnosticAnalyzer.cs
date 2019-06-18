@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             foreach (var match in matches)
             {
-                var end = this.FadeOutOperatorToken
+                var end = FadeOutOperatorToken
                     ? syntaxFacts.GetOperatorTokenOfMemberAccessExpression(match.MemberAccessExpression).Span.End
                     : syntaxFacts.GetExpressionOfMemberAccessExpression(match.MemberAccessExpression).Span.End;
 
