@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -17,21 +18,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// </summary>
     internal sealed class SuggestedActionWithNestedActions : SuggestedAction
     {
-        public readonly SuggestedActionSet NestedActionSet;
+        public readonly ImmutableArray<SuggestedActionSet> NestedActionSets;
+
+        public SuggestedActionWithNestedActions(
+            IThreadingContext threadingContext,
+            SuggestedActionsSourceProvider sourceProvider, Workspace workspace,
+            ITextBuffer subjectBuffer, object provider,
+            CodeAction codeAction, ImmutableArray<SuggestedActionSet> nestedActionSets)
+            : base(threadingContext, sourceProvider, workspace, subjectBuffer, provider, codeAction)
+        {
+            Debug.Assert(!nestedActionSets.IsDefaultOrEmpty);
+            NestedActionSets = nestedActionSets;
+        }
 
         public SuggestedActionWithNestedActions(
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider, Workspace workspace,
             ITextBuffer subjectBuffer, object provider,
             CodeAction codeAction, SuggestedActionSet nestedActionSet)
-            : base(threadingContext, sourceProvider, workspace, subjectBuffer, provider, codeAction)
+            : this(threadingContext, sourceProvider, workspace, subjectBuffer, provider, codeAction, ImmutableArray.Create(nestedActionSet))
         {
-            NestedActionSet = nestedActionSet;
         }
 
         public override bool HasActionSets => true;
 
         public sealed override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
-            => Task.FromResult<IEnumerable<SuggestedActionSet>>(ImmutableArray.Create(NestedActionSet));
+            => Task.FromResult<IEnumerable<SuggestedActionSet>>(NestedActionSets);
     }
 }
