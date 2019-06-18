@@ -1261,7 +1261,7 @@ class TestClass
         }
 
         [Fact]
-        public void TestTypeToTrack_HazardousIfStringObjectIsNonNull_StringEmpty_MaybeFlagged()
+        public void TestTypeToTrack_HazardousIfStringObjectIsNonNull_StringEmpty_Flagged()
         {
             VerifyCSharp(@"
 using System;
@@ -1270,12 +1270,12 @@ class TestClass
     void TestMethod()
     /*<bind>*/{
         TestTypeToTrack t = new TestTypeToTrack();
-        t.AString = String.Empty;   // Ideally String.Empty would be NullAbstractValue.NonNull.
+        t.AString = String.Empty;
         t.Method();
     }/*</bind>*/
 }",
                 TestTypeToTrack_HazardousIfStringObjectIsNonNull,
-                (9, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.MaybeFlagged));
+                (9, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
 
         [Fact]
