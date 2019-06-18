@@ -92,8 +92,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected override void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue> assignedValueOpt)
         {
+            // Only set the value for non-interprocedural case.
+            // For interprocedural case, we have already initialized values for the underlying locations
+            // of arguments from the input analysis data.
             Debug.Assert(Equals(analysisEntity.SymbolOpt, parameter));
-            if (TryGetPointsToAbstractValueAtEntryBlockEnd(analysisEntity, out PointsToAbstractValue pointsToAbstractValue))
+            if (DataFlowAnalysisContext.InterproceduralAnalysisDataOpt == null &&
+                TryGetPointsToAbstractValueAtEntryBlockEnd(analysisEntity, out PointsToAbstractValue pointsToAbstractValue))
             {
                 SetValueForParameterPointsToLocationOnEntry(parameter, pointsToAbstractValue);
             }
