@@ -45,10 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering
                 if (param.IsNullChecked)
                 {
                     var constructedIf = ConstructIfStatementForParameter(body, param);
-                    if (!(constructedIf is null))
-                    {
-                        statementList.Add(constructedIf);
-                    }
+                    statementList.Add(constructedIf);
                 }
             }
             statementList.AddRange(body.Statements);
