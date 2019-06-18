@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering
             {
                 return body;
             }
+
             var rewriter = new NullCheckRewriter(method, body.Syntax, compilationState, diagnostics);
             return (BoundStatement)rewriter.Visit(body);
         }
@@ -43,7 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering
 
         private BoundNode AddNullChecksToBody(BoundBlock body)
         {
-            BoundBlock prependedBody = body;
             var statementList = ArrayBuilder<BoundStatement>.GetInstance();
             foreach (SourceParameterSymbolBase param in _method.Parameters)
             {

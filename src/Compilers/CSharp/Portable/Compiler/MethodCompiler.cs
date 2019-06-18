@@ -1281,8 +1281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics: diagnostics,
                     sawLambdas: out bool sawLambdas,
                     sawLocalFunctions: out bool sawLocalFunctions,
-                    sawAwaitInExceptionHandler: out bool sawAwaitInExceptionHandler,
-                    sawNullChecked: out bool sawNullChecked);
+                    sawAwaitInExceptionHandler: out bool sawAwaitInExceptionHandler);
 
                 if (loweredBody.HasErrors)
                 {
@@ -1353,11 +1352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return bodyWithoutAsync;
                 }
 
-                BoundStatement bodyWithNullChecks = bodyWithoutAsync;
-                if (sawNullChecked)
-                {
-                    bodyWithNullChecks = NullCheckRewriter.Rewrite(bodyWithoutAsync, method, compilationState, diagnostics);
-                }
+                BoundStatement bodyWithNullChecks = NullCheckRewriter.Rewrite(bodyWithoutAsync, method, compilationState, diagnostics);
 
                 Debug.Assert((object)iteratorStateMachine == null || (object)asyncStateMachine == null);
                 stateMachineTypeOpt = (StateMachineTypeSymbol)iteratorStateMachine ?? asyncStateMachine;

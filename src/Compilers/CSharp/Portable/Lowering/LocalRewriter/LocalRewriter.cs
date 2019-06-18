@@ -80,8 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             out bool sawLambdas,
             out bool sawLocalFunctions,
-            out bool sawAwaitInExceptionHandler,
-            out bool sawNullChecked)
+            out bool sawAwaitInExceptionHandler)
         {
             Debug.Assert(statement != null);
             Debug.Assert(compilationState != null);
@@ -102,8 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sawLambdas = localRewriter._sawLambdas;
                 sawLocalFunctions = localRewriter._sawLocalFunctions;
                 sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
-
-                sawNullChecked = method.Parameters.Any(x => ((SourceParameterSymbolBase)x).IsNullChecked);
 
                 if (localRewriter._needsSpilling && !loweredStatement.HasErrors)
                 {
