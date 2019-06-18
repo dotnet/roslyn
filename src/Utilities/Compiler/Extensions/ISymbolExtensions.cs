@@ -484,7 +484,7 @@ namespace Analyzer.Utilities.Extensions
             }
 
             return symbol.IsOverride &&
-                symbol.GetOverriddenMember().IsOverrideOrImplementationOfInterfaceMember(interfaceMember);
+                symbol.GetOverriddenMember()?.IsOverrideOrImplementationOfInterfaceMember(interfaceMember) == true;
         }
 
         /// <summary>
