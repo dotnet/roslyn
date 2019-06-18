@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,7 +19,6 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
@@ -75,12 +75,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var root = document.GetSyntaxRootSynchronously(executionContext.OperationContext.UserCancellationToken);
 
-            if (!TryGetStartingNode(document, root, caret, out var currentNode))
+            var cancellationToken = executionContext.OperationContext.UserCancellationToken;
+            if (!TryGetStartingNode(root, caret, out var currentNode, cancellationToken))
             {
                 return;
             }
 
-            MoveCaretToSemicolonPosition(args, document, root, caret, syntaxFacts, currentNode, isInsideDelimiters: false);
+            MoveCaretToSemicolonPosition(args, document, root, caret, syntaxFacts, currentNode,
+                isInsideDelimiters: false, cancellationToken);
         }
 
         /// <summary>
@@ -91,7 +93,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// <param name="root"></param>
         /// <param name="caret"></param>
         /// <returns></returns>
-        private static bool TryGetStartingNode(Document document, SyntaxNode root, SnapshotPoint caret, out SyntaxNode startingNode)
+        private static bool TryGetStartingNode(SyntaxNode root, SnapshotPoint caret,
+            out SyntaxNode startingNode, CancellationToken cancellationToken)
         {
             // on the UI thread
             startingNode = null;
@@ -99,7 +102,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
             var token = root.FindTokenOnLeftOfPosition(caretPosition);
 
-            if (CaretIsInComment(token, caretPosition))
+            if (token.IsKind(SyntaxKind.None)
+                || token.SyntaxTree.IsEntirelyWithinComment(caretPosition, cancellationToken))
             {
                 return false;
             }
@@ -120,23 +124,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             return true;
         }
 
-        private static bool CaretIsInComment(SyntaxToken token, int caretPosition)
-        {
-            // Because token is to the left of the caret, we only have to look at trailing trivia
-            foreach (var trivia in token.TrailingTrivia)
-            {
-                if (trivia.IsRegularOrDocComment()
-                    && caretPosition > trivia.SpanStart
-                    && caretPosition < trivia.Span.End)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static void MoveCaretToSemicolonPosition(TypeCharCommandArgs args, Document document, SyntaxNode root, SnapshotPoint caret, ISyntaxFactsService syntaxFacts, SyntaxNode currentNode, bool isInsideDelimiters)
+        private static void MoveCaretToSemicolonPosition(
+            TypeCharCommandArgs args,
+            Document document,
+            SyntaxNode root,
+            SnapshotPoint caret,
+            ISyntaxFactsService syntaxFacts,
+            SyntaxNode currentNode,
+            bool isInsideDelimiters,
+            CancellationToken cancellationToken)
         {
             if (currentNode == null ||
                 IsInAStringOrCharacter(currentNode, caret))
@@ -155,12 +151,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 // set caret to just outside the delimited span and analyze again
                 var newCaretPosition = currentNode.Span.End;
                 var newCaret = args.SubjectBuffer.CurrentSnapshot.GetPoint(newCaretPosition);
-                if (!TryGetStartingNode(document, root, newCaret, out currentNode))
+                if (!TryGetStartingNode(root, newCaret, out currentNode, cancellationToken))
                 {
                     return;
                 }
 
-                MoveCaretToSemicolonPosition(args, document, root, newCaret, syntaxFacts, currentNode, isInsideDelimiters: true);
+                MoveCaretToSemicolonPosition(args, document, root, newCaret, syntaxFacts, currentNode,
+                    isInsideDelimiters: true, cancellationToken);
             }
             else if (currentNode.IsKind(SyntaxKind.DoStatement))
             {
@@ -179,7 +176,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             {
                 // keep caret the same, but continue analyzing with the parent of the current node
                 currentNode = currentNode.Parent;
-                MoveCaretToSemicolonPosition(args, document, root, caret, syntaxFacts, currentNode, isInsideDelimiters);
+                MoveCaretToSemicolonPosition(args, document, root, caret, syntaxFacts, currentNode,
+                    isInsideDelimiters, cancellationToken);
                 return;
             }
         }
