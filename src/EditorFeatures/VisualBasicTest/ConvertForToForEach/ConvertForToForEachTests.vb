@@ -169,7 +169,6 @@ end class")
 class C
     sub Test(array as string())
         [||]For i = 0 to array.Length
-        {
             Console.WriteLine(array(i))
         next
     end sub
@@ -184,7 +183,6 @@ end class")
 class C
     sub Test(array as string())
         [||]For i = 0 to GetLength(array) - 1 
-        {
             Console.WriteLine(array(i))
         next
     end sub
@@ -199,7 +197,6 @@ end class")
 class C
     sub Test(array as string())
         [||]For i = 0 to array.Length - 2
-        {
             Console.WriteLine(array(i))
         next
     end sub
@@ -214,8 +211,35 @@ end class")
 class C
     sub Test(array as string())
         [||]For i = 1 to array.Length - 1
-        {
             Console.WriteLine(array(i))
+        next
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        Public Async Function TestWithSimpleAssignment() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"imports System
+
+class C
+    sub Test(array as string())
+        [||]For i = 0 to array.Length - 1
+            array(i) = ""a""
+        next
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        Public Async Function TestWithAddAssignment() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"imports System
+
+class C
+    sub Test(array as Integer())
+        [||]For i = 0 to array.Length - 1
+            array(i) += 1
         next
     end sub
 end class")
@@ -385,29 +409,6 @@ class C
     sub Test(array as string())
         [||]For i = 0 to array.Length - 1
             Console.WriteLine(other(i))
-        next
-    end sub
-end class")
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
-        Public Async Function TestWarningIfCollectionWrittenTo() As Task
-            Await TestInRegularAndScript1Async(
-"imports System
-
-class C
-    sub Test(array as string())
-        [||]For i = 0 to array.Length - 1
-            array(i) = 1
-        next
-    end sub
-end class",
-"imports System
-
-class C
-    sub Test(array as string())
-        For Each {|Rename:v|} In array
-            {|Warning:v|} = 1
         next
     end sub
 end class")

@@ -161,6 +161,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         // Left side of any assignment (for example  *=  or += )
         bool IsLeftSideOfAnyAssignment(SyntaxNode node);
+
         SyntaxNode GetRightHandSideOfAssignment(SyntaxNode node);
 
         bool IsInferredAnonymousObjectMemberDeclarator(SyntaxNode node);

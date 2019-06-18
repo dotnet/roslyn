@@ -798,8 +798,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension>
         Public Function IsLeftSideOfAnyAssignStatement(node As SyntaxNode) As Boolean
-            Return node.IsParentKind(SyntaxKind.SimpleAssignmentStatement) AndAlso
+            Return node IsNot Nothing AndAlso
+                node.Parent IsNot Nothing AndAlso
+                IsAssignmentStatementKind(node.Parent.Kind()) AndAlso
                 DirectCast(node.Parent, AssignmentStatementSyntax).Left Is node
+        End Function
+
+        Private Function IsAssignmentStatementKind(kind As SyntaxKind) As Boolean
+            Select Case kind
+                Case SyntaxKind.AddAssignmentStatement,
+                     SyntaxKind.ConcatenateAssignmentStatement,
+                     SyntaxKind.DivideAssignmentStatement,
+                     SyntaxKind.ExponentiateAssignmentStatement,
+                     SyntaxKind.IntegerDivideAssignmentStatement,
+                     SyntaxKind.LeftShiftAssignmentStatement,
+                     SyntaxKind.MidAssignmentStatement,
+                     SyntaxKind.MultiplyAssignmentStatement,
+                     SyntaxKind.RightShiftAssignmentStatement,
+                     SyntaxKind.SimpleAssignmentStatement,
+                     SyntaxKind.SubtractAssignmentStatement
+                    Return True
+                Case Else
+                    Return False
+            End Select
         End Function
 
         <Extension>

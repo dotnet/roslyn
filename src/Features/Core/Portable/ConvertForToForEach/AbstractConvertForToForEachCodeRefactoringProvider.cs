@@ -194,6 +194,23 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                             return true;
                         }
 
+                        // Avoid situations where list[i] is assigned:
+                        // list[i] = 1;
+                        // (list[i], a) = (1, 2);
+                        // list[i] += 1;
+                        // list[i]++;
+                        var c = current.Parent.Parent.Parent;
+                        while (!syntaxFacts.IsStatement(c))
+                        {
+                            if (syntaxFacts.IsLeftSideOfAnyAssignment(c) ||
+                                syntaxFacts.IsOperandOfIncrementOrDecrementExpression(c))
+                            {
+                                return true;
+                            }
+
+                            c = c.Parent;
+                        }
+
                         var arguments = syntaxFacts.GetArgumentsOfArgumentList(current.Parent.Parent);
                         if (arguments.Count != 1)
                         {

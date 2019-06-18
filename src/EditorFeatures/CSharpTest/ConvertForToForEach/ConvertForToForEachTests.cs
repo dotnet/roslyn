@@ -722,6 +722,79 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestWithSimpleAssignment()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            array[i] = ""a"";
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestWithDeconstructionAssignment()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            string s;
+            (array[i], s) = (""a"", ""b"");
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestWithAddAssignment()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(int[] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            array[i] += 1;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestWithIncrementOperation()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(int[] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            array[i]++;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
         public async Task TestList1()
         {
             await TestInRegularAndScript1Async(
@@ -928,36 +1001,6 @@ class C
         [||]for (int i = 0; i < array.Length; i++)
         {
             Console.WriteLine(other[i]);
-        }
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
-        public async Task TestWarningIfCollectionWrittenTo()
-        {
-            await TestInRegularAndScript1Async(
-@"using System;
-
-class C
-{
-    void Test(string[] array)
-    {
-        [||]for (int i = 0; i < array.Length; i++)
-        {
-            array[i] = 1;
-        }
-    }
-}",
-@"using System;
-
-class C
-{
-    void Test(string[] array)
-    {
-        foreach (string {|Rename:v|} in array)
-        {
-            {|Warning:v|} = 1;
         }
     }
 }");
