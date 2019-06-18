@@ -13,14 +13,15 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// Analyzer that reports diagnostics in strings that we know are regex text.
     /// </summary>
-    internal sealed class RegexDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal abstract class AbstractRegexDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public const string DiagnosticId = "RE0001";
 
         private readonly EmbeddedLanguageInfo _info;
 
-        public RegexDiagnosticAnalyzer(EmbeddedLanguageInfo info)
+        protected AbstractRegexDiagnosticAnalyzer(EmbeddedLanguageInfo info)
             : base(DiagnosticId,
+                   RegularExpressionsOptions.ReportInvalidRegexPatterns,
                    new LocalizableResourceString(nameof(WorkspacesResources.Regex_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
                    new LocalizableResourceString(nameof(WorkspacesResources.Regex_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
         {

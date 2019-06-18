@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -21,18 +22,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         public const string EmbeddedProviderName = "EmbeddedProvider";
 
-        private readonly ImmutableArray<IEmbeddedLanguageFeatures> _languageProviders;
+        private readonly ImmutableArray<IEmbeddedLanguage> _languageProviders;
 
-        public EmbeddedLanguageCompletionProvider(IEmbeddedLanguageFeaturesProvider languagesProvider)
+        public EmbeddedLanguageCompletionProvider(IEmbeddedLanguagesProvider languagesProvider)
         {
-            _languageProviders = languagesProvider?.Languages ?? ImmutableArray<IEmbeddedLanguageFeatures>.Empty;
+            _languageProviders = languagesProvider?.Languages ?? ImmutableArray<IEmbeddedLanguage>.Empty;
         }
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
             foreach (var language in _languageProviders)
             {
-                var completionProvider = language.CompletionProvider;
+                var completionProvider = (language as IEmbeddedLanguageFeatures)?.CompletionProvider;
                 if (completionProvider != null)
                 {
                     if (completionProvider.ShouldTriggerCompletion(
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             foreach (var language in _languageProviders)
             {
-                var completionProvider = language.CompletionProvider;
+                var completionProvider = (language as IEmbeddedLanguageFeatures)?.CompletionProvider;
                 if (completionProvider != null)
                 {
                     var count = context.Items.Count;
@@ -71,6 +72,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             => GetLanguage(item).CompletionProvider.GetDescriptionAsync(document, item, cancellationToken);
 
         private IEmbeddedLanguageFeatures GetLanguage(CompletionItem item)
-            => _languageProviders.Single(lang => lang.CompletionProvider?.Name == item.Properties[EmbeddedProviderName]);
+            => (IEmbeddedLanguageFeatures)_languageProviders.Single(lang => (lang as IEmbeddedLanguageFeatures)?.CompletionProvider?.Name == item.Properties[EmbeddedProviderName]);
     }
 }

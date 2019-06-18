@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -11,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
@@ -45,7 +43,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
                 var parameterToExistingFieldMap = new Dictionary<string, ISymbol>();
-                for (int i = 0; i < _state.Parameters.Length; i++)
+                for (var i = 0; i < _state.Parameters.Length; i++)
                 {
                     parameterToExistingFieldMap[_state.Parameters[i].Name] = _state.SelectedMembers[i];
                 }

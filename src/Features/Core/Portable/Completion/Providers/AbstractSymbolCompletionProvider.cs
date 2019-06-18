@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 foreach (var symbolGroup in symbolGroups)
                 {
-                    var item = this.CreateItem(
+                    var item = CreateItem(
                             symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText, symbolGroup.ToList(), context,
                             invalidProjectMap: null, totalProjects: null, preselect: preselect);
 
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var q = from symbol in symbols
                         let texts = GetDisplayAndSuffixAndInsertionText(symbol, context)
                         group symbol by texts into g
-                        select this.CreateItem(
+                        select CreateItem(
                             g.Key.displayText, g.Key.suffix, g.Key.insertionText, g.ToList(), context,
                             invalidProjectMap: null, totalProjects: null, preselect: preselect);
 
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 foreach (var symbolGroup in symbolGroups)
                 {
-                    var item = this.CreateItem(
+                    var item = CreateItem(
                             symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText, symbolGroup.ToList(),
                             originatingContextMap[symbolGroup.First()], invalidProjectMap, totalProjects, preselect);
 
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var q = from symbol in symbols
                         let texts = GetDisplayAndSuffixAndInsertionText(symbol, originatingContextMap[symbol])
                         group symbol by texts into g
-                        select this.CreateItem(
+                        select CreateItem(
                             g.Key.displayText, g.Key.suffix, g.Key.insertionText, g.ToList(),
                             originatingContextMap[g.First()], invalidProjectMap, totalProjects, preselect);
 
