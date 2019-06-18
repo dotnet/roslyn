@@ -425,14 +425,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
         {
-            return GetDeclaredBaseType();
+            return GetDeclaredBaseType(ignoreNullabilityIfNecessary: false);
         }
 
-        private NamedTypeSymbol GetDeclaredBaseType()
+        private NamedTypeSymbol GetDeclaredBaseType(bool ignoreNullabilityIfNecessary)
         {
             if (ReferenceEquals(_lazyDeclaredBaseType, ErrorTypeSymbol.UnknownResultType))
             {
-                Interlocked.CompareExchange(ref _lazyDeclaredBaseType, MakeDeclaredBaseType(), ErrorTypeSymbol.UnknownResultType);
+                var baseType = MakeDeclaredBaseType();
+                if (!(baseType is null))
+                {
+                    if (ignoreNullabilityIfNecessary)
+                    {
+                        // Decoding nullability might lead to a cycle calculating the base type.
+                        // Instead, return early without updating the field.
+                        return baseType;
+                    }
+                    baseType = (NamedTypeSymbol)NullableTypeDecoder.TransformType(
+                        TypeWithAnnotations.Create(baseType),
+                        _handle,
+                        ContainingPEModule).Type;
+                }
+
+                Interlocked.CompareExchange(ref _lazyDeclaredBaseType, baseType, ErrorTypeSymbol.UnknownResultType);
             }
 
             return _lazyDeclaredBaseType;
@@ -461,12 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         TypeSymbol decodedType = new MetadataDecoder(moduleSymbol, this).GetTypeOfToken(token);
                         decodedType = DynamicTypeDecoder.TransformType(decodedType, 0, _handle, moduleSymbol);
-                        decodedType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(decodedType,
-                                                                                    _handle,
-                                                                                    moduleSymbol);
-                        return (NamedTypeSymbol)NullableTypeDecoder.TransformType(TypeWithAnnotations.Create(decodedType),
-                                                                                  _handle,
-                                                                                  moduleSymbol).Type;
+                        return (NamedTypeSymbol)TupleTypeDecoder.DecodeTupleTypesIfApplicable(decodedType, _handle, moduleSymbol);
                     }
                 }
                 catch (BadImageFormatException mrEx)
@@ -1602,7 +1612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                     else
                     {
-                        TypeSymbol @base = GetDeclaredBaseType();
+                        TypeSymbol @base = GetDeclaredBaseType(ignoreNullabilityIfNecessary: true);
 
                         result = TypeKind.Class;
 
