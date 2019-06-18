@@ -137,7 +137,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     }
                 }
 
-
                 current = new WarningStateMapEntry(currentDirective.Location.SourceSpan.End, accumulatedGeneralWarningState, accumulatedSpecificWarningState);
                 ++index;
                 entries[index] = current;

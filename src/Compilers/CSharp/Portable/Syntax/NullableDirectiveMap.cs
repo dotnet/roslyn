@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
-    internal struct NullableDirective
+    internal readonly struct NullableDirective
     {
         internal int Position { get; }
         internal bool? WarningsState { get; }
@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>
-        /// Returns true if the `#nullable` directive preceding the position is
-        /// `enable` or `safeonly`, false if `disable`, and null if no preceding directive,
-        /// or directive preceding the position is `restore`.
+        /// Gets the nullable warnings and annotations context at a given position in source,
+        /// where <see langword="true"/> means the context is 'enable', <see langword="false"/> means the context is 'disable',
+        /// and <see langword="null"/> means the context is 'restore' or not specified.
         /// </summary>
         internal NullableDirective GetDirectiveState(int position)
         {
