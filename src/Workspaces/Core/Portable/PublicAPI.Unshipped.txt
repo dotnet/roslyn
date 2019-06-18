@@ -7,6 +7,7 @@ Microsoft.CodeAnalysis.ApplyChangesKind.RemoveAnalyzerConfigDocument = 18 -> Mic
 Microsoft.CodeAnalysis.Project.AddAnalyzerConfigDocument(string name, Microsoft.CodeAnalysis.Text.SourceText text, System.Collections.Generic.IEnumerable<string> folders = null, string filePath = null) -> Microsoft.CodeAnalysis.TextDocument
 Microsoft.CodeAnalysis.Project.AnalyzerConfigDocuments.get -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.AnalyzerConfigDocument>
 Microsoft.CodeAnalysis.Project.ContainsAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> bool
+Microsoft.CodeAnalysis.Project.DefaultNamespace.get -> string
 Microsoft.CodeAnalysis.Project.GetAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> Microsoft.CodeAnalysis.AnalyzerConfigDocument
 Microsoft.CodeAnalysis.Project.RemoveAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> Microsoft.CodeAnalysis.Project
 Microsoft.CodeAnalysis.Project.WithDefaultNamespace(string defaultNamespace) -> Microsoft.CodeAnalysis.Project

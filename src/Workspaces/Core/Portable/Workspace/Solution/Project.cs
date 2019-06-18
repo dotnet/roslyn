@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis
         /// In the future, we might consider officially exposing "default namespace" for VB project 
         /// (e.g. through a "defaultnamespace" msbuild property)
         /// </remarks>
-        internal string DefaultNamespace => _projectState.DefaultNamespace;
+        public string DefaultNamespace => _projectState.DefaultNamespace;
 
         /// <summary>
         /// <see langword="true"/> if this <see cref="Project"/> supports providing data through the
