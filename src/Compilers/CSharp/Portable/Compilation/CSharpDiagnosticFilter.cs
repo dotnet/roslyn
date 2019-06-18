@@ -160,8 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (report == ReportDiagnostic.Suppress && // check options (/nowarn)
-                !isNullableFlowAnalysisWarning)
+            if (report == ReportDiagnostic.Suppress)
             {
                 return ReportDiagnostic.Suppress;
             }

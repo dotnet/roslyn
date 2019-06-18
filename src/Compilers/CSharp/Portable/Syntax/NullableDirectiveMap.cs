@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         internal static NullableDirectiveMap Create(SyntaxTree tree, bool isGeneratedCode)
         {
-            var directives = GetDirectives(tree);
+            var directives = GetDirectives(tree, isGeneratedCode);
 
             var empty = isGeneratedCode ? EmptyGenerated : EmptyNonGenerated;
             return directives.IsEmpty ? empty : new NullableDirectiveMap(directives, isGeneratedCode);
@@ -84,8 +84,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return directive;
         }
 
-        private static ImmutableArray<NullableDirective> GetDirectives(SyntaxTree tree)
+        private static ImmutableArray<NullableDirective> GetDirectives(SyntaxTree tree, bool isGeneratedCode)
         {
+            // Generated files have an initial nullable context that is "disabled"
+            var previousDirective = isGeneratedCode
+                ? new NullableDirective(0, false, false)
+                : new NullableDirective(0, null, null);
+
             var builder = ArrayBuilder<NullableDirective>.GetInstance();
             foreach (var d in tree.GetRoot().GetDirectives())
             {
@@ -108,18 +113,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     var kind => throw ExceptionUtilities.UnexpectedValue(kind)
                 };
 
-                var previousDirective = builder.LastOrNullable();
-
                 var directive = nn.TargetToken.Kind() switch
                 {
                     SyntaxKind.None => new NullableDirective(position, setting, setting),
-                    SyntaxKind.WarningsKeyword => new NullableDirective(position, warningsState: setting, annotationsState: previousDirective?.AnnotationsState),
-                    SyntaxKind.AnnotationsKeyword => new NullableDirective(position, warningsState: previousDirective?.WarningsState, annotationsState: setting),
+                    SyntaxKind.WarningsKeyword => new NullableDirective(position, warningsState: setting, annotationsState: previousDirective.AnnotationsState),
+                    SyntaxKind.AnnotationsKeyword => new NullableDirective(position, warningsState: previousDirective.WarningsState, annotationsState: setting),
                     var kind => throw ExceptionUtilities.UnexpectedValue(kind)
                 };
 
                 builder.Add(directive);
+                previousDirective = directive;
             }
+
             return builder.ToImmutableAndFree();
         }
 
