@@ -3218,8 +3218,12 @@ class C
             Assert.Empty(errors);
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
-            Assert.Equal(expected: 1, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
-            Assert.Equal(expected: ReportDiagnostic.Error, actual: arguments.CompilationOptions.SpecificDiagnosticOptions["nullable"]);
+            Assert.Equal(expected: 25, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+
+            foreach (string warning in ErrorFacts.NullableFlowAnalysisWarnings)
+            {
+                Assert.Equal(expected: ReportDiagnostic.Error, actual: arguments.CompilationOptions.SpecificDiagnosticOptions[warning]);
+            }
         }
 
         [WorkItem(912906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912906")]

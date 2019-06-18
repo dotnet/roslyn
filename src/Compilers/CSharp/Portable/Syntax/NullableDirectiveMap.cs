@@ -9,6 +9,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
+    /// <summary>
+    /// Contains the nullable warnings and annotations context values at a given position in source,
+    /// where <see langword="true"/> means the context is 'enable', <see langword="false"/> means the context is 'disable',
+    /// and <see langword="null"/> means the context is 'restore' or not specified.
+    /// </summary>
     internal readonly struct NullableDirective
     {
         internal int Position { get; }
@@ -52,11 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             _isGeneratedCode = isGeneratedCode;
         }
 
-        /// <summary>
-        /// Gets the nullable warnings and annotations context at a given position in source,
-        /// where <see langword="true"/> means the context is 'enable', <see langword="false"/> means the context is 'disable',
-        /// and <see langword="null"/> means the context is 'restore' or not specified.
-        /// </summary>
         internal NullableDirective GetDirectiveState(int position)
         {
             // PositionComparer only checks the position, not the states

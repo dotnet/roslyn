@@ -119,6 +119,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             hasPragmaSuppression = false;
 
+            Debug.Assert(location?.SourceTree is null || location.SourceTree is CSharpSyntaxTree);
+            var tree = location?.SourceTree as CSharpSyntaxTree;
+            var position = location.SourceSpan.Start;
+
+            bool isNullableFlowAnalysisWarning = ErrorFacts.NullableFlowAnalysisWarnings.Contains(id);
+            if (isNullableFlowAnalysisWarning)
+            {
+                var nullableWarningsGloballyEnabled = nullableOption == NullableContextOptions.Enable || nullableOption == NullableContextOptions.Warnings;
+                var nullableWarningsEnabled = tree?.GetNullableDirectiveState(position).WarningsState ?? nullableWarningsGloballyEnabled;
+                if (!nullableWarningsEnabled)
+                {
+                    return ReportDiagnostic.Suppress;
+                }
+            }
+
             // 1. Warning level
             if (diagnosticWarningLevel > warningLevelOption)  // honor the warning level
             {
@@ -126,8 +141,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ReportDiagnostic report;
-            Debug.Assert(location?.SourceTree is null || location.SourceTree is CSharpSyntaxTree);
-            var tree = location?.SourceTree as CSharpSyntaxTree;
             bool isSpecified = false;
 
             if (tree != null && tree.DiagnosticOptions.TryGetValue(id, out var treeReport))
@@ -145,19 +158,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 report = isEnabledByDefault ? ReportDiagnostic.Default : ReportDiagnostic.Suppress;
-            }
-
-            var position = location.SourceSpan.Start;
-
-            bool isNullableFlowAnalysisWarning = ErrorFacts.NullableFlowAnalysisWarnings.Contains(id);
-            if (isNullableFlowAnalysisWarning)
-            {
-                var nullableWarningsGloballyEnabled = nullableOption == NullableContextOptions.Enable || nullableOption == NullableContextOptions.Warnings;
-                var nullableWarningsEnabled = tree?.GetNullableDirectiveState(position).WarningsState ?? nullableWarningsGloballyEnabled;
-                if (!nullableWarningsEnabled)
-                {
-                    return ReportDiagnostic.Suppress;
-                }
             }
 
             if (report == ReportDiagnostic.Suppress)

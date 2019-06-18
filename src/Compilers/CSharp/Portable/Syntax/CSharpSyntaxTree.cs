@@ -619,11 +619,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyPragmaWarningStateMap.GetWarningState(id, position);
         }
 
-        /// <summary>
-        /// Returns true if the `#nullable` directive preceding the position is
-        /// `enable` or `safeonly`, false if `disable`, and null if no preceding directive,
-        /// or directive preceding the position is `restore`.
-        /// </summary>
         internal NullableDirective GetNullableDirectiveState(int position)
         {
             if (_lazyNullableDirectiveMap == null)

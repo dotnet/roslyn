@@ -374,7 +374,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return ((CSharpSyntaxTree)tree).GetPragmaDirectiveWarningState(id, position);
         }
-
         #endregion
 
         #region Compilation
