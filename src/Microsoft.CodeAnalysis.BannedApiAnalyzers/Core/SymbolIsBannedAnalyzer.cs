@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
             void VerifyDocumentationSyntax(Action<Diagnostic> reportDiagnostic, SyntaxNode syntaxNode, SyntaxNodeAnalysisContext context)
             {
-                var symbol = syntaxNode.GetDeclaredOrReferencedSymbol(context.SemanticModel);
+                var symbol = context.SemanticModel.GetSymbolInfo(syntaxNode, context.CancellationToken).Symbol;
 
                 if (symbol is ITypeSymbol typeSymbol)
                 {
