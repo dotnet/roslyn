@@ -31,25 +31,25 @@ public class C
 {
       // Code size       10 (0xa)
       .maxstack  1
-      IL_0000:  ldarg.1
+     ~IL_0000:  ldarg.1
       IL_0001:  brtrue.s   IL_0009
       IL_0003:  newobj     ""System.Exception..ctor()""
       IL_0008:  throw
-      IL_0009:  ret
-}");
+     -IL_0009:  ret
+}", sequencePoints: "C.M");
             // Debug
             compilation = CompileAndVerify(source, options: TestOptions.DebugExe);
             compilation.VerifyIL("C.M", @"
 {
       // Code size       11 (0xb)
       .maxstack  1
-      IL_0000:  nop
-      IL_0001:  ldarg.1
-      IL_0002:  brtrue.s   IL_000a
-      IL_0004:  newobj     ""System.Exception..ctor()""
-      IL_0009:  throw
-      IL_000a:  ret
-}");
+     ~IL_0000:  ldarg.1
+      IL_0001:  brtrue.s   IL_0009
+      IL_0003:  newobj     ""System.Exception..ctor()""
+      IL_0008:  throw
+     -IL_0009:  nop
+     -IL_000a:  ret
+}", sequencePoints: "C.M");
         }
 
         [Fact]
@@ -68,27 +68,27 @@ public class C
             var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe);
             compilation.VerifyIL("C.M", @"
 {
-      // Code size       10 (0xa)
-      .maxstack  1
-      IL_0000:  ldarg.2
-      IL_0001:  brtrue.s   IL_0009
-      IL_0003:  newobj     ""System.Exception..ctor()""
-      IL_0008:  throw
-      IL_0009:  ret
-}");
+  // Code size       10 (0xa)
+  .maxstack  1
+ ~IL_0000:  ldarg.2
+  IL_0001:  brtrue.s   IL_0009
+  IL_0003:  newobj     ""System.Exception..ctor()""
+  IL_0008:  throw
+ -IL_0009:  ret
+}", sequencePoints: "C.M");
             // Debug
             compilation = CompileAndVerify(source, options: TestOptions.DebugExe);
             compilation.VerifyIL("C.M", @"
 {
       // Code size       11 (0xb)
       .maxstack  1
-      IL_0000:  nop
-      IL_0001:  ldarg.2
-      IL_0002:  brtrue.s   IL_000a
-      IL_0004:  newobj     ""System.Exception..ctor()""
-      IL_0009:  throw
-      IL_000a:  ret
-}");
+     ~IL_0000:  ldarg.2
+      IL_0001:  brtrue.s   IL_0009
+      IL_0003:  newobj     ""System.Exception..ctor()""
+      IL_0008:  throw
+     -IL_0009:  nop
+     -IL_000a:  ret
+}", sequencePoints: "C.M");
         }
 
         [Fact]
@@ -108,25 +108,25 @@ class C
 {
     // Code size       10 (0xa)
     .maxstack  1
-    IL_0000:  ldarg.1
+   ~IL_0000:  ldarg.1
     IL_0001:  brtrue.s   IL_0009
     IL_0003:  newobj     ""System.Exception..ctor()""
     IL_0008:  throw
-    IL_0009:  ret
-}");
+   -IL_0009:  ret
+}", sequencePoints: "C.M");
             // Debug
             compilation = CompileAndVerify(source, options: TestOptions.DebugExe);
             compilation.VerifyIL("C.M", @"
  {
-      // Code size       11 (0xb)
-      .maxstack  1
-      IL_0000:  nop
-      IL_0001:  ldarg.1
-      IL_0002:  brtrue.s   IL_000a
-      IL_0004:  newobj     ""System.Exception..ctor()""
-      IL_0009:  throw
-      IL_000a:  ret
-}");
+    // Code size       11 (0xb)
+    .maxstack  1
+   ~IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+   -IL_0009:  nop
+   -IL_000a:  ret
+}", sequencePoints: "C.M");
         }
 
         [Fact]
@@ -143,27 +143,27 @@ class C
             var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe);
             compilation.VerifyIL("C.M", @"
 {
-    // Code size       10 (0xa)
-    .maxstack  1
-    IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
-    IL_0008:  throw
-    IL_0009:  ret
-}");
+  // Code size       10 (0xa)
+  .maxstack  1
+ ~IL_0000:  ldarg.1
+  IL_0001:  brtrue.s   IL_0009
+  IL_0003:  newobj     ""System.Exception..ctor()""
+  IL_0008:  throw
+ -IL_0009:  ret
+}", sequencePoints: "C.M");
             // Debug
             compilation = CompileAndVerify(source, options: TestOptions.DebugExe);
             compilation.VerifyIL("C.M", @"
  {
-      // Code size       11 (0xb)
-      .maxstack  1
-      IL_0000:  nop
-      IL_0001:  ldarg.1
-      IL_0002:  brtrue.s   IL_000a
-      IL_0004:  newobj     ""System.Exception..ctor()""
-      IL_0009:  throw
-      IL_000a:  ret
-}");
+    // Code size       11 (0xb)
+    .maxstack  1
+    ~IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    -IL_0009:  nop
+    -IL_000a:  ret
+}", sequencePoints: "C.M");
         }
 
         [Fact]
@@ -185,13 +185,13 @@ class Box
 {
     // Code size       11 (0xb)
     .maxstack  1
-    IL_0000:  ldarg.0
+   ~IL_0000:  ldarg.0
     IL_0001:  brtrue.s   IL_0009
     IL_0003:  newobj     ""System.Exception..ctor()""
     IL_0008:  throw
-    IL_0009:  ldc.i4.2
+   -IL_0009:  ldc.i4.2
     IL_000a:  ret
-}");
+}", sequencePoints: "Box.op_Addition");
             // Debug
             compilation = CompileAndVerify(source, options: TestOptions.DebugExe);
             compilation.VerifyIL("int Box.op_Addition(Box, Box)", @"
@@ -199,17 +199,17 @@ class Box
     // Code size       16 (0x10)
     .maxstack  1
     .locals init (int V_0)
-    IL_0000:  nop
-    IL_0001:  ldarg.0
-    IL_0002:  brtrue.s   IL_000a
-    IL_0004:  newobj     ""System.Exception..ctor()""
-    IL_0009:  throw
-    IL_000a:  ldc.i4.2
+   ~IL_0000:  ldarg.0
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+   -IL_0009:  nop
+   -IL_000a:  ldc.i4.2
     IL_000b:  stloc.0
     IL_000c:  br.s       IL_000e
-    IL_000e:  ldloc.0
+   -IL_000e:  ldloc.0
     IL_000f:  ret
-}");
+}", sequencePoints: "Box.op_Addition");
         }
 
         [Fact(Skip = "PROTOTYPE")]
@@ -271,35 +271,35 @@ class C
             var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe);
             compilation.VerifyIL("C.M(int, int)", @"
 {
-    // Code size       19 (0x13)
-    .maxstack  1
-    IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
-    IL_0008:  throw
-    IL_0009:  ldarg.2
-    IL_000a:  brtrue.s   IL_0012
-    IL_000c:  newobj     ""System.Exception..ctor()""
-    IL_0011:  throw
-    IL_0012:  ret
-}");
+  // Code size       19 (0x13)
+  .maxstack  1
+ ~IL_0000:  ldarg.1
+  IL_0001:  brtrue.s   IL_0009
+  IL_0003:  newobj     ""System.Exception..ctor()""
+  IL_0008:  throw
+ ~IL_0009:  ldarg.2
+  IL_000a:  brtrue.s   IL_0012
+  IL_000c:  newobj     ""System.Exception..ctor()""
+  IL_0011:  throw
+ -IL_0012:  ret
+}", sequencePoints: "C.M");
             // Debug
             compilation = CompileAndVerify(source, options: TestOptions.DebugExe);
             compilation.VerifyIL("C.M(int, int)", @"
-{
-    // Code size       20 (0x14)
-    .maxstack  1
-    IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
-    IL_0008:  throw
-    IL_0009:  ldarg.2
-    IL_000a:  brtrue.s   IL_0012
-    IL_000c:  newobj     ""System.Exception..ctor()""
-    IL_0011:  throw
-    IL_0012:  nop
-    IL_0013:  ret
-}");
+  {
+  // Code size       20 (0x14)
+  .maxstack  1
+ ~IL_0000:  ldarg.1
+  IL_0001:  brtrue.s   IL_0009
+  IL_0003:  newobj     ""System.Exception..ctor()""
+ IL_0008:  throw
+ ~IL_0009:  ldarg.2
+  IL_000a:  brtrue.s   IL_0012
+  IL_000c:  newobj     ""System.Exception..ctor()""
+  IL_0011:  throw
+ -IL_0012:  nop
+ -IL_0013:  ret
+  }", sequencePoints: "C.M");
         }
 
         [Fact]
@@ -318,26 +318,27 @@ class C
 {
   // Code size       11 (0xb)
   .maxstack  1
-  IL_0000:  ldarg.1
+ ~IL_0000:  ldarg.1
   IL_0001:  brtrue.s   IL_0009
   IL_0003:  newobj     ""System.Exception..ctor()""
   IL_0008:  throw
-  IL_0009:  ldnull
+ -IL_0009:  ldnull
   IL_000a:  ret
-}");
+}", sequencePoints: "C.get_Item");
+
             // Debug
             compilation = CompileAndVerify(source, options: TestOptions.DebugExe);
             compilation.VerifyIL("C.this[int].get", @"
 {
-    // Code size       11 (0xb)
-    .maxstack  1
-    IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
-    IL_0008:  throw
-    IL_0009:  ldnull
-    IL_000a:  ret
-}");
+   // Code size       11 (0xb)
+   .maxstack  1
+  ~IL_0000:  ldarg.1
+   IL_0001:  brtrue.s   IL_0009
+   IL_0003:  newobj     ""System.Exception..ctor()""
+   IL_0008:  throw
+  -IL_0009:  ldnull
+   IL_000a:  ret
+}", sequencePoints: "C.get_Item");
         }
     }
 }
