@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Lowering
 {
@@ -27,6 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics)
         {
+            if (!method.Parameters.Any(x => ((SourceParameterSymbolBase)x).IsNullChecked))
+            {
+                return body;
+            }
             var rewriter = new NullCheckRewriter(method, body.Syntax, compilationState, diagnostics);
             return (BoundStatement)rewriter.Visit(body);
         }
