@@ -44,14 +44,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return RewriteMultiDimensionalArrayForEachStatement(node);
                 }
             }
-            else if (CanRewriteForEachAsFor(node.Syntax, nodeExpressionType, out var indexerGet, out var lengthGetter))
+            else if (CanRewriteVersionedForEachAsFor(node.Syntax, nodeExpressionType, out var indexGet, out var lengthGet, out var versionGet))
             {
-                return RewriteForEachStatementAsFor(node, indexerGet, lengthGetter);
+                return RewriteForEachStatementAsFor(node, indexGet, lengthGet, versionGet);
+            }
+            else if (CanRewriteForEachAsFor(node.Syntax, nodeExpressionType, out var indexerGetter, out var lengthGetter))
+            {
+                return RewriteForEachStatementAsFor(node, indexerGetter, lengthGetter, versionGet: null);
             }
             else
             {
                 return RewriteEnumeratorForEachStatement(node);
             }
+        }
+
+        private bool CanRewriteVersionedForEachAsFor(SyntaxNode forEachSyntax, TypeSymbol nodeExpressionType, out MethodSymbol indexerGet, out MethodSymbol lengthGet, out MethodSymbol versionGet)
+        {
+            lengthGet = indexerGet = versionGet = null;
+
+            // Investigate possibility to use base symbol instead of original definition for List<T>
+            //var origDefinition = nodeExpressionType.BaseTypeNoUseSiteDiagnostics.ConstructedFrom;
+            var origDefinition = nodeExpressionType.OriginalDefinition;
+
+            if ((object)origDefinition == this._compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T))
+            {
+                var listType = (NamedTypeSymbol)nodeExpressionType;
+                lengthGet = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__get_Count, isOptional: true)?.SymbolAsMember(listType);
+                indexerGet = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__get_Item, isOptional: true)?.SymbolAsMember(listType);
+                versionGet = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__get_Capacity, isOptional: true)?.SymbolAsMember(listType);
+            }
+
+            return (object)lengthGet != null && (object)indexerGet != null && (object)versionGet != null;
         }
 
         private bool CanRewriteForEachAsFor(SyntaxNode forEachSyntax, TypeSymbol nodeExpressionType, out MethodSymbol indexerGet, out MethodSymbol lengthGet)
@@ -428,6 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // NOTE: The spec says that disposing of a struct enumerator won't cause any
                 // unnecessary boxing to occur.  However, Dev10 extends this improvement to the
+
                 // GetEnumerator call as well.
 
                 // We're going to let the emitter take care of avoiding the extra boxing. 
@@ -492,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// NOTE: We're assuming that sequence points have already been generated.
         /// Otherwise, lowering to for-loops would generated spurious ones.
         /// </remarks>
-        private BoundStatement RewriteForEachStatementAsFor(BoundForEachStatement node, MethodSymbol indexerGet, MethodSymbol lengthGet)
+        private BoundStatement RewriteForEachStatementAsFor(BoundForEachStatement node, MethodSymbol indexerGet, MethodSymbol lengthGet, MethodSymbol versionGet)
         {
             var forEachSyntax = (CommonForEachStatementSyntax)node.Syntax;
 
@@ -526,6 +550,50 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar,
                 MakeLiteral(forEachSyntax, ConstantValue.Default(SpecialType.System_Int32), intType));
 
+            // int version
+            LocalSymbol versionVar = null;
+            BoundStatement versionVarDecl = null;
+
+            if (versionGet is object _)
+            {
+                // int version
+                versionVar = _factory.SynthesizedLocal(intType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ConditionalBranchDiscriminator);
+
+                // Reference to version
+                BoundLocal boundVersionVar = MakeBoundLocal(forEachSyntax, versionVar, intType);
+
+                // a.Version
+                BoundExpression versionFetch = BoundCall.Synthesized(
+                                syntax: forEachSyntax,
+                                receiverOpt: boundArrayVar,
+                                versionGet);
+
+                versionVarDecl = MakeLocalDeclaration(forEachSyntax, versionVar, versionFetch);
+
+
+                // version != a.version
+                BoundExpression versionInequalityCondition = new BoundBinaryOperator(
+                    syntax: forEachSyntax,
+                    operatorKind: BinaryOperatorKind.IntNotEqual,
+                    left: boundVersionVar,
+                    right: versionFetch,
+                    constantValueOpt: null,
+                    methodOpt: null,
+                    resultKind: LookupResultKind.Viable,
+                    type: boolType);
+
+
+                // throw new InvalidOperationException();
+                var throwStatement= _factory.Throw(_factory.New(_factory.WellKnownMethod(WellKnownMember.System_InvalidOperationException__ctor)));
+
+                // if (version != a.Version) {
+                //     throw new InvalidOperationException();
+                // }
+                BoundStatement versionInEqualityCheck = RewriteIfStatement(forEachSyntax, versionInequalityCondition, throwStatement, null, false);
+
+                rewrittenBody = new BoundBlock(forEachSyntax, ImmutableArray.Create<LocalSymbol>(), ImmutableArray.Create(versionInEqualityCheck, rewrittenBody));
+            }
+
             // (V)a[p]
             BoundExpression iterationVarInitValue = MakeConversionNode(
                 syntax: forEachSyntax,
@@ -544,8 +612,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             InstrumentForEachStatementIterationVarDeclaration(node, ref iterationVariableDecl);
 
-            BoundStatement initializer = new BoundStatementList(forEachSyntax,
-                        statements: ImmutableArray.Create<BoundStatement>(arrayVarDecl, positionVarDecl));
+            var initializers = versionGet is null
+                ? ImmutableArray.Create(arrayVarDecl, positionVarDecl)
+                : ImmutableArray.Create(arrayVarDecl, positionVarDecl, versionVarDecl);
+
+            BoundStatement initializer = new BoundStatementList(forEachSyntax, statements: initializers);
 
             // a.Length
             BoundExpression arrayLength = BoundCall.Synthesized(
@@ -578,9 +649,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     V v = (V)a[p];   /* OR */   (D1 d1, ...) = (V)a[p];
             //     /*node.Body*/
             // }
+
+            var outerLocals = versionGet is null
+                ? ImmutableArray.Create(collectionTemp, positionVar)
+                : ImmutableArray.Create(collectionTemp, positionVar, versionVar);
+
             BoundStatement result = RewriteForStatementWithoutInnerLocals(
                 original: node,
-                outerLocals: ImmutableArray.Create<LocalSymbol>(collectionTemp, positionVar),
+                outerLocals: outerLocals,
                 rewrittenInitializer: initializer,
                 rewrittenCondition: exitCondition,
                 rewrittenIncrement: positionIncrement,

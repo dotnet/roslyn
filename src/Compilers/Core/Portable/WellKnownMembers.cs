@@ -3426,6 +3426,29 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+
+                 // System_Collections_Generic_List_T__get_Count
+                 (byte)(MemberFlags.PropertyGet),                                                                                                               // Flags
+                 (byte)(WellKnownType.System_Collections_Generic_List_T),                                                   // DeclaringTypeId
+                 0,                                                                                                                                             // Arity
+                    0,                                                                                                                                          // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32, // Return Type
+
+                 // System_Collections_Generic_List_T__get_Item
+                 (byte)(MemberFlags.PropertyGet),                                                                                                               // Flags
+                 (byte)(WellKnownType.System_Collections_Generic_List_T),                                                   // DeclaringTypeId
+                 0,                                                                                                                                             // Arity
+                    1,                                                                                                                                          // Method Signature
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                 // System_Collections_Generic_List_T__get_Capacity
+                 // Replace with System_Collections_Generic_List_T__get_Version
+                 (byte)(MemberFlags.PropertyGet),                                                                                                               // Flags
+                 (byte)(WellKnownType.System_Collections_Generic_List_T),                                                   // DeclaringTypeId
+                 0,                                                                                                                                             // Arity
+                    0,                                                                                                                                          // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32, // Return Type
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -3857,6 +3880,10 @@ namespace Microsoft.CodeAnalysis
                 "CreateLinkedTokenSource",                  // System_Threading_CancellationTokenSource__CreateLinkedTokenSource
                 "Token",                                    // System_Threading_CancellationTokenSource__Token
                 "Dispose",                                  // System_Threading_CancellationTokenSource__Dispose
+                "get_Count",                                // System_Collections_Generic_List_T__get_Count
+                "get_Item",                                 // System_Collections_Generic_List_T__get_Item
+                // get_Version
+                "get_Capacity",                             // System_Collections_Generic_List_T__get_Capacity
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

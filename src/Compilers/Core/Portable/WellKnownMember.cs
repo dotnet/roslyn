@@ -497,6 +497,11 @@ namespace Microsoft.CodeAnalysis
         System_Threading_CancellationTokenSource__Token,
         System_Threading_CancellationTokenSource__Dispose,
 
+        System_Collections_Generic_List_T__get_Count,
+        System_Collections_Generic_List_T__get_Item,
+        // Replace with System_Collections_Generic_List_T__get_Version
+        System_Collections_Generic_List_T__get_Capacity,
+
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here
