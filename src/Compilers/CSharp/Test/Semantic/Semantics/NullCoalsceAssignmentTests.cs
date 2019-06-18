@@ -157,5 +157,28 @@ class C
 
             Assert.Equal(int32, coalesceType);
         }
+
+        [Fact]
+        public void CoalesceAssignment_DefaultConvertedToNonNullable()
+        {
+            var source = @"
+class C
+{
+    void M(int? a)
+    {
+        a ??= default;
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var syntaxRoot = syntaxTree.GetRoot();
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+            var defaultLiteral = syntaxRoot.DescendantNodes().OfType<LiteralExpressionSyntax>().Where(expr => expr.IsKind(SyntaxKind.DefaultLiteralExpression)).Single();
+
+            Assert.Equal(SpecialType.System_Int32, semanticModel.GetTypeInfo(defaultLiteral).Type.SpecialType);
+        }
     }
 }

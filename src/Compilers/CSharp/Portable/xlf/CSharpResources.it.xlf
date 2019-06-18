@@ -1332,11 +1332,6 @@
         <target state="translated">Un'espressione predefinita introduce un valore Null per un parametro di tipo.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended_Title">
-        <source>'default' is converted to 'null'</source>
-        <target state="translated">'default' viene convertito in 'null'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
         <source>'{0}' is already listed in the interface list on type '{1}' with different nullability of reference types.</source>
         <target state="translated">'{0}' è già inclusa nell'elenco di interfacce nel tipo '{1}' con diverso supporto dei valori Null per i tipi riferimento.</target>

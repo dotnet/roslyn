@@ -1332,11 +1332,6 @@
         <target state="translated">기본 식이 형식 매개 변수의 null 값을 지정합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended_Title">
-        <source>'default' is converted to 'null'</source>
-        <target state="translated">'default'는 'null'로 변환됩니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
         <source>'{0}' is already listed in the interface list on type '{1}' with different nullability of reference types.</source>
         <target state="translated">'{0}'은(는) 다른 참조 형식 Null 허용 여부를 사용하는 '{1}' 형식에 대한 인터페이스 목록에 이미 나열되어 있습니다.</target>

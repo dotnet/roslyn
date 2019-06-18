@@ -1332,11 +1332,6 @@
         <target state="translated">預設運算式針對型別參數會引入 Null 值。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended_Title">
-        <source>'default' is converted to 'null'</source>
-        <target state="translated">'default' 已轉換為 'null'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
         <source>'{0}' is already listed in the interface list on type '{1}' with different nullability of reference types.</source>
         <target state="translated">'{0}' 已列在類型 '{1}' 上的介面清單中，並具有不同的參考類型可 NULL 性。</target>

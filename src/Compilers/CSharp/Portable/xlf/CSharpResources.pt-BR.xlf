@@ -1332,11 +1332,6 @@
         <target state="translated">Uma expressão padrão apresenta um valor nulo para um parâmetro de tipo.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended_Title">
-        <source>'default' is converted to 'null'</source>
-        <target state="translated">'default' é convertido em 'null'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
         <source>'{0}' is already listed in the interface list on type '{1}' with different nullability of reference types.</source>
         <target state="translated">'{0}' já está listado na lista de interfaces no tipo '{1}' com uma nulidade diferente de tipos de referência.</target>

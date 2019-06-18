@@ -2893,6 +2893,32 @@ oneMoreTime:
 
             void nullableValueTypeReturn()
             {
+                // We'll transform this into one of two possibilities, depending on whether we're using
+                // this as an expression or a statement.
+                //
+                // Expression Form:
+                // intermediate1 = valueCapture.GetValueOrDefault();
+                // branch if false to whenNull: valueCapture.HasValue()
+                // result = intermediate
+                // branch to after
+                //
+                // whenNull:
+                // intermediate2 = rightValue
+                // result = intermediate2
+                // locationCapture = Convert(intermediate2)
+                //
+                // after:
+                // result
+                //
+                // Statement Form
+                // branch if false to whenNull: valueCapture.HasValue()
+                // branch to after
+                //
+                // whenNull:
+                // locationCapture = Convert(rightValue)
+                //
+                // after:
+
                 int intermediateResult = -1;
                 EvalStackFrame intermediateFrame = null;
 

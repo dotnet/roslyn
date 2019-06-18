@@ -16,17 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var stores = ArrayBuilder<BoundExpression>.GetInstance();
 
             // Rewrite LHS with temporaries to prevent double-evaluation of side effects, as we'll need to use it multiple times.
-            var isValueTypeAssignment = node.IsNullableValueTypeAssignment;
-            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.LeftOperand, stores, temps, node.LeftOperand.HasDynamicType(), needsSpilling: isValueTypeAssignment);
+            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.LeftOperand, stores, temps, node.LeftOperand.HasDynamicType());
             var lhsRead = MakeRValue(transformedLHS);
             BoundExpression loweredRight = VisitExpression(node.RightOperand);
 
-            BoundExpression result =
-                isValueTypeAssignment ?
+            return node.IsNullableValueTypeAssignment ?
                     rewriteNullCoalescingAssignmentForValueType() :
                     rewriteNullCoalscingAssignmentStandard();
-
-            return result;
 
             BoundExpression rewriteNullCoalscingAssignmentStandard()
             {
@@ -61,11 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // We lower the expression to this form:
                 //
-                // var tmp = lhsRead.GetValueOrDefault();
-                // if (!lhsRead.HasValue) { tmp = loweredRight; transformedAssignment = tmp; }
-                // tmp
-                //
-                // Except that a is only evaluated once.
+                // var tmp = lhsRead.GetValueOrDefault()
+                // lhsRead.HasValue ? tmp : { /* sequence */ tmp = loweredRight; transformedLhs = tmp; tmp }
 
                 var leftOperand = node.LeftOperand;
                 if (!TryGetNullableMethod(leftOperand.Syntax,
@@ -104,11 +97,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                out var getValueOrDefaultStore,
                                                kind: SynthesizedLocalKind.Spill);
 
+                stores.Add(getValueOrDefaultStore);
                 temps.Add(tmp.LocalSymbol);
 
                 // tmp = loweredRight;
-                var tmpAssignment =
-                    MakeAssignmentOperator(node.Syntax, tmp, loweredRight, node.Type, used: true, isChecked: false, isCompoundAssignment: false);
+                var tmpAssignment = MakeAssignmentOperator(node.Syntax, tmp, loweredRight, node.Type, used: true, isChecked: false, isCompoundAssignment: false);
 
                 // transformedLhs = tmp;
                 var transformedLhsAssignment =
@@ -119,39 +112,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         node.LeftOperand.Type,
                         used: true,
                         isChecked: false,
-                        isCompoundAssignment: false); ;
+                        isCompoundAssignment: false);
 
-                // !lhsRead.HasValue
+                // lhsRead.HasValue
                 var lhsReadHasValue = BoundCall.Synthesized(leftOperand.Syntax, lhsRead, hasValue);
-                var lhsReadHasValueNegation =
-                    MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, leftOperand.Syntax, method: null, lhsReadHasValue, lhsReadHasValue.Type);
 
-                // { tmp = b; transformedLhs = tmp; }
-                var consequenceBuilder = ArrayBuilder<BoundStatement>.GetInstance(2);
-                consequenceBuilder.Add(new BoundExpressionStatement(node.Syntax, tmpAssignment) { WasCompilerGenerated = true });
-                consequenceBuilder.Add(new BoundExpressionStatement(node.Syntax, transformedLhsAssignment) { WasCompilerGenerated = true });
-                var consequence = new BoundBlock(node.Syntax, locals: ImmutableArray<LocalSymbol>.Empty, consequenceBuilder.ToImmutableAndFree())
-                {
-                    WasCompilerGenerated = true
-                };
+                // { tmp = b; transformedLhs = tmp; tmp }
+                var alternative = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create(tmpAssignment, transformedLhsAssignment), tmp);
 
-                // if (!lhsRead.HasValue) { tmp = b; transformedLhs = tmp; }
-                var ifHasValueStatement =
-                    RewriteIfStatement(node.Syntax, lhsReadHasValueNegation, consequence, rewrittenAlternativeOpt: null, hasErrors: false);
+                // lhsRead.HasValue ? tmp : { /* sequence */ tmp = loweredRight; transformedLhs = tmp; tmp }
+                var ternary = _factory.Conditional(lhsReadHasValue, tmp, alternative, tmp.Type);
 
-                // Assemble final statement list, including any stores that were originally used
-                // for capturing the lhs in a temp to start with.
-                var statementsBuilder = ArrayBuilder<BoundStatement>.GetInstance(2 + stores.Count);
-                foreach (var store in stores)
-                {
-                    statementsBuilder.Add(new BoundExpressionStatement(store.Syntax, store) { WasCompilerGenerated = true });
-                }
-                stores.Free();
-                statementsBuilder.Add(new BoundExpressionStatement(leftOperand.Syntax, getValueOrDefaultStore) { WasCompilerGenerated = true });
-                statementsBuilder.Add(ifHasValueStatement);
-
-                _needsSpilling = true;
-                return _factory.SpillSequence(temps.ToImmutableAndFree(), statementsBuilder.ToImmutableAndFree(), tmp);
+                return _factory.Sequence(temps.ToImmutableAndFree(), stores.ToImmutableAndFree(), ternary);
             }
         }
     }

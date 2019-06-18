@@ -1333,11 +1333,6 @@
         <target state="translated">Varsayılan bir ifade, bir tür parametresi için null bir değer ortaya çıkarır.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended_Title">
-        <source>'default' is converted to 'null'</source>
-        <target state="translated">'default', 'null' değerine dönüştürülür</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
         <source>'{0}' is already listed in the interface list on type '{1}' with different nullability of reference types.</source>
         <target state="translated">'{0}', '{1}' türünün arabirim listesinde farklı başvuru türleri boş değer atanabilirliği ile zaten listelenmiş.</target>

@@ -3611,9 +3611,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundNullCoalescingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
             }
 
-            // Unlike a standard null coalescing expression, the resulting type of the expression a ??= b
-            // must be A (where A is the type of a), as it is where the result of the assignment will end up. Therefore,
-            // we must ensure that B (where B is the type of b) is implicitly convertible to A.
+            // Given a ??= b, the type of a is A, the type of B is b, and if A is a nullable value type, the underlying
+            // non-nullable value type of A is A0.
             TypeSymbol leftType = leftOperand.Type;
             Debug.Assert((object)leftType != null);
 
@@ -3624,19 +3623,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+            // If A0 exists and B is implicitly convertible to A0, then the result type of this expression is A0, except if B is dynamic.
+            // This differs from most assignments such that you cannot directly replace a with (a ??= b).
+            // The exception for dynamic is called out in the spec, it's the same behavior that ?? has with respect to dynamic.
             if (leftType.IsNullableType())
             {
-                // If B is implicitly convertible to A0, then the result type of this expression is A0, except if B is dynamic.
-                // This differs from most assignments such that you cannot directly replace a with (a ??= b).
                 var underlyingLeftType = leftType.GetNullableUnderlyingType();
                 var underlyingRightConversion = Conversions.ClassifyImplicitConversionFromExpression(rightOperand, underlyingLeftType, ref useSiteDiagnostics);
                 if (underlyingRightConversion.Exists && rightOperand.Type?.IsDynamic() != true)
                 {
                     diagnostics.Add(node, useSiteDiagnostics);
                     var convertedRightOperand = CreateConversion(rightOperand, underlyingRightConversion, underlyingLeftType, diagnostics);
-                    // Create a nullable conversion for use by the local rewriter
-                    var nullableConversion = Conversions.ClassifyImplicitConversionFromType(underlyingLeftType, leftType, ref useSiteDiagnostics);
-                    Debug.Assert(nullableConversion.Exists && nullableConversion.IsNullable);
                     return new BoundNullCoalescingAssignmentOperator(node, leftOperand, convertedRightOperand, underlyingLeftType);
                 }
             }

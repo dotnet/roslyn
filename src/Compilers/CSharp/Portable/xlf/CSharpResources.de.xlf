@@ -1332,11 +1332,6 @@
         <target state="translated">Ein Standardausdruck führt einen NULL-Wert für einen Typparameter ein.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended_Title">
-        <source>'default' is converted to 'null'</source>
-        <target state="translated">"default" wird in "null" konvertiert.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
         <source>'{0}' is already listed in the interface list on type '{1}' with different nullability of reference types.</source>
         <target state="translated">"{0}" wird bereits mit einer anderen NULL-Zulässigkeit oder abweichenden Verweistypen in der Schnittstellenliste für den Typ "{1}" aufgeführt.</target>
