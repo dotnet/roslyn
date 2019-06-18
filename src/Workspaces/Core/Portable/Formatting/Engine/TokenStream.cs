@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// </summary>
     internal partial class TokenStream
     {
-        // number to guess number of tokens in a formatting span
-        private const int MagicTextLengthToTokensRatio = 10;
 
         // caches token information within given formatting span to improve perf
         private readonly ImmutableArray<SyntaxToken> _tokens;
@@ -42,11 +40,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         // factory that will cache trivia info
         private readonly AbstractTriviaDataFactory _factory;
 
-        /// <summary>
-        /// An approximation for the length of a token in this stream
-        /// </summary>
-        float _averageTokenLength;
-
         public TokenStream(TreeData treeData, OptionSet optionSet, TextSpan spanToFormat, AbstractTriviaDataFactory factory)
         {
             using (Logger.LogBlock(FunctionId.Formatting_TokenStreamConstruction, CancellationToken.None))
@@ -57,13 +50,6 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _optionSet = optionSet;
 
                 _tokens = _treeData.GetApplicableTokens(spanToFormat).ToImmutableArray();
-                // estimate average token length to speed up searches for token index in the stream
-                var approximateStreamLength = !_tokens.IsEmpty
-                    ? _tokens[_tokens.Length - 1].FullSpan.End - _tokens[0].FullSpan.Start
-                    : 0;
-                var averageTokenLength = (float)approximateStreamLength / _tokens.Length;
-                _averageTokenLength = Math.Max(0.1f, averageTokenLength);
-
                 Debug.Assert(this.TokenCount > 0);
 
                 // initialize trivia related info
@@ -517,38 +503,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             return this.GetTriviaData(tokenData1, tokenData2).SecondTokenIsFirstTokenOnLine;
         }
 
-        /// <summary>
-        /// Gets approximated index bounds for a token with specified position, which will definitely contain
-        /// the token, if it is present in the stream.
-        /// </summary>
-        private void GetTokenIndexBounds(int tokenFullSpanStart, out int lowerBound, out int upperBound)
-        {
-            Debug.Assert(_averageTokenLength > 0);
-            // make an initial guess about the token position
-            lowerBound = upperBound = Bounded((int)((tokenFullSpanStart - _tokens[0].FullSpan.Start) / _averageTokenLength), min: 0, max: _tokens.Length - 1);
-
-            // decrease lower bound until the desired position is strictly after it
-            while (_tokens[lowerBound].FullSpan.Start >= tokenFullSpanStart && lowerBound > 0)
-            {
-                int estimatedError = (int)((_tokens[lowerBound].FullSpan.Start - tokenFullSpanStart) / _averageTokenLength);
-                lowerBound = Math.Max(0, lowerBound - Math.Max(1, estimatedError));
-            }
-
-            // increase upper bound until the desired position is strictly before it
-            while (_tokens[upperBound].FullSpan.Start <= tokenFullSpanStart && upperBound < _tokens.Length - 1)
-            {
-                int estimatedError = (int)((tokenFullSpanStart - _tokens[upperBound].FullSpan.Start) / _averageTokenLength);
-                upperBound = Math.Min(_tokens.Length - 1, upperBound + Math.Max(1, estimatedError));
-            }
-        }
-
-        private static int Bounded(int value, int min, int max)
-            => Math.Min(max, Math.Max(value, min));
-
         private int GetTokenIndexInStream(SyntaxToken token)
         {
-            GetTokenIndexBounds(token.FullSpan.Start, out int lowerBound, out int upperBound);
-            var tokenIndex = _tokens.BinarySearch(lowerBound, length: upperBound - lowerBound + 1, token, TokenOrderComparer.Instance);
+            var tokenIndex = _tokens.BinarySearch(token, TokenOrderComparer.Instance);
             if (tokenIndex < 0)
             {
                 return -1;
