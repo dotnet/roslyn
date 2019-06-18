@@ -1314,6 +1314,7 @@ End Class
 Imports System
 Class TestClass
     Implements ITestClass
+
     Public Sub Goo() Implements ITestClass.Goo
     End Sub
 End Class
@@ -1356,6 +1357,7 @@ Imports System
 Class Program
     Class A
         Implements IA
+
         Sub Main(args As String()) Implements IA.Main
         End Sub
     End Class
