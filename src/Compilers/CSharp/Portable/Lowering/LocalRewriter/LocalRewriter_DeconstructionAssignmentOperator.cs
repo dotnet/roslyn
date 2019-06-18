@@ -296,7 +296,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return outLocals.ToImmutableAndFree();
         }
 
-        private BoundExpression EvaluateSideEffectingArgumentToTemp(BoundExpression arg, ArrayBuilder<BoundExpression> effects,
+        /// <summary>
+        /// Evaluate side effects into a temp, if any.  Return the expression to give the value later.
+        /// </summary>
+        /// <param name="arg">The argument to evaluate early.</param>
+        /// <param name="effects">A store of the argument into a temp, if necessary, is added here.</param>
+        /// <param name="temps">Any generated temps are added here.</param>
+        /// <returns>An expression evaluating the argument later (e.g. reading the temp), including a possible deferred user-defined conversion.</returns>
+        private BoundExpression EvaluateSideEffectingArgumentToTemp(
+            BoundExpression arg,
+            ArrayBuilder<BoundExpression> effects,
             ArrayBuilder<LocalSymbol> temps)
         {
             if (CanChangeValueBetweenReads(arg, localsMayBeAssignedOrCaptured: true, structThisCanChangeValueBetweenReads: true))

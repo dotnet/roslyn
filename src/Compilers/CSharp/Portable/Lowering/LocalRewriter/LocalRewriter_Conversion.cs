@@ -627,6 +627,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool explicitCastInCode,
             NamedTypeSymbol rewrittenType)
         {
+            (LocalSymbol temp, BoundAssignmentOperator assignmentToTemp, ImmutableArray<BoundExpression> fieldAccesses) =
+                RewriteTupleConversionCore(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode, rewrittenType);
+            var result = MakeTupleCreationExpression(syntax, rewrittenType, fieldAccesses);
+            return _factory.MakeSequence(temp, assignmentToTemp, result);
+        }
+
+        private (LocalSymbol temp, BoundAssignmentOperator assignmentToTemp, ImmutableArray<BoundExpression> fieldAccesses)
+        RewriteTupleConversionCore(SyntaxNode syntax,
+            BoundExpression rewrittenOperand,
+            Conversion conversion,
+            bool @checked,
+            bool explicitCastInCode,
+            NamedTypeSymbol rewrittenType)
+        {
             var destElementTypes = rewrittenType.GetElementTypesOfTupleOrCompatible();
             var numElements = destElementTypes.Length;
 
@@ -663,8 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 fieldAccessorsBuilder.Add(convertedFieldAccess);
             }
 
-            var result = MakeTupleCreationExpression(syntax, rewrittenType, fieldAccessorsBuilder.ToImmutableAndFree());
-            return _factory.MakeSequence(savedTuple.LocalSymbol, assignmentToTemp, result);
+            return (savedTuple.LocalSymbol, assignmentToTemp, fieldAccessorsBuilder.ToImmutableAndFree());
         }
 
         private static bool NullableNeverHasValue(BoundExpression expression)

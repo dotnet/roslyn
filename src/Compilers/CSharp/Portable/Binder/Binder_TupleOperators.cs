@@ -23,15 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TupleBinaryOperatorInfo.Multiple operators = BindTupleBinaryOperatorNestedInfo(node, kind, left, right, diagnostics);
 
-            // The converted types are only used for the semantic model, so we don't need the conversion diagnostics
-            DiagnosticBag discardDiagnostics = DiagnosticBag.GetInstance();
-            BoundExpression convertedLeft = ApplyConvertedTypes(left, operators, isRight: false, discardDiagnostics);
-            BoundExpression convertedRight = ApplyConvertedTypes(right, operators, isRight: true, discardDiagnostics);
-            discardDiagnostics.Free();
+            BoundExpression convertedLeft = ApplyConvertedTypes(left, operators, isRight: false, diagnostics);
+            BoundExpression convertedRight = ApplyConvertedTypes(right, operators, isRight: true, diagnostics);
 
             TypeSymbol resultType = GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
 
-            return new BoundTupleBinaryOperator(node, left, right, convertedLeft, convertedRight, kind, operators, resultType);
+            return new BoundTupleBinaryOperator(node, convertedLeft, convertedRight, kind, operators, resultType);
         }
 
         private BoundExpression ApplyConvertedTypes(BoundExpression expr, TupleBinaryOperatorInfo @operator, bool isRight, DiagnosticBag diagnostics)
@@ -93,29 +90,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindTupleBinaryOperatorNestedInfo(node, kind, left, right, diagnostics);
             }
 
-            if (left.IsLiteralNull() && right.IsLiteralNull())
+            int ignored = 0;
+            BoundExpression comparison = BindSimpleBinaryOperator(node, diagnostics, left, right, ref ignored);
+            switch (comparison)
             {
-                return new TupleBinaryOperatorInfo.NullNull(kind);
+                case BoundLiteral literal:
+                    // this case handles `null == null` and the like
+                    return new TupleBinaryOperatorInfo.NullNull(kind);
+
+                case BoundBinaryOperator binary:
+                    PrepareBoolConversionAndTruthOperator(binary.Type, node, kind, diagnostics, out Conversion conversionIntoBoolOperator, out UnaryOperatorSignature boolOperator);
+                    return new TupleBinaryOperatorInfo.Single(binary.Left.Type, binary.Right.Type, binary.OperatorKind, binary.MethodOpt, conversionIntoBoolOperator, boolOperator);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(comparison);
             }
-
-            LookupResultKind resultKind;
-            BinaryOperatorSignature signature;
-            BinaryOperatorAnalysisResult analysisResult;
-
-            bool foundOperator = BindSimpleBinaryOperatorParts(node, diagnostics, left, right, kind,
-                out resultKind, originalUserDefinedOperators: out _, out signature, out analysisResult);
-
-            if (!foundOperator)
-            {
-                ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, resultKind);
-            }
-            ReportDiagnosticsIfObsolete(diagnostics, analysisResult.LeftConversion, left.Syntax, hasBaseReceiver: false);
-            ReportDiagnosticsIfObsolete(diagnostics, analysisResult.RightConversion, right.Syntax, hasBaseReceiver: false);
-
-            PrepareBoolConversionAndTruthOperator(signature.ReturnType, node, kind, diagnostics, out Conversion conversionIntoBoolOperator, out UnaryOperatorSignature boolOperator);
-
-            return new TupleBinaryOperatorInfo.Single(signature.LeftType, signature.RightType, signature.Kind,
-                analysisResult.LeftConversion, analysisResult.RightConversion, signature.Method, conversionIntoBoolOperator, boolOperator);
         }
 
         /// <summary>
@@ -191,12 +180,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BinaryOperatorKind elementOperatorKind = hasError ? kind : kind.WithType(BinaryOperatorKind.Dynamic);
-            TypeSymbol dynamicType = Compilation.DynamicType;
+            TypeSymbol dynamicType = hasError ? CreateErrorType() : Compilation.DynamicType;
 
             // We'll want to dynamically invoke operators op_true (/op_false) for equality (/inequality) comparison, but we don't need
             // to prepare either a conversion or a truth operator. Those can just be synthesized during lowering.
             return new TupleBinaryOperatorInfo.Single(dynamicType, dynamicType, elementOperatorKind,
-                leftConversion: Conversion.NoConversion, rightConversion: Conversion.NoConversion,
                 methodSymbolOpt: null, conversionForBool: Conversion.Identity, boolOperator: default);
         }
 
@@ -348,9 +336,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static int GetTupleCardinality(BoundExpression expr)
         {
-            if (expr.Kind == BoundKind.TupleLiteral)
+            if (expr is BoundTupleExpression tuple)
             {
-                var tuple = (BoundTupleLiteral)expr;
                 return tuple.Arguments.Length;
             }
 
@@ -360,11 +347,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return -1;
             }
 
-            type = type.StrippedType();
-
-            if (type.IsTupleType)
+            if (type.StrippedType() is { IsTupleType: true } tupleType)
             {
-                return type.TupleElementTypesWithAnnotations.Length;
+                return tupleType.TupleElementTypesWithAnnotations.Length;
             }
 
             return -1;

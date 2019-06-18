@@ -367,14 +367,8 @@
   <Node Name="BoundTupleBinaryOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
     <Field Name="Left" Type="BoundExpression"/>
     <Field Name="Right" Type="BoundExpression"/>
-
-    <!-- Converted nodes are meant for semantic model and IOperation use only -->
-    <Field Name="ConvertedLeft" Type="BoundExpression" SkipInVisitor="true"/>
-    <Field Name="ConvertedRight" Type="BoundExpression" SkipInVisitor="true"/>
-
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="Operators" Type="TupleBinaryOperatorInfo.Multiple"/>
   </Node>

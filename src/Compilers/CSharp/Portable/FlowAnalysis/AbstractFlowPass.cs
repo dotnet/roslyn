@@ -150,7 +150,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Region
         // For region analysis, we maintain some extra data.
-        protected enum RegionPlace { Before, Inside, After };
         protected RegionPlace regionPlace; // tells whether we are currently analyzing code before, during, or after the region
         protected readonly BoundNode firstInRegion, lastInRegion;
         private readonly bool _trackRegions;
@@ -957,8 +956,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
         {
-            Visit(node.ConvertedLeft);
-            Visit(node.ConvertedRight);
+            VisitRvalue(node.Left);
+            VisitRvalue(node.Right);
             return null;
         }
 
@@ -2957,4 +2956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         #endregion visitors
     }
+
+    internal enum RegionPlace { Before, Inside, After };
 }
+

@@ -1932,12 +1932,18 @@ ref struct S
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,35): error CS0306: The type 'S' may not be used as a type argument
-                //         System.Console.Write(("", s1) == (null, s2));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "s1").WithArguments("S").WithLocation(6, 35),
-                // (6,30): error CS0019: Operator '==' cannot be applied to operands of type 'S' and 'S'
-                //         System.Console.Write(("", s1) == (null, s2));
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"("""", s1) == (null, s2)").WithArguments("==", "S", "S").WithLocation(6, 30)
+                    // (6,35): error CS0306: The type 'S' may not be used as a type argument
+                    //         System.Console.Write(("", s1) == (null, s2));
+                    Diagnostic(ErrorCode.ERR_BadTypeArgument, "s1").WithArguments("S").WithLocation(6, 35),
+                    // (6,30): error CS0019: Operator '==' cannot be applied to operands of type 'S' and 'S'
+                    //         System.Console.Write(("", s1) == (null, s2));
+                    Diagnostic(ErrorCode.ERR_BadBinaryOps, @"("""", s1) == (null, s2)").WithArguments("==", "S", "S").WithLocation(6, 30),
+                    // (6,35): error CS0306: The type 'S' may not be used as a type argument
+                    //         System.Console.Write(("", s1) == (null, s2));
+                    Diagnostic(ErrorCode.ERR_BadTypeArgument, "s1").WithArguments("S").WithLocation(6, 35),
+                    // (6,49): error CS0306: The type 'S' may not be used as a type argument
+                    //         System.Console.Write(("", s1) == (null, s2));
+                    Diagnostic(ErrorCode.ERR_BadTypeArgument, "s2").WithArguments("S").WithLocation(6, 49)
                 );
         }
 
@@ -2890,12 +2896,9 @@ class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,14): error CS0841: Cannot use local variable 'z' before it is declared
-                //         _ = (z, M(out int z)) == (1, 2); // error
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "z").WithArguments("z").WithLocation(7, 14),
-                // (7,13): error CS0019: Operator '==' cannot be applied to operands of type 'var' and 'int'
-                //         _ = (z, M(out int z)) == (1, 2); // error
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(z, M(out int z)) == (1, 2)").WithArguments("==", "var", "int").WithLocation(7, 13)
+                    // (7,14): error CS0841: Cannot use local variable 'z' before it is declared
+                    //         _ = (z, M(out int z)) == (1, 2); // error
+                    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "z").WithArguments("z").WithLocation(7, 14)
                 );
         }
 
