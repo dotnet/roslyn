@@ -67,7 +67,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             Assert.True(
                 operation != null,
                 $"Could not find code block to analyze.  Does your test code have {StartString} and {EndString} around the braces of block to analyze?");
-            ISymbol symbol = syntaxNode.Parent.GetDeclaredOrReferencedSymbol(model);
+            ISymbol symbol = model.GetDeclaredSymbol(syntaxNode.Parent) ?? model.GetSymbolInfo(syntaxNode.Parent).Symbol;
 
 #pragma warning disable CA1508 // Avoid dead conditional code - https://github.com/dotnet/roslyn-analyzers/issues/2180
             using (var cancellationSource = new CancellationTokenSource())
@@ -307,7 +307,7 @@ class TestClass
         }
 
         [Fact]
-        public void TestTypeToTrack_HazardousIfStringIsNonNull_StringEmpty_MaybeFlagged()
+        public void TestTypeToTrack_HazardousIfStringIsNonNull_StringEmpty_Flagged()
         {
             VerifyCSharp(@"
 using System;
@@ -317,12 +317,12 @@ class TestClass
     void TestMethod()
     /*<bind>*/{
         TestTypeToTrack t = new TestTypeToTrack();
-        t.AString = String.Empty;   // Ideally String.Empty would be NullAbstractValue.NonNull.
+        t.AString = String.Empty;
         t.Method();
     }/*</bind>*/
 }",
                 TestTypeToTrack_HazardousIfStringIsNonNull,
-                (10, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.MaybeFlagged));
+                (10, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
 
         [Fact]
@@ -483,7 +483,7 @@ class TestClass
         }
 
         [Fact]
-        public void TestTypeToTrackWithConstructor_HazardousIfStringIsNull_StringEmpty_MaybeFlagged()
+        public void TestTypeToTrackWithConstructor_HazardousIfStringIsNull_StringEmpty_Flagged()
         {
             VerifyCSharp(@"
 using System;
@@ -492,12 +492,12 @@ class TestClass
 {
     void TestMethod()
     /*<bind>*/{
-        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(default(TestEnum), null, String.Empty);   // Ideally String.Empty would be NullAbstractValue.NonNull.
+        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(default(TestEnum), null, String.Empty);
         t.Method();
     }/*</bind>*/
 }",
                 TestTypeToTrackWithConstructor_HazardousIfStringIsNonNull,
-                (9, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.MaybeFlagged));
+                (9, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
 
         [Fact]

@@ -1,0 +1,161 @@
+﻿{
+  "$schema": "http://json.schemastore.org/sarif-1.0.0",
+  "version": "1.0.0",
+  "runs": [
+    {
+      "tool": {
+        "name": "Microsoft Code Analysis",
+        "language": "en-US"
+      },
+      "rules": {
+        "HAA0101": {
+          "id": "HAA0101",
+          "shortDescription": "Array allocation for params parameter",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true
+          }
+        },
+        "HAA0102": {
+          "id": "HAA0102",
+          "shortDescription": "Non-overridden virtual method call on value type",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true
+          }
+        },
+        "HAA0201": {
+          "id": "HAA0201",
+          "shortDescription": "Implicit string concatenation allocation",
+          "defaultLevel": "warning",
+          "helpUri": "http://msdn.microsoft.com/en-us/library/2839d5h5(v=vs.110).aspx",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true
+          }
+        },
+        "HAA0202": {
+          "id": "HAA0202",
+          "shortDescription": "Value type to reference type conversion allocation for string concatenation",
+          "defaultLevel": "warning",
+          "helpUri": "http://msdn.microsoft.com/en-us/library/yz2be5wk.aspx",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true
+          }
+        },
+        "HAA0301": {
+          "id": "HAA0301",
+          "shortDescription": "Closure Allocation Source",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true
+          }
+        },
+        "HAA0302": {
+          "id": "HAA0302",
+          "shortDescription": "Display class allocation to capture closure",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true
+          }
+        },
+        "HAA0303": {
+          "id": "HAA0303",
+          "shortDescription": "Lambda or anonymous method in a generic method allocates a delegate instance",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true
+          }
+        },
+        "HAA0401": {
+          "id": "HAA0401",
+          "shortDescription": "Possible allocation of reference type enumerator",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true
+          }
+        },
+        "HAA0501": {
+          "id": "HAA0501",
+          "shortDescription": "Explicit new array type allocation",
+          "defaultLevel": "note",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true
+          }
+        },
+        "HAA0502": {
+          "id": "HAA0502",
+          "shortDescription": "Explicit new reference type allocation",
+          "defaultLevel": "note",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true
+          }
+        },
+        "HAA0503": {
+          "id": "HAA0503",
+          "shortDescription": "Explicit new anonymous object allocation",
+          "defaultLevel": "note",
+          "helpUri": "http://msdn.microsoft.com/en-us/library/bb397696.aspx",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true
+          }
+        },
+        "HAA0506": {
+          "id": "HAA0506",
+          "shortDescription": "Let clause induced allocation",
+          "defaultLevel": "note",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true
+          }
+        },
+        "HAA0601": {
+          "id": "HAA0601",
+          "shortDescription": "Value type to reference type conversion causing boxing allocation",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true
+          }
+        },
+        "HAA0602": {
+          "id": "HAA0602",
+          "shortDescription": "Delegate on struct instance caused a boxing allocation",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true
+          }
+        },
+        "HAA0603": {
+          "id": "HAA0603",
+          "shortDescription": "Delegate allocation from a method group",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true
+          }
+        },
+        "HeapAnalyzerReadonlyMethodGroupAllocationRule": {
+          "id": "HeapAnalyzerReadonlyMethodGroupAllocationRule",
+          "shortDescription": "Delegate allocation from a method group",
+          "defaultLevel": "note",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true
+          }
+        }
+      }
+    }
+  ]
+}
