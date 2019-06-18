@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {
                 diagnostics.Add(ex.Diagnostic);
-                sawLambdas = sawLocalFunctions = sawAwaitInExceptionHandler = sawNullChecked = false;
+                sawLambdas = sawLocalFunctions = sawAwaitInExceptionHandler = false;
                 return new BoundBadStatement(statement.Syntax, ImmutableArray.Create<BoundNode>(statement), hasErrors: true);
             }
         }
