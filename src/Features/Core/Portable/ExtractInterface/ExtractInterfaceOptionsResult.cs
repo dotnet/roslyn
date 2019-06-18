@@ -20,16 +20,14 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         public string InterfaceName { get; }
         public string FileName { get; }
         public ExtractLocation Location { get; }
-        public ImmutableArray<SyntaxTrivia> FileBanner { get; }
 
-        public ExtractInterfaceOptionsResult(bool isCancelled, ImmutableArray<ISymbol> includedMembers, string interfaceName, string fileName, ExtractLocation location, ImmutableArray<SyntaxTrivia> fileBanner)
+        public ExtractInterfaceOptionsResult(bool isCancelled, ImmutableArray<ISymbol> includedMembers, string interfaceName, string fileName, ExtractLocation location)
         {
             IsCancelled = isCancelled;
             IncludedMembers = includedMembers;
             InterfaceName = interfaceName;
             Location = location;
             FileName = fileName;
-            FileBanner = fileBanner;
         }
 
         private ExtractInterfaceOptionsResult(bool isCancelled)

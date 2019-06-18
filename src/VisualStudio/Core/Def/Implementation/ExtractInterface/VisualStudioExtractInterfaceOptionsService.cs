@@ -66,8 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
                     includedMembers: includedMembers.AsImmutable(),
                     interfaceName: viewModel.InterfaceName.Trim(),
                     fileName: viewModel.FileName.Trim(),
-                    location: GetLocation(viewModel.Destination),
-                    fileBanner: fileBanner);
+                    location: GetLocation(viewModel.Destination));
             }
             else
             {

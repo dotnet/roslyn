@@ -54,8 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                     includedMembers: (ChosenMembers ?? AllExtractableMembers).AsImmutable(),
                     interfaceName: ChosenInterfaceName ?? defaultInterfaceName,
                     fileName: ChosenFileName ?? defaultInterfaceName,
-                    location: SameFile ? ExtractInterfaceOptionsResult.ExtractLocation.SameFile : ExtractInterfaceOptionsResult.ExtractLocation.NewFile,
-                    fileBanner: fileBanner);
+                    location: SameFile ? ExtractInterfaceOptionsResult.ExtractLocation.SameFile : ExtractInterfaceOptionsResult.ExtractLocation.NewFile);
 
             return Task.FromResult(result);
         }
