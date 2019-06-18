@@ -28,16 +28,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             Contract.ThrowIfNull(document);
 
-            this.SemanticDocument = document;
-            this.OriginalSpan = textSpan;
-            this.Options = options;
+            SemanticDocument = document;
+            OriginalSpan = textSpan;
+            Options = options;
         }
 
         public bool ContainsValidSelection
         {
             get
             {
-                return !this.OriginalSpan.IsEmpty;
+                return !OriginalSpan.IsEmpty;
             }
         }
 

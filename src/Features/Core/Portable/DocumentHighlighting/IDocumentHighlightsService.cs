@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 
         public HighlightSpan(TextSpan textSpan, HighlightSpanKind kind) : this()
         {
-            this.TextSpan = textSpan;
-            this.Kind = kind;
+            TextSpan = textSpan;
+            Kind = kind;
         }
     }
 
@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 
         public DocumentHighlights(Document document, ImmutableArray<HighlightSpan> highlightSpans)
         {
-            this.Document = document;
-            this.HighlightSpans = highlightSpans;
+            Document = document;
+            HighlightSpans = highlightSpans;
         }
     }
 

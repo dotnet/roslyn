@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         {
             get
             {
-                return string.Format(s_suppressionsFileCommentTemplate, this.SingleLineCommentStart);
+                return string.Format(s_suppressionsFileCommentTemplate, SingleLineCommentStart);
             }
         }
 
