@@ -5289,6 +5289,45 @@ class C
             End Using
         End Function
 
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WorkItem(24960, "https://github.com/dotnet/roslyn/issues/24960")>
+        Public Async Function TypeParameterTOnType(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                <Document><![CDATA[
+class C<T>
+{
+    $$
+}]]>
+                </Document>)
+
+                state.SendTypeChars("T")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem("T")
+            End Using
+        End Function
+
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WorkItem(24960, "https://github.com/dotnet/roslyn/issues/24960")>
+        Public Async Function TypeParameterTOnMethod(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                <Document><![CDATA[
+class C
+{
+    void M<T>()
+    {
+        $$
+    }
+}]]>
+                </Document>)
+
+                state.SendTypeChars("T")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem("T")
+            End Using
+        End Function
+
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 
