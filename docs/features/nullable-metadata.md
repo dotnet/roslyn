@@ -48,6 +48,10 @@ The `byte[]` is constructed as follows:
 - Type parameter reference: the nullability (0, 1, or 2, with 0 for unconstrained type parameter)
 
 Note that non-generic value types are represented by an empty `byte[]`.
+However, generic value types and type parameters constrained to value types have an explicit 0 in the `byte[]` for nullability.
+The reason generic types and type parameters are represented with an explicit `byte` is to simplify metadata import.
+Specifically, this avoids the need to calculate whether a type parameter is constrained to a value type when
+decoding nullability metadata, since the constraints may include a (valid) cyclic reference to the type parameter.
 
 ### Optimizations
 

@@ -2129,7 +2129,7 @@ unsafe class Program
 #nullable enable
     C<int*> F6;
 }";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var comp = CreateCompilation(source);
             var globalNamespace = comp.GlobalNamespace;
             VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F1").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { 0 }, "int*");
             VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F2").TypeWithAnnotations, new byte[] { 0, 0, 0 }, new byte[] { 0 }, "int?*");
@@ -2190,6 +2190,49 @@ class Program<T, U, V>
             }
         }
 
+        [Fact]
+        public void EmitAttribute_ValueTypes_08()
+        {
+            var source0 =
+@"public struct S0 { }
+public struct S2<T, U> { }";
+            var comp = CreateCompilation(source0);
+            var ref0 = comp.EmitToImageReference();
+
+            var source =
+@"#nullable enable
+class C2<T, U> { }
+class Program
+{
+    C2<S0, object?> F1;
+    C2<object, S0>? F2;
+    S2<S0, object> F3;
+    S2<object?, S0> F4;
+    (S0, object) F5;
+    (object?, S0) F6;
+}";
+
+            // With reference assembly.
+            comp = CreateCompilation(source, references: new[] { ref0 });
+            var globalNamespace = comp.GlobalNamespace;
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F1").TypeWithAnnotations, new byte[] { 1, 0, 2 }, new byte[] { 1, 2 }, "C2<S0, object?>!");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F2").TypeWithAnnotations, new byte[] { 2, 1, 0 }, new byte[] { 2, 1 }, "C2<object!, S0>?");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F3").TypeWithAnnotations, new byte[] { 0, 0, 1 }, new byte[] { 0, 1 }, "S2<S0, object!>");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F4").TypeWithAnnotations, new byte[] { 0, 2, 0 }, new byte[] { 0, 2 }, "S2<object?, S0>");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F5").TypeWithAnnotations, new byte[] { 0, 0, 1 }, new byte[] { 0, 1 }, "(S0, object!)");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F6").TypeWithAnnotations, new byte[] { 0, 2, 0 }, new byte[] { 0, 2 }, "(object?, S0)");
+
+            // Without reference assembly.
+            comp = CreateCompilation(source);
+            globalNamespace = comp.GlobalNamespace;
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F1").TypeWithAnnotations, new byte[] { 1, 0, 2 }, new byte[] { 1, 1, 2 }, "C2<S0!, object?>!");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F2").TypeWithAnnotations, new byte[] { 2, 1, 0 }, new byte[] { 2, 1, 1 }, "C2<object!, S0!>?");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F3").TypeWithAnnotations, new byte[] { 0, 0, 1 }, new byte[] { 1, 1, 1 }, "S2<S0!, object!>!");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F4").TypeWithAnnotations, new byte[] { 0, 2, 0 }, new byte[] { 1, 2, 1 }, "S2<object?, S0!>!");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F5").TypeWithAnnotations, new byte[] { 0, 0, 1 }, new byte[] { 0, 1, 1 }, "(S0!, object!)");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F6").TypeWithAnnotations, new byte[] { 0, 2, 0 }, new byte[] { 0, 2, 1 }, "(object?, S0!)");
+        }
+
         private static readonly SymbolDisplayFormat _displayFormat = SymbolDisplayFormat.TestFormat.
             WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes).
             WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
@@ -2211,12 +2254,13 @@ class Program<T, U, V>
             Assert.True(underlyingType.ApplyNullableTransforms(0, actualBytes, ref position, out updated));
             Assert.True(updated.Equals(type, TypeCompareKind.ConsiderEverything));
 
-            // If the expected byte[] was different with earlier builds, verify that
-            // applying the previous byte[] does not succeed.
+            // If the expected byte[] is shorter than earlier builds, verify that
+            // applying the previous byte[] does not consume all bytes.
             if (!expectedPreviously.SequenceEqual(expectedNow))
             {
                 position = 0;
-                Assert.True(underlyingType.ApplyNullableTransforms(0, ImmutableArray.Create(expectedPreviously), ref position, out updated) || position < expectedPreviously.Length);
+                underlyingType.ApplyNullableTransforms(0, ImmutableArray.Create(expectedPreviously), ref position, out _);
+                Assert.Equal(position, expectedNow.Length);
             }
         }
 
