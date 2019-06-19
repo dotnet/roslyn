@@ -654,7 +654,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return parameters.ToImmutableAndFree();
-
         }
 
         internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)

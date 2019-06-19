@@ -5159,8 +5159,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static FlowAnalysisAnnotations GetLValueAnnotations(BoundExpression expr)
+        private FlowAnalysisAnnotations GetLValueAnnotations(BoundExpression expr)
         {
+            // Annotations are ignored when binding an attribute to avoid cycles. (Members used
+            // in attributes are error scenarios, so missing warnings should not be important.)
+            if (IsAnalyzingAttribute)
+            {
+                return FlowAnalysisAnnotations.None;
+            }
+
             var symbol = expr switch
             {
                 BoundPropertyAccess property => property.PropertySymbol,
