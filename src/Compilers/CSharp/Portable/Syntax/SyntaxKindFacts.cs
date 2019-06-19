@@ -309,22 +309,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public static bool IsTypeDeclaration(SyntaxKind kind)
-        {
-            switch (kind)
-            {
-                case SyntaxKind.DelegateDeclaration:
-                case SyntaxKind.EnumDeclaration:
-                case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.StructDeclaration:
-                case SyntaxKind.InterfaceDeclaration:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
-
         /// <summary>
         /// Member declarations that can appear in global code (other than type declarations).
         /// </summary>
@@ -343,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public static bool IsNamespaceMemberDeclaration(SyntaxKind kind)
+        public static bool IsTypeDeclaration(SyntaxKind kind)
         {
             switch (kind)
             {
@@ -352,12 +336,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.DelegateDeclaration:
                 case SyntaxKind.EnumDeclaration:
-                case SyntaxKind.NamespaceDeclaration:
                     return true;
+
                 default:
                     return false;
             }
         }
+
+        public static bool IsNamespaceMemberDeclaration(SyntaxKind kind)
+            => IsTypeDeclaration(kind) || (kind == SyntaxKind.NamespaceDeclaration);
 
         public static bool IsAnyUnaryExpression(SyntaxKind token)
         {
