@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class NullCheckRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
         private readonly MethodSymbol _method;
+        private readonly DiagnosticBag _diagnostics;
         private readonly SyntheticBoundNodeFactory _fact;
         private NullCheckRewriter(
             MethodSymbol method,
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             _method = method;
+            _diagnostics = diagnostics;
             _fact = new SyntheticBoundNodeFactory(method, syntax, compilationState, diagnostics);
         }
 
@@ -48,8 +50,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var statementList = ArrayBuilder<BoundStatement>.GetInstance();
             foreach (ParameterSymbol x in _method.Parameters)
             {
-                if (x is SourceParameterSymbolBase param && param.IsNullChecked)
+                if (x is SourceParameterSymbolBase param
+                    && param.IsNullChecked)
                 {
+                    if (param.Type.IsValueType && !param.Type.IsNullableType())
+                    {
+                        continue;
+                    }
                     var constructedIf = ConstructIfStatementForParameter(body, param);
                     statementList.Add(constructedIf);
                 }
@@ -61,8 +68,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement ConstructIfStatementForParameter(BoundBlock body, SourceParameterSymbolBase parameter)
         {
-            BoundExpression paramIsNullCondition = _fact.ObjectEqual(_fact.Parameter(parameter), _fact.Literal(ConstantValue.Null, parameter.Type));
+            var loweredLeft = _fact.Parameter(parameter);
+            var loweredRight = _fact.Literal(ConstantValue.Null, parameter.Type);
+            BoundExpression paramIsNullCondition = _fact.ObjectEqual(loweredLeft, loweredRight);
 
+            if (parameter.Type.IsNullableType())
+            {
+                BoundCall.Synthesized(body.Syntax,
+                    loweredLeft,
+                    LocalRewriter.UnsafeGetNullableMethod(
+                        body.Syntax,
+                        loweredLeft.Type as NamedTypeSymbol,
+                        SpecialMember.System_Nullable_T_get_HasValue,
+                        _method.DeclaringCompilation,
+                        _diagnostics)
+                    );
+            }
             // PROTOTYPE : Make ArgumentNullException
             BoundThrowStatement throwArgNullStatement = _fact.Throw(_fact.New(_fact.WellKnownType(WellKnownType.System_Exception)));
             return _fact.HiddenSequencePoint(_fact.If(paramIsNullCondition, throwArgNullStatement));
