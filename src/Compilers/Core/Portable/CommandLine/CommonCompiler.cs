@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis
             => ReportDiagnostics(diagnostics.Select(info => Diagnostic.Create(info)), consoleOutput, errorLoggerOpt);
 
         /// <summary>
-        /// Returns true if there are any diagnostics in the bag which have error severity and are
+        /// Returns true if there are any diagnostics in the bag which have default severity error and are
         /// not marked "suppressed". Note: does NOT do filtering, so it may return false if a
         /// non-error diagnostic were later elevated to an error through filtering (e.g., through
         /// warn-as-error). This is meant to be a check if there are any "real" errors, in the bag
@@ -571,20 +571,12 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (var diag in diagnostics.AsEnumerable())
             {
-                if (IsReportedError(diag))
+                if (diag.DefaultSeverity == DiagnosticSeverity.Error && !diag.IsSuppressed)
                 {
                     return true;
                 }
             }
             return false;
-        }
-
-        /// <summary>
-        /// Returns true if the diagnostic is an error that should be reported.
-        /// </summary>
-        private static bool IsReportedError(Diagnostic diagnostic)
-        {
-            return (diagnostic.Severity == DiagnosticSeverity.Error) && !diagnostic.IsSuppressed;
         }
 
         protected virtual void PrintError(Diagnostic diagnostic, TextWriter consoleOutput)

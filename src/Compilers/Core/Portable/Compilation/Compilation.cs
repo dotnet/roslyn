@@ -1347,7 +1347,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="accumulator">Bag to which filtered diagnostics will be added.</param>
         /// <param name="incoming">Diagnostics to be filtered.</param>
-        /// <returns>True if there were no errors or warnings-as-errors.</returns>
+        /// <returns>True if there were no errors.</returns>
         internal bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming)
         {
             bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), exclude: null);
@@ -1378,7 +1378,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     continue;
                 }
-                else if (filtered.Severity == DiagnosticSeverity.Error &&
+                else if (filtered.DefaultSeverity == DiagnosticSeverity.Error &&
                     !filtered.IsSuppressed)
                 {
                     hasError = true;

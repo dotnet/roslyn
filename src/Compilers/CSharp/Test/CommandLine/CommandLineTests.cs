@@ -10790,7 +10790,7 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36215")]
+        [Fact]
         public void TestSuppression_CompilerParserWarningAsError()
         {
             string source = @"
