@@ -97,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new NameOfKeywordRecommender(),
                 new NamespaceKeywordRecommender(),
                 new NewKeywordRecommender(),
+                new NotNullKeywordRecommender(),
                 new NullableKeywordRecommender(),
                 new NullKeywordRecommender(),
                 new ObjectKeywordRecommender(),

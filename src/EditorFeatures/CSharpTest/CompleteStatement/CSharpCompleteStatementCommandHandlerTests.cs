@@ -3918,6 +3918,18 @@ class D
             VerifyTypingSemicolon(code, expected);
         }
 
+        [WorkItem(923157, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/923157")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void BrokenCode_ReturnIfCaretDoesNotMove()
+        {
+            var code = @"
+class D
+{
+  public Delegate Task<int> Handles(int num)$$
+}";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
         protected override TestWorkspace CreateTestWorkspace(string code)
             => TestWorkspace.CreateCSharp(code);
     }

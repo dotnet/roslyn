@@ -108,7 +108,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NamedTypeSymbol effectiveBaseClass = corLibrary.GetSpecialType(typeParameter.HasValueTypeConstraint ? SpecialType.System_ValueType : SpecialType.System_Object);
             TypeSymbol deducedBaseType = effectiveBaseClass;
-            DynamicTypeEraser dynamicEraser = null;
 
             if (constraintTypes.Length == 0)
             {
@@ -125,15 +124,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // interfaces, and filter out any constraint types that cause cycles.
                 foreach (var constraintType in constraintTypes)
                 {
+                    Debug.Assert(!constraintType.Type.ContainsDynamic());
+
                     NamedTypeSymbol constraintEffectiveBase;
                     TypeSymbol constraintDeducedBase;
 
                     switch (constraintType.TypeKind)
                     {
-                        case TypeKind.Dynamic:
-                            Debug.Assert(inherited || currentCompilation == null);
-                            continue;
-
                         case TypeKind.TypeParameter:
                             {
                                 var constraintTypeParameter = (TypeParameterSymbol)constraintType.Type;
@@ -188,35 +185,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         case TypeKind.Interface:
                         case TypeKind.Class:
                         case TypeKind.Delegate:
-                            NamedTypeSymbol erasedConstraintType;
 
-                            if (inherited || currentCompilation == null)
-                            {
-                                // only inherited constraints may contain dynamic
-                                if (dynamicEraser == null)
-                                {
-                                    dynamicEraser = new DynamicTypeEraser(corLibrary.GetSpecialType(SpecialType.System_Object));
-                                }
-
-                                erasedConstraintType = (NamedTypeSymbol)dynamicEraser.EraseDynamic(constraintType.Type);
-                            }
-                            else
-                            {
-                                Debug.Assert(!constraintType.Type.ContainsDynamic());
-                                Debug.Assert(constraintType.TypeKind != TypeKind.Delegate);
-
-                                erasedConstraintType = (NamedTypeSymbol)constraintType.Type;
-                            }
+                            Debug.Assert(inherited || currentCompilation == null || constraintType.TypeKind != TypeKind.Delegate);
 
                             if (constraintType.Type.IsInterfaceType())
                             {
-                                AddInterface(interfacesBuilder, erasedConstraintType);
+                                AddInterface(interfacesBuilder, (NamedTypeSymbol)constraintType.Type);
                                 constraintTypesBuilder.Add(constraintType);
                                 continue;
                             }
                             else
                             {
-                                constraintEffectiveBase = erasedConstraintType;
+                                constraintEffectiveBase = (NamedTypeSymbol)constraintType.Type;
                                 constraintDeducedBase = constraintType.Type;
                                 break;
                             }
@@ -920,7 +900,7 @@ hasRelatedInterfaces:
             // original definition of the type parameters using the map from the constructed symbol.
             var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            substitution.SubstituteConstraintTypesDistinctWithoutModifiers(typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics), constraintTypes,
+            substitution.SubstituteConstraintTypesDistinctWithoutModifiers(typeParameter, typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics), constraintTypes,
                                                                  ignoreTypeConstraintsDependentOnTypeParametersOpt);
 
             bool hasError = false;
