@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                 throw new ArgumentException(FeaturesResources.StreamMustSupportReadAndSeek, nameof(stream));
             }
 
-            bool isPortable = stream.ReadByte() == 'B' && stream.ReadByte() == 'S' && stream.ReadByte() == 'J' && stream.ReadByte() == 'B';
+            var isPortable = stream.ReadByte() == 'B' && stream.ReadByte() == 'S' && stream.ReadByte() == 'J' && stream.ReadByte() == 'B';
             stream.Position = 0;
 
             if (isPortable)

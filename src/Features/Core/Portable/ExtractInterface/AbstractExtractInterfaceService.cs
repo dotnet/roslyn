@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 currentRoots[tree] = root.ReplaceToken(token, token.WithAdditionalAnnotations(annotation));
             }
 
-            Solution annotatedSolution = solution;
+            var annotatedSolution = solution;
             foreach (var root in currentRoots)
             {
                 var document = annotatedSolution.GetDocument(root.Key);

@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public PdbDelta(MemoryStream stream, int[] updatedMethods)
         {
-            this.Stream = stream;
-            this.UpdatedMethods = updatedMethods;
+            Stream = stream;
+            UpdatedMethods = updatedMethods;
         }
     }
 }

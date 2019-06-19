@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private bool IsInParameterContext(
                 CancellationToken cancellationToken)
             {
-                if (!_service.IsInParameterInitializer(this.Expression))
+                if (!_service.IsInParameterInitializer(Expression))
                 {
                     return false;
                 }
 
                 // The default value for a parameter is a constant.  So we always allow it unless it
                 // happens to capture one of the method's type parameters.
-                var bindingMap = this.GetSemanticMap(cancellationToken);
+                var bindingMap = GetSemanticMap(cancellationToken);
                 if (bindingMap.AllReferencedSymbols.OfType<ITypeParameterSymbol>()
                                                     .Where(tp => tp.TypeParameterKind == TypeParameterKind.Method)
                                                     .Any())
