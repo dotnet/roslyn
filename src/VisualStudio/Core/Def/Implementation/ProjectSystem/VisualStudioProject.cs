@@ -779,7 +779,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     throw new InvalidOperationException("The metadata reference has already been added to the project.");
                 }
 
-                _allMetadataReferences.MultiAdd(fullPath, properties);
+                _allMetadataReferences.MultiAddWithDefault(fullPath, properties);
 
                 if (_activeBatchScopes > 0)
                 {
@@ -824,10 +824,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
-                _allMetadataReferences.TryGetValue(fullPath, out var list);
+                var containedKey = _allMetadataReferences.TryGetValue(fullPath, out var list);
 
                 // Note: AsImmutableOrEmpty accepts null recievers and treats that as an empty array
-                return list.AsImmutableOrEmpty();
+                return containedKey && list == null ? ImmutableArray<MetadataReferenceProperties>.Empty.Add(default) : list.AsImmutableOrEmpty();
             }
         }
 
@@ -845,7 +845,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     throw new InvalidOperationException("The metadata reference does not exist in this project.");
                 }
 
-                _allMetadataReferences.MultiRemove(fullPath, properties);
+                _allMetadataReferences.MultiRemoveWithDefault(fullPath, properties);
 
                 if (_activeBatchScopes > 0)
                 {

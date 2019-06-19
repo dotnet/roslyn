@@ -42,10 +42,56 @@ namespace Roslyn.Utilities
             collection.Add(value);
         }
 
+        public static void MultiAddWithDefault<TKey, TValue, TCollection>(this IDictionary<TKey, TCollection> dictionary, TKey key, TValue value)
+            where TValue : IEquatable<TValue>
+            where TCollection : ICollection<TValue>, new()
+        {
+            var foundCollection = dictionary.TryGetValue(key, out var collection);
+
+            if (collection == null && !((IEquatable<TValue>)value).Equals(default))
+            {
+                collection = new TCollection();
+            }
+
+            if (!foundCollection)
+            {
+                dictionary.Add(key, collection);
+            }
+
+            collection?.Add(value);
+        }
+
         public static void MultiRemove<TKey, TValue, TCollection>(this IDictionary<TKey, TCollection> dictionary, TKey key, TValue value)
             where TCollection : ICollection<TValue>
         {
             if (dictionary.TryGetValue(key, out var collection))
+            {
+                collection.Remove(value);
+
+                if (collection.Count == 0)
+                {
+                    dictionary.Remove(key);
+                }
+            }
+        }
+
+        public static void MultiRemoveWithDefault<TKey, TValue, TCollection>(this IDictionary<TKey, TCollection> dictionary, TKey key, TValue value)
+            where TValue : IEquatable<TValue>
+            where TCollection : ICollection<TValue>
+        {
+            if (!dictionary.TryGetValue(key, out var collection))
+            {
+                return;
+            }
+
+            if (collection == null)
+            {
+                if (((IEquatable<TValue>)value).Equals(default))
+                {
+                    dictionary.Remove(key);
+                }
+            }
+            else
             {
                 collection.Remove(value);
 
