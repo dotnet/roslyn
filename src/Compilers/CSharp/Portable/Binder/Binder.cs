@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool AreNullableAnnotationsEnabled(SyntaxTree syntaxTree, int position)
         {
-            bool? fromTree = ((CSharpSyntaxTree)syntaxTree).GetNullableDirectiveState(position).AnnotationsState;
+            bool? fromTree = ((CSharpSyntaxTree)syntaxTree).GetNullableContextState(position).AnnotationsState;
 
             if (fromTree != null)
             {

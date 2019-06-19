@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isNullableFlowAnalysisWarning)
             {
                 var nullableWarningsGloballyEnabled = nullableOption == NullableContextOptions.Enable || nullableOption == NullableContextOptions.Warnings;
-                var nullableWarningsEnabled = tree?.GetNullableDirectiveState(position).WarningsState ?? nullableWarningsGloballyEnabled;
+                var nullableWarningsEnabled = tree?.GetNullableContextState(position).WarningsState ?? nullableWarningsGloballyEnabled;
                 if (!nullableWarningsEnabled)
                 {
                     return ReportDiagnostic.Suppress;

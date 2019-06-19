@@ -619,15 +619,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyPragmaWarningStateMap.GetWarningState(id, position);
         }
 
-        internal NullableDirective GetNullableDirectiveState(int position)
+        internal NullableContextState GetNullableContextState(int position)
         {
-            if (_lazyNullableDirectiveMap == null)
+            if (_lazyNullableContextStateMap == null)
             {
                 // Create the #nullable directive map on demand.
-                Interlocked.CompareExchange(ref _lazyNullableDirectiveMap, NullableDirectiveMap.Create(this, IsGeneratedCode()), null);
+                Interlocked.CompareExchange(ref _lazyNullableContextStateMap, NullableContextStateMap.Create(this, IsGeneratedCode()), null);
             }
 
-            return _lazyNullableDirectiveMap.GetDirectiveState(position);
+            return _lazyNullableContextStateMap.GetContextState(position);
         }
 
         internal bool IsGeneratedCode()
@@ -648,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private CSharpLineDirectiveMap _lazyLineDirectiveMap;
         private CSharpPragmaWarningStateMap _lazyPragmaWarningStateMap;
-        private NullableDirectiveMap _lazyNullableDirectiveMap;
+        private NullableContextStateMap _lazyNullableContextStateMap;
         private ThreeState _lazyIsGeneratedCode = ThreeState.Unknown;
 
         private LinePosition GetLinePosition(int position)
