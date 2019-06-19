@@ -1917,7 +1917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string[] values = value.Split(new char[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string id in values)
             {
-                if (id.ToLowerInvariant() == "nullable")
+                if (string.Equals(id, "nullable", StringComparison.OrdinalIgnoreCase))
                 {
                     foreach (var errorCode in ErrorFacts.NullableFlowAnalysisWarnings)
                     {

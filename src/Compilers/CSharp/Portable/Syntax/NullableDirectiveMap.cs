@@ -57,6 +57,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             _isGeneratedCode = isGeneratedCode;
         }
 
+        private static NullableDirective GetDirectiveForFileStart(int position, bool isGeneratedCode)
+        {
+            // Generated files have an initial nullable context that is "disabled"
+            return isGeneratedCode
+                ? new NullableDirective(position, false, false)
+                : new NullableDirective(position, null, null);
+        }
+
         internal NullableDirective GetDirectiveState(int position)
         {
             // PositionComparer only checks the position, not the states
@@ -69,10 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 index = ~index - 1;
             }
 
-            // Generated files have an initial nullable context that is "disabled"
-            var directive = _isGeneratedCode
-                ? new NullableDirective(position, false, false)
-                : new NullableDirective(position, null, null);
+            var directive = GetDirectiveForFileStart(position, _isGeneratedCode);
 
             if (index >= 0)
             {
@@ -86,10 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static ImmutableArray<NullableDirective> GetDirectives(SyntaxTree tree, bool isGeneratedCode)
         {
-            // Generated files have an initial nullable context that is "disabled"
-            var previousDirective = isGeneratedCode
-                ? new NullableDirective(0, false, false)
-                : new NullableDirective(0, null, null);
+            var previousDirective = GetDirectiveForFileStart(position: 0, isGeneratedCode: isGeneratedCode);
 
             var builder = ArrayBuilder<NullableDirective>.GetInstance();
             foreach (var d in tree.GetRoot().GetDirectives())
