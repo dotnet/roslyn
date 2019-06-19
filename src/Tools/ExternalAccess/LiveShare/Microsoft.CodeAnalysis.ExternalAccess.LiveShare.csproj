@@ -43,6 +43,7 @@
     <PackageReference Include="Microsoft.VisualStudio.LiveShare.WebEditors" Version="$(MicrosoftVisualStudioLiveShareWebEditorsVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
   </ItemGroup>
 
