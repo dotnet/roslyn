@@ -1444,13 +1444,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
-        <source>The annotation for nullable reference types should only be used in code within a '#nullable' context.</source>
-        <target state="translated">应仅在 “#nullable” 上下文中的代码中使用可为 null 的引用类型的注释。</target>
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
+        <target state="needs-review-translation">应仅在 “#nullable” 上下文中的代码中使用可为 null 的引用类型的注释。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
-        <source>The annotation for nullable reference types should only be used in code within a '#nullable' context.</source>
-        <target state="translated">应仅在 “#nullable” 上下文中的代码中使用可为 null 的引用类型的注释。</target>
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
+        <target state="needs-review-translation">应仅在 “#nullable” 上下文中的代码中使用可为 null 的引用类型的注释。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
