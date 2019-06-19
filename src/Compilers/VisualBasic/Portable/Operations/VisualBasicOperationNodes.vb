@@ -917,8 +917,8 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _returnedValue As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, returnedValue As BoundNode, refKind As RefKind, kind As OperationKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(kind, refKind, semanticModel, syntax, type, constantValue, isImplicit)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, returnedValue As BoundNode, kind As OperationKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+            MyBase.New(kind, RefKind.None, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _returnedValue = returnedValue
         End Sub

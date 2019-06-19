@@ -5835,7 +5835,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseReturnOperation : Operation, IReturnOperation
     {
-        protected BaseReturnOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseReturnOperation(OperationKind kind, RefKind refKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Debug.Assert(kind == OperationKind.Return
@@ -5857,7 +5857,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Value to be returned.
         /// </summary>
         public abstract IOperation ReturnedValue { get; }
-        public abstract RefKind RefKind { get; }
+        public RefKind RefKind { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitReturn(this);
@@ -5874,14 +5874,12 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class ReturnOperation : BaseReturnOperation, IReturnOperation
     {
         public ReturnOperation(OperationKind kind, IOperation returnedValue, RefKind refKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(kind, semanticModel, syntax, type, constantValue, isImplicit)
+            base(kind, refKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             ReturnedValue = SetParentOperation(returnedValue, this);
-            RefKind = refKind;
         }
 
         public override IOperation ReturnedValue { get; }
-        public override RefKind RefKind { get; }
     }
 
     /// <summary>
@@ -5892,9 +5890,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyReturnedValueInterlocked = s_unset;
 
         public LazyReturnOperation(OperationKind kind, RefKind refKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(kind, semanticModel, syntax, type, constantValue, isImplicit)
+            base(kind, refKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            RefKind = refKind;
         }
 
         protected abstract IOperation CreateReturnedValue();
@@ -5913,8 +5910,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 return _lazyReturnedValueInterlocked;
             }
         }
-
-        public override RefKind RefKind { get; }
     }
 
     /// <summary>
