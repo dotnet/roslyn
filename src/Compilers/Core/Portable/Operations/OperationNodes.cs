@@ -5841,6 +5841,11 @@ namespace Microsoft.CodeAnalysis.Operations
             Debug.Assert(kind == OperationKind.Return
                       || kind == OperationKind.YieldReturn
                       || kind == OperationKind.YieldBreak);
+            Debug.Assert(refKind == RefKind.None
+                || refKind == RefKind.Ref
+                || refKind == RefKind.RefReadOnly);
+
+            RefKind = refKind;
         }
 
         public override IEnumerable<IOperation> Children
