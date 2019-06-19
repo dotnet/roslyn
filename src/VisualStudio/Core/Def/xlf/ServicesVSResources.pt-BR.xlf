@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
-        <target state="new">A new namespace will be created</target>
+        <target state="translated">Um namespace será criado</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_current_file">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
         <source>Enable nullable reference analysis IDE features</source>
-        <target state="new">Enable nullable reference analysis IDE features</target>
+        <target state="translated">Habilitar recursos do IDE de análise de referência que permite valor nulo</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -139,17 +139,17 @@
       </trans-unit>
       <trans-unit id="Modifier_preferences_colon">
         <source>Modifier preferences:</source>
-        <target state="translated">Preferências de modificador:</target>
+        <target state="translated">Preferências do modificador:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to Namespace</source>
-        <target state="new">Move to Namespace</target>
+        <target state="translated">Mover para o Namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
         <source>Namespace</source>
-        <target state="new">Namespace</target>
+        <target state="translated">Namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0">
@@ -334,17 +334,17 @@
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
-        <target state="translated">Preferir campos somente leitura</target>
+        <target state="translated">Preferir campos readonly</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
         <source>Prefer simple 'using' statement</source>
-        <target state="translated">Preferir instrução 'using' simples</target>
+        <target state="translated">Preferir a instrução 'using' simples</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
-        <target state="translated">Preferir funções locais estáticas</target>
+        <target state="translated">Preferir as funções locais estáticas</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_Members_Up">
@@ -419,17 +419,17 @@
       </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
-        <target state="translated">Mostrar lista de conclusão</target>
+        <target state="translated">Mostrar a lista de conclusão</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
-        <target state="new">Target Namespace:</target>
+        <target state="translated">Namespace de Destino:</target>
         <note />
       </trans-unit>
       <trans-unit id="This_is_an_invalid_namespace">
         <source>This is an invalid namespace</source>
-        <target state="new">This is an invalid namespace</target>
+        <target state="translated">Este é um namespace inválido</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">

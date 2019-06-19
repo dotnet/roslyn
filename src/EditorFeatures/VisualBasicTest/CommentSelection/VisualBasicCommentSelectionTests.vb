@@ -29,7 +29,7 @@ End Module</code>
     'End Sub
 End Module</code>
 
-            InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, CommentUncommentSelectionCommandHandler.Operation.Comment)
+            InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, Operation.Comment)
         End Sub
 
 
@@ -47,7 +47,7 @@ End Module</code>
     End Sub
 End Module</code>
 
-            InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, CommentUncommentSelectionCommandHandler.Operation.Uncomment)
+            InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, Operation.Uncomment)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
@@ -64,10 +64,10 @@ End Module</code>
     End Sub
 End Module</code>
 
-            InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, CommentUncommentSelectionCommandHandler.Operation.Uncomment)
+            InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, Operation.Uncomment)
         End Sub
 
-        Private Shared Sub InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code As String, expected As String, operation As CommentUncommentSelectionCommandHandler.Operation)
+        Private Shared Sub InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code As String, expected As String, operation As Operation)
             ' do this since xml value put only vbLf
             code = code.Replace(vbLf, vbCrLf)
             expected = expected.Replace(vbLf, vbCrLf)
