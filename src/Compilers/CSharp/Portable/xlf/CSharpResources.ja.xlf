@@ -1327,16 +1327,6 @@
         <target state="translated">既定の式は、型パラメーターに null 値を導入します。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended">
-        <source>'default' is converted to 'null', not 'default({0})'</source>
-        <target state="translated">'default' は、'default({0})' ではなく 'null' に変換されます</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended_Title">
-        <source>'default' is converted to 'null'</source>
-        <target state="translated">'default' が 'null' に変換されます</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
         <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
