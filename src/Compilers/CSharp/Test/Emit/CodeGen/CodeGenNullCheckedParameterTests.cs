@@ -405,51 +405,34 @@ class C
             var source = @"
 class C
 {
-    private object[] items = {4, 5};
-    public string this[object index!]
-    {
-        set
-        {
-            items[0] = value;
-        }
-    }
+    object this[object index!] { set { } }
     public static void Main() { }
 }";
             // Release
             var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe);
             compilation.VerifyIL("C.this[object].set", @"
-    {
-      // Code size       19 (0x13)
-      .maxstack  3
-     ~IL_0000:  ldarg.1
-      IL_0001:  brtrue.s   IL_0009
-      IL_0003:  newobj     ""System.Exception..ctor()""
-      IL_0008:  throw
-     -IL_0009:  ldarg.0
-      IL_000a:  ldfld      ""object[] C.items""
-      IL_000f:  ldc.i4.0
-      IL_0010:  ldarg.2
-      IL_0011:  stelem.ref
-     -IL_0012:  ret
+{
+    // Code size       10 (0xa)
+    .maxstack  1
+    ~IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    -IL_0009:  ret
 }", sequencePoints: "C.set_Item");
 
             // Debug
             compilation = CompileAndVerify(source, options: TestOptions.DebugExe);
             compilation.VerifyIL("C.this[object].set", @"
 {
-      // Code size       20 (0x14)
-      .maxstack  3
-     ~IL_0000:  ldarg.1
-      IL_0001:  brtrue.s   IL_0009
-      IL_0003:  newobj     ""System.Exception..ctor()""
-      IL_0008:  throw
-     -IL_0009:  nop
-     -IL_000a:  ldarg.0
-      IL_000b:  ldfld      ""object[] C.items""
-      IL_0010:  ldc.i4.0
-      IL_0011:  ldarg.2
-      IL_0012:  stelem.ref
-     -IL_0013:  ret
+    // Code size       11 (0xb)
+    .maxstack  1
+    ~IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    -IL_0009:  nop
+    -IL_000a:  ret
 }", sequencePoints: "C.set_Item");
         }
 
