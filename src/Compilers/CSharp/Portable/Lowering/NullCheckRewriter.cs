@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Linq;
 
-namespace Microsoft.CodeAnalysis.CSharp.Lowering
+namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class NullCheckRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering
 
             // PROTOTYPE : Make ArgumentNullException
             BoundThrowStatement throwArgNullStatement = _fact.Throw(_fact.New(_fact.WellKnownType(WellKnownType.System_Exception)));
-
-            return _fact.HiddenSequencePoint(_fact.If(paramIsNullCondition, body.Locals, throwArgNullStatement));
+            return _fact.HiddenSequencePoint(_fact.If(paramIsNullCondition, throwArgNullStatement));
         }
     }
 }
