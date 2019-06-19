@@ -353,6 +353,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitReturn(IReturnOperation operation)
         {
             Assert.Contains(operation.Kind, new[] { OperationKind.Return, OperationKind.YieldReturn, OperationKind.YieldBreak });
+            Assert.Contains(operation.RefKind, new[] { RefKind.None, RefKind.Ref, RefKind.RefReadOnly });
             if (operation.ReturnedValue == null)
             {
                 Assert.NotEqual(OperationKind.YieldReturn, operation.Kind);
