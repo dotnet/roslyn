@@ -618,7 +618,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return method;
                 }
 
-                var typeArguments = method.ConstructedFrom.TypeParameters.Select(tp => bestMap.GetValueOrDefault(tp) ?? tp).ToArray();
+                // TODO: pass nullability once https://github.com/dotnet/roslyn/issues/36046 is fixed
+                var typeArguments = method.ConstructedFrom.TypeParameters
+                    .Select(tp => (bestMap.GetValueOrDefault(tp) ?? tp).WithoutNullability()).ToArray();
                 return method.ConstructedFrom.Construct(typeArguments);
             }
 

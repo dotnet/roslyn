@@ -11,6 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public string FilePath { get; set; }
         public ParseOptions ParseOptions { get; set; }
 
+        public IVsHierarchy Hierarchy { get; set; }
         public Guid ProjectGuid { get; set; }
     }
 }

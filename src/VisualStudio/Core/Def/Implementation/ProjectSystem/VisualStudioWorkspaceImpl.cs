@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using EnvDTE;
@@ -58,13 +57,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly ITextBufferCloneService _textBufferCloneService;
 
-        private readonly Lazy<IVsSolution> _lazyVsSolution;
-
         /// <summary>
         /// A <see cref="ForegroundThreadAffinitizedObject"/> to make assertions that stuff is on the right thread.
         /// </summary>
         private readonly ForegroundThreadAffinitizedObject _foregroundObject;
 
+        private ImmutableDictionary<ProjectId, IVsHierarchy> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy>.Empty;
         private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = ImmutableDictionary<ProjectId, Guid>.Empty;
 
         /// <summary>
@@ -103,8 +101,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
             _projectCodeModelFactory = exportProvider.GetExport<IProjectCodeModelFactory>();
-
-            _lazyVsSolution = new Lazy<IVsSolution>(() => exportProvider.GetExport<SVsServiceProvider>().Value.GetService<IVsSolution, SVsSolution>());
 
             // We fetch this lazily because VisualStudioProjectFactory depends on VisualStudioWorkspaceImpl -- we have a circularity. Since this
             // exists right now as a compat shim, we'll just do this.
@@ -161,11 +157,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _openFileTrackerOpt?.ProcessQueuedWorkOnUIThread();
         }
 
-        internal void AddProjectToInternalMaps(VisualStudioProject project, Guid projectGuid, string projectSystemName)
+        internal void AddProjectToInternalMaps(VisualStudioProject project, IVsHierarchy hierarchy, Guid guid, string projectSystemName)
         {
             lock (_gate)
             {
-                _projectToGuidMap = _projectToGuidMap.Add(project.Id, projectGuid);
+                _projectToHierarchyMap = _projectToHierarchyMap.Add(project.Id, hierarchy);
+                _projectToGuidMap = _projectToGuidMap.Add(project.Id, guid);
                 _projectSystemNameToProjectsMap.MultiAdd(projectSystemName, project);
             }
         }
@@ -220,20 +217,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return ContainedDocument.TryGetContainedDocument(documentId);
         }
 
-        internal VisualStudioProject GetProjectWithGuidAndName(Guid projectGuid, string projectName)
+        internal VisualStudioProject GetProjectWithHierarchyAndName(IVsHierarchy hierarchy, string projectName)
         {
-            Debug.Assert(projectGuid != Guid.Empty);
-            Debug.Assert(projectName != null);
-
             lock (_gate)
             {
                 if (_projectSystemNameToProjectsMap.TryGetValue(projectName, out var projects))
                 {
                     foreach (var project in projects)
                     {
-                        if (GetProjectGuid(project.Id) == projectGuid)
+                        if (_projectToHierarchyMap.TryGetValue(project.Id, out var projectHierarchy))
                         {
-                            return project;
+                            if (projectHierarchy == hierarchy)
+                            {
+                                return project;
+                            }
                         }
                     }
                 }
@@ -1248,12 +1245,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public override IVsHierarchy GetHierarchy(ProjectId projectId)
         {
-            // TODO: XAML calls this on a background thread: https://github.com/dotnet/roslyn/issues/36223
-            // _foregroundObject.AssertIsForeground();
-
-            // This doesn't take a lock since _projectToGuidMap is immutable
-            return _projectToGuidMap.TryGetValue(projectId, out var projectGuid) &&
-                   ErrorHandler.Succeeded(_lazyVsSolution.Value.GetProjectOfGuid(ref projectGuid, out var hierarchy)) ? hierarchy : null;
+            // This doesn't take a lock since _projectToHierarchyMap is immutable
+            return _projectToHierarchyMap.GetValueOrDefault(projectId, defaultValue: null);
         }
 
         internal override Guid GetProjectGuid(ProjectId projectId)
@@ -1492,7 +1485,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new Dictionary<ProjectId, ProjectReferenceInformation>();
+        private Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new Dictionary<ProjectId, ProjectReferenceInformation>();
 
         private ProjectReferenceInformation GetReferenceInfo_NoLock(ProjectId projectId)
         {
@@ -1515,6 +1508,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     _projectReferenceInfoMap.Remove(projectId);
                 }
 
+                _projectToHierarchyMap = _projectToHierarchyMap.Remove(projectId);
                 _projectToGuidMap = _projectToGuidMap.Remove(projectId);
                 _projectToRuleSetFilePath.Remove(projectId);
                 _projectCompilationOutputs.Remove(projectId);
