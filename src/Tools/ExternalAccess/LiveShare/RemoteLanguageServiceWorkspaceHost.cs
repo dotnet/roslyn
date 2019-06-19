@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Projects;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LiveShare;
 using Microsoft.VisualStudio.Shell;
@@ -34,7 +33,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
         private TaskCompletionSource<bool> _projectsLoadedTaskCompletionSource = new TaskCompletionSource<bool>();
         private readonly RemoteLanguageServiceWorkspace _remoteLanguageServiceWorkspace;
         private readonly RemoteProjectInfoProvider _remoteProjectInfoProvider;
-        private readonly RunningDocumentTable _rdt;
 
         // TODO: remove this project language to extension map with the switch to LSP
         private readonly ImmutableDictionary<string, string[]> _projectLanguageToExtensionMap;
@@ -54,7 +52,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
             _remoteLanguageServiceWorkspace = Requires.NotNull(remoteLanguageServiceWorkspace, nameof(remoteLanguageServiceWorkspace));
             _remoteProjectInfoProvider = Requires.NotNull(remoteProjectInfoProvider, nameof(remoteProjectInfoProvider));
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            _rdt = new RunningDocumentTable(serviceProvider);
 
             var builder = ImmutableDictionary.CreateBuilder<string, string[]>(StringComparer.OrdinalIgnoreCase);
             builder.Add("TypeScript", new string[] { ".js", ".jsx", ".ts", ".tsx" });
@@ -112,24 +109,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
             {
                 await _projectsLoadedTaskCompletionSource.Task.ConfigureAwait(false);
             }
-        }
-
-        /// <summary>
-        /// Calls <see cref="CodeAnalysis.Workspace.OnDocumentOpened(DocumentId, SourceTextContainer, bool)"/>
-        /// </summary>
-        /// <param name="docInfo">The document being opened.</param>
-        public void NotifyOnDocumentOpened(RunningDocumentInfo docInfo)
-        {
-            _remoteLanguageServiceWorkspace.NotifyOnDocumentOpened(docInfo);
-        }
-
-        /// <summary>
-        /// Calls <see cref="CodeAnalysis.Workspace.OnDocumentClosed(DocumentId, TextLoader, bool)"/>
-        /// </summary>
-        /// <param name="docInfo">The document info.</param>
-        public void NotifyOnDocumentClosing(RunningDocumentInfo docInfo)
-        {
-            _remoteLanguageServiceWorkspace.NotifyOnDocumentClosing(docInfo);
         }
 
         /// <summary>

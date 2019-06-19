@@ -25,7 +25,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.TextManager.Interop;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using Task = System.Threading.Tasks.Task;
 
@@ -35,17 +34,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
     /// A Roslyn workspace that contains projects that exist on a remote machine.
     /// </summary>
     [Export(typeof(RemoteLanguageServiceWorkspace))]
-    internal sealed class RemoteLanguageServiceWorkspace : Workspace, IDisposable
+    internal sealed class RemoteLanguageServiceWorkspace : Workspace, IDisposable, IRunningDocumentTableEventListener
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
-        private readonly RunningDocumentTable _rdt;
         private readonly IThreadingContext _threadingContext;
+        private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
 
         private const string ExternalProjectName = "ExternalDocuments";
 
-        // A collection of opened documents in RDT, indexed by the cookie of the document.
-        private ImmutableDictionary<uint, DocumentId> _openedDocs = ImmutableDictionary<uint, DocumentId>.Empty;
+        // A collection of opened documents in RDT, indexed by the moniker of the document.
+        private ImmutableDictionary<string, DocumentId> _openedDocs = ImmutableDictionary<string, DocumentId>.Empty;
 
         private CollaborationSession _session;
         private string _remoteRootPath;
@@ -59,6 +58,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
         /// </summary>
         [ImportingConstructor]
         public RemoteLanguageServiceWorkspace(ExportProvider exportProvider,
+                                              IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
                                               SVsServiceProvider serviceProvider,
                                               IDiagnosticService diagnosticService,
                                               ITableManagerProvider tableManagerProvider,
@@ -75,8 +75,23 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
 
             _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
 
-            _rdt = new RunningDocumentTable(serviceProvider);
+            var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
+            _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
             _threadingContext = threadingContext;
+        }
+
+        void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy hierarchy) => NotifyOnDocumentOpened(moniker, textBuffer, hierarchy);
+
+        void IRunningDocumentTableEventListener.OnCloseDocument(string moniker) => NotifyOnDocumentClosing(moniker);
+
+        void IRunningDocumentTableEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
+        {
+            // Handled by Add/Remove
+        }
+
+        void IRunningDocumentTableEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer textBuffer)
+        {
+            // Handled by Add/Remove.
         }
 
         public async Task SetSession(CollaborationSession session)
@@ -143,27 +158,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
         }
 
         /// <inheritdoc />
-        public void NotifyOnDocumentOpened(RunningDocumentInfo docInfo)
+        public void NotifyOnDocumentOpened(string moniker, ITextBuffer textBuffer, IVsHierarchy hierarchy)
         {
-            if (_openedDocs.ContainsKey(docInfo.DocCookie))
+            if (_openedDocs.ContainsKey(moniker))
             {
                 return;
             }
 
-            Document document = GetOrAddDocument(docInfo.Moniker);
+            Document document = GetOrAddDocument(moniker);
 
             if (document != null)
             {
-                if (docInfo.DocData is IVsTextBuffer)
-                {
-                    ITextBuffer textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer((IVsTextBuffer)docInfo.DocData);
-                    if (textBuffer != null)
-                    {
-                        SourceTextContainer textContainer = textBuffer.AsTextContainer();
-                        OnDocumentOpened(document.Id, textContainer);
-                        _openedDocs = _openedDocs.SetItem(docInfo.DocCookie, document.Id);
-                    }
-                }
+                SourceTextContainer textContainer = textBuffer.AsTextContainer();
+                OnDocumentOpened(document.Id, textContainer);
+                _openedDocs = _openedDocs.SetItem(moniker, document.Id);
             }
         }
 
@@ -278,15 +286,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
         }
 
         /// <inheritdoc />
-        public void NotifyOnDocumentClosing(RunningDocumentInfo docInfo)
+        public void NotifyOnDocumentClosing(string moniker)
         {
-            if (_openedDocs.TryGetValue(docInfo.DocCookie, out DocumentId id))
+            if (_openedDocs.TryGetValue(moniker, out DocumentId id))
             {
                 // check if the doc is part of the current Roslyn workspace before notifying Roslyn.
                 if (CurrentSolution.ContainsProject(id.ProjectId))
                 {
-                    OnDocumentClosed(id, new FileTextLoaderNoException(docInfo.Moniker, null));
-                    _openedDocs = _openedDocs.Remove(docInfo.DocCookie);
+                    OnDocumentClosed(id, new FileTextLoaderNoException(moniker, null));
+                    _openedDocs = _openedDocs.Remove(moniker);
                 }
             }
         }
@@ -327,10 +335,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
                         frame.ShowNoActivate();
                     }
 
-                    var docInfo = _rdt.GetDocumentInfo(doc.FilePath);
-                    if (docInfo.DocCookie != VSConstants.VSCOOKIE_NIL)
+                    if (_runningDocumentTableEventTracker.IsFileOpen(doc.FilePath) && _runningDocumentTableEventTracker.TryGetBufferFromMoniker(doc.FilePath, out var buffer))
                     {
-                        NotifyOnDocumentOpened(docInfo);
+                        var hierarchy = _runningDocumentTableEventTracker.GetDocumentHierarchy(doc.FilePath);
+                        NotifyOnDocumentOpened(doc.FilePath, buffer, hierarchy);
                     }
                 }
             }
@@ -354,20 +362,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
         /// <inheritdoc />
         public void AddOpenedDocument(string filePath, DocumentId docId)
         {
-            var runningDocInfo = _rdt.GetDocumentInfo(filePath);
-            if (runningDocInfo.DocCookie != VSConstants.VSCOOKIE_NIL)
+            if (_runningDocumentTableEventTracker.IsFileOpen(filePath))
             {
-                _openedDocs = _openedDocs.SetItem(runningDocInfo.DocCookie, docId);
+                _openedDocs = _openedDocs.SetItem(filePath, docId);
             }
         }
 
         /// <inheritdoc />
         public void RemoveOpenedDocument(string filePath)
         {
-            var runningDocInfo = _rdt.GetDocumentInfo(filePath);
-            if (runningDocInfo.DocCookie != VSConstants.VSCOOKIE_NIL)
+            if (_runningDocumentTableEventTracker.IsFileOpen(filePath))
             {
-                _openedDocs = _openedDocs.Remove(runningDocInfo.DocCookie);
+                _openedDocs = _openedDocs.Remove(filePath);
             }
         }
 
