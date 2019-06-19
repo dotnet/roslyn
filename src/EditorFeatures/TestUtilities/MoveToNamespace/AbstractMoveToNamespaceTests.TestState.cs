@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
             public Document InvocationDocument => Workspace.CurrentSolution.GetDocument(TestInvocationDocument.Id);
 
             public TestMoveToNamespaceOptionsService TestMoveToNamespaceOptionsService
-                => (TestMoveToNamespaceOptionsService)Workspace.Services.GetService<IMoveToNamespaceOptionsService>();
+                => (TestMoveToNamespaceOptionsService)MoveToNamespaceService.OptionsService;
 
             public IMoveToNamespaceService MoveToNamespaceService
                 => InvocationDocument.GetLanguageService<IMoveToNamespaceService>();
