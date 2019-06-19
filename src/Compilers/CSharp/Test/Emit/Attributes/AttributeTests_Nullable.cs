@@ -325,6 +325,73 @@ class C
         }
 
         [Fact]
+        public void EmitAttribute_OnlyAnnotationsEnabled_LocalFunctionConstraints()
+        {
+            var source = @"
+class C
+{
+#nullable enable annotations
+    void M1()
+    {
+        local(new C());
+        void local<T>(T t) where T : C?
+        {
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var assembly = module.ContainingAssembly;
+                Assert.NotNull(assembly.GetTypeByMetadataName("System.Runtime.CompilerServices.NullableAttribute"));
+            });
+        }
+
+        [Fact]
+        public void EmitAttribute_NullableEnabledInProject_LocalFunctionConstraints()
+        {
+            var source = @"
+class C
+{
+    void M1()
+    {
+        local(new C());
+        void local<T>(T t) where T : C?
+        {
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypes(NullableContextOptions.Enable), parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var assembly = module.ContainingAssembly;
+                Assert.NotNull(assembly.GetTypeByMetadataName("System.Runtime.CompilerServices.NullableAttribute"));
+            });
+        }
+
+        [Fact]
+        public void EmitAttribute_OnlyAnnotationsEnabledInProject_LocalFunctionConstraints()
+        {
+            var source = @"
+class C
+{
+    void M1()
+    {
+        local(new C());
+        void local<T>(T t) where T : C?
+        {
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypes(NullableContextOptions.Annotations), parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var assembly = module.ContainingAssembly;
+                Assert.NotNull(assembly.GetTypeByMetadataName("System.Runtime.CompilerServices.NullableAttribute"));
+            });
+        }
+
+        [Fact]
         public void EmitAttribute_LocalFunctionConstraints_Nested()
         {
             var source = @"

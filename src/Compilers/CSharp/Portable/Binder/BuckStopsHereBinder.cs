@@ -157,11 +157,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override bool IsNullableGloballyEnabled()
+        internal override bool AreNullableAnnotationsGloballyEnabled()
         {
             switch (Compilation.Options.NullableContextOptions)
             {
                 case NullableContextOptions.Enable:
+                case NullableContextOptions.Annotations:
                     return true;
 
                 case NullableContextOptions.Disable:

@@ -68,7 +68,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
-        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'warnings'</source>
+        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
         <target state="needs-review-translation">/nullable 的选项“{0}”无效；必须为 "disable"、"enable"、"safeonly"、"warnings" 或 "safeonlywarnings"</target>
         <note />
       </trans-unit>
@@ -315,6 +315,11 @@
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'disable', or 'restore'</source>
         <target state="needs-review-translation">预期 "enable"、"safeonly"、"disable"或 "restore"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullableDirectiveTargetExpected">
+        <source>Expected 'warnings', 'annotations', or end of directive</source>
+        <target state="new">Expected 'warnings', 'annotations', or end of directive</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
@@ -1429,13 +1434,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
-        <source>The annotation for nullable reference types should only be used in code within a '#nullable' context.</source>
-        <target state="translated">应仅在 “#nullable” 上下文中的代码中使用可为 null 的引用类型的注释。</target>
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
+        <target state="needs-review-translation">应仅在 “#nullable” 上下文中的代码中使用可为 null 的引用类型的注释。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
-        <source>The annotation for nullable reference types should only be used in code within a '#nullable' context.</source>
-        <target state="translated">应仅在 “#nullable” 上下文中的代码中使用可为 null 的引用类型的注释。</target>
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
+        <target state="needs-review-translation">应仅在 “#nullable” 上下文中的代码中使用可为 null 的引用类型的注释。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
