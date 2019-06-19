@@ -9,7 +9,6 @@
     <MinorVersion>2</MinorVersion>
     <PatchVersion>0</PatchVersion>
     <PreReleaseVersionLabel>beta4</PreReleaseVersionLabel>
-    
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <SemanticVersioningV1>true</SemanticVersioningV1>
     <!-- 
