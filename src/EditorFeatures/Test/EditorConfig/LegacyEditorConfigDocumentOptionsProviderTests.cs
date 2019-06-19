@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigStorageLocation
             var optionKey = new OptionKey(option);
 
             // Fetch the underlying option order with a "option" that returns the keys
-            provider.GetOptionsForDocumentAsync(document, CancellationToken.None).Result.TryGetDocumentOption(optionKey, workspace.Options, out object actualKeysInOrderObject);
+            provider.GetOptionsForDocumentAsync(document, CancellationToken.None).Result.TryGetDocumentOption(optionKey, out object actualKeysInOrderObject);
 
             var actualKeysInOrder = Assert.IsAssignableFrom<IEnumerable<string>>(actualKeysInOrderObject);
 
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigStorageLocation
         /// </summary>
         private class KeysReturningStorageLocation : OptionStorageLocation, IEditorConfigStorageLocation
         {
-            public bool TryGetOption(object underlyingOption, IReadOnlyDictionary<string, string> rawOptions, Type type, out object value)
+            public bool TryGetOption(IReadOnlyDictionary<string, string> rawOptions, Type type, out object value)
             {
                 value = rawOptions.Keys;
 
