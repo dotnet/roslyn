@@ -227,10 +227,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 message,
                 messageFormat,
                 severity: DiagnosticSeverity.Warning,
+                defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
                 description: description,
                 warningLevel: 0,
-                projectId: projectId);
+                projectId: projectId,
+                customTags: ImmutableArray<string>.Empty,
+                properties: ImmutableDictionary<string, string>.Empty);
         }
 
         private static bool TryGetErrorMessage(

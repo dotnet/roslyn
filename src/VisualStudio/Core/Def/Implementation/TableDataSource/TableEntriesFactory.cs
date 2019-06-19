@@ -154,12 +154,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 // flatten items from multiple sources and group them by deduplication identity
                 // merge duplicated items into de-duplicated item list
-                var items = _sources.GetSources()
-                                    .SelectMany(s => s.GetItems())
-                                    .GroupBy(d => d.DeduplicationKey)
-                                    .Select(g => (IList<TItem>)g);
-
-                return _tableSource.Deduplicate(items);
+                return _tableSource.AggregateItems(
+                    _sources.GetSources()
+                    .SelectMany(s => s.GetItems())
+                    .GroupBy(d => d, _tableSource.GroupingComparer));
             }
 
             public ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TItem> items)

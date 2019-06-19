@@ -8,7 +8,7 @@
     <MajorVersion>3</MajorVersion>
     <MinorVersion>2</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>beta3</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>beta4</PreReleaseVersionLabel>
     
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <SemanticVersioningV1>true</SemanticVersioningV1>
@@ -117,7 +117,7 @@
     <MicrosoftVisualStudioSDKAnalyzersVersion>15.7.7</MicrosoftVisualStudioSDKAnalyzersVersion>
     <MicrosoftVisualStudioSetupConfigurationInteropVersion>1.15.103</MicrosoftVisualStudioSetupConfigurationInteropVersion>
     <MicrosoftVisualStudioShell150Version>16.0.28226-pre</MicrosoftVisualStudioShell150Version>
-    <MicrosoftVisualStudioShellFrameworkVersion>16.0.28226-pre</MicrosoftVisualStudioShellFrameworkVersion>
+    <MicrosoftVisualStudioShellFrameworkVersion>16.1.28917.181</MicrosoftVisualStudioShellFrameworkVersion>
     <MicrosoftVisualStudioShellDesignVersion>15.7.27703</MicrosoftVisualStudioShellDesignVersion>
     <MicrosoftVisualStudioShellImmutable100Version>15.0.25415</MicrosoftVisualStudioShellImmutable100Version>
     <MicrosoftVisualStudioShellImmutable110Version>15.0.25415</MicrosoftVisualStudioShellImmutable110Version>
