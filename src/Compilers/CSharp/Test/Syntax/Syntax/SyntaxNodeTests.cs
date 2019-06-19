@@ -15,6 +15,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class SyntaxNodeTests
     {
         [Fact]
+        [WorkItem(565382, "https://developercommunity.visualstudio.com/content/problem/565382/compiling-causes-a-stack-overflow-error.html")]
+        public void TestLargeFluentCallWithDirective()
+        {
+            var builder = new StringBuilder();
+            builder.AppendLine(
+    @"
+class C {
+    C M(string x) { return this; }
+    void M2() {
+        new C()
+#region Region
+");
+            for (int i = 0; i < 20000; i++)
+            {
+                builder.AppendLine(@"            .M(""test"")");
+            }
+            builder.AppendLine(
+               @"            .M(""test"");
+#endregion
+    }
+}");
+
+            var tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
+            var directives = tree.GetRoot().GetDirectives();
+            Assert.Equal(2, directives.Count);
+        }
+
+        [Fact]
         public void TestQualifiedNameSyntaxWith()
         {
             // this is just a test to prove that at least one generate With method exists and functions correctly. :-)
