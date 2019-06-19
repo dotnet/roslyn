@@ -553,5 +553,53 @@ $@"class C
 }}");
             }
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        public async Task TestWholeMethodSelectionPositon()
+        {
+            await TestAsync("[|C LocalFunction(C c)");
+            await TestMissingAsync("C LocalFunction(C c)[|");
+
+            async Task TestAsync(string signature)
+            {
+                await TestInRegularAndScriptAsync(
+$@"class C
+{{
+    void M()
+    {{
+        {signature}
+        {{
+            return null;
+        }}|]
+    }}
+}}",
+@"class C
+{
+    void M()
+    {
+    }
+
+    private static C LocalFunction(C c)
+    {
+        return null;
+    }
+}");
+            }
+
+            async Task TestMissingAsync(string signature)
+            {
+                await this.TestMissingAsync(
+$@"class C
+{{
+    void M()
+    {{
+        {signature}
+        {{
+            return null;
+        }}|]
+    }}
+}}");
+            }
+        }
     }
 }

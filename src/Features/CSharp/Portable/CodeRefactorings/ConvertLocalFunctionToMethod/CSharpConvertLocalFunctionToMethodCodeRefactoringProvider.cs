@@ -42,15 +42,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             var cancellationToken = context.CancellationToken;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var identifier = await root.SyntaxTree.GetTouchingTokenAsync(context.Span.Start,
-                token => token.Parent.IsKind(SyntaxKind.LocalFunctionStatement), cancellationToken).ConfigureAwait(false);
+            var identifier = context.Span.IsEmpty
+                ? await root.SyntaxTree.GetTouchingTokenAsync(context.Span.Start, token => token.Parent.IsKind(SyntaxKind.LocalFunctionStatement), cancellationToken).ConfigureAwait(false)
+                : await root.SyntaxTree.GetLeftmostTokenInSpanAsync(context.Span, token => token.Parent.IsKind(SyntaxKind.LocalFunctionStatement), cancellationToken).ConfigureAwait(false);
+
+
             if (identifier == default)
             {
                 return;
             }
 
             if (context.Span.Length > 0 &&
-                context.Span != identifier.Span)
+                (context.Span != identifier.Span && context.Span != identifier.Parent.Span))    // either local function's identifier Token or the whole function's span
             {
                 return;
             }
