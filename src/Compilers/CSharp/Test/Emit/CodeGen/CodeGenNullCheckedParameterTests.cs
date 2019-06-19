@@ -340,5 +340,117 @@ class C
    IL_000a:  ret
 }", sequencePoints: "C.get_Item");
         }
+
+        [Fact]
+        public void TestNullCheckedIndexedGetterSetter()
+        {
+            var source = @"
+class C
+{
+    private string[] names;
+    public string this[int index!]
+    {
+        get
+        {
+            return names[index];
+        }
+        set
+        {
+            names[index] = value;
+        }
+    }
+    public static void Main() { }
+}";
+            // Release
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyIL("C.this[int].set", @"
+{
+    // Code size       19 (0x13)
+    .maxstack  3
+    ~IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    -IL_0009:  ldarg.0
+    IL_000a:  ldfld      ""string[] C.names""
+    IL_000f:  ldarg.1
+    IL_0010:  ldarg.2
+    IL_0011:  stelem.ref
+    -IL_0012:  ret
+}", sequencePoints: "C.set_Item");
+
+            // Debug
+            compilation = CompileAndVerify(source, options: TestOptions.DebugExe);
+            compilation.VerifyIL("C.this[int].set", @"
+{
+    // Code size       20 (0x14)
+    .maxstack  3
+    ~IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    -IL_0009:  nop
+    -IL_000a:  ldarg.0
+    IL_000b:  ldfld      ""string[] C.names""
+    IL_0010:  ldarg.1
+    IL_0011:  ldarg.2
+    IL_0012:  stelem.ref
+    -IL_0013:  ret
+}", sequencePoints: "C.set_Item");
+        }
+
+        [Fact]
+        public void TestNullCheckedIndexedSetter()
+        {
+            var source = @"
+class C
+{
+    private string[] names;
+    public string this[int index!]
+    {
+        set
+        {
+            names[index] = value;
+        }
+    }
+    public static void Main() { }
+}";
+            // Release
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyIL("C.this[int].set", @"
+{
+    // Code size       19 (0x13)
+    .maxstack  3
+    ~IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    -IL_0009:  ldarg.0
+    IL_000a:  ldfld      ""string[] C.names""
+    IL_000f:  ldarg.1
+    IL_0010:  ldarg.2
+    IL_0011:  stelem.ref
+    -IL_0012:  ret
+}", sequencePoints: "C.set_Item");
+
+            // Debug
+            compilation = CompileAndVerify(source, options: TestOptions.DebugExe);
+            compilation.VerifyIL("C.this[int].set", @"
+{
+    // Code size       20 (0x14)
+    .maxstack  3
+    ~IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    -IL_0009:  nop
+    -IL_000a:  ldarg.0
+    IL_000b:  ldfld      ""string[] C.names""
+    IL_0010:  ldarg.1
+    IL_0011:  ldarg.2
+    IL_0012:  stelem.ref
+    -IL_0013:  ret
+}", sequencePoints: "C.set_Item");
+        }
     }
 }
