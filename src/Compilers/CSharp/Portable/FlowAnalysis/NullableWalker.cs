@@ -2346,12 +2346,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rightOperand = node.RightOperand;
             int leftSlot = MakeSlot(leftOperand);
 
-            // The assignment to the left below needs the declared type from VisitLvalue, but the hidden
-            // unnecessary check diagnostic needs the current adjusted type of the slot
             TypeWithAnnotations targetType = VisitLvalueWithAnnotations(leftOperand);
             var leftState = this.State.Clone();
             LearnFromNonNullTest(leftOperand, ref leftState);
             LearnFromNullTest(leftOperand, ref this.State);
+            if (node.IsNullableValueTypeAssignment)
+            {
+                targetType = TypeWithAnnotations.Create(node.Type, NullableAnnotation.NotAnnotated);
+            }
             TypeWithState rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, useLegacyWarnings: UseLegacyWarnings(leftOperand, targetType), trackMembers: false, AssignmentKind.Assignment);
             TrackNullableStateForAssignment(rightOperand, targetType, leftSlot, rightResult, MakeSlot(rightOperand));
             Join(ref this.State, ref leftState);
