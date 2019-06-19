@@ -706,24 +706,29 @@ class C
 
             comp.VerifyDiagnostics();
             comp.VerifyAnalyzerDiagnostics(new[] { new NullabilityPrinter() }, null, null, true,
-                Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "MaybeNull", "Annotated").WithLocation(7, 13),
-                Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "MaybeNull", "Annotated").WithLocation(8, 13),
-                Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "NotNull", "NotAnnotated").WithLocation(9, 13));
+                Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "MaybeNull", "Annotated", "MaybeNull").WithLocation(7, 13),
+                Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "MaybeNull", "Annotated", "MaybeNull").WithLocation(8, 13),
+                Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "NotNull", "NotAnnotated", "NotNull").WithLocation(9, 13));
         }
 
         private class NullabilityPrinter : DiagnosticAnalyzer
         {
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
 
-            private static DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(id: "CA9999_NullabilityPrinter", title: "CA9999_NullabilityPrinter", messageFormat: "Nullability of '{0}' is '{1}':'{2}'", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            private static DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(id: "CA9999_NullabilityPrinter", title: "CA9999_NullabilityPrinter", messageFormat: "Nullability of '{0}' is '{1}':'{2}'. Speculative flow state is '{3}'", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             public override void Initialize(AnalysisContext context)
             {
+                var newSource = (ExpressionStatementSyntax)SyntaxFactory.ParseStatement("_ = o;");
+                var oReference = ((AssignmentExpressionSyntax)newSource.Expression).Right;
+
                 context.RegisterSyntaxNodeAction(syntaxContext =>
                 {
                     if (syntaxContext.Node.ToString() == "_") return;
                     var info = syntaxContext.SemanticModel.GetTypeInfo(syntaxContext.Node);
-                    syntaxContext.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_descriptor, syntaxContext.Node.GetLocation(), syntaxContext.Node, info.Nullability.FlowState, info.Nullability.Annotation));
+                    Assert.True(syntaxContext.SemanticModel.TryGetSpeculativeSemanticModel(syntaxContext.Node.SpanStart, newSource, out var specModel));
+                    var specInfo = specModel.GetTypeInfo(oReference);
+                    syntaxContext.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_descriptor, syntaxContext.Node.GetLocation(), syntaxContext.Node, info.Nullability.FlowState, info.Nullability.Annotation, specInfo.Nullability.FlowState));
                 }, SyntaxKind.IdentifierName);
             }
         }
@@ -908,8 +913,11 @@ class C
             var conditionalAccessExpression = root.DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().Single();
             var ternary = root.DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
 
-            var newSource = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement("var s3 = s1;");
-            var s2Reference = newSource.Declaration.Variables[0].Initializer.Value;
+            var newSource = ((ExpressionStatementSyntax)SyntaxFactory.ParseStatement(@"_ = s1 == """" ? s1 : s1;"));
+            var newTernary = (ConditionalExpressionSyntax)((AssignmentExpressionSyntax)newSource.Expression).Right;
+            var inCondition = ((BinaryExpressionSyntax)newTernary.Condition).Left;
+            var whenTrue = newTernary.WhenTrue;
+            var whenFalse = newTernary.WhenFalse;
 
             // Before the if statement
             verifySpeculativeModel(ifStatement.SpanStart, PublicNullableFlowState.MaybeNull);
@@ -929,11 +937,15 @@ class C
             // In the conditional whenFalse
             verifySpeculativeModel(ternary.WhenFalse.SpanStart, PublicNullableFlowState.NotNull);
 
-            void verifySpeculativeModel(int spanStart, PublicNullableFlowState expectedFlowState)
+            void verifySpeculativeModel(int spanStart, PublicNullableFlowState conditionFlowState)
             {
                 Assert.True(model.TryGetSpeculativeSemanticModel(spanStart, newSource, out var speculativeModel));
-                var speculativeTypeInfo = speculativeModel.GetTypeInfo(s2Reference);
-                Assert.Equal(expectedFlowState, speculativeTypeInfo.Nullability.FlowState);
+                var speculativeTypeInfo = speculativeModel.GetTypeInfo(inCondition);
+                Assert.Equal(conditionFlowState, speculativeTypeInfo.Nullability.FlowState);
+                speculativeTypeInfo = speculativeModel.GetTypeInfo(whenTrue);
+                Assert.Equal(PublicNullableFlowState.NotNull, speculativeTypeInfo.Nullability.FlowState);
+                speculativeTypeInfo = speculativeModel.GetTypeInfo(whenFalse);
+                Assert.Equal(conditionFlowState, speculativeTypeInfo.Nullability.FlowState);
             }
         }
 

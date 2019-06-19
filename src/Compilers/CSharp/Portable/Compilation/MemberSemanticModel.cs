@@ -1395,11 +1395,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _guardedNodeMap.TryGetValue(syntax, out result) ? result : default(ImmutableArray<BoundNode>);
         }
 
-        protected void UnguardedAddBoundTreeForStandaloneSyntax(SyntaxNode syntax, BoundNode bound)
+        protected void UnguardedAddBoundTreeForStandaloneSyntax(SyntaxNode syntax, BoundNode bound, NullableWalker.SnapshotManager manager = null)
         {
             using (_nodeMapLock.DisposableWrite())
             {
-                GuardedAddBoundTreeForStandaloneSyntax(syntax, bound);
+                GuardedAddBoundTreeForStandaloneSyntax(syntax, bound, manager);
             }
         }
 
