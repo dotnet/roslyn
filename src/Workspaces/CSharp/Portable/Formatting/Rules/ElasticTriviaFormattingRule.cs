@@ -424,6 +424,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 return currentToken.Parent is ExternAliasDirectiveSyntax ? 1 : 2;
             }
+            else if (currentToken.Parent is LocalFunctionStatementSyntax)
+            {
+                return 2;
+            }
             else
             {
                 return 1;

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                     localFunction,
                     (current, generator) => generator.WithModifiers(
                         current,
-                        generator.GetModifiers(current).WithIsStatic(true)).WithTriviaFrom(localFunction));
+                        generator.GetModifiers(current).WithIsStatic(true)));
             }
 
             return Task.CompletedTask;

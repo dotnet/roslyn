@@ -180,7 +180,7 @@ parseOptions: CSharp8ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-        public async Task TestSurroundingTrivia()
+        public async Task TestLeadingTriviaAfterSemicolon()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -189,12 +189,12 @@ class C
 {
     void M()
     {
+        int x;
 
         int [||]fibonacci(int n)
         {
             return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
         }
-
     }
 }",
 @"using System;
@@ -203,12 +203,12 @@ class C
 {
     void M()
     {
+        int x;
 
         static int fibonacci(int n)
         {
             return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
         }
-
     }
 }",
 parseOptions: CSharp8ParseOptions);
