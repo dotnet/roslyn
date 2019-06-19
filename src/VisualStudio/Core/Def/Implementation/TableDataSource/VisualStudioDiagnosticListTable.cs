@@ -42,8 +42,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             var errorList = _threadingContext.JoinableTaskFactory.Run(async () =>
             {
-                return (IErrorList)await _asyncServiceProvider.GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(false);
+                return await _asyncServiceProvider.GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(false) as IErrorList;
             });
+
+            if (errorList == null)
+            {
+                // nothing to do when there is no error list. 
+                // it can happen if VS ran in command line mode
+                return;
+            }
 
             var table = new VisualStudioDiagnosticListTable(
                 (VisualStudioWorkspaceImpl)workspace,
