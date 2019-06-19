@@ -153,12 +153,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             bool pessimisticAnalysis = false)
         {
             PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> allResults = null;
-            List<ControlFlowGraph> cfgs = new List<ControlFlowGraph>();
+            List<(ControlFlowGraph, ISymbol)> cfgs = new List<(ControlFlowGraph, ISymbol)>();
             foreach ((IOperation Operation, ISymbol ContainingSymbol) in rootOperationsNeedingAnalysis)
             {
                 cfgs.Clear();
                 ControlFlowGraph enclosingControlFlowGraph = Operation.GetEnclosingControlFlowGraph();
-                cfgs.Add(enclosingControlFlowGraph);
+                cfgs.Add((enclosingControlFlowGraph, ContainingSymbol));
                 PropertySetAnalysisResult enclosingResult = PropertySetAnalysis.GetOrComputeResult(
                     enclosingControlFlowGraph,
                     compilation,
@@ -179,7 +179,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 {
                     if (!enclosingResult.VisitedLocalFunctions.Contains(localFunctionSymbol))
                     {
-                        cfgs.Add(enclosingControlFlowGraph.GetLocalFunctionControlFlowGraph(localFunctionSymbol));
+                        cfgs.Add(
+                            (enclosingControlFlowGraph.GetLocalFunctionControlFlowGraph(localFunctionSymbol),
+                             localFunctionSymbol));
                     }
                 }
 
@@ -189,11 +191,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 {
                     if (!enclosingResult.VisitedLambdas.Contains(flowAnonymousFunctionOperation))
                     {
-                        cfgs.Add(enclosingControlFlowGraph.GetAnonymousFunctionControlFlowGraph(flowAnonymousFunctionOperation));
+                        cfgs.Add(
+                            (enclosingControlFlowGraph.GetAnonymousFunctionControlFlowGraph(flowAnonymousFunctionOperation),
+                             flowAnonymousFunctionOperation.Symbol));
                     }
                 }
 
-                foreach (ControlFlowGraph cfg in cfgs)
+                foreach ((ControlFlowGraph cfg, ISymbol owningSymbol) in cfgs)
                 {
                     PropertySetAnalysisResult dfaResult =
                         cfg == enclosingControlFlowGraph
@@ -201,7 +205,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         : PropertySetAnalysis.GetOrComputeResult(
                             cfg,
                             compilation,
-                            ContainingSymbol,
+                            owningSymbol,
                             typeToTrackMetadataName,
                             constructorMapper,
                             propertyMappers,
