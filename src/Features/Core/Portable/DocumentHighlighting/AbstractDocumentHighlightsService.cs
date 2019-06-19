@@ -95,12 +95,12 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
-            var languagesProvider = document.GetLanguageService<IEmbeddedLanguageFeaturesProvider>();
+            var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
             if (languagesProvider != null)
             {
                 foreach (var language in languagesProvider.Languages)
                 {
-                    var highlighter = language.DocumentHighlightsService;
+                    var highlighter = (language as IEmbeddedLanguageFeatures)?.DocumentHighlightsService;
                     if (highlighter != null)
                     {
                         var highlights = await highlighter.GetDocumentHighlightsAsync(
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         {
             var spanSet = new HashSet<DocumentSpan>();
             var tagMap = new MultiDictionary<Document, HighlightSpan>();
-            bool addAllDefinitions = true;
+            var addAllDefinitions = true;
 
             // Add definitions
             // Filter out definitions that cannot be highlighted. e.g: alias symbols defined via project property pages.

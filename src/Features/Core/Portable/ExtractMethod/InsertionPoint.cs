@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             Contract.ThrowIfNull(document);
             Contract.ThrowIfNull(annotation);
 
-            this.SemanticDocument = document;
+            SemanticDocument = document;
             _annotation = annotation;
             _context = CreateLazyContextNode();
         }
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         public SyntaxNode GetRoot()
         {
-            return this.SemanticDocument.Root;
+            return SemanticDocument.Root;
         }
 
         public SyntaxNode GetContext()
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         private SyntaxNode ComputeContextNode()
         {
-            var root = this.SemanticDocument.Root;
+            var root = SemanticDocument.Root;
             return root.GetAnnotatedNodesAndTokens(_annotation).Single().AsNode();
         }
     }

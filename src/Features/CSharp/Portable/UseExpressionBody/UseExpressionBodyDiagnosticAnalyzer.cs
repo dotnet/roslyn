@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -17,16 +18,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private readonly ImmutableArray<SyntaxKind> _syntaxKinds;
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
-
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
         public UseExpressionBodyDiagnosticAnalyzer()
-            : base(_helpers[0].DiagnosticId, _helpers[0].UseExpressionBodyTitle)
+            : base(GetSupportedDescriptorsWithOptions(), LanguageNames.CSharp)
         {
             _syntaxKinds = _helpers.SelectMany(h => h.SyntaxKinds).ToImmutableArray();
-            SupportedDiagnostics = _helpers.SelectAsArray(
-                h => CreateDescriptorWithId(h.DiagnosticId, h.UseExpressionBodyTitle, h.UseExpressionBodyTitle));
+        }
+
+        private static ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption> GetSupportedDescriptorsWithOptions()
+        {
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticDescriptor, ILanguageSpecificOption>();
+            foreach (var helper in _helpers)
+            {
+                var descriptor = CreateDescriptorWithId(helper.DiagnosticId, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle);
+                builder.Add(descriptor, helper.Option);
+            }
+
+            return builder.ToImmutable();
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()

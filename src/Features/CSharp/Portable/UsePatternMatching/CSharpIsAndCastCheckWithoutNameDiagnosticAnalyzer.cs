@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         public CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId,
+                   option: null,    // Analyzer is currently disabled
                    new LocalizableResourceString(
                        nameof(FeaturesResources.Use_pattern_matching), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {

@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             editor.ReplaceNode(
                 ifOperation.Syntax,
-                this.WrapWithBlockIfAppropriate(ifStatement, expressionStatement));
+                WrapWithBlockIfAppropriate(ifStatement, expressionStatement));
         }
 
         private bool TryConvertWhenAssignmentToLocalDeclaredImmediateAbove(

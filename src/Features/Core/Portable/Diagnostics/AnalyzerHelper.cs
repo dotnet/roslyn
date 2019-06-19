@@ -67,9 +67,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        public static bool IsInProcessOnly(this DiagnosticAnalyzer analyzer)
-            => analyzer is IInProcessAnalyzer;
-
         public static bool ContainsOpenFileOnlyAnalyzers(this CompilationWithAnalyzers analyzerDriverOpt, Workspace workspace)
         {
             if (analyzerDriverOpt == null)
@@ -359,6 +356,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             Contract.ThrowIfFalse(project.SupportsCompilation);
             AssertCompilation(project, compilation);
+
+            // Always run diagnostic suppressors.
+            analyzers = AppendDiagnosticSuppressors(analyzers, allAnalyzersAndSuppressors: service.GetDiagnosticAnalyzers(project));
 
             // Create driver that holds onto compilation and associated analyzers
             return compilation.WithAnalyzers(filteredAnalyzers, GetAnalyzerOptions());
@@ -789,6 +789,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // in the error list
                 return null;
             }
+        }
+
+        public static IEnumerable<DiagnosticAnalyzer> AppendDiagnosticSuppressors(IEnumerable<DiagnosticAnalyzer> analyzers, IEnumerable<DiagnosticAnalyzer> allAnalyzersAndSuppressors)
+        {
+            // Append while ensuring no duplicates are added.
+            var diagnosticSuppressors = allAnalyzersAndSuppressors.OfType<DiagnosticSuppressor>();
+            return !diagnosticSuppressors.Any()
+                ? analyzers
+                : analyzers.Concat(diagnosticSuppressors).Distinct();
         }
 
         /// <summary>

@@ -19,15 +19,15 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
             IList<RQParameter> parameters)
             : base(containingType, memberName)
         {
-            this.TypeParameterCount = typeParameterCount;
-            this.Parameters = new ReadOnlyCollection<RQParameter>(parameters);
+            TypeParameterCount = typeParameterCount;
+            Parameters = new ReadOnlyCollection<RQParameter>(parameters);
         }
 
         protected override void AppendChildren(List<SimpleTreeNode> childList)
         {
             base.AppendChildren(childList);
-            childList.Add(new SimpleGroupNode(RQNameStrings.TypeVarCnt, this.TypeParameterCount.ToString()));
-            var paramNodes = this.Parameters.Select(param => param.ToSimpleTree()).ToList();
+            childList.Add(new SimpleGroupNode(RQNameStrings.TypeVarCnt, TypeParameterCount.ToString()));
+            var paramNodes = Parameters.Select(param => param.ToSimpleTree()).ToList();
             childList.Add(new SimpleGroupNode(RQNameStrings.Params, paramNodes));
         }
     }
