@@ -97124,6 +97124,21 @@ class C
         }
 
         [Fact]
+        public void NullCoalescingAssignment_DefaultConvertedToNullableUnderlyingType()
+        {
+            var source = @"
+class C
+{
+    void M1(int? i)
+    {
+        (i ??= default).ToString(); // default is converted to int, so there's no warning.
+    }
+}";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Deconstruction_01()
         {
             var source =
