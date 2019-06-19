@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Linq;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -53,10 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (x is SourceParameterSymbolBase param
                     && param.IsNullChecked)
                 {
-                    if (param.Type.IsValueType && !param.Type.IsNullableType())
-                    {
-                        continue;
-                    }
+                    Debug.Assert(!param.Type.IsValueType || param.Type.SpecialType == SpecialType.System_Nullable_T);
                     var constructedIf = ConstructIfStatementForParameter(body, param);
                     statementList.Add(constructedIf);
                 }
