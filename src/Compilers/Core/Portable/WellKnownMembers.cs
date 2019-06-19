@@ -3426,34 +3426,6 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
-
-                // System_Diagnostics_CodeAnalysis_DisallowNullAttribute__ctor
-                (byte)MemberFlags.Constructor,                                                                              // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Diagnostics_CodeAnalysis_DisallowNullAttribute - WellKnownType.ExtSentinel), // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    0,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
-
-                // System_Diagnostics_CodeAnalysis_AllowNullAttribute__ctor
-                (byte)MemberFlags.Constructor,                                                                              // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Diagnostics_CodeAnalysis_AllowNullAttribute - WellKnownType.ExtSentinel), // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    0,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
-
-                // System_Diagnostics_CodeAnalysis_MaybeNullAttribute__ctor
-                (byte)MemberFlags.Constructor,                                                                              // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Diagnostics_CodeAnalysis_MaybeNullAttribute - WellKnownType.ExtSentinel), // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    0,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
-
-                // System_Diagnostics_CodeAnalysis_NotNullAttribute__ctor
-                (byte)MemberFlags.Constructor,                                                                              // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Diagnostics_CodeAnalysis_NotNullAttribute - WellKnownType.ExtSentinel), // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    0,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -3885,10 +3857,6 @@ namespace Microsoft.CodeAnalysis
                 "CreateLinkedTokenSource",                  // System_Threading_CancellationTokenSource__CreateLinkedTokenSource
                 "Token",                                    // System_Threading_CancellationTokenSource__Token
                 "Dispose",                                  // System_Threading_CancellationTokenSource__Dispose
-                ".ctor",                                    // System_Diagnostics_CodeAnalysis_DisallowNullAttribute__ctor
-                ".ctor",                                    // System_Diagnostics_CodeAnalysis_AllowNullAttribute__ctor
-                ".ctor",                                    // System_Diagnostics_CodeAnalysis_MaybeNullAttribute__ctor
-                ".ctor",                                    // System_Diagnostics_CodeAnalysis_NotNullAttribute__ctor
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

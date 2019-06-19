@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         /// </summary>
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
-        private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state.
+        private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
 
         private TypeWithAnnotations _lazyType;
 

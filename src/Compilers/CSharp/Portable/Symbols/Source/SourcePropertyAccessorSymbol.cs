@@ -369,7 +369,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations
-            => _property.GetterValueFlowAnalysisAnnotations;
+        {
+            get
+            {
+                var result = FlowAnalysisAnnotations.None;
+                if (_property.MaybeNullAttributeIfExists is object)
+                {
+                    result |= FlowAnalysisAnnotations.MaybeNull;
+                }
+                if (_property.NotNullAttributeIfExists is object)
+                {
+                    result |= FlowAnalysisAnnotations.NotNull;
+                }
+                return result;
+            }
+        }
 
         private TypeWithAnnotations ComputeReturnType(DiagnosticBag diagnostics)
         {
@@ -650,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_ParameterIsStaticClass, this.locations[0], propertyType.Type);
                 }
 
-                parameters.Add(new SynthesizedAccessorValueParameterSymbol(this, propertyType, parameters.Count, _property.SetterValueFlowAnalysisAnnotations));
+                parameters.Add(new SynthesizedAccessorValueParameterSymbol(this, propertyType, parameters.Count));
             }
 
             return parameters.ToImmutableAndFree();
@@ -663,11 +677,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = this.DeclaringCompilation;
             if ((ReturnTypeFlowAnalysisAnnotations & FlowAnalysisAnnotations.MaybeNull) != 0)
             {
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_MaybeNullAttribute__ctor));
+                AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(_property.MaybeNullAttributeIfExists));
             }
             if ((ReturnTypeFlowAnalysisAnnotations & FlowAnalysisAnnotations.NotNull) != 0)
             {
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_NotNullAttribute__ctor));
+                AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(_property.NotNullAttributeIfExists));
             }
         }
 

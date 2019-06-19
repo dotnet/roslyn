@@ -303,11 +303,6 @@ namespace Microsoft.CodeAnalysis
         System_InvalidOperationException,
         System_Runtime_CompilerServices_SwitchExpressionException,
 
-        System_Diagnostics_CodeAnalysis_DisallowNullAttribute,
-        System_Diagnostics_CodeAnalysis_AllowNullAttribute,
-        System_Diagnostics_CodeAnalysis_MaybeNullAttribute,
-        System_Diagnostics_CodeAnalysis_NotNullAttribute,
-
         NextAvailable,
 
         // Remember to update the AllWellKnownTypes tests when making changes here
@@ -606,11 +601,6 @@ namespace Microsoft.CodeAnalysis
 
             "System.InvalidOperationException",
             "System.Runtime.CompilerServices.SwitchExpressionException",
-
-            "System.Diagnostics.CodeAnalysis.DisallowNullAttribute",
-            "System.Diagnostics.CodeAnalysis.AllowNullAttribute",
-            "System.Diagnostics.CodeAnalysis.MaybeNullAttribute",
-            "System.Diagnostics.CodeAnalysis.NotNullAttribute",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

@@ -1391,61 +1391,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // NullableAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.DisallowNullAttribute))
-            {
-                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasDisallowNullAttribute = true;
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.AllowNullAttribute))
-            {
-                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasAllowNullAttribute = true;
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullAttribute))
-            {
-                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasMaybeNullAttribute = true;
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullAttribute))
-            {
-                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasNotNullAttribute = true;
-            }
         }
 
-        /// <summary>
-        /// The Disallow/AllowNull attributes will be stripped from the property when emitting, but
-        /// replacements will be added to the value parameter of the setter.
-        /// </summary>
-        internal FlowAnalysisAnnotations SetterValueFlowAnalysisAnnotations
+        internal SourceAttributeData DisallowNullAttributeIfExists
         {
             get
             {
-                var attributeData = this.GetDecodedWellKnownAttributeData();
-                FlowAnalysisAnnotations annotations = FlowAnalysisAnnotations.None;
-                if (attributeData != null)
-                {
-                    if (attributeData.HasDisallowNullAttribute) annotations |= FlowAnalysisAnnotations.DisallowNull;
-                    if (attributeData.HasAllowNullAttribute) annotations |= FlowAnalysisAnnotations.AllowNull;
-                }
-
-                return annotations;
+                var attributes = this.GetAttributesBag().Attributes;
+                return (SourceAttributeData)attributes.FirstOrDefault(a => a.IsTargetAttribute(this, AttributeDescription.DisallowNullAttribute));
             }
         }
 
-        /// <summary>
-        /// The Maybe/NotNull attributes will be stripped from the property when emitting, but
-        /// replacements will be added to the return value of the getter.
-        /// </summary>
-        internal FlowAnalysisAnnotations GetterValueFlowAnalysisAnnotations
+        internal SourceAttributeData AllowNullAttributeIfExists
         {
             get
             {
-                var attributeData = this.GetDecodedWellKnownAttributeData();
-                FlowAnalysisAnnotations annotations = FlowAnalysisAnnotations.None;
-                if (attributeData != null)
-                {
-                    if (attributeData.HasMaybeNullAttribute) annotations |= FlowAnalysisAnnotations.MaybeNull;
-                    if (attributeData.HasNotNullAttribute) annotations |= FlowAnalysisAnnotations.NotNull;
-                }
+                var attributes = this.GetAttributesBag().Attributes;
+                return (SourceAttributeData)attributes.FirstOrDefault(a => a.IsTargetAttribute(this, AttributeDescription.AllowNullAttribute));
+            }
+        }
 
-                return annotations;
+        internal SourceAttributeData MaybeNullAttributeIfExists
+        {
+            get
+            {
+                var attributes = this.GetAttributesBag().Attributes;
+                return (SourceAttributeData)attributes.FirstOrDefault(a => a.IsTargetAttribute(this, AttributeDescription.MaybeNullAttribute));
+            }
+        }
+
+        internal SourceAttributeData NotNullAttributeIfExists
+        {
+            get
+            {
+                var attributes = this.GetAttributesBag().Attributes;
+                return (SourceAttributeData)attributes.FirstOrDefault(a => a.IsTargetAttribute(this, AttributeDescription.NotNullAttribute));
             }
         }
 

@@ -16,23 +16,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SynthesizedAccessorValueParameterSymbol : SourceComplexParameterSymbol
     {
-        // Disallow/AllowNull attributes will be added to the `value` parameter if they were present on the property.
-        private readonly FlowAnalysisAnnotations _annotations;
-
-        public SynthesizedAccessorValueParameterSymbol(SourceMemberMethodSymbol accessor, TypeWithAnnotations paramType, int ordinal, FlowAnalysisAnnotations annotations)
+        public SynthesizedAccessorValueParameterSymbol(SourceMemberMethodSymbol accessor, TypeWithAnnotations paramType, int ordinal)
             : base(accessor, ordinal, paramType, RefKind.None, ParameterSymbol.ValueParameterName, accessor.Locations,
                    syntaxRef: null,
                    defaultSyntaxValue: ConstantValue.Unset, // the default value can be set via [param: DefaultParameterValue] applied on the accessor
                    isParams: false,
                    isExtensionMethodThis: false)
         {
-            Debug.Assert((annotations & ~(FlowAnalysisAnnotations.AllowNull | FlowAnalysisAnnotations.DisallowNull)) == 0);
-
-            _annotations = annotations;
         }
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
-            => _annotations;
+        {
+            get
+            {
+                var result = FlowAnalysisAnnotations.None;
+                if (ContainingSymbol is SourcePropertyAccessorSymbol propertyAccessor && propertyAccessor.AssociatedSymbol is SourcePropertySymbol property)
+                {
+                    if (property.DisallowNullAttributeIfExists is object)
+                    {
+                        result |= FlowAnalysisAnnotations.DisallowNull;
+                    }
+                    if (property.AllowNullAttributeIfExists is object)
+                    {
+                        result |= FlowAnalysisAnnotations.AllowNull;
+                    }
+                }
+                return result;
+            }
+        }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
@@ -64,13 +75,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             var compilation = this.DeclaringCompilation;
-            if ((_annotations & FlowAnalysisAnnotations.DisallowNull) != 0)
+            if (ContainingSymbol is SourcePropertyAccessorSymbol propertyAccessor && propertyAccessor.AssociatedSymbol is SourcePropertySymbol property)
             {
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_DisallowNullAttribute__ctor));
-            }
-            if ((_annotations & FlowAnalysisAnnotations.AllowNull) != 0)
-            {
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_AllowNullAttribute__ctor));
+                if ((FlowAnalysisAnnotations & FlowAnalysisAnnotations.DisallowNull) != 0)
+                {
+                    AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(property.DisallowNullAttributeIfExists));
+                }
+                if ((FlowAnalysisAnnotations & FlowAnalysisAnnotations.AllowNull) != 0)
+                {
+                    AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(property.AllowNullAttributeIfExists));
+                }
             }
         }
     }
