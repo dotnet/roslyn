@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedAccessorValueParameterSymbol : SourceComplexParameterSymbol
     {
         // Disallow/AllowNull attributes will be added to the `value` parameter if they were present on the property.
-        FlowAnalysisAnnotations _annotations;
+        private readonly FlowAnalysisAnnotations _annotations;
 
         public SynthesizedAccessorValueParameterSymbol(SourceMemberMethodSymbol accessor, TypeWithAnnotations paramType, int ordinal, FlowAnalysisAnnotations annotations)
             : base(accessor, ordinal, paramType, RefKind.None, ParameterSymbol.ValueParameterName, accessor.Locations,

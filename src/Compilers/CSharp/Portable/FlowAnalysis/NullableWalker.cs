@@ -2778,8 +2778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReplayReadsAndWrites(localFunc, node.Syntax, writes: true);
             }
 
-            var result = GetReturnResultType(method);
-            SetResult(node, result.RValueType, result.LValueType);
+            SetResult(node, GetReturnTypeWithState(method), method.ReturnTypeWithAnnotations);
         }
 
         private TypeWithState VisitCallReceiver(BoundCall node)
@@ -2819,11 +2818,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return receiverType;
-        }
-
-        private VisitResult GetReturnResultType(MethodSymbol method)
-        {
-            return new VisitResult(GetReturnTypeWithState(method), method.ReturnTypeWithAnnotations);
         }
 
         private TypeWithState GetReturnTypeWithState(MethodSymbol method)
@@ -2879,7 +2873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Update the null-state based on MaybeNull/NotNull
         /// </summary>
-        static TypeWithState ApplyUnconditionalAnnotations(TypeWithState typeWithState, FlowAnalysisAnnotations annotations)
+        private static TypeWithState ApplyUnconditionalAnnotations(TypeWithState typeWithState, FlowAnalysisAnnotations annotations)
         {
             if ((annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull)
             {
@@ -5165,7 +5159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private FlowAnalysisAnnotations GetLValueAnnotations(BoundExpression expr)
+        private static FlowAnalysisAnnotations GetLValueAnnotations(BoundExpression expr)
         {
             var symbol = expr switch
             {
@@ -5174,16 +5168,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => null
             };
 
-            var annotations = symbol switch
-            {
-                PropertySymbol property => lastParameter(property.SetMethod)?.FlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None,
-                _ => FlowAnalysisAnnotations.None
-            };
-
+            var annotations = symbol?.SetMethod?.Parameters.Last()?.FlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None;
             return annotations & (FlowAnalysisAnnotations.DisallowNull | FlowAnalysisAnnotations.AllowNull);
-
-            static ParameterSymbol lastParameter(MethodSymbol method)
-                => method is null || method.Parameters.IsDefault ? null : method.Parameters.Last();
         }
 
         private static bool UseLegacyWarnings(BoundExpression expr, TypeWithAnnotations exprType)
