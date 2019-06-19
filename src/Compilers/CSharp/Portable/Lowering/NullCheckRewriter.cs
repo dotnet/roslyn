@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics)
         {
-            if (!method.Parameters.Any(x => ((SourceParameterSymbolBase)x).IsNullChecked))
+            if (!method.Parameters.Any(x => x is SourceParameterSymbolBase param
+                                            && param.IsNullChecked))
             {
                 return body;
             }
@@ -45,9 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Lowering
         private BoundNode AddNullChecksToBody(BoundBlock body)
         {
             var statementList = ArrayBuilder<BoundStatement>.GetInstance();
-            foreach (SourceParameterSymbolBase param in _method.Parameters)
+            foreach (ParameterSymbol x in _method.Parameters)
             {
-                if (param.IsNullChecked)
+                if (x is SourceParameterSymbolBase param && param.IsNullChecked)
                 {
                     var constructedIf = ConstructIfStatementForParameter(body, param);
                     statementList.Add(constructedIf);
