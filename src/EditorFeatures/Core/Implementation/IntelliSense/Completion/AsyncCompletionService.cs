@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             AssertIsForeground();
 
-            if (!UseLegacyCompletion(textView, subjectBuffer))
+            if (!UseLegacyCompletion(_featureServiceFactory, textView, subjectBuffer))
             {
                 controller = null;
                 return false;
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return true;
         }
 
-        private bool UseLegacyCompletion(ITextView textView, ITextBuffer subjectBuffer)
+        private bool UseLegacyCompletion(IFeatureServiceFactory featureServiceFactory, ITextView textView, ITextBuffer subjectBuffer)
         {
             if (!_newCompletionAPIEnabled.HasValue)
             {
@@ -121,7 +121,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     if (Workspace.TryGetWorkspace(subjectBuffer.AsTextContainer(), out var workspace))
                     {
                         var experimentationService = workspace.Services.GetService<IExperimentationService>();
-                        _newCompletionAPIEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.CompletionAPI);
+                        _newCompletionAPIEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.CompletionAPI)
+                            && featureServiceFactory.GlobalFeatureService.IsEnabled(PredefinedEditorFeatureNames.AsyncCompletion);
                     }
                 }
             }
@@ -185,8 +186,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 _asyncCompletionService = asyncCompletionService;
             }
 
-            internal bool UseLegacyCompletion(ITextView textView, ITextBuffer subjectBuffer)
-                => _asyncCompletionService.UseLegacyCompletion(textView, subjectBuffer);
+            internal bool UseLegacyCompletion(IFeatureServiceFactory featureServiceFactory, ITextView textView, ITextBuffer subjectBuffer)
+                => _asyncCompletionService.UseLegacyCompletion(featureServiceFactory, textView, subjectBuffer);
         }
     }
 }

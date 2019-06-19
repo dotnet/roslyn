@@ -328,22 +328,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // Disable background download UI to avoid toasts
                 Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Setup\\BackgroundDownload\" Value dword 0").WaitForExit();
 
-                // Enable or disable async completion as necessary for integration testing
-                var usingAsyncCompletion = LegacyCompletionCondition.Instance.ShouldSkip;
-                var useAsyncCompletionSetting = usingAsyncCompletion ? 1 : -1;
-                Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\WindowManagement\\Options\" UseAsyncCompletion string \"1*System.Int32*{useAsyncCompletionSetting}\"").WaitForExit();
+                // Remove legacy settings for controlling async completion to ensure they do not interfere
+                //
+                // 1. UseAsyncCompletion option
+                // 2. completionapi A/B experiment
+                Process.Start(vsRegEditExeFile, $"remove \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\WindowManagement\\Options\" UseAsyncCompletion").WaitForExit();
 
                 var disabledFlights = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\ABExp\LocalTest", "DisabledFlights", Array.Empty<string>()) as string[] ?? Array.Empty<string>();
-                if (usingAsyncCompletion)
+                if (disabledFlights.Any())
                 {
                     disabledFlights = disabledFlights.Where(flight => !string.Equals(flight, "completionapi", StringComparison.OrdinalIgnoreCase)).ToArray();
+                    Registry.SetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\ABExp\LocalTest", "DisabledFlights", disabledFlights, RegistryValueKind.MultiString);
                 }
-                else if (!disabledFlights.Contains("completionapi", StringComparer.OrdinalIgnoreCase))
-                {
-                    disabledFlights = disabledFlights.Concat(new[] { "completionapi" }).ToArray();
-                }
-
-                Registry.SetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\ABExp\LocalTest", "DisabledFlights", disabledFlights, RegistryValueKind.MultiString);
 
                 // Disable text editor error reporting because it pops up a dialog. We want to either fail fast in our
                 // custom handler or fail silently and continue testing.
