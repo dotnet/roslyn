@@ -4047,6 +4047,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
         {
+            // Visit the source tuple so that the semantic model can correctly report nullability for it
+            // Disable diagnostics, as we don't want to duplicate any that are produced by visiting the actual literal below
+            var previousDisableDiagnostics = _disableDiagnostics;
+            _disableDiagnostics = true;
+            VisitTupleExpression(node.SourceTuple);
+            _disableDiagnostics = previousDisableDiagnostics;
+
             VisitTupleExpression(node);
             return null;
         }
