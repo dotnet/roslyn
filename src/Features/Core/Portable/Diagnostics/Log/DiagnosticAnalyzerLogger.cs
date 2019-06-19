@@ -4,11 +4,10 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Roslyn.Utilities;
-using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Log
 {
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
                 return "Hash Provider Not Available";
             }
 
-            byte[] hash = s_sha256.ComputeHash(Encoding.UTF8.GetBytes(name));
+            var hash = s_sha256.ComputeHash(Encoding.UTF8.GetBytes(name));
             return Convert.ToBase64String(hash);
         }
 
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             }
 
             // TODO: once we create description manager, pass that into here.
-            bool telemetry = DiagnosticAnalyzerLogger.AllowsTelemetry(analyzer, null);
+            var telemetry = DiagnosticAnalyzerLogger.AllowsTelemetry(analyzer, null);
             var tuple = ValueTuple.Create(telemetry, analyzer.GetType(), ex.GetType());
             logAggregatorOpt.IncreaseCount(tuple);
         }
@@ -69,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
                 Logger.Log(FunctionId.DiagnosticAnalyzerDriver_AnalyzerCrash, KeyValueLogMessage.Create(m =>
                 {
                     var key = (ValueTuple<bool, Type, Type>)analyzerCrash.Key;
-                    bool telemetry = key.Item1;
+                    var telemetry = key.Item1;
                     m[Id] = correlationId;
 
                     // we log analyzer name and exception as it is, if telemetry is allowed
@@ -81,8 +80,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
                     }
                     else
                     {
-                        string analyzerName = key.Item2.FullName;
-                        string exceptionName = key.Item3.FullName;
+                        var analyzerName = key.Item2.FullName;
+                        var exceptionName = key.Item3.FullName;
 
                         m[AnalyzerHashCode] = ComputeSha256Hash(analyzerName);
                         m[AnalyzerCrashCount] = analyzerCrash.Value.GetCount();
@@ -116,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
                     m[Id] = correlationId;
 
                     var analyzerInfo = kvp.Value;
-                    bool hasTelemetry = analyzerInfo.Telemetry;
+                    var hasTelemetry = analyzerInfo.Telemetry;
 
                     // we log analyzer name as it is, if telemetry is allowed
                     if (hasTelemetry)
@@ -177,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             }
 
             // find if the first diagnostic in this analyzer allows telemetry
-            DiagnosticDescriptor diagnostic = diagDescriptors.Length > 0 ? diagDescriptors[0] : null;
+            var diagnostic = diagDescriptors.Length > 0 ? diagDescriptors[0] : null;
             return diagnostic == null ? false : diagnostic.CustomTags.Any(t => t == WellKnownDiagnosticTags.Telemetry);
         }
 

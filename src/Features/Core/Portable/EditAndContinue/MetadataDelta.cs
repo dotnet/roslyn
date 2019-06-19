@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public MetadataDelta(byte[] bytes)
         {
-            this.Bytes = bytes;
+            Bytes = bytes;
         }
     }
 }

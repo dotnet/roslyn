@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public ProgressData(ProgressStatus type, string filePathOpt)
         {
-            this.Status = type;
-            this.FilePathOpt = filePathOpt;
+            Status = type;
+            FilePathOpt = filePathOpt;
         }
     }
 
