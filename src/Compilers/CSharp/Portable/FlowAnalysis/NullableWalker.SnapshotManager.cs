@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -18,56 +19,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private readonly ImmutableArray<SharedWalkerState> _walkerGlobalStates;
             /// <summary>
-            /// The dictionary key corresponds to Syntax position. The dictionary should be sorted in descending order.
+            /// The snapshot array should be sorted in ascending order in order for the binary search algorithm to
+            /// function correctly.
             /// </summary>
-            private readonly ImmutableSortedDictionary<int, Snapshot> _incrementalSnapshots;
+            private readonly ImmutableArray<(int position, Snapshot snapshot)> _incrementalSnapshots;
 
-            private SnapshotManager(ImmutableArray<SharedWalkerState> walkerGlobalStates, ImmutableSortedDictionary<int, Snapshot> incrementalSnapshots)
+            private SnapshotManager(ImmutableArray<SharedWalkerState> walkerGlobalStates, ImmutableArray<(int position, Snapshot snapshot)> incrementalSnapshots)
             {
                 _walkerGlobalStates = walkerGlobalStates;
                 _incrementalSnapshots = incrementalSnapshots;
             }
 
-            internal NullableWalker RestoreWalkerToAnalyzeNewNode(
+            internal (NullableWalker, VariableState) RestoreWalkerToAnalyzeNewNode(
                 int position,
                 BoundNode nodeToAnalyze,
                 Binder binder,
                 ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMap)
             {
-                // TODO: Use a more efficient storage and lookup mechanism like an AVL tree here.
-                // https://github.com/dotnet/roslyn/issues/35037
-                Snapshot incrementalSnapshot = default;
-                bool foundSnapshot = false;
-                foreach (var (currentPosition, currentSnapshot) in _incrementalSnapshots)
+                var snapshotPosition = _incrementalSnapshots.BinarySearch(position, (current, target) => current.position.CompareTo(target));
+
+                if (snapshotPosition < 0)
                 {
-                    if (currentPosition <= position)
-                    {
-                        incrementalSnapshot = currentSnapshot;
-                        foundSnapshot = true;
-                        break;
-                    }
+                    // BinarySearch returns the next higher position. Always take the one most close but behind the requested position
+                    snapshotPosition = (~snapshotPosition) - 1;
+
+                    // If there was none in the snapshots before the target position, just take index 0
+                    if (snapshotPosition < 0) snapshotPosition = 0;
                 }
 
-                if (!foundSnapshot)
-                {
-                    return null;
-                }
-
+                (_, Snapshot incrementalSnapshot) = _incrementalSnapshots[snapshotPosition];
                 var globalState = _walkerGlobalStates[incrementalSnapshot.SharedStateIndex];
                 var variableState = new VariableState(globalState.VariableSlot, globalState.VariableBySlot, globalState.VariableTypes, incrementalSnapshot.VariableState.Clone());
                 var method = globalState.Symbol as MethodSymbol;
-                return new NullableWalker(
-                    binder.Compilation,
-                    globalState.Symbol,
-                    useMethodSignatureParameterTypes: !(method is null),
-                    method,
-                    nodeToAnalyze,
-                    binder,
-                    binder.Conversions,
-                    variableState,
-                    returnTypesOpt: null,
-                    analyzedNullabilityMap,
-                    snapshotBuilderOpt: null);
+                return (new NullableWalker(binder.Compilation,
+                                           globalState.Symbol,
+                                           useMethodSignatureParameterTypes: !(method is null),
+                                           method,
+                                           nodeToAnalyze,
+                                           binder,
+                                           binder.Conversions,
+                                           variableState,
+                                           returnTypesOpt: null,
+                                           analyzedNullabilityMap,
+                                           snapshotBuilderOpt: null,
+                                           isSpeculative: true),
+                        variableState);
             }
 
 #if DEBUG
@@ -78,20 +74,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                Debug.Assert(_incrementalSnapshots.ContainsKey(node.Syntax.SpanStart), $"Did not find a snapshot for {node} `{node.Syntax}.`");
-                Debug.Assert(_walkerGlobalStates.Length > _incrementalSnapshots[node.Syntax.SpanStart].SharedStateIndex, $"Did not find global state for {node} `{node.Syntax}`.");
+                int nodePosition = node.Syntax.SpanStart;
+                bool foundSnapshot = false;
+                foreach (var (position, snapshot) in _incrementalSnapshots)
+                {
+                    if (nodePosition == position)
+                    {
+                        foundSnapshot = true;
+                        Debug.Assert(_walkerGlobalStates.Length > snapshot.SharedStateIndex, $"Did not find global state for {node} `{node.Syntax}`.");
+                        break;
+                    }
+                }
+                Debug.Assert(foundSnapshot, $"Did not find a snapshot for {node} `{node.Syntax}.`");
+
             }
 #endif
-
-            /// <summary>
-            /// Simple int comparer that orders in descending order, so that searching for a snapshot will find the
-            /// closest position before a given position.
-            /// </summary>
-            private sealed class DescendingIntComparer : IComparer<int>
-            {
-                internal static readonly DescendingIntComparer Singleton = new DescendingIntComparer();
-                public int Compare(int x, int y) => y.CompareTo(x);
-            }
 
             internal sealed class Builder
             {
@@ -100,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// <summary>
                 /// Snapshots are kept in a dictionary of position -> snapshot at that position. These are stored in descending order.
                 /// </summary>
-                private readonly ImmutableSortedDictionary<int, Snapshot>.Builder _incrementalSnapshots = ImmutableSortedDictionary.CreateBuilder<int, Snapshot>(DescendingIntComparer.Singleton);
+                private readonly SortedDictionary<int, Snapshot> _incrementalSnapshots = new SortedDictionary<int, Snapshot>();
                 /// <summary>
                 /// Every walker is walking a specific symbol, and can potentially walk each symbol multiple times
                 /// to get to a stable state. Each of these symbols gets a single global state slot, which this
@@ -115,9 +112,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(_symbolToSlot.Count == _walkerStates.Count);
                     Debug.Assert(_symbolToSlot.Count > 0);
                     _symbolToSlot.Free();
+                    ArrayBuilder<(int position, Snapshot snapshot)> builder = ArrayBuilder<(int, Snapshot)>.GetInstance();
+                    foreach (var (position, snapshot) in _incrementalSnapshots)
+                    {
+                        builder.Add((position, snapshot));
+                    }
+
                     return new SnapshotManager(
                         _walkerStates.ToImmutableAndFree(),
-                        _incrementalSnapshots.ToImmutable());
+                        builder.ToImmutableAndFree());
                 }
 
                 internal int EnterNewWalker(Symbol symbol)

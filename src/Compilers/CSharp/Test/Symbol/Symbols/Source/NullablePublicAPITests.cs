@@ -876,5 +876,96 @@ class C : System.IDisposable
                 );
             comp.VerifyTypes();
         }
+
+        [Fact]
+        public void SpeculativeSemanticModel_BasicTest()
+        {
+            var source = @"
+class C
+{
+    void M(string? s1)
+    {
+        if (s1 != null)
+        {
+            s1.ToString();
+        }
+
+        s1?.ToString();
+
+        s1 = """";
+        var s2 = s1 == null ? """" : s1;
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var ifStatement = root.DescendantNodes().OfType<IfStatementSyntax>().Single();
+            var conditionalAccessExpression = root.DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().Single();
+            var ternary = root.DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+
+            var newSource = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement("var s3 = s1;");
+            var s2Reference = newSource.Declaration.Variables[0].Initializer.Value;
+
+            // Before the if statement
+            verifySpeculativeModel(ifStatement.SpanStart, PublicNullableFlowState.MaybeNull);
+
+            // In if statement consequence
+            verifySpeculativeModel(ifStatement.Statement.SpanStart, PublicNullableFlowState.NotNull);
+
+            // Before the conditional access
+            verifySpeculativeModel(conditionalAccessExpression.SpanStart, PublicNullableFlowState.MaybeNull);
+
+            // After the conditional access
+            verifySpeculativeModel(conditionalAccessExpression.WhenNotNull.SpanStart, PublicNullableFlowState.NotNull);
+
+            // In the conditional whenTrue
+            verifySpeculativeModel(ternary.WhenTrue.SpanStart, PublicNullableFlowState.MaybeNull);
+
+            // In the conditional whenFalse
+            verifySpeculativeModel(ternary.WhenFalse.SpanStart, PublicNullableFlowState.NotNull);
+
+            void verifySpeculativeModel(int spanStart, PublicNullableFlowState expectedFlowState)
+            {
+                Assert.True(model.TryGetSpeculativeSemanticModel(spanStart, newSource, out var speculativeModel));
+                var speculativeTypeInfo = speculativeModel.GetTypeInfo(s2Reference);
+                Assert.Equal(expectedFlowState, speculativeTypeInfo.Nullability.FlowState);
+            }
+        }
+
+        [Fact]
+        public void SpeculativeModel_Properties()
+        {
+            var source = @"
+class C
+{
+    object? Foo
+    {
+        get
+        {
+            object? x = null;
+            return x;
+        }
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var returnStatement = root.DescendantNodes().OfType<ReturnStatementSyntax>().Single();
+            var newSource = (BlockSyntax)SyntaxFactory.ParseStatement("{ var y = x ?? new object(); y.ToString(); }");
+            var yReference = ((MemberAccessExpressionSyntax)newSource.DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression).Expression;
+            Assert.True(model.TryGetSpeculativeSemanticModel(returnStatement.SpanStart, newSource, out var specModel));
+            var speculativeTypeInfo = specModel.GetTypeInfo(yReference);
+            Assert.Equal(PublicNullableFlowState.NotNull, speculativeTypeInfo.Nullability.FlowState);
+        }
     }
 }
