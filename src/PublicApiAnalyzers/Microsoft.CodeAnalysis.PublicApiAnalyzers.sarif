@@ -39,6 +39,7 @@
         "RS0022": {
           "id": "RS0022",
           "shortDescription": "Constructor make noninheritable base class inheritable",
+          "fullDescription": "Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
           "properties": {
@@ -52,6 +53,7 @@
         "RS0024": {
           "id": "RS0024",
           "shortDescription": "The contents of the public API files are invalid",
+          "fullDescription": "The contents of the public API files are invalid: {0}",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
           "properties": {
@@ -65,6 +67,7 @@
         "RS0025": {
           "id": "RS0025",
           "shortDescription": "Do not duplicate symbols in public API files",
+          "fullDescription": "The symbol '{0}' appears more than once in the public API files.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
           "properties": {
@@ -78,6 +81,7 @@
         "RS0026": {
           "id": "RS0026",
           "shortDescription": "Do not add multiple public overloads with optional parameters",
+          "fullDescription": "Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
           "properties": {
@@ -91,6 +95,7 @@
         "RS0027": {
           "id": "RS0027",
           "shortDescription": "Public API with optional parameter(s) should have the most parameters amongst its public overloads.",
+          "fullDescription": "Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
           "properties": {
