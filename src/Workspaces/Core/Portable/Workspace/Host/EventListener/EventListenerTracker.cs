@@ -22,15 +22,10 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly ImmutableArray<Lazy<IEventListener, EventListenerMetadata>> _eventListeners;
 
         public EventListenerTracker(
-            IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners, string kind) :
-            this(eventListeners.Where(el => el.Metadata.Service == kind))
-        {
-        }
-
-        public EventListenerTracker(IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
+            IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners, string kind)
         {
             _eventListenerInitialized = new HashSet<string>();
-            _eventListeners = eventListeners.ToImmutableArray();
+            _eventListeners = eventListeners.Where(el => el.Metadata.Service == kind).ToImmutableArray();
         }
 
         public void EnsureEventListener(Workspace workspace, TService serviceOpt)
@@ -42,11 +37,11 @@ namespace Microsoft.CodeAnalysis.Host
                     // already initialized
                     return;
                 }
+            }
 
-                foreach (var listener in GetListeners(workspace, _eventListeners))
-                {
-                    listener.StartListening(workspace, serviceOpt);
-                }
+            foreach (var listener in GetListeners(workspace, _eventListeners))
+            {
+                listener.StartListening(workspace, serviceOpt);
             }
         }
 

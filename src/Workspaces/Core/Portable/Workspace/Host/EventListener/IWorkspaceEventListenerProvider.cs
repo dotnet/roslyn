@@ -65,11 +65,11 @@ namespace Microsoft.CodeAnalysis.Host
                     }
 
                     _initialized = true;
+                }
 
-                    foreach (var listener in _eventListeners)
-                    {
-                        listener.StartListening(_workspace, serviceOpt: null);
-                    }
+                foreach (var listener in _eventListeners)
+                {
+                    listener.StartListening(_workspace, serviceOpt: null);
                 }
             }
 
