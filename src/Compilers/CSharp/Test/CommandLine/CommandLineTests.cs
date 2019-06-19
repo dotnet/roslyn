@@ -9209,7 +9209,6 @@ using System.Diagnostics; // Unused.
             Assert.Equal(0, args.AdditionalFiles.Length);
         }
 
-
         [Fact]
         public void ParseEditorConfig()
         {
@@ -9250,6 +9249,57 @@ using System.Diagnostics; // Unused.
                 // error CS2006: Command-line syntax error: Missing '<file list>' for 'analyzerconfig' option
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<file list>", "analyzerconfig").WithLocation(1, 1));
             Assert.Equal(0, args.AnalyzerConfigPaths.Length);
+        }
+
+        [Fact]
+        public void NullablePublicOnly()
+        {
+            string source =
+@"namespace System.Runtime.CompilerServices
+{
+    public sealed class NullableAttribute : Attribute { } // missing constructor
+}
+public class Program
+{
+    private object? P => null;
+}";
+            string errorMessage = "error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'";
+
+            string filePath = Temp.CreateFile().WriteAllText(source).Path;
+            int exitCode;
+            string output;
+
+            // No /feature
+            (exitCode, output) = compileAndRun(featureOpt: null);
+            Assert.Equal(1, exitCode);
+            Assert.Contains(errorMessage, output, StringComparison.Ordinal);
+
+            // /features:nullablePublicOnly
+            (exitCode, output) = compileAndRun("/features:nullablePublicOnly");
+            Assert.Equal(0, exitCode);
+            Assert.DoesNotContain(errorMessage, output, StringComparison.Ordinal);
+
+            // /features:nullablePublicOnly=true
+            (exitCode, output) = compileAndRun("/features:nullablePublicOnly=true");
+            Assert.Equal(0, exitCode);
+            Assert.DoesNotContain(errorMessage, output, StringComparison.Ordinal);
+
+            // /features:nullablePublicOnly=false (the value is ignored)
+            (exitCode, output) = compileAndRun("/features:nullablePublicOnly=false");
+            Assert.Equal(0, exitCode);
+            Assert.DoesNotContain(errorMessage, output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(filePath);
+
+            (int, string) compileAndRun(string featureOpt)
+            {
+                var args = new[] { "/target:library", "/preferreduilang:en", "/langversion:8", "/nullable+", filePath };
+                if (featureOpt != null) args = args.Concat(featureOpt).ToArray();
+                var compiler = CreateCSharpCompiler(null, WorkingDirectory, args);
+                var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+                int exitCode = compiler.Run(outWriter);
+                return (exitCode, outWriter.ToString());
+            };
         }
 
         private static int OccurrenceCount(string source, string word)

@@ -2346,12 +2346,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rightOperand = node.RightOperand;
             int leftSlot = MakeSlot(leftOperand);
 
-            // The assignment to the left below needs the declared type from VisitLvalue, but the hidden
-            // unnecessary check diagnostic needs the current adjusted type of the slot
             TypeWithAnnotations targetType = VisitLvalueWithAnnotations(leftOperand);
             var leftState = this.State.Clone();
             LearnFromNonNullTest(leftOperand, ref leftState);
             LearnFromNullTest(leftOperand, ref this.State);
+            if (node.IsNullableValueTypeAssignment)
+            {
+                targetType = TypeWithAnnotations.Create(node.Type, NullableAnnotation.NotAnnotated);
+            }
             TypeWithState rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, useLegacyWarnings: UseLegacyWarnings(leftOperand, targetType), trackMembers: false, AssignmentKind.Assignment);
             TrackNullableStateForAssignment(rightOperand, targetType, leftSlot, rightResult, MakeSlot(rightOperand));
             Join(ref this.State, ref leftState);
@@ -3792,12 +3794,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             var symbolDef = symbol.OriginalDefinition;
-            var symbolDefContainer = symbolDef.ContainingType;
-            if (symbolDefContainer.IsTupleType)
+            var symbolContainer = symbol.ContainingType;
+            if (symbolContainer.IsTupleType)
             {
                 return AsMemberOfTupleType((TupleTypeSymbol)containingType, symbol);
             }
-            if (symbolDefContainer.IsAnonymousType)
+            if (symbolContainer.IsAnonymousType)
             {
                 int? memberIndex = symbol.Kind == SymbolKind.Property ? symbol.MemberIndexOpt : null;
                 if (!memberIndex.HasValue)
@@ -3806,12 +3808,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return AnonymousTypeManager.GetAnonymousTypeProperty(containingType, memberIndex.GetValueOrDefault());
             }
-            if (!symbolDefContainer.IsGenericType)
+            if (!symbolContainer.IsGenericType)
             {
                 Debug.Assert(symbol.ContainingType.IsDefinition);
                 return symbol;
             }
-            if (symbolDefContainer.IsInterface)
+            if (!containingType.IsGenericType && !containingType.IsTupleType)
+            {
+                return symbol;
+            }
+            if (symbolContainer.IsInterface)
             {
                 if (tryAsMemberOfSingleType(containingType, out Symbol result))
                 {
@@ -3845,7 +3851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool tryAsMemberOfSingleType(NamedTypeSymbol singleType, out Symbol result)
             {
-                if (!singleType.OriginalDefinition.Equals(symbolDefContainer, TypeCompareKind.AllIgnoreOptions))
+                if (!singleType.Equals(symbolContainer, TypeCompareKind.AllIgnoreOptions))
                 {
                     result = null;
                     return false;

@@ -93,17 +93,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static TypeSyntax GenerateReturnTypeSyntax(this IMethodSymbol method)
         {
+            var returnType = method.ReturnType.WithNullability(method.ReturnNullableAnnotation);
+
             if (method.ReturnsByRef)
             {
-                return method.ReturnType.GenerateRefTypeSyntax();
+                return returnType.GenerateRefTypeSyntax();
             }
             else if (method.ReturnsByRefReadonly)
             {
-                return method.ReturnType.GenerateRefReadOnlyTypeSyntax();
+                return returnType.GenerateRefReadOnlyTypeSyntax();
             }
             else
             {
-                return method.ReturnType.GenerateTypeSyntax();
+                return returnType.GenerateTypeSyntax();
             }
         }
 

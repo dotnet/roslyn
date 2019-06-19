@@ -1332,16 +1332,6 @@
         <target state="translated">預設運算式針對型別參數會引入 Null 值。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended">
-        <source>'default' is converted to 'null', not 'default({0})'</source>
-        <target state="translated">'default' 已轉換為 'null'，而不是 'default({0})'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended_Title">
-        <source>'default' is converted to 'null'</source>
-        <target state="translated">'default' 已轉換為 'null'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
         <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>

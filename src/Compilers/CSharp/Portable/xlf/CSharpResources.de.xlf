@@ -1332,16 +1332,6 @@
         <target state="translated">Ein Standardausdruck führt einen NULL-Wert für einen Typparameter ein.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended">
-        <source>'default' is converted to 'null', not 'default({0})'</source>
-        <target state="translated">"default" wird in "null", nicht "default({0})" konvertiert.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended_Title">
-        <source>'default' is converted to 'null'</source>
-        <target state="translated">"default" wird in "null" konvertiert.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
         <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>

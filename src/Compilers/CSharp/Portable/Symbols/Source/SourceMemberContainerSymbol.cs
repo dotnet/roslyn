@@ -1408,23 +1408,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForUnmatchedOperators(diagnostics);
 
             var location = Locations[0];
+            var compilation = DeclaringCompilation;
+
             if (this.IsRefLikeType)
             {
-                this.DeclaringCompilation.EnsureIsByRefLikeAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureIsByRefLikeAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
             if (this.IsReadOnly)
             {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
-            // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
-            var baseType = BaseTypeNoUseSiteDiagnostics;
-            var interfaces = InterfacesNoUseSiteDiagnostics();
-            if (baseType?.NeedsNullableAttribute() == true ||
-                interfaces.Any(t => t.NeedsNullableAttribute()))
+            if (compilation.ShouldEmitNullableAttributes(this))
             {
-                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+                // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
+                var baseType = BaseTypeNoUseSiteDiagnostics;
+                var interfaces = InterfacesNoUseSiteDiagnostics();
+                if (baseType?.NeedsNullableAttribute() == true ||
+                    interfaces.Any(t => t.NeedsNullableAttribute()))
+                {
+                    compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+                }
             }
         }
 
