@@ -78,9 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                 loweredLeft.Type as NamedTypeSymbol,
                                                                 SpecialMember.System_Nullable_T_get_HasValue,
                                                                 _method.DeclaringCompilation,
-                                                                _diagnostics)
-                                                            );
-                                                        :_fact.ObjectEqual(loweredLeft, loweredRight);
+                                                                _diagnostics))
+                                                        : (BoundExpression)_fact.ObjectEqual(loweredLeft, loweredRight);
 
 
             // PROTOTYPE : Make ArgumentNullException
