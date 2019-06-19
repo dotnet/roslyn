@@ -258,14 +258,14 @@ namespace Microsoft.CodeAnalysis.Completion
             // All the contexts should be non-empty or have a suggestion item.
             Debug.Assert(triggeredCompletionContexts.All(HasAnyItems));
 
-            // See if there was a completion context provided that was exclusive.  If so, then
+            // See if there were completion contexts provided that were exclusive. If so, then
             // that's all we'll return.
-            var firstExclusiveContext = triggeredCompletionContexts.FirstOrDefault(t => t.IsExclusive);
+            var exclusiveContexts = triggeredCompletionContexts.Where(t => t.IsExclusive);
 
-            if (firstExclusiveContext != null)
+            if (exclusiveContexts.Any())
             {
                 return MergeAndPruneCompletionLists(
-                    SpecializedCollections.SingletonEnumerable(firstExclusiveContext),
+                    exclusiveContexts,
                     defaultItemSpan,
                     isExclusive: true);
             }

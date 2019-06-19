@@ -1091,6 +1091,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                         return true;
                                     }
                                     break;
+
+                                case CSharp.SyntaxKind.CoalesceAssignmentExpression:
+                                    if (((AssignmentExpressionSyntax)syntax.Parent).Left == syntax)
+                                    {
+                                        return true;
+                                    }
+                                    break;
                             }
                         }
 

@@ -81428,7 +81428,7 @@ namespace Metadata
                               @".method public hidebysig virtual instance System.Void Method<X>(" +
                               @"[System.Runtime.CompilerServices.NullableAttribute(1)] " +
                               @"modopt(System.Runtime.CompilerServices.IsConst) System.String[] x, " +
-                              @"[System.Runtime.CompilerServices.NullableAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] " +
+                              @"[System.Runtime.CompilerServices.NullableAttribute(1)] " +
                               @"modopt(System.Runtime.CompilerServices.IsConst) System.UInt64[] y, "+
                               @"[System.Runtime.CompilerServices.NullableAttribute(1)] " +
                               @"modopt(System.Runtime.CompilerServices.IsConst) X[] z) cil managed"),
@@ -88803,11 +88803,11 @@ class B
                     ("System.Collections.Generic.KeyValuePair<System.String, System.Object?>", "System.Runtime.CompilerServices.NullableAttribute({0, 0, 2})"),
                     ("System.Collections.Generic.KeyValuePair<System.String?, System.Object?>", "System.Runtime.CompilerServices.NullableAttribute({0, 2, 2})"),
                     ("System.Collections.Generic.KeyValuePair<System.Int32, System.Object>", null),
-                    ("System.Collections.Generic.KeyValuePair<System.Int32, System.Object?>", "System.Runtime.CompilerServices.NullableAttribute({0, 0, 2})"),
+                    ("System.Collections.Generic.KeyValuePair<System.Int32, System.Object?>", "System.Runtime.CompilerServices.NullableAttribute({0, 2})"),
                     ("System.Collections.Generic.KeyValuePair<System.Object, System.Int32>", null),
-                    ("System.Collections.Generic.KeyValuePair<System.Object?, System.Int32>", "System.Runtime.CompilerServices.NullableAttribute({0, 2, 0})"),
+                    ("System.Collections.Generic.KeyValuePair<System.Object?, System.Int32>", "System.Runtime.CompilerServices.NullableAttribute({0, 2})"),
                     ("System.Collections.Generic.Dictionary<System.Int32, System.Int64>", null),
-                    ("System.Collections.Generic.Dictionary<System.Int32, System.Int64>?", "System.Runtime.CompilerServices.NullableAttribute({2, 0, 0})"),
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Int64>?", "System.Runtime.CompilerServices.NullableAttribute(2)"),
                     ("System.Collections.Generic.Dictionary<System.String, System.Object>", null),
                     ("System.Collections.Generic.Dictionary<System.String, System.Object>?", "System.Runtime.CompilerServices.NullableAttribute({2, 0, 0})"),
                     ("System.Collections.Generic.Dictionary<System.String?, System.Object>", "System.Runtime.CompilerServices.NullableAttribute({0, 2, 0})"),
@@ -88817,13 +88817,13 @@ class B
                     ("System.Collections.Generic.Dictionary<System.String?, System.Object?>", "System.Runtime.CompilerServices.NullableAttribute({0, 2, 2})"),
                     ("System.Collections.Generic.Dictionary<System.String?, System.Object?>?", "System.Runtime.CompilerServices.NullableAttribute(2)"),
                     ("System.Collections.Generic.Dictionary<System.Int32, System.Object>", null),
-                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object>?", "System.Runtime.CompilerServices.NullableAttribute({2, 0, 0})"),
-                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object?>", "System.Runtime.CompilerServices.NullableAttribute({0, 0, 2})"),
-                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object?>?", "System.Runtime.CompilerServices.NullableAttribute({2, 0, 2})"),
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object>?", "System.Runtime.CompilerServices.NullableAttribute({2, 0})"),
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object?>", "System.Runtime.CompilerServices.NullableAttribute({0, 2})"),
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object?>?", "System.Runtime.CompilerServices.NullableAttribute(2)"),
                     ("System.Collections.Generic.Dictionary<System.Object, System.Int32>", null),
-                    ("System.Collections.Generic.Dictionary<System.Object, System.Int32>?", "System.Runtime.CompilerServices.NullableAttribute({2, 0, 0})"),
-                    ("System.Collections.Generic.Dictionary<System.Object?, System.Int32>", "System.Runtime.CompilerServices.NullableAttribute({0, 2, 0})"),
-                    ("System.Collections.Generic.Dictionary<System.Object?, System.Int32>?", "System.Runtime.CompilerServices.NullableAttribute({2, 2, 0})")
+                    ("System.Collections.Generic.Dictionary<System.Object, System.Int32>?", "System.Runtime.CompilerServices.NullableAttribute({2, 0})"),
+                    ("System.Collections.Generic.Dictionary<System.Object?, System.Int32>", "System.Runtime.CompilerServices.NullableAttribute({0, 2})"),
+                    ("System.Collections.Generic.Dictionary<System.Object?, System.Int32>?", "System.Runtime.CompilerServices.NullableAttribute(2)")
                 };
 
                 Assert.Equal(31, baseline.Length);
@@ -88845,12 +88845,12 @@ class B
                     ("System.Collections.Generic.KeyValuePair<System.String?, System.Object!>", "System.Runtime.CompilerServices.NullableAttribute({0, 2, 1})"),
                     ("System.Collections.Generic.KeyValuePair<System.String!, System.Object?>", "System.Runtime.CompilerServices.NullableAttribute({0, 1, 2})"),
                     ("System.Collections.Generic.KeyValuePair<System.String?, System.Object?>", "System.Runtime.CompilerServices.NullableAttribute({0, 2, 2})"),
-                    ("System.Collections.Generic.KeyValuePair<System.Int32, System.Object!>", "System.Runtime.CompilerServices.NullableAttribute({0, 0, 1})"),
-                    ("System.Collections.Generic.KeyValuePair<System.Int32, System.Object?>", "System.Runtime.CompilerServices.NullableAttribute({0, 0, 2})"),
-                    ("System.Collections.Generic.KeyValuePair<System.Object!, System.Int32>", "System.Runtime.CompilerServices.NullableAttribute({0, 1, 0})"),
-                    ("System.Collections.Generic.KeyValuePair<System.Object?, System.Int32>", "System.Runtime.CompilerServices.NullableAttribute({0, 2, 0})"),
-                    ("System.Collections.Generic.Dictionary<System.Int32, System.Int64>!", "System.Runtime.CompilerServices.NullableAttribute({1, 0, 0})"),
-                    ("System.Collections.Generic.Dictionary<System.Int32, System.Int64>?", "System.Runtime.CompilerServices.NullableAttribute({2, 0, 0})"),
+                    ("System.Collections.Generic.KeyValuePair<System.Int32, System.Object!>", "System.Runtime.CompilerServices.NullableAttribute({0, 1})"),
+                    ("System.Collections.Generic.KeyValuePair<System.Int32, System.Object?>", "System.Runtime.CompilerServices.NullableAttribute({0, 2})"),
+                    ("System.Collections.Generic.KeyValuePair<System.Object!, System.Int32>", "System.Runtime.CompilerServices.NullableAttribute({0, 1})"),
+                    ("System.Collections.Generic.KeyValuePair<System.Object?, System.Int32>", "System.Runtime.CompilerServices.NullableAttribute({0, 2})"),
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Int64>!", "System.Runtime.CompilerServices.NullableAttribute(1)"),
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Int64>?", "System.Runtime.CompilerServices.NullableAttribute(2)"),
                     ("System.Collections.Generic.Dictionary<System.String!, System.Object!>!", "System.Runtime.CompilerServices.NullableAttribute(1)"),
                     ("System.Collections.Generic.Dictionary<System.String!, System.Object!>?", "System.Runtime.CompilerServices.NullableAttribute({2, 1, 1})"),
                     ("System.Collections.Generic.Dictionary<System.String?, System.Object!>!", "System.Runtime.CompilerServices.NullableAttribute({1, 2, 1})"),
@@ -88859,14 +88859,14 @@ class B
                     ("System.Collections.Generic.Dictionary<System.String!, System.Object?>?", "System.Runtime.CompilerServices.NullableAttribute({2, 1, 2})"),
                     ("System.Collections.Generic.Dictionary<System.String?, System.Object?>!", "System.Runtime.CompilerServices.NullableAttribute({1, 2, 2})"),
                     ("System.Collections.Generic.Dictionary<System.String?, System.Object?>?", "System.Runtime.CompilerServices.NullableAttribute(2)"),
-                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object!>!", "System.Runtime.CompilerServices.NullableAttribute({1, 0, 1})"),
-                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object!>?", "System.Runtime.CompilerServices.NullableAttribute({2, 0, 1})"),
-                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object?>!", "System.Runtime.CompilerServices.NullableAttribute({1, 0, 2})"),
-                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object?>?", "System.Runtime.CompilerServices.NullableAttribute({2, 0, 2})"),
-                    ("System.Collections.Generic.Dictionary<System.Object!, System.Int32>!", "System.Runtime.CompilerServices.NullableAttribute({1, 1, 0})"),
-                    ("System.Collections.Generic.Dictionary<System.Object!, System.Int32>?", "System.Runtime.CompilerServices.NullableAttribute({2, 1, 0})"),
-                    ("System.Collections.Generic.Dictionary<System.Object?, System.Int32>!", "System.Runtime.CompilerServices.NullableAttribute({1, 2, 0})"),
-                    ("System.Collections.Generic.Dictionary<System.Object?, System.Int32>?", "System.Runtime.CompilerServices.NullableAttribute({2, 2, 0})")
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object!>!", "System.Runtime.CompilerServices.NullableAttribute(1)"),
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object!>?", "System.Runtime.CompilerServices.NullableAttribute({2, 1})"),
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object?>!", "System.Runtime.CompilerServices.NullableAttribute({1, 2})"),
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object?>?", "System.Runtime.CompilerServices.NullableAttribute(2)"),
+                    ("System.Collections.Generic.Dictionary<System.Object!, System.Int32>!", "System.Runtime.CompilerServices.NullableAttribute(1)"),
+                    ("System.Collections.Generic.Dictionary<System.Object!, System.Int32>?", "System.Runtime.CompilerServices.NullableAttribute({2, 1})"),
+                    ("System.Collections.Generic.Dictionary<System.Object?, System.Int32>!", "System.Runtime.CompilerServices.NullableAttribute({1, 2})"),
+                    ("System.Collections.Generic.Dictionary<System.Object?, System.Int32>?", "System.Runtime.CompilerServices.NullableAttribute(2)")
                 };
 
                 Assert.Equal(31, baseline.Length);
@@ -97121,6 +97121,21 @@ class C
                 // (6,19): warning CS8604: Possible null reference argument for parameter 'c1' in 'C C.M2(C c1)'.
                 //         c1 ??= M2(c1);
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "c1").WithArguments("c1", "C C.M2(C c1)").WithLocation(6, 19));
+        }
+
+        [Fact]
+        public void NullCoalescingAssignment_DefaultConvertedToNullableUnderlyingType()
+        {
+            var source = @"
+class C
+{
+    void M1(int? i)
+    {
+        (i ??= default).ToString(); // default is converted to int, so there's no warning.
+    }
+}";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
