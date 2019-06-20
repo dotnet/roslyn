@@ -11,6 +11,7 @@
       A supporting package for Live Share:
       https://devdiv.visualstudio.com/DevDiv/_git/Cascade?path=%2Fsrc%2FVS%2FLanguageService
     </PackageDescription>
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
   </PropertyGroup>
 
   <ItemGroup>
