@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis
             "System.Threading.CancellationTokenSource",
 
             "System.InvalidOperationException",
-            "System.Runtime.CompilerServices.SwitchExpressionException",
+            "System.Runtime.CompilerServices.SwitchExpressionException"
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
