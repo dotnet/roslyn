@@ -184,6 +184,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             Contract.ThrowIfNull(tree);
+            CheckTree(tree, text);
 
             // text version for this document should be unique. use it as a starting point.
             return TreeAndVersion.Create(tree, textAndVersion.Version);
@@ -252,6 +253,7 @@ namespace Microsoft.CodeAnalysis
             var oldText = oldTree.GetText(cancellationToken);
             var newTree = oldTree.WithChangedText(newText);
             Contract.ThrowIfNull(newTree);
+            CheckTree(newTree, newText, oldTree, oldText);
 
             return MakeNewTreeAndVersion(oldTree, oldText, oldTreeAndVersion.Version, newTree, newText, newTextAndVersion.Version);
         }
@@ -758,6 +760,39 @@ namespace Microsoft.CodeAnalysis
         {
             s_syntaxTreeToIdMap.TryGetValue(tree, out var id);
             return id;
+        }
+
+        private static void CheckTree(
+            SyntaxTree newTree,
+            SourceText newText,
+            SyntaxTree oldTree = null,
+            SourceText oldText = null)
+        {
+            // this should be always true
+            if (newTree.Length == newText.Length)
+            {
+                return;
+            }
+
+            var newTreeContent = newTree.GetRoot().ToFullString();
+            var newTextContent = newText.ToString();
+
+            var oldTreeContent = oldTree?.GetRoot().ToFullString();
+            var oldTextContent = oldText?.ToString();
+
+            // we time to time see (incremental) parsing bug where text <-> tree round tripping is broken.
+            // send NFW for those cases
+            FatalError.ReportWithoutCrash(new Exception($"tree and text has different length {newTree.Length} vs {newText.Length}"));
+
+            GC.KeepAlive(newTreeContent);
+            GC.KeepAlive(newTextContent);
+            GC.KeepAlive(oldTreeContent);
+            GC.KeepAlive(oldTextContent);
+
+            GC.KeepAlive(newTree);
+            GC.KeepAlive(newText);
+            GC.KeepAlive(oldTree);
+            GC.KeepAlive(oldText);
         }
     }
 }
