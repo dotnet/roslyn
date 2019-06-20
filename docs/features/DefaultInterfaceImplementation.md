@@ -134,7 +134,7 @@ II.10.4 Method implementat ion requirements
 II.12 Semantics of interfaces
 Interfaces can have static fields and methods, but they shall not have instance fields or 
 methods. Interfaces can define virtual methods, but only if those methods are abstract 
-(see Partition I and §II.15.4.2.4).
+(see Partition I and ï¿½II.15.4.2.4).
 II.12.2 Implement ing virtual methods on interfaces
 If the class defines any public virtual methods whose name and signature
 match a virtual method on the interface, then add these to the list for that
@@ -149,7 +149,7 @@ It follows that instance methods shall only be defined in classes or value types
 but not in interfaces or outside of a type (i.e., globally).
 II.22.27 MethodImpl : 0x19
 The method indexed by MethodBody shall be a member of Class or some base class
-of Class (MethodImpls do not allow compilers to ‘hook’ arbitrary method bodies)
+of Class (MethodImpls do not allow compilers to ï¿½hookï¿½ arbitrary method bodies)
 II.22.37 TypeDef : 0x02
 All of the methods owned by an Interface (Flags.Interface = 1) shall be abstract
 (Flags.Abstract = 1)

@@ -5910,4 +5910,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureNotNullGenericTypeConstraint" xml:space="preserve">
     <value>notnull generic type constraint</value>
   </data>
+  <data name="ERR_NeedSpaceBetweenExclamationAndEquals" xml:space="preserve">
+    <value>Space required between '!' and '=' here.</value>
+  </data>
+  <data name="ERR_MustNullCheckInImplementation" xml:space="preserve">
+    <value>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</value>
+  </data>
 </root>
