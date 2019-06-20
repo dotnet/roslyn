@@ -263,43 +263,35 @@ class C
             var source = @"
 class C
 {
-    public void M(int x!, int y!) { }
+    public void M(int x!, string y!) { }
     public static void Main() { }
 }";
 
             // Release
             var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe);
-            compilation.VerifyIL("C.M(int, int)", @"
+            compilation.VerifyIL("C.M(int, string)", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
- ~IL_0000:  ldarg.1
-  IL_0001:  brtrue.s   IL_0009
-  IL_0003:  newobj     ""System.Exception..ctor()""
-  IL_0008:  throw
- ~IL_0009:  ldarg.2
-  IL_000a:  brtrue.s   IL_0012
-  IL_000c:  newobj     ""System.Exception..ctor()""
-  IL_0011:  throw
- -IL_0012:  ret
+      // Code size       10 (0xa)
+      .maxstack  1
+     ~IL_0000:  ldarg.2
+      IL_0001:  brtrue.s   IL_0009
+      IL_0003:  newobj     ""System.Exception..ctor()""
+      IL_0008:  throw
+     -IL_0009:  ret
 }", sequencePoints: "C.M");
             // Debug
             compilation = CompileAndVerify(source, options: TestOptions.DebugExe);
-            compilation.VerifyIL("C.M(int, int)", @"
-  {
-  // Code size       20 (0x14)
-  .maxstack  1
- ~IL_0000:  ldarg.1
-  IL_0001:  brtrue.s   IL_0009
-  IL_0003:  newobj     ""System.Exception..ctor()""
- IL_0008:  throw
- ~IL_0009:  ldarg.2
-  IL_000a:  brtrue.s   IL_0012
-  IL_000c:  newobj     ""System.Exception..ctor()""
-  IL_0011:  throw
- -IL_0012:  nop
- -IL_0013:  ret
-  }", sequencePoints: "C.M");
+            compilation.VerifyIL("C.M(int, string)", @"
+ {
+      // Code size       11 (0xb)
+      .maxstack  1
+     ~IL_0000:  ldarg.2
+      IL_0001:  brtrue.s   IL_0009
+      IL_0003:  newobj     ""System.Exception..ctor()""
+      IL_0008:  throw
+     -IL_0009:  nop
+     -IL_000a:  ret
+}", sequencePoints: "C.M");
         }
 
         [Fact]
@@ -308,13 +300,13 @@ class C
             var source = @"
 class C
 {
-    public string this[int index!] => null;
+    public string this[string index!] => null;
     public static void Main() { }
 }";
 
             // Release
             var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe);
-            compilation.VerifyIL("C.this[int].get", @"
+            compilation.VerifyIL("C.this[string].get", @"
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -328,7 +320,7 @@ class C
 
             // Debug
             compilation = CompileAndVerify(source, options: TestOptions.DebugExe);
-            compilation.VerifyIL("C.this[int].get", @"
+            compilation.VerifyIL("C.this[string].get", @"
 {
    // Code size       11 (0xb)
    .maxstack  1
@@ -452,8 +444,7 @@ class C
             compilation.VerifyEmitDiagnostics(
                     // (4,28): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
                     //     static void M(int? i!) { }
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ }").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(4, 28)
-                );
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ }").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(4, 28));
         }
 
         [Fact]

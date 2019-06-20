@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (x is SourceParameterSymbolBase param
                     && param.IsNullChecked)
                 {
-                    if (!param.Type.IsValueType || param.Type.IsNullableTypeOrTypeParameter())
+                    if (param.Type.IsValueType && !param.Type.IsNullableTypeOrTypeParameter())
                     {
                         // PROTOTYPE : Warning or Error, see CodeGenNullCheckedParameterTests.TestNullCheckedSubstitution2
                         continue;
