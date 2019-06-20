@@ -573,9 +573,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             bool isConditionalBranchNeverTaken()
             {
+                Debug.Assert(branch.BranchValueOpt != null);
                 Debug.Assert(branch.ControlFlowConditionKind != ControlFlowConditionKind.None);
 
-                if (branch.BranchValueOpt.Type.SpecialType == SpecialType.System_Boolean &&
+                if (branch.BranchValueOpt.Type?.SpecialType == SpecialType.System_Boolean &&
                     branch.BranchValueOpt.ConstantValue.HasValue)
                 {
                     var alwaysTrue = (bool)branch.BranchValueOpt.ConstantValue.Value;
