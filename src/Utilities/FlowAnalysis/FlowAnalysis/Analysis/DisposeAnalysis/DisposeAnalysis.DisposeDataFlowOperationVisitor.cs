@@ -379,11 +379,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 // Local functions.
                 bool IsDisposeOwnershipTransfer()
                 {
-                    if (!operation.Parameter.Type.IsDisposable(WellKnownTypeProvider.IDisposable))
-                    {
-                        return false;
-                    }
-
                     switch (operation.Parent)
                     {
                         case IObjectCreationOperation _:
