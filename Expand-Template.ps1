@@ -1,8 +1,15 @@
 <#
 .SYNOPSIS
 Expands this template into an actual project, taking values for placeholders
-.PARAMETER Name
-The name of the library
+.PARAMETER LibraryName
+The name of the library. Should consist only of alphanumeric characters and periods.
+.PARAMETER Author
+The name to use in copyright and owner notices.
+.PARAMETER CodeCovToken
+A token obtained from codecov.io for your repo. If not specified, code coverage results will not be published to codecov.io,
+but can be added later by editing the Azure Pipelines YAML file.
+.PARAMETER CIFeed
+The `/{guid}` path to the Azure Pipelines artifact feed to push your nuget package to as part of your CI.
 #>
 [CmdletBinding()]
 Param(
