@@ -93,13 +93,7 @@ namespace Microsoft.CodeAnalysis
         public static ITypeSymbol GetTypeWithAnnotatedNullability(this IFieldSymbol fieldSymbol)
             => fieldSymbol.Type.WithNullability(fieldSymbol.NullableAnnotation);
 
-        public static ITypeSymbol GetTypeWithFlowNullability(this IFieldSymbol fieldSymbol)
-            => fieldSymbol.Type.WithNullability(fieldSymbol.NullableAnnotation);
-
         public static ITypeSymbol GetTypeWithAnnotatedNullability(this IParameterSymbol parameterSymbol)
-            => parameterSymbol.Type.WithNullability(parameterSymbol.NullableAnnotation);
-
-        public static ITypeSymbol GetTypeWithFlowNullability(this IParameterSymbol parameterSymbol)
             => parameterSymbol.Type.WithNullability(parameterSymbol.NullableAnnotation);
 
         public static ITypeSymbol GetElementTypeWithAnnotatedNullability(this IArrayTypeSymbol arrayTypeSymbol)
