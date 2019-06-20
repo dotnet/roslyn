@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1712,6 +1714,554 @@ internal class B : I<object>
                 // (3,19): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     private object? P => null;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 19));
+        }
+
+        [Fact]
+        public void EmitAttribute_ValueTypes_01()
+        {
+            var source =
+@"#nullable enable
+struct S1<T> { }
+struct S2<T, U> { }
+class C1<T> { }
+class C2<T, U> { }
+class Program
+{
+    static void F() { }
+    int F11;
+    int? F12;
+#nullable disable
+    object F21;
+#nullable enable
+    object F22;
+    S1<int> F31;
+    S1<int?>? F32;
+    S1<
+#nullable disable
+        object
+#nullable enable
+        > F33;
+    S1<object?> F34;
+    S2<int, int> F41;
+    S2<int,
+#nullable disable
+        object
+#nullable enable
+        > F42;
+    S2<
+#nullable disable
+        object,
+#nullable enable
+        int> F43;
+    S2<
+#nullable disable
+        object, object
+#nullable enable
+        > F44;
+    S2<int, object> F45;
+    S2<object?, int> F46;
+    S2<
+#nullable disable
+        object,
+#nullable enable
+        object> F47;
+    S2<object?,
+#nullable disable
+        object
+#nullable enable
+        > F48;
+    S2<object, object?> F49;
+    C1<int
+#nullable disable
+        > F51;
+#nullable enable
+    C1<int?
+#nullable disable
+        > F52;
+#nullable enable
+    C1<int> F53;
+    C1<int?> F54;
+    C1<
+#nullable disable
+        object> F55;
+#nullable enable
+    C1<object
+#nullable disable
+        > F56;
+#nullable enable
+    C1<
+#nullable disable
+        object
+#nullable enable
+        >? F57;
+    C1<object>? F58;
+    C2<int,
+#nullable disable
+        object> F60;
+#nullable enable
+    C2<int, object
+#nullable disable
+        > F61;
+#nullable enable
+    C2<object?, int
+#nullable disable
+        > F62;
+#nullable enable
+    C2<int, object> F63;
+    C2<object?, int>? F64;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate);
+
+            static void validate(ModuleSymbol module)
+            {
+                var globalNamespace = module.GlobalNamespace;
+                VerifyBytes(globalNamespace.GetMember<MethodSymbol>("Program.F").ReturnTypeWithAnnotations, new byte[] { 0 }, new byte[] { }, "void");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F11").TypeWithAnnotations, new byte[] { 0 }, new byte[] { }, "int");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F12").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { }, "int?");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F21").TypeWithAnnotations, new byte[] { 0 }, new byte[] { 0 }, "object");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F22").TypeWithAnnotations, new byte[] { 1 }, new byte[] { 1 }, "object!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F31").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { 0 }, "S1<int>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F32").TypeWithAnnotations, new byte[] { 0, 0, 0, 0 }, new byte[] { 0 }, "S1<int?>?");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F33").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { 0, 0 }, "S1<object>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F34").TypeWithAnnotations, new byte[] { 0, 2 }, new byte[] { 0, 2 }, "S1<object?>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F41").TypeWithAnnotations, new byte[] { 0, 0, 0 }, new byte[] { 0 }, "S2<int, int>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F42").TypeWithAnnotations, new byte[] { 0, 0, 0 }, new byte[] { 0, 0 }, "S2<int, object>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F43").TypeWithAnnotations, new byte[] { 0, 0, 0 }, new byte[] { 0, 0 }, "S2<object, int>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F44").TypeWithAnnotations, new byte[] { 0, 0, 0 }, new byte[] { 0, 0, 0 }, "S2<object, object>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F45").TypeWithAnnotations, new byte[] { 0, 0, 1 }, new byte[] { 0, 1 }, "S2<int, object!>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F46").TypeWithAnnotations, new byte[] { 0, 2, 0 }, new byte[] { 0, 2 }, "S2<object?, int>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F47").TypeWithAnnotations, new byte[] { 0, 0, 1 }, new byte[] { 0, 0, 1 }, "S2<object, object!>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F48").TypeWithAnnotations, new byte[] { 0, 2, 0 }, new byte[] { 0, 2, 0 }, "S2<object?, object>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F49").TypeWithAnnotations, new byte[] { 0, 1, 2 }, new byte[] { 0, 1, 2 }, "S2<object!, object?>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F51").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { 0 }, "C1<int>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F52").TypeWithAnnotations, new byte[] { 0, 0, 0 }, new byte[] { 0 }, "C1<int?>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F53").TypeWithAnnotations, new byte[] { 1, 0 }, new byte[] { 1 }, "C1<int>!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F54").TypeWithAnnotations, new byte[] { 1, 0, 0 }, new byte[] { 1 }, "C1<int?>!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F55").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { 0, 0 }, "C1<object>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F56").TypeWithAnnotations, new byte[] { 0, 1 }, new byte[] { 0, 1 }, "C1<object!>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F57").TypeWithAnnotations, new byte[] { 2, 0 }, new byte[] { 2, 0 }, "C1<object>?");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F58").TypeWithAnnotations, new byte[] { 2, 1 }, new byte[] { 2, 1 }, "C1<object!>?");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F60").TypeWithAnnotations, new byte[] { 0, 0, 0 }, new byte[] { 0, 0 }, "C2<int, object>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F61").TypeWithAnnotations, new byte[] { 0, 0, 1 }, new byte[] { 0, 1 }, "C2<int, object!>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F62").TypeWithAnnotations, new byte[] { 0, 2, 0 }, new byte[] { 0, 2 }, "C2<object?, int>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F63").TypeWithAnnotations, new byte[] { 1, 0, 1 }, new byte[] { 1, 1 }, "C2<int, object!>!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F64").TypeWithAnnotations, new byte[] { 2, 2, 0 }, new byte[] { 2, 2 }, "C2<object?, int>?");
+            }
+        }
+
+        [Fact]
+        public void EmitAttribute_ValueTypes_02()
+        {
+            var source =
+@"#nullable enable
+struct S<T> { }
+class Program
+{
+    int
+#nullable disable
+        [] F1;
+#nullable enable
+    int[] F2;
+    int?[]? F3;
+    int
+#nullable disable
+        []
+#nullable enable
+        [] F4;
+    int?[]
+#nullable disable
+        [] F5;
+#nullable enable
+    S<int
+#nullable disable
+        []
+#nullable enable
+        > F6;
+    S<int?[]?>? F7;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate);
+
+            static void validate(ModuleSymbol module)
+            {
+                var globalNamespace = module.GlobalNamespace;
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F1").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { 0 }, "int[]");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F2").TypeWithAnnotations, new byte[] { 1, 0 }, new byte[] { 1 }, "int[]!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F3").TypeWithAnnotations, new byte[] { 2, 0, 0 }, new byte[] { 2 }, "int?[]?");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F4").TypeWithAnnotations, new byte[] { 0, 1, 0 }, new byte[] { 0, 1 }, "int[]![]");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F5").TypeWithAnnotations, new byte[] { 1, 0, 0, 0 }, new byte[] { 1, 0 }, "int?[][]!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F6").TypeWithAnnotations, new byte[] { 0, 0, 0 }, new byte[] { 0, 0 }, "S<int[]>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F7").TypeWithAnnotations, new byte[] { 0, 0, 2, 0, 0 }, new byte[] { 0, 2 }, "S<int?[]?>?");
+            }
+        }
+
+        [Fact]
+        public void EmitAttribute_ValueTypes_03()
+        {
+            var source =
+@"#nullable enable
+class Program
+{
+    (int, int) F1;
+    (int?, int?)? F2;
+#nullable disable
+    (int, object) F3;
+    (object, int) F4;
+#nullable enable
+    (int, object?) F5;
+    (object, int) F6;
+    ((int, int), ((int, int), int)) F7;
+    ((int, int), ((int, object), int)) F8;
+#nullable disable
+    (int _1, int _2, int _3, int _4, int _5, int _6, int _7, object _8) F9;
+#nullable enable
+    (int _1, int _2, int _3, int _4, int _5, int _6, int _7, int _8, int _9) F10;
+    (int _1, int _2, int _3, int _4, int _5, int _6, int _7, int _8, object _9) F11;
+    (int _1, int _2, int _3, int _4, int _5, int _6, int _7, object _8, int _9) F12;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate);
+
+            static void validate(ModuleSymbol module)
+            {
+                var globalNamespace = module.GlobalNamespace;
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F1").TypeWithAnnotations, new byte[] { 0, 0, 0 }, new byte[] { 0 }, "(int, int)");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F2").TypeWithAnnotations, new byte[] { 0, 0, 0, 0, 0, 0 }, new byte[] { 0 }, "(int?, int?)?");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F3").TypeWithAnnotations, new byte[] { 0, 0, 0 }, new byte[] { 0, 0 }, "(int, object)");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F4").TypeWithAnnotations, new byte[] { 0, 0, 0 }, new byte[] { 0, 0 }, "(object, int)");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F5").TypeWithAnnotations, new byte[] { 0, 0, 2 }, new byte[] { 0, 2 }, "(int, object?)");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F6").TypeWithAnnotations, new byte[] { 0, 1, 0 }, new byte[] { 0, 1 }, "(object!, int)");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F7").TypeWithAnnotations, new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, new byte[] { 0, 0, 0, 0 }, "((int, int), ((int, int), int))");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F8").TypeWithAnnotations, new byte[] { 0, 0, 0, 0, 0, 0, 0, 1, 0 }, new byte[] { 0, 0, 0, 0, 1 }, "((int, int), ((int, object!), int))");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F9").TypeWithAnnotations, new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, new byte[] { 0, 0, 0 }, "(int _1, int _2, int _3, int _4, int _5, int _6, int _7, object _8)");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F10").TypeWithAnnotations, new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, new byte[] { 0, 0 }, "(int _1, int _2, int _3, int _4, int _5, int _6, int _7, int _8, int _9)");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F11").TypeWithAnnotations, new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, new byte[] { 0, 0, 1 }, "(int _1, int _2, int _3, int _4, int _5, int _6, int _7, int _8, object! _9)");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F12").TypeWithAnnotations, new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 }, new byte[] { 0, 0, 1 }, "(int _1, int _2, int _3, int _4, int _5, int _6, int _7, object! _8, int _9)");
+            }
+        }
+
+        [Fact]
+        public void EmitAttribute_ValueTypes_04()
+        {
+            var source =
+@"#nullable enable
+struct S0
+{
+    internal struct S { }
+    internal class C { }
+}
+struct S1<T>
+{
+    internal struct S { }
+    internal class C { }
+}
+class C0
+{
+    internal struct S { }
+    internal class C { }
+}
+class C1<T>
+{
+    internal struct S { }
+    internal class C { }
+}
+class Program
+{
+    S0.S F11;
+#nullable disable
+    S0.C F12;
+#nullable enable
+    S0.C F13;
+    S1<int>.S F21;
+#nullable disable
+    S1<int>.C F22;
+#nullable enable
+    S1<int>.C F23;
+#nullable disable
+    S1<object>.S F24;
+#nullable enable
+    S1<object>.S F25;
+    S1<
+#nullable disable
+        object
+#nullable enable
+        >.C F26;
+    S1<object
+#nullable disable
+        >.C F27;
+#nullable enable
+    S1<int>.S[] F28;
+    S1<C1<object>.S> F29;
+    C0.S F31;
+#nullable disable
+    C0.C F32;
+#nullable enable
+    C0.C F33;
+    C1<int>.S F41;
+#nullable disable
+    C1<int>.C F42;
+#nullable enable
+    C1<int>.C F43;
+#nullable disable
+    C1<object>.S F44;
+#nullable enable
+    C1<object>.S F45;
+    C1<
+#nullable disable
+        object
+#nullable enable
+        >.C F46;
+    C1<object
+#nullable disable
+        >.C F47;
+#nullable enable
+    C1<int>.S[] F48;
+    C1<S1<object>.S> F49;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate);
+
+            static void validate(ModuleSymbol module)
+            {
+                var globalNamespace = module.GlobalNamespace;
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F11").TypeWithAnnotations, new byte[] { 0 }, new byte[] { }, "S0.S");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F12").TypeWithAnnotations, new byte[] { 0 }, new byte[] { 0 }, "S0.C");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F13").TypeWithAnnotations, new byte[] { 1 }, new byte[] { 1 }, "S0.C!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F21").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { 0 }, "S1<int>.S");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F22").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { 0 }, "S1<int>.C");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F23").TypeWithAnnotations, new byte[] { 1, 0 }, new byte[] { 1 }, "S1<int>.C!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F24").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { 0, 0 }, "S1<object>.S");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F25").TypeWithAnnotations, new byte[] { 0, 1 }, new byte[] { 0, 1 }, "S1<object!>.S");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F26").TypeWithAnnotations, new byte[] { 1, 0 }, new byte[] { 1, 0 }, "S1<object>.C!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F27").TypeWithAnnotations, new byte[] { 0, 1 }, new byte[] { 0, 1 }, "S1<object!>.C");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F28").TypeWithAnnotations, new byte[] { 1, 0, 0 }, new byte[] { 1, 0 }, "S1<int>.S[]!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F29").TypeWithAnnotations, new byte[] { 0, 0, 1 }, new byte[] { 0, 0, 1 }, "S1<C1<object!>.S>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F31").TypeWithAnnotations, new byte[] { 0 }, new byte[] { }, "C0.S");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F32").TypeWithAnnotations, new byte[] { 0 }, new byte[] { 0 }, "C0.C");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F33").TypeWithAnnotations, new byte[] { 1 }, new byte[] { 1 }, "C0.C!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F41").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { 0 }, "C1<int>.S");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F42").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { 0 }, "C1<int>.C");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F43").TypeWithAnnotations, new byte[] { 1, 0 }, new byte[] { 1 }, "C1<int>.C!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F44").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { 0, 0 }, "C1<object>.S");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F45").TypeWithAnnotations, new byte[] { 0, 1 }, new byte[] { 0, 1 }, "C1<object!>.S");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F46").TypeWithAnnotations, new byte[] { 1, 0 }, new byte[] { 1, 0 }, "C1<object>.C!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F47").TypeWithAnnotations, new byte[] { 0, 1 }, new byte[] { 0, 1 }, "C1<object!>.C");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F48").TypeWithAnnotations, new byte[] { 1, 0, 0 }, new byte[] { 1, 0 }, "C1<int>.S[]!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F49").TypeWithAnnotations, new byte[] { 1, 0, 1 }, new byte[] { 1, 0, 1 }, "C1<S1<object!>.S>!");
+            }
+        }
+
+        [Fact]
+        public void EmitAttribute_ValueTypes_05()
+        {
+            var source =
+@"#nullable enable
+interface I0
+{
+    internal delegate void D();
+    internal enum E { }
+    internal interface I { }
+}
+interface I1<T>
+{
+    internal delegate void D();
+    internal enum E { }
+    internal interface I { }
+}
+class Program
+{
+    I0.D F1;
+    I0.E F2;
+    I0.I F3;
+    I1<int>.D F4;
+    I1<int>.E F5;
+    I1<int>.I F6;
+#nullable disable
+    I1<object>.D F7;
+    I1<object>.E F8;
+    I1<object>.I F9;
+#nullable enable
+    I1<object>.E F10;
+    I1<int>.E[] F11;
+    I1<I0.E> F12;
+    I1<I1<object>.E>.E F13;
+    I1<I1<int>.D>.I F14;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate);
+
+            static void validate(ModuleSymbol module)
+            {
+                var globalNamespace = module.GlobalNamespace;
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F1").TypeWithAnnotations, new byte[] { 1 }, new byte[] { 1 }, "I0.D!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F2").TypeWithAnnotations, new byte[] { 0 }, new byte[] { }, "I0.E");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F3").TypeWithAnnotations, new byte[] { 1 }, new byte[] { 1 }, "I0.I!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F4").TypeWithAnnotations, new byte[] { 1, 0 }, new byte[] { 1 }, "I1<int>.D!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F5").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { 0 }, "I1<int>.E");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F6").TypeWithAnnotations, new byte[] { 1, 0 }, new byte[] { 1 }, "I1<int>.I!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F7").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { 0, 0 }, "I1<object>.D");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F8").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { 0, 0 }, "I1<object>.E");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F9").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { 0, 0 }, "I1<object>.I");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F10").TypeWithAnnotations, new byte[] { 0, 1 }, new byte[] { 0, 1 }, "I1<object!>.E");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F11").TypeWithAnnotations, new byte[] { 1, 0, 0 }, new byte[] { 1, 0 }, "I1<int>.E[]!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F12").TypeWithAnnotations, new byte[] { 1, 0 }, new byte[] { 1 }, "I1<I0.E>!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F13").TypeWithAnnotations, new byte[] { 0, 0, 1 }, new byte[] { 0, 0, 1 }, "I1<I1<object!>.E>.E");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F14").TypeWithAnnotations, new byte[] { 1, 1, 0 }, new byte[] { 1, 1 }, "I1<I1<int>.D!>.I!");
+            }
+        }
+
+        [Fact]
+        public void EmitAttribute_ValueTypes_06()
+        {
+            var source =
+@"#nullable enable
+struct S<T> { }
+class C<T> { }
+unsafe class Program
+{
+    int* F1;
+    int?* F2;
+    S<int*> F3;
+    S<int>* F4;
+#nullable disable
+    C<int*> F5;
+#nullable enable
+    C<int*> F6;
+}";
+            var comp = CreateCompilation(source);
+            var globalNamespace = comp.GlobalNamespace;
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F1").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { 0 }, "int*");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F2").TypeWithAnnotations, new byte[] { 0, 0, 0 }, new byte[] { 0 }, "int?*");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F3").TypeWithAnnotations, new byte[] { 0, 0, 0 }, new byte[] { 0, 0 }, "S<int*>");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F4").TypeWithAnnotations, new byte[] { 0, 0, 0 }, new byte[] { 0, 0 }, "S<int>*");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F5").TypeWithAnnotations, new byte[] { 0, 0, 0 }, new byte[] { 0, 0 }, "C<int*>");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F6").TypeWithAnnotations, new byte[] { 1, 0, 0 }, new byte[] { 1, 0 }, "C<int*>!");
+        }
+
+        [Fact]
+        public void EmitAttribute_ValueTypes_07()
+        {
+            var source =
+@"#nullable enable
+class C<T> { }
+struct S<T> { }
+class Program<T, U, V>
+    where U : class
+    where V : struct
+{
+    T F11;
+    T[] F12;
+    C<T> F13;
+    S<T> F14;
+#nullable disable
+    U F21;
+#nullable enable
+    U? F22;
+    U[] F23;
+    C<U> F24;
+    S<U> F25;
+    V F31;
+    V? F32;
+    V[] F33;
+    C<V> F34;
+    S<V> F35;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate);
+
+            static void validate(ModuleSymbol module)
+            {
+                var globalNamespace = module.GlobalNamespace;
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F11").TypeWithAnnotations, new byte[] { 1 }, new byte[] { 1 }, "T");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F12").TypeWithAnnotations, new byte[] { 1, 1 }, new byte[] { 1, 1 }, "T[]!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F13").TypeWithAnnotations, new byte[] { 1, 1 }, new byte[] { 1, 1 }, "C<T>!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F14").TypeWithAnnotations, new byte[] { 0, 1 }, new byte[] { 0, 1 }, "S<T>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F21").TypeWithAnnotations, new byte[] { 0 }, new byte[] { 0 }, "U");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F22").TypeWithAnnotations, new byte[] { 2 }, new byte[] { 2 }, "U?");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F23").TypeWithAnnotations, new byte[] { 1, 1 }, new byte[] { 1, 1 }, "U![]!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F24").TypeWithAnnotations, new byte[] { 1, 1 }, new byte[] { 1, 1 }, "C<U!>!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F25").TypeWithAnnotations, new byte[] { 0, 1 }, new byte[] { 0, 1 }, "S<U!>");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F31").TypeWithAnnotations, new byte[] { 0 }, new byte[] { 0 }, "V");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F32").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { 0 }, "V?");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F33").TypeWithAnnotations, new byte[] { 1, 0 }, new byte[] { 1, 0 }, "V[]!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F34").TypeWithAnnotations, new byte[] { 1, 0 }, new byte[] { 1 , 0}, "C<V>!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F35").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { 0, 0 }, "S<V>");
+            }
+        }
+
+        [Fact]
+        public void EmitAttribute_ValueTypes_08()
+        {
+            var source0 =
+@"public struct S0 { }
+public struct S2<T, U> { }";
+            var comp = CreateCompilation(source0);
+            var ref0 = comp.EmitToImageReference();
+
+            var source =
+@"#nullable enable
+class C2<T, U> { }
+class Program
+{
+    C2<S0, object?> F1;
+    C2<object, S0>? F2;
+    S2<S0, object> F3;
+    S2<object?, S0> F4;
+    (S0, object) F5;
+    (object?, S0) F6;
+}";
+
+            // With reference assembly.
+            comp = CreateCompilation(source, references: new[] { ref0 });
+            var globalNamespace = comp.GlobalNamespace;
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F1").TypeWithAnnotations, new byte[] { 1, 0, 2 }, new byte[] { 1, 2 }, "C2<S0, object?>!");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F2").TypeWithAnnotations, new byte[] { 2, 1, 0 }, new byte[] { 2, 1 }, "C2<object!, S0>?");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F3").TypeWithAnnotations, new byte[] { 0, 0, 1 }, new byte[] { 0, 1 }, "S2<S0, object!>");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F4").TypeWithAnnotations, new byte[] { 0, 2, 0 }, new byte[] { 0, 2 }, "S2<object?, S0>");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F5").TypeWithAnnotations, new byte[] { 0, 0, 1 }, new byte[] { 0, 1 }, "(S0, object!)");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F6").TypeWithAnnotations, new byte[] { 0, 2, 0 }, new byte[] { 0, 2 }, "(object?, S0)");
+
+            // Without reference assembly.
+            comp = CreateCompilation(source);
+            globalNamespace = comp.GlobalNamespace;
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F1").TypeWithAnnotations, new byte[] { 1, 0, 2 }, new byte[] { 1, 1, 2 }, "C2<S0!, object?>!");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F2").TypeWithAnnotations, new byte[] { 2, 1, 0 }, new byte[] { 2, 1, 1 }, "C2<object!, S0!>?");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F3").TypeWithAnnotations, new byte[] { 0, 0, 1 }, new byte[] { 1, 1, 1 }, "S2<S0!, object!>!");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F4").TypeWithAnnotations, new byte[] { 0, 2, 0 }, new byte[] { 1, 2, 1 }, "S2<object?, S0!>!");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F5").TypeWithAnnotations, new byte[] { 0, 0, 1 }, new byte[] { 0, 1, 1 }, "(S0!, object!)");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F6").TypeWithAnnotations, new byte[] { 0, 2, 0 }, new byte[] { 0, 2, 1 }, "(object?, S0!)");
+        }
+
+        private static readonly SymbolDisplayFormat _displayFormat = SymbolDisplayFormat.TestFormat.
+            WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes).
+            WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
+
+        private static void VerifyBytes(TypeWithAnnotations type, byte[] expectedPreviously, byte[] expectedNow, string expectedDisplay)
+        {
+            var builder = ArrayBuilder<byte>.GetInstance();
+            type.AddNullableTransforms(builder);
+            var actualBytes = builder.ToImmutableAndFree();
+
+            Assert.Equal(expectedNow, actualBytes);
+            Assert.Equal(expectedDisplay, type.ToDisplayString(_displayFormat));
+
+            var underlyingType = type.SetUnknownNullabilityForReferenceTypes();
+
+            // Verify re-applying the same bytes gives the same result.
+            TypeWithAnnotations updated;
+            int position = 0;
+            Assert.True(underlyingType.ApplyNullableTransforms(0, actualBytes, ref position, out updated));
+            Assert.True(updated.Equals(type, TypeCompareKind.ConsiderEverything));
+
+            // If the expected byte[] is shorter than earlier builds, verify that
+            // applying the previous byte[] does not consume all bytes.
+            if (!expectedPreviously.SequenceEqual(expectedNow))
+            {
+                position = 0;
+                underlyingType.ApplyNullableTransforms(0, ImmutableArray.Create(expectedPreviously), ref position, out _);
+                Assert.Equal(position, expectedNow.Length);
+            }
         }
 
         [Fact]
