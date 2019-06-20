@@ -75,6 +75,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <summary>
         /// Returns the first Token that passes <paramref name="predicate"/> within supplied <paramref name="span"/>.
         /// </summary>
+        /// <remarks>
+        /// Only tokens whose <c>Span.End</c> fits within <paramref name="span"/> are considered. 
+        /// </remarks>
         public static async Task<SyntaxToken> GetLeftmostTokenInSpanAsync(
             this SyntaxTree syntaxTree,
             TextSpan span, 
@@ -97,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             while (!predicate(token))
             {
-                if (token.FullSpan.End >= syntaxTree.Length)
+                if (token.Span.End >= span.End || token.FullSpan.End >= syntaxTree.Length)
                 {
                     // SyntaxKind = None
                     return default;

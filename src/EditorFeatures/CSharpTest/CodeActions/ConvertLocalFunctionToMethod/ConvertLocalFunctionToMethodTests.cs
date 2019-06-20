@@ -555,24 +555,19 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        public async Task TestWholeMethodSelectionPositon()
+        public async Task TestWholeMethodSelection1()
         {
-            await TestAsync("[|C LocalFunction(C c)");
-            await TestMissingAsync("C LocalFunction(C c)[|");
-
-            async Task TestAsync(string signature)
-            {
-                await TestInRegularAndScriptAsync(
-$@"class C
-{{
+            await TestInRegularAndScriptAsync(
+@"class C
+{
     void M()
-    {{
-        {signature}
-        {{
+    {
+        [|C LocalFunction(C c)
+        {
             return null;
-        }}|]
-    }}
-}}",
+        }|]
+    }
+}",
 @"class C
 {
     void M()
@@ -584,22 +579,24 @@ $@"class C
         return null;
     }
 }");
-            }
-
-            async Task TestMissingAsync(string signature)
-            {
-                await this.TestMissingAsync(
-$@"class C
-{{
-    void M()
-    {{
-        {signature}
-        {{
-            return null;
-        }}|]
-    }}
-}}");
-            }
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        public async Task TestWholeMethodSelection2()
+        {
+
+            await this.TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        C LocalFunction(C c)[|
+        {
+            return null;
+        }|]
+    }
+}");
+        }
+
     }
 }
