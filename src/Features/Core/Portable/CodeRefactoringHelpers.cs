@@ -3,12 +3,44 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
     internal static class CodeRefactoringHelpers
     {
+
+        /// <summary>
+        /// <para>
+        /// Returns the relevant <see cref="SyntaxNode"/> instance if refactoring for <typeparamref name="TSyntaxNode"/> type
+        /// should be offered given the specified selection in document.
+        /// </para>
+        /// <para>
+        /// A <typeparamref name="TSyntaxNode"/> instance is returned if selection is zero-width and inside/touching a Token whose
+        /// direct parent is of type <typeparamref name="TSyntaxNode"/> or if a Node of said type is the smallest Node containing
+        /// the whole <paramref name="selection"/>. Otherwise returns <code>null</code>.
+        /// </para>
+        /// </summary>
+        public static async Task<TSyntaxNode> TryGetSelectedNode<TSyntaxNode>(
+            TextSpan selection, SyntaxNode root, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+        {
+
+            // TODO: Add handling selected whitespace before / after the same way as helper methods below -> refactor to public
+            // helper. 
+
+            var node = root.FindNode(selection) as TSyntaxNode;
+            if (node == null)
+            {
+                // e.g. "C LocalFunction[||](C c)" -> root.FindNode return ParameterList but we still want to return LocalFunctionNode
+                var identifier = await root.SyntaxTree.GetTouchingTokenAsync(selection.Start,
+                    token => token.Parent is TSyntaxNode, cancellationToken).ConfigureAwait(false);
+                node = identifier.Parent as TSyntaxNode;
+            }
+
+            return node;
+        }
+
         public static Task<bool> RefactoringSelectionIsValidAsync(
             Document document, TextSpan selection, SyntaxNode node, CancellationToken cancellation)
         {
