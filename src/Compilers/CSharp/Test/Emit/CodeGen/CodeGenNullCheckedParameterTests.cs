@@ -470,7 +470,6 @@ class B1<T> : A<T> where T : class
 }
 ";
             var compilation = CreateCompilation(source);
-            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_get_HasValue);
             compilation.VerifyEmitDiagnostics();
         }
 
@@ -487,7 +486,6 @@ class B2<T> : A<T> where T : struct
     internal override void M<U>(U u!) { }
 }";
             var compilation = CreateCompilation(source);
-            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_get_HasValue);
             compilation.VerifyEmitDiagnostics();
         }
 
@@ -504,7 +502,6 @@ class B3<T> : A<T?> where T : struct
     internal override void M<U>(U u!) { }
 }";
             var compilation = CreateCompilation(source);
-            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_get_HasValue);
             compilation.VerifyEmitDiagnostics();
         }
 
@@ -521,7 +518,6 @@ class B4 : A<int>
     internal override void M<U>(U u!) { }
 }";
             var compilation = CreateCompilation(source);
-            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_get_HasValue);
             compilation.VerifyEmitDiagnostics();
         }
 
@@ -538,7 +534,6 @@ class B5 : A<object>
     internal override void M<U>(U u!) { }
 }";
             var compilation = CreateCompilation(source);
-            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_get_HasValue);
             compilation.VerifyEmitDiagnostics();
         }
     }
