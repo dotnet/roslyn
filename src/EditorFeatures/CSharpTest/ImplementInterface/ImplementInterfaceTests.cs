@@ -7870,5 +7870,29 @@ abstract class Class : IInterface
 }",
 index: 1);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNotNullConstraint()
+        {
+            await TestInRegularAndScriptAsync(
+@"public interface ITest
+{
+    void M<T>() where T : notnull;
+}
+public class Test : [|ITest|]
+{
+}",
+@"public interface ITest
+{
+    void M<T>() where T : notnull;
+}
+public class Test : ITest
+{
+    public void M<T>() where T : notnull
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
     }
 }
