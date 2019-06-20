@@ -784,6 +784,7 @@ namespace Microsoft.CodeAnalysis
             // send NFW for those cases
             FatalError.ReportWithoutCrash(new Exception($"tree and text has different length {newTree.Length} vs {newText.Length}"));
 
+            // this will make sure that these variables are not thrown away in the dump
             GC.KeepAlive(newTreeContent);
             GC.KeepAlive(newTextContent);
             GC.KeepAlive(oldTreeContent);
