@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt)
         {
             Debug.Assert(diagnostics != null);
-            var restoredWalker = new NullableWalker(compilation,
+            var walker = new NullableWalker(compilation,
                                                     symbol,
                                                     useMethodSignatureParameterTypes,
                                                     methodSignatureOpt,
@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     analyzedNullabilityMapOpt,
                                                     snapshotBuilderOpt);
 
-            Analyze(restoredWalker, symbol, diagnostics, initialState, snapshotBuilderOpt);
+            Analyze(walker, symbol, diagnostics, initialState, snapshotBuilderOpt);
         }
 
         private static void Analyze(

@@ -1431,10 +1431,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     NodeMapBuilder.AddToMap(bound, _guardedNodeMap, syntax);
                 }
 
-                Debug.Assert(manager == null || !IsSpeculativeSemanticModel);
+                // If we're a speculative model, then we should never be passed a new manager, as we should not be recording
+                // new snapshot info, only using what was given when the model was created. If we're not a speculative model,
+                // then there are 3 possibilities:
+                // 1. Nullable analysis wasn't enabled, and we should never be passed a manager.
+                // 2. Nullable analysis is enabled, but we're not adding info for a root node and we shouldn't be passed
+                //    new snapshots. This can occur when we're asked to bind a standalone node that wasn't in the original
+                //    tree, such as aliases. These nodes do not affect analysis, so we should not be attempting to save
+                //    snapshot information for use in speculative models created off this one.
+                // 3. Nullable analysis is enabled, and we were passed a new manager. If this is the case, we must be adding
+                //    cached nodes for the root syntax node, and the existing snapshot manager must be null.
+                Debug.Assert((IsSpeculativeSemanticModel && manager is null) ||
+                             (!IsSpeculativeSemanticModel &&
+                              (manager is null && (!Compilation.NullableAnalysisEnabled || syntax != Root)) ||
+                              (manager is object && syntax == Root && Compilation.NullableAnalysisEnabled && _lazySnapshotManager is null)));
                 if (!IsSpeculativeSemanticModel && manager is object)
                 {
-                    Debug.Assert(_lazySnapshotManager is null);
                     _lazySnapshotManager = manager;
                 }
             }
