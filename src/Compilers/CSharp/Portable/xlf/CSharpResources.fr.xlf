@@ -68,7 +68,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
-        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'warnings'</source>
+        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
         <target state="needs-review-translation">Option '{0}' non valide pour /nullable ; utilisez 'disable', 'enable', 'safeonly', 'warnings' ou 'safeonlywarnings'</target>
         <note />
       </trans-unit>
@@ -290,6 +290,11 @@
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'disable', or 'restore'</source>
         <target state="needs-review-translation">'enable', 'safeonly', 'disable' ou 'restore' attendu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullableDirectiveTargetExpected">
+        <source>Expected 'warnings', 'annotations', or end of directive</source>
+        <target state="new">Expected 'warnings', 'annotations', or end of directive</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
@@ -1388,13 +1393,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
-        <source>The annotation for nullable reference types should only be used in code within a '#nullable' context.</source>
-        <target state="translated">L'annotation pour les types référence Nullable doit être utilisée uniquement dans le code au sein d'un contexte '#nullable'.</target>
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
+        <target state="needs-review-translation">L'annotation pour les types référence Nullable doit être utilisée uniquement dans le code au sein d'un contexte '#nullable'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
-        <source>The annotation for nullable reference types should only be used in code within a '#nullable' context.</source>
-        <target state="translated">L'annotation pour les types référence Nullable doit être utilisée uniquement dans le code au sein d'un contexte '#nullable'.</target>
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
+        <target state="needs-review-translation">L'annotation pour les types référence Nullable doit être utilisée uniquement dans le code au sein d'un contexte '#nullable'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
