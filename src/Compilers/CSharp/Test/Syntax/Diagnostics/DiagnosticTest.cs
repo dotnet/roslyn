@@ -1886,97 +1886,6 @@ public class C
         }
 
         [Fact]
-        public void PragmaWarning_EnableSafeOnlyNullable()
-        {
-            var text = @"
-#pragma warning disable nullable
-#pragma warning enable nullable
-#pragma warning restore nullable
-#pragma warning safeonly nullable
-
-#pragma warning disable nullable, 1695
-#pragma warning enable nullable, 1695
-#pragma warning restore nullable, 1695
-#pragma warning safeonly nullable, 1695
-
-#pragma warning enable 
-#pragma warning safeonly
-#pragma warning enable 1695
-#pragma warning safeonly 1695
-";
-            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-                // (3,17): warning CS1658: The feature 'warning action enable' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
-                // #pragma warning enable nullable
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "enable").WithArguments("The feature 'warning action enable' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(3, 17),
-                // (5,17): warning CS1634: Expected disable, restore or enable
-                // #pragma warning safeonly nullable
-                Diagnostic(ErrorCode.WRN_IllegalPPWarning, "safeonly").WithLocation(5, 17),
-                // (7,33): warning CS1696: Single-line comment or end-of-line expected
-                // #pragma warning disable nullable, 1695
-                Diagnostic(ErrorCode.WRN_EndOfPPLineExpected, ",").WithLocation(7, 33),
-                // (8,17): warning CS1658: The feature 'warning action enable' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
-                // #pragma warning enable nullable, 1695
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "enable").WithArguments("The feature 'warning action enable' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(8, 17),
-                // (8,32): warning CS1696: Single-line comment or end-of-line expected
-                // #pragma warning enable nullable, 1695
-                Diagnostic(ErrorCode.WRN_EndOfPPLineExpected, ",").WithLocation(8, 32),
-                // (9,33): warning CS1696: Single-line comment or end-of-line expected
-                // #pragma warning restore nullable, 1695
-                Diagnostic(ErrorCode.WRN_EndOfPPLineExpected, ",").WithLocation(9, 33),
-                // (10,17): warning CS1634: Expected disable, restore or enable
-                // #pragma warning safeonly nullable, 1695
-                Diagnostic(ErrorCode.WRN_IllegalPPWarning, "safeonly").WithLocation(10, 17),
-                // (12,17): warning CS1658: The feature 'warning action enable' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
-                // #pragma warning enable 
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "enable").WithArguments("The feature 'warning action enable' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(12, 17),
-                // (13,17): warning CS1634: Expected disable, restore or enable
-                // #pragma warning safeonly
-                Diagnostic(ErrorCode.WRN_IllegalPPWarning, "safeonly").WithLocation(13, 17),
-                // (14,17): warning CS1658: The feature 'warning action enable' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
-                // #pragma warning enable 1695
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "enable").WithArguments("The feature 'warning action enable' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(14, 17),
-                // (15,17): warning CS1634: Expected disable, restore or enable
-                // #pragma warning safeonly 1695
-                Diagnostic(ErrorCode.WRN_IllegalPPWarning, "safeonly").WithLocation(15, 17)
-                );
-
-            var expected = new DiagnosticDescription[]
-            {
-                // (5,17): warning CS1634: Expected disable, restore or enable
-                // #pragma warning safeonly nullable
-                Diagnostic(ErrorCode.WRN_IllegalPPWarning, "safeonly").WithLocation(5, 17),
-                // (7,33): warning CS1696: Single-line comment or end-of-line expected
-                // #pragma warning disable nullable, 1695
-                Diagnostic(ErrorCode.WRN_EndOfPPLineExpected, ",").WithLocation(7, 33),
-                // (8,32): warning CS1696: Single-line comment or end-of-line expected
-                // #pragma warning enable nullable, 1695
-                Diagnostic(ErrorCode.WRN_EndOfPPLineExpected, ",").WithLocation(8, 32),
-                // (9,33): warning CS1696: Single-line comment or end-of-line expected
-                // #pragma warning restore nullable, 1695
-                Diagnostic(ErrorCode.WRN_EndOfPPLineExpected, ",").WithLocation(9, 33),
-                // (10,17): warning CS1634: Expected disable, restore or enable
-                // #pragma warning safeonly nullable, 1695
-                Diagnostic(ErrorCode.WRN_IllegalPPWarning, "safeonly").WithLocation(10, 17),
-                // (13,17): warning CS1634: Expected disable, restore or enable
-                // #pragma warning safeonly
-                Diagnostic(ErrorCode.WRN_IllegalPPWarning, "safeonly").WithLocation(13, 17),
-                // (15,17): warning CS1634: Expected disable, restore or enable
-                // #pragma warning safeonly 1695
-                Diagnostic(ErrorCode.WRN_IllegalPPWarning, "safeonly").WithLocation(15, 17)
-            };
-
-            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(expected);
-            CreateCompilation(text).VerifyDiagnostics(expected);
-
-            CreateCompilation(
-@"
-#if ENABLED
-" + text + @"
-#endif
-", parseOptions: TestOptions.Regular7_3).VerifyDiagnostics();
-        }
-
-        [Fact]
         public void PragmaWarning_Enable()
         {
             var text1 = @"
@@ -2043,25 +1952,11 @@ class Test
             CreateCompilation(text4, options: options).VerifyDiagnostics(expected2);
 
             var text5 = @"
-#pragma warning enable 168, nullable
+#pragma warning enable 168
 " + text1;
 
             CreateCompilation(text5, parseOptions: TestOptions.Regular7_3, options: options).VerifyDiagnostics(expected2);
             CreateCompilation(text5, options: options).VerifyDiagnostics(expected2);
-
-            var text6 = @"
-#pragma warning enable nullable
-" + text1;
-
-            CreateCompilation(text6, parseOptions: TestOptions.Regular7_3, options: options).VerifyDiagnostics();
-            CreateCompilation(text6, options: options).VerifyDiagnostics();
-
-            var text7 = @"
-#pragma warning enable nullable, 168
-" + text1;
-
-            CreateCompilation(text7, parseOptions: TestOptions.Regular7_3, options: options).VerifyDiagnostics();
-            CreateCompilation(text7, options: options).VerifyDiagnostics();
         }
 
         [Fact]
