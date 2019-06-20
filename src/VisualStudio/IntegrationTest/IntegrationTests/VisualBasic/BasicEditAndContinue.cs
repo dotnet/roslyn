@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -265,6 +266,7 @@ End Module
 
             // This module is referred by the loaded module, but not used. So this will not be loaded
             VisualStudio.SolutionExplorer.OpenFile(basicLibrary, "Class1.vb");
+            Thread.Sleep(3000);
             VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             VisualStudio.SendKeys.Send(VirtualKey.T);
             VisualStudio.Dialog.VerifyOpen(editAndContinueDialogName);
