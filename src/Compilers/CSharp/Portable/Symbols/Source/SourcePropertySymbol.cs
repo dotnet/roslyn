@@ -1446,22 +1446,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal SourceAttributeData DisallowNullAttributeIfExists
-            => HasDisallowNull ? FindAttribute(AttributeDescription.DisallowNullAttribute) : null;
+            => FindAttribute(AttributeDescription.DisallowNullAttribute);
 
         internal SourceAttributeData AllowNullAttributeIfExists
-            => HasAllowNull ? FindAttribute(AttributeDescription.AllowNullAttribute) : null;
+            => FindAttribute(AttributeDescription.AllowNullAttribute);
 
         internal SourceAttributeData MaybeNullAttributeIfExists
-            => HasMaybeNull ? FindAttribute(AttributeDescription.MaybeNullAttribute) : null;
+            => FindAttribute(AttributeDescription.MaybeNullAttribute);
 
         internal SourceAttributeData NotNullAttributeIfExists
-            => HasNotNull ? FindAttribute(AttributeDescription.NotNullAttribute) : null;
+            => FindAttribute(AttributeDescription.NotNullAttribute);
 
-        private SourceAttributeData FindAttribute(AttributeDescription disallowNullAttribute)
-        {
-            var attributes = this.GetAttributesBag().Attributes;
-            return (SourceAttributeData)attributes.FirstOrDefault(a => a.IsTargetAttribute(this, disallowNullAttribute));
-        }
+        private SourceAttributeData FindAttribute(AttributeDescription attributeDescription)
+            => (SourceAttributeData)GetAttributes().First(a => a.IsTargetAttribute(this, attributeDescription));
 
         internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
