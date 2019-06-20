@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var result = FlowAnalysisAnnotations.None;
                 if (ContainingSymbol is SourcePropertyAccessorSymbol propertyAccessor && propertyAccessor.AssociatedSymbol is SourcePropertySymbol property)
                 {
-                    if (property.DisallowNullAttributeIfExists is object)
+                    if (property.HasDisallowNull)
                     {
                         result |= FlowAnalysisAnnotations.DisallowNull;
                     }
-                    if (property.AllowNullAttributeIfExists is object)
+                    if (property.HasAllowNull)
                     {
                         result |= FlowAnalysisAnnotations.AllowNull;
                     }
@@ -74,14 +74,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            var compilation = this.DeclaringCompilation;
             if (ContainingSymbol is SourcePropertyAccessorSymbol propertyAccessor && propertyAccessor.AssociatedSymbol is SourcePropertySymbol property)
             {
-                if ((FlowAnalysisAnnotations & FlowAnalysisAnnotations.DisallowNull) != 0)
+                var annotations = FlowAnalysisAnnotations;
+                if ((annotations & FlowAnalysisAnnotations.DisallowNull) != 0)
                 {
                     AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(property.DisallowNullAttributeIfExists));
                 }
-                if ((FlowAnalysisAnnotations & FlowAnalysisAnnotations.AllowNull) != 0)
+                if ((annotations & FlowAnalysisAnnotations.AllowNull) != 0)
                 {
                     AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(property.AllowNullAttributeIfExists));
                 }

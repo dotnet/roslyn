@@ -543,11 +543,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_ITuple,
-                         WellKnownType.System_Diagnostics_CodeAnalysis_DisallowNullAttribute,
-                         WellKnownType.System_Diagnostics_CodeAnalysis_AllowNullAttribute,
-                         WellKnownType.System_Diagnostics_CodeAnalysis_MaybeNullAttribute,
-                         WellKnownType.System_Diagnostics_CodeAnalysis_NotNullAttribute
+                         WellKnownType.System_Runtime_CompilerServices_ITuple
                         ' Not always available.
                         Continue For
                 End Select
@@ -609,11 +605,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_ITuple,
-                         WellKnownType.System_Diagnostics_CodeAnalysis_DisallowNullAttribute,
-                         WellKnownType.System_Diagnostics_CodeAnalysis_AllowNullAttribute,
-                         WellKnownType.System_Diagnostics_CodeAnalysis_MaybeNullAttribute,
-                         WellKnownType.System_Diagnostics_CodeAnalysis_NotNullAttribute
+                         WellKnownType.System_Runtime_CompilerServices_ITuple
                         ' Not always available.
                         Continue For
                 End Select
@@ -705,11 +697,7 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length,
                          WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
-                         WellKnownMember.System_Diagnostics_CodeAnalysis_DisallowNullAttribute__ctor,
-                         WellKnownMember.System_Diagnostics_CodeAnalysis_AllowNullAttribute__ctor,
-                         WellKnownMember.System_Diagnostics_CodeAnalysis_MaybeNullAttribute__ctor,
-                         WellKnownMember.System_Diagnostics_CodeAnalysis_NotNullAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
                         ' Not always available.
                         Continue For
                 End Select
@@ -847,11 +835,7 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length,
                          WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
-                         WellKnownMember.System_Diagnostics_CodeAnalysis_DisallowNullAttribute__ctor,
-                         WellKnownMember.System_Diagnostics_CodeAnalysis_AllowNullAttribute__ctor,
-                         WellKnownMember.System_Diagnostics_CodeAnalysis_MaybeNullAttribute__ctor,
-                         WellKnownMember.System_Diagnostics_CodeAnalysis_NotNullAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
                         ' Not always available.
                         Continue For
                 End Select

@@ -373,11 +373,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var result = FlowAnalysisAnnotations.None;
-                if (_property.MaybeNullAttributeIfExists is object)
+                if (_property.HasMaybeNull)
                 {
                     result |= FlowAnalysisAnnotations.MaybeNull;
                 }
-                if (_property.NotNullAttributeIfExists is object)
+                if (_property.HasNotNull)
                 {
                     result |= FlowAnalysisAnnotations.NotNull;
                 }
@@ -675,11 +675,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
 
             var compilation = this.DeclaringCompilation;
-            if ((ReturnTypeFlowAnalysisAnnotations & FlowAnalysisAnnotations.MaybeNull) != 0)
+            var annotations = ReturnTypeFlowAnalysisAnnotations;
+            if ((annotations & FlowAnalysisAnnotations.MaybeNull) != 0)
             {
                 AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(_property.MaybeNullAttributeIfExists));
             }
-            if ((ReturnTypeFlowAnalysisAnnotations & FlowAnalysisAnnotations.NotNull) != 0)
+            if ((annotations & FlowAnalysisAnnotations.NotNull) != 0)
             {
                 AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(_property.NotNullAttributeIfExists));
             }

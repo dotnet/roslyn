@@ -1391,42 +1391,76 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // NullableAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.DisallowNullAttribute))
+            {
+                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasDisallowNullAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.AllowNullAttribute))
+            {
+                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasAllowNullAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullAttribute))
+            {
+                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasMaybeNullAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullAttribute))
+            {
+                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasNotNullAttribute = true;
+            }
+        }
+
+        internal bool HasDisallowNull
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data != null && data.HasDisallowNullAttribute;
+            }
+        }
+
+        internal bool HasAllowNull
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data != null && data.HasAllowNullAttribute;
+            }
+        }
+
+        internal bool HasMaybeNull
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data != null && data.HasMaybeNullAttribute;
+            }
+        }
+
+        internal bool HasNotNull
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data != null && data.HasNotNullAttribute;
+            }
         }
 
         internal SourceAttributeData DisallowNullAttributeIfExists
-        {
-            get
-            {
-                var attributes = this.GetAttributesBag().Attributes;
-                return (SourceAttributeData)attributes.FirstOrDefault(a => a.IsTargetAttribute(this, AttributeDescription.DisallowNullAttribute));
-            }
-        }
+            => HasDisallowNull ? FindAttribute(AttributeDescription.DisallowNullAttribute) : null;
 
         internal SourceAttributeData AllowNullAttributeIfExists
-        {
-            get
-            {
-                var attributes = this.GetAttributesBag().Attributes;
-                return (SourceAttributeData)attributes.FirstOrDefault(a => a.IsTargetAttribute(this, AttributeDescription.AllowNullAttribute));
-            }
-        }
+            => HasAllowNull ? FindAttribute(AttributeDescription.AllowNullAttribute) : null;
 
         internal SourceAttributeData MaybeNullAttributeIfExists
-        {
-            get
-            {
-                var attributes = this.GetAttributesBag().Attributes;
-                return (SourceAttributeData)attributes.FirstOrDefault(a => a.IsTargetAttribute(this, AttributeDescription.MaybeNullAttribute));
-            }
-        }
+            => HasMaybeNull ? FindAttribute(AttributeDescription.MaybeNullAttribute) : null;
 
         internal SourceAttributeData NotNullAttributeIfExists
+            => HasNotNull ? FindAttribute(AttributeDescription.NotNullAttribute) : null;
+
+        private SourceAttributeData FindAttribute(AttributeDescription disallowNullAttribute)
         {
-            get
-            {
-                var attributes = this.GetAttributesBag().Attributes;
-                return (SourceAttributeData)attributes.FirstOrDefault(a => a.IsTargetAttribute(this, AttributeDescription.NotNullAttribute));
-            }
+            var attributes = this.GetAttributesBag().Attributes;
+            return (SourceAttributeData)attributes.FirstOrDefault(a => a.IsTargetAttribute(this, disallowNullAttribute));
         }
 
         internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)

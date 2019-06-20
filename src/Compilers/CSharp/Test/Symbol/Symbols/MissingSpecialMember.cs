@@ -602,10 +602,6 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_ITuple:
                     case WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute:
                     case WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute:
-                    case WellKnownType.System_Diagnostics_CodeAnalysis_DisallowNullAttribute:
-                    case WellKnownType.System_Diagnostics_CodeAnalysis_AllowNullAttribute:
-                    case WellKnownType.System_Diagnostics_CodeAnalysis_MaybeNullAttribute:
-                    case WellKnownType.System_Diagnostics_CodeAnalysis_NotNullAttribute:
                         // Not always available.
                         continue;
                     case WellKnownType.ExtSentinel:
@@ -958,10 +954,6 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item:
                     case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length:
-                    case WellKnownMember.System_Diagnostics_CodeAnalysis_DisallowNullAttribute__ctor:
-                    case WellKnownMember.System_Diagnostics_CodeAnalysis_AllowNullAttribute__ctor:
-                    case WellKnownMember.System_Diagnostics_CodeAnalysis_MaybeNullAttribute__ctor:
-                    case WellKnownMember.System_Diagnostics_CodeAnalysis_NotNullAttribute__ctor:
                         // Not always available.
                         continue;
                 }

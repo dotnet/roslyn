@@ -2837,7 +2837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var annotations = symbol switch
             {
                 MethodSymbol method => method.ReturnTypeFlowAnalysisAnnotations,
-                PropertySymbol property => property.GetMethod?.ReturnTypeFlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None,
+                PropertySymbol property => property.GetOwnOrInheritedGetMethod()?.ReturnTypeFlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None,
                 ParameterSymbol parameter => parameter.FlowAnalysisAnnotations,
                 _ => FlowAnalysisAnnotations.None
             };
@@ -5175,7 +5175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => null
             };
 
-            var annotations = symbol?.SetMethod?.Parameters.Last()?.FlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None;
+            var annotations = symbol?.GetOwnOrInheritedSetMethod()?.Parameters.Last()?.FlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None;
             return annotations & (FlowAnalysisAnnotations.DisallowNull | FlowAnalysisAnnotations.AllowNull);
         }
 
