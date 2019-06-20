@@ -14,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
                 SyntaxKind.ModifiedIdentifier,
                 SyntaxKind.CatchStatement,
                 SyntaxKind.Parameter,
-                SyntaxKind.TypeParameter)
+                SyntaxKind.TypeParameter,
+                SyntaxKind.EnumMemberDeclaration)
     End Class
 End Namespace

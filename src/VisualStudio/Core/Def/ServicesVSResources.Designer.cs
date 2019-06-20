@@ -1750,6 +1750,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to enum member.
+        /// </summary>
+        internal static string NamingSpecification_CSharp_EnumMember {
+            get {
+                return ResourceManager.GetString("NamingSpecification_CSharp_EnumMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to event.
         /// </summary>
         internal static string NamingSpecification_CSharp_Event {
@@ -1872,6 +1881,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string NamingSpecification_VisualBasic_Enum {
             get {
                 return ResourceManager.GetString("NamingSpecification_VisualBasic_Enum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enum Member.
+        /// </summary>
+        internal static string NamingSpecification_VisualBasic_EnumMember {
+            get {
+                return ResourceManager.GetString("NamingSpecification_VisualBasic_EnumMember", resourceCulture);
             }
         }
         

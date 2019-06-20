@@ -57,7 +57,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     new SymbolKindViewModel(TypeKind.Delegate, ServicesVSResources.NamingSpecification_CSharp_Delegate, specification),
                     new SymbolKindViewModel(SymbolKind.Parameter, ServicesVSResources.NamingSpecification_CSharp_Parameter, specification),
                     new SymbolKindViewModel(SymbolKind.TypeParameter, ServicesVSResources.NamingSpecification_CSharp_TypeParameter, specification),
-                    new SymbolKindViewModel(SymbolKind.Local, ServicesVSResources.NamingSpecification_CSharp_Local, specification)
+                    new SymbolKindViewModel(SymbolKind.Local, ServicesVSResources.NamingSpecification_CSharp_Local, specification),
+                    new SymbolKindViewModel(SymbolKind.EnumMember, ServicesVSResources.NamingSpecification_CSharp_EnumMember, specification)
                 };
 
                 // Not localized because they're language keywords
@@ -99,7 +100,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     new SymbolKindViewModel(TypeKind.Delegate, ServicesVSResources.NamingSpecification_VisualBasic_Delegate, specification),
                     new SymbolKindViewModel(SymbolKind.Parameter, ServicesVSResources.NamingSpecification_VisualBasic_Parameter, specification),
                     new SymbolKindViewModel(SymbolKind.TypeParameter, ServicesVSResources.NamingSpecification_VisualBasic_TypeParameter, specification),
-                    new SymbolKindViewModel(SymbolKind.Local, ServicesVSResources.NamingSpecification_VisualBasic_Local, specification)
+                    new SymbolKindViewModel(SymbolKind.Local, ServicesVSResources.NamingSpecification_VisualBasic_Local, specification),
+                    new SymbolKindViewModel(SymbolKind.EnumMember, ServicesVSResources.NamingSpecification_VisualBasic_EnumMember, specification)
                 };
 
                 // Not localized because they're language keywords

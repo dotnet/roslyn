@@ -1234,6 +1234,10 @@ I agree to all of the foregoing:</value>
     <value>enum</value>
     <comment>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
   </data>
+  <data name="NamingSpecification_CSharp_EnumMember" xml:space="preserve">
+    <value>enum member</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# programming language concept of an "enum member".</comment>
+  </data>
   <data name="NamingSpecification_CSharp_Event" xml:space="preserve">
     <value>event</value>
     <comment>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
@@ -1289,6 +1293,10 @@ I agree to all of the foregoing:</value>
   <data name="NamingSpecification_VisualBasic_Enum" xml:space="preserve">
     <value>Enum</value>
     <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_EnumMember" xml:space="preserve">
+    <value>Enum Member</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of an "enum member".</comment>
   </data>
   <data name="NamingSpecification_VisualBasic_Event" xml:space="preserve">
     <value>Event</value>

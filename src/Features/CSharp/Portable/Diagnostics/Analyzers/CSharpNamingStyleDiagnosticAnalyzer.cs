@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles
                 SyntaxKind.SingleVariableDesignation,
                 SyntaxKind.LocalFunctionStatement,
                 SyntaxKind.Parameter,
-                SyntaxKind.TypeParameter);
+                SyntaxKind.TypeParameter,
+                SyntaxKind.EnumMemberDeclaration);
     }
 }

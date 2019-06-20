@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private static readonly SymbolKindOrTypeKind _parameter = new SymbolKindOrTypeKind(SymbolKind.Parameter);
         private static readonly SymbolKindOrTypeKind _typeParameter = new SymbolKindOrTypeKind(SymbolKind.TypeParameter);
         private static readonly SymbolKindOrTypeKind _local = new SymbolKindOrTypeKind(SymbolKind.Local);
+        private static readonly SymbolKindOrTypeKind _enumMember = new SymbolKindOrTypeKind(SymbolKind.EnumMember);
         private static readonly ImmutableArray<SymbolKindOrTypeKind> _all =
             ImmutableArray.Create(
                 _namespace,
@@ -90,7 +91,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 _delegate,
                 _parameter,
                 _typeParameter,
-                _local);
+                _local,
+                _enumMember);
 
         private static ImmutableArray<SymbolKindOrTypeKind> ParseSymbolKindList(string symbolSpecApplicableKinds)
         {
@@ -150,6 +152,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                         break;
                     case "local":
                         builder.Add(_local);
+                        break;
+                    case "enum_member":
+                        builder.Add(_enumMember);
                         break;
                     default:
                         break;
