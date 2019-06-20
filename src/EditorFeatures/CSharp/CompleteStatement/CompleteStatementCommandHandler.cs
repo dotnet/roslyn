@@ -126,8 +126,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 {
                     return;
                 }
+
                 // set caret to just outside the delimited span and analyze again
+                // if caret was already in that position, return to avoid infinite loop
                 var newCaretPosition = currentNode.Span.End;
+                if (newCaretPosition == caret.Position)
+                {
+                    return;
+                }
+
                 var newCaret = args.SubjectBuffer.CurrentSnapshot.GetPoint(newCaretPosition);
                 currentNode = GetStartingNode(document, root, newCaret);
                 MoveCaretToSemicolonPosition(args, document, root, newCaret, syntaxFacts, currentNode, isInsideDelimiters: true);

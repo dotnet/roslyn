@@ -6300,5 +6300,51 @@ class X
                 MainDescription("bool string.operator ==(string a, string b)"),
                 SymbolGlyph(Glyph.Operator));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NotNullConstraint_Type()
+        {
+            await TestAsync(
+@"
+class $$X<T> where T : notnull
+{
+}",
+                MainDescription("class X<T> where T : notnull"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NotNullConstraint_Method()
+        {
+            await TestAsync(
+@"
+class X
+{
+    void $$M<T>() where T : notnull { }
+}",
+                MainDescription("void X.M<T>() where T : notnull"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NotNullConstraint_Delegate()
+        {
+            await TestAsync(
+                "delegate void $$D<T>() where T : notnull;",
+                MainDescription("delegate void D<T>() where T : notnull"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NotNullConstraint_LocalFunction()
+        {
+            await TestAsync(
+@"
+class X
+{
+    void N()
+    {
+        void $$M<T>() where T : notnull { }
+    }
+}",
+                MainDescription("void M<T>() where T : notnull"));
+        }
     }
 }
