@@ -1327,16 +1327,6 @@
         <target state="translated">Un'espressione predefinita introduce un valore Null per un parametro di tipo.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended">
-        <source>'default' is converted to 'null', not 'default({0})'</source>
-        <target state="translated">'default' viene convertito in 'null', non in 'default({0})'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended_Title">
-        <source>'default' is converted to 'null'</source>
-        <target state="translated">'default' viene convertito in 'null'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
         <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
