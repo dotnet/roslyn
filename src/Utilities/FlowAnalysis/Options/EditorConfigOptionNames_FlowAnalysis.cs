@@ -42,6 +42,12 @@ namespace Analyzer.Utilities
         public const string DisposeOwnershipTransferAtConstructor = "dispose_ownership_transfer_at_constructor";
 
         /// <summary>
+        /// Boolean option to configure if passing a disposable object as an argument to a method invocation should be considered
+        /// as a dispose ownership transfer to the caller, primarily for CA2000 (DisposeObjectsBeforeLosingScope)
+        /// </summary>
+        public const string DisposeOwnershipTransferAtMethodCall = "dispose_ownership_transfer_at_method_call";
+
+        /// <summary>
         /// Option to configure whether copy analysis should be executed during dataflow analysis.
         /// Copy analysis tracks value and reference copies. For example,
         /// <code>

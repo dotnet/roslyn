@@ -41,12 +41,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
         {
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                    analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken, defaultMaxInterproceduralMethodCallChain);
+            var performCopyAnalysis = analyzerOptions.GetCopyAnalysisOption(rule, defaultValue: false, cancellationToken);
             var nullCheckValidationMethods = analyzerOptions.GetSeparatedStringOptionValue(
                 EditorConfigOptionNames.NullCheckValidationMethods,
                 rule,
                 cancellationToken);
             return GetOrComputeHazardousParameterUsages(topmostBlock, compilation, owningSymbol,
-                nullCheckValidationMethods, interproceduralAnalysisConfig, pessimisticAnalysis);
+                nullCheckValidationMethods, interproceduralAnalysisConfig, performCopyAnalysis, pessimisticAnalysis);
         }
 
         private static ImmutableDictionary<IParameterSymbol, SyntaxNode> GetOrComputeHazardousParameterUsages(
@@ -55,6 +56,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             ISymbol owningSymbol,
             ImmutableArray<string> nullCheckValidationMethods,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
+            bool performCopyAnalysis,
             bool pessimisticAnalysis = true)
         {
             Debug.Assert(topmostBlock != null);
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             var cfg = topmostBlock.GetEnclosingControlFlowGraph();
             var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
             var pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
-                interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt: null, pessimisticAnalysis);
+                interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt: null, pessimisticAnalysis, performCopyAnalysis);
             if (pointsToAnalysisResult != null)
             {
                 var result = TryGetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
