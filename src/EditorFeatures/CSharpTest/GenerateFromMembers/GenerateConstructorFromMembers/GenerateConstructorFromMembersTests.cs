@@ -1445,11 +1445,11 @@ chosenSymbols: null);
 {
     int field_a = 2;
 
-    public Z(int p_a{|Navigation:)|}
+    public Z(int p_a_end{|Navigation:)|}
     {
-        field_a = p_a;
+        field_a = p_a_end;
     }
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseBeginWithField_, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseBeginWithField_, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAnd_endSuffix, LanguageNames.CSharp));
         }
 
         [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
@@ -1465,11 +1465,11 @@ chosenSymbols: null);
 {
     int field_s_a = 2;
 
-    public Z(int p_a{|Navigation:)|}
+    public Z(int p_a_end{|Navigation:)|}
     {
-        field_s_a = p_a;
+        field_s_a = p_a_end;
     }
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseBeginWithField_, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseBeginWithField_, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAnd_endSuffix, LanguageNames.CSharp));
         }
 
         [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
@@ -1485,11 +1485,11 @@ chosenSymbols: null);
 {
     int s_field_a = 2;
 
-    public Z(int p_a{|Navigation:)|}
+    public Z(int p_a_end{|Navigation:)|}
     {
-        s_field_a = p_a;
+        s_field_a = p_a_end;
     }
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseBeginWithField_, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseBeginWithField_, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAnd_endSuffix, LanguageNames.CSharp));
         }
 
         [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
