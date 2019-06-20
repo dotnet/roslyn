@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 {
@@ -37,17 +36,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
             public int CompareTo(SymbolResult other)
             {
-                Debug.Assert(this.Symbol is INamespaceSymbol || !((INamedTypeSymbol)this.Symbol).IsGenericType);
+                Debug.Assert(Symbol is INamespaceSymbol || !((INamedTypeSymbol)Symbol).IsGenericType);
                 Debug.Assert(other.Symbol is INamespaceSymbol || !((INamedTypeSymbol)other.Symbol).IsGenericType);
 
-                var diff = this.Weight - other.Weight;
+                var diff = Weight - other.Weight;
                 if (diff != 0)
                 {
                     return diff;
                 }
 
                 return INamespaceOrTypeSymbolExtensions.CompareNameParts(
-                    this.NameParts, other.NameParts, placeSystemNamespaceFirst: true);
+                    NameParts, other.NameParts, placeSystemNamespaceFirst: true);
             }
         }
     }
