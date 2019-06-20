@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToMethod
@@ -42,30 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             var cancellationToken = context.CancellationToken;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            LocalFunctionStatementSyntax localFunction = default;
-            if (context.Span.IsEmpty)
+            var localFunction = await TryGetSelectedLocalFunction(context.Span, root, cancellationToken).ConfigureAwait(false);
+            if (localFunction == default)
             {
-                // This branch is required to handle "C LocalFunction[||](C c)" -> root.FindNode return ParameterList
-                var identifier = await root.SyntaxTree.GetTouchingTokenAsync(context.Span.Start, token => token.Parent.IsKind(SyntaxKind.LocalFunctionStatement), cancellationToken).ConfigureAwait(false);
-                if (identifier == default)
-                {
-                    return;
-                }
-                localFunction = (LocalFunctionStatementSyntax)identifier.Parent;
-            }
-            else
-            {
-                var enclosingNode = root.FindNode(context.Span);
-                if (!(enclosingNode is LocalFunctionStatementSyntax))
-                {
-                    return;
-                }
-                localFunction = (LocalFunctionStatementSyntax)enclosingNode;
-
-                if (context.Span != localFunction.Span && context.Span != localFunction.Identifier.Span)
-                {
-                    return;
-                }
+                return;
             }
 
             if (!localFunction.Parent.IsKind(SyntaxKind.Block, out BlockSyntax parentBlock))
@@ -76,6 +57,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             context.RegisterRefactoring(new MyCodeAction(CSharpFeaturesResources.Convert_to_method,
                 c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)));
         }
+
+        private async Task<LocalFunctionStatementSyntax> TryGetSelectedLocalFunction(TextSpan selectedSpan, SyntaxNode root, CancellationToken cancellationToken)
+        {
+            if (selectedSpan.IsEmpty)
+            {
+                // This branch is required to handle "C LocalFunction[||](C c)" -> root.FindNode return ParameterList
+                var identifier = await root.SyntaxTree.GetTouchingTokenAsync(selectedSpan.Start,
+                    token => token.Parent.IsKind(SyntaxKind.LocalFunctionStatement), cancellationToken).ConfigureAwait(false);
+
+                return (identifier == default)
+                    ? null
+                    : (LocalFunctionStatementSyntax)identifier.Parent;
+            }
+            else
+            {
+                var enclosingNode = root.FindNode(selectedSpan);
+                if (!(enclosingNode is LocalFunctionStatementSyntax))
+                {
+                    return null;
+                }
+
+                var localFunction = (LocalFunctionStatementSyntax)enclosingNode;
+
+                if (selectedSpan != localFunction.Span && selectedSpan != localFunction.Identifier.Span)
+                {
+                    return null;
+                }
+
+                return localFunction;
+
+            }
+        }
+
 
         private static async Task<Document> UpdateDocumentAsync(
             SyntaxNode root,
