@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
-            if (!session.Properties.TryGetProperty(CompletionSource.TriggerLocation, out SnapshotPoint triggerLocation))
+            if (Helpers.TryGetInitialTriggerLocation(session, out var triggerLocation))
             {
                 // Need the trigger snapshot to calculate the span when the commit changes to be applied.
                 // It should be inserted into a property bag within GetCompletionContextAsync for each item created by Roslyn.

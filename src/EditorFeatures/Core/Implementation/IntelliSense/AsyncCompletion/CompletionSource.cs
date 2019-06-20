@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     internal class CompletionSource : ForegroundThreadAffinitizedObject, IAsyncExpandingCompletionSource
     {
         internal const string RoslynItem = nameof(RoslynItem);
-        internal const string TriggerLocation = nameof(TriggerLocation);
         internal const string CompletionListSpan = nameof(CompletionListSpan);
         internal const string InsertionText = nameof(InsertionText);
         internal const string HasSuggestionItemOptions = nameof(HasSuggestionItemOptions);
@@ -204,13 +203,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             SnapshotSpan applicableToSpan,
             CancellationToken cancellationToken)
         {
-            // Have to store the trigger location to reuse it to get expanded items and also reuse the snapshot included in 
-            // some projections related scenarios where data and session in further calls are able to provide other snapshots.
-            session.Properties[TriggerLocation] = triggerLocation;
-
             return GetCompletionContextWorkerAsync(session, trigger, triggerLocation, applicableToSpan, isExpanded: false, cancellationToken);
         }
-
 
         public async Task<AsyncCompletionData.CompletionContext> GetExpandedCompletionContextAsync(
             IAsyncCompletionSession session,
@@ -221,12 +215,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         {
             Debug.Assert((object)expander == FilterSet.Expander);
 
-            if (!session.Properties.TryGetProperty(TriggerLocation, out SnapshotPoint triggerLocation))
+            if (Helpers.TryGetInitialTriggerLocation(session, out var initialTriggerLocation))
             {
-                return new AsyncCompletionData.CompletionContext(ImmutableArray<VSCompletionItem>.Empty, ImmutableArray<AsyncCompletionData.CompletionFilterWithState>.Empty);
+                return await GetCompletionContextWorkerAsync(session, intialTrigger, initialTriggerLocation, applicableToSpan, isExpanded: true, cancellationToken).ConfigureAwait(false);
             }
 
-            return await GetCompletionContextWorkerAsync(session, intialTrigger, triggerLocation, applicableToSpan, isExpanded: true, cancellationToken).ConfigureAwait(false);
+            return AsyncCompletionData.CompletionContext.Empty;
         }
 
         private async Task<AsyncCompletionData.CompletionContext> GetCompletionContextWorkerAsync(
@@ -240,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                return new AsyncCompletionData.CompletionContext(ImmutableArray<VSCompletionItem>.Empty, ImmutableArray<AsyncCompletionData.CompletionFilterWithState>.Empty);
+                return AsyncCompletionData.CompletionContext.Empty;
             }
 
             var completionService = document.GetLanguageService<CompletionService>();
@@ -321,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         public async Task<object> GetDescriptionAsync(IAsyncCompletionSession session, VSCompletionItem item, CancellationToken cancellationToken)
         {
             if (!item.Properties.TryGetProperty(RoslynItem, out RoslynCompletionItem roslynItem) ||
-                !session.Properties.TryGetProperty(TriggerLocation, out SnapshotPoint triggerLocation))
+                !Helpers.TryGetInitialTriggerLocation(session, out var triggerLocation))
             {
                 return null;
             }
