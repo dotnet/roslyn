@@ -372,6 +372,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                if (MethodKind == MethodKind.PropertySet)
+                {
+                    return FlowAnalysisAnnotations.None;
+                }
+
                 var result = FlowAnalysisAnnotations.None;
                 if (_property.HasMaybeNull)
                 {
