@@ -13,98 +13,45 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
     internal class VisualStudioMSBuildInstalled : ExecutionCondition
     {
-        private static bool s_hasChecked;
         private static bool s_isRegistered;
+
+        private readonly Version _minimumVersion;
+
+        public VisualStudioMSBuildInstalled() : this(new Version(15, 0))
+        {
+
+        }
+        protected VisualStudioMSBuildInstalled(Version minimumVersion)
+        {
+            _minimumVersion = minimumVersion;
+        }
 
         public override bool ShouldSkip
         {
             get
             {
-                if (!s_hasChecked)
+                if (VisualStudioMSBuildLocator.TryFindMSBuildToolsPath(out var versionAndPath))
                 {
-                    var msbuildToolsPath = FindMSBuildToolsPathFromVisualStudio();
-
-                    if (msbuildToolsPath != null)
+                    if (versionAndPath.version < _minimumVersion)
                     {
-                        RegisterMSBuildAssemblyResolution(msbuildToolsPath);
+                        return true;
+                    }
+
+                    if (!s_isRegistered)
+                    {
+                        RegisterMSBuildAssemblyResolution(versionAndPath.path);
+
                         s_isRegistered = true;
                     }
 
-                    s_hasChecked = true;
+                    return false;
                 }
 
-                return !s_isRegistered;
+                return true;
             }
         }
 
-        public override string SkipReason => "Could not locate Visual Studio with MSBuild installed";
-
-        private static string FindMSBuildToolsPathFromVisualStudio()
-        {
-            // Only on Windows
-            if (Path.DirectorySeparatorChar != '\\')
-            {
-                return null;
-            }
-
-            try
-            {
-                var configuration = Interop.GetSetupConfiguration();
-                if (configuration == null)
-                {
-                    return null;
-                }
-
-                var instanceEnum = configuration.EnumAllInstances();
-
-                int fetched;
-                var instances = new ISetupInstance[1];
-                do
-                {
-                    instanceEnum.Next(1, instances, out fetched);
-                    if (fetched <= 0)
-                    {
-                        return null;
-                    }
-
-                    var instance2 = (ISetupInstance2)instances[0];
-                    var state = instance2.GetState();
-
-                    if (state == InstanceState.Complete &&
-                        instance2.GetPackages().Any(package => package.GetId() == "Microsoft.VisualStudio.Component.Roslyn.Compiler"))
-                    {
-                        var toolsBasePath = Path.Combine(instance2.GetInstallationPath(), "MSBuild");
-
-                        // Visual Studio 2019 and later place MSBuild in a "Current" folder.
-                        var toolsPath = Path.Combine(toolsBasePath, "Current", "Bin");
-                        if (Directory.Exists(toolsPath))
-                        {
-                            return toolsPath;
-                        }
-
-                        // Check for 15.0 to support Visual Studio 2017.
-                        toolsPath = Path.Combine(toolsBasePath, "15.0", "Bin");
-                        if (Directory.Exists(toolsPath))
-                        {
-                            return toolsPath;
-                        }
-
-                        return null;
-                    }
-                }
-                while (fetched > 0);
-
-                return null;
-            }
-            catch (COMException)
-            {
-                return null;
-            }
-            catch (DllNotFoundException)
-            {
-                return null;
-            }
-        }
+        public override string SkipReason => $"Could not locate Visual Studio with MSBuild {_minimumVersion} or higher installed";
 
         private static void RegisterMSBuildAssemblyResolution(string msbuildToolsPath)
         {
@@ -149,6 +96,108 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
                 return null;
             };
+        }
+    }
+
+    internal class VisualStudio16_2OrHigherMSBuildInstalled : VisualStudioMSBuildInstalled
+    {
+        public VisualStudio16_2OrHigherMSBuildInstalled() : base(new Version(16, 2))
+        {
+        }
+    }
+
+    internal static class VisualStudioMSBuildLocator
+    {
+        private static Lazy<(Version version, string path)> s_versionAndPath = new Lazy<(Version version, string path)>(FindMSBuildToolsPathFromVisualStudioCore);
+
+        public static bool TryFindMSBuildToolsPath(out (Version version, string path) versionAndPath)
+        {
+            versionAndPath = s_versionAndPath.Value;
+            return versionAndPath.path != null;
+        }
+
+        private static (Version version, string path) FindMSBuildToolsPathFromVisualStudioCore()
+        {
+            // Only on Windows
+            if (Path.DirectorySeparatorChar != '\\')
+            {
+                return (null, null);
+            }
+
+            try
+            {
+                var configuration = Interop.GetSetupConfiguration();
+                if (configuration == null)
+                {
+                    return (null, null);
+                }
+
+                var instanceEnum = configuration.EnumAllInstances();
+                var instances = new ISetupInstance[1];
+
+                (Version version, string path) found = (null, null);
+
+                while (true)
+                {
+                    instanceEnum.Next(1, instances, out var fetched);
+                    if (fetched <= 0)
+                    {
+                        break;
+                    }
+
+                    var instance2 = (ISetupInstance2)instances[0];
+                    var state = instance2.GetState();
+                    if (state == InstanceState.Complete &&
+                        instance2.GetPackages().Any(package => package.GetId() == "Microsoft.VisualStudio.Component.Roslyn.Compiler"))
+                    {
+                        var instanceVersionString = instance2.GetInstallationVersion();
+
+                        if (!Version.TryParse(instanceVersionString, out var instanceVersion))
+                        {
+                            // We'll throw an exception here -- this means we have some build with a new style of version numbers, which is probably the high version we want to pick but
+                            // we won't know it
+                            throw new Exception($"Unable to parse version string '{instanceVersionString}'");
+                        }
+
+                        var toolsBasePath = Path.Combine(instance2.GetInstallationPath(), "MSBuild");
+                        string instanceMsBuildPath = null;
+
+                        // Visual Studio 2019 and later place MSBuild in a "Current" folder.
+                        var toolsPath = Path.Combine(toolsBasePath, "Current", "Bin");
+                        if (Directory.Exists(toolsPath))
+                        {
+                            instanceMsBuildPath = toolsPath;
+                        }
+                        else
+                        {
+                            // Check for 15.0 to support Visual Studio 2017. We have this in an else block because in 2019 there's also this folder for compat reasons
+                            toolsPath = Path.Combine(toolsBasePath, "15.0", "Bin");
+                            if (Directory.Exists(toolsPath))
+                            {
+                                instanceMsBuildPath = toolsPath;
+                            }
+                        }
+
+                        // We found some version; we will always use the highest possible version because we want to support the running of the most tests
+                        // possible -- we can't load multiple versions sanely unless we tried multiple AppDomains
+                        if (instanceMsBuildPath != null && (found.version == null || instanceVersion > found.version))
+                        {
+                            found.version = instanceVersion;
+                            found.path = instanceMsBuildPath;
+                        }
+                    }
+                }
+
+                return found;
+            }
+            catch (COMException)
+            {
+                return (null, null);
+            }
+            catch (DllNotFoundException)
+            {
+                return (null, null);
+            }
         }
     }
 }
