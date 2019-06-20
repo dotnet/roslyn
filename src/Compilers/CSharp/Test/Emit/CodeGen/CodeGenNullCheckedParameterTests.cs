@@ -447,13 +447,99 @@ class C
     public static void Main() { }
 }";
             // Release
-            var compilation = CreateCompilation(source); //, options: TestOptions.ReleaseExe, verify: Verification.Skipped);
+            var compilation = CreateCompilation(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_get_HasValue);
             compilation.VerifyEmitDiagnostics(
                     // (4,28): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
                     //     static void M(int? i!) { }
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ }").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(4, 28)
                 );
+        }
+
+        [Fact]
+        public void TestNullCheckedSubstitution1()
+        {
+            var source = @"
+class A<T>
+{
+    internal virtual void M<U>(U u!) where U : T { }
+}
+class B1<T> : A<T> where T : class
+{
+    internal override void M<U>(U u!) { }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_get_HasValue);
+            compilation.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void TestNullCheckedSubstitution2()
+        {
+            var source = @"
+class A<T>
+{
+    internal virtual void M<U>(U u!) where U : T { }
+}
+class B2<T> : A<T> where T : struct
+{
+    internal override void M<U>(U u!) { }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_get_HasValue);
+            compilation.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void TestNullCheckedSubstitution3()
+        {
+            var source = @"
+class A<T>
+{
+    internal virtual void M<U>(U u!) where U : T { }
+}
+class B3<T> : A<T?> where T : struct
+{
+    internal override void M<U>(U u!) { }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_get_HasValue);
+            compilation.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void TestNullCheckedSubstitution4()
+        {
+            var source = @"
+class A<T>
+{
+    internal virtual void M<U>(U u!) where U : T { }
+}
+class B4 : A<int>
+{
+    internal override void M<U>(U u!) { }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_get_HasValue);
+            compilation.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void TestNullCheckedSubstitution5()
+        {
+            var source = @"
+class A<T>
+{
+    internal virtual void M<U>(U u!) where U : T { }
+}
+class B5 : A<object>
+{
+    internal override void M<U>(U u!) { }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_get_HasValue);
+            compilation.VerifyEmitDiagnostics();
         }
     }
 }
