@@ -1846,7 +1846,7 @@ done:
             // If this isn't a speculative model and we have a snapshot manager,
             // then we've already done all the work necessary and we should avoid
             // taking an unnecessary read lock.
-            if (!IsSpeculativeSemanticModel && _lazySnapshotManager is null)
+            if (!IsSpeculativeSemanticModel && _lazySnapshotManager is object)
             {
                 return;
             }
