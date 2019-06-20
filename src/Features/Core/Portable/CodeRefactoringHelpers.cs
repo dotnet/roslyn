@@ -21,19 +21,22 @@ namespace Microsoft.CodeAnalysis
         /// direct parent is of type <typeparamref name="TSyntaxNode"/> or if a Node of said type is the smallest Node containing
         /// the whole <paramref name="selection"/>. Otherwise returns <code>null</code>.
         /// </para>
+        /// <para>
+        /// Note: this function strips all whitespace from both the beginning and end given <paramref name="selection"/> 
+        /// and the stripped selection to determine the relevant Node. 
+        /// </para>
         /// </summary>
         public static async Task<TSyntaxNode> TryGetSelectedNode<TSyntaxNode>(
-            TextSpan selection, SyntaxNode root, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+            Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var selectionStripped = await GetStrippedTextSpan(document, selection, cancellationToken).ConfigureAwait(false);
 
-            // TODO: Add handling selected whitespace before / after the same way as helper methods below -> refactor to public
-            // helper. 
-
-            var node = root.FindNode(selection) as TSyntaxNode;
+            var node = root.FindNode(selectionStripped) as TSyntaxNode;
             if (node == null)
             {
                 // e.g. "C LocalFunction[||](C c)" -> root.FindNode return ParameterList but we still want to return LocalFunctionNode
-                var identifier = await root.SyntaxTree.GetTouchingTokenAsync(selection.Start,
+                var identifier = await root.SyntaxTree.GetTouchingTokenAsync(selectionStripped.Start,
                     token => token.Parent is TSyntaxNode, cancellationToken).ConfigureAwait(false);
                 node = identifier.Parent as TSyntaxNode;
             }
@@ -131,14 +134,19 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        private static async Task<TextSpan> GetExpandedNodeSpan(
+        private static Task<TextSpan> GetExpandedNodeSpan(
             Document document,
             SyntaxNode node,
             CancellationToken cancellationToken)
         {
+            return GetExpandedTextSpan(document, node.Span, cancellationToken);
+        }
+
+        private static async Task<TextSpan> GetExpandedTextSpan(Document document, TextSpan span, CancellationToken cancellationToken)
+        {
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            var nodeStartLine = sourceText.Lines.GetLineFromPosition(node.SpanStart);
+            var nodeStartLine = sourceText.Lines.GetLineFromPosition(span.Start);
 
             // Enable vertical selections that catch the previous line break and perhaps some whitespace.
             if (nodeStartLine.LineNumber != 0)
@@ -146,10 +154,10 @@ namespace Microsoft.CodeAnalysis
                 nodeStartLine = sourceText.Lines[nodeStartLine.LineNumber - 1];
             }
 
-            var nodeEndLine = sourceText.Lines.GetLineFromPosition(node.Span.End);
+            var nodeEndLine = sourceText.Lines.GetLineFromPosition(span.End);
 
-            var start = node.SpanStart;
-            var end = node.Span.End;
+            var start = span.Start;
+            var end = span.End;
 
             while (start > nodeStartLine.Start && char.IsWhiteSpace(sourceText[start - 1]))
             {
@@ -159,6 +167,34 @@ namespace Microsoft.CodeAnalysis
             while (end < nodeEndLine.End && char.IsWhiteSpace(sourceText[end]))
             {
                 end++;
+            }
+
+            return TextSpan.FromBounds(start, end);
+        }
+
+        private static async Task<TextSpan> GetStrippedTextSpan(
+            Document document,
+            TextSpan span,
+            CancellationToken cancellationToken
+            )
+        {
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var start = span.Start;
+            var end = span.End;
+
+            if (span.IsEmpty)
+            {
+                return span;
+            }
+
+            while (start < end && char.IsWhiteSpace(sourceText[start]))
+            {
+                start++;
+            }
+
+            while (start < end && char.IsWhiteSpace(sourceText[end - 1]) && char.IsWhiteSpace(sourceText[end]))
+            {
+                end--;
             }
 
             return TextSpan.FromBounds(start, end);

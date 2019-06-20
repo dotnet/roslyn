@@ -555,7 +555,7 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        public async Task TestWholeMethodSelection1()
+        public async Task TestMethodBlockSelection1()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -582,7 +582,7 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        public async Task TestWholeMethodSelection2()
+        public async Task TestMethodBlockSelection2()
         {
 
             await TestInRegularAndScriptAsync(
@@ -610,7 +610,7 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        public async Task TestWholeMethodSelection3()
+        public async Task TestMethodBlockSelection3()
         {
 
             await this.TestMissingAsync(
@@ -625,6 +625,78 @@ $@"class C
             return null;
         |]
         }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        public async Task TestMethodBlockSelection4()
+        {
+            await TestInRegularAndScriptAsync(
+
+@"class C
+{
+    void M()
+    {
+[|
+        C LocalFunction(C c)
+        {
+            return null;
+        }
+        |]
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        
+    }
+
+    private static C LocalFunction(C c)
+    {
+        return null;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        public async Task TestMethodBlockSelection5()
+        {
+
+            await this.TestMissingAsync(
+    @"class C
+{
+    void M()
+    {
+
+        object a = null[|;
+        C LocalFunction(C c)
+        {      
+            return null;
+        
+        }|]
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        public async Task TestMethodBlockSelection6()
+        {
+
+            await this.TestMissingAsync(
+    @"class C
+{
+    void M()
+    {
+
+        [|;
+        C LocalFunction(C c)
+        {      
+            return null;
+        
+        }
+        object|] a = null
     }
 }");
         }
