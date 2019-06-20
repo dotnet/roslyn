@@ -28,30 +28,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         // *DO NOT DELETE*
         // This is used by Ruleset Editor from ManagedSourceCodeAnalysis.dll.
         public IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> GetAllDiagnosticDescriptors(IVsHierarchy hierarchyOpt)
-            => GetAllDiagnosticDescriptors(hierarchyOpt != null && hierarchyOpt.TryGetProjectGuid(out var guid) ? guid : Guid.Empty);
-
-        private IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> GetAllDiagnosticDescriptors(Guid projectGuid)
         {
-            if (projectGuid == Guid.Empty)
+            if (hierarchyOpt == null)
             {
                 return Transform(_diagnosticService.CreateDiagnosticDescriptorsPerReference(projectOpt: null));
             }
 
             // Analyzers are only supported for C# and VB currently.
-            var projects = _workspace.CurrentSolution.Projects
+            var projectsWithHierarchy = _workspace.CurrentSolution.Projects
                 .Where(p => p.Language == LanguageNames.CSharp || p.Language == LanguageNames.VisualBasic)
-                .Where(p => _workspace.GetProjectGuid(p.Id) == projectGuid);
+                .Where(p => _workspace.GetHierarchy(p.Id) == hierarchyOpt);
 
-            if (projects.Count() <= 1)
+            if (projectsWithHierarchy.Count() <= 1)
             {
-                return Transform(_diagnosticService.CreateDiagnosticDescriptorsPerReference(projects.FirstOrDefault()));
+                return Transform(_diagnosticService.CreateDiagnosticDescriptorsPerReference(projectsWithHierarchy.FirstOrDefault()));
             }
             else
             {
-                // Multiple workspace projects map to the same project guid, return a union of descriptors for all projects.
+                // Multiple workspace projects map to the same hierarchy, return a union of descriptors for all projects.
                 // For example, this can happen for web projects where we create on the fly projects for aspx files.
                 var descriptorsMap = ImmutableDictionary.CreateBuilder<string, IEnumerable<DiagnosticDescriptor>>();
-                foreach (var project in projects)
+                foreach (var project in projectsWithHierarchy)
                 {
                     var newDescriptorTuples = _diagnosticService.CreateDiagnosticDescriptorsPerReference(project);
                     foreach (var kvp in newDescriptorTuples)

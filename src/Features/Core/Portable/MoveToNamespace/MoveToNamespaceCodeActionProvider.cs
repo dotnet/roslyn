@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var service = context.Document.GetLanguageService<IMoveToNamespaceService>();
-            var actions = await service.GetCodeActionsAsync(context.Document, context.Span, context.CancellationToken).ConfigureAwait(false);
+            var moveToNamespaceService = context.Document.GetLanguageService<IMoveToNamespaceService>();
+            var actions = await moveToNamespaceService.GetCodeActionsAsync(context.Document, context.Span, context.CancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }
     }

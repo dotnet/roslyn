@@ -411,6 +411,7 @@ namespace Microsoft.CodeAnalysis
         };
 
         private static readonly byte[][] s_signaturesOfNullableAttribute = { s_signature_HasThis_Void_Byte, s_signature_HasThis_Void_SzArray_Byte };
+        private static readonly byte[][] s_signaturesOfNullablePublicOnlyAttribute = { s_signature_HasThis_Void };
 
         private static readonly byte[][] s_signaturesOfExperimentalAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfExcludeFromCodeCoverageAttribute = { s_signature_HasThis_Void };
@@ -464,14 +465,14 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription StructLayoutAttribute = new AttributeDescription("System.Runtime.InteropServices", "StructLayoutAttribute", s_signaturesOfStructLayoutAttribute);
         internal static readonly AttributeDescription FieldOffsetAttribute = new AttributeDescription("System.Runtime.InteropServices", "FieldOffsetAttribute", s_signaturesOfFieldOffsetAttribute);
         internal static readonly AttributeDescription FixedBufferAttribute = new AttributeDescription("System.Runtime.CompilerServices", "FixedBufferAttribute", s_signaturesOfFixedBufferAttribute);
-        internal static readonly AttributeDescription AllowNullAttribute = new AttributeDescription("System.Runtime.CompilerServices", "AllowNullAttribute", s_signaturesOfAllowNullAttribute);
-        internal static readonly AttributeDescription DisallowNullAttribute = new AttributeDescription("System.Runtime.CompilerServices", "DisallowNullAttribute", s_signaturesOfDisallowNullAttribute);
-        internal static readonly AttributeDescription MaybeNullAttribute = new AttributeDescription("System.Runtime.CompilerServices", "MaybeNullAttribute", s_signaturesOfMaybeNullAttribute);
-        internal static readonly AttributeDescription MaybeNullWhenAttribute = new AttributeDescription("System.Runtime.CompilerServices", "MaybeNullWhenAttribute", s_signaturesOfMaybeNullWhenAttribute);
-        internal static readonly AttributeDescription NotNullAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NotNullAttribute", s_signaturesOfNotNullAttribute);
-        internal static readonly AttributeDescription NotNullWhenAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NotNullWhenAttribute", s_signaturesOfNotNullWhenAttribute);
-        internal static readonly AttributeDescription AssertsTrueAttribute = new AttributeDescription("System.Runtime.CompilerServices", "AssertsTrueAttribute", s_signaturesOfAssertsTrueAttribute);
-        internal static readonly AttributeDescription AssertsFalseAttribute = new AttributeDescription("System.Runtime.CompilerServices", "AssertsFalseAttribute", s_signaturesOfAssertsFalseAttribute);
+        internal static readonly AttributeDescription AllowNullAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "AllowNullAttribute", s_signaturesOfAllowNullAttribute);
+        internal static readonly AttributeDescription DisallowNullAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "DisallowNullAttribute", s_signaturesOfDisallowNullAttribute);
+        internal static readonly AttributeDescription MaybeNullAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "MaybeNullAttribute", s_signaturesOfMaybeNullAttribute);
+        internal static readonly AttributeDescription MaybeNullWhenAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "MaybeNullWhenAttribute", s_signaturesOfMaybeNullWhenAttribute);
+        internal static readonly AttributeDescription NotNullAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "NotNullAttribute", s_signaturesOfNotNullAttribute);
+        internal static readonly AttributeDescription NotNullWhenAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "NotNullWhenAttribute", s_signaturesOfNotNullWhenAttribute);
+        internal static readonly AttributeDescription AssertsTrueAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "AssertsTrueAttribute", s_signaturesOfAssertsTrueAttribute);
+        internal static readonly AttributeDescription AssertsFalseAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "AssertsFalseAttribute", s_signaturesOfAssertsFalseAttribute);
         internal static readonly AttributeDescription MarshalAsAttribute = new AttributeDescription("System.Runtime.InteropServices", "MarshalAsAttribute", s_signaturesOfMarshalAsAttribute);
         internal static readonly AttributeDescription InAttribute = new AttributeDescription("System.Runtime.InteropServices", "InAttribute", s_signaturesOfInAttribute);
         internal static readonly AttributeDescription OutAttribute = new AttributeDescription("System.Runtime.InteropServices", "OutAttribute", s_signaturesOfOutAttribute);
@@ -538,6 +539,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription AssemblyAlgorithmIdAttribute = new AttributeDescription("System.Reflection", "AssemblyAlgorithmIdAttribute", s_signaturesOfAssemblyAlgorithmIdAttribute);
         internal static readonly AttributeDescription DeprecatedAttribute = new AttributeDescription("Windows.Foundation.Metadata", "DeprecatedAttribute", s_signaturesOfDeprecatedAttribute);
         internal static readonly AttributeDescription NullableAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NullableAttribute", s_signaturesOfNullableAttribute);
+        internal static readonly AttributeDescription NullablePublicOnlyAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NullablePublicOnlyAttribute", s_signaturesOfNullablePublicOnlyAttribute);
         internal static readonly AttributeDescription ExperimentalAttribute = new AttributeDescription("Windows.Foundation.Metadata", "ExperimentalAttribute", s_signaturesOfExperimentalAttribute);
         internal static readonly AttributeDescription ExcludeFromCodeCoverageAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "ExcludeFromCodeCoverageAttribute", s_signaturesOfExcludeFromCodeCoverageAttribute);
         internal static readonly AttributeDescription EnumeratorCancellationAttribute = new AttributeDescription("System.Runtime.CompilerServices", "EnumeratorCancellationAttribute", s_signaturesOfEnumeratorCancellationAttribute);
