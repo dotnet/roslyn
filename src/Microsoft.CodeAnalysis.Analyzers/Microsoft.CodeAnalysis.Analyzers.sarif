@@ -37,6 +37,7 @@
         "RS1003": {
           "id": "RS1003",
           "shortDescription": "Unsupported SymbolKind argument when registering a symbol analyzer action.",
+          "fullDescription": "SymbolKind '{0}' is not supported for symbol analyzer actions.",
           "defaultLevel": "warning",
           "properties": {
             "category": "MicrosoftCodeAnalysisCorrectness",
