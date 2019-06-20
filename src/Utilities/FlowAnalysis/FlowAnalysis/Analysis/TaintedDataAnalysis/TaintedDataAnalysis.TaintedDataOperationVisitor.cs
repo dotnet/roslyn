@@ -433,7 +433,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             {
                 foreach (SanitizerInfo sanitizerInfo in this.DataFlowAnalysisContext.SanitizerInfos.GetInfosForType(method.ContainingType))
                 {
-                    if (sanitizerInfo.SanitizingInstanceMethods.Contains(method.MetadataName))
+                    if (sanitizerInfo.SanitizingParameterMethods.Contains(method.MetadataName))
                     {
                         return true;
                     }
