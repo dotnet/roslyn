@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (var diag in diagnostics.AsEnumerable())
             {
-                if (diag.IsUnsuppressedError())
+                if (diag.IsUnsuppressableError())
                 {
                     return true;
                 }

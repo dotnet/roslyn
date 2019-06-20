@@ -1378,7 +1378,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     continue;
                 }
-                else if (filtered.IsUnsuppressedError())
+                else if (filtered.IsUnsuppressableError())
                 {
                     hasError = true;
                 }

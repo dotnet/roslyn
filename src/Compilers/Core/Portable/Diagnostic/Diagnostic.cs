@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis
         /// Only diagnostics which have default severity error and are tagged as NotConfigurable fall in this bucket.
         /// This includes all compiler error diagnostics and specific analyzer error diagnostics that are marked as not configurable by the analyzer author.
         /// </summary>
-        internal bool IsUnsuppressedError()
+        internal bool IsUnsuppressableError()
             => DefaultSeverity == DiagnosticSeverity.Error && IsNotConfigurable();
     }
 
