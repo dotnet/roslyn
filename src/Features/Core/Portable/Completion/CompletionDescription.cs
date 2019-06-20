@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private CompletionDescription(ImmutableArray<TaggedText> taggedParts)
         {
-            this.TaggedParts = taggedParts.NullToEmpty();
+            TaggedParts = taggedParts.NullToEmpty();
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionDescription WithTaggedParts(ImmutableArray<TaggedText> taggedParts)
         {
-            if (taggedParts != this.TaggedParts)
+            if (taggedParts != TaggedParts)
             {
                 return new CompletionDescription(taggedParts);
             }
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 if (_text == null)
                 {
-                    Interlocked.CompareExchange(ref _text, string.Concat(this.TaggedParts.Select(p => p.Text)), null);
+                    Interlocked.CompareExchange(ref _text, string.Concat(TaggedParts.Select(p => p.Text)), null);
                 }
 
                 return _text;

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             Contract.ThrowIfNull(status);
 
-            this.Status = status;
+            Status = status;
         }
 
         protected SelectionResult(
@@ -30,18 +30,18 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             SyntaxAnnotation firstTokenAnnotation,
             SyntaxAnnotation lastTokenAnnotation)
         {
-            this.Status = status;
+            Status = status;
 
-            this.OriginalSpan = originalSpan;
-            this.FinalSpan = finalSpan;
+            OriginalSpan = originalSpan;
+            FinalSpan = finalSpan;
 
-            this.SelectionInExpression = selectionInExpression;
-            this.Options = options;
+            SelectionInExpression = selectionInExpression;
+            Options = options;
 
-            this.FirstTokenAnnotation = firstTokenAnnotation;
-            this.LastTokenAnnotation = lastTokenAnnotation;
+            FirstTokenAnnotation = firstTokenAnnotation;
+            LastTokenAnnotation = lastTokenAnnotation;
 
-            this.SemanticDocument = document;
+            SemanticDocument = document;
         }
 
         protected abstract bool UnderAsyncAnonymousMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken);
@@ -62,12 +62,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         public SelectionResult With(SemanticDocument document)
         {
-            if (this.SemanticDocument == document)
+            if (SemanticDocument == document)
             {
                 return this;
             }
 
-            var clone = (SelectionResult)this.MemberwiseClone();
+            var clone = (SelectionResult)MemberwiseClone();
             clone.SemanticDocument = document;
 
             return clone;
@@ -77,46 +77,46 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             get
             {
-                return this.SemanticDocument != null;
+                return SemanticDocument != null;
             }
         }
 
         public SyntaxToken GetFirstTokenInSelection()
         {
-            return this.SemanticDocument.GetTokenWithAnnotation(this.FirstTokenAnnotation);
+            return SemanticDocument.GetTokenWithAnnotation(FirstTokenAnnotation);
         }
 
         public SyntaxToken GetLastTokenInSelection()
         {
-            return this.SemanticDocument.GetTokenWithAnnotation(this.LastTokenAnnotation);
+            return SemanticDocument.GetTokenWithAnnotation(LastTokenAnnotation);
         }
 
         public TNode GetContainingScopeOf<TNode>() where TNode : SyntaxNode
         {
-            var containingScope = this.GetContainingScope();
+            var containingScope = GetContainingScope();
             return containingScope.GetAncestorOrThis<TNode>();
         }
 
         protected T GetFirstStatement<T>() where T : SyntaxNode
         {
-            Contract.ThrowIfTrue(this.SelectionInExpression);
+            Contract.ThrowIfTrue(SelectionInExpression);
 
-            var token = this.GetFirstTokenInSelection();
+            var token = GetFirstTokenInSelection();
             return token.GetAncestor<T>();
         }
 
         protected T GetLastStatement<T>() where T : SyntaxNode
         {
-            Contract.ThrowIfTrue(this.SelectionInExpression);
+            Contract.ThrowIfTrue(SelectionInExpression);
 
-            var token = this.GetLastTokenInSelection();
+            var token = GetLastTokenInSelection();
             return token.GetAncestor<T>();
         }
 
         public bool ShouldPutAsyncModifier()
         {
-            var firstToken = this.GetFirstTokenInSelection();
-            var lastToken = this.GetLastTokenInSelection();
+            var firstToken = GetFirstTokenInSelection();
+            var lastToken = GetLastTokenInSelection();
 
             for (var currentToken = firstToken;
                 currentToken.Span.End < lastToken.SpanStart;
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             get
             {
-                return this.Options.GetOption(ExtractMethodOptions.AllowMovingDeclaration, this.SemanticDocument.Project.Language);
+                return Options.GetOption(ExtractMethodOptions.AllowMovingDeclaration, SemanticDocument.Project.Language);
             }
         }
 
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             get
             {
-                return this.Options.GetOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, this.SemanticDocument.Project.Language);
+                return Options.GetOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, SemanticDocument.Project.Language);
             }
         }
     }

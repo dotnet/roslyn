@@ -8,14 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddParameter
@@ -97,12 +93,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
         private TArgumentSyntax TryGetRelevantArgument(
             SyntaxNode initialNode, SyntaxNode node, Diagnostic diagnostic)
         {
-            if (this.TooManyArgumentsDiagnosticIds.Contains(diagnostic.Id))
+            if (TooManyArgumentsDiagnosticIds.Contains(diagnostic.Id))
             {
                 return null;
             }
 
-            if (this.CannotConvertDiagnosticIds.Contains(diagnostic.Id))
+            if (CannotConvertDiagnosticIds.Contains(diagnostic.Id))
             {
                 return null;
             }

@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.Common;
 
 namespace Microsoft.CodeAnalysis.Diagnostics

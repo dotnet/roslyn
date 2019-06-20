@@ -123,9 +123,9 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.TypeScript" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
     <InternalsVisibleTo Include="Roslyn.Services.Editor.TypeScript.UnitTests" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
-    <InternalsVisibleTo Include="ManagedSourceCodeAnalysis" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35080" />
-    <InternalsVisibleTo Include="CodeAnalysis" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35080" />
-    <InternalsVisibleTo Include="StanCore" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35080" />
+    <RestrictedInternalsVisibleTo Include="ManagedSourceCodeAnalysis" Key="$(TypeScriptKey)" Partner="LegacyCodeAnalysis" />
+    <RestrictedInternalsVisibleTo Include="CodeAnalysis" Key="$(TypeScriptKey)" Partner="LegacyCodeAnalysis" />
+    <RestrictedInternalsVisibleTo Include="StanCore" Key="$(TypeScriptKey)" Partner="LegacyCodeAnalysis" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote" Key="$(RemoteLanguageServiceKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35074" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.15.7" Key="$(RemoteLanguageServiceKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35074" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.15.8" Key="$(RemoteLanguageServiceKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35074" />
