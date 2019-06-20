@@ -45,16 +45,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             object hierarchy,
             string binOutputPath)
         {
-            var visualStudioProject = CreateVisualStudioProject(languageName, projectUniqueName, projectFilePath, hierarchy as IVsHierarchy, projectGuid);
+            var visualStudioProject = CreateVisualStudioProject(languageName, projectUniqueName, projectFilePath, projectGuid);
             return new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, _externalErrorDiagnosticUpdateSource, projectGuid, binOutputPath);
         }
 
-        private VisualStudioProject CreateVisualStudioProject(string languageName, string projectUniqueName, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid)
+        private VisualStudioProject CreateVisualStudioProject(string languageName, string projectUniqueName, string projectFilePath, Guid projectGuid)
         {
             var creationInfo = new VisualStudioProjectCreationInfo
             {
                 FilePath = projectFilePath,
-                Hierarchy = hierarchy,
                 ProjectGuid = projectGuid,
             };
 
