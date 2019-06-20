@@ -53,7 +53,7 @@ function Run-Build([string]$rootDir, [string]$logFileName) {
      /p:DebugDeterminism=true `
      /p:Features="debug-determinism" `
      /p:DeployExtension=false `
-     /p:RepoRoot=$RepoRoot `
+     /p:RepoRoot=$rootDir `
      /p:TreatWarningsAsErrors=true `
      /bl:$logFilePath
 }
