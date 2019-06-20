@@ -42,7 +42,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             var errorList = _threadingContext.JoinableTaskFactory.Run(async () =>
             {
-                return await _asyncServiceProvider.GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(false) as IErrorList;
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                return await _asyncServiceProvider.GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(true) as IErrorList;
             });
 
             if (errorList == null)
