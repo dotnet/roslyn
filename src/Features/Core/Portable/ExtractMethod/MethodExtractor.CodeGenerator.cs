@@ -289,8 +289,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                     typeParameters.Add(CodeGenerationSymbolFactory.CreateTypeParameter(
                         parameter.GetAttributes(), parameter.Variance, parameter.Name, ImmutableArray.Create<ITypeSymbol>(),
-                        parameter.HasConstructorConstraint, parameter.HasReferenceTypeConstraint, parameter.HasValueTypeConstraint,
-                        parameter.HasUnmanagedTypeConstraint, parameter.Ordinal));
+                        parameter.HasConstructorConstraint, parameter.HasReferenceTypeConstraint, parameter.HasUnmanagedTypeConstraint,
+                        parameter.HasValueTypeConstraint, parameter.HasNotNullConstraint, parameter.Ordinal));
                 }
 
                 return typeParameters.ToImmutableAndFree();

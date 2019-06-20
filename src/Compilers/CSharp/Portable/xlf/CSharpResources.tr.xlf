@@ -68,7 +68,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
-        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'warnings'</source>
+        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
         <target state="needs-review-translation">/nullable için geçersiz '{0}' seçeneği; 'disable', 'enable', 'safeonly', 'warnings' veya 'safeonlywarnings' olmalıdır</target>
         <note />
       </trans-unit>
@@ -300,6 +300,11 @@
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'disable', or 'restore'</source>
         <target state="needs-review-translation">'enable', 'safeonly', 'disable' veya 'restore' bekleniyordu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullableDirectiveTargetExpected">
+        <source>Expected 'warnings', 'annotations', or end of directive</source>
+        <target state="new">Expected 'warnings', 'annotations', or end of directive</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
@@ -1399,13 +1404,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
-        <source>The annotation for nullable reference types should only be used in code within a '#nullable' context.</source>
-        <target state="translated">Boş değer atanabilir başvuru türleri için ek açıklama kodda yalnızca bir '#nullable' bağlamı içinde kullanılmalıdır.</target>
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
+        <target state="needs-review-translation">Boş değer atanabilir başvuru türleri için ek açıklama kodda yalnızca bir '#nullable' bağlamı içinde kullanılmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
-        <source>The annotation for nullable reference types should only be used in code within a '#nullable' context.</source>
-        <target state="translated">Boş değer atanabilir başvuru türleri için ek açıklama kodda yalnızca bir '#nullable' bağlamı içinde kullanılmalıdır.</target>
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
+        <target state="needs-review-translation">Boş değer atanabilir başvuru türleri için ek açıklama kodda yalnızca bir '#nullable' bağlamı içinde kullanılmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
