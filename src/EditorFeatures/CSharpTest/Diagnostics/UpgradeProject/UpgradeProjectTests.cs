@@ -828,5 +828,126 @@ class Test
                 LanguageVersion.Preview,
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
+
+        [Fact]
+        public async Task UpgradeProjectWithNotNullConstraintTo8_0_Type()
+        {
+            await TestLanguageVersionNotUpgradedAsync(
+@"
+class Test<T> where T : [|notnull|]
+{
+}",
+                LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithNotNullConstraintTo8_0_Type_AlreadyDefined()
+        {
+            await TestExactActionSetOfferedAsync(
+@"<Workspace>
+    <Project Language=""C#"" LanguageVersion=""703"">
+        <Document>
+interface notnull { }
+class Test&lt;T&gt; where T : [|notnull|]
+{
+}
+        </Document>
+    </Project>
+</Workspace>",
+                expectedActionSet: Enumerable.Empty<string>());
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithNotNullConstraintTo8_0_Method()
+        {
+            await TestLanguageVersionNotUpgradedAsync(
+@"
+class Test
+{
+    public void M<T>() where T : [|notnull|] { }
+}",
+                LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithNotNullConstraintTo8_0_Method_AlreadyDefined()
+        {
+            await TestExactActionSetOfferedAsync(
+@"<Workspace>
+    <Project Language=""C#"" LanguageVersion=""703"">
+        <Document>
+interface notnull { }
+class Test
+{
+    public void M&lt;T&gt;() where T : [|notnull|] { }
+}
+        </Document>
+    </Project>
+</Workspace>",
+                expectedActionSet: Enumerable.Empty<string>());
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithNotNullConstraintTo8_0_Delegate()
+        {
+            await TestLanguageVersionNotUpgradedAsync(
+@"delegate void D<T>() where T : [|notnull|];",
+                LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithNotNullConstraintTo8_0_Delegate_AlreadyDefined()
+        {
+            await TestExactActionSetOfferedAsync(
+@"<Workspace>
+    <Project Language=""C#"" LanguageVersion=""703"">
+        <Document>
+interface notnull { }
+delegate void D&lt;T&gt;() where T : [| notnull |];
+        </Document>
+    </Project>
+</Workspace>",
+                expectedActionSet: Enumerable.Empty<string>());
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithNotNullConstraintTo8_0_LocalFunction()
+        {
+            await TestLanguageVersionNotUpgradedAsync(
+@"
+class Test
+{
+    public void N()
+    {
+        void M<T>() where T : [|notnull|] { }
+    }
+}",
+                LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithNotNullConstraintTo8_0_LocalFunction_AlreadyDefined()
+        {
+            await TestExactActionSetOfferedAsync(
+@"<Workspace>
+    <Project Language=""C#"" LanguageVersion=""703"">
+        <Document>
+interface notnull { }
+class Test
+{
+    public void N()
+    {
+        void M&lt;T&gt;() where T : [|notnull|] { }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>",
+                expectedActionSet: Enumerable.Empty<string>());
+        }
     }
 }

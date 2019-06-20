@@ -305,6 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var syntax = (DelegateDeclarationSyntax)SyntaxRef.GetSyntax();
                 var location = syntax.ReturnType.GetLocation();
+                var compilation = DeclaringCompilation;
 
                 Debug.Assert(location != null);
 
@@ -312,17 +313,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (_refKind == RefKind.RefReadOnly)
                 {
-                    DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
 
-                ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
+                ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
-                if (ReturnTypeWithAnnotations.NeedsNullableAttribute())
+                if (compilation.ShouldEmitNullableAttributes(this) &&
+                    ReturnTypeWithAnnotations.NeedsNullableAttribute())
                 {
-                    this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+                    compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
 
-                ParameterHelpers.EnsureNullableAttributeExists(Parameters, diagnostics, modifyCompilation: true);
+                ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
             }
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers => _refCustomModifiers;
