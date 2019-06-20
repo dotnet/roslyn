@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (x is SourceParameterSymbolBase param
                     && param.IsNullChecked)
                 {
-                    Debug.Assert(!param.Type.IsValueType || param.Type.SpecialType == SpecialType.System_Nullable_T);
+                    Debug.Assert(!param.Type.IsValueType || param.Type.IsNullableType());
                     var constructedIf = ConstructIfStatementForParameter(body, param);
                     statementList.Add(constructedIf);
                 }
