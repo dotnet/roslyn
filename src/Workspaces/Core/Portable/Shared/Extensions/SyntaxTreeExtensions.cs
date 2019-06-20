@@ -72,49 +72,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return default;
         }
 
-        /// <summary>
-        /// Returns the first Token that passes <paramref name="predicate"/> within supplied <paramref name="span"/>.
-        /// </summary>
-        /// <remarks>
-        /// Only tokens whose <c>Span.End</c> fits within <paramref name="span"/> are considered. 
-        /// </remarks>
-        public static async Task<SyntaxToken> GetLeftmostTokenInSpanAsync(
-            this SyntaxTree syntaxTree,
-            TextSpan span, 
-            Predicate<SyntaxToken> predicate,
-            CancellationToken cancellationToken,
-            bool findInsideTrivia = false,
-            bool includeSkipped = true,
-            bool includeDirectives = false,
-            bool includeDocumentationComments = false)
-        {
-            Contract.ThrowIfNull(syntaxTree);
-
-            if (span.Start >= syntaxTree.Length)
-            {
-                return default;
-            }
-
-            var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(span.Start, findInsideTrivia);
-
-            while (!predicate(token))
-            {
-                if (token.Span.End >= span.End || token.FullSpan.End >= syntaxTree.Length)
-                {
-                    // SyntaxKind = None
-                    return default;
-                }
-
-                token = root.FindTokenOnRightOfPosition(
-                    token.FullSpan.End,
-                    includeSkipped, includeDirectives, includeDocumentationComments);
-
-            }
-
-            return token;
-        }
-
         public static bool IsEntirelyHidden(this SyntaxTree tree, TextSpan span, CancellationToken cancellationToken)
         {
             if (!tree.HasHiddenRegions())

@@ -42,26 +42,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             var cancellationToken = context.CancellationToken;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var identifier = context.Span.IsEmpty
-                ? await root.SyntaxTree.GetTouchingTokenAsync(context.Span.Start, token => token.Parent.IsKind(SyntaxKind.LocalFunctionStatement), cancellationToken).ConfigureAwait(false)
-                : await root.SyntaxTree.GetLeftmostTokenInSpanAsync(context.Span, token => token.Parent.IsKind(SyntaxKind.LocalFunctionStatement), cancellationToken).ConfigureAwait(false);
-
-
-            if (identifier == default)
+            LocalFunctionStatementSyntax localFunction = default;
+            if (context.Span.IsEmpty)
             {
-                return;
+                // This branch is required to handle "C LocalFunction[||](C c)" -> root.FindNode return ParameterList
+                var identifier = await root.SyntaxTree.GetTouchingTokenAsync(context.Span.Start, token => token.Parent.IsKind(SyntaxKind.LocalFunctionStatement), cancellationToken).ConfigureAwait(false);
+                if (identifier == default)
+                {
+                    return;
+                }
+                localFunction = (LocalFunctionStatementSyntax)identifier.Parent;
             }
-
-            if (context.Span.Length > 0 &&
-                (context.Span != identifier.Span && context.Span != identifier.Parent.Span))    // either local function's identifier Token or the whole function's span
+            else
             {
-                return;
-            }
+                var enclosingNode = root.FindNode(context.Span);
+                if (!(enclosingNode is LocalFunctionStatementSyntax))
+                {
+                    return;
+                }
+                localFunction = (LocalFunctionStatementSyntax)enclosingNode;
 
-            var localFunction = (LocalFunctionStatementSyntax)identifier.Parent;
-            if (localFunction.Identifier != identifier)
-            {
-                return;
+                if (context.Span != localFunction.Span && context.Span != localFunction.Identifier.Span)
+                {
+                    return;
+                }
             }
 
             if (!localFunction.Parent.IsKind(SyntaxKind.Block, out BlockSyntax parentBlock))
