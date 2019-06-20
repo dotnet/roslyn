@@ -138,6 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var executablebinder = new ExecutableCodeBinder(body, methodSymbol, binder ?? this.RootBinder);
             var blockBinder = executablebinder.GetBinder(body).WithAdditionalFlags(GetSemanticModelBinderFlags());
+            // We don't pass the snapshot manager along here, because we're speculating about an entirely new body and it should not
+            // be influenced by any existing code in the body.
             speculativeModel = CreateSpeculative(parentModel, methodSymbol, body, blockBinder, snapshotManagerOpt: null, position);
             return true;
         }
@@ -157,11 +159,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 speculativeModel = null;
                 return false;
             }
-
-            // The only place that a speculative semantic model can be affected by existing code is in this
-            // creation method. Elsewhere, we are speculating about entirely new members, or entire replacements
-            // for existing members, and those cannot be affected by intra-member flow analysis.
-            EnsureRootBoundForNullabilityIfNecessary();
 
             var methodSymbol = (MethodSymbol)this.MemberSymbol;
             binder = new ExecutableCodeBinder(statement, methodSymbol, binder);

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // The bound nodes associated with a syntax node, from highest in the tree to lowest.
         private readonly Dictionary<SyntaxNode, ImmutableArray<BoundNode>> _guardedNodeMap = new Dictionary<SyntaxNode, ImmutableArray<BoundNode>>();
         private Dictionary<SyntaxNode, BoundStatement> _lazyGuardedSynthesizedStatementsMap;
-        private NullableWalker.SnapshotManager _lazyGuardedSnapshotManager;
+        private NullableWalker.SnapshotManager _lazySnapshotManager;
 
         internal readonly Binder RootBinder;
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.RootBinder = rootBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
             _containingSemanticModelOpt = containingSemanticModelOpt;
             _parentSemanticModelOpt = parentSemanticModelOpt;
-            _lazyGuardedSnapshotManager = snapshotManagerOpt;
+            _lazySnapshotManager = snapshotManagerOpt;
             _speculatedPosition = speculatedPosition;
 
             _operationFactory = new Lazy<CSharpOperationFactory>(() => new CSharpOperationFactory(this));
@@ -139,8 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                using var @lock = _nodeMapLock.DisposableRead();
-                return _lazyGuardedSnapshotManager;
+                EnsureRootBoundForNullabilityIfNecessary();
+                return _lazySnapshotManager;
             }
         }
 
@@ -1434,7 +1434,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(manager == null || !IsSpeculativeSemanticModel);
                 if (!IsSpeculativeSemanticModel)
                 {
-                    _lazyGuardedSnapshotManager = manager;
+                    Debug.Assert(_lazySnapshotManager is null);
+                    _lazySnapshotManager = manager;
                 }
             }
         }
@@ -1833,7 +1834,6 @@ done:
             DiagnosticBag diagnostics = _ignoredDiagnostics;
 
             // If we're in DEBUG mode, always enable the analysis, but throw away the results
-            // https://github.com/dotnet/roslyn/issues/35037: Disable speculative semantic models for now.
             if (!Compilation.NullableAnalysisEnabled)
             {
 #if DEBUG
@@ -1841,6 +1841,14 @@ done:
 #else
                 return;
 #endif
+            }
+
+            // If this isn't a speculative model and we have a snapshot manager,
+            // then we've already done all the work necessary and we should avoid
+            // taking an unnecessary read lock.
+            if (!IsSpeculativeSemanticModel && _lazySnapshotManager is null)
+            {
+                return;
             }
 
             var bindableRoot = GetBindableSyntaxNode(Root);
@@ -1878,14 +1886,14 @@ done:
                 // Not all speculative models are created with existing snapshots. Attributes,
                 // TypeSyntaxes, and MethodBodies do not depend on existing state in a member,
                 // and so the SnapshotManager can be null in these cases.
-                if (_lazyGuardedSnapshotManager is null)
+                if (_lazySnapshotManager is null)
                 {
                     bindAndRewrite(takeSnapshots: false);
                     return;
                 }
 
                 var analyzedNullabilitiesBuilder = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>();
-                boundRoot = NullableWalker.AnalyzeAndRewriteSpeculation(_speculatedPosition, boundRoot, binder, _lazyGuardedSnapshotManager);
+                boundRoot = NullableWalker.AnalyzeAndRewriteSpeculation(_speculatedPosition, boundRoot, binder, _lazySnapshotManager);
                 GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot);
             }
 

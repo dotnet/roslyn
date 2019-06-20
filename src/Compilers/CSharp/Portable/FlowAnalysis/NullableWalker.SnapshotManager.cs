@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -19,15 +19,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private readonly ImmutableArray<SharedWalkerState> _walkerGlobalStates;
             /// <summary>
-            /// The snapshot array should be sorted in ascending order in order for the binary search algorithm to
+            /// The snapshot array should be sorted in ascending order by the position tuple element in order for the binary search algorithm to
             /// function correctly.
             /// </summary>
             private readonly ImmutableArray<(int position, Snapshot snapshot)> _incrementalSnapshots;
+
+            private static readonly Func<(int position, Snapshot snapshot), int, int> BinarySearchComparer = (current, target) => current.position.CompareTo(target);
 
             private SnapshotManager(ImmutableArray<SharedWalkerState> walkerGlobalStates, ImmutableArray<(int position, Snapshot snapshot)> incrementalSnapshots)
             {
                 _walkerGlobalStates = walkerGlobalStates;
                 _incrementalSnapshots = incrementalSnapshots;
+
+#if DEBUG
+                Debug.Assert(!incrementalSnapshots.IsDefaultOrEmpty);
+                int previousPosition = incrementalSnapshots[0].position;
+                for (int i = 1; i < incrementalSnapshots.Length; i++)
+                {
+                    int currentPosition = incrementalSnapshots[i].position;
+                    Debug.Assert(currentPosition > previousPosition);
+                    previousPosition = currentPosition;
+                }
+#endif
             }
 
             internal (NullableWalker, VariableState) RestoreWalkerToAnalyzeNewNode(
@@ -36,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Binder binder,
                 ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMap)
             {
-                var snapshotPosition = _incrementalSnapshots.BinarySearch(position, (current, target) => current.position.CompareTo(target));
+                var snapshotPosition = _incrementalSnapshots.BinarySearch(position, BinarySearchComparer);
 
                 if (snapshotPosition < 0)
                 {
@@ -75,18 +88,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 int nodePosition = node.Syntax.SpanStart;
-                bool foundSnapshot = false;
-                foreach (var (position, snapshot) in _incrementalSnapshots)
-                {
-                    if (nodePosition == position)
-                    {
-                        foundSnapshot = true;
-                        Debug.Assert(_walkerGlobalStates.Length > snapshot.SharedStateIndex, $"Did not find global state for {node} `{node.Syntax}`.");
-                        break;
-                    }
-                }
-                Debug.Assert(foundSnapshot, $"Did not find a snapshot for {node} `{node.Syntax}.`");
+                int position = _incrementalSnapshots.BinarySearch(nodePosition, BinarySearchComparer);
 
+                if (position < 0)
+                {
+                    Debug.Fail($"Did not find a snapshot for {node} `{node.Syntax}.`");
+                }
+                Debug.Assert(_walkerGlobalStates.Length > _incrementalSnapshots[position].snapshot.SharedStateIndex, $"Did not find global state for {node} `{node.Syntax}`.");
             }
 #endif
 
@@ -112,15 +120,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(_symbolToSlot.Count == _walkerStates.Count);
                     Debug.Assert(_symbolToSlot.Count > 0);
                     _symbolToSlot.Free();
-                    ArrayBuilder<(int position, Snapshot snapshot)> builder = ArrayBuilder<(int, Snapshot)>.GetInstance();
-                    foreach (var (position, snapshot) in _incrementalSnapshots)
-                    {
-                        builder.Add((position, snapshot));
-                    }
+                    var snapshotsArray = Roslyn.Utilities.EnumerableExtensions.SelectAsArray<KeyValuePair<int, Snapshot>, (int, Snapshot)>(_incrementalSnapshots, (kvp) => (kvp.Key, kvp.Value));
 
-                    return new SnapshotManager(
-                        _walkerStates.ToImmutableAndFree(),
-                        builder.ToImmutableAndFree());
+                    return new SnapshotManager(_walkerStates.ToImmutableAndFree(), snapshotsArray);
                 }
 
                 internal int EnterNewWalker(Symbol symbol)

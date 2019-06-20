@@ -569,22 +569,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableState initialState,
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMapOpt,
             SnapshotManager.Builder snapshotBuilderOpt,
-            ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt,
-            NullableWalker restoredWalker = null)
+            ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt)
         {
             Debug.Assert(diagnostics != null);
-            restoredWalker ??= new NullableWalker(
-                compilation,
-                symbol,
-                useMethodSignatureParameterTypes,
-                methodSignatureOpt,
-                node,
-                binder,
-                conversions,
-                initialState,
-                returnTypesOpt,
-                analyzedNullabilityMapOpt,
-                snapshotBuilderOpt);
+            var restoredWalker = new NullableWalker(compilation,
+                                                    symbol,
+                                                    useMethodSignatureParameterTypes,
+                                                    methodSignatureOpt,
+                                                    node,
+                                                    binder,
+                                                    conversions,
+                                                    initialState,
+                                                    returnTypesOpt,
+                                                    analyzedNullabilityMapOpt,
+                                                    snapshotBuilderOpt);
 
             Analyze(restoredWalker, symbol, diagnostics, initialState, snapshotBuilderOpt);
         }
