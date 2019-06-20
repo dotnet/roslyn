@@ -9386,7 +9386,7 @@ End Class"
         End Sub
 
         <WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/36215")>
+        <Fact>
         Public Sub TestSuppression_CompilerWarningAsError()
             ' warning BC40008 : 'C' is obsolete
             Dim source = "

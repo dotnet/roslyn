@@ -559,6 +559,14 @@ namespace Microsoft.CodeAnalysis
         {
             return AnalyzerManager.HasNotConfigurableTag(this.CustomTags);
         }
+
+        /// <summary>
+        /// Returns true if this is an error diagnostic which cannot be suppressed and is guaranteed to break the build.
+        /// Only diagnostics which have default severity error and are tagged as NotConfigurable fall in this bucket.
+        /// This includes all compiler error diagnostics and specific analyzer error diagnostics that are marked as not configurable by the analyzer author.
+        /// </summary>
+        internal bool IsUnsuppressableError()
+            => DefaultSeverity == DiagnosticSeverity.Error && IsNotConfigurable();
     }
 
     /// <summary>
