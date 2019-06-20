@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class NullCheckRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
         private readonly MethodSymbol _method;
-        private readonly DiagnosticBag _diagnostics;
         private readonly SyntheticBoundNodeFactory _fact;
         private NullCheckRewriter(
             MethodSymbol method,
@@ -21,7 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             _method = method;
-            _diagnostics = diagnostics;
             _fact = new SyntheticBoundNodeFactory(method, syntax, compilationState, diagnostics);
         }
 
@@ -76,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                 loweredLeft.Type as NamedTypeSymbol,
                                                                 SpecialMember.System_Nullable_T_get_HasValue,
                                                                 _method.DeclaringCompilation,
-                                                                _diagnostics))
+                                                                _fact.Diagnostics))
                                                         : (BoundExpression)_fact.ObjectEqual(loweredLeft, loweredRight);
 
 
