@@ -70,17 +70,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var loweredLeft = _fact.Parameter(parameter);
             var loweredRight = _fact.Literal(ConstantValue.Null, parameter.Type);
-            BoundExpression paramIsNullCondition = parameter.Type.IsNullableType()
-                                                        ? BoundCall.Synthesized(body.Syntax,
-                                                            loweredLeft,
-                                                            LocalRewriter.UnsafeGetNullableMethod(
-                                                                body.Syntax,
-                                                                loweredLeft.Type as NamedTypeSymbol,
-                                                                SpecialMember.System_Nullable_T_get_HasValue,
-                                                                _method.DeclaringCompilation,
-                                                                _fact.Diagnostics))
-                                                        : (BoundExpression)_fact.ObjectEqual(loweredLeft, loweredRight);
-
+            BoundExpression paramIsNullCondition = loweredLeft.Type.IsNullableType() ?
+                                                (BoundExpression)BoundCall.Synthesized(
+                                                    body.Syntax,
+                                                    loweredLeft,
+                                                    LocalRewriter.UnsafeGetNullableMethod(
+                                                        body.Syntax,
+                                                        loweredLeft.Type,
+                                                        SpecialMember.System_Nullable_T_get_HasValue,
+                                                        _method.DeclaringCompilation,
+                                                        _fact.Diagnostics))
+                                                : _fact.ObjectEqual(_fact.Convert(_fact.SpecialType(SpecialType.System_Object), loweredLeft), loweredRight);
 
             // PROTOTYPE : Make ArgumentNullException
             BoundThrowStatement throwArgNullStatement = _fact.Throw(_fact.New(_fact.WellKnownType(WellKnownType.System_Exception)));

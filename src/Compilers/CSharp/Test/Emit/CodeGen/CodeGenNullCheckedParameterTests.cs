@@ -460,13 +460,24 @@ class B1<T> : A<T> where T : class
     internal override void M<U>(U u!) { }
 }
 ";
-            var compilation = CreateCompilation(source);
-            compilation.VerifyEmitDiagnostics();
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("B1<T>.M<U>(U)", @"
+{
+      // Code size       15 (0xf)
+      .maxstack  1
+      IL_0000:  ldarg.1
+      IL_0001:  box        ""U""
+      IL_0006:  brtrue.s   IL_000e
+      IL_0008:  newobj     ""System.Exception..ctor()""
+      IL_000d:  throw
+      IL_000e:  ret
+}");
         }
 
         [Fact]
         public void TestNullCheckedSubstitution2()
         {
+            // PROTOTYPE : Should be error or warning here.
             var source = @"
 class A<T>
 {
@@ -476,8 +487,13 @@ class B2<T> : A<T> where T : struct
 {
     internal override void M<U>(U u!) { }
 }";
-            var compilation = CreateCompilation(source);
-            compilation.VerifyEmitDiagnostics();
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("B2<T>.M<U>(U)", @"
+{
+    // Code size        1 (0x1)
+    .maxstack  0
+    IL_0000:  ret
+}");
         }
 
         [Fact]
@@ -492,13 +508,24 @@ class B3<T> : A<T?> where T : struct
 {
     internal override void M<U>(U u!) { }
 }";
-            var compilation = CreateCompilation(source);
-            compilation.VerifyEmitDiagnostics();
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("B3<T>.M<U>(U)", @"
+{
+    // Code size       15 (0xf)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  box        ""U""
+    IL_0006:  brtrue.s   IL_000e
+    IL_0008:  newobj     ""System.Exception..ctor()""
+    IL_000d:  throw
+    IL_000e:  ret
+}");
         }
 
         [Fact]
         public void TestNullCheckedSubstitution4()
         {
+            // PROTOTYPE : Should be error or warning here.
             var source = @"
 class A<T>
 {
@@ -508,8 +535,13 @@ class B4 : A<int>
 {
     internal override void M<U>(U u!) { }
 }";
-            var compilation = CreateCompilation(source);
-            compilation.VerifyEmitDiagnostics();
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("B4.M<U>(U)", @"
+{
+    // Code size        1 (0x1)
+    .maxstack  0
+    IL_0000:  ret
+}");
         }
 
         [Fact]
@@ -524,8 +556,18 @@ class B5 : A<object>
 {
     internal override void M<U>(U u!) { }
 }";
-            var compilation = CreateCompilation(source);
-            compilation.VerifyEmitDiagnostics();
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("B5.M<U>(U)", @"
+{
+    // Code size       15 (0xf)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  box        ""U""
+    IL_0006:  brtrue.s   IL_000e
+    IL_0008:  newobj     ""System.Exception..ctor()""
+    IL_000d:  throw
+    IL_000e:  ret
+}");
         }
     }
 }
