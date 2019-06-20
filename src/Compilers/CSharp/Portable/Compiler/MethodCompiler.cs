@@ -1708,6 +1708,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
             }
+            else if (method is SynthesizedRecordConstructor recordConstructor)
+            {
+                body = recordConstructor.MakeMethodBody(compilationState, diagnostics);
+            }
             else
             {
                 // synthesized methods should return their bound bodies

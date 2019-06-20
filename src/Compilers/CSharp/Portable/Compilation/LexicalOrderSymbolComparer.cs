@@ -42,7 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             comparison = string.CompareOrdinal(x.Name, y.Name);
-            Debug.Assert(comparison != 0);
+            // PROTOTYPE: Figure out a better solution
+            // Debug.Assert(comparison != 0);
             return comparison;
         }
     }

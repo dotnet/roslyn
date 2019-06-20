@@ -1,41 +1,5 @@
 *REMOVED*Microsoft.CodeAnalysis.Operations.IEventAssignmentOperation.EventReference.get -> Microsoft.CodeAnalysis.Operations.IEventReferenceOperation
 *REMOVED*Microsoft.CodeAnalysis.SpecialType.Count = 43 -> Microsoft.CodeAnalysis.SpecialType
-Microsoft.CodeAnalysis.CommandLineArguments.EmitPdbFile.get -> bool
-Microsoft.CodeAnalysis.CommandLineArguments.GetOutputFilePath(string outputFileName) -> string
-Microsoft.CodeAnalysis.CommandLineArguments.GetPdbFilePath(string outputFileName) -> string
-Microsoft.CodeAnalysis.IArrayTypeSymbol.ElementNullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.IDiscardSymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.IEventSymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.IFieldSymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.ILocalSymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.IMethodSymbol.ReceiverNullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.IMethodSymbol.ReturnNullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.IMethodSymbol.TypeArgumentsNullableAnnotations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.NullableAnnotation>
-Microsoft.CodeAnalysis.INamedTypeSymbol.TypeArgumentsNullableAnnotations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.NullableAnnotation>
-Microsoft.CodeAnalysis.IParameterSymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.IPropertySymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.ITypeParameterSymbol.ConstraintNullableAnnotations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.NullableAnnotation>
-Microsoft.CodeAnalysis.ITypeParameterSymbol.HasNotNullConstraint.get -> bool
-Microsoft.CodeAnalysis.ITypeParameterSymbol.ReferenceTypeConstraintNullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.ITypeSymbol.ToDisplayParts(Microsoft.CodeAnalysis.NullableFlowState topLevelNullability, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SymbolDisplayPart>
-Microsoft.CodeAnalysis.ITypeSymbol.ToDisplayString(Microsoft.CodeAnalysis.NullableFlowState topLevelNullability, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> string
-Microsoft.CodeAnalysis.ITypeSymbol.ToMinimalDisplayParts(Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.NullableFlowState topLevelNullability, int position, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SymbolDisplayPart>
-Microsoft.CodeAnalysis.ITypeSymbol.ToMinimalDisplayString(Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.NullableFlowState topLevelNullability, int position, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> string
-Microsoft.CodeAnalysis.NullabilityInfo
-Microsoft.CodeAnalysis.NullabilityInfo.Annotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.NullabilityInfo.Equals(Microsoft.CodeAnalysis.NullabilityInfo other) -> bool
-Microsoft.CodeAnalysis.NullabilityInfo.FlowState.get -> Microsoft.CodeAnalysis.NullableFlowState
-Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.NullableAnnotation.Annotated = 3 -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.NullableAnnotation.Disabled = 1 -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated = 2 -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.NullableAnnotation.NotApplicable = 0 -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.NullableFlowState
-Microsoft.CodeAnalysis.NullableFlowState.MaybeNull = 2 -> Microsoft.CodeAnalysis.NullableFlowState
-Microsoft.CodeAnalysis.NullableFlowState.NotApplicable = 0 -> Microsoft.CodeAnalysis.NullableFlowState
-Microsoft.CodeAnalysis.NullableFlowState.NotNull = 1 -> Microsoft.CodeAnalysis.NullableFlowState
-Microsoft.CodeAnalysis.TypeInfo.ConvertedNullability.get -> Microsoft.CodeAnalysis.NullabilityInfo
-Microsoft.CodeAnalysis.TypeInfo.Nullability.get -> Microsoft.CodeAnalysis.NullabilityInfo
 abstract Microsoft.CodeAnalysis.Compilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion
 abstract Microsoft.CodeAnalysis.Compilation.ContainsSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
 abstract Microsoft.CodeAnalysis.Compilation.GetSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>
@@ -55,6 +19,7 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.DisposeMethodName = "Dispose" 
 const Microsoft.CodeAnalysis.WellKnownMemberNames.GetAsyncEnumeratorMethodName = "GetAsyncEnumerator" -> string
 const Microsoft.CodeAnalysis.WellKnownMemberNames.LengthPropertyName = "Length" -> string
 const Microsoft.CodeAnalysis.WellKnownMemberNames.MoveNextAsyncMethodName = "MoveNextAsync" -> string
+const Microsoft.CodeAnalysis.WellKnownMemberNames.SliceMethodName = "Slice" -> string
 Microsoft.CodeAnalysis.AnalyzerConfig
 Microsoft.CodeAnalysis.AnalyzerConfig.GlobalSection.get -> Microsoft.CodeAnalysis.AnalyzerConfig.Section
 Microsoft.CodeAnalysis.AnalyzerConfig.IsRoot.get -> bool
@@ -74,6 +39,9 @@ Microsoft.CodeAnalysis.AnalyzerConfigOptionsResult.TreeOptions.get -> System.Col
 Microsoft.CodeAnalysis.AnalyzerConfigSet
 Microsoft.CodeAnalysis.AnalyzerConfigSet.GetOptionsForSourcePath(string sourcePath) -> Microsoft.CodeAnalysis.AnalyzerConfigOptionsResult
 Microsoft.CodeAnalysis.CommandLineArguments.AnalyzerConfigPaths.get -> System.Collections.Immutable.ImmutableArray<string>
+Microsoft.CodeAnalysis.CommandLineArguments.EmitPdbFile.get -> bool
+Microsoft.CodeAnalysis.CommandLineArguments.GetOutputFilePath(string outputFileName) -> string
+Microsoft.CodeAnalysis.CommandLineArguments.GetPdbFilePath(string outputFileName) -> string
 Microsoft.CodeAnalysis.Compilation.HasImplicitConversion(Microsoft.CodeAnalysis.ITypeSymbol fromType, Microsoft.CodeAnalysis.ITypeSymbol toType) -> bool
 Microsoft.CodeAnalysis.Compilation.IsSymbolAccessibleWithin(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.ISymbol within, Microsoft.CodeAnalysis.ITypeSymbol throughType = null) -> bool
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
@@ -180,13 +148,44 @@ Microsoft.CodeAnalysis.FlowAnalysis.IIsNullOperation
 Microsoft.CodeAnalysis.FlowAnalysis.IIsNullOperation.Operand.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation
 Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation.Local.get -> Microsoft.CodeAnalysis.ILocalSymbol
+Microsoft.CodeAnalysis.IArrayTypeSymbol.ElementNullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
+Microsoft.CodeAnalysis.IDiscardSymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
+Microsoft.CodeAnalysis.IEventSymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.IFieldSymbol.IsFixedSizeBuffer.get -> bool
+Microsoft.CodeAnalysis.IFieldSymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.ILocalSymbol.IsFixed.get -> bool
+Microsoft.CodeAnalysis.ILocalSymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.IMethodSymbol.IsReadOnly.get -> bool
+Microsoft.CodeAnalysis.IMethodSymbol.ReceiverNullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
+Microsoft.CodeAnalysis.IMethodSymbol.ReturnNullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
+Microsoft.CodeAnalysis.IMethodSymbol.TypeArgumentsNullableAnnotations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.NullableAnnotation>
+Microsoft.CodeAnalysis.INamedTypeSymbol.TypeArgumentsNullableAnnotations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.NullableAnnotation>
 Microsoft.CodeAnalysis.IOperation.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel
+Microsoft.CodeAnalysis.IParameterSymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
+Microsoft.CodeAnalysis.IPropertySymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
+Microsoft.CodeAnalysis.ITypeParameterSymbol.ConstraintNullableAnnotations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.NullableAnnotation>
+Microsoft.CodeAnalysis.ITypeParameterSymbol.HasNotNullConstraint.get -> bool
+Microsoft.CodeAnalysis.ITypeParameterSymbol.ReferenceTypeConstraintNullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.ITypeSymbol.IsReadOnly.get -> bool
 Microsoft.CodeAnalysis.ITypeSymbol.IsRefLikeType.get -> bool
 Microsoft.CodeAnalysis.ITypeSymbol.IsUnmanagedType.get -> bool
+Microsoft.CodeAnalysis.ITypeSymbol.ToDisplayParts(Microsoft.CodeAnalysis.NullableFlowState topLevelNullability, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SymbolDisplayPart>
+Microsoft.CodeAnalysis.ITypeSymbol.ToDisplayString(Microsoft.CodeAnalysis.NullableFlowState topLevelNullability, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> string
+Microsoft.CodeAnalysis.ITypeSymbol.ToMinimalDisplayParts(Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.NullableFlowState topLevelNullability, int position, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SymbolDisplayPart>
+Microsoft.CodeAnalysis.ITypeSymbol.ToMinimalDisplayString(Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.NullableFlowState topLevelNullability, int position, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> string
+Microsoft.CodeAnalysis.NullabilityInfo
+Microsoft.CodeAnalysis.NullabilityInfo.Annotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
+Microsoft.CodeAnalysis.NullabilityInfo.Equals(Microsoft.CodeAnalysis.NullabilityInfo other) -> bool
+Microsoft.CodeAnalysis.NullabilityInfo.FlowState.get -> Microsoft.CodeAnalysis.NullableFlowState
+Microsoft.CodeAnalysis.NullableAnnotation
+Microsoft.CodeAnalysis.NullableAnnotation.Annotated = 3 -> Microsoft.CodeAnalysis.NullableAnnotation
+Microsoft.CodeAnalysis.NullableAnnotation.Disabled = 1 -> Microsoft.CodeAnalysis.NullableAnnotation
+Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated = 2 -> Microsoft.CodeAnalysis.NullableAnnotation
+Microsoft.CodeAnalysis.NullableAnnotation.NotApplicable = 0 -> Microsoft.CodeAnalysis.NullableAnnotation
+Microsoft.CodeAnalysis.NullableFlowState
+Microsoft.CodeAnalysis.NullableFlowState.MaybeNull = 2 -> Microsoft.CodeAnalysis.NullableFlowState
+Microsoft.CodeAnalysis.NullableFlowState.NotApplicable = 0 -> Microsoft.CodeAnalysis.NullableFlowState
+Microsoft.CodeAnalysis.NullableFlowState.NotNull = 1 -> Microsoft.CodeAnalysis.NullableFlowState
 Microsoft.CodeAnalysis.OperationKind.Binary = 32 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.CaughtException = 94 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.CoalesceAssignment = 97 -> Microsoft.CodeAnalysis.OperationKind
@@ -257,9 +256,12 @@ Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.IncludeNullableReferenc
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.ConstantName = 30 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.EnumMemberName = 28 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.ExtensionMethodName = 29 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
-const Microsoft.CodeAnalysis.WellKnownMemberNames.SliceMethodName = "Slice" -> string
+Microsoft.CodeAnalysis.TypeInfo.ConvertedNullability.get -> Microsoft.CodeAnalysis.NullabilityInfo
+Microsoft.CodeAnalysis.TypeInfo.Nullability.get -> Microsoft.CodeAnalysis.NullabilityInfo
 override Microsoft.CodeAnalysis.FlowAnalysis.CaptureId.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.FlowAnalysis.CaptureId.GetHashCode() -> int
+override Microsoft.CodeAnalysis.NullabilityInfo.Equals(object other) -> bool
+override Microsoft.CodeAnalysis.NullabilityInfo.GetHashCode() -> int
 static Microsoft.CodeAnalysis.AnalyzerConfig.Parse(Microsoft.CodeAnalysis.Text.SourceText text, string pathToFile) -> Microsoft.CodeAnalysis.AnalyzerConfig
 static Microsoft.CodeAnalysis.AnalyzerConfig.Parse(string text, string pathToFile) -> Microsoft.CodeAnalysis.AnalyzerConfig
 static Microsoft.CodeAnalysis.AnalyzerConfig.ReservedKeys.get -> System.Collections.Immutable.ImmutableHashSet<string>
@@ -269,8 +271,6 @@ static Microsoft.CodeAnalysis.AnalyzerConfig.Section.PropertiesKeyComparer.get -
 static Microsoft.CodeAnalysis.AnalyzerConfig.TryCreateSectionNameMatcher(string sectionName) -> Microsoft.CodeAnalysis.AnalyzerConfig.SectionNameMatcher?
 static Microsoft.CodeAnalysis.AnalyzerConfigSet.Create<TList>(TList analyzerConfigs) -> Microsoft.CodeAnalysis.AnalyzerConfigSet
 static Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions.KeyComparer.get -> System.StringComparer
-override Microsoft.CodeAnalysis.NullabilityInfo.Equals(object other) -> bool
-override Microsoft.CodeAnalysis.NullabilityInfo.GetHashCode() -> int
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.Operations.IBlockOperation body, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.Operations.IConstructorBodyOperation constructorBody, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.Operations.IFieldInitializerOperation initializer, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph

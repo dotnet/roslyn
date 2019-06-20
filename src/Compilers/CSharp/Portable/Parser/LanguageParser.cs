@@ -1513,23 +1513,101 @@ tryAgain:
             _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
+            ParameterListSyntax paramList = default;
+            if (classOrStructOrInterface.Kind != SyntaxKind.InterfaceKeyword &&
+                this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+            {
+                paramList = this.ParseParenthesizedParameterList();
+            }
 
             _termState = saveTerm;
             var baseList = this.ParseBaseList();
 
+            var constraints = default(SyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
+            if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
+            {
+                constraints = _pool.Allocate<TypeParameterConstraintClauseSyntax>();
+                this.ParseTypeParameterConstraintClauses(constraints);
+            }
+
             // Parse class body
             bool parseMembers = true;
             SyntaxListBuilder<MemberDeclarationSyntax> members = default(SyntaxListBuilder<MemberDeclarationSyntax>);
-            var constraints = default(SyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
             try
             {
-                if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
+                SyntaxToken openBrace = default;
+                SyntaxToken closeBrace = default;
+                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken || paramList == default)
                 {
-                    constraints = _pool.Allocate<TypeParameterConstraintClauseSyntax>();
-                    this.ParseTypeParameterConstraintClauses(constraints);
+                    parseBody(out openBrace, out closeBrace);
                 }
 
-                var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+                var semicolon = TryEatToken(SyntaxKind.SemicolonToken);
+                switch (classOrStructOrInterface.Kind)
+                {
+                    case SyntaxKind.ClassKeyword:
+                        return _syntaxFactory.ClassDeclaration(
+                            attributes,
+                            modifiers.ToList(),
+                            classOrStructOrInterface,
+                            name,
+                            typeParameters,
+                            paramList,
+                            baseList,
+                            constraints,
+                            openBrace,
+                            members,
+                            closeBrace,
+                            semicolon);
+
+                    case SyntaxKind.StructKeyword:
+                        return _syntaxFactory.StructDeclaration(
+                            attributes,
+                            modifiers.ToList(),
+                            classOrStructOrInterface,
+                            name,
+                            typeParameters,
+                            paramList,
+                            baseList,
+                            constraints,
+                            openBrace,
+                            members,
+                            closeBrace,
+                            semicolon);
+
+                    case SyntaxKind.InterfaceKeyword:
+                        return _syntaxFactory.InterfaceDeclaration(
+                            attributes,
+                            modifiers.ToList(),
+                            classOrStructOrInterface,
+                            name,
+                            typeParameters,
+                            baseList,
+                            constraints,
+                            openBrace,
+                            members,
+                            closeBrace,
+                            semicolon);
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(classOrStructOrInterface.Kind);
+                }
+            }
+            finally
+            {
+                if (!members.IsNull)
+                {
+                    _pool.Free(members);
+                }
+                if (!constraints.IsNull)
+                {
+                    _pool.Free(constraints);
+                }
+            }
+
+            void parseBody(out SyntaxToken openBrace, out SyntaxToken closeBrace)
+            {
+                openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
 
                 // ignore members if missing type name or missing open curly
                 if (name.IsMissing || openBrace.IsMissing)
@@ -1580,7 +1658,6 @@ tryAgain:
                     }
                 }
 
-                SyntaxToken closeBrace;
                 if (openBrace.IsMissing)
                 {
                     closeBrace = SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken);
@@ -1591,66 +1668,6 @@ tryAgain:
                     closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
                 }
 
-                var semicolon = TryEatToken(SyntaxKind.SemicolonToken);
-                switch (classOrStructOrInterface.Kind)
-                {
-                    case SyntaxKind.ClassKeyword:
-                        return _syntaxFactory.ClassDeclaration(
-                            attributes,
-                            modifiers.ToList(),
-                            classOrStructOrInterface,
-                            name,
-                            typeParameters,
-                            baseList,
-                            constraints,
-                            openBrace,
-                            members,
-                            closeBrace,
-                            semicolon);
-
-                    case SyntaxKind.StructKeyword:
-                        return _syntaxFactory.StructDeclaration(
-                            attributes,
-                            modifiers.ToList(),
-                            classOrStructOrInterface,
-                            name,
-                            typeParameters,
-                            baseList,
-                            constraints,
-                            openBrace,
-                            members,
-                            closeBrace,
-                            semicolon);
-
-                    case SyntaxKind.InterfaceKeyword:
-                        return _syntaxFactory.InterfaceDeclaration(
-                            attributes,
-                            modifiers.ToList(),
-                            classOrStructOrInterface,
-                            name,
-                            typeParameters,
-                            baseList,
-                            constraints,
-                            openBrace,
-                            members,
-                            closeBrace,
-                            semicolon);
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(classOrStructOrInterface.Kind);
-                }
-            }
-            finally
-            {
-                if (!members.IsNull)
-                {
-                    _pool.Free(members);
-                }
-
-                if (!constraints.IsNull)
-                {
-                    _pool.Free(constraints);
-                }
             }
         }
 

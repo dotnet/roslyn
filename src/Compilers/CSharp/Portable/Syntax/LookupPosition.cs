@@ -118,6 +118,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return IsBeforeToken(position, parameterList, parameterList.CloseParenToken);
         }
 
+        internal static bool IsInParameterList(int position, ParameterListSyntax parameterList)
+            => parameterList != null && IsBeforeToken(position, parameterList, parameterList.CloseParenToken);
+
         internal static bool IsInMethodDeclaration(int position, BaseMethodDeclarationSyntax methodDecl)
         {
             Debug.Assert(methodDecl != null);
