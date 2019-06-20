@@ -1432,7 +1432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 Debug.Assert(manager == null || !IsSpeculativeSemanticModel);
-                if (!IsSpeculativeSemanticModel)
+                if (!IsSpeculativeSemanticModel && manager is object)
                 {
                     Debug.Assert(_lazySnapshotManager is null);
                     _lazySnapshotManager = manager;
