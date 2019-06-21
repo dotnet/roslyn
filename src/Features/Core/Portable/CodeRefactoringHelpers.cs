@@ -16,13 +16,16 @@ namespace Microsoft.CodeAnalysis
         /// if no such instance exists.
         /// </para>
         /// <para>
-        /// A <typeparamref name="TSyntaxNode"/> instance is returned if selection is zero-width and inside/touching a Token whose
-        /// direct parent is of type <typeparamref name="TSyntaxNode"/> or if a Node of said type is the smallest Node containing
-        /// the whole <paramref name="selection"/>. Otherwise returns <code>null</code>.
+        /// A <typeparamref name="TSyntaxNode"/> instance is returned if:
+        /// - Selection is zero-width and inside/touching a Token with direct parent of type <typeparamref name="TSyntaxNode"/>.
+        /// - Selection is zero-width and touching a Token whose ancestor ends/starts precisely on current selection .
+        /// - Token whose direct parent of type <typeparamref name="TSyntaxNode"/> is selected.
+        /// - Whole node of a type <typeparamref name="TSyntaxNode"/> is selected.
         /// </para>
         /// <para>
         /// Note: this function strips all whitespace from both the beginning and the end of given <paramref name="selection"/>.
-        /// The stripped version is then used to determine relevant <see cref="SyntaxNode"/>.
+        /// The stripped version is then used to determine relevant <see cref="SyntaxNode"/>. It also handles incomplete selections
+        /// of tokens gracefully.
         /// </para>
         /// </summary>
         public static async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
