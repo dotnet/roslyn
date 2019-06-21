@@ -3715,5 +3715,77 @@ byte[]
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact]
+        [WorkItem(36496, "https://github.com/dotnet/roslyn/issues/36496")]
+        public void EmptyVarPatternVsDeconstruct()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        Console.Write(M(new C()));
+        Console.Write(M(null));
+    }
+    public static bool M(C c)
+    {
+        return c is var ();
+    }
+    public void Deconstruct() { }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: "TrueFalse");
+            compVerifier.VerifyIL("C.M(C)",
+@"
+{
+    // Code size        5 (0x5)
+    .maxstack  2
+    IL_0000:  ldarg.0
+    IL_0001:  ldnull
+    IL_0002:  cgt.un
+    IL_0004:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(36496, "https://github.com/dotnet/roslyn/issues/36496")]
+        public void EmptyPositionalPatternVsDeconstruct()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        Console.Write(M(new C()));
+        Console.Write(M(null));
+    }
+    public static bool M(C c)
+    {
+        return c is ();
+    }
+    public void Deconstruct() { }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: "TrueFalse");
+            compVerifier.VerifyIL("C.M(C)",
+@"
+{
+    // Code size        5 (0x5)
+    .maxstack  2
+    IL_0000:  ldarg.0
+    IL_0001:  ldnull
+    IL_0002:  cgt.un
+    IL_0004:  ret
+}
+");
+        }
     }
 }
