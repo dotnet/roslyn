@@ -922,7 +922,7 @@ public class C<T> where T : A<object>
         }
 
         [Fact]
-        public void EmitAttribute_Constraints_SameAsContext()
+        public void EmitAttribute_ClassConstraint_SameAsContext()
         {
             var source =
 @"#nullable enable
@@ -977,53 +977,146 @@ public class Program
         System.Object? F22
         C2()
 ";
-            AssertNullableAttributes(comp, expected);
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                AssertNullableAttributes(module, expected);
+                verifyTypeParameterConstraint("Program.C0", null);
+                verifyTypeParameterConstraint("Program.C1", false);
+                verifyTypeParameterConstraint("Program.C2", true);
+
+                void verifyTypeParameterConstraint(string typeName, bool? expectedConstraintIsNullable)
+                {
+                    var typeParameter = module.GlobalNamespace.GetMember<NamedTypeSymbol>(typeName).TypeParameters.Single();
+                    Assert.True(typeParameter.HasReferenceTypeConstraint);
+                    Assert.Equal(expectedConstraintIsNullable, typeParameter.ReferenceTypeConstraintIsNullable);
+                }
+            });
         }
 
         [Fact]
-        public void EmitAttribute_Constraints_DifferentFromContext()
+        public void EmitAttribute_ClassConstraint_DifferentFromContext()
+        {
+            var source =
+@"#nullable enable
+public class Program
+{
+#nullable enable
+    public class C0<T0>
+#nullable disable
+        where T0 : class
+#nullable enable
+    {
+        public object F01;
+        public object F02;
+    }
+    public class C1<T1>
+        where T1 : class
+    {
+        public object? F11;
+        public object? F12;
+    }
+    public class C2<T2>
+        where T2 : class?
+    {
+        public object F21;
+        public object F22;
+    }
+    public object F31;
+    public object F32;
+    public object F33;
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"[NullableContext(1)] [Nullable(0)] Program
+    System.Object! F31
+    System.Object! F32
+    System.Object! F33
+    Program()
+    [Nullable(0)] Program.C0<T0> where T0 : class
+        [Nullable(0)] T0
+        System.Object! F01
+        System.Object! F02
+        C0()
+    [NullableContext(2)] [Nullable(0)] Program.C1<T1> where T1 : class!
+        [Nullable(1)] T1
+        System.Object? F11
+        System.Object? F12
+        C1()
+    [Nullable(0)] Program.C2<T2> where T2 : class?
+        [Nullable(2)] T2
+        System.Object! F21
+        System.Object! F22
+        C2()
+";
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                AssertNullableAttributes(module, expected);
+                verifyTypeParameterConstraint("Program.C0", null);
+                verifyTypeParameterConstraint("Program.C1", false);
+                verifyTypeParameterConstraint("Program.C2", true);
+
+                void verifyTypeParameterConstraint(string typeName, bool? expectedConstraintIsNullable)
+                {
+                    var typeParameter = module.GlobalNamespace.GetMember<NamedTypeSymbol>(typeName).TypeParameters.Single();
+                    Assert.True(typeParameter.HasReferenceTypeConstraint);
+                    Assert.Equal(expectedConstraintIsNullable, typeParameter.ReferenceTypeConstraintIsNullable);
+                }
+            });
+        }
+
+        [Fact]
+        public void EmitAttribute_NotNullConstraint()
         {
             var source =
 @"#nullable enable
 public class C0<T0>
-#nullable disable
-    where T0 : class
-#nullable enable
+    where T0 : notnull
 {
+#nullable disable
     public object F01;
     public object F02;
+#nullable enable
 }
 public class C1<T1>
-    where T1 : class
+    where T1 : notnull
 {
-    public object? F11;
-    public object? F12;
+    public object F11;
+    public object F12;
 }
 public class C2<T2>
-    where T2 : class?
+    where T2 : notnull
 {
-    public object F21;
-    public object F22;
+    public object? F21;
+    public object? F22;
 }";
             var comp = CreateCompilation(source);
             var expected =
-@"[NullableContext(1)] [Nullable(0)] C0<T0> where T0 : class
-    [Nullable(0)] T0
-    System.Object! F01
-    System.Object! F02
-    C0()
-[NullableContext(2)] [Nullable(0)] C1<T1> where T1 : class!
-    [Nullable(1)] T1
-    System.Object? F11
-    System.Object? F12
+@"C0<T0> where T0 : notnull
+    [Nullable(1)] T0
+[NullableContext(1)] [Nullable(0)] C1<T1> where T1 : notnull
+    T1
+    System.Object! F11
+    System.Object! F12
     C1()
-[NullableContext(1)] [Nullable(0)] C2<T2> where T2 : class?
-    [Nullable(2)] T2
-    System.Object! F21
-    System.Object! F22
+[NullableContext(2)] [Nullable(0)] C2<T2> where T2 : notnull
+    [Nullable(1)] T2
+    System.Object? F21
+    System.Object? F22
     C2()
 ";
-            AssertNullableAttributes(comp, expected);
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                AssertNullableAttributes(module, expected);
+                verifyTypeParameterConstraint("C0");
+                verifyTypeParameterConstraint("C1");
+                verifyTypeParameterConstraint("C2");
+
+                void verifyTypeParameterConstraint(string typeName)
+                {
+                    var typeParameter = module.GlobalNamespace.GetMember<NamedTypeSymbol>(typeName).TypeParameters.Single();
+                    Assert.True(typeParameter.HasNotNullConstraint);
+                }
+            });
         }
 
         [Fact]

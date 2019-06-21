@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
@@ -431,6 +430,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        /// <summary>
+        /// Returns the byte value from the (single byte) NullableAttribute or nearest
+        /// NullableContextAttribute. Returns 0 if neither attribute is specified.
+        /// </summary>
+        private byte GetNullableAttributeValue()
+        {
+            if (((PEModuleSymbol)this.ContainingModule).Module.HasNullableAttribute(_handle, out byte value, out _))
+            {
+                return value;
+            }
+            return _containingSymbol.GetNullableContextValue() ?? 0;
+        }
+
         internal override bool? ReferenceTypeConstraintIsNullable
         {
             get
@@ -441,15 +453,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return false;
                 }
 
-                if (((PEModuleSymbol)this.ContainingModule).Module.HasNullableAttribute(_handle, out byte transformFlag, out _))
+                switch (GetNullableAttributeValue())
                 {
-                    switch (transformFlag)
-                    {
-                        case NullableAnnotationExtensions.AnnotatedAttributeValue:
-                            return true;
-                        case NullableAnnotationExtensions.NotAnnotatedAttributeValue:
-                            return false;
-                    }
+                    case NullableAnnotationExtensions.AnnotatedAttributeValue:
+                        return true;
+                    case NullableAnnotationExtensions.NotAnnotatedAttributeValue:
+                        return false;
                 }
 
                 return null;
@@ -461,8 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 return (_flags & (GenericParameterAttributes.NotNullableValueTypeConstraint | GenericParameterAttributes.ReferenceTypeConstraint)) == 0 &&
-                       ((PEModuleSymbol)this.ContainingModule).Module.HasNullableAttribute(_handle, out byte transformFlag, out _) &&
-                       transformFlag == NullableAnnotationExtensions.NotAnnotatedAttributeValue;
+                       GetNullableAttributeValue() == NullableAnnotationExtensions.NotAnnotatedAttributeValue;
             }
         }
 
@@ -479,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     if (constraints.Count == 0)
                     {
-                        if (module.HasNullableAttribute(_handle, out byte transformFlag, out _) && transformFlag == NullableAnnotationExtensions.AnnotatedAttributeValue)
+                        if (GetNullableAttributeValue() == NullableAnnotationExtensions.AnnotatedAttributeValue)
                         {
                             return false;
                         }
