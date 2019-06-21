@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     SpecialMember.System_Nullable_T_get_HasValue,
                                                     _method.DeclaringCompilation,
                                                     _fact.Diagnostics);
-                paramIsNullCondition = (BoundExpression)BoundCall.Synthesized(
+                paramIsNullCondition = BoundCall.Synthesized(
                                                     body.Syntax,
                                                     loweredLeft,
                                                     getNullableMethod);
