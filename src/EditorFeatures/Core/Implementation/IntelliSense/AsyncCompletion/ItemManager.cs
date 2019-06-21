@@ -193,9 +193,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
-            // For DismissIfLastCharacterDeleted, we should excuse if we started with backspace/delete.
-            // When pressing backspace for the first time at a.b$$, we should display a completion not dismiss it.
-            if (initialRoslynTriggerKind != CompletionTriggerKind.Deletion &&
+            // DismissIfLastCharacterDeleted should be applied only when started with Insertion, and then Deleted all characters typed.
+            // This confirms with the original VS 2010 behavior.
+            if (initialRoslynTriggerKind == CompletionTriggerKind.Insertion &&
                 data.Trigger.Reason == CompletionTriggerReason.Backspace &&
                 completionRules.DismissIfLastCharacterDeleted &&
                 session.ApplicableToSpan.GetText(data.Snapshot).Length == 0)
