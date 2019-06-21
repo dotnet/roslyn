@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             var localFunction = await CodeRefactoringHelpers.TryGetSelectedNodeAsync<LocalFunctionStatementSyntax>(document, span, cancellationToken).ConfigureAwait(false);
             if (localFunction == default)
             {
-                // Only function's block might be selected -> succeed only when the whole block (all statemets) is selected
+                // Only function's block might be selected -> succeed only when the whole block (all statements) is selected
                 var block = await CodeRefactoringHelpers.TryGetSelectedNodeAsync<BlockSyntax>(document, span, cancellationToken).ConfigureAwait(false);
                 if (block == null || !span.Contains(block.Span))
                 {
