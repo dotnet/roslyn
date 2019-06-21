@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => UnderlyingMethod.ReturnTypeAnnotationAttributes;
+        public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => UnderlyingMethod.ReturnTypeFlowAnalysisAnnotations;
 
         internal override bool ReturnValueIsMarshalledExplicitly
         {
