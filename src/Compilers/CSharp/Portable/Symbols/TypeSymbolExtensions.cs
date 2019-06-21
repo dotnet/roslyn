@@ -114,6 +114,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.IsNullableType();
         }
 
+        /// <summary>
+        /// Is this System.Nullable`1 type, or its substitution.
+        ///
+        /// To check whether a type is System.Nullable`1 or is a type parameter constrained to System.Nullable`1
+        /// use <see cref="TypeSymbolExtensions.IsNullableTypeOrTypeParameter" /> instead.
+        /// </summary>
         public static bool IsNullableType(this TypeSymbol type)
         {
             return type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
@@ -1659,23 +1665,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Cci.ITypeReference typeRef)
         {
             var builder = ArrayBuilder<Cci.ICustomAttribute>.GetInstance();
-            if (type.Type.ContainsTupleNames())
+
+            var compilation = declaringSymbol.DeclaringCompilation;
+            if (compilation != null)
             {
-                SynthesizedAttributeData attr = declaringSymbol.DeclaringCompilation.SynthesizeTupleNamesAttribute(type.Type);
-                if (attr != null)
+                if (type.Type.ContainsTupleNames())
                 {
-                    builder.Add(attr);
+                    SynthesizedAttributeData attr = compilation.SynthesizeTupleNamesAttribute(type.Type);
+                    if (attr != null)
+                    {
+                        builder.Add(attr);
+                    }
+                }
+
+                if (compilation.ShouldEmitNullableAttributes(declaringSymbol) &&
+                    type.NeedsNullableAttribute())
+                {
+                    SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttribute(declaringSymbol, type);
+                    if (attr != null)
+                    {
+                        builder.Add(attr);
+                    }
                 }
             }
 
-            if (type.NeedsNullableAttribute())
-            {
-                SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttribute(declaringSymbol, type);
-                if (attr != null)
-                {
-                    builder.Add(attr);
-                }
-            }
             return new Cci.TypeReferenceWithAttributes(typeRef, builder.ToImmutableAndFree());
         }
 

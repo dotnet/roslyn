@@ -2494,7 +2494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
 
                 // Check if a constant field is updated:
-                var fieldDeclaration = (FieldDeclarationSyntax)oldNode.Parent.Parent;
+                var fieldDeclaration = (BaseFieldDeclarationSyntax)oldNode.Parent.Parent;
                 if (fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword))
                 {
                     ReportError(RudeEditKind.Update);

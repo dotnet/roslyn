@@ -970,6 +970,43 @@ public class Derived : Base
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitInaccessibleParameterAttributesAreNotGenerated()
+        {
+            var markupBeforeCommit = @"using System;
+
+public class Class1
+{
+    private class MyPrivate : Attribute { }
+    public class MyPublic : Attribute { }
+    public virtual void M([MyPrivate, MyPublic] int i) { }
+}
+
+public class Class2 : Class1
+{
+    public override void $$
+}";
+
+            var expectedCodeAfterCommit = @"using System;
+
+public class Class1
+{
+    private class MyPrivate : Attribute { }
+    public class MyPublic : Attribute { }
+    public virtual void M([MyPrivate, MyPublic] int i) { }
+}
+
+public class Class2 : Class1
+{
+    public override void M([MyPublic] int i)
+    {
+        base.M(i);$$
+    }
+}";
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "M(int i)", expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitVoidMethod()
         {
             var markupBeforeCommit = @"class c
@@ -1436,6 +1473,69 @@ public class d : c
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo", expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitInsertPropertyInaccessibleParameterAttributesAreNotGenerated()
+        {
+            var markupBeforeCommit = @"using System;
+
+namespace ClassLibrary1
+{
+    public class Class1
+    {
+        private class MyPrivate : Attribute { }
+
+        public class MyPublic : Attribute { }
+
+        public virtual int this[[MyPrivate, MyPublic]int i]
+        {
+            get { return 0; }
+            set { }
+        }
+    }
+
+    public class Class2 : Class1
+    {
+        public override int $$
+    }
+}";
+
+            var expectedCodeAfterCommit = @"using System;
+
+namespace ClassLibrary1
+{
+    public class Class1
+    {
+        private class MyPrivate : Attribute { }
+
+        public class MyPublic : Attribute { }
+
+        public virtual int this[[MyPrivate, MyPublic]int i]
+        {
+            get { return 0; }
+            set { }
+        }
+    }
+
+    public class Class2 : Class1
+    {
+        public override int this[[MyPublic] int i]
+        {
+            get
+            {
+                return base[i];$$
+            }
+
+            set
+            {
+                base[i] = value;
+            }
+        }
+    }
+}";
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "this[int i]", expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]

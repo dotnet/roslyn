@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -15,9 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
 #pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
 #pragma warning restore RS0033 // Importing constructor should be [Obsolete]
-        public CSharpGoToDefinitionService(
-            [ImportMany]IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
-            : base(streamingPresenters)
+        public CSharpGoToDefinitionService(IStreamingFindUsagesPresenter streamingPresenter)
+            : base(streamingPresenter)
         {
         }
     }

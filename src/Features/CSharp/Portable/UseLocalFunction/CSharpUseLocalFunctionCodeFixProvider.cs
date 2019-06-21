@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
                 if (parameterNode.Type == null)
                 {
-                    parameterNode = parameterNode.WithType(delegateParameter?.Type.GenerateTypeSyntax() ?? s_objectType);
+                    parameterNode = parameterNode.WithType(delegateParameter?.Type.WithNullability(delegateParameter.NullableAnnotation).GenerateTypeSyntax() ?? s_objectType);
                 }
 
                 if (delegateParameter?.HasExplicitDefaultValue == true)

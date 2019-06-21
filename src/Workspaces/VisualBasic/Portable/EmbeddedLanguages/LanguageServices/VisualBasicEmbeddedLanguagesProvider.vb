@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
-    <ExportLanguageService(GetType(IEmbeddedLanguagesProvider), LanguageNames.VisualBasic), [Shared]>
+    <ExportLanguageService(GetType(IEmbeddedLanguagesProvider), LanguageNames.VisualBasic, ServiceLayer.Default), [Shared]>
     Friend Class VisualBasicEmbeddedLanguagesProvider
         Inherits AbstractEmbeddedLanguagesProvider
 
@@ -17,12 +17,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
             VisualBasicSemanticFactsService.Instance,
             VisualBasicVirtualCharService.Instance)
 
-        Public Shared Instance As New VisualBasicEmbeddedLanguagesProvider()
-
-#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
-#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
             MyBase.New(Info)
         End Sub
     End Class

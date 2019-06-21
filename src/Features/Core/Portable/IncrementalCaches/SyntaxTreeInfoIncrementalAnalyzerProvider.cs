@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.IncrementalCaches
 {

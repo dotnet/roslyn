@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Notification
 {
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Notification
 
         private void RaiseOpenDocumentSemanticChangedEvent(Document document)
         {
-            this.OpenedDocumentSemanticChanged?.Invoke(this, document);
+            OpenedDocumentSemanticChanged?.Invoke(this, document);
         }
 
         private class NotificationService : IIncrementalAnalyzer

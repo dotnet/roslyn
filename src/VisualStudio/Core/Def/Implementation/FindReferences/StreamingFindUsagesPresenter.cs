@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Text.Classification;
+using EnvDTE;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -50,8 +51,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             ClassificationTypeMap typeMap,
             IEditorFormatMapService formatMapService,
             IClassificationFormatMapService classificationFormatMapService,
-            [ImportMany]IEnumerable<ITableColumnDefinition> columns)
-            : this(workspace, threadingContext, serviceProvider, typeMap, formatMapService, classificationFormatMapService, columns)
+            [ImportMany]IEnumerable<Lazy<ITableColumnDefinition, NameMetadata>> columns)
+            : this(workspace,
+                   threadingContext,
+                   serviceProvider,
+                   typeMap,
+                   formatMapService,
+                   classificationFormatMapService,
+                   columns.Where(c => c.Metadata.Name == FindUsagesValueUsageInfoColumnDefinition.ColumnName).Select(c => c.Value))
         {
         }
 

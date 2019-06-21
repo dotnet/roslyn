@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs state)
         {
-            this.DiagnosticsUpdated?.Invoke(this, state);
+            DiagnosticsUpdated?.Invoke(this, state);
         }
 
         private class DefaultDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer

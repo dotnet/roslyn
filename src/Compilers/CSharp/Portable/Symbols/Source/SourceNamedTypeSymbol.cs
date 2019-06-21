@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
 
         private string _lazyDocComment;
+        private string _lazyExpandedDocComment;
 
         private ThreeState _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.Unknown;
 
@@ -109,7 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref _lazyDocComment);
+            ref var lazyDocComment = ref expandIncludes ? ref _lazyExpandedDocComment : ref _lazyDocComment;
+            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
         }
 
         #endregion
@@ -1381,7 +1383,8 @@ next:;
                     AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(baseType));
                 }
 
-                if (baseType.NeedsNullableAttribute())
+                if (compilation.ShouldEmitNullableAttributes(this) &&
+                    baseType.NeedsNullableAttribute())
                 {
                     AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, TypeWithAnnotations.Create(baseType)));
                 }

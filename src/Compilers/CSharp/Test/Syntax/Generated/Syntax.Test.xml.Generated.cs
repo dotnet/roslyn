@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.InterpolationFormatClause(InternalSyntaxFactory.Identifier("ColonToken"), InternalSyntaxFactory.Token(SyntaxKind.InterpolatedStringTextToken));
         
         private static Syntax.InternalSyntax.GlobalStatementSyntax GenerateGlobalStatement()
-            => InternalSyntaxFactory.GlobalStatement(GenerateBlock());
+            => InternalSyntaxFactory.GlobalStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), GenerateBlock());
         
         private static Syntax.InternalSyntax.BlockSyntax GenerateBlock()
             => InternalSyntaxFactory.Block(InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.StatementSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken));
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.UsingDirective(InternalSyntaxFactory.Token(SyntaxKind.UsingKeyword), null, null, GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
         
         private static Syntax.InternalSyntax.NamespaceDeclarationSyntax GenerateNamespaceDeclaration()
-            => InternalSyntaxFactory.NamespaceDeclaration(InternalSyntaxFactory.Token(SyntaxKind.NamespaceKeyword), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.ExternAliasDirectiveSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.UsingDirectiveSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken), null);
+            => InternalSyntaxFactory.NamespaceDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), InternalSyntaxFactory.Token(SyntaxKind.NamespaceKeyword), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.ExternAliasDirectiveSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.UsingDirectiveSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken), null);
         
         private static Syntax.InternalSyntax.AttributeListSyntax GenerateAttributeList()
             => InternalSyntaxFactory.AttributeList(InternalSyntaxFactory.Token(SyntaxKind.OpenBracketToken), null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.AttributeSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBracketToken));
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.DelegateDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), InternalSyntaxFactory.Token(SyntaxKind.DelegateKeyword), GenerateIdentifierName(), InternalSyntaxFactory.Identifier("Identifier"), null, GenerateParameterList(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
         
         private static Syntax.InternalSyntax.EnumMemberDeclarationSyntax GenerateEnumMemberDeclaration()
-            => InternalSyntaxFactory.EnumMemberDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Identifier("Identifier"), null);
+            => InternalSyntaxFactory.EnumMemberDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), InternalSyntaxFactory.Identifier("Identifier"), null);
         
         private static Syntax.InternalSyntax.BaseListSyntax GenerateBaseList()
             => InternalSyntaxFactory.BaseList(InternalSyntaxFactory.Token(SyntaxKind.ColonToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.BaseTypeSyntax>());
@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.LineDirectiveTrivia(InternalSyntaxFactory.Token(SyntaxKind.HashToken), InternalSyntaxFactory.Token(SyntaxKind.LineKeyword), InternalSyntaxFactory.Literal(null, "1", 1, null), null, InternalSyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
         
         private static Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax GeneratePragmaWarningDirectiveTrivia()
-            => InternalSyntaxFactory.PragmaWarningDirectiveTrivia(InternalSyntaxFactory.Token(SyntaxKind.HashToken), InternalSyntaxFactory.Token(SyntaxKind.PragmaKeyword), InternalSyntaxFactory.Token(SyntaxKind.WarningKeyword), InternalSyntaxFactory.Token(SyntaxKind.DisableKeyword), null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.ExpressionSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
+            => InternalSyntaxFactory.PragmaWarningDirectiveTrivia(InternalSyntaxFactory.Token(SyntaxKind.HashToken), InternalSyntaxFactory.Token(SyntaxKind.PragmaKeyword), InternalSyntaxFactory.Token(SyntaxKind.WarningKeyword), InternalSyntaxFactory.Token(SyntaxKind.DisableKeyword), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.ExpressionSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
         
         private static Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax GeneratePragmaChecksumDirectiveTrivia()
             => InternalSyntaxFactory.PragmaChecksumDirectiveTrivia(InternalSyntaxFactory.Token(SyntaxKind.HashToken), InternalSyntaxFactory.Token(SyntaxKind.PragmaKeyword), InternalSyntaxFactory.Token(SyntaxKind.ChecksumKeyword), InternalSyntaxFactory.Literal(null, "string", "string", null), InternalSyntaxFactory.Literal(null, "string", "string", null), InternalSyntaxFactory.Literal(null, "string", "string", null), InternalSyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.ShebangDirectiveTrivia(InternalSyntaxFactory.Token(SyntaxKind.HashToken), InternalSyntaxFactory.Token(SyntaxKind.ExclamationToken), InternalSyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
         
         private static Syntax.InternalSyntax.NullableDirectiveTriviaSyntax GenerateNullableDirectiveTrivia()
-            => InternalSyntaxFactory.NullableDirectiveTrivia(InternalSyntaxFactory.Token(SyntaxKind.HashToken), InternalSyntaxFactory.Token(SyntaxKind.NullableKeyword), InternalSyntaxFactory.Token(SyntaxKind.EnableKeyword), InternalSyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
+            => InternalSyntaxFactory.NullableDirectiveTrivia(InternalSyntaxFactory.Token(SyntaxKind.HashToken), InternalSyntaxFactory.Token(SyntaxKind.NullableKeyword), InternalSyntaxFactory.Token(SyntaxKind.EnableKeyword), null, InternalSyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
         #endregion Green Generators
         
         #region Green Factory and Property Tests
@@ -1689,6 +1689,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateGlobalStatement();
             
+            Assert.NotNull(node.AttributeLists);
+            Assert.NotNull(node.Modifiers);
             Assert.NotNull(node.Statement);
             
             AttachAndCheckDiagnostics(node);
@@ -2284,6 +2286,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateNamespaceDeclaration();
             
+            Assert.NotNull(node.AttributeLists);
+            Assert.NotNull(node.Modifiers);
             Assert.Equal(SyntaxKind.NamespaceKeyword, node.NamespaceKeyword.Kind);
             Assert.NotNull(node.Name);
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind);
@@ -2492,6 +2496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateEnumMemberDeclaration();
             
             Assert.NotNull(node.AttributeLists);
+            Assert.NotNull(node.Modifiers);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
             Assert.Null(node.EqualsValue);
             
@@ -3308,7 +3313,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.PragmaKeyword, node.PragmaKeyword.Kind);
             Assert.Equal(SyntaxKind.WarningKeyword, node.WarningKeyword.Kind);
             Assert.Equal(SyntaxKind.DisableKeyword, node.DisableOrRestoreKeyword.Kind);
-            Assert.Null(node.NullableKeyword);
             Assert.NotNull(node.ErrorCodes);
             Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind);
             Assert.Equal(new bool(), node.IsActive);
@@ -3382,6 +3386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.HashToken, node.HashToken.Kind);
             Assert.Equal(SyntaxKind.NullableKeyword, node.NullableKeyword.Kind);
             Assert.Equal(SyntaxKind.EnableKeyword, node.SettingToken.Kind);
+            Assert.Null(node.TargetToken);
             Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind);
             Assert.Equal(new bool(), node.IsActive);
             
@@ -9247,7 +9252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.InterpolationFormatClause(SyntaxFactory.Identifier("ColonToken"), SyntaxFactory.Token(SyntaxKind.InterpolatedStringTextToken));
         
         private static GlobalStatementSyntax GenerateGlobalStatement()
-            => SyntaxFactory.GlobalStatement(GenerateBlock());
+            => SyntaxFactory.GlobalStatement(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), GenerateBlock());
         
         private static BlockSyntax GenerateBlock()
             => SyntaxFactory.Block(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SyntaxList<StatementSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
@@ -9385,7 +9390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.UsingDirective(SyntaxFactory.Token(SyntaxKind.UsingKeyword), default(SyntaxToken), default(NameEqualsSyntax), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
         
         private static NamespaceDeclarationSyntax GenerateNamespaceDeclaration()
-            => SyntaxFactory.NamespaceDeclaration(SyntaxFactory.Token(SyntaxKind.NamespaceKeyword), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SyntaxList<ExternAliasDirectiveSyntax>(), new SyntaxList<UsingDirectiveSyntax>(), new SyntaxList<MemberDeclarationSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default(SyntaxToken));
+            => SyntaxFactory.NamespaceDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Token(SyntaxKind.NamespaceKeyword), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SyntaxList<ExternAliasDirectiveSyntax>(), new SyntaxList<UsingDirectiveSyntax>(), new SyntaxList<MemberDeclarationSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default(SyntaxToken));
         
         private static AttributeListSyntax GenerateAttributeList()
             => SyntaxFactory.AttributeList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), default(AttributeTargetSpecifierSyntax), new SeparatedSyntaxList<AttributeSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
@@ -9427,7 +9432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.DelegateDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Token(SyntaxKind.DelegateKeyword), GenerateIdentifierName(), SyntaxFactory.Identifier("Identifier"), default(TypeParameterListSyntax), GenerateParameterList(), new SyntaxList<TypeParameterConstraintClauseSyntax>(), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
         
         private static EnumMemberDeclarationSyntax GenerateEnumMemberDeclaration()
-            => SyntaxFactory.EnumMemberDeclaration(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Identifier("Identifier"), default(EqualsValueClauseSyntax));
+            => SyntaxFactory.EnumMemberDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Identifier("Identifier"), default(EqualsValueClauseSyntax));
         
         private static BaseListSyntax GenerateBaseList()
             => SyntaxFactory.BaseList(SyntaxFactory.Token(SyntaxKind.ColonToken), new SeparatedSyntaxList<BaseTypeSyntax>());
@@ -9613,7 +9618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.LineDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.LineKeyword), SyntaxFactory.Literal("1", 1), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
         
         private static PragmaWarningDirectiveTriviaSyntax GeneratePragmaWarningDirectiveTrivia()
-            => SyntaxFactory.PragmaWarningDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.PragmaKeyword), SyntaxFactory.Token(SyntaxKind.WarningKeyword), SyntaxFactory.Token(SyntaxKind.DisableKeyword), default(SyntaxToken), new SeparatedSyntaxList<ExpressionSyntax>(), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
+            => SyntaxFactory.PragmaWarningDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.PragmaKeyword), SyntaxFactory.Token(SyntaxKind.WarningKeyword), SyntaxFactory.Token(SyntaxKind.DisableKeyword), new SeparatedSyntaxList<ExpressionSyntax>(), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
         
         private static PragmaChecksumDirectiveTriviaSyntax GeneratePragmaChecksumDirectiveTrivia()
             => SyntaxFactory.PragmaChecksumDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.PragmaKeyword), SyntaxFactory.Token(SyntaxKind.ChecksumKeyword), SyntaxFactory.Literal("string", "string"), SyntaxFactory.Literal("string", "string"), SyntaxFactory.Literal("string", "string"), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
@@ -9628,7 +9633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.ShebangDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.ExclamationToken), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
         
         private static NullableDirectiveTriviaSyntax GenerateNullableDirectiveTrivia()
-            => SyntaxFactory.NullableDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.NullableKeyword), SyntaxFactory.Token(SyntaxKind.EnableKeyword), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
+            => SyntaxFactory.NullableDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.NullableKeyword), SyntaxFactory.Token(SyntaxKind.EnableKeyword), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
         #endregion Red Generators
         
         #region Red Factory and Property Tests
@@ -10663,8 +10668,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateGlobalStatement();
             
+            Assert.NotNull(node.AttributeLists);
+            Assert.NotNull(node.Modifiers);
             Assert.NotNull(node.Statement);
-            var newNode = node.WithStatement(node.Statement);
+            var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithStatement(node.Statement);
             Assert.Equal(node, newNode);
         }
         
@@ -11258,6 +11265,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateNamespaceDeclaration();
             
+            Assert.NotNull(node.AttributeLists);
+            Assert.NotNull(node.Modifiers);
             Assert.Equal(SyntaxKind.NamespaceKeyword, node.NamespaceKeyword.Kind());
             Assert.NotNull(node.Name);
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind());
@@ -11266,7 +11275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Members);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
-            var newNode = node.WithNamespaceKeyword(node.NamespaceKeyword).WithName(node.Name).WithOpenBraceToken(node.OpenBraceToken).WithExterns(node.Externs).WithUsings(node.Usings).WithMembers(node.Members).WithCloseBraceToken(node.CloseBraceToken).WithSemicolonToken(node.SemicolonToken);
+            var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithNamespaceKeyword(node.NamespaceKeyword).WithName(node.Name).WithOpenBraceToken(node.OpenBraceToken).WithExterns(node.Externs).WithUsings(node.Usings).WithMembers(node.Members).WithCloseBraceToken(node.CloseBraceToken).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
         }
         
@@ -11466,9 +11475,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateEnumMemberDeclaration();
             
             Assert.NotNull(node.AttributeLists);
+            Assert.NotNull(node.Modifiers);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
             Assert.Null(node.EqualsValue);
-            var newNode = node.WithAttributeLists(node.AttributeLists).WithIdentifier(node.Identifier).WithEqualsValue(node.EqualsValue);
+            var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithIdentifier(node.Identifier).WithEqualsValue(node.EqualsValue);
             Assert.Equal(node, newNode);
         }
         
@@ -12282,11 +12292,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.PragmaKeyword, node.PragmaKeyword.Kind());
             Assert.Equal(SyntaxKind.WarningKeyword, node.WarningKeyword.Kind());
             Assert.Equal(SyntaxKind.DisableKeyword, node.DisableOrRestoreKeyword.Kind());
-            Assert.Equal(SyntaxKind.None, node.NullableKeyword.Kind());
             Assert.NotNull(node.ErrorCodes);
             Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind());
             Assert.Equal(new bool(), node.IsActive);
-            var newNode = node.WithHashToken(node.HashToken).WithPragmaKeyword(node.PragmaKeyword).WithWarningKeyword(node.WarningKeyword).WithDisableOrRestoreKeyword(node.DisableOrRestoreKeyword).WithNullableKeyword(node.NullableKeyword).WithErrorCodes(node.ErrorCodes).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
+            var newNode = node.WithHashToken(node.HashToken).WithPragmaKeyword(node.PragmaKeyword).WithWarningKeyword(node.WarningKeyword).WithDisableOrRestoreKeyword(node.DisableOrRestoreKeyword).WithErrorCodes(node.ErrorCodes).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
         }
         
@@ -12356,9 +12365,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.HashToken, node.HashToken.Kind());
             Assert.Equal(SyntaxKind.NullableKeyword, node.NullableKeyword.Kind());
             Assert.Equal(SyntaxKind.EnableKeyword, node.SettingToken.Kind());
+            Assert.Equal(SyntaxKind.None, node.TargetToken.Kind());
             Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind());
             Assert.Equal(new bool(), node.IsActive);
-            var newNode = node.WithHashToken(node.HashToken).WithNullableKeyword(node.NullableKeyword).WithSettingToken(node.SettingToken).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
+            var newNode = node.WithHashToken(node.HashToken).WithNullableKeyword(node.NullableKeyword).WithSettingToken(node.SettingToken).WithTargetToken(node.TargetToken).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
         }
         #endregion Red Factory and Property Tests

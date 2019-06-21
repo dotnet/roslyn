@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
                     _errorLogger = errorLogger;
                 }
 
-                public bool TryGetDocumentOption(OptionKey option, OptionSet underlyingOptions, out object value)
+                public bool TryGetDocumentOption(OptionKey option, out object value)
                 {
                     var editorConfigPersistence = option.Option.StorageLocations.OfType<IEditorConfigStorageLocation>().SingleOrDefault();
                     if (editorConfigPersistence == null)
@@ -76,8 +76,7 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
 
                     try
                     {
-                        var underlyingOption = underlyingOptions.GetOption(option);
-                        return editorConfigPersistence.TryGetOption(underlyingOption, _options, option.Option.Type, out value);
+                        return editorConfigPersistence.TryGetOption(_options, option.Option.Type, out value);
                     }
                     catch (Exception ex)
                     {

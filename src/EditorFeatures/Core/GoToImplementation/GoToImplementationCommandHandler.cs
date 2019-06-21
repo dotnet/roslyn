@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
@@ -15,7 +13,6 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
@@ -27,14 +24,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
     [Name(PredefinedCommandHandlerNames.GoToImplementation)]
     internal partial class GoToImplementationCommandHandler : VSCommanding.ICommandHandler<GoToImplementationCommandArgs>
     {
-        private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
+        private readonly IStreamingFindUsagesPresenter _streamingPresenter;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GoToImplementationCommandHandler(
-            [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
+        public GoToImplementationCommandHandler(IStreamingFindUsagesPresenter streamingPresenter)
         {
-            _streamingPresenters = streamingPresenters;
+            _streamingPresenter = streamingPresenter;
         }
 
         public string DisplayName => EditorFeaturesResources.Go_To_Implementation;
@@ -84,8 +80,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             IFindUsagesService streamingService,
             CommandExecutionContext context)
         {
-            var streamingPresenter = GetStreamingPresenter();
-
             if (streamingService != null)
             {
                 // We have all the cheap stuff, so let's do expensive stuff now
@@ -96,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
                 {
                     StreamingGoToImplementation(
                         document, caretPosition,
-                        streamingService, streamingPresenter,
+                        streamingService, _streamingPresenter,
                         userCancellationToken, out messageToShow);
                 }
 
@@ -140,18 +134,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 
             streamingPresenter.TryNavigateToOrPresentItemsAsync(
                 document.Project.Solution.Workspace, goToImplContext.SearchTitle, definitionItems).Wait(cancellationToken);
-        }
-
-        private IStreamingFindUsagesPresenter GetStreamingPresenter()
-        {
-            try
-            {
-                return _streamingPresenters.FirstOrDefault()?.Value;
-            }
-            catch
-            {
-                return null;
-            }
         }
     }
 }

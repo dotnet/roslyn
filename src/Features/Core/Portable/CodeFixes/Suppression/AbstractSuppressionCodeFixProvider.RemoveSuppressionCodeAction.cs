@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurationFixProvider
     {
         /// <summary>
         /// Base type for remove suppression code actions.

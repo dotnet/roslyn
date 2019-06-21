@@ -337,16 +337,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ITypeSymbol GetMemberType(this ISymbol symbol)
         {
-            switch (symbol.Kind)
+            switch (symbol)
             {
-                case SymbolKind.Field:
-                    return ((IFieldSymbol)symbol).Type;
-                case SymbolKind.Property:
-                    return ((IPropertySymbol)symbol).Type;
-                case SymbolKind.Method:
-                    return ((IMethodSymbol)symbol).ReturnType;
-                case SymbolKind.Event:
-                    return ((IEventSymbol)symbol).Type;
+                case IFieldSymbol fieldSymbol:
+                    return fieldSymbol.GetTypeWithAnnotatedNullability();
+                case IPropertySymbol propertySymbol:
+                    return propertySymbol.GetTypeWithAnnotatedNullability();
+                case IMethodSymbol methodSymbol:
+                    return methodSymbol.GetReturnTypeWithAnnotatedNullability();
+                case IEventSymbol eventSymbol:
+                    return eventSymbol.GetTypeWithAnnotatedNullability();
             }
 
             return null;
@@ -867,13 +867,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             switch (symbol)
             {
                 case ILocalSymbol localSymbol:
-                    return localSymbol.Type.WithNullability(localSymbol.NullableAnnotation);
+                    return localSymbol.GetTypeWithAnnotatedNullability();
                 case IFieldSymbol fieldSymbol:
-                    return fieldSymbol.Type.WithNullability(fieldSymbol.NullableAnnotation);
+                    return fieldSymbol.GetTypeWithAnnotatedNullability();
                 case IPropertySymbol propertySymbol:
-                    return propertySymbol.Type.WithNullability(propertySymbol.NullableAnnotation);
+                    return propertySymbol.GetTypeWithAnnotatedNullability();
                 case IParameterSymbol parameterSymbol:
-                    return parameterSymbol.Type.WithNullability(parameterSymbol.NullableAnnotation);
+                    return parameterSymbol.GetTypeWithAnnotatedNullability();
                 case IAliasSymbol aliasSymbol:
                     return aliasSymbol.Target as ITypeSymbol;
             }

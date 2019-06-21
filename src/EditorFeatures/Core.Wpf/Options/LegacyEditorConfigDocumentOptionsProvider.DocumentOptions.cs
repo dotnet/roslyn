@@ -1,13 +1,13 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.CodingConventions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 _errorLogger = errorLogger;
             }
 
-            public bool TryGetDocumentOption(OptionKey option, OptionSet underlyingOptions, out object value)
+            public bool TryGetDocumentOption(OptionKey option, out object value)
             {
                 var editorConfigPersistence = option.Option.StorageLocations.OfType<IEditorConfigStorageLocation>().SingleOrDefault();
                 if (editorConfigPersistence == null)
@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
                 try
                 {
-                    var underlyingOption = underlyingOptions.GetOption(option);
-                    return editorConfigPersistence.TryGetOption(underlyingOption, allRawConventions, option.Option.Type, out value);
+                    return editorConfigPersistence.TryGetOption(allRawConventions, option.Option.Type, out value);
                 }
                 catch (Exception ex)
                 {

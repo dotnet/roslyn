@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 Func<DiagnosticAnalyzer, AnalyzerActionCounts> getAnalyzerActionCounts = analyzer => analyzerActionCounts[analyzer];
 
-                _analysisResultBuilder.StoreAnalysisResult(analysisScope, driver, compilation, getAnalyzerActionCounts, fullAnalysisResultForAnalyzersInScope: true);
+                _analysisResultBuilder.ApplySuppressionsAndStoreAnalysisResult(analysisScope, driver, compilation, getAnalyzerActionCounts, fullAnalysisResultForAnalyzersInScope: true);
             }
             finally
             {
@@ -450,7 +450,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Force compilation diagnostics and wait for analyzer execution to complete.
                 var compDiags = compilation.GetDiagnostics(cancellationToken);
                 var analyzerDiags = await driver.GetDiagnosticsAsync(compilation).ConfigureAwait(false);
-                return compDiags.AddRange(analyzerDiags);
+                var reportedDiagnostics = compDiags.AddRange(analyzerDiags);
+                return driver.ApplyProgrammaticSuppressions(reportedDiagnostics, compilation);
             }
             finally
             {
@@ -898,7 +899,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     finally
                     {
                         // Update the diagnostic results based on the diagnostics reported on the driver.
-                        _analysisResultBuilder.StoreAnalysisResult(analysisScope, driver, _compilation, _analysisState.GetAnalyzerActionCounts, fullAnalysisResultForAnalyzersInScope: false);
+                        _analysisResultBuilder.ApplySuppressionsAndStoreAnalysisResult(analysisScope, driver, _compilation, _analysisState.GetAnalyzerActionCounts, fullAnalysisResultForAnalyzersInScope: false);
                     }
                 }
             }
@@ -1227,8 +1228,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             try
             {
                 var actionCounts = await GetAnalyzerActionCountsAsync(analyzer, cancellationToken).ConfigureAwait(false);
+                var suppressionActionCounts = analyzer is DiagnosticSuppressor ? 1 : 0;
                 var executionTime = GetAnalyzerExecutionTime(analyzer);
-                return new AnalyzerTelemetryInfo(actionCounts, executionTime);
+                return new AnalyzerTelemetryInfo(actionCounts, suppressionActionCounts, executionTime);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {

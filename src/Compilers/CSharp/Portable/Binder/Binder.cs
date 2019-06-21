@@ -222,26 +222,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Are we in a context where un-annotated types should be interpreted as non-null?
         /// </summary>
-        internal bool IsNullableEnabled(SyntaxTree syntaxTree, int position)
+        internal bool AreNullableAnnotationsEnabled(SyntaxTree syntaxTree, int position)
         {
-            bool? fromTree = ((CSharpSyntaxTree)syntaxTree).GetNullableDirectiveState(position);
+            bool? fromTree = ((CSharpSyntaxTree)syntaxTree).GetNullableContextState(position).AnnotationsState;
 
             if (fromTree != null)
             {
                 return fromTree.GetValueOrDefault();
             }
 
-            return IsNullableGloballyEnabled();
+            return AreNullableAnnotationsGloballyEnabled();
         }
 
-        internal bool IsNullableEnabled(SyntaxToken token)
+        internal bool AreNullableAnnotationsEnabled(SyntaxToken token)
         {
-            return IsNullableEnabled(token.SyntaxTree, token.SpanStart);
+            return AreNullableAnnotationsEnabled(token.SyntaxTree, token.SpanStart);
         }
 
-        internal virtual bool IsNullableGloballyEnabled()
+        internal virtual bool AreNullableAnnotationsGloballyEnabled()
         {
-            return Next.IsNullableGloballyEnabled();
+            return Next.AreNullableAnnotationsGloballyEnabled();
         }
 
         /// <summary>

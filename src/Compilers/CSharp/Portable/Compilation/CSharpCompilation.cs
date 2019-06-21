@@ -109,6 +109,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private EntryPoint _lazyEntryPoint;
 
         /// <summary>
+        /// Emit nullable attributes for only those members that are visible outside the assembly
+        /// (public, protected, and if any [InternalsVisibleTo] attributes, internal members).
+        /// If false, attributes are emitted for all members regardless of visibility.
+        /// </summary>
+        private ThreeState _lazyEmitNullablePublicOnly;
+
+        /// <summary>
         /// The set of trees for which a <see cref="CompilationUnitCompletedEvent"/> has been added to the queue.
         /// </summary>
         private HashSet<SyntaxTree> _lazyCompilationUnitCompletedTrees;
@@ -2686,9 +2693,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
 
-                bool hasMethodBodyErrorOrWarningAsError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag);
+                bool hasMethodBodyError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag);
 
-                if (hasDeclarationErrors || hasMethodBodyErrorOrWarningAsError)
+                if (hasDeclarationErrors || hasMethodBodyError)
                 {
                     return false;
                 }
@@ -3268,6 +3275,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typeSymbol = GetSpecialType(type);
             var diagnostic = typeSymbol.GetUseSiteDiagnostic();
             return (diagnostic == null) || (diagnostic.Severity != DiagnosticSeverity.Error);
+        }
+
+        internal bool EmitNullablePublicOnly
+        {
+            get
+            {
+                if (!_lazyEmitNullablePublicOnly.HasValue())
+                {
+                    bool value = SyntaxTrees.FirstOrDefault()?.Options?.Features?.ContainsKey("nullablePublicOnly") == true;
+                    _lazyEmitNullablePublicOnly = value.ToThreeState();
+                }
+                return _lazyEmitNullablePublicOnly.Value();
+            }
+        }
+
+        internal bool ShouldEmitNullableAttributes(Symbol symbol)
+        {
+            Debug.Assert(!(symbol is null));
+            Debug.Assert(symbol.IsDefinition);
+
+            if (symbol.ContainingModule != SourceModule)
+            {
+                return false;
+            }
+
+            if (!EmitNullablePublicOnly)
+            {
+                return true;
+            }
+
+            if (!AccessCheck.IsEffectivelyPublicOrInternal(symbol, out bool isInternal))
+            {
+                return false;
+            }
+
+            return !isInternal || SourceAssembly.InternalsAreVisible;
         }
 
         internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager)

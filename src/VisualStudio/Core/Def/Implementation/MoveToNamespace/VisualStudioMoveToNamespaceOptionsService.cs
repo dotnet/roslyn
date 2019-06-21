@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.MoveToNamespace;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 {
-    [ExportWorkspaceService(typeof(IMoveToNamespaceOptionsService), layer: ServiceLayer.Host), Shared]
+    [Export(typeof(IMoveToNamespaceOptionsService)), Shared]
     internal class VisualStudioMoveToNamespaceOptionsService : IMoveToNamespaceOptionsService
     {
         [ImportingConstructor]
