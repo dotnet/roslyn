@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
-        <target state="new">A new namespace will be created</target>
+        <target state="translated">Ein neuer Namespace wird erstellt.</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_current_file">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Classifications">
         <source>Classifications</source>
-        <target state="translated">Klassifikationen</target>
+        <target state="translated">Klassifizierungen</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
         <source>Enable nullable reference analysis IDE features</source>
-        <target state="new">Enable nullable reference analysis IDE features</target>
+        <target state="translated">IDE-Features zur Analyse von Nullable-Verweisen aktivieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -139,17 +139,17 @@
       </trans-unit>
       <trans-unit id="Modifier_preferences_colon">
         <source>Modifier preferences:</source>
-        <target state="translated">Modifizierereinstellungen:</target>
+        <target state="translated">Einstellungen für Modifizierer:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to Namespace</source>
-        <target state="new">Move to Namespace</target>
+        <target state="translated">In Namespace verschieben</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
         <source>Namespace</source>
-        <target state="new">Namespace</target>
+        <target state="translated">Namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0">
@@ -334,17 +334,17 @@
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
-        <target state="translated">Schreibgeschützte Felder vorziehen</target>
+        <target state="translated">readonly-Felder bevorzugen</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
         <source>Prefer simple 'using' statement</source>
-        <target state="translated">Einfache using-Anweisung vorziehen</target>
+        <target state="translated">Einfache using-Anweisung bevorzugen</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
-        <target state="translated">Statische lokale Funktionen vorziehen</target>
+        <target state="translated">Statische lokale Funktionen bevorzugen</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_Members_Up">
@@ -389,12 +389,12 @@
       </trans-unit>
       <trans-unit id="Select_Dependents">
         <source>Select _Dependents</source>
-        <target state="translated">A_bhängige Objekte auswählen</target>
+        <target state="translated">Abhängige _Objekte auswählen</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_Public">
         <source>Select _Public</source>
-        <target state="translated">Ö_ffentliche Objekte auswählen</target>
+        <target state="translated">Öffentliche _auswählen</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination_and_members_to_pull_up">
@@ -424,12 +424,12 @@
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
-        <target state="new">Target Namespace:</target>
+        <target state="translated">Zielnamespace:</target>
         <note />
       </trans-unit>
       <trans-unit id="This_is_an_invalid_namespace">
         <source>This is an invalid namespace</source>
-        <target state="new">This is an invalid namespace</target>
+        <target state="translated">Dies ist ein ungültiger Namespace.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -474,7 +474,7 @@
       </trans-unit>
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
-        <target state="translated">Das Aktualisieren von Visual Basic-Kompilieroptionen wird von diesem Arbeitsbereich nicht unterstützt.</target>
+        <target state="translated">Das Aktualisieren von Visual Basic-Kompilierungsoptionen wird von diesem Arbeitsbereich nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
