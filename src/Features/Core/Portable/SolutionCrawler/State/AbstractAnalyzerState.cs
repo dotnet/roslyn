@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 {
@@ -26,11 +25,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
         protected abstract void WriteTo(Stream stream, TData data, CancellationToken cancellationToken);
         protected abstract Task<bool> WriteStreamAsync(IPersistentStorage storage, TValue value, Stream stream, CancellationToken cancellationToken);
 
-        public int Count => this.DataCache.Count;
+        public int Count => DataCache.Count;
 
         public int GetDataCount(TKey key)
         {
-            if (!this.DataCache.TryGetValue(key, out var entry))
+            if (!DataCache.TryGetValue(key, out var entry))
             {
                 return 0;
             }
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 
         public async Task<TData> TryGetExistingDataAsync(TValue value, CancellationToken cancellationToken)
         {
-            if (!this.DataCache.TryGetValue(GetCacheKey(value), out var entry))
+            if (!DataCache.TryGetValue(GetCacheKey(value), out var entry))
             {
                 // we don't have data
                 return default;
@@ -82,14 +81,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 
             // if data is for opened document or if persistence failed, 
             // we keep small cache so that we don't pay cost of deserialize/serializing data that keep changing
-            this.DataCache[id] = (!succeeded || ShouldCache(value)) ? new CacheEntry(data, GetCount(data)) : new CacheEntry(default, GetCount(data));
+            DataCache[id] = (!succeeded || ShouldCache(value)) ? new CacheEntry(data, GetCount(data)) : new CacheEntry(default, GetCount(data));
         }
 
         public virtual bool Remove(TKey id)
         {
             // remove doesn't actually remove data from the persistent storage
             // that will be automatically managed by the service itself.
-            return this.DataCache.TryRemove(id, out _);
+            return DataCache.TryRemove(id, out _);
         }
 
         private async Task<bool> WriteToStreamAsync(TValue value, TData data, CancellationToken cancellationToken)

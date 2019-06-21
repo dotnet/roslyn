@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 var replacementSpan = TextSpan.FromBounds(replacementStart, Position);
                 var newPosition = replacementStart + positionOffset;
 
-                insertionText = insertionText ?? displayText;
+                insertionText ??= displayText;
                 var escapedInsertionText = _language.EscapeText(insertionText, StringToken);
 
                 if (escapedInsertionText != insertionText)
@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             public void AddIfMissing(RegexItem item)
             {
-                if (this._names.Add(item.DisplayText))
+                if (_names.Add(item.DisplayText))
                 {
-                    this.Items.Add(item);
+                    Items.Add(item);
                 }
             }
         }

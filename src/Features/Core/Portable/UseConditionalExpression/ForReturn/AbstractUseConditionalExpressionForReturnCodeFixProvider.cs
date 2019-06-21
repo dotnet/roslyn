@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             editor.ReplaceNode(
                 ifStatement,
-                this.WrapWithBlockIfAppropriate(ifStatement, returnStatement));
+                WrapWithBlockIfAppropriate(ifStatement, returnStatement));
 
             // if the if-statement had no 'else' clause, then we were using the following statement
             // as the 'false' statement.  If so, remove it explicitly.
