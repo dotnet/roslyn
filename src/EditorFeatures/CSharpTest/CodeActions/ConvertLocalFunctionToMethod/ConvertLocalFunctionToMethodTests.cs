@@ -609,7 +609,6 @@ $@"class C
 }");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
         public async Task TestMethodBlockSelection3()
         {
@@ -671,13 +670,51 @@ $@"class C
     void M()
     {
 
-        [|;
+        [|
         C LocalFunction(C c)
         {      
             return null;
         
         }
         object|] a = null
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        public async Task TestMethodBlockSelection6()
+        {
+
+            await this.TestMissingAsync(
+    @"class C
+{
+    void M()
+    {
+        C LocalFunction(C c)
+        {
+            object b = null;
+            [|
+            object a = null;
+            return null;
+            |]
+        
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        public async Task TestMethodBlockSelection7()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        C LocalFunction(C c)
+        {
+            [|return null;|]
+        }
     }
 }");
         }

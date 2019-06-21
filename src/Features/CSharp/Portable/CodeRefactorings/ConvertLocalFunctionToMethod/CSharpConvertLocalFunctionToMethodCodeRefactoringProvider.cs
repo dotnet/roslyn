@@ -42,13 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
             var cancellationToken = context.CancellationToken;
 
-            var localFunction = await CodeRefactoringHelpers.TryGetSelectedNode<LocalFunctionStatementSyntax>(document, context.Span, cancellationToken).ConfigureAwait(false);
-            if (localFunction == default)
-            {
-                var block = await CodeRefactoringHelpers.TryGetSelectedNode<BlockSyntax>(document, context.Span, cancellationToken).ConfigureAwait(false);
-                localFunction = block?.Parent as LocalFunctionStatementSyntax;
-            }
-
+            var localFunction = await TryGetSelectedLocalFunction(document, context.Span, cancellationToken).ConfigureAwait(false);
             if (localFunction == default)
             {
                 return;
@@ -64,6 +58,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             context.RegisterRefactoring(new MyCodeAction(CSharpFeaturesResources.Convert_to_method,
                 c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)));
         }
+
+        private async Task<LocalFunctionStatementSyntax> TryGetSelectedLocalFunction(Document document, TextSpan span, CancellationToken cancellationToken)
+        {
+            var localFunction = await CodeRefactoringHelpers.TryGetSelectedNode<LocalFunctionStatementSyntax>(document, span, cancellationToken).ConfigureAwait(false);
+            if (localFunction == default)
+            {
+                // Only function's block might be selected -> succeed only when the whole block (all statemets) is selected
+                var block = await CodeRefactoringHelpers.TryGetSelectedNode<BlockSyntax>(document, span, cancellationToken).ConfigureAwait(false);
+                if (block == null || !span.Contains(block.Span))
+                {
+                    return default;
+                }
+                else
+                {
+                    return block.Parent as LocalFunctionStatementSyntax;
+                }
+            }
+
+            return localFunction;
+        }
+
 
         private static async Task<Document> UpdateDocumentAsync(
             SyntaxNode root,
