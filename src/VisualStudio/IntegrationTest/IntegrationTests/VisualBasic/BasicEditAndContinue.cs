@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -139,18 +138,7 @@ End Module");
 
             VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             VisualStudio.Debugger.Go(waitForBreakMode: true);
-            try
-            {
-                VisualStudio.Debugger.SetBreakPoint(module1FileName, "Dim x", charsOffset: 1);
-            }
-            catch (Exception)
-            {
-                var dev16_2_preview1 = "16.0.28917.182 D16.2";
-                var dev16_2_preview2 = "16.0.29006.145 D16.2";
-                Assert.Contains(VisualStudio.Shell.GetVersion(), new[] { dev16_2_preview1, dev16_2_preview2 });
-                return;
-            }
-
+            VisualStudio.Debugger.SetBreakPoint(module1FileName, "Dim x", charsOffset: 1);
             VisualStudio.Debugger.ExecuteStatement("Module1.Main()");
             VisualStudio.Editor.ReplaceText("x = 4", "x = 42");
             VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
