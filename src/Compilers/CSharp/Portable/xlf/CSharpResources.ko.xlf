@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractEventHasAccessors">
         <source>'{0}': abstract event cannot use event accessor syntax</source>
-        <target state="new">'{0}': abstract event cannot use event accessor syntax</target>
+        <target state="translated">'{0}': 추상 이벤트는 이벤트 접근자 구문을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
-        <target state="needs-review-translation">/nullable의 '{0}' 옵션이 잘못되었습니다. 'disable', 'enable', 'safeonly', 'warnings' 또는 'safeonlywarnings'여야 합니다.</target>
+        <target state="new">Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
         <source>The typeof operator cannot be used on a nullable reference type</source>
-        <target state="new">The typeof operator cannot be used on a nullable reference type</target>
+        <target state="translated">typeof 연산자는 nullable 참조 형식에 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleEnumeratorCancellationAttributes">
         <source>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</source>
-        <target state="new">The attribute [EnumeratorCancellation] cannot be used on multiple parameters</target>
+        <target state="translated">[EnumeratorCancellation] 특성은 여러 매개 변수에 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -284,12 +284,12 @@
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
         <source>The 'notnull' constraint must come before any other constraints</source>
-        <target state="new">The 'notnull' constraint must come before any other constraints</target>
+        <target state="translated">'notnull' 제약 조건은 다른 모든 제약 조건보다 앞에 와야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'disable', or 'restore'</source>
-        <target state="needs-review-translation">'enable', 'safeonly', 'disable' 또는 'restore'가 필요합니다.</target>
+        <target state="translated">'enable', 'disable' 또는 'restore'가 필요합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
@@ -604,8 +604,8 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
-                              Visual C# 컴파일러 옵션
+        <target state="translated">
+                             Visual C# 컴파일러 옵션
 
                        - 출력 파일 -
 -out:&lt;파일&gt;                   출력 파일 이름을 지정합니다(기본값: 주 클래스가
@@ -804,12 +804,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureNestedStackalloc">
         <source>stackalloc in nested expressions</source>
-        <target state="new">stackalloc in nested expressions</target>
+        <target state="translated">중첩 식의 stackalloc</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNotNullGenericTypeConstraint">
         <source>notnull generic type constraint</source>
-        <target state="new">notnull generic type constraint</target>
+        <target state="translated">notnull 제네릭 형식 제약 조건</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
@@ -824,7 +824,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnable">
         <source>warning action enable</source>
-        <target state="new">warning action enable</target>
+        <target state="translated">경고 작업 enable</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRangeOperator">
@@ -1334,12 +1334,12 @@
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <target state="translated">가능한 null 값은 [DisallowNull] 특성으로 표시된 대상에 전달할 수 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
         <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <target state="translated">가능한 null 값은 [DisallowNull] 특성으로 표시된 대상에 전달할 수 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1394,12 +1394,12 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="needs-review-translation">nullable 참조 형식에 대한 주석은 코드에서 '#nullable' 컨텍스트 내에만 사용되어야 합니다.</target>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="needs-review-translation">nullable 참조 형식에 대한 주석은 코드에서 '#nullable' 컨텍스트 내에만 사용되어야 합니다.</target>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
@@ -1514,12 +1514,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation">
         <source>Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</source>
-        <target state="new">Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</target>
+        <target state="translated">'{0}'의 partial 메서드 선언에 '{1}' 형식 매개 변수의 제약 조건에 Null 허용 여부 일관성이 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title">
         <source>Partial method declarations have inconsistent nullability in constraints for type parameter</source>
-        <target state="new">Partial method declarations have inconsistent nullability in constraints for type parameter</target>
+        <target state="translated">partial 메서드 선언에 형식 매개 변수의 제약 조건에 Null 허용 여부 일관성이 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInExplicitlyImplementedInterface">
@@ -1664,12 +1664,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint">
         <source>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</source>
-        <target state="new">The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</target>
+        <target state="translated">'{2}' 형식은 제네릭 형식 또는 '{0}' 메서드에서 '{1}' 형식 매개 변수로 사용할 수 없습니다. '{2}' 형식 인수의 Null 허용 여부가 'notnull' 제약 조건과 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint_Title">
         <source>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</source>
-        <target state="new">The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</target>
+        <target state="translated">형식은 제네릭 형식 또는 메서드에서 형식 매개 변수로 사용할 수 없습니다. 형식 인수의 Null 허용 여부가 'notnull' 제약 조건과 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint">
@@ -1764,12 +1764,12 @@
       </trans-unit>
       <trans-unit id="WRN_UndecoratedCancellationTokenParameter">
         <source>Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
-        <target state="new">Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
+        <target state="translated">비동기 반복기 '{0}'에 'CancellationToken' 형식의 매개 변수가 하나 이상 있지만, 이 중 'EnumeratorCancellation' 특성으로 데코레이트된 매개 변수가 없으므로 생성된 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator'에서 취소 토큰 매개 변수가 사용되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UndecoratedCancellationTokenParameter_Title">
         <source>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
-        <target state="new">Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
+        <target state="translated">비동기 반복기 멤버에 'CancellationToken' 형식의 매개 변수가 하나 이상 있지만, 이 중 'EnumeratorCancellation' 특성으로 데코레이트된 매개 변수가 없으므로 생성된 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator'에서 취소 토큰 매개 변수가 사용되지 않음</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -3389,7 +3389,7 @@
       </trans-unit>
       <trans-unit id="ERR_PrivateAbstractAccessor">
         <source>'{0}': abstract properties cannot have private accessors</source>
-        <target state="translated">'{0}': 추상 속성에는 전용 접근자를 사용할 수 없습니다.</target>
+        <target state="translated">'{0}': 추상 속성에는 프라이빗 접근자를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ValueExpected">
@@ -4068,7 +4068,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_VirtualPrivate">
         <source>'{0}': virtual or abstract members cannot be private</source>
-        <target state="translated">'{0}': 가상 또는 추상 멤버는 전용일 수 없습니다.</target>
+        <target state="translated">'{0}': 가상 또는 추상 멤버는 프라이빗일 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArrayInitToNonArrayType">
@@ -4693,7 +4693,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
         <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
-        <target state="new">Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</target>
+        <target state="translated">'{0}'의 partial 메서드 선언에 '{1}' 형식 매개 변수의 제약 조건에 일관성이 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodToDelegate">
@@ -5802,12 +5802,12 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
         <source>Expected disable, restore or enable</source>
-        <target state="needs-review-translation">disable, restore, enable 또는 safeonly가 필요합니다.</target>
+        <target state="translated">disable, restore 또는 enable이 필요합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
         <source>Expected disable, restore or enable after #pragma warning</source>
-        <target state="needs-review-translation">#pragma warning 뒤에 disable, restore, enable 또는 safeonly가 필요합니다.</target>
+        <target state="translated">#pragma warning 뒤에 disable, restore 또는 enable이 필요합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">
@@ -7662,7 +7662,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_SignButNoPrivateKey">
         <source>Key file '{0}' is missing the private key needed for signing</source>
-        <target state="translated">{0}' 키 파일에 서명에 필요한 개인 키가 없습니다.</target>
+        <target state="translated">{0}' 키 파일에 서명에 필요한 프라이빗 키가 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PublicSignButNoKey">

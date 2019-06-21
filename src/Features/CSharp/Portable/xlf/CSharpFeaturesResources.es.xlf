@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
         <source>Convert switch statement to expression</source>
-        <target state="new">Convert switch statement to expression</target>
+        <target state="translated">Convertir una instrucción switch en expresión</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="Sort_Usings">
         <source>&amp;Sort Usings</source>
-        <target state="new">&amp;Sort Usings</target>
+        <target state="translated">&amp;Ordenar instrucciones Using</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
@@ -144,7 +144,7 @@
       </trans-unit>
       <trans-unit id="Use_switch_expression">
         <source>Use 'switch' expression</source>
-        <target state="new">Use 'switch' expression</target>
+        <target state="translated">Usar la expresión "switch"</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">

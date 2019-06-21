@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../WorkspacesResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../WorkspacesResources.resx">
     <body>
       <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
         <source>Adding analyzer config documents is not supported.</source>
-        <target state="new">Adding analyzer config documents is not supported.</target>
+        <target state="translated">不支持添加分析器配置文档。</target>
         <note />
       </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
         <source>Changing analyzer config documents is not supported.</source>
-        <target state="new">Changing analyzer config documents is not supported.</target>
+        <target state="translated">不支持更改分析器配置文档。</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_document_0_is_not_supported">
@@ -289,7 +289,7 @@ The balancing group definition uses 'name2' as a stack. The beginning character 
 'name' is the name (or number) of a capturing group, 'yes' is the expression to match if 'name' (or 'number') has a match, and 'no' is the optional expression to match if it does not.</source>
         <target state="translated">此语言元素尝试匹配两种模式之一，具体取决于它是否与指定的捕获组匹配。
 
-"name" 是捕获组的名称(或编号)，"yes" 是在 "name" (或 "number") 具有匹配项的情况下匹配的表达式，"no" 是可匹配的可选表达式(如果未匹配)。</target>
+"name" 是捕获组的名称(或编号)，"yes" 是在 "name" (或 "number") 具有匹配项的情况下匹配的表达式，"no" 是没有匹配的情况下可匹配的可选表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_conditional_group_match_short">
@@ -1224,7 +1224,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Removing_analyzer_config_documents_is_not_supported">
         <source>Removing analyzer config documents is not supported.</source>
-        <target state="new">Removing analyzer config documents is not supported.</target>
+        <target state="translated">不支持删除分析器配置文档。</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">

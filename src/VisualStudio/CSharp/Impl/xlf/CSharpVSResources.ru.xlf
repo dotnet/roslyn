@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="General">
         <source>General</source>
-        <target state="translated">Общее</target>
+        <target state="translated">Общие</target>
         <note>Title of the control group on the General Formatting options page</note>
       </trans-unit>
       <trans-unit id="Generate_Event_Subscription">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Prefer_switch_expression">
         <source>Prefer switch expression</source>
-        <target state="new">Prefer switch expression</target>
+        <target state="translated">Предпочитать выражение switch</target>
         <note />
       </trans-unit>
       <trans-unit id="Preferred_using_directive_placement">

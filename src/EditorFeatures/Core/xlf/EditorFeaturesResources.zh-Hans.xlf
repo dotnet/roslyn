@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../EditorFeaturesResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../EditorFeaturesResources.resx">
     <body>
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
-        <target state="translated">运算符-超载</target>
+        <target state="translated">运算符-重载</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste_Tracking">
@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
         <source>The symbol has no base.</source>
-        <target state="new">The symbol has no base.</target>
+        <target state="translated">符号没有基数。</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
@@ -319,7 +319,7 @@
       </trans-unit>
       <trans-unit id="_0_bases">
         <source>'{0}' bases</source>
-        <target state="new">'{0}' bases</target>
+        <target state="translated">“{0}”基数</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
@@ -729,7 +729,7 @@
       </trans-unit>
       <trans-unit id="Formatting">
         <source>Formatting</source>
-        <target state="translated">正在格式化</target>
+        <target state="translated">格式设置</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_Selection">
