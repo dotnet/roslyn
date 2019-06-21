@@ -5041,5 +5041,24 @@ class C : IDisposable
 }",
             Diagnostic(IDEDiagnosticIds.DisposeObjectsBeforeLosingScopeDiagnosticId));
         }
+
+        [Fact, WorkItem(36498, "https://github.com/dotnet/roslyn/issues/36498")]
+        public async Task DisposableObjectPushedToStackIsNotFlagged()
+        {
+            await TestDiagnosticMissingAsync(@"
+using System;
+using System.Collections.Generic;
+
+class C : IDisposable
+{
+    public void Dispose() { }
+
+    public void M1(Stack<object> stack)
+    {
+        var c = [|new C()|];
+        stack.Push(c);
+    }
+}");
+        }
     }
 }
