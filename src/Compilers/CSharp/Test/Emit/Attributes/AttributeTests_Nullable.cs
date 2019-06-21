@@ -2827,21 +2827,23 @@ public struct S2<T, U> { }";
             var comp = CreateCompilation(source0);
             var ref0 = comp.EmitToImageReference();
 
-            var source =
+            var source1 =
 @"#nullable enable
-class C2<T, U> { }
-class Program
+public class C2<T, U> { }
+public class Program
 {
-    C2<S0, object?> F1;
-    C2<object, S0>? F2;
-    S2<S0, object> F3;
-    S2<object?, S0> F4;
-    (S0, object) F5;
-    (object?, S0) F6;
+    public C2<S0, object?> F1;
+    public C2<object, S0>? F2;
+    public S2<S0, object> F3;
+    public S2<object?, S0> F4;
+    public (S0, object) F5;
+    public (object?, S0) F6;
 }";
 
             // With reference assembly.
-            comp = CreateCompilation(source, references: new[] { ref0 });
+            comp = CreateCompilation(source1, references: new[] { ref0 });
+            var ref1 = comp.EmitToImageReference();
+
             var globalNamespace = comp.GlobalNamespace;
             VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F1").TypeWithAnnotations, new byte[] { 1, 0, 2 }, new byte[] { 1, 2 }, "C2<S0, object?>!");
             VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F2").TypeWithAnnotations, new byte[] { 2, 1, 0 }, new byte[] { 2, 1 }, "C2<object!, S0>?");
@@ -2851,7 +2853,7 @@ class Program
             VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F6").TypeWithAnnotations, new byte[] { 0, 2, 0 }, new byte[] { 0, 2 }, "(object?, S0)");
 
             // Without reference assembly.
-            comp = CreateCompilation(source);
+            comp = CreateCompilation(source1);
             globalNamespace = comp.GlobalNamespace;
             VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F1").TypeWithAnnotations, new byte[] { 1, 0, 2 }, new byte[] { 1, 1, 2 }, "C2<S0!, object?>!");
             VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F2").TypeWithAnnotations, new byte[] { 2, 1, 0 }, new byte[] { 2, 1, 1 }, "C2<object!, S0!>?");
@@ -2859,6 +2861,19 @@ class Program
             VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F4").TypeWithAnnotations, new byte[] { 0, 2, 0 }, new byte[] { 1, 2, 1 }, "S2<object?, S0!>!");
             VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F5").TypeWithAnnotations, new byte[] { 0, 0, 1 }, new byte[] { 0, 1, 1 }, "(S0!, object!)");
             VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F6").TypeWithAnnotations, new byte[] { 0, 2, 0 }, new byte[] { 0, 2, 1 }, "(object?, S0!)");
+
+            var source2 =
+@"";
+
+            // Without reference assembly.
+            comp = CreateCompilation(source2, references: new[] { ref1 });
+            globalNamespace = comp.GlobalNamespace;
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F1").TypeWithAnnotations, new byte[] { 1, 0, 2 }, new byte[] { 0, 0, 0 }, "C2<S0, object>");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F2").TypeWithAnnotations, new byte[] { 2, 1, 0 }, new byte[] { 0, 0, 0 }, "C2<object, S0>");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F3").TypeWithAnnotations, new byte[] { 0, 0, 1 }, new byte[] { 0, 0, 0 }, "S2<S0, object>");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F4").TypeWithAnnotations, new byte[] { 0, 2, 0 }, new byte[] { 0, 0, 0 }, "S2<object, S0>");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F5").TypeWithAnnotations, new byte[] { 0, 0, 1 }, new byte[] { 0, 0, 0 }, "(S0, object)");
+            VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F6").TypeWithAnnotations, new byte[] { 0, 2, 0 }, new byte[] { 0, 0, 0 }, "(object, S0)");
         }
 
         private static readonly SymbolDisplayFormat _displayFormat = SymbolDisplayFormat.TestFormat.
