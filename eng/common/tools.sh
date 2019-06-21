@@ -356,10 +356,10 @@ function MSBuild-Core {
   }
 }
 
-. "$scriptroot/pipeline-logging-functions.sh"
-
 ResolvePath "${BASH_SOURCE[0]}"
 _script_dir=`dirname "$_ResolvePath"`
+
+. "$_script_dir/pipeline-logging-functions.sh"
 
 eng_root=`cd -P "$_script_dir/.." && pwd`
 repo_root=`cd -P "$_script_dir/../.." && pwd`
