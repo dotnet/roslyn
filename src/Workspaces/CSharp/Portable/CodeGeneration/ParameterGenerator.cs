@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return SyntaxFactory.Parameter(p.Name.ToIdentifierToken())
                     .WithAttributeLists(GenerateAttributes(p, isExplicit, options))
                     .WithModifiers(GenerateModifiers(p, isFirstParam))
-                    .WithType(p.Type.GenerateTypeSyntax())
+                    .WithType(p.Type.WithNullability(p.NullableAnnotation).GenerateTypeSyntax())
                     .WithDefault(GenerateEqualsValueClause(p, isExplicit, seenOptional));
         }
 

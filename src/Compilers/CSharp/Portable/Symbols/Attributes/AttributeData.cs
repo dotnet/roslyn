@@ -650,7 +650,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 case SymbolKind.Property:
                     if (IsTargetAttribute(target, AttributeDescription.IndexerNameAttribute) ||
-                        IsTargetAttribute(target, AttributeDescription.SpecialNameAttribute))
+                        IsTargetAttribute(target, AttributeDescription.SpecialNameAttribute) ||
+                        IsTargetAttribute(target, AttributeDescription.DisallowNullAttribute) ||
+                        IsTargetAttribute(target, AttributeDescription.AllowNullAttribute) ||
+                        IsTargetAttribute(target, AttributeDescription.MaybeNullAttribute) ||
+                        IsTargetAttribute(target, AttributeDescription.NotNullAttribute))
                     {
                         return false;
                     }

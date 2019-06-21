@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public TypeSymbol ReturnType => ReturnTypeWithAnnotations.Type;
 
-        public abstract FlowAnalysisAnnotations ReturnTypeAnnotationAttributes { get; }
+        public abstract FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations { get; }
 
         /// <summary>
         /// Returns the type arguments that have been substituted for the type parameters.
@@ -1206,7 +1206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(type.Type));
             }
 
-            if (type.NeedsNullableAttribute())
+            if (compilation.ShouldEmitNullableAttributes(this) && type.NeedsNullableAttribute())
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }

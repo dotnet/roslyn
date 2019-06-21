@@ -773,6 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
             Location location = CSharpSyntaxNode.Type.Location;
+            var compilation = DeclaringCompilation;
 
             Debug.Assert(location != null);
 
@@ -784,7 +785,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var explicitInterfaceSpecifier = GetExplicitInterfaceSpecifier(this.CSharpSyntaxNode);
                 Debug.Assert(explicitInterfaceSpecifier != null);
-                _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
+                _explicitInterfaceType.CheckAllConstraints(compilation, conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
 
                 // Note: we delayed nullable-related checks that could pull on NonNullTypes
                 PropertySymbol overriddenOrImplementedProperty = null;
@@ -805,17 +806,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_refKind == RefKind.RefReadOnly)
             {
-                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
-            if (this.TypeWithAnnotations.NeedsNullableAttribute())
+            if (compilation.ShouldEmitNullableAttributes(this) &&
+                this.TypeWithAnnotations.NeedsNullableAttribute())
             {
-                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
-            ParameterHelpers.EnsureNullableAttributeExists(this.Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
         }
 
         private void CheckAccessibility(Location location, DiagnosticBag diagnostics, bool isExplicitInterfaceImplementation)
@@ -1207,7 +1209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        private CommonPropertyWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        private PropertyWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -1215,7 +1217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attributesBag = this.GetAttributesBag();
             }
 
-            return (CommonPropertyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (PropertyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
         /// <summary>
@@ -1239,21 +1241,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
+            var compilation = this.DeclaringCompilation;
             var type = this.TypeWithAnnotations;
 
             if (type.Type.ContainsDynamic())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + RefCustomModifiers.Length, _refKind));
+                    compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + RefCustomModifiers.Length, _refKind));
             }
 
             if (type.Type.ContainsTupleNames())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeTupleNamesAttribute(type.Type));
+                    compilation.SynthesizeTupleNamesAttribute(type.Type));
             }
 
-            if (type.NeedsNullableAttribute())
+            if (compilation.ShouldEmitNullableAttributes(this) && type.NeedsNullableAttribute())
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }
@@ -1353,11 +1356,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
             {
-                arguments.GetOrCreateData<CommonPropertyWellKnownAttributeData>().HasSpecialNameAttribute = true;
+                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
             {
-                arguments.GetOrCreateData<CommonPropertyWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
+                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
             {
@@ -1388,7 +1391,74 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // NullableAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.DisallowNullAttribute))
+            {
+                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasDisallowNullAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.AllowNullAttribute))
+            {
+                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasAllowNullAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullAttribute))
+            {
+                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasMaybeNullAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullAttribute))
+            {
+                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasNotNullAttribute = true;
+            }
         }
+
+        internal bool HasDisallowNull
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data != null && data.HasDisallowNullAttribute;
+            }
+        }
+
+        internal bool HasAllowNull
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data != null && data.HasAllowNullAttribute;
+            }
+        }
+
+        internal bool HasMaybeNull
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data != null && data.HasMaybeNullAttribute;
+            }
+        }
+
+        internal bool HasNotNull
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data != null && data.HasNotNullAttribute;
+            }
+        }
+
+        internal SourceAttributeData DisallowNullAttributeIfExists
+            => FindAttribute(AttributeDescription.DisallowNullAttribute);
+
+        internal SourceAttributeData AllowNullAttributeIfExists
+            => FindAttribute(AttributeDescription.AllowNullAttribute);
+
+        internal SourceAttributeData MaybeNullAttributeIfExists
+            => FindAttribute(AttributeDescription.MaybeNullAttribute);
+
+        internal SourceAttributeData NotNullAttributeIfExists
+            => FindAttribute(AttributeDescription.NotNullAttribute);
+
+        private SourceAttributeData FindAttribute(AttributeDescription attributeDescription)
+            => (SourceAttributeData)GetAttributes().First(a => a.IsTargetAttribute(this, attributeDescription));
 
         internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
