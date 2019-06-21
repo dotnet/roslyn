@@ -1063,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Action<DiagnosticBag, MethodSymbol, MethodSymbol, ParameterSymbol, TArg> reportMismatchInParameterType,
             TArg extraArgument)
         {
-            if (!CheckValidNullableOverride(compilation, overriddenMethod, overridingMethod))
+            if (!PerformValidNullableOverrideCheck(compilation, overriddenMethod, overridingMethod))
             {
                 return;
             }
@@ -1128,22 +1128,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool CheckValidNullableOverride(
+        private static bool PerformValidNullableOverrideCheck(
             CSharpCompilation compilation,
             Symbol overriddenMember,
             Symbol overridingMember)
         {
-            if (overriddenMember is null ||
-                overridingMember is null ||
-                compilation is null ||
-                !compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes))
-            {
-                // Don't do any validation if the nullable feature is not enabled or
-                // the override is not written directly in source
-                return false;
-            }
-
-            return true;
+            // Don't do any validation if the nullable feature is not enabled or
+            // the override is not written directly in source
+            return overriddenMember is object &&
+                   overridingMember is object &&
+                   compilation is object &&
+                   compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
         }
 
         internal static void CheckValidNullableEventOverride<TArg>(
@@ -1154,7 +1149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Action<DiagnosticBag, EventSymbol, EventSymbol, TArg> reportMismatch,
             TArg extraArgument)
         {
-            if (!CheckValidNullableOverride(compilation, overriddenEvent, overridingEvent))
+            if (!PerformValidNullableOverrideCheck(compilation, overriddenEvent, overridingEvent))
             {
                 return;
             }
