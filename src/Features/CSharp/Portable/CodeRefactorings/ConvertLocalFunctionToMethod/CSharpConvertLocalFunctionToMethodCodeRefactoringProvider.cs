@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
             var cancellationToken = context.CancellationToken;
 
-            var localFunction = await TryGetSelectedLocalFunction(document, context.Span, cancellationToken).ConfigureAwait(false);
+            var localFunction = await TryGetSelectedLocalFunctionAsync(document, context.Span, cancellationToken).ConfigureAwait(false);
             if (localFunction == default)
             {
                 return;
@@ -59,13 +59,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)));
         }
 
-        private async Task<LocalFunctionStatementSyntax> TryGetSelectedLocalFunction(Document document, TextSpan span, CancellationToken cancellationToken)
+        private async Task<LocalFunctionStatementSyntax> TryGetSelectedLocalFunctionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var localFunction = await CodeRefactoringHelpers.TryGetSelectedNode<LocalFunctionStatementSyntax>(document, span, cancellationToken).ConfigureAwait(false);
+            var localFunction = await CodeRefactoringHelpers.TryGetSelectedNodeAsync<LocalFunctionStatementSyntax>(document, span, cancellationToken).ConfigureAwait(false);
             if (localFunction == default)
             {
                 // Only function's block might be selected -> succeed only when the whole block (all statemets) is selected
-                var block = await CodeRefactoringHelpers.TryGetSelectedNode<BlockSyntax>(document, span, cancellationToken).ConfigureAwait(false);
+                var block = await CodeRefactoringHelpers.TryGetSelectedNodeAsync<BlockSyntax>(document, span, cancellationToken).ConfigureAwait(false);
                 if (block == null || !span.Contains(block.Span))
                 {
                     return default;

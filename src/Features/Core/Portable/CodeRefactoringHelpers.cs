@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis
         /// The stripped version is then used to determine relevant <see cref="SyntaxNode"/>.
         /// </para>
         /// </summary>
-        public static async Task<TSyntaxNode> TryGetSelectedNode<TSyntaxNode>(
-            Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+        public static async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
+            Document document, TextSpan selection, CancellationToken cancellationToken, bool traverseUpInSyntaxTreeIfOnEdgeOfSpan = false) where TSyntaxNode : SyntaxNode
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var selectionStripped = await GetStrippedTextSpan(document, selection, cancellationToken).ConfigureAwait(false);
