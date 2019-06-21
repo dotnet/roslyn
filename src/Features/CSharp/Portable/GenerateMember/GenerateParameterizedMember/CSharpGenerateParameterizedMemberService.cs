@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                     foreach (var typeArgument in ((GenericNameSyntax)State.SimpleNameOpt).TypeArgumentList.Arguments)
                     {
                         var typeInfo = this.Document.SemanticModel.GetTypeInfo(typeArgument, cancellationToken);
-                        result.Add(typeInfo.Type.WithNullability(typeInfo.Nullability.Annotation));
+                        result.Add(typeInfo.GetTypeWithAnnotatedNullability());
                     }
                 }
 
