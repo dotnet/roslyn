@@ -473,6 +473,17 @@ class B1<T> : A<T> where T : class
       IL_000d:  throw
       IL_000e:  ret
 }");
+            compilation.VerifyIL("A<T>.M<U>(U)", @"
+{
+    // Code size       15 (0xf)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  box        ""U""
+    IL_0006:  brtrue.s   IL_000e
+    IL_0008:  newobj     ""System.Exception..ctor()""
+    IL_000d:  throw
+    IL_000e:  ret
+}");
         }
 
         [Fact]
