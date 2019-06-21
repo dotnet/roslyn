@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes =>
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations =>
             DecodeReturnTypeAnnotationAttributes(GetDecodedReturnTypeWellKnownAttributeData());
 
         public sealed override MethodKind MethodKind
