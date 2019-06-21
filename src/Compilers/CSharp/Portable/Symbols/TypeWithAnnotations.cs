@@ -592,27 +592,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public void AddNullableTransforms(ArrayBuilder<byte> transforms)
         {
-            var type = Type;
+            AddNullableTransforms(this, transforms);
+        }
 
-            if (!SkipNullableTransform(type))
+        private static void AddNullableTransforms(TypeWithAnnotations typeWithAnnotations, ArrayBuilder<byte> transforms)
+        {
+            while (true)
             {
-                byte flag;
-                if (NullableAnnotation.IsOblivious() || type.IsValueType)
-                {
-                    flag = NullableAnnotationExtensions.ObliviousAttributeValue;
-                }
-                else if (NullableAnnotation.IsAnnotated())
-                {
-                    flag = NullableAnnotationExtensions.AnnotatedAttributeValue;
-                }
-                else
-                {
-                    flag = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
-                }
-                transforms.Add(flag);
-            }
+                var type = typeWithAnnotations.Type;
 
-            type.AddNullableTransforms(transforms);
+                if (!SkipNullableTransform(type))
+                {
+                    var annotation = typeWithAnnotations.NullableAnnotation;
+                    byte flag;
+                    if (annotation.IsOblivious() || type.IsValueType)
+                    {
+                        flag = NullableAnnotationExtensions.ObliviousAttributeValue;
+                    }
+                    else if (annotation.IsAnnotated())
+                    {
+                        flag = NullableAnnotationExtensions.AnnotatedAttributeValue;
+                    }
+                    else
+                    {
+                        flag = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
+                    }
+                    transforms.Add(flag);
+                }
+
+                if (type.TypeKind != TypeKind.Array)
+                {
+                    type.AddNullableTransforms(transforms);
+                    return;
+                }
+
+                // Avoid recursion to allow for deeply-nested arrays.
+                typeWithAnnotations = ((ArrayTypeSymbol)type).ElementTypeWithAnnotations;
+            }
         }
 
         public bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeWithAnnotations result)

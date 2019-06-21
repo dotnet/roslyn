@@ -446,7 +446,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     var moduleSymbol = ContainingPEModule;
                     TypeSymbol decodedType = DynamicTypeDecoder.TransformType(baseType, 0, _handle, moduleSymbol);
                     decodedType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(decodedType, _handle, moduleSymbol);
-                    // PROTOTYPE: Is there a cycle calculating the base type of NullableContextAttribute?
                     baseType = (NamedTypeSymbol)NullableTypeDecoder.TransformType(TypeWithAnnotations.Create(decodedType), _handle, moduleSymbol, this, GetNullableContextValue()).Type;
                 }
 
