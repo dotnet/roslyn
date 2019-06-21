@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -386,17 +387,17 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             if (typeInfo.Type?.SpecialType == SpecialType.System_String &&
                 typeInfo.ConvertedType?.IsFormattableString() == true)
             {
-                return typeInfo.ConvertedType;
+                return typeInfo.GetConvertedTypeWithFlowNullability();
             }
 
             if (typeInfo.Type != null)
             {
-                return typeInfo.Type;
+                return typeInfo.GetTypeWithFlowNullability();
             }
 
             if (typeInfo.ConvertedType != null)
             {
-                return typeInfo.ConvertedType;
+                return typeInfo.GetConvertedTypeWithFlowNullability();
             }
 
             if (objectAsDefault)

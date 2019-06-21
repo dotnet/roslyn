@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public NullableAnnotation ElementNullableAnnotation => throw new System.NotImplementedException();
+        public NullableAnnotation ElementNullableAnnotation => ElementType.GetNullability();
 
         public bool Equals(IArrayTypeSymbol other)
         {
