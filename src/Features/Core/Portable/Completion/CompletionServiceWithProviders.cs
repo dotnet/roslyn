@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             if (options.GetOption(CompletionServiceOptions.IncludeExpandedItemsOnly))
             {
-                providers = providers.Where(p => p.IsExpandItemProvider).ToImmutableArray();
+                providers = providers.WhereAsArray(p => p.IsExpandItemProvider);
             }
 
             // If the caller passed along specific options that affect snippets,
@@ -292,10 +292,8 @@ namespace Microsoft.CodeAnalysis.Completion
 
             if (exclusiveContexts.Any())
             {
-                return MergeAndPruneCompletionLists(
-                    exclusiveContexts,
-                    defaultItemSpan,
-                    isExclusive: true), expandItemsAvailableFromTriggeredProviders);
+                return (MergeAndPruneCompletionLists(exclusiveContexts, defaultItemSpan, isExclusive: true),
+                    expandItemsAvailableFromTriggeredProviders);
             }
 
             // Shouldn't be any exclusive completion contexts at this point.

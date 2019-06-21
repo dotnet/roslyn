@@ -374,6 +374,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             public ImmutableArray<AsyncCompletionData.CompletionFilter> Filters { get; }
 
+            /// <summary>
+            /// This is the bit vector value from the FilterSet of this item.
+            /// </summary>
             public int FilterSetData { get; }
 
             public ImmutableArray<ImageElement> AttributeIcons { get; }
@@ -494,7 +497,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// <summary>
         /// Provides an efficient way to compute a set of completion filters associated with a collection of completion items.
         /// Presence of expander and filter in the set have different meanings. Set contains a filter means the filter is
-        /// available but unselected, whereas it means available and selected for an expander. Note that even though VS support 
+        /// available but unselected, whereas it means available and selected for an expander. Note that even though VS supports 
         /// having multiple expanders, we only support one.
         /// </summary>
         private class FilterSet
@@ -505,14 +508,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             private static readonly Dictionary<string, AsyncCompletionData.CompletionFilter> s_filterCache =
                 new Dictionary<string, AsyncCompletionData.CompletionFilter>();
 
+            private BitVector32 _vector;
             private static readonly ImmutableArray<int> s_filterMasks;
             private static readonly int s_expanderMask;
-
-            private BitVector32 _vector;
+            private static AsyncCompletionData.CompletionExpander _expander = null;
 
             public static ImmutableArray<CompletionItemFilter> Filters => CompletionItemFilter.AllFilters;
 
-            private static AsyncCompletionData.CompletionExpander _expander = null;
             public static AsyncCompletionData.CompletionExpander Expander
             {
                 get
@@ -522,7 +524,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         var addImageId = Shared.Extensions.GlyphExtensions.GetKnownImageId(KnownImageIds.ExpandScope);
                         _expander = new AsyncCompletionData.CompletionExpander(
                             EditorFeaturesResources.Expander_display_text,
-                            accessKey: "x",
+                            accessKey: "a",
                             new ImageElement(addImageId, EditorFeaturesResources.Expander_image_element));
                     }
 
@@ -564,7 +566,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     listBuilder.Add(Expander);
                     vectorForSingleItem[s_expanderMask] = _vector[s_expanderMask] = true;
-
                 }
 
                 for (var i = 0; i < Filters.Length; ++i)

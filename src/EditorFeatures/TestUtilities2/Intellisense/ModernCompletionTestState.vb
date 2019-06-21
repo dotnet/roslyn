@@ -331,7 +331,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Overrides Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)
             Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
             Dim expander = presenter.GetExpander()
-            If (Not isAvailable) Then
+            If Not isAvailable Then
                 Assert.False(isSelected)
                 Assert.Null(expander)
             Else
