@@ -167,6 +167,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private PooledDictionary<BoundExpression, TypeWithState> _methodGroupReceiverMapOpt;
 
+        /// <summary>
+        /// True if we're analyzing speculative code. This turns off some initialization steps
+        /// that would otherwise be taken.
+        /// </summary>
+        private readonly bool _isSpeculative;
+
 #if DEBUG
         /// <summary>
         /// Contains the expressions that should not be inserted into <see cref="_analyzedNullabilityMapOpt"/>.
@@ -330,7 +336,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableState initialState,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt,
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMapOpt,
-            SnapshotManager.Builder snapshotBuilderOpt)
+            SnapshotManager.Builder snapshotBuilderOpt,
+            bool isSpeculative = false)
             // Members of variables are tracked up to a fixed depth, to avoid cycles. The
             // maxSlotDepth value is arbitrary but large enough to allow most scenarios.
             : base(compilation, symbol, node, EmptyStructTypeCache.CreatePrecise(), trackUnassignments: true, maxSlotDepth: 5)
@@ -342,6 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _analyzedNullabilityMapOpt = analyzedNullabilityMapOpt;
             _returnTypesOpt = returnTypesOpt;
             _snapshotBuilderOpt = snapshotBuilderOpt;
+            _isSpeculative = isSpeculative;
 
             if (initialState != null)
             {
@@ -388,16 +396,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _returnTypesOpt.Clear();
             }
             this.Diagnostics.Clear();
-            ParameterSymbol methodThisParameter = MethodThisParameter;
             this.regionPlace = RegionPlace.Before;
-            EnterParameters(); // assign parameters
-            if (!(methodThisParameter is null))
+            if (!_isSpeculative)
             {
-                EnterParameter(methodThisParameter, methodThisParameter.TypeWithAnnotations);
-            }
+                ParameterSymbol methodThisParameter = MethodThisParameter;
+                EnterParameters(); // assign parameters
+                if (!(methodThisParameter is null))
+                {
+                    EnterParameter(methodThisParameter, methodThisParameter.TypeWithAnnotations);
+                }
 
-            // We need to create a snapshot even of the first node, because we want to have the state of the initial parameters.
-            _snapshotBuilderOpt?.TakeIncrementalSnapshot(methodMainNode, State);
+                // We need to create a snapshot even of the first node, because we want to have the state of the initial parameters.
+                _snapshotBuilderOpt?.TakeIncrementalSnapshot(methodMainNode, State);
+            }
 
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
             return pendingReturns;
@@ -472,6 +483,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new NullabilityRewriter(analyzedNullabilitiesMap).Visit(node);
         }
 
+        internal static BoundNode AnalyzeAndRewriteSpeculation(
+            int position,
+            BoundNode node,
+            Binder binder,
+            SnapshotManager originalSnapshots)
+        {
+            var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>();
+            var (walker, initialState) = originalSnapshots.RestoreWalkerToAnalyzeNewNode(position, node, binder, analyzedNullabilities);
+            Analyze(walker, symbol: null, diagnostics: null, initialState, snapshotBuilderOpt: null);
+
+            var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
+
+#if DEBUG
+            if (binder.Compilation.NullableAnalysisEnabled)
+            {
+                DebugVerifier.Verify(analyzedNullabilitiesMap, snapshotManagerOpt: null, node);
+            }
+#endif
+
+            return new NullabilityRewriter(analyzedNullabilitiesMap).Visit(node);
+        }
+
         internal static void AnalyzeIfNeeded(
             Binder binder,
             BoundAttribute attribute,
@@ -539,19 +572,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt)
         {
             Debug.Assert(diagnostics != null);
-            var walker = new NullableWalker(
-                compilation,
-                symbol,
-                useMethodSignatureParameterTypes,
-                methodSignatureOpt,
-                node,
-                binder,
-                conversions,
-                initialState,
-                returnTypesOpt,
-                analyzedNullabilityMapOpt,
-                snapshotBuilderOpt);
+            var walker = new NullableWalker(compilation,
+                                                    symbol,
+                                                    useMethodSignatureParameterTypes,
+                                                    methodSignatureOpt,
+                                                    node,
+                                                    binder,
+                                                    conversions,
+                                                    initialState,
+                                                    returnTypesOpt,
+                                                    analyzedNullabilityMapOpt,
+                                                    snapshotBuilderOpt);
 
+            Analyze(walker, symbol, diagnostics, initialState, snapshotBuilderOpt);
+        }
+
+        private static void Analyze(
+            NullableWalker walker,
+            Symbol symbol,
+            DiagnosticBag diagnostics,
+            VariableState initialState,
+            SnapshotManager.Builder snapshotBuilderOpt)
+        {
             try
             {
                 bool badRegion = false;
@@ -559,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var previousSlot = snapshotBuilderOpt?.EnterNewWalker(symbol) ?? -1;
                 ImmutableArray<PendingBranch> returns = walker.Analyze(ref badRegion, initialLocalState);
                 snapshotBuilderOpt?.ExitWalker(walker.SaveSharedState(), previousSlot);
-                diagnostics.AddRange(walker.Diagnostics);
+                diagnostics?.AddRange(walker.Diagnostics);
                 Debug.Assert(!badRegion);
             }
             catch (CancelledByStackGuardException ex) when (diagnostics != null)
@@ -575,7 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SharedWalkerState SaveSharedState() =>
             new SharedWalkerState(
                 _variableSlot.ToImmutableDictionary(),
-                variableBySlot.ToImmutableArray(),
+                ImmutableArray.Create(variableBySlot, start: 0, length: nextVariableSlot),
                 _variableTypes.ToImmutableDictionary(),
                 _symbol);
 
