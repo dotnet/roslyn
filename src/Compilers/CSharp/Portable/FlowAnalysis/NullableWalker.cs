@@ -2813,8 +2813,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
             }
 
-            method = VisitArguments(node, node.Arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt,
-                node.Expanded, node.InvokedAsExtensionMethod, method).method;
+            ImmutableArray<VisitArgumentResult> results;
+            (method, results) = VisitArguments(node, node.Arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt,
+                node.Expanded, node.InvokedAsExtensionMethod, method);
+
+            var arguments = node.Arguments;
+            if (IsStaticEqualsMethod(method) || IsIEqualityComparerEqualsMethodOrImplementation(method))
+            {
+                Debug.Assert(arguments.Length == 2);
+                LearnFromEqualsMethod(arguments[0], results[0].RValueType, arguments[1], results[1].RValueType);
+            }
+            else if (IsObjectEqualsMethodOrOverride(method) || IsIEquatableEqualsMethodOrImplementation(method))
+            {
+                Debug.Assert(arguments.Length == 1);
+                LearnFromEqualsMethod(node.ReceiverOpt, receiverType, arguments[0], results[0].RValueType);
+            }
 
             if (method.MethodKind == MethodKind.LocalFunction)
             {
@@ -2823,6 +2836,133 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             SetResult(node, GetReturnTypeWithState(method), method.ReturnTypeWithAnnotations);
+        }
+
+        private bool IsStaticEqualsMethod(MethodSymbol method)
+        {
+            if (compilation.GetSpecialTypeMember(SpecialMember.System_Object__EqualsObjectObject).Equals(method))
+            {
+                return true;
+            }
+            else if (compilation.GetSpecialTypeMember(SpecialMember.System_Object__ReferenceEquals).Equals(method))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        private bool IsObjectEqualsMethodOrOverride(MethodSymbol method)
+        {
+            if (method.ParameterCount != 1
+                || method.ReturnType.SpecialType != SpecialType.System_Boolean
+                || method.Name != WellKnownMemberNames.ObjectEquals)
+            {
+                return false;
+            }
+
+            var objectEqualsMethod = compilation.GetSpecialTypeMember(SpecialMember.System_Object__Equals);
+            return objectEqualsMethod.Equals(method.GetLeastOverriddenMethod(accessingTypeOpt: null));
+        }
+
+
+        private bool IsIEquatableEqualsMethodOrImplementation(MethodSymbol method)
+        {
+            if (method.ParameterCount != 1
+                || method.MethodKind != MethodKind.Ordinary
+                || method.ReturnType.SpecialType != SpecialType.System_Boolean
+                || method.Name != WellKnownMemberNames.ObjectEquals)
+            {
+                return false;
+            }
+
+            var iEquatableType = compilation.GetWellKnownType(WellKnownType.System_IEquatable_T);
+            if (iEquatableType is null)
+            {
+                return false;
+            }
+
+            var parameterType = method.Parameters[0].TypeWithAnnotations;
+            var constructedIEquatableType = iEquatableType.Construct(ImmutableArray.Create(parameterType));
+            var members = constructedIEquatableType.GetMembers(WellKnownMemberNames.ObjectEquals);
+            if (members.Length != 1)
+            {
+                // If the Equals method is missing on the interface definition, or it's overloaded, give up.
+                return false;
+            }
+
+            var constructedIEquatableEqualsMethod = members[0];
+            if (constructedIEquatableEqualsMethod.Equals(method))
+            {
+                return true;
+            }
+
+            var implementationMethod = method.ContainingType.FindImplementationForInterfaceMember(constructedIEquatableEqualsMethod);
+            return method.Equals(implementationMethod);
+        }
+
+        private bool IsIEqualityComparerEqualsMethodOrImplementation(MethodSymbol method)
+        {
+            if (method.ParameterCount != 2
+                || !method.Parameters[0].Type.Equals(method.Parameters[1].Type)
+                || method.MethodKind != MethodKind.Ordinary
+                || method.ReturnType.SpecialType != SpecialType.System_Boolean
+                || method.Name != WellKnownMemberNames.ObjectEquals)
+            {
+                return false;
+            }
+
+            var iEqualityComparerType = compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IEqualityComparer_T);
+            if (iEqualityComparerType is null)
+            {
+                return false;
+            }
+
+            var parameterType = method.Parameters[0].TypeWithAnnotations;
+            var constructedIEqualityComparerType = iEqualityComparerType.Construct(ImmutableArray.Create(parameterType));
+            var members = constructedIEqualityComparerType.GetMembers(WellKnownMemberNames.ObjectEquals);
+            if (members.Length != 1)
+            {
+                // If the Equals method is missing on the interface definition, or it's overloaded, give up.
+                return false;
+            }
+
+            var constructedIEqualityComparerEqualsMethod = members[0];
+            if (constructedIEqualityComparerEqualsMethod.Equals(method))
+            {
+                return true;
+            }
+
+            var implementationMethod = method.ContainingType.FindImplementationForInterfaceMember(constructedIEqualityComparerEqualsMethod);
+            return method.Equals(implementationMethod);
+        }
+
+        private void LearnFromEqualsMethod(BoundExpression left, TypeWithState leftType, BoundExpression right, TypeWithState rightType)
+        {
+            if (left.ConstantValue?.IsNull == true)
+            {
+                Split();
+                LearnFromNullTest(right, ref StateWhenTrue);
+                LearnFromNonNullTest(right, ref StateWhenFalse);
+            }
+            else if (right.ConstantValue?.IsNull == true)
+            {
+                Split();
+                LearnFromNullTest(left, ref StateWhenTrue);
+                LearnFromNonNullTest(left, ref StateWhenFalse);
+            }
+            else if (leftType.MayBeNull && rightType.IsNotNull)
+            {
+                Split();
+                LearnFromNonNullTest(left, ref StateWhenTrue);
+            }
+            else if (rightType.MayBeNull && leftType.IsNotNull)
+            {
+                Split();
+                LearnFromNonNullTest(right, ref StateWhenTrue);
+            }
         }
 
         private TypeWithState VisitCallReceiver(BoundCall node)

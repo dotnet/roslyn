@@ -68,6 +68,8 @@ namespace Microsoft.CodeAnalysis
 
         System_IEquatable_T__Equals,
 
+        System_Collections_Generic_IEqualityComparer_T__Equals,
+
         System_Collections_Generic_EqualityComparer_T__Equals,
         System_Collections_Generic_EqualityComparer_T__GetHashCode,
         System_Collections_Generic_EqualityComparer_T__get_Default,
