@@ -661,7 +661,8 @@ tryAgain:
         {
             var arms = _pool.AllocateSeparated<SwitchExpressionArmSyntax>();
 
-            while (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
+            int lastTokenPosition = -1;
+            while (IsMakingProgress(ref lastTokenPosition) && this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
                 // We use a precedence that excludes lambdas, assignments, and a conditional which could have a
                 // lambda on the right, because we need the parser to leave the EqualsGreaterThanToken
