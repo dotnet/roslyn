@@ -193,7 +193,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
-            if (data.Trigger.Reason == CompletionTriggerReason.Backspace &&
+            // For DismissIfLastCharacterDeleted, we should excuse if we started with backspace/delete.
+            // When pressing backspace for the first time at a.b$$, we should display a completion not dismiss it.
+            if (initialRoslynTriggerKind != CompletionTriggerKind.Deletion &&
+                data.Trigger.Reason == CompletionTriggerReason.Backspace &&
                 completionRules.DismissIfLastCharacterDeleted &&
                 session.ApplicableToSpan.GetText(data.Snapshot).Length == 0)
             {
