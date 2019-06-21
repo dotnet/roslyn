@@ -506,7 +506,7 @@ class C
             await TestAsync("C [|LocalFunction|](C c)");
             await TestAsync("C LocalFunction[||](C c)");
             await TestAsync("C Local[|Function|](C c)");
-            await TestMissingAsync("[||]C LocalFunction(C c)");
+            await TestAsync("[||]C LocalFunction(C c)");
             await TestMissingAsync("[|C|] LocalFunction(C c)");
             await TestMissingAsync("C[||] LocalFunction(C c)");
             await TestMissingAsync("C[| |]LocalFunction(C c)");
@@ -732,6 +732,76 @@ $@"class C
     private static C LocalFunction(C c)
     {
         return null;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        public async Task TestMethodBlockSelection9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        C LocalFunction(C c)
+        {
+            return null;
+        }[||]
+    }
+}",
+@"class C
+{
+    void M()
+    {
+    }
+
+    private static C LocalFunction(C c)
+    {
+        return null;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        public async Task TestMethodBlockSelection10()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [||]C LocalFunction(C c)
+        {
+            return null;
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+    }
+
+    private static C LocalFunction(C c)
+    {
+        return null;
+    }
+}");
+        }
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        public async Task TestMethodBlockSelection11()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        object a = null;[||]
+        C LocalFunction(C c)
+        {
+            return null;
+        }
     }
 }");
         }

@@ -36,10 +36,42 @@ namespace Microsoft.CodeAnalysis
                 return node;
             }
 
-            // e.g. "C LocalFunction[||](C c)" -> root.FindNode return ParameterList but we still want to return LocalFunctionNode
-            var touchingToken = await root.SyntaxTree.GetTouchingTokenAsync(selectionStripped.Start,
-                token => token.Parent is TSyntaxNode, cancellationToken).ConfigureAwait(false);
-            return touchingToken.Parent as TSyntaxNode;
+            // only consider what is direct selection touching when selection is empty 
+            // prevents `[|C|] methodName(){}` from registering as relevant for method Node
+            if (!selection.IsEmpty)
+            {
+                return default;
+            }
+
+            var tokenToLeft = await root.SyntaxTree.GetTouchingTokenToLeftAsync(selectionStripped.Start, cancellationToken).ConfigureAwait(false);
+            var leftNode = tokenToLeft.Parent;
+            do
+            {
+                // either touches a Token which parent is `TSyntaxNode` or is whose ancestor's span ends on selection
+                if (leftNode is TSyntaxNode)
+                {
+                    return (TSyntaxNode)leftNode;
+                }
+
+                leftNode = leftNode?.Parent;
+            } while (leftNode != null && leftNode.Span.End == selection.Start);
+
+
+            var tokenToRight = await root.SyntaxTree.GetTouchingTokenToRightOrInAsync(selectionStripped.Start, cancellationToken).ConfigureAwait(false);
+            var rightNode = tokenToRight.Parent;
+            do
+            {
+                // either touches a Token which parent is `TSyntaxNode` or is whose ancestor's span starts on selection
+                if (rightNode is TSyntaxNode)
+                {
+                    return (TSyntaxNode)rightNode;
+                }
+
+                rightNode = rightNode?.Parent;
+            } while (rightNode != null && rightNode.Span.Start == selection.Start);
+
+            return default;
+
         }
 
         public static Task<bool> RefactoringSelectionIsValidAsync(
@@ -176,14 +208,14 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         private static async Task<TextSpan> GetStrippedTextSpan(Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var start = span.Start;
-            var end = span.End;
-
             if (span.IsEmpty)
             {
                 return span;
             }
+
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var start = span.Start;
+            var end = span.End;
 
             while (start < end && char.IsWhiteSpace(sourceText[end - 1]))
             {
