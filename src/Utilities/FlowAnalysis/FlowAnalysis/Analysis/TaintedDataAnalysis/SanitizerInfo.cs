@@ -10,13 +10,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// </summary>
     internal sealed class SanitizerInfo : ITaintedDataInfo, IEquatable<SanitizerInfo>
     {
-        public SanitizerInfo(string fullTypeName, bool isInterface, bool isConstructorSanitizing, ImmutableHashSet<string> sanitizingMethods, ImmutableHashSet<string> sanitizingParameterMethods)
+        public SanitizerInfo(string fullTypeName, bool isInterface, bool isConstructorSanitizing, ImmutableHashSet<string> sanitizingMethods, ImmutableHashSet<string> sanitizingInstanceMethods)
         {
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
             IsInterface = isInterface;
             IsConstructorSanitizing = isConstructorSanitizing;
             SanitizingMethods = sanitizingMethods ?? throw new ArgumentNullException(nameof(sanitizingMethods));
-            SanitizingParameterMethods = sanitizingParameterMethods ?? throw new ArgumentNullException(nameof(sanitizingParameterMethods));
+            SanitizingInstanceMethods = sanitizingInstanceMethods ?? throw new ArgumentNullException(nameof(sanitizingInstanceMethods));
         }
 
         /// <summary>
@@ -42,12 +42,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// Methods that untaint tainted instance.
         /// </summary>
-        public ImmutableHashSet<string> SanitizingParameterMethods { get; }
+        public ImmutableHashSet<string> SanitizingInstanceMethods { get; }
 
         public override int GetHashCode()
         {
             return HashUtilities.Combine(this.SanitizingMethods,
-                HashUtilities.Combine(this.SanitizingParameterMethods,
+                HashUtilities.Combine(this.SanitizingInstanceMethods,
                 HashUtilities.Combine(StringComparer.Ordinal.GetHashCode(this.FullTypeName),
                 this.IsConstructorSanitizing.GetHashCode())));
         }
@@ -63,7 +63,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && this.FullTypeName == other.FullTypeName
                 && this.IsConstructorSanitizing == other.IsConstructorSanitizing
                 && this.SanitizingMethods == other.SanitizingMethods
-                && this.SanitizingParameterMethods == other.SanitizingParameterMethods;
+                && this.SanitizingInstanceMethods == other.SanitizingInstanceMethods;
         }
     }
 }

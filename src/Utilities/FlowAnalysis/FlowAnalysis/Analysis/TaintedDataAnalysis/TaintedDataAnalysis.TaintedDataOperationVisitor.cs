@@ -232,7 +232,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     return TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
                 }
-                else if (this.IsSanitizingInstanceMethod(method))
+                else if (visitedInstance != null && this.IsSanitizingInstanceMethod(method))
                 {
                     if (AnalysisEntityFactory.TryCreate(visitedInstance, out AnalysisEntity analysisEntity))
                     {
@@ -433,7 +433,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             {
                 foreach (SanitizerInfo sanitizerInfo in this.DataFlowAnalysisContext.SanitizerInfos.GetInfosForType(method.ContainingType))
                 {
-                    if (sanitizerInfo.SanitizingParameterMethods.Contains(method.MetadataName))
+                    if (sanitizerInfo.SanitizingInstanceMethods.Contains(method.MetadataName))
                     {
                         return true;
                     }
