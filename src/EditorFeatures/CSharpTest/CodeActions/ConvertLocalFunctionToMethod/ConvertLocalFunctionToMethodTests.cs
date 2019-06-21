@@ -708,5 +708,32 @@ $@"class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        public async Task TestMethodBlockSelection8()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|C LocalFunction(C c)|]
+        {
+            return null;
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+    }
+
+    private static C LocalFunction(C c)
+    {
+        return null;
+    }
+}");
+        }
     }
 }
