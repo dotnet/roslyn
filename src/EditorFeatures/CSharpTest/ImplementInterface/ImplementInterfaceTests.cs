@@ -7965,6 +7965,37 @@ public class Test : ITest
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithNullableEvent()
+        {
+            // Question whether this is needed,
+            // see https://github.com/dotnet/roslyn/issues/36673 
+            await TestInRegularAndScriptAsync(
+@"#nullable enable 
+
+using System;
+
+public interface ITest
+{
+    event EventHandler? SomeEvent;
+}
+public class Test : [|ITest|]
+{
+}",
+@"#nullable enable 
+
+using System;
+
+public interface ITest
+{
+    event EventHandler? SomeEvent;
+}
+public class Test : ITest
+{
+    public event EventHandler? SomeEvent;
+}");
+        }
+
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36101"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestWithNullableDisabled()
         {
