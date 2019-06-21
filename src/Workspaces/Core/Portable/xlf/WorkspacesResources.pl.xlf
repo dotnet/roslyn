@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
         <source>Adding analyzer config documents is not supported.</source>
-        <target state="new">Adding analyzer config documents is not supported.</target>
+        <target state="translated">Dodawanie dokumentów z konfiguracją analizatora nie jest obsługiwane.</target>
         <note />
       </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
         <source>Changing analyzer config documents is not supported.</source>
-        <target state="new">Changing analyzer config documents is not supported.</target>
+        <target state="translated">Zmiana dokumentów z konfiguracją analizatora nie jest obsługiwana.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_document_0_is_not_supported">
@@ -1224,7 +1224,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="Removing_analyzer_config_documents_is_not_supported">
         <source>Removing analyzer config documents is not supported.</source>
-        <target state="new">Removing analyzer config documents is not supported.</target>
+        <target state="translated">Usuwanie dokumentów z konfiguracją analizatora nie jest obsługiwane.</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">

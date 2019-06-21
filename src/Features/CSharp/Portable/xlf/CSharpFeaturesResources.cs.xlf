@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
         <source>Convert switch statement to expression</source>
-        <target state="new">Convert switch statement to expression</target>
+        <target state="translated">Převést příkaz switch na výraz</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="Sort_Usings">
         <source>&amp;Sort Usings</source>
-        <target state="new">&amp;Sort Usings</target>
+        <target state="translated">&amp;Seřadit direktivy using</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
@@ -144,7 +144,7 @@
       </trans-unit>
       <trans-unit id="Use_switch_expression">
         <source>Use 'switch' expression</source>
-        <target state="new">Use 'switch' expression</target>
+        <target state="translated">Použít výraz switch</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
@@ -524,7 +524,7 @@
       </trans-unit>
       <trans-unit id="ref_local_or_expression">
         <source>ref local or expression</source>
-        <target state="translated">lokální proměnná nebo odkaz ref</target>
+        <target state="translated">místní ref nebo výraz</target>
         <note>{Locked="ref"} "ref" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="v7_switch">

@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractEventHasAccessors">
         <source>'{0}': abstract event cannot use event accessor syntax</source>
-        <target state="new">'{0}': abstract event cannot use event accessor syntax</target>
+        <target state="translated">'{0}': soyut olay, olay erişeni söz dizimini kullanamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
-        <target state="needs-review-translation">/nullable için geçersiz '{0}' seçeneği; 'disable', 'enable', 'safeonly', 'warnings' veya 'safeonlywarnings' olmalıdır</target>
+        <target state="new">Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
         <source>The typeof operator cannot be used on a nullable reference type</source>
-        <target state="new">The typeof operator cannot be used on a nullable reference type</target>
+        <target state="translated">Boş değer atanabilir tür üzerinde typeof işleci kullanılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleEnumeratorCancellationAttributes">
         <source>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</source>
-        <target state="new">The attribute [EnumeratorCancellation] cannot be used on multiple parameters</target>
+        <target state="translated">[EnumeratorCancellation] özniteliği birden çok parametre üzerinde kullanılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -284,12 +284,12 @@
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
         <source>The 'notnull' constraint must come before any other constraints</source>
-        <target state="new">The 'notnull' constraint must come before any other constraints</target>
+        <target state="translated">'notnull' kısıtlaması diğer kısıtlamalardan önce gelmelidir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'disable', or 'restore'</source>
-        <target state="needs-review-translation">'enable', 'safeonly', 'disable' veya 'restore' bekleniyordu</target>
+        <target state="translated">'enable', 'disable' veya 'restore' bekleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
@@ -604,45 +604,45 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                               Visual C# Derleyici Seçenekleri
 
-                        - ÇIKIŞ DOSYALARI -
--out:&lt;dosya&gt;                   Çıkış dosyası adını belirt (varsayılan: main
-                               sınıfının olduğu dosyanın veya ilk dosyanın temel adı)
+                       - ÇIKIŞ DOSYALARI -
+-out:&lt;dosya&gt;                   Çıkış dosyası adını belirt (varsayılan: ana
+                              sınıfın olduğu dosyanın veya ilk dosyanın temel adı)
 -target:exe                   Konsol yürütülebilir dosyası derle (varsayılan) (Kısa
-                               biçim: -t:exe)
+                              biçim: -t:exe)
 -target:winexe                Windows yürütülebilir dosyası derle (Kısa biçim:
-                               -t:winexe)
+                              -t:winexe)
 -target:library               Kitaplık derle (Kısa biçim: -t:library)
 -target:module                Başka bir bütünleştirilmiş koda eklenebilecek bir
-                               modül derle (Kısa biçim: -t:module)
+                              modül derle (Kısa biçim: -t:module)
 -target:appcontainerexe       Appcontainer yürütülebilir dosyası derle (Kısa biçim:
-                               -t:appcontainerexe)
+                              -t:appcontainerexe)
 -target:winmdobj              WinMDExp tarafından kullanılan bir Windows Çalışma Zamanı
-                               ara dosyası derle (Kısa biçim: -t:winmdobj)
+                              ara dosyası derle (Kısa biçim: -t:winmdobj)
 -doc:&lt;dosya&gt;                   Oluşturulacak XML Belge dosyası
 -refout:&lt;dosya&gt;                Oluşturulacak başvuru bütünleştirilmiş kodu çıkışı
 -platform:&lt;dize&gt;            Bu kodun çalıştırılabileceği platformları sınırla: x86,
-                               Itanium, x64, arm, anycpu32bitpreferred veya
-                               anycpu. Varsayılan: anycpu.
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred veya
+                              anycpu. Varsayılan: anycpu.
 
-                        - GİRİŞ DOSYALARI -
+                       - GİRİŞ DOSYALARI -
 -recurse:&lt;joker karakter&gt;           Joker karakter belirtimlerine göre, geçerli
-                               dizindeki ve alt dizinlerdeki tüm dosyaları
-                               dahil et
+                              dizindeki ve alt dizinlerdeki tüm dosyaları
+                              dahil et
 -reference:&lt;diğer ad&gt;=&lt;dosya&gt;     Belirtilen bütünleştirilmiş kod dosyasındaki meta verilere
-                               belirtilen diğer adla başvur (Kısa biçim: -r)
+                              belirtilen diğer adla başvur (Kısa biçim: -r)
 -reference:&lt;dosya listesi&gt;        Belirtilen bütünleştirilmiş kod dosyalarındaki meta verilere
-                               başvur (Kısa biçim: -r)
+                              başvur (Kısa biçim: -r)
 -addmodule:&lt;dosya listesi&gt;        Belirtilen modülleri bu bütünleştirilmiş koda bağla
 -link:&lt;dosya listesi&gt;             Belirtilen birlikte çalışma derleme dosyalarından
-                               meta veri ekle (Kısa biçim: -l)
+                              meta veri ekle (Kısa biçim: -l)
 -analyzer:&lt;dosya listesi&gt;         Çözümleyicileri bu bütünleştirilmiş koddan çalıştır
-                               (Kısa biçim: -a)
+                              (Kısa biçim: -a)
 -additionalfile:&lt;dosya listesi&gt;   Kod oluşturmayı doğrudan etkilemeyen ancak hata
-                               ve uyarılar oluşturmak için çözümleyicilerin
-                               kullanabileceği ek dosyalar.
+                              ve uyarılar oluşturmak için çözümleyicilerin
+                              kullanabileceği ek dosyalar.
 -embed                        Tüm kaynak dosyalarını PDB'ye ekle.
 -embed:&lt;dosya listesi&gt;            Belirli dosyaları PDB'ye ekle.
 
@@ -653,22 +653,22 @@
 -nowin32manifest              Varsayılan Win32 bildirimini dahil etme
 -resource:&lt;kaynak bilgileri&gt;           Belirtilen kaynağı ekle (Kısa biçim: -res)
 -linkresource:&lt;kaynak bilgileri&gt;       Belirtilen kaynağı bu bütünleştirilmiş koda bağla
-                               (Kısa biçim: -linkres) Burada kaynak bilgisi biçimi:
-                               &lt;dosya&gt;[,&lt;dize adı&gt;[,public|private]]
+                              (Kısa biçim: -linkres) Kaynak bilgisi biçimi:
+                              &lt;dosya&gt;[,&lt;dize adı&gt;[,public|private]]
 
                         - KOD OLUŞTURMA -
 -debug[+|-]                   Hata ayıklama bilgilerini yayınla
 -debug:{full|pdbonly|portable|embedded}
-                               Hata ayıklama türünü belirt (varsayılan: 'full',
-                               'portable': platformlar arası bir biçim,
-                               'embedded': hedef .dll veya .exe dosyasına
-                               eklenmiş platformlar arası bir biçim)
+                              Hata ayıklama türünü belirt (varsayılan: 'full',
+                              'portable': platformlar arası bir biçim,
+                              'embedded': hedef .dll veya .exe dosyasına
+                              eklenmiş platformlar arası bir biçim)
 -optimize[+|-]                İyileştirmeleri etkinleştir (Kısa biçim: -o)
 -deterministic                Belirlenimci bir bütünleştirilmiş kod oluştur
-                               (modül sürümü GUID'si ve zaman damgası dahil)
+                              (modül sürümü GUID'si ve zaman damgası dahil)
 -refonly                      Ana çıkış yerine bir başvuru bütünleştirilmiş kodu oluştur
 -instrument:TestCoverage      Kapsam bilgilerini toplamak üzere
-                               izleme eklenmiş bir bütünleştirilmiş kod üret
+                              izleme eklenmiş bir bütünleştirilmiş kod üret
 -sourcelink:&lt;dosya&gt;            PDB'ye eklenecek kaynak bağlantı bilgileri.
 
                         - HATALAR VE UYARILAR -
@@ -677,31 +677,31 @@
 -warn:&lt;n&gt;                     Uyarı düzeyini belirle (0-4) (Kısa biçim: -w)
 -nowarn:&lt;uyarı listesi&gt;           Belirli uyarı iletilerini devre dışı bırak
 -ruleset:&lt;dosya&gt;               Belirli tanılamaları devre dışı bırakan bir
-                               kural kümesi dosyası belirt.
+                              kural kümesi dosyası belirt.
 -errorlog:&lt;dosya&gt;              Tüm derleyici ve çözümleyici tanılamalarını günlüğe kaydetmek için
-                               bir dosya belirt.
+                              bir dosya belirt.
 -reportanalyzer               Yürütme zamanı gibi ek çözümleyici
-                               bilgilerini bildir.
+                              bilgilerini bildir.
 
                         - DİL -
 -checked[+|-]                 Taşma denetimleri oluştur
 -unsafe[+|-]                  'Güvensiz' koda izin ver
 -define:&lt;sembol listesi&gt;         Koşullu derleme sembolleri tanımla (Kısa
-                               biçim: -d)
+                              biçim: -d)
 -langversion:?                Dil sürümü için izin verilen değerleri görüntüle
--langversion:&lt;string&gt;         ‘varsayılan’ (en son ana sürüm) veya
-                              ‘en son’ (alt sürümlerin dahil olduğu en son sürüm)
+-langversion:&lt;dize&gt;         ‘default’ (en son ana sürüm) veya
+                              ‘latest’ (alt sürümlerin dahil olduğu en son sürüm)
                               gibi dil sürümlerini ya da `6` veya `7.1`
                               gibi belirli sürümleri belirt
--nullable[+|-]                Boş değer atanabilir bağlamın enable|disable seçeneğini belirt.
--nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
-                              Boş değer atanabilir bağlamın enable|disable|safeonly|warnings|safeonlywarnings seçeneğini belirt.
+-nullable[+|-]                Boş değer atanabilir bağlamı enable|disable olarak belirt.
+-nullable:{enable|disable|warnings}
+                              Boş değer atanabilir bağlamı enable|disable|warnings olarak belirt.
 
                        - GÜVENLİK -
 -delaysign[+|-]               Bütünleştirilmiş kodu, tanımlayıcı ad anahtarının yalnızca genel 
-                               kısmını kullanarak gecikmeli imzala
+                              kısmını kullanarak gecikmeli imzala
 -publicsign[+|-]              Bütünleştirilmiş kodu, tanımlayıcı ad anahtarının yalnızca genel
-                               kısmını kullanarak genel olarak imzala
+                              kısmını kullanarak genel olarak imzala
 -keyfile:&lt;dosya&gt;               Bir tanımlayıcı ad anahtarı dosyası belirt
 -keycontainer:&lt;dize&gt;        Bir tanımlayıcı ad anahtarı kapsayıcısı belirt
 -highentropyva[+|-]           Yüksek entropili ASLR'yi etkinleştir
@@ -717,37 +717,37 @@
                         - GELİŞMİŞ -
 -baseaddress:&lt;adres&gt;        Derlenecek kitaplığın taban adresi
 -checksumalgorithm:&lt;alg&gt;      PDB'de depolanan kaynak dosya sağlama toplamını 
-                               hesaplama algoritmasını belirt. Desteklenen değerler:
-                               SHA1 veya SHA256 (varsayılan).
+                              hesaplama algoritmasını belirt. Desteklenen değerler:
+                              SHA1 veya SHA256 (varsayılan).
 -codepage:&lt;n&gt;                 Kaynak dosyalarını açarken kullanılacak kod 
-                               sayfasını belirt
+                              sayfasını belirt
 -utf8output                   Derleyici iletilerini UTF-8 kodlamasında görüntüle
 -main:&lt;tür&gt;                  Giriş noktasını içeren türü belirt
-                               (diğer tüm olası giriş noktalarını yoksay) (Kısa
-                               biçim: -m)
+                              (diğer tüm olası giriş noktalarını yoksay) (Kısa
+                              biçim: -m)
 -fullpaths                    Derleyici tam yollar oluşturur
 -filealign:&lt;n&gt;                Çıkış dosyasının bölümleri için kullanılan 
-                               hizalamayı belirt
--pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                               Derleyici tarafından gösterilen kaynak yolu adları için bir eşleme
-                               belirt.
+                              hizalamayı belirt
+-pathmap:&lt;A1&gt;=&lt;D1&gt;,&lt;A2&gt;=&lt;D2&gt;,...
+                              Derleyici tarafından gösterilen kaynak yolu adları için bir eşleme
+                              belirt.
 -pdb:&lt;dosya&gt;                   Hata ayıklama bilgileri dosyasının adını belirt (varsayılan:
-                               .pdb uzantılı çıkış dosyasının adı)
+                              .pdb uzantılı çıkış dosyasının adı)
 -errorendlocation             Her hatanın bitiş konumunun satır ve sütununu
-                               göster
+                              göster
 -preferreduilang              Tercih edilen çıkış dilinin adını belirt.
 -nosdkpath                    Standart kitaplık bütünleştirilmiş kodlar için varsayılan SDK yolu aramayı devre dışı bırak.
 -nostdlib[+|-]                Standart kitaplığa (mscorlib.dll) başvurma
 -subsystemversion:&lt;dize&gt;    Bu bütünleştirilmiş kodun alt sistem sürümünü belirt
 -lib:&lt;dosya listesi&gt;              İçinde başvuruların aranacağı ek dizinleri
-                               belirt
+                              belirt
 -errorreport:&lt;dize&gt;         İç derleyici hatalarının nasıl işleneceğini belirt:
-                               prompt, send, queue veya none. Varsayılan:
-                               queue.
+                              prompt, send, queue veya none. Varsayılan:
+                              queue.
 -appconfig:&lt;dosya&gt;             Bütünleştirilmiş kod bağlama ayarlarını içeren 
-                               bir uygulama yapılandırma dosyası belirt
+                              bir uygulama yapılandırma dosyası belirt
 -moduleassemblyname:&lt;dize&gt;  Bu modülün parçası olacağı bütünleştirilmiş kodun
-                               adı
+                              adı
 -modulename:&lt;dize&gt;          Kaynak modülün adını belirt
 </target>
         <note>Visual C# Compiler Options</note>
@@ -804,12 +804,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureNestedStackalloc">
         <source>stackalloc in nested expressions</source>
-        <target state="new">stackalloc in nested expressions</target>
+        <target state="translated">iç içe geçmiş ifadelerde stackalloc</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNotNullGenericTypeConstraint">
         <source>notnull generic type constraint</source>
-        <target state="new">notnull generic type constraint</target>
+        <target state="translated">notnull genel tür kısıtlaması</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
@@ -824,7 +824,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnable">
         <source>warning action enable</source>
-        <target state="new">warning action enable</target>
+        <target state="translated">enable uyarı eylemi</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRangeOperator">
@@ -1334,12 +1334,12 @@
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <target state="translated">Olası bir null değer, [DisallowNull] özniteliğiyle işaretlenmiş bir hedefe geçirilemez</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
         <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <target state="translated">Olası bir null değer, [DisallowNull] özniteliğiyle işaretlenmiş bir hedefe geçirilemez</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1394,12 +1394,12 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="needs-review-translation">Boş değer atanabilir başvuru türleri için ek açıklama kodda yalnızca bir '#nullable' bağlamı içinde kullanılmalıdır.</target>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="needs-review-translation">Boş değer atanabilir başvuru türleri için ek açıklama kodda yalnızca bir '#nullable' bağlamı içinde kullanılmalıdır.</target>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
@@ -1514,12 +1514,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation">
         <source>Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</source>
-        <target state="new">Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</target>
+        <target state="translated">'{0}' öğesinin kısmi metot bildirimleri kısıtlamalarında '{1}' tür parametresi için tutarsız boş değer atanabilirlik durumu var</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title">
         <source>Partial method declarations have inconsistent nullability in constraints for type parameter</source>
-        <target state="new">Partial method declarations have inconsistent nullability in constraints for type parameter</target>
+        <target state="translated">Kısmi metot bildirimlerinin tür parametresi kısıtlamalarında tutarsız boş değer atanabilirlik durumu var</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInExplicitlyImplementedInterface">
@@ -1664,12 +1664,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint">
         <source>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</source>
-        <target state="new">The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</target>
+        <target state="translated">'{2}' türü, '{0}' genel türü veya metodu için '{1}' tür parametresi olarak kullanılamıyor. '{2}' tür bağımsız değişkeninin boş değer atanabilirliği, 'notnull' kısıtlamasıyla eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint_Title">
         <source>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</source>
-        <target state="new">The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</target>
+        <target state="translated">Tür, genel tür veya metot için tür parametresi olarak kullanılamıyor. Tür bağımsız değişkeninin boş değer atanabilirliği, 'notnull' kısıtlamasıyla eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint">
@@ -1764,12 +1764,12 @@
       </trans-unit>
       <trans-unit id="WRN_UndecoratedCancellationTokenParameter">
         <source>Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
-        <target state="new">Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
+        <target state="translated">Zaman uyumsuz '{0}' yineleyicisinde 'CancellationToken' türünde bir veya daha fazla parametre var ancak bunların hiçbiri 'EnumeratorCancellation' özniteliği ile dekore edilmemiş, bu nedenle oluşturulan 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' öğesindeki iptal belirteci parametresi tüketilmeyecek</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UndecoratedCancellationTokenParameter_Title">
         <source>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
-        <target state="new">Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
+        <target state="translated">Zaman uyumsuz yineleyici üyesinde 'CancellationToken' türünde bir veya daha fazla parametre var ancak bunların hiçbiri 'EnumeratorCancellation' özniteliği ile dekore edilmemiş, bu nedenle oluşturulan 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' öğesindeki iptal belirteci parametresi tüketilmeyecek</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -4693,7 +4693,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
         <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
-        <target state="new">Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</target>
+        <target state="translated">'{0}' öğesinin kısmi metot bildirimleri, '{1}' tür parametresi için tutarsız kısıtlamalara sahip</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodToDelegate">
@@ -5802,12 +5802,12 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
         <source>Expected disable, restore or enable</source>
-        <target state="needs-review-translation">Disable, restore, enable veya safeonly beklendi</target>
+        <target state="translated">Disable, restore veya enable bekleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
         <source>Expected disable, restore or enable after #pragma warning</source>
-        <target state="needs-review-translation">#pragma uyarısından sonra disable, restore, enable veya safeonly beklendi</target>
+        <target state="translated">#pragma uyarısından sonra disable, restore veya enable bekleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">

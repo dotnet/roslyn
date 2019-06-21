@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../VSPackage.resx">
+  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../VSPackage.resx">
     <body>
       <trans-unit id="101">
         <source>C#</source>
@@ -301,7 +301,7 @@ Show name suggestions;</source>
       </trans-unit>
       <trans-unit id="107">
         <source>Formatting</source>
-        <target state="translated">正在格式化</target>
+        <target state="translated">格式设置</target>
         <note>"Formatting" category node under Tools &gt; Options, Text Editor, C#, Code Style (no corresponding keywords)</note>
       </trans-unit>
       <trans-unit id="108">
