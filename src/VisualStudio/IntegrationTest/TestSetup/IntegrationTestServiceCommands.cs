@@ -12,6 +12,7 @@ using System.Runtime.Serialization.Formatters;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Setup
 {
@@ -25,6 +26,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 
         public const int cmdidStartIntegrationTestService = 0x5201;
         public const int cmdidStopIntegrationTestService = 0x5204;
+        public const int cmdidDisableAsyncCompletion = 0x5203;
 
         public static readonly Guid guidTestWindowCmdSet = new Guid("1E198C22-5980-4E7E-92F3-F73168D1FB63");
         #endregion
@@ -38,6 +40,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 
         private readonly MenuCommand _startMenuCmd;
         private readonly MenuCommand _stopMenuCmd;
+        private readonly MenuCommand _disableAsyncCompletionMenuCmd;
 
         private IntegrationService _service;
         private IpcServerChannel _serviceChannel;
@@ -65,6 +68,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
                     Visible = false
                 };
                 menuCommandService.AddCommand(_stopMenuCmd);
+
+                var disableAsyncCompletionMenuCmdId = new CommandID(guidTestWindowCmdSet, cmdidDisableAsyncCompletion);
+                _disableAsyncCompletionMenuCmd = new MenuCommand(DisableAsyncCompletionCallback, disableAsyncCompletionMenuCmdId)
+                {
+                    Enabled = true,
+                    Visible = false,
+                };
+                menuCommandService.AddCommand(_disableAsyncCompletionMenuCmd);
             }
         }
 
@@ -141,6 +152,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 
                 SwapAvailableCommands(_stopMenuCmd, _startMenuCmd);
             }
+        }
+
+        private void DisableAsyncCompletionCallback(object sender, EventArgs e)
+        {
+            if (!_disableAsyncCompletionMenuCmd.Enabled)
+            {
+                return;
+            }
+
+            var componentModel = ServiceProvider.GetService<SComponentModel, IComponentModel>();
+            var featureServiceFactory = componentModel.GetService<IFeatureServiceFactory>();
+            featureServiceFactory.GlobalFeatureService.Disable(PredefinedEditorFeatureNames.AsyncCompletion, EmptyFeatureController.Instance);
+
+            _disableAsyncCompletionMenuCmd.Enabled = false;
         }
 
         private void SwapAvailableCommands(MenuCommand commandToDisable, MenuCommand commandToEnable)

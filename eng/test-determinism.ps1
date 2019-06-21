@@ -37,11 +37,25 @@ function Run-Build([string]$rootDir, [string]$logFileName) {
 
   $solution = Join-Path $rootDir "Roslyn.sln"
 
-  Write-Host "Restoring $solution"
-  Run-MSBuild $solution "/t:Restore" -logFileName:"Restore-$logFileName"
+  $toolsetBuildProj = InitializeToolset
+
+  if ($logFileName -eq "") {
+    $logFileName = [IO.Path]::GetFileNameWithoutExtension($projectFilePath)
+  }
+  $logFileName = [IO.Path]::ChangeExtension($logFileName, ".binlog")
+  $logFilePath = Join-Path $LogDir $logFileName
 
   Write-Host "Building $solution"
-  Run-MSBuild $solution "/p:DebugDeterminism=true /p:Features=`"debug-determinism`" /p:DeployExtension=false" -logFileName:$logFileName
+  MSBuild $toolsetBuildProj `
+     /p:Projects=$solution `
+     /p:Restore=true `
+     /p:Build=true `
+     /p:DebugDeterminism=true `
+     /p:Features="debug-determinism" `
+     /p:DeployExtension=false `
+     /p:RepoRoot=$rootDir `
+     /p:TreatWarningsAsErrors=true `
+     /bl:$logFilePath
 }
 
 function Get-ObjDir([string]$rootDir) { 
@@ -239,8 +253,9 @@ try {
   $binaryLog = $true
   $officialBuildId = ""
   $ci = $true
+  $nodeReuse = $false
   $properties = @()
-  
+
   if ($bootstrapDir -eq "") {
     $bootstrapDir = Make-BootstrapBuild
   } elseif (![IO.Path]::IsPathRooted($script:bootstrapDir)) {
