@@ -260,6 +260,7 @@ class C
         [Fact]
         public void TestManyNullCheckedArgs()
         {
+            // Add error or warning that non-nullable value types can't be null-checked.
             var source = @"
 class C
 {
