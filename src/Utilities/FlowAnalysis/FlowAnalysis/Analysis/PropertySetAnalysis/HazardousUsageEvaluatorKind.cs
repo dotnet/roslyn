@@ -5,7 +5,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
     /// <summary>
     /// Distinguishes kinds of <see cref="HazardousUsageEvaluator"/>s.
     /// </summary>
-    public enum HazardousUsageEvaluatorKind
+    internal enum HazardousUsageEvaluatorKind
     {
         /// <summary>
         /// Evaluated at a method invocation.

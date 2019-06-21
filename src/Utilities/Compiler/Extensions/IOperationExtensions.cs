@@ -411,24 +411,6 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Sorta like <see cref="GetRoot(IOperation)"/>, but not the root root.
-        /// </summary>
-        /// <param name="operation"></param>
-        /// <returns></returns>
-        public static IOperation GetInnermostFunction(this IOperation operation)
-        {
-            while (operation.Parent != null
-                && operation.Kind != OperationKind.AnonymousFunction
-                && operation.Kind != OperationKind.LocalFunction)
-            // What's a FlowAnonymousFunction?
-            {
-                operation = operation.Parent;
-            }
-
-            return operation;
-        }
-
-        /// <summary>
         /// PERF: Cache from operation roots to their corresponding <see cref="ControlFlowGraph"/> to enable interprocedural flow analysis
         /// across analyzers and analyzer callbacks to re-use the control flow graph.
         /// </summary>
