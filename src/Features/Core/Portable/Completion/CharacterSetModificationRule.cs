@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private CharacterSetModificationRule(CharacterSetModificationKind kind, ImmutableArray<char> characters)
         {
-            this.Kind = kind;
-            this.Characters = characters;
+            Kind = kind;
+            Characters = characters;
         }
 
         /// <summary>

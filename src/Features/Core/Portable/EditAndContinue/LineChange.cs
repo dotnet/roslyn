@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(newLine >= 0);
             Debug.Assert(oldLine != newLine);
 
-            this.OldLine = oldLine;
-            this.NewLine = newLine;
+            OldLine = oldLine;
+            NewLine = newLine;
         }
 
         public override bool Equals(object obj)
@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public bool Equals(LineChange other)
         {
-            return this.OldLine == other.OldLine
-                && this.NewLine == other.NewLine;
+            return OldLine == other.OldLine
+                && NewLine == other.NewLine;
         }
 
         public override int GetHashCode()

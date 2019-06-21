@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Organizing.Organizers
         public ExportSyntaxNodeOrganizerAttribute(string languageName) :
             base(typeof(ISyntaxOrganizer))
         {
-            this.Language = languageName;
+            Language = languageName;
         }
 
         public string Language { get; }

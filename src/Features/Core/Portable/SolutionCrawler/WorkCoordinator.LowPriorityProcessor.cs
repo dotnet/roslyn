@@ -51,10 +51,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                             // process any available project work, preferring the active project.
                             if (_workItemQueue.TryTakeAnyWork(
-                                this.Processor.GetActiveProject(), this.Processor.DependencyGraph, this.Processor.DiagnosticAnalyzerService,
+                                Processor.GetActiveProject(), Processor.DependencyGraph, Processor.DiagnosticAnalyzerService,
                                 out var workItem, out var projectCancellation))
                             {
-                                await ProcessProjectAsync(this.Analyzers, workItem, projectCancellation).ConfigureAwait(false);
+                                await ProcessProjectAsync(Analyzers, workItem, projectCancellation).ConfigureAwait(false);
                             }
                         }
                         catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         get
                         {
-                            return Task.WhenAll(this.Processor._highPriorityProcessor.Running, this.Processor._normalPriorityProcessor.Running);
+                            return Task.WhenAll(Processor._highPriorityProcessor.Running, Processor._normalPriorityProcessor.Running);
                         }
                     }
 
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         get
                         {
-                            return this.Processor._highPriorityProcessor.HasAnyWork || this.Processor._normalPriorityProcessor.HasAnyWork;
+                            return Processor._highPriorityProcessor.HasAnyWork || Processor._normalPriorityProcessor.HasAnyWork;
                         }
                     }
 
@@ -88,10 +88,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     public void Enqueue(WorkItem item)
                     {
-                        this.UpdateLastAccessTime();
+                        UpdateLastAccessTime();
 
                         // Project work
-                        item = item.With(documentId: null, projectId: item.ProjectId, asyncToken: this.Processor._listener.BeginAsyncOperation("WorkItem"));
+                        item = item.With(documentId: null, projectId: item.ProjectId, asyncToken: Processor._listener.BeginAsyncOperation("WorkItem"));
 
                         var added = _workItemQueue.AddOrReplace(item);
 
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         Logger.Log(FunctionId.WorkCoordinator_Project_Enqueue, s_enqueueLogger, Environment.TickCount, item.ProjectId, !added);
 
-                        SolutionCrawlerLogger.LogWorkItemEnqueue(this.Processor._logAggregator, item.ProjectId);
+                        SolutionCrawlerLogger.LogWorkItemEnqueue(Processor._logAggregator, item.ProjectId);
                     }
 
                     private void CancelRunningTaskIfHigherQueueHasWorkItem()
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private async Task ProcessProjectAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
                     {
-                        if (this.CancellationToken.IsCancellationRequested)
+                        if (CancellationToken.IsCancellationRequested)
                         {
                             return;
                         }
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // we do have work item for this project
                         var projectId = workItem.ProjectId;
                         var processedEverything = false;
-                        var processingSolution = this.Processor.CurrentSolution;
+                        var processingSolution = Processor.CurrentSolution;
 
                         try
                         {
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 }
                                 else
                                 {
-                                    SolutionCrawlerLogger.LogProcessProjectNotExist(this.Processor._logAggregator);
+                                    SolutionCrawlerLogger.LogProcessProjectNotExist(Processor._logAggregator);
 
                                     RemoveProject(projectId);
                                 }
@@ -167,10 +167,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             // after that point.
                             if (!processedEverything && !CancellationToken.IsCancellationRequested)
                             {
-                                _workItemQueue.AddOrReplace(workItem.Retry(this.Listener.BeginAsyncOperation("ReenqueueWorkItem")));
+                                _workItemQueue.AddOrReplace(workItem.Retry(Listener.BeginAsyncOperation("ReenqueueWorkItem")));
                             }
 
-                            SolutionCrawlerLogger.LogProcessProject(this.Processor._logAggregator, projectId.Id, processedEverything);
+                            SolutionCrawlerLogger.LogProcessProject(Processor._logAggregator, projectId.Id, processedEverything);
 
                             // remove one that is finished running
                             _workItemQueue.MarkWorkItemDoneFor(projectId);
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private void RemoveProject(ProjectId projectId)
                     {
-                        foreach (var analyzer in this.Analyzers)
+                        foreach (var analyzer in Analyzers)
                         {
                             analyzer.RemoveProject(projectId);
                         }

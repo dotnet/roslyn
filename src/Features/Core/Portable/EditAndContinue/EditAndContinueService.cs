@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -193,7 +191,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return null;
                 }
 
-                Document primaryDocument = _debuggingSession.InitialSolution.Workspace.CurrentSolution.GetDocument(baseActiveStatement.PrimaryDocumentId);
+                var primaryDocument = _debuggingSession.InitialSolution.Workspace.CurrentSolution.GetDocument(baseActiveStatement.PrimaryDocumentId);
                 var documentAnalysis = await _editSession.GetDocumentAnalysis(primaryDocument).GetValueAsync(cancellationToken).ConfigureAwait(false);
                 var currentActiveStatements = documentAnalysis.ActiveStatements;
                 if (currentActiveStatements.IsDefault)

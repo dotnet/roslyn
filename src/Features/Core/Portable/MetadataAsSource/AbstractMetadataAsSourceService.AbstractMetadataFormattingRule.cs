@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             protected int GetNumberOfLines(IEnumerable<SyntaxTrivia> triviaList)
             {
                 var count = 0;
-                bool inElasticTriviaRun = false;
+                var inElasticTriviaRun = false;
 
                 // If we have a run of elastic trivia, that would get collapsed into one line.
                 foreach (var trivia in triviaList)
