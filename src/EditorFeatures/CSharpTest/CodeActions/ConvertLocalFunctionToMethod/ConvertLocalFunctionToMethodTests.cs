@@ -509,6 +509,7 @@ class C
             await TestMissingAsync("[||]C LocalFunction(C c)");
             await TestMissingAsync("[|C|] LocalFunction(C c)");
             await TestMissingAsync("C[||] LocalFunction(C c)");
+            await TestMissingAsync("C[| |]LocalFunction(C c)");
             await TestMissingAsync("C LocalFunction([||]C c)");
             await TestMissingAsync("C LocalFunction(C [||]c)");
 

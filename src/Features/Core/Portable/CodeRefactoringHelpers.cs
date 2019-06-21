@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <remarks>
         /// Returns unchanged <paramref name="span"/> in case <see cref="TextSpan.IsEmpty"/>.
-        /// Returns Span of Lenght 1 in case it contains only whitespace.
+        /// Returns empty Span with original <see cref="TextSpan.Start"/> in case it contains only whitespace.
         /// </remarks>
         private static async Task<TextSpan> GetStrippedTextSpan(
             Document document,
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis
                 return span;
             }
 
-            while (start < end && char.IsWhiteSpace(sourceText[end - 1]) && char.IsWhiteSpace(sourceText[end]))
+            while (start < end && char.IsWhiteSpace(sourceText[end - 1]))
             {
                 end--;
             }
@@ -204,7 +204,9 @@ namespace Microsoft.CodeAnalysis
                 start++;
             }
 
-            return TextSpan.FromBounds(start, end);
+            return start == end
+                ? new TextSpan(start, 0)
+                : TextSpan.FromBounds(start, end);
         }
     }
 }

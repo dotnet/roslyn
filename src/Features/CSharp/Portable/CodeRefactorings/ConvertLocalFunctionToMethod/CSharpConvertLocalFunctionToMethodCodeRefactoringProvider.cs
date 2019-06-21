@@ -79,7 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             return localFunction;
         }
 
-
         private static async Task<Document> UpdateDocumentAsync(
             SyntaxNode root,
             Document document,
