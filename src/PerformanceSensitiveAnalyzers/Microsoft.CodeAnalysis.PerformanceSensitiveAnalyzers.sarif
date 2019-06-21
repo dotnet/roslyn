@@ -4,7 +4,8 @@
   "runs": [
     {
       "tool": {
-        "name": "Microsoft Code Analysis",
+        "name": "Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers",
+        "version": "2.9.4",
         "language": "en-US"
       },
       "rules": {
@@ -15,7 +16,11 @@
           "defaultLevel": "warning",
           "properties": {
             "category": "Performance",
-            "isEnabledByDefault": true
+            "isEnabledByDefault": true,
+            "typeName": "CallSiteImplicitAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
           }
         },
         "HAA0102": {
@@ -25,7 +30,11 @@
           "defaultLevel": "warning",
           "properties": {
             "category": "Performance",
-            "isEnabledByDefault": true
+            "isEnabledByDefault": true,
+            "typeName": "CallSiteImplicitAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
           }
         },
         "HAA0201": {
@@ -36,7 +45,11 @@
           "helpUri": "http://msdn.microsoft.com/en-us/library/2839d5h5(v=vs.110).aspx",
           "properties": {
             "category": "Performance",
-            "isEnabledByDefault": true
+            "isEnabledByDefault": true,
+            "typeName": "ConcatenationAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
           }
         },
         "HAA0202": {
@@ -47,7 +60,11 @@
           "helpUri": "http://msdn.microsoft.com/en-us/library/yz2be5wk.aspx",
           "properties": {
             "category": "Performance",
-            "isEnabledByDefault": true
+            "isEnabledByDefault": true,
+            "typeName": "ConcatenationAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
           }
         },
         "HAA0301": {
@@ -57,7 +74,11 @@
           "defaultLevel": "warning",
           "properties": {
             "category": "Performance",
-            "isEnabledByDefault": true
+            "isEnabledByDefault": true,
+            "typeName": "DisplayClassAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
           }
         },
         "HAA0302": {
@@ -67,7 +88,11 @@
           "defaultLevel": "warning",
           "properties": {
             "category": "Performance",
-            "isEnabledByDefault": true
+            "isEnabledByDefault": true,
+            "typeName": "DisplayClassAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
           }
         },
         "HAA0303": {
@@ -77,7 +102,11 @@
           "defaultLevel": "warning",
           "properties": {
             "category": "Performance",
-            "isEnabledByDefault": true
+            "isEnabledByDefault": true,
+            "typeName": "DisplayClassAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
           }
         },
         "HAA0401": {
@@ -87,9 +116,78 @@
           "defaultLevel": "warning",
           "properties": {
             "category": "Performance",
-            "isEnabledByDefault": true
+            "isEnabledByDefault": true,
+            "typeName": "EnumeratorAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
           }
         },
+        "HAA0601": {
+          "id": "HAA0601",
+          "shortDescription": "Value type to reference type conversion causing boxing allocation",
+          "fullDescription": "Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true,
+            "typeName": "TypeConversionAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
+          }
+        },
+        "HAA0602": {
+          "id": "HAA0602",
+          "shortDescription": "Delegate on struct instance caused a boxing allocation",
+          "fullDescription": "Struct instance method being used for delegate creation, this will result in a boxing instruction",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true,
+            "typeName": "TypeConversionAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
+          }
+        },
+        "HAA0603": {
+          "id": "HAA0603",
+          "shortDescription": "Delegate allocation from a method group",
+          "fullDescription": "This will allocate a delegate instance",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true,
+            "typeName": "TypeConversionAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
+          }
+        },
+        "HeapAnalyzerReadonlyMethodGroupAllocationRule": {
+          "id": "HeapAnalyzerReadonlyMethodGroupAllocationRule",
+          "shortDescription": "Delegate allocation from a method group",
+          "fullDescription": "This will allocate a delegate instance",
+          "defaultLevel": "note",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true,
+            "typeName": "TypeConversionAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "tool": {
+        "name": "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers",
+        "version": "2.9.4",
+        "language": "en-US"
+      },
+      "rules": {
         "HAA0501": {
           "id": "HAA0501",
           "shortDescription": "Explicit new array type allocation",
@@ -97,7 +195,12 @@
           "defaultLevel": "note",
           "properties": {
             "category": "Performance",
-            "isEnabledByDefault": true
+            "isEnabledByDefault": true,
+            "typeName": "ExplicitAllocationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ]
           }
         },
         "HAA0502": {
@@ -107,7 +210,12 @@
           "defaultLevel": "note",
           "properties": {
             "category": "Performance",
-            "isEnabledByDefault": true
+            "isEnabledByDefault": true,
+            "typeName": "ExplicitAllocationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ]
           }
         },
         "HAA0503": {
@@ -118,7 +226,12 @@
           "helpUri": "http://msdn.microsoft.com/en-us/library/bb397696.aspx",
           "properties": {
             "category": "Performance",
-            "isEnabledByDefault": true
+            "isEnabledByDefault": true,
+            "typeName": "ExplicitAllocationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ]
           }
         },
         "HAA0506": {
@@ -128,47 +241,12 @@
           "defaultLevel": "note",
           "properties": {
             "category": "Performance",
-            "isEnabledByDefault": true
-          }
-        },
-        "HAA0601": {
-          "id": "HAA0601",
-          "shortDescription": "Value type to reference type conversion causing boxing allocation",
-          "fullDescription": "Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable",
-          "defaultLevel": "warning",
-          "properties": {
-            "category": "Performance",
-            "isEnabledByDefault": true
-          }
-        },
-        "HAA0602": {
-          "id": "HAA0602",
-          "shortDescription": "Delegate on struct instance caused a boxing allocation",
-          "fullDescription": "Struct instance method being used for delegate creation, this will result in a boxing instruction",
-          "defaultLevel": "warning",
-          "properties": {
-            "category": "Performance",
-            "isEnabledByDefault": true
-          }
-        },
-        "HAA0603": {
-          "id": "HAA0603",
-          "shortDescription": "Delegate allocation from a method group",
-          "fullDescription": "This will allocate a delegate instance",
-          "defaultLevel": "warning",
-          "properties": {
-            "category": "Performance",
-            "isEnabledByDefault": true
-          }
-        },
-        "HeapAnalyzerReadonlyMethodGroupAllocationRule": {
-          "id": "HeapAnalyzerReadonlyMethodGroupAllocationRule",
-          "shortDescription": "Delegate allocation from a method group",
-          "fullDescription": "This will allocate a delegate instance",
-          "defaultLevel": "note",
-          "properties": {
-            "category": "Performance",
-            "isEnabledByDefault": true
+            "isEnabledByDefault": true,
+            "typeName": "ExplicitAllocationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ]
           }
         }
       }

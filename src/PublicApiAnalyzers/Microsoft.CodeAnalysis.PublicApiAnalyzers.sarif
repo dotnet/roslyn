@@ -4,7 +4,8 @@
   "runs": [
     {
       "tool": {
-        "name": "Microsoft Code Analysis",
+        "name": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+        "version": "2.9.4",
         "language": "en-US"
       },
       "rules": {
@@ -17,6 +18,11 @@
           "properties": {
             "category": "ApiDesign",
             "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
             "tags": [
               "Telemetry"
             ]
@@ -31,6 +37,11 @@
           "properties": {
             "category": "ApiDesign",
             "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
             "tags": [
               "Telemetry"
             ]
@@ -45,6 +56,11 @@
           "properties": {
             "category": "ApiDesign",
             "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
             "tags": [
               "Telemetry"
             ]
@@ -59,6 +75,11 @@
           "properties": {
             "category": "ApiDesign",
             "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
             "tags": [
               "Telemetry"
             ]
@@ -73,6 +94,11 @@
           "properties": {
             "category": "ApiDesign",
             "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
             "tags": [
               "Telemetry"
             ]
@@ -87,6 +113,11 @@
           "properties": {
             "category": "ApiDesign",
             "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
             "tags": [
               "Telemetry"
             ]
@@ -101,11 +132,25 @@
           "properties": {
             "category": "ApiDesign",
             "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
             "tags": [
               "Telemetry"
             ]
           }
         }
+      }
+    },
+    {
+      "tool": {
+        "name": "Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes",
+        "version": "2.9.4",
+        "language": "en-US"
+      },
+      "rules": {
       }
     }
   ]
