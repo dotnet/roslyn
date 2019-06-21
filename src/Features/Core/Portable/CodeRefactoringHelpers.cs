@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// <para>
-        /// Returns the relevant <see cref="SyntaxNode"/> instance if refactoring for <typeparamref name="TSyntaxNode"/> type
-        /// should be offered given the specified selection in document.
+        /// Returns an instance of <typeparamref name="TSyntaxNode"/> for refactoring given specified selection in document or null
+        /// if no such instance exists.
         /// </para>
         /// <para>
         /// A <typeparamref name="TSyntaxNode"/> instance is returned if selection is zero-width and inside/touching a Token whose
@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis
         /// the whole <paramref name="selection"/>. Otherwise returns <code>null</code>.
         /// </para>
         /// <para>
-        /// Note: this function strips all whitespace from both the beginning and end given <paramref name="selection"/> 
-        /// and the stripped selection to determine the relevant Node. 
+        /// Note: this function strips all whitespace from both the beginning and the end of given <paramref name="selection"/>.
+        /// The stripped version is then used to determine relevant <see cref="SyntaxNode"/>.
         /// </para>
         /// </summary>
         public static async Task<TSyntaxNode> TryGetSelectedNode<TSyntaxNode>(
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis
         /// Strips leading and trailing whitespace from <paramref name="span"/>.
         /// </summary>
         /// <remarks>
-        /// Returns unchanged <paramref name="span"/> in case its <see cref="TextSpan.IsEmpty"/>.
+        /// Returns unchanged <paramref name="span"/> in case <see cref="TextSpan.IsEmpty"/>.
         /// Returns Span of Lenght 1 in case it contains only whitespace.
         /// </remarks>
         private static async Task<TextSpan> GetStrippedTextSpan(
