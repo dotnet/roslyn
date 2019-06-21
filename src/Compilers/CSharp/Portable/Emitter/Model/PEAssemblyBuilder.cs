@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.SynthesizeNullableAttribute(member, arguments);
         }
 
-        internal override SynthesizedAttributeData SynthesizeNullableContextAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
+        internal override SynthesizedAttributeData SynthesizeNullableContextAttribute(ImmutableArray<TypedConstant> arguments)
         {
             if ((object)_lazyNullableContextAttribute != null)
             {
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
             }
 
-            return base.SynthesizeNullableContextAttribute(member, arguments);
+            return base.SynthesizeNullableContextAttribute(arguments);
         }
 
         internal override SynthesizedAttributeData SynthesizeNullablePublicOnlyAttribute()

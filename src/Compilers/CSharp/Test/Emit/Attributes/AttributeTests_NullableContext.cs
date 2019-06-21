@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -177,6 +178,50 @@ class Program
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput, symbolValidator: module => AssertNullableAttributes(module, expectedAttributes));
+        }
+
+        [Fact]
+        public void MostCommonNullableValueBuilder()
+        {
+            Assert.Equal(null, getMostCommonValue());
+            Assert.Equal(null, getMostCommonValue((byte?)null));
+            Assert.Equal(null, getMostCommonValue(null, null));
+            Assert.Equal((byte)0, getMostCommonValue(0));
+            Assert.Equal((byte)1, getMostCommonValue(1));
+            Assert.Equal((byte)2, getMostCommonValue(2));
+            Assert.Throws<InvalidOperationException>(() => getMostCommonValue(3));
+            Assert.Equal((byte)0, getMostCommonValue(0, 0));
+            Assert.Equal((byte)0, getMostCommonValue(0, 1));
+            Assert.Equal((byte)0, getMostCommonValue(1, 0));
+            Assert.Equal((byte)1, getMostCommonValue(1, 1));
+            Assert.Equal((byte)1, getMostCommonValue(1, 2));
+            Assert.Equal((byte)1, getMostCommonValue(2, 1));
+            Assert.Equal((byte)2, getMostCommonValue(2, 2));
+            Assert.Throws<InvalidOperationException>(() => getMostCommonValue(2, 3));
+            Assert.Equal((byte)0, getMostCommonValue(0, null));
+            Assert.Equal((byte)0, getMostCommonValue(null, 0));
+            Assert.Equal((byte)1, getMostCommonValue(1, null));
+            Assert.Equal((byte)1, getMostCommonValue(null, 1));
+            Assert.Equal((byte)0, getMostCommonValue(0, 1, 2, null));
+            Assert.Equal((byte)0, getMostCommonValue(null, 2, 1, 0));
+            Assert.Equal((byte)1, getMostCommonValue(1, 2, null));
+            Assert.Equal((byte)1, getMostCommonValue(null, 2, 1));
+            Assert.Equal((byte)2, getMostCommonValue(null, 2, null));
+            Assert.Equal((byte)0, getMostCommonValue(0, 1, 0));
+            Assert.Equal((byte)0, getMostCommonValue(1, 0, 0));
+            Assert.Equal((byte)1, getMostCommonValue(1, 0, 1));
+            Assert.Equal((byte)1, getMostCommonValue(1, 2, 1));
+            Assert.Equal((byte)2, getMostCommonValue(2, 2, 1));
+
+            static byte? getMostCommonValue(params byte?[] values)
+            {
+                var builder = new MostCommonNullableValueBuilder();
+                foreach (var value in values)
+                {
+                    builder.AddValue(value);
+                }
+                return builder.MostCommonValue;
+            }
         }
 
         private void AssertNullableAttributes(CSharpCompilation comp, string expected)

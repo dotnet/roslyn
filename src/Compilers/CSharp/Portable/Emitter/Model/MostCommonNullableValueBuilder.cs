@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal struct MostCommonNullableValueBuilder
     {
-        private int _0;
-        private int _1;
-        private int _2;
+        private int _value0;
+        private int _value1;
+        private int _value2;
 
         internal byte? MostCommonValue
         {
@@ -18,17 +18,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 int max;
                 byte b;
-                if (_1 > _0)
+                if (_value1 > _value0)
                 {
-                    max = _1;
+                    max = _value1;
                     b = 1;
                 }
                 else
                 {
-                    max = _0;
+                    max = _value0;
                     b = 0;
                 }
-                if (_2 > max)
+                if (_value2 > max)
                 {
                     return 2;
                 }
@@ -41,13 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (value)
             {
                 case 0:
-                    _0++;
+                    _value0++;
                     break;
                 case 1:
-                    _1++;
+                    _value1++;
                     break;
                 case 2:
-                    _2++;
+                    _value2++;
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(value);

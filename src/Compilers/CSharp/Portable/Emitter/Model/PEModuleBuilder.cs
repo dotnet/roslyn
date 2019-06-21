@@ -1532,15 +1532,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             return SynthesizeNullableContextAttribute(
-                WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor,
                 ImmutableArray.Create(new TypedConstant(Compilation.GetSpecialType(SpecialType.System_Byte), TypedConstantKind.Primitive, value)));
         }
 
-        internal virtual SynthesizedAttributeData SynthesizeNullableContextAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
+        internal virtual SynthesizedAttributeData SynthesizeNullableContextAttribute(ImmutableArray<TypedConstant> arguments)
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
             // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
-            return Compilation.TrySynthesizeAttribute(member, arguments, isOptionalUse: true);
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor, arguments, isOptionalUse: true);
         }
 
         internal virtual SynthesizedAttributeData SynthesizeNullablePublicOnlyAttribute()
