@@ -2766,7 +2766,7 @@ namespace N5
         }
 
         [Fact]
-        private void TestSymbolStartAnalyzer_MultipleAnalyzers_AllSymbolKinds()
+        public void TestSymbolStartAnalyzer_MultipleAnalyzers_AllSymbolKinds()
         {
             testCore("SymbolStartTopLevelRuleId", topLevel: true);
             testCore("SymbolStartRuleId", topLevel: false);

@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
             private class FolderInfo
             {
-                private Dictionary<string, FolderInfo> _childFolders;
+                private readonly Dictionary<string, FolderInfo> _childFolders;
 
                 public string Name { get; }
 

@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 Contract.ThrowIfNull(selectionResult);
 
-                this.SelectionResult = selectionResult;
+                SelectionResult = selectionResult;
                 _semanticDocument = selectionResult.SemanticDocument;
-                this.CancellationToken = cancellationToken;
+                CancellationToken = cancellationToken;
             }
 
             /// <summary>
@@ -101,8 +101,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var returnTypeTuple = AdjustReturnType(model, returnType);
 
                 returnType = returnTypeTuple.Item1;
-                bool returnTypeHasAnonymousType = returnTypeTuple.Item2;
-                bool awaitTaskReturn = returnTypeTuple.Item3;
+                var returnTypeHasAnonymousType = returnTypeTuple.Item2;
+                var awaitTaskReturn = returnTypeTuple.Item3;
 
                 // create new document
                 var newDocument = await CreateDocumentWithAnnotationsAsync(_semanticDocument, parameters, CancellationToken).ConfigureAwait(false);
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 // if selection contains await which is not under async lambda or anonymous delegate,
                 // change return type to be wrapped in Task
-                var shouldPutAsyncModifier = this.SelectionResult.ShouldPutAsyncModifier();
+                var shouldPutAsyncModifier = SelectionResult.ShouldPutAsyncModifier();
                 if (shouldPutAsyncModifier)
                 {
                     WrapReturnTypeInTask(model, ref returnType, out var awaitTaskReturn);
@@ -147,8 +147,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private void UnwrapTaskIfNeeded(SemanticModel model, ref ITypeSymbol returnType)
             {
                 // nothing to unwrap
-                if (!this.SelectionResult.ContainingScopeHasAsyncKeyword() ||
-                    !this.ContainsReturnStatementInSelectedCode(model))
+                if (!SelectionResult.ContainingScopeHasAsyncKeyword() ||
+                    !ContainsReturnStatementInSelectedCode(model))
                 {
                     return;
                 }
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return;
                 }
 
-                if (this.SelectionResult.SelectionInExpression)
+                if (SelectionResult.SelectionInExpression)
                 {
                     returnType = genericTaskType.Construct(returnType);
                     return;
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private bool IsInExpressionOrHasReturnStatement(SemanticModel model)
             {
-                var isInExpressionOrHasReturnStatement = this.SelectionResult.SelectionInExpression;
+                var isInExpressionOrHasReturnStatement = SelectionResult.SelectionInExpression;
                 if (!isInExpressionOrHasReturnStatement)
                 {
                     var containsReturnStatement = ContainsReturnStatementInSelectedCode(model);
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private OperationStatus CheckAsyncMethodRefOutParameters(IList<VariableInfo> parameters)
             {
-                if (this.SelectionResult.ShouldPutAsyncModifier())
+                if (SelectionResult.ShouldPutAsyncModifier())
                 {
                     var names = parameters.Where(v => !v.UseAsReturnValue && (v.ParameterModifier == ParameterBehavior.Out || v.ParameterModifier == ParameterBehavior.Ref))
                                           .Select(p => p.Name ?? string.Empty);
@@ -320,8 +320,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private Dictionary<ISymbol, List<SyntaxToken>> GetSymbolMap(SemanticModel model)
             {
                 var syntaxFactsService = _semanticDocument.Document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                var context = this.SelectionResult.GetContainingScope();
-                var symbolMap = SymbolMapBuilder.Build(syntaxFactsService, model, context, this.SelectionResult.FinalSpan, CancellationToken);
+                var context = SelectionResult.GetContainingScope();
+                var symbolMap = SymbolMapBuilder.Build(syntaxFactsService, model, context, SelectionResult.FinalSpan, CancellationToken);
 
                 return symbolMap;
             }
@@ -335,9 +335,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private DataFlowAnalysis GetDataFlowAnalysisData(SemanticModel model)
             {
-                if (this.SelectionResult.SelectionInExpression)
+                if (SelectionResult.SelectionInExpression)
                 {
-                    return model.AnalyzeDataFlow(this.SelectionResult.GetContainingScope());
+                    return model.AnalyzeDataFlow(SelectionResult.GetContainingScope());
                 }
 
                 var pair = GetFlowAnalysisNodeRange();
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private bool IsEndOfSelectionReachable(SemanticModel model)
             {
-                if (this.SelectionResult.SelectionInExpression)
+                if (SelectionResult.SelectionInExpression)
                 {
                     return true;
                 }
@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return true;
                 }
 
-                if (UserDefinedValueType(model.Compilation, type) && !this.SelectionResult.DontPutOutOrRefOnStruct)
+                if (UserDefinedValueType(model.Compilation, type) && !SelectionResult.DontPutOutOrRefOnStruct)
                 {
                     variableStyle = AlwaysReturn(variableStyle);
                     return true;
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 // don't blindly always return. make sure there is a write inside of the selection
-                if (this.SelectionResult.AllowMovingDeclaration || !writtenInside)
+                if (SelectionResult.AllowMovingDeclaration || !writtenInside)
                 {
                     return true;
                 }
@@ -563,20 +563,20 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private bool SelectionContainsOnlyIdentifierWithSameType(ITypeSymbol type)
             {
-                if (!this.SelectionResult.SelectionInExpression)
+                if (!SelectionResult.SelectionInExpression)
                 {
                     return false;
                 }
 
-                var firstToken = this.SelectionResult.GetFirstTokenInSelection();
-                var lastToken = this.SelectionResult.GetLastTokenInSelection();
+                var firstToken = SelectionResult.GetFirstTokenInSelection();
+                var lastToken = SelectionResult.GetLastTokenInSelection();
 
                 if (!firstToken.Equals(lastToken))
                 {
                     return false;
                 }
 
-                return type.Equals(this.SelectionResult.GetContainingScopeType());
+                return type.Equals(SelectionResult.GetContainingScopeType());
             }
 
             private bool UserDefinedValueType(Compilation compilation, ITypeSymbol type)
@@ -696,7 +696,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private bool ContainsReturnStatementInSelectedCode(SemanticModel model)
             {
-                Contract.ThrowIfTrue(this.SelectionResult.SelectionInExpression);
+                Contract.ThrowIfTrue(SelectionResult.SelectionInExpression);
 
                 var pair = GetFlowAnalysisNodeRange();
                 var controlFlowAnalysisData = model.AnalyzeControlFlow(pair.Item1, pair.Item2);
@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 Contract.ThrowIfFalse(parameters.Count == arguments.Count);
 
                 var typeParameters = new List<ITypeParameterSymbol>();
-                for (int i = 0; i < parameters.Count; i++)
+                for (var i = 0; i < parameters.Count; i++)
                 {
                     var parameter = parameters[i];
 
@@ -927,7 +927,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         continue;
                     }
 
-                    names = names ?? new List<string>();
+                    names ??= new List<string>();
                     names.Add(field.Name ?? string.Empty);
                 }
 

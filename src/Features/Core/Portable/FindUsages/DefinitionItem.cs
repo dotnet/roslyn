@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
@@ -176,7 +175,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableDictionary<string, string> properties = null,
             bool displayIfNoReferences = true)
         {
-            properties = properties ?? ImmutableDictionary<string, string>.Empty;
+            properties ??= ImmutableDictionary<string, string>.Empty;
 
             var symbolKey = symbol.GetSymbolKey().ToString();
 
@@ -211,7 +210,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableDictionary<string, string> properties = null,
             bool displayIfNoReferences = true)
         {
-            properties = properties ?? ImmutableDictionary<string, string>.Empty;
+            properties ??= ImmutableDictionary<string, string>.Empty;
             properties = properties.Add(NonNavigable, "");
 
             return new DefaultDefinitionItem(

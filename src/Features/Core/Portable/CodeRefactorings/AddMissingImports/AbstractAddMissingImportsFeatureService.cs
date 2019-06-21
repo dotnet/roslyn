@@ -258,8 +258,8 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 // Since we know the general shape of these new import statements, we simply look for where
                 // tokens are not on the same line and force them to only be separated by a single newline.
 
-                _text.GetLineAndOffset(previousToken.Span.Start, out int previousLine, out _);
-                _text.GetLineAndOffset(currentToken.Span.Start, out int currentLine, out _);
+                _text.GetLineAndOffset(previousToken.Span.Start, out var previousLine, out _);
+                _text.GetLineAndOffset(currentToken.Span.Start, out var currentLine, out _);
 
                 if (previousLine != currentLine)
                 {

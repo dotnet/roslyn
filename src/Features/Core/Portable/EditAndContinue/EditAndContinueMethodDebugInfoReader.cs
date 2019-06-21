@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             public override EditAndContinueMethodDebugInformation GetDebugInfo(MethodDefinitionHandle methodHandle)
             {
-                int methodToken = MetadataTokens.GetToken(methodHandle);
+                var methodToken = MetadataTokens.GetToken(methodHandle);
 
                 byte[] debugInfo;
                 try
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             /// <exception cref="BadImageFormatException">Invalid data format.</exception>
             private static bool TryGetCustomDebugInformation(MetadataReader reader, EntityHandle handle, Guid kind, out CustomDebugInformation customDebugInfo)
             {
-                bool foundAny = false;
+                var foundAny = false;
                 customDebugInfo = default;
                 foreach (var infoHandle in reader.GetCustomDebugInformation(handle))
                 {
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 throw new ArgumentOutOfRangeException(nameof(version));
             }
 
-            int hr = symReader.GetPortableDebugMetadataByVersion(version, metadata: out byte* metadata, size: out int size);
+            var hr = symReader.GetPortableDebugMetadataByVersion(version, metadata: out var metadata, size: out var size);
             Marshal.ThrowExceptionForHR(hr);
 
             if (hr == 0)
