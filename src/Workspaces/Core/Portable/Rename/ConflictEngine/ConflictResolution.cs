@@ -2,9 +2,11 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -81,6 +83,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
 
             _newSolution = _intermediateSolutionContainingOnlyModifiedDocuments;
+        }
+
+        internal void RenameDocumentToMatchNewSymbol(Document document)
+        {
+            var extension = Path.GetExtension(document.Name);
+            var newName = Path.ChangeExtension(ReplacementText, extension);
+
+            _newSolution = _newSolution.WithDocumentName(document.Id, newName);
         }
 
         /// <summary>

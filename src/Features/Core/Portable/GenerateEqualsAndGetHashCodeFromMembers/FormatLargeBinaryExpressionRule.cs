@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -16,7 +15,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         /// </summary>
         private class FormatLargeBinaryExpressionRule : AbstractFormattingRule
         {
-            private ISyntaxFactsService _syntaxFacts;
+            private readonly ISyntaxFactsService _syntaxFacts;
 
             public FormatLargeBinaryExpressionRule(ISyntaxFactsService syntaxFacts)
             {
