@@ -308,17 +308,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundExpression> effects,
             ArrayBuilder<LocalSymbol> temps)
         {
-            if (CanChangeValueBetweenReads(arg, localsMayBeAssignedOrCaptured: true, structThisCanChangeValueBetweenReads: true))
+            var loweredArg = VisitExpression(arg);
+            if (CanChangeValueBetweenReads(loweredArg, localsMayBeAssignedOrCaptured: true, structThisCanChangeValueBetweenReads: true))
             {
                 BoundAssignmentOperator store;
-                var temp = _factory.StoreToTemp(arg, out store);
+                var temp = _factory.StoreToTemp(loweredArg, out store);
                 temps.Add(temp.LocalSymbol);
                 effects.Add(store);
                 return temp;
             }
             else
             {
-                return arg;
+                return loweredArg;
             }
         }
 

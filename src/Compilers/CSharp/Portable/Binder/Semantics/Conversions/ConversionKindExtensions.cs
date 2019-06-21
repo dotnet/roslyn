@@ -16,59 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversionKind == ImplicitDynamic || conversionKind == ExplicitDynamic;
         }
 
-        public static bool IsConversionFromExpression(this ConversionKind conversionKind)
-        {
-            switch (conversionKind)
-            {
-                case ImplicitEnumeration:
-                case ImplicitThrow:
-                case ImplicitTupleLiteral:
-                case ExplicitTupleLiteral:
-                case DefaultOrNullLiteral:
-                case NullToPointer:
-                case ImplicitDynamic:
-                case ExplicitDynamic:
-                case ImplicitConstant:
-                case AnonymousFunction:
-                case ConversionKind.MethodGroup:
-                case InterpolatedString:
-                case SwitchExpression:
-                case StackAllocToPointerType:
-                case StackAllocToSpanType:
-                    // these are conversions from expression
-                    return true;
-
-                case Identity:
-                case ImplicitNumeric:
-                case ImplicitTuple:
-                case ExplicitTuple:
-                case ImplicitNullable:
-                case ImplicitReference:
-                case Boxing:
-                case PointerToVoid:
-                case ImplicitUserDefined:
-                case ExplicitNumeric:
-                case ExplicitEnumeration:
-                case ExplicitNullable:
-                case ExplicitReference:
-                case Unboxing:
-                case ExplicitUserDefined:
-                case PointerToPointer:
-                case IntegerToPointer:
-                case PointerToInteger:
-                case IntPtr:
-                    // these are conversions from type
-                    return false;
-
-                case NoConversion:
-                case Deconstruction:
-                case PinnedObjectToPointer:
-                default:
-                    // these are not really part of the language.
-                    throw ExceptionUtilities.UnexpectedValue(conversionKind);
-            }
-        }
-
         // Is the particular conversion an implicit conversion?
         public static bool IsImplicitConversion(this ConversionKind conversionKind)
         {

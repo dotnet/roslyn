@@ -848,15 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var operand = VisitExpression(ref builder, node.Operand);
             return UpdateExpression(
                 builder,
-                node.Update(
-                    operand,
-                    node.Conversion,
-                    isBaseConversion: node.IsBaseConversion,
-                    @checked: node.Checked,
-                    explicitCastInCode: node.ExplicitCastInCode,
-                    conversionGroupOpt: node.ConversionGroupOpt,
-                    constantValueOpt: node.ConstantValueOpt,
-                    type: node.Type));
+                node.UpdateOperand(operand));
         }
 
         public override BoundNode VisitPassByCopy(BoundPassByCopy node)

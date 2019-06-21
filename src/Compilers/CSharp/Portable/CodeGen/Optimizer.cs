@@ -597,15 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             ExprContext.Sideeffects :
                             ExprContext.Value;
 
-            return node.Update(
-                this.VisitExpression(node.Operand, context),
-                node.Conversion,
-                node.IsBaseConversion,
-                node.Checked,
-                node.ExplicitCastInCode,
-                node.ConstantValue,
-                node.ConversionGroupOpt,
-                node.Type);
+            return node.UpdateOperand(this.VisitExpression(node.Operand, context));
         }
 
         public override BoundNode VisitPassByCopy(BoundPassByCopy node)

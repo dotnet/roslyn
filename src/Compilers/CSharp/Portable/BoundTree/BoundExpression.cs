@@ -432,6 +432,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.IsBaseConversion; }
         }
 
+        public BoundConversion UpdateOperand(BoundExpression operand)
+        {
+            return this.Update(operand: operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValue, this.ConversionGroupOpt, this.Type);
+        }
+
         /// <summary>
         /// Returns true when conversion itself (not the operand) may have side-effects
         /// A typical side-effect of a conversion is an exception when conversion is unsuccessful.

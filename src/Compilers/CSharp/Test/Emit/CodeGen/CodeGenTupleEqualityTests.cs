@@ -3324,35 +3324,22 @@ class C
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "True");
-            verifier.VerifyIL("C.Main", @"{
-  // Code size       57 (0x39)
-  .maxstack  3
-  .locals init (System.ValueTuple<int, int> V_0,
-                System.ValueTuple<int, int> V_1)
-  IL_0000:  nop
-  IL_0001:  ldloca.s   V_0
-  IL_0003:  ldc.i4.1
-  IL_0004:  ldc.i4.2
-  IL_0005:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_000a:  ldloca.s   V_1
-  IL_000c:  ldc.i4.1
-  IL_000d:  ldc.i4.2
-  IL_000e:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0013:  ldloc.0
-  IL_0014:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0019:  ldloc.1
-  IL_001a:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_001f:  bne.un.s   IL_0031
-  IL_0021:  ldloc.0
-  IL_0022:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_0027:  ldloc.1
-  IL_0028:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_002d:  ceq
-  IL_002f:  br.s       IL_0032
-  IL_0031:  ldc.i4.0
-  IL_0032:  call       ""void System.Console.Write(bool)""
-  IL_0037:  nop
-  IL_0038:  ret
+            verifier.VerifyIL("C.Main", @"
+{
+    // Code size       19 (0x13)
+    .maxstack  2
+    IL_0000:  nop
+    IL_0001:  ldc.i4.1
+    IL_0002:  ldc.i4.1
+    IL_0003:  bne.un.s   IL_000b
+    IL_0005:  ldc.i4.2
+    IL_0006:  ldc.i4.2
+    IL_0007:  ceq
+    IL_0009:  br.s       IL_000c
+    IL_000b:  ldc.i4.0
+    IL_000c:  call       ""void System.Console.Write(bool)""
+    IL_0011:  nop
+    IL_0012:  ret
 }
 ");
         }
@@ -3372,28 +3359,22 @@ class C
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "True");
-            verifier.VerifyIL("C.Main", @"{
-  // Code size       38 (0x26)
-  .maxstack  3
-  .locals init (System.ValueTuple<int, int> V_0)
-  IL_0000:  nop
-  IL_0001:  ldloca.s   V_0
-  IL_0003:  ldc.i4.1
-  IL_0004:  ldc.i4.2
-  IL_0005:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_000a:  ldloc.0
-  IL_000b:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0010:  ldc.i4.1
-  IL_0011:  bne.un.s   IL_001e
-  IL_0013:  ldloc.0
-  IL_0014:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_0019:  ldc.i4.2
-  IL_001a:  ceq
-  IL_001c:  br.s       IL_001f
-  IL_001e:  ldc.i4.0
-  IL_001f:  call       ""void System.Console.Write(bool)""
-  IL_0024:  nop
-  IL_0025:  ret
+            verifier.VerifyIL("C.Main", @"
+{
+    // Code size       19 (0x13)
+    .maxstack  2
+    IL_0000:  nop
+    IL_0001:  ldc.i4.1
+    IL_0002:  ldc.i4.1
+    IL_0003:  bne.un.s   IL_000b
+    IL_0005:  ldc.i4.2
+    IL_0006:  ldc.i4.2
+    IL_0007:  ceq
+    IL_0009:  br.s       IL_000c
+    IL_000b:  ldc.i4.0
+    IL_000c:  call       ""void System.Console.Write(bool)""
+    IL_0011:  nop
+    IL_0012:  ret
 }
 ");
         }
@@ -5450,6 +5431,110 @@ public class C
                 //         _ = (p1, p2) == (p1, p2);
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "p2").WithArguments("void*").WithLocation(10, 30)
                 );
+        }
+
+        [Fact]
+        public void TestOrder01()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public static void Main()
+    {
+        X x = new X();
+        Y y = new Y();
+        Console.WriteLine((1, ((int, int))x) == (y, (1, 1)));
+     }
+}
+
+class X
+{
+    public static implicit operator (short, short)(X x)
+    {
+        Console.WriteLine(""X-> (short, short)"");
+        return (1, 1);
+    }
+}
+
+class Y
+{
+    public static implicit operator int(Y x)
+    {
+        Console.WriteLine(""Y -> int"");
+        return 1;
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: @"X-> (short, short)
+Y -> int
+True");
+        }
+
+        [Fact]
+        public void TestOrder02()
+        {
+            var source = @"
+using System;
+
+public class C {
+    public static void Main() {
+        var result = (new B(1), new Nullable<B>(new A(2))) == (new A(3), new B(4));
+        Console.WriteLine();
+        Console.WriteLine(result);
+    }
+}
+
+struct A
+{
+    public readonly int N;
+    public A(int n)
+    {
+        this.N = n;
+        Console.Write($""new A({ n }); "");
+    }
+}
+
+struct B
+{
+    public readonly int N;
+    public B(int n)
+    {
+        this.N = n;
+        Console.Write($""new B({n}); "");
+    }
+    public static implicit operator B(A a)
+    {
+        Console.Write($""A({a.N})->"");
+        return new B(a.N);
+    }
+    public static bool operator ==(B b1, B b2)
+    {
+        Console.Write($""B({b1.N})==B({b2.N}); "");
+        return b1.N == b2.N;
+    }
+    public static bool operator !=(B b1, B b2)
+    {
+        Console.Write($""B({b1.N})!=B({b2.N}); "");
+        return b1.N != b2.N;
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                    // (22,8): warning CS0660: 'B' defines operator == or operator != but does not override Object.Equals(object o)
+                    // struct B
+                    Diagnostic(ErrorCode.WRN_EqualityOpWithoutEquals, "B").WithArguments("B").WithLocation(22, 8),
+                    // (22,8): warning CS0661: 'B' defines operator == or operator != but does not override Object.GetHashCode()
+                    // struct B
+                    Diagnostic(ErrorCode.WRN_EqualityOpWithoutGetHashCode, "B").WithArguments("B").WithLocation(22, 8)
+                );
+            CompileAndVerify(comp, expectedOutput: @"new B(1); new A(2); A(2)->new B(2); new A(3); new B(4); A(3)->new B(3); B(1)==B(3); 
+False
+");
         }
     }
 }

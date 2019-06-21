@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -48,11 +51,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundConversion { Conversion: { Kind: ConversionKind.ImplicitTupleLiteral }, Operand: var o }:
                     Debug.Assert(expr.Type == (object)o.Type || expr.Type.Equals(o.Type, TypeCompareKind.AllIgnoreOptions));
                     return IsLikeTupleExpression(o, out tuple);
+                case BoundConversion { Conversion: { Kind: var kind }, Operand: var o } when
+                        (kind == ConversionKind.ImplicitNullable || kind == ConversionKind.ExplicitNullable) &&
+                        expr.Type.IsNullableType() && expr.Type.StrippedType().Equals(o.Type, TypeCompareKind.AllIgnoreOptions):
+                    return IsLikeTupleExpression(o, out tuple);
                 default:
                     tuple = null;
                     return false;
             }
-
         }
 
         /// <summary>
@@ -102,48 +108,70 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Examples:
             // in `expr == (..., ...)` we need to save `expr` because it's not a tuple literal
             // in `(..., expr) == (..., (..., ...))` we need to save `expr` because it is used in a simple comparison
-            return expr switch
-            {
-                // The implicit nullable conversion (from T to Nullable<T>) is performed as part of the lowering later
-                BoundConversion { Conversion: { Kind: ConversionKind.ImplicitNullable } } conv =>
-                    DeferSideEffectingArgumentToTempForTupleEquality(VisitExpression(conv.Operand), initEffects, temps),
-                _ =>
-                    DeferSideEffectingArgumentToTempForTupleEquality(VisitExpression(expr), initEffects, temps),
-            };
+            return DeferSideEffectingArgumentToTempForTupleEquality(expr, initEffects, temps);
         }
 
         /// <summary>
-        /// Evaluate side effects into a temp, if any.  If there is an implicit user-defined
+        /// Evaluate side effects into a temp, if necessary.  If there is an implicit user-defined
         /// conversion operation near the top of the arg, preserve that in the returned expression to be evaluated later.
+        /// Conversions at the head of the result are unlowered, though the nested arguments within it are lowered.
+        /// That resulting expression must be passed through <see cref="LowerConversions(BoundExpression)"/> to
+        /// complete the lowering.
         /// </summary>
         private BoundExpression DeferSideEffectingArgumentToTempForTupleEquality(
-            BoundExpression loweredExpression,
+            BoundExpression expr,
             ArrayBuilder<BoundExpression> effects,
-            ArrayBuilder<LocalSymbol> temps)
+            ArrayBuilder<LocalSymbol> temps,
+            bool enclosingConversionWasExplicit = false)
         {
-            switch (loweredExpression)
+            switch (expr)
             {
                 case { ConstantValue: { } }:
-                    return loweredExpression;
-                case BoundCall { Method: { Name: WellKnownMemberNames.ImplicitConversionName, MethodKind: MethodKind.Conversion } method } call:
-                    // The semantics of tuple equality demand that we defer user-defined conversions, even though they are side-effecting.
-                    Debug.Assert(call.Arguments.Length == 1);
-                    var converted = DeferSideEffectingArgumentToTempForTupleEquality(call.Arguments[0], effects, temps);
-                    return call.Update(ImmutableArray.Create(converted));
-                case BoundObjectCreationExpression objectCreation when NullableAlwaysHasValue(loweredExpression) is { } value:
-                    // This is the case of an implicit nullable conversion from a (non-nullable) value type.
-                    // If the nullable expression always has a value, we'll replace that value with a temp saving that value
-                    BoundExpression savedValue = DeferSideEffectingArgumentToTempForTupleEquality(value, effects, temps);
-                    return objectCreation.UpdateArgumentsAndInitializer(ImmutableArray.Create(savedValue), objectCreation.ArgumentRefKindsOpt, objectCreation.InitializerExpressionOpt);
-                case BoundConversion conv when conv.Conversion.IsImplicit && !conv.ExplicitCastInCode:
-                    // The remaining implicit conversions after lowering are not side-effecting.
-                    var deferredOperand = DeferSideEffectingArgumentToTempForTupleEquality(conv.Operand, effects, temps);
-                    return conv.Update(
-                        deferredOperand, conv.Conversion, conv.IsBaseConversion, conv.Checked, conv.ExplicitCastInCode,
-                        conv.ConstantValue, conv.ConversionGroupOpt, conv.Type);
+                    return VisitExpression(expr);
+                case BoundConversion { Conversion: { Kind: var conversionKind } conversion } bc when conversionMustBePerformedOnOriginalExpression(bc, conversionKind):
+                    // Some conversions cannot be performed on a copy of the argument and must be done early.
+                    return EvaluateSideEffectingArgumentToTemp(expr, effects, temps);
+                case BoundConversion { Conversion: { IsUserDefined: true } } conv when conv.ExplicitCastInCode || enclosingConversionWasExplicit:
+                    // A user-defined conversion triggered by a cast must be performed early.
+                    return EvaluateSideEffectingArgumentToTemp(expr, effects, temps);
+                case BoundConversion conv:
+                    {
+                        // other conversions are deferred
+                        var deferredOperand = DeferSideEffectingArgumentToTempForTupleEquality(conv.Operand, effects, temps, conv.ExplicitCastInCode || enclosingConversionWasExplicit);
+                        return conv.UpdateOperand(deferredOperand);
+                    }
+                case BoundObjectCreationExpression { Arguments: { Length: 0 } } _ when expr.Type.IsNullableType():
+                    return new BoundLiteral(expr.Syntax, ConstantValue.Null, expr.Type);
+                case BoundObjectCreationExpression { Arguments: { Length: 1 } } creation when expr.Type.IsNullableType():
+                    {
+                        var deferredOperand = DeferSideEffectingArgumentToTempForTupleEquality(creation.Arguments[0], effects, temps, enclosingConversionWasExplicit: true);
+                        return new BoundConversion(
+                            syntax: expr.Syntax, operand: deferredOperand,
+                            conversion: Conversion.MakeNullableConversion(ConversionKind.ImplicitNullable, Conversion.Identity),
+                            @checked: false, explicitCastInCode: true, conversionGroupOpt: null, constantValueOpt: null,
+                            type: expr.Type, hasErrors: expr.HasErrors);
+                    }
                 default:
                     // When in doubt, evaluate early to a temp.
-                    return EvaluateSideEffectingArgumentToTemp(loweredExpression, effects, temps);
+                    return EvaluateSideEffectingArgumentToTemp(expr, effects, temps);
+            }
+
+            bool conversionMustBePerformedOnOriginalExpression(BoundConversion expr, ConversionKind kind)
+            {
+                // These are conversions from-expression that do not produce a constant,
+                // and which must be performed on the original expression, not on a copy of it.
+                switch (kind)
+                {
+                    case ConversionKind.AnonymousFunction:       // a lambda cannot be saved without a target type
+                    case ConversionKind.MethodGroup:             // similarly for a method group
+                    case ConversionKind.InterpolatedString:      // an interpolated string must be saved in interpolated form
+                    case ConversionKind.SwitchExpression:        // a switch expression must have its arms converted
+                    case ConversionKind.StackAllocToPointerType: // a stack alloc is not well-defined without an enclosing conversion
+                    case ConversionKind.StackAllocToSpanType:
+                        return true;
+                    default:
+                        return false;
+                }
             }
         }
 
@@ -275,8 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Optimization for nullable expressions that are never null
-            BoundExpression knownValue = NullableAlwaysHasValue(expr);
-            if (knownValue != null)
+            if (NullableAlwaysHasValue(expr) is BoundExpression knownValue)
             {
                 hasValue = MakeBooleanConstant(expr.Syntax, true);
                 value = knownValue;
@@ -285,16 +312,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Regular nullable expressions
+            hasValue = makeNullableHasValue(expr);
             if (saveHasValue)
             {
-                hasValue = MakeHasValueTemp(expr, temps, outerEffects);
-            }
-            else
-            {
-                hasValue = MakeNullableHasValue(expr.Syntax, expr);
+                hasValue = MakeTemp(hasValue, temps, outerEffects);
             }
 
             value = MakeValueOrDefaultTemp(expr, temps, innerEffects);
+
+            BoundExpression makeNullableHasValue(BoundExpression expr)
+            {
+                // Optimize conversions where we can use the HasValue of the underlying
+                switch (expr)
+                {
+                    case BoundConversion { Conversion: { IsIdentity: true }, Operand: var o }:
+                        return makeNullableHasValue(o);
+                    case BoundConversion { Conversion: { IsNullable: true }, Operand: var o } when expr.Type.IsNullableType() && o.Type.IsNullableType():
+                        return makeNullableHasValue(o);
+                    default:
+                        return MakeNullableHasValue(expr.Syntax, expr);
+                }
+            }
         }
 
         private BoundLocal MakeTemp(BoundExpression loweredExpression, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects)
@@ -308,20 +346,50 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns a temp which is initialized with lowered-expression.HasValue
         /// </summary>
-        private BoundLocal MakeHasValueTemp(BoundExpression expression, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects)
+        private BoundExpression MakeValueOrDefaultTemp(
+            BoundExpression expr,
+            ArrayBuilder<LocalSymbol> temps,
+            ArrayBuilder<BoundExpression> effects)
         {
-            BoundExpression hasValueCall = MakeNullableHasValue(expression.Syntax, expression);
-            return MakeTemp(hasValueCall, temps, effects);
-        }
+            // Optimize conversions where we can use the underlying
+            switch (expr)
+            {
+                case BoundConversion { Conversion: { IsIdentity: true }, Operand: var o }:
+                    return MakeValueOrDefaultTemp(o, temps, effects);
+                case BoundConversion { Conversion: { IsNullable: true, UnderlyingConversions: var nested }, Operand: var o } conv when
+                        expr.Type.IsNullableType() && o.Type.IsNullableType() && nested[0] is { IsTupleConversion: true } tupleConversion:
+                    {
+                        var operand = MakeValueOrDefaultTemp(o, temps, effects);
+                        var types = expr.Type.GetNullableUnderlyingType().GetElementTypesOfTupleOrCompatible();
+                        int tupleCardinality = operand.Type.TupleElementTypesWithAnnotations.Length;
+                        var underlyingConversions = tupleConversion.UnderlyingConversions;
+                        Debug.Assert(underlyingConversions.Length == tupleCardinality);
+                        return new BoundConvertedTupleLiteral(
+                            syntax: operand.Syntax,
+                            naturalTypeOpt: expr.Type,
+                            arguments: Enumerable.Range(0, tupleCardinality)
+                                .Select(i => MakeBoundConversion(GetTuplePart(operand, i), underlyingConversions[i], types[i], conv)).AsImmutable(),
+                            argumentNamesOpt: ImmutableArray<string>.Empty,
+                            inferredNamesOpt: ImmutableArray<bool>.Empty,
+                            type: expr.Type,
+                            hasErrors: expr.HasErrors).WithSuppression(expr.IsSuppressed);
+                        throw null;
+                    }
+                default:
+                    {
+                        BoundExpression valueOrDefaultCall = MakeOptimizedGetValueOrDefault(expr.Syntax, expr);
+                        return MakeTemp(valueOrDefaultCall, temps, effects);
+                    }
+            }
 
-        /// <summary>
-        /// Returns a temp which is initialized with lowered-expression.GetValueOrDefault()
-        /// </summary>
-        private BoundLocal MakeValueOrDefaultTemp(BoundExpression expression,
-            ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects)
-        {
-            BoundExpression valueOrDefaultCall = MakeOptimizedGetValueOrDefault(expression.Syntax, expression);
-            return MakeTemp(valueOrDefaultCall, temps, effects);
+
+            BoundExpression MakeBoundConversion(BoundExpression expr, Conversion conversion, TypeWithAnnotations type, BoundConversion enclosing)
+            {
+                return new BoundConversion(
+                    expr.Syntax, expr, conversion, enclosing.Checked, enclosing.ExplicitCastInCode,
+                    conversionGroupOpt: null, constantValueOpt: null, type: type.Type);
+            }
+
         }
 
         /// <summary>
@@ -355,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// For tuple literals, we just return the element.
-        /// For expressions with tuple type, we access <c>Item{i}</c>.
+        /// For expressions with tuple type, we access <c>Item{i+1}</c>.
         /// </summary>
         private BoundExpression GetTuplePart(BoundExpression tuple, int i)
         {
@@ -386,6 +454,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression RewriteTupleSingleOperator(TupleBinaryOperatorInfo.Single single,
             BoundExpression left, BoundExpression right, TypeSymbol boolType, BinaryOperatorKind operatorKind)
         {
+            // We deferred lowering some of the conversions on the operand, even though the
+            // code below the conversions were lowered.  We lower the conversion part now.
+            left = LowerConversions(left);
+            right = LowerConversions(right);
+
             if (single.Kind.IsDynamic())
             {
                 // Produce
@@ -408,17 +481,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // For `null == null` this is special-cased during initial binding
                 return new BoundLiteral(left.Syntax, ConstantValue.Create(operatorKind == BinaryOperatorKind.Equal), boolType);
             }
-
-            // PROTOTYPE(ngafter): this code was deleted when we moved to binding the sides.
-            //// We leave both operands in nullable-null conversions unconverted, MakeBinaryOperator has special for null-literal
-            //bool isNullableNullConversion = single.Kind.OperandTypes() == BinaryOperatorKind.NullableNull;
-            //BoundExpression convertedLeft = isNullableNullConversion
-            //    ? left
-            //    : MakeConversionNode(left.Syntax, left, single.LeftConversion, single.LeftConvertedTypeOpt, @checked: false);
-
-            //BoundExpression convertedRight = isNullableNullConversion
-            //    ? right
-            //    : MakeConversionNode(right.Syntax, right, single.RightConversion, single.RightConvertedTypeOpt, @checked: false);
 
             BoundExpression binary = MakeBinaryOperator(_factory.Syntax, single.Kind, left, right, single.MethodSymbolOpt?.ReturnType ?? boolType, single.MethodSymbolOpt);
             UnaryOperatorSignature boolOperator = single.BoolOperator;
@@ -453,6 +515,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Lower any conversions appearing near the top of the bound expression, assuming non-conversions
+        /// appearing below them have already been lowered.
+        /// </summary>
+        private BoundExpression LowerConversions(BoundExpression expr)
+        {
+            return (expr is BoundConversion conv)
+                ? MakeConversionNode(
+                    oldNodeOpt: conv, syntax: conv.Syntax, rewrittenOperand: LowerConversions(conv.Operand),
+                    conversion: conv.Conversion, @checked: conv.Checked, explicitCastInCode: conv.ExplicitCastInCode,
+                    constantValueOpt: conv.ConstantValue, rewrittenType: conv.Type)
+                : expr;
         }
     }
 }
