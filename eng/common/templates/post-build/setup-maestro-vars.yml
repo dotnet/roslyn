@@ -1,0 +1,38 @@
+jobs:
+- job: setupMaestroVars
+  displayName: Setup Maestro Vars
+  pool:
+    vmImage: 'windows-2019'
+  steps:
+    - task: DownloadBuildArtifacts@0
+      displayName: Download Release Configs
+      inputs:
+        buildType: current
+        artifactName: ReleaseConfigs
+
+    - task: PowerShell@2
+      name: setReleaseVars
+      displayName: Set Release Configs Vars
+      inputs:
+        targetType: inline
+        script: |
+          # This is needed to make Write-PipelineSetVariable works in this context
+          if ($env:BUILD_BUILDNUMBER -ne "" -and $env:BUILD_BUILDNUMBER -ne $null) {
+            $ci = $true
+
+            . "$(Build.SourcesDirectory)/eng/common/tools.ps1"
+              
+            $BarId = Get-Content "$(Build.StagingDirectory)/ReleaseConfigs/BARBuildId.txt" 
+            Write-PipelineSetVariable -Name 'BARBuildId' -Value $BarId
+
+            Write-Host "Asked Write-PipelineSetVariable to create BARBuildId with value '$BarId'"
+
+            $Channels = ""
+            Get-Content "$(Build.StagingDirectory)/ReleaseConfigs/Channels.txt" | ForEach-Object { $Channels += "$_ ," }
+            Write-PipelineSetVariable -Name 'InitialChannels' -Value "$Channels"
+
+            Write-Host "Asked Write-PipelineSetVariable to create InitialChannels with value '$Channels'"
+          }
+          else {
+            Write-Host "This step can only be run in an Azure DevOps CI environment."
+          }
