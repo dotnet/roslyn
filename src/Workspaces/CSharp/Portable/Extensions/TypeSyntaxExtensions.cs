@@ -109,22 +109,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        public static TypeSyntax GenerateTypeSyntax(this IPropertySymbol property)
-        {
-            if (property.ReturnsByRef)
-            {
-                return property.Type.GenerateRefTypeSyntax();
-            }
-            else if (property.ReturnsByRefReadonly)
-            {
-                return property.Type.GenerateRefReadOnlyTypeSyntax();
-            }
-            else
-            {
-                return property.Type.GenerateTypeSyntax();
-            }
-        }
-
         public static TypeSyntax StripRefIfNeeded(this TypeSyntax type)
             => type is RefTypeSyntax refType ? refType.Type : type;
     }
