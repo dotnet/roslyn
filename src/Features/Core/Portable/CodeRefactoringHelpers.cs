@@ -34,10 +34,19 @@ namespace Microsoft.CodeAnalysis
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var selectionStripped = await GetStrippedTextSpan(document, selection, cancellationToken).ConfigureAwait(false);
 
-            if (root.FindNode(selectionStripped) is TSyntaxNode node)
+            var node = root.FindNode(selectionStripped, getInnermostNodeForTie: true);
+            SyntaxNode prevNode;
+            do
             {
-                return node;
-            }
+                if (node is TSyntaxNode)
+                {
+                    return (TSyntaxNode)node;
+                }
+
+                prevNode = node;
+                node = node.Parent;
+
+            } while (node != null && prevNode.FullWidth() == node.FullWidth());
 
             // only consider what is direct selection touching when selection is empty 
             // prevents `[|C|] methodName(){}` from registering as relevant for method Node
