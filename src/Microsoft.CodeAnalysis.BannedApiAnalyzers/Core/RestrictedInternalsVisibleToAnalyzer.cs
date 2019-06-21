@@ -142,8 +142,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     if (assemblyAttribute.ConstructorArguments.Length != 2 ||
                         assemblyAttribute.ConstructorArguments[0].Kind != TypedConstantKind.Primitive ||
                         !(assemblyAttribute.ConstructorArguments[0].Value is string assemblyName) ||
-                        !AssemblyIdentity.TryParseDisplayName(assemblyName, out var assemblyIdentity) ||
-                        AssemblyIdentityComparer.Default.Compare(assemblyIdentity, compilation.Assembly.Identity) == AssemblyIdentityComparer.ComparisonResult.NotEquivalent)
+                        !string.Equals(assemblyName, compilation.Assembly.Name, StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
                     }
