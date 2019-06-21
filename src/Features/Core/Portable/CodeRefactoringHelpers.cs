@@ -10,7 +10,6 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class CodeRefactoringHelpers
     {
-
         /// <summary>
         /// <para>
         /// Returns an instance of <typeparamref name="TSyntaxNode"/> for refactoring given specified selection in document or null
@@ -33,12 +32,15 @@ namespace Microsoft.CodeAnalysis
             var selectionStripped = await GetStrippedTextSpan(document, selection, cancellationToken).ConfigureAwait(false);
 
             var node = root.FindNode(selectionStripped) as TSyntaxNode;
-            if (node == null)
+            if (node != null)
+            {
+                return node;
+            }
             {
                 // e.g. "C LocalFunction[||](C c)" -> root.FindNode return ParameterList but we still want to return LocalFunctionNode
                 var identifier = await root.SyntaxTree.GetTouchingTokenAsync(selectionStripped.Start,
                     token => token.Parent is TSyntaxNode, cancellationToken).ConfigureAwait(false);
-                node = identifier.Parent as TSyntaxNode;
+                return identifier.Parent as TSyntaxNode;
             }
 
             return node;
