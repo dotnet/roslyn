@@ -283,22 +283,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                                 : string.Empty)
                         : null;
 
-                if (!isExpanded)
+                // Store around the span this completion list applies to.  We'll use this later
+                // to pass this value in when we're committing a completion list item.
+                // It's OK to overwrite this value when expanded items are requested.
+                session.Properties[CompletionListSpan] = completionList.Span;
+
+                // This is a code supporting original completion scenarios: 
+                // Controller.Session_ComputeModel: if completionList.SuggestionModeItem != null, then suggestionMode = true
+                // If there are suggestionItemOptions, then later HandleNormalFiltering should set selection to SoftSelection.
+                if (!session.Properties.TryGetProperty(HasSuggestionItemOptions, out bool hasSuggestionItemOptionsBefore) || !hasSuggestionItemOptionsBefore)
                 {
-                    // Store around the span this completion list applies to.  We'll use this later
-                    // to pass this value in when we're committing a completion list item.
-                    session.Properties[CompletionListSpan] = completionList.Span;
-
-                    // This is a code supporting original completion scenarios: 
-                    // Controller.Session_ComputeModel: if completionList.SuggestionModeItem != null, then suggestionMode = true
-                    // If there are suggestionItemOptions, then later HandleNormalFiltering should set selection to SoftSelection.
                     session.Properties[HasSuggestionItemOptions] = suggestionItemOptions != null;
+                }
 
-                    var excludedCommitCharacters = GetExcludedCommitCharacters(completionList.Items);
-                    if (excludedCommitCharacters.Length > 0)
+                var excludedCommitCharacters = GetExcludedCommitCharacters(completionList.Items);
+                if (excludedCommitCharacters.Length > 0)
+                {
+                    if (session.Properties.TryGetProperty(ExcludedCommitCharacters, out ImmutableArray<char> excludedCommitCharactersBefore))
                     {
-                        session.Properties[ExcludedCommitCharacters] = excludedCommitCharacters;
+                        excludedCommitCharacters = excludedCommitCharacters.Union(excludedCommitCharactersBefore).ToImmutableArray();
                     }
+                    session.Properties[ExcludedCommitCharacters] = excludedCommitCharacters;
                 }
             }
 
