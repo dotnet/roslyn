@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     if (_expander == null)
                     {
-                        var addImageId = Shared.Extensions.GlyphExtensions.GetKnownImageId(KnownImageIds.ExpandScope);
+                        var addImageId = Shared.Extensions.GlyphExtensions.GetImageCatalogImageId(KnownImageIds.ExpandScope);
                         _expander = new AsyncCompletionData.CompletionExpander(
                             EditorFeaturesResources.Expander_display_text,
                             accessKey: "a",
