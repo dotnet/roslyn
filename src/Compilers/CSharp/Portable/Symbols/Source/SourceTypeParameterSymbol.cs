@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private byte GetSynthesizedNullableAttributeValue()
+        internal byte GetSynthesizedNullableAttributeValue()
         {
             if (this.HasReferenceTypeConstraint)
             {

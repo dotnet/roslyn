@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public override void VisitMethod(MethodSymbol method)
         {
             var previousContext = _nullableContext;
-            _nullableContext = GetNullableContextAttribute(method.GetReturnTypeAttributes()) ?? _nullableContext;
+            _nullableContext = GetNullableContextAttribute(method.GetAttributes()) ?? _nullableContext;
 
             ReportSymbol(method);
             VisitList(method.TypeParameters);

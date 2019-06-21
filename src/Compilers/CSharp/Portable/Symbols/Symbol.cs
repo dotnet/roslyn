@@ -1219,7 +1219,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.AddValue(((ParameterSymbol)this).TypeWithAnnotations);
                     break;
                 case SymbolKind.TypeParameter:
-                    // Not counted currently.
+                    if (this is SourceTypeParameterSymbolBase typeParameter)
+                    {
+                        builder.AddValue(typeParameter.GetSynthesizedNullableAttributeValue());
+                    }
                     break;
             }
         }

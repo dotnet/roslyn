@@ -4,6 +4,7 @@ using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -35,6 +36,7 @@ public class Program
             var expected =
 @"Program
     [NullableContext(1)] System.Object! F(System.Object! arg)
+        System.Object! arg
 ";
             AssertNullableAttributes(comp, expected);
         }
@@ -56,6 +58,7 @@ public class Program
             var expected =
 @"Program
     [NullableContext(1)] System.Object! F(System.Object! arg)
+        System.Object! arg
 ";
             AssertNullableAttributes(comp, expected);
         }
@@ -181,7 +184,7 @@ class Program
         }
 
         [Fact]
-        public void MostCommonNullableValueBuilder()
+        public void MostCommonNullableValue()
         {
             Assert.Equal(null, getMostCommonValue());
             Assert.Equal(null, getMostCommonValue((byte?)null));
@@ -221,6 +224,35 @@ class Program
                     builder.AddValue(value);
                 }
                 return builder.MostCommonValue;
+            }
+        }
+
+        [Fact]
+        public void GetCommonNullableValue()
+        {
+            Assert.Equal(null, getCommonValue());
+            Assert.Equal((byte)0, getCommonValue(0));
+            Assert.Equal((byte)1, getCommonValue(1));
+            Assert.Equal((byte)2, getCommonValue(2));
+            Assert.Equal((byte)3, getCommonValue(3));
+            Assert.Equal((byte)0, getCommonValue(0, 0));
+            Assert.Equal(null, getCommonValue(0, 1));
+            Assert.Equal(null, getCommonValue(1, 0));
+            Assert.Equal((byte)1, getCommonValue(1, 1));
+            Assert.Equal(null, getCommonValue(1, 2));
+            Assert.Equal((byte)2, getCommonValue(2, 2));
+            Assert.Equal(null, getCommonValue(0, 1, 0));
+            Assert.Equal(null, getCommonValue(1, 0, 1));
+            Assert.Equal(null, getCommonValue(2, 2, 1));
+            Assert.Equal((byte)3, getCommonValue(3, 3, 3));
+
+            static byte? getCommonValue(params byte[] values)
+            {
+                var builder = ArrayBuilder<byte>.GetInstance();
+                builder.AddRange(values);
+                var result = MostCommonNullableValueBuilder.GetCommonValue(builder);
+                builder.Free();
+                return result;
             }
         }
 

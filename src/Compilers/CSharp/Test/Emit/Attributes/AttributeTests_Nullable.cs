@@ -525,7 +525,9 @@ class C
             var expected =
 @"Program
     [NullableContext(2)] System.Object? F(System.Object?[]? args)
+        System.Object?[]? args
     [NullableContext(1)] System.Object! G(System.Object![]! args)
+        System.Object![]! args
 ";
             AssertNullableAttributes(comp, expected);
         }
@@ -542,6 +544,9 @@ class C
             var expected =
 @"Program
     [NullableContext(1)] void F(System.String! x, System.String! y, System.String! z)
+        System.String! x
+        System.String! y
+        System.String! z
 ";
             AssertNullableAttributes(comp, expected);
         }
@@ -922,6 +927,59 @@ public class C<T> where T : A<object>
         }
 
         [Fact]
+        public void EmitAttribute_Constraints()
+        {
+            var source =
+@"#nullable enable
+public abstract class Program
+{
+#nullable disable
+    public abstract void M0<T1, T2, T3, T4>()
+        where T1 : class
+        where T2 : class
+        where T3 : class
+#nullable enable
+        where T4 : class?;
+    public abstract void M1<T1, T2, T3, T4>()
+        where T1 : class
+        where T2 : class
+        where T3 : class
+#nullable disable
+        where T4 : class;
+#nullable enable
+    public abstract void M2<T1, T2, T3, T4>()
+        where T1 : class?
+        where T2 : class?
+        where T3 : class?
+        where T4 : class;
+    private object _f1;
+    private object _f2;
+    private object _f3;
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"[NullableContext(1)] [Nullable(0)] Program
+    [NullableContext(0)] void M0<T1, T2, T3, T4>() where T1 : class where T2 : class where T3 : class where T4 : class?
+        T1
+        T2
+        T3
+        [Nullable(2)] T4
+    void M1<T1, T2, T3, T4>() where T1 : class! where T2 : class! where T3 : class! where T4 : class
+        T1
+        T2
+        T3
+        [Nullable(0)] T4
+    [NullableContext(2)] void M2<T1, T2, T3, T4>() where T1 : class? where T2 : class? where T3 : class? where T4 : class!
+        T1
+        T2
+        T3
+        [Nullable(1)] T4
+    Program()
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
         public void EmitAttribute_ClassConstraint_SameAsContext()
         {
             var source =
@@ -1032,10 +1090,10 @@ public class Program
     System.Object! F32
     System.Object! F33
     Program()
-    [Nullable(0)] Program.C0<T0> where T0 : class
-        [Nullable(0)] T0
-        System.Object! F01
-        System.Object! F02
+    [NullableContext(0)] Program.C0<T0> where T0 : class
+        T0
+        [Nullable(1)] System.Object! F01
+        [Nullable(1)] System.Object! F02
         C0()
     [NullableContext(2)] [Nullable(0)] Program.C1<T1> where T1 : class!
         [Nullable(1)] T1
@@ -1155,6 +1213,8 @@ public class B
         [Nullable({ 0, 2 })] System.Object?[] c
 B
     [NullableContext(1)] void F(System.Object! x, System.Object! y)
+        System.Object! x
+        System.Object! y
 ";
             AssertNullableAttributes(comp, expected);
         }
@@ -1511,7 +1571,11 @@ public class Program
             var expected =
 @"Program
     [NullableContext(1)] [Nullable(0)] System.Object F1(System.Object! x, System.Object! y)
+        System.Object! x
+        System.Object! y
     [NullableContext(2)] [Nullable(0)] System.Object F2(System.Object? x, System.Object? y)
+        System.Object? x
+        System.Object? y
 ";
             AssertNullableAttributes(comp, expected);
         }
@@ -1545,9 +1609,10 @@ internal class InternalTypes
     private class Private : Base<object, string?> { }
 }";
             var expectedPublicOnly = @"
-Base<T, U>
-    [Nullable(2)] T
-    [Nullable(2)] U
+[NullableContext(2)] [Nullable(0)] Base<T, U>
+    T
+    U
+    Base()
 PublicTypes
     [Nullable({ 0, 1, 2 })] PublicTypes.Public
     [Nullable({ 0, 1, 2 })] PublicTypes.Protected
@@ -1555,9 +1620,10 @@ PublicTypes
 [Nullable({ 0, 1, 2 })] Namespace.Public
 ";
             var expectedPublicAndInternal = @"
-Base<T, U>
-    [Nullable(2)] T
-    [Nullable(2)] U
+[NullableContext(2)] [Nullable(0)] Base<T, U>
+    T
+    U
+    Base()
 PublicTypes
     [Nullable({ 0, 1, 2 })] PublicTypes.Public
     [Nullable({ 0, 1, 2 })] PublicTypes.Internal
@@ -1574,9 +1640,10 @@ InternalTypes
 [Nullable({ 0, 1, 2 })] Namespace.Internal
 ";
             var expectedAll = @"
-Base<T, U>
-    [Nullable(2)] T
-    [Nullable(2)] U
+[NullableContext(2)] [Nullable(0)] Base<T, U>
+    T
+    U
+    Base()
 PublicTypes
     [Nullable({ 0, 1, 2 })] PublicTypes.Public
     [Nullable({ 0, 1, 2 })] PublicTypes.Internal
@@ -2060,30 +2127,32 @@ public class Program
 }";
             var expectedPublicOnly = @"
 Program
-    void ProtectedMethod<T, U>() where T : notnull where U : class!
-        [Nullable(1)] T
-        [Nullable(1)] U
+    [NullableContext(1)] void ProtectedMethod<T, U>() where T : notnull where U : class!
+        T
+        U
 ";
             var expectedPublicAndInternal = @"
-Program
+[NullableContext(1)] [Nullable(0)] Program
     void ProtectedMethod<T, U>() where T : notnull where U : class!
-        [Nullable(1)] T
-        [Nullable(1)] U
+        T
+        U
     void InternalMethod<T, U>() where T : notnull where U : class!
-        [Nullable(1)] T
-        [Nullable(1)] U
+        T
+        U
+    Program()
 ";
             var expectedAll = @"
-Program
+[NullableContext(1)] [Nullable(0)] Program
     void ProtectedMethod<T, U>() where T : notnull where U : class!
-        [Nullable(1)] T
-        [Nullable(1)] U
+        T
+        U
     void InternalMethod<T, U>() where T : notnull where U : class!
-        [Nullable(1)] T
-        [Nullable(1)] U
+        T
+        U
     void PrivateMethod<T, U>() where T : notnull where U : class!
-        [Nullable(1)] T
-        [Nullable(1)] U
+        T
+        U
+    Program()
 ";
             EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
         }
@@ -2135,9 +2204,11 @@ Public
             var expectedAll = @"
 Public
     [NullableContext(1)] void PrivateMethod(System.String! x)
+        System.String! x
     Public.<>c
         [Nullable({ 0, 2 })] System.Action<System.String?> <>9__0_0
         [NullableContext(1)] void <PrivateMethod>b__0_0(System.String! y)
+            System.String! y
 ";
             EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
         }
@@ -2978,6 +3049,9 @@ class C : I<(object X, object? Y)>
 }";
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
+                // (1,11): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableContextAttribute' is not defined or imported
+                // interface I<T>
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "I").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(1, 11),
                 // (1,13): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 // interface I<T>
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "T").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(1, 13),
@@ -3530,6 +3604,8 @@ public class C
 @"C
     [NullableContext(1)] void F(System.Object? x, System.Object! y, System.Object! z)
         [Nullable(2)] System.Object? x
+        System.Object! y
+        System.Object! z
 ";
                 AssertNullableAttributes(module, expected);
             });
