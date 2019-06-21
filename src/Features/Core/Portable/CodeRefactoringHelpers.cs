@@ -31,19 +31,15 @@ namespace Microsoft.CodeAnalysis
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var selectionStripped = await GetStrippedTextSpan(document, selection, cancellationToken).ConfigureAwait(false);
 
-            var node = root.FindNode(selectionStripped) as TSyntaxNode;
-            if (node != null)
+            if (root.FindNode(selectionStripped) is TSyntaxNode node)
             {
                 return node;
             }
-            {
-                // e.g. "C LocalFunction[||](C c)" -> root.FindNode return ParameterList but we still want to return LocalFunctionNode
-                var identifier = await root.SyntaxTree.GetTouchingTokenAsync(selectionStripped.Start,
-                    token => token.Parent is TSyntaxNode, cancellationToken).ConfigureAwait(false);
-                return identifier.Parent as TSyntaxNode;
-            }
 
-            return node;
+            // e.g. "C LocalFunction[||](C c)" -> root.FindNode return ParameterList but we still want to return LocalFunctionNode
+            var touchingToken = await root.SyntaxTree.GetTouchingTokenAsync(selectionStripped.Start,
+                token => token.Parent is TSyntaxNode, cancellationToken).ConfigureAwait(false);
+            return touchingToken.Parent as TSyntaxNode;
         }
 
         public static Task<bool> RefactoringSelectionIsValidAsync(
@@ -136,10 +132,7 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        private static Task<TextSpan> GetExpandedNodeSpan(
-            Document document,
-            SyntaxNode node,
-            CancellationToken cancellationToken)
+        private static Task<TextSpan> GetExpandedNodeSpan(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
             return GetExpandedTextSpan(document, node.Span, cancellationToken);
         }
@@ -181,11 +174,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns unchanged <paramref name="span"/> in case <see cref="TextSpan.IsEmpty"/>.
         /// Returns empty Span with original <see cref="TextSpan.Start"/> in case it contains only whitespace.
         /// </remarks>
-        private static async Task<TextSpan> GetStrippedTextSpan(
-            Document document,
-            TextSpan span,
-            CancellationToken cancellationToken
-            )
+        private static async Task<TextSpan> GetStrippedTextSpan(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var start = span.Start;
