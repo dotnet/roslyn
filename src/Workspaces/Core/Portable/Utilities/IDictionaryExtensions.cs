@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Roslyn.Utilities
@@ -42,23 +43,14 @@ namespace Roslyn.Utilities
             collection.Add(value);
         }
 
-        public static void MultiAddWithDefault<TKey, TValue, TCollection>(this IDictionary<TKey, TCollection> dictionary, TKey key, TValue value)
-            where TValue : IEquatable<TValue>
-            where TCollection : ICollection<TValue>, new()
+        public static void MultiAdd<TKey, TValue>(this IDictionary<TKey, ImmutableArray<TValue>> dictionary, TKey key, TValue value)
         {
-            var foundCollection = dictionary.TryGetValue(key, out var collection);
-
-            if (collection == null && !((IEquatable<TValue>)value).Equals(default))
+            if (!dictionary.TryGetValue(key, out var collection))
             {
-                collection = new TCollection();
+                collection = ImmutableArray<TValue>.Empty;
             }
 
-            if (!foundCollection)
-            {
-                dictionary.Add(key, collection);
-            }
-
-            collection?.Add(value);
+            dictionary[key] = collection.Add(value);
         }
 
         public static void MultiRemove<TKey, TValue, TCollection>(this IDictionary<TKey, TCollection> dictionary, TKey key, TValue value)
@@ -75,29 +67,17 @@ namespace Roslyn.Utilities
             }
         }
 
-        public static void MultiRemoveWithDefault<TKey, TValue, TCollection>(this IDictionary<TKey, TCollection> dictionary, TKey key, TValue value)
-            where TValue : IEquatable<TValue>
-            where TCollection : ICollection<TValue>
+        public static void MultiRemove<TKey, TValue>(this IDictionary<TKey, ImmutableArray<TValue>> dictionary, TKey key, TValue value)
         {
-            if (!dictionary.TryGetValue(key, out var collection))
+            if (dictionary.TryGetValue(key, out var collection))
             {
-                return;
-            }
-
-            if (collection == null)
-            {
-                if (((IEquatable<TValue>)value).Equals(default))
+                if (collection.Length == 1)
                 {
                     dictionary.Remove(key);
                 }
-            }
-            else
-            {
-                collection.Remove(value);
-
-                if (collection.Count == 0)
+                else
                 {
-                    dictionary.Remove(key);
+                    dictionary[key] = collection.Remove(value);
                 }
             }
         }

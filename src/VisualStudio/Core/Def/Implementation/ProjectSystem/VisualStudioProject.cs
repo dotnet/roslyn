@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string _outputRefFilePath;
         private string _defaultNamespace;
 
-        private readonly Dictionary<string, List<MetadataReferenceProperties>> _allMetadataReferences = new Dictionary<string, List<MetadataReferenceProperties>>();
+        private readonly Dictionary<string, ImmutableArray<MetadataReferenceProperties>> _allMetadataReferences = new Dictionary<string, ImmutableArray<MetadataReferenceProperties>>();
 
         /// <summary>
         /// The file watching tokens for the documents in this project. We get the tokens even when we're in a batch, so the files here
@@ -779,7 +779,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     throw new InvalidOperationException("The metadata reference has already been added to the project.");
                 }
 
-                _allMetadataReferences.MultiAddWithDefault(fullPath, properties);
+                _allMetadataReferences.MultiAdd(fullPath, properties);
 
                 if (_activeBatchScopes > 0)
                 {
@@ -845,7 +845,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     throw new InvalidOperationException("The metadata reference does not exist in this project.");
                 }
 
-                _allMetadataReferences.MultiRemoveWithDefault(fullPath, properties);
+                _allMetadataReferences.MultiRemove(fullPath, properties);
 
                 if (_activeBatchScopes > 0)
                 {
