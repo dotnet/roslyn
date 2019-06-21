@@ -586,7 +586,7 @@ $@"class C
         public async Task TestMethodBlockSelection2()
         {
 
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"class C
 {
     void M()
@@ -595,17 +595,6 @@ $@"class C
         {
             return null;
         }|]
-    }
-}",
-@"class C
-{
-    void M()
-    {
-    }
-
-    private static C LocalFunction(C c)
-    {
-        return null;
     }
 }");
         }

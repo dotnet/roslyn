@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
             var cancellationToken = context.CancellationToken;
 
-            var localFunction = await TryGetSelectedLocalFunctionAsync(document, context.Span, cancellationToken).ConfigureAwait(false);
+            var localFunction = await CodeRefactoringHelpers.TryGetSelectedNodeAsync<LocalFunctionStatementSyntax>(document, context.Span, cancellationToken).ConfigureAwait(false);
             if (localFunction == default)
             {
                 return;
@@ -57,26 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
             context.RegisterRefactoring(new MyCodeAction(CSharpFeaturesResources.Convert_to_method,
                 c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)));
-        }
-
-        private async Task<LocalFunctionStatementSyntax> TryGetSelectedLocalFunctionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
-        {
-            var localFunction = await CodeRefactoringHelpers.TryGetSelectedNodeAsync<LocalFunctionStatementSyntax>(document, span, cancellationToken).ConfigureAwait(false);
-            if (localFunction == default)
-            {
-                // Only function's block might be selected -> succeed only when the whole block (all statements) is selected
-                var block = await CodeRefactoringHelpers.TryGetSelectedNodeAsync<BlockSyntax>(document, span, cancellationToken).ConfigureAwait(false);
-                if (block == null || !span.Contains(block.Span))
-                {
-                    return default;
-                }
-                else
-                {
-                    return block.Parent as LocalFunctionStatementSyntax;
-                }
-            }
-
-            return localFunction;
         }
 
         private static async Task<Document> UpdateDocumentAsync(
