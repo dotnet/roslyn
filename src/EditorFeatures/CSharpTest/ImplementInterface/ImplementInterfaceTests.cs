@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
@@ -7892,6 +7893,106 @@ public class Test : ITest
     {
         throw new System.NotImplementedException();
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithNullableProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P { get; }
+}
+public class Test : [|ITest|]
+{
+}",
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P { get; }
+}
+public class Test : ITest
+{
+    public string? P => throw new System.NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithNullablePropertyAlreadyImplemented()
+        {
+            await TestMissingAsync(
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P { get; }
+}
+public class Test : [|ITest|]
+{
+    public string? P => throw new System.NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithNullableMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P();
+}
+public class Test : [|ITest|]
+{
+}",
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P();
+}
+public class Test : ITest
+{
+    public string? P()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36101"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithNullableDisabled()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P { get; }
+}
+
+#nullable disable
+
+public class Test : [|ITest|]
+{
+}",
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P { get; }
+}
+
+#nullable disable
+
+public class Test : ITest
+{
+    public string P => throw new System.NotImplementedException();
 }");
         }
     }
