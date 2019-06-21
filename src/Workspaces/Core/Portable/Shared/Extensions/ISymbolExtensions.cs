@@ -340,13 +340,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             switch (symbol)
             {
                 case IFieldSymbol fieldSymbol:
-                    return fieldSymbol.Type.WithNullability(fieldSymbol.NullableAnnotation);
+                    return fieldSymbol.GetTypeWithAnnotatedNullability();
                 case IPropertySymbol propertySymbol:
-                    return propertySymbol.Type.WithNullability(propertySymbol.NullableAnnotation);
+                    return propertySymbol.GetTypeWithAnnotatedNullability();
                 case IMethodSymbol methodSymbol:
-                    return methodSymbol.ReturnType.WithNullability(methodSymbol.ReturnNullableAnnotation);
+                    return methodSymbol.GetReturnTypeWithAnnotatedNullability();
                 case IEventSymbol eventSymbol:
-                    return eventSymbol.Type.WithNullability(eventSymbol.NullableAnnotation);
+                    return eventSymbol.GetTypeWithAnnotatedNullability();
             }
 
             return null;
@@ -867,13 +867,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             switch (symbol)
             {
                 case ILocalSymbol localSymbol:
-                    return localSymbol.Type.WithNullability(localSymbol.NullableAnnotation);
+                    return localSymbol.GetTypeWithAnnotatedNullability();
                 case IFieldSymbol fieldSymbol:
-                    return fieldSymbol.Type.WithNullability(fieldSymbol.NullableAnnotation);
+                    return fieldSymbol.GetTypeWithAnnotatedNullability();
                 case IPropertySymbol propertySymbol:
-                    return propertySymbol.Type.WithNullability(propertySymbol.NullableAnnotation);
+                    return propertySymbol.GetTypeWithAnnotatedNullability();
                 case IParameterSymbol parameterSymbol:
-                    return parameterSymbol.Type.WithNullability(parameterSymbol.NullableAnnotation);
+                    return parameterSymbol.GetTypeWithAnnotatedNullability();
                 case IAliasSymbol aliasSymbol:
                     return aliasSymbol.Target as ITypeSymbol;
             }

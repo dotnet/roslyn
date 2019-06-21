@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var declaration = SyntaxFactory.IndexerDeclaration(
                     attributeLists: AttributeGenerator.GenerateAttributeLists(property.GetAttributes(), options),
                     modifiers: GenerateModifiers(property, destination, options),
-                    type: property.GenerateTypeSyntax(),
+                    type: GenerateTypeSyntax(property),
                     explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                     parameterList: ParameterGenerator.GenerateBracketedParameterList(property.Parameters, explicitInterfaceSpecifier != null, options),
                     accessorList: GenerateAccessorList(property, destination, workspace, options, parseOptions));
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var propertyDeclaration = SyntaxFactory.PropertyDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(property.GetAttributes(), options),
                 modifiers: GenerateModifiers(property, destination, options),
-                type: property.GenerateTypeSyntax(),
+                type: GenerateTypeSyntax(property),
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 identifier: property.Name.ToIdentifierToken(),
                 accessorList: accessorList,
@@ -138,6 +138,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return AddFormatterAndCodeGeneratorAnnotationsTo(
                 AddAnnotationsTo(property, propertyDeclaration));
         }
+
+        private static TypeSyntax GenerateTypeSyntax(IPropertySymbol property)
+        {
+            var returnType = property.Type.WithNullability(property.NullableAnnotation);
+
+            if (property.ReturnsByRef)
+            {
+                return returnType.GenerateRefTypeSyntax();
+            }
+            else if (property.ReturnsByRefReadonly)
+            {
+                return returnType.GenerateRefReadOnlyTypeSyntax();
+            }
+            else
+            {
+                return returnType.GenerateTypeSyntax();
+            }
+        }
+
 
         private static bool TryGetExpressionBody(
             BasePropertyDeclarationSyntax baseProperty, ParseOptions options, ExpressionBodyPreference preference,
