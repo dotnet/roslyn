@@ -44,11 +44,23 @@ steps:
     testRunTitle: netcoreapp2.2-$(Agent.JobName)
     workingDirectory: src
 
+- task: CopyFiles@1
+  inputs:
+    Contents: |
+      bin/**/coverage.cobertura.xml
+      obj/**/*.cs
+    TargetFolder: $(Build.ArtifactStagingDirectory)/coverageResults
+  displayName: Collecting coverage.cobertura.xml artifacts
+  condition: succeededOrFailed()
+
 - powershell: |
-    dotnet tool install --tool-path obj dotnet-reportgenerator-globaltool
-    $Inputs = [string]::join(';', (Get-ChildItem bin/coverage.cobertura.xml -Recurse |% { Resolve-Path -Relative $_ }))
-    obj/reportgenerator -reports:"$Inputs" -targetdir:"$(Build.ArtifactStagingDirectory)/coverageResults" -reporttypes:Cobertura
-  displayName: Merge code coverage results
+    Write-Host "Substituting $(System.DefaultWorkingDirectory) with {reporoot}"
+    $reports = Get-ChildItem "$(Build.ArtifactStagingDirectory)/coverageResults/coverage.cobertura.xml" -Recurse
+    $reports |% {
+        $content = Get-Content -Path $_ |% { $_ -Replace [regex]::Escape("$(System.DefaultWorkingDirectory)"), "{reporoot}" }
+        Set-Content -Path $_ -Value $content -Encoding UTF8
+    }
+  displayName: Preparing code coverage reports for merging on another machine
 
 - task: PublishBuildArtifacts@1
   inputs:
@@ -57,14 +69,6 @@ steps:
     ArtifactType: Container
   displayName: Publish coverageResults artifacts
   condition: succeededOrFailed()
-
-- task: PublishCodeCoverageResults@1
-  displayName: Publish code coverage results to Azure DevOps
-  inputs:
-    codeCoverageTool: cobertura
-    summaryFileLocation: $(Build.ArtifactStagingDirectory)/coverageResults/Cobertura.xml
-    failIfCoverageEmpty: true
-  condition: eq(variables['Agent.OS'], 'Windows_NT') # We have to pick just one agent to publish the code coverage summary file (https://github.com/tonerdo/coverlet/issues/474#issuecomment-504446150)
 
 - bash: bash <(curl -s https://codecov.io/bash)
   displayName: Publish code coverage results to codecov.io

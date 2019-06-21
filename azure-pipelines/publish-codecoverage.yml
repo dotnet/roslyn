@@ -1,0 +1,34 @@
+steps:
+- task: DownloadBuildArtifacts@0
+  displayName: Download Windows code coverage results
+  inputs:
+    artifactName: coverageResults-Windows
+    downloadPath: $(System.DefaultWorkingDirectory)/bin
+- task: DownloadBuildArtifacts@0
+  displayName: Download Linux code coverage results
+  inputs:
+    artifactName: coverageResults-Linux
+    downloadPath: $(System.DefaultWorkingDirectory)/bin
+- task: DownloadBuildArtifacts@0
+  displayName: Download macOS code coverage results
+  inputs:
+    artifactName: coverageResults-macOS
+    downloadPath: $(System.DefaultWorkingDirectory)/bin
+- powershell: |
+    dotnet tool install --tool-path obj dotnet-reportgenerator-globaltool --version 4.2.2
+    Copy-Item -Recurse $(System.DefaultWorkingDirectory)/bin/coverageResults-Windows/obj/* $(System.DefaultWorkingDirectory)/obj
+    Write-Host "Substituting {reporoot} with $(System.DefaultWorkingDirectory)"
+    $reports = Get-ChildItem -Recurse "$(System.DefaultWorkingDirectory)/bin/coverage.cobertura.xml"
+    $reports |% {
+        $content = Get-Content -Path $_ |% { $_.Replace("{reporoot}", "$(System.DefaultWorkingDirectory)") }
+        Set-Content -Path $_ -Value $content -Encoding UTF8
+    }
+    $Inputs = [string]::join(';', ($reports |% { Resolve-Path -relative $_ }))
+    obj/reportgenerator -reports:"$Inputs" -targetdir:coveragereport -reporttypes:Cobertura
+  displayName: Merge coverage
+- task: PublishCodeCoverageResults@1
+  displayName: Publish code coverage results to Azure DevOps
+  inputs:
+    codeCoverageTool: cobertura
+    summaryFileLocation: 'coveragereport/Cobertura.xml'
+    failIfCoverageEmpty: true

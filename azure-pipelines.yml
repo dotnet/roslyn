@@ -61,3 +61,14 @@ jobs:
   - template: azure-pipelines/dotnet.yml
   - template: azure-pipelines/collect-logs.yml
   - template: azure-pipelines/expand-template.yml
+
+- job: MergeCoverage
+  dependsOn:
+  - Windows
+  - Linux
+  - macOS
+  pool:
+    vmImage: Ubuntu 16.04
+  steps:
+  - template: azure-pipelines/install-dependencies.yml
+  - template: azure-pipelines/publish-codecoverage.yml
