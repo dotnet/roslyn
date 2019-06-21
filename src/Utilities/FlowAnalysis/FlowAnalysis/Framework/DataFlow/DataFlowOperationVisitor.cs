@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public AbstractValueDomain<TAbstractAnalysisValue> ValueDomain => DataFlowAnalysisContext.ValueDomain;
         protected ISymbol OwningSymbol => DataFlowAnalysisContext.OwningSymbol;
         protected WellKnownTypeProvider WellKnownTypeProvider => DataFlowAnalysisContext.WellKnownTypeProvider;
-        protected Func<TAnalysisContext, TAnalysisResult> GetOrComputeAnalysisResult
-            => DataFlowAnalysisContext.GetOrComputeAnalysisResult;
+        protected Func<TAnalysisContext, TAnalysisResult> TryGetOrComputeAnalysisResult
+            => DataFlowAnalysisContext.TryGetOrComputeAnalysisResult;
         internal bool ExecutingExceptionPathsAnalysisPostPass { get; set; }
 
         protected TAnalysisData CurrentAnalysisData
@@ -1378,8 +1378,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     break;
 
                 case IInvocationOperation invocation:
-                    // Predicate analysis for different equality comparison methods.
+                    // Predicate analysis for different equality comparison methods and argument null check methods.
                     Debug.Assert(invocation.Type.SpecialType == SpecialType.System_Boolean);
+
+                    if (invocation.TargetMethod.IsArgumentNullCheckMethod())
+                    {
+                        // Predicate analysis for null checks.
+                        if (invocation.Arguments.Length == 1)
+                        {
+                            predicateValueKind = SetValueForIsNullComparisonOperator(invocation.Arguments[0].Value, equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue, targetAnalysisData: targetAnalysisData);
+                        }
+
+                        break;
+                    }
 
                     IOperation leftOperand = null;
                     IOperation rightOperand = null;
@@ -1885,7 +1896,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 copyAnalysisResultOpt?.ControlFlowGraph ??
                 valueContentAnalysisResultOpt?.ControlFlowGraph ??
                 getCfg();
-            if (cfg == null)
+            if (cfg == null || !cfg.SupportsFlowAnalysis())
             {
                 return ResetAnalysisDataAndReturnDefaultValue();
             }
@@ -1919,7 +1930,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 else
                 {
                     // Execute interprocedural analysis and get result.
-                    analysisResult = GetOrComputeAnalysisResult(interproceduralDataFlowAnalysisContext);
+                    analysisResult = TryGetOrComputeAnalysisResult(interproceduralDataFlowAnalysisContext);
+                    if (analysisResult == null)
+                    {
+                        return defaultValue;
+                    }
 
                     // Save the interprocedural result for the invocation/creation operation.
                     // Note that we Update instead of invoking .Add as we may execute the analysis multiple times for fixed point computation.
@@ -2627,7 +2642,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 // Predicate analysis for different equality compare method invocations.
                 if (PredicateAnalysis &&
                     operation.Type.SpecialType == SpecialType.System_Boolean &&
-                    targetMethod.Name.EndsWith("Equals", StringComparison.Ordinal))
+                    (targetMethod.Name.EndsWith("Equals", StringComparison.Ordinal) ||
+                     targetMethod.IsArgumentNullCheckMethod()))
                 {
                     PerformPredicateAnalysis(operation);
                 }

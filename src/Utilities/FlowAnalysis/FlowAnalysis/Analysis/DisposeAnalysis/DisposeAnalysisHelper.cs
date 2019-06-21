@@ -106,12 +106,15 @@ namespace Analyzer.Utilities
             var cfg = operationBlocks.GetControlFlowGraph();
             if (cfg != null)
             {
-                disposeAnalysisResult = DisposeAnalysis.GetOrComputeResult(cfg, containingMethod, _wellKnownTypeProvider,
+                disposeAnalysisResult = DisposeAnalysis.TryGetOrComputeResult(cfg, containingMethod, _wellKnownTypeProvider,
                     analyzerOptions, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
                     trackExceptionPaths, cancellationToken, out pointsToAnalysisResult,
                     interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt,
                     defaultDisposeOwnershipTransferAtConstructor: defaultDisposeOwnershipTransferAtConstructor);
-                return true;
+                if (disposeAnalysisResult != null)
+                {
+                    return true;
+                }
             }
 
             disposeAnalysisResult = null;

@@ -194,6 +194,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.InformationDisclosure:
                     return InformationDisclosureSources.SourceInfos;
 
+                case SinkKind.ZipSlip:
+                    return ZipSlipSources.SourceInfos;
+
                 default:
                     Debug.Fail($"Unhandled SinkKind {sinkKind}");
                     return ImmutableHashSet<SourceInfo>.Empty;
@@ -225,6 +228,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.Redirect:
                 case SinkKind.Xaml:
                     return ImmutableHashSet<SanitizerInfo>.Empty;
+
+                case SinkKind.ZipSlip:
+                    return ZipSlipSanitizers.SanitizerInfos;
 
                 default:
                     Debug.Fail($"Unhandled SinkKind {sinkKind}");
@@ -269,6 +275,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 case SinkKind.Xaml:
                     return XamlSinks.SinkInfos;
+
+                case SinkKind.ZipSlip:
+                    return ZipSlipSinks.SinkInfos;
 
                 default:
                     Debug.Fail($"Unhandled SinkKind {sinkKind}");
