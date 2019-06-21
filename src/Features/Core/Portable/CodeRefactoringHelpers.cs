@@ -172,6 +172,13 @@ namespace Microsoft.CodeAnalysis
             return TextSpan.FromBounds(start, end);
         }
 
+        /// <summary>
+        /// Strips leading and trailing whitespace from <paramref name="span"/>.
+        /// </summary>
+        /// <remarks>
+        /// Returns unchanged <paramref name="span"/> in case its <see cref="TextSpan.IsEmpty"/>.
+        /// Returns Span of Lenght 1 in case it contains only whitespace.
+        /// </remarks>
         private static async Task<TextSpan> GetStrippedTextSpan(
             Document document,
             TextSpan span,
@@ -187,14 +194,14 @@ namespace Microsoft.CodeAnalysis
                 return span;
             }
 
-            while (start < end && char.IsWhiteSpace(sourceText[start]))
-            {
-                start++;
-            }
-
             while (start < end && char.IsWhiteSpace(sourceText[end - 1]) && char.IsWhiteSpace(sourceText[end]))
             {
                 end--;
+            }
+
+            while (start < end && char.IsWhiteSpace(sourceText[start]))
+            {
+                start++;
             }
 
             return TextSpan.FromBounds(start, end);

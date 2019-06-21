@@ -609,28 +609,9 @@ $@"class C
 }");
         }
 
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
         public async Task TestMethodBlockSelection3()
-        {
-
-            await this.TestMissingAsync(
-@"class C
-{
-    void M()
-    {
-        C LocalFunction(C c)
-        {
-        [|
-            object a = null;
-            return null;
-        |]
-        }
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        public async Task TestMethodBlockSelection4()
         {
             await TestInRegularAndScriptAsync(
 
@@ -661,7 +642,7 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        public async Task TestMethodBlockSelection5()
+        public async Task TestMethodBlockSelection4()
         {
 
             await this.TestMissingAsync(
@@ -681,7 +662,7 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        public async Task TestMethodBlockSelection6()
+        public async Task TestMethodBlockSelection5()
         {
 
             await this.TestMissingAsync(
@@ -700,6 +681,5 @@ $@"class C
     }
 }");
         }
-
     }
 }

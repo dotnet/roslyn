@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             if (localFunction == default)
             {
                 var block = await CodeRefactoringHelpers.TryGetSelectedNode<BlockSyntax>(document, context.Span, cancellationToken).ConfigureAwait(false);
-                localFunction = block.Parent as LocalFunctionStatementSyntax;
+                localFunction = block?.Parent as LocalFunctionStatementSyntax;
             }
 
             if (localFunction == default)
