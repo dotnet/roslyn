@@ -581,5 +581,43 @@ class B5 : A<object>
     IL_000e:  ret
 }");
         }
+
+        [Fact]
+        public void TestNullCheckingExpectedOutput()
+        {
+            var source = @"
+using System;
+class Program
+{
+    static void M<T>(T t)
+    {
+        if (t is null) throw new ArgumentNullException();
+    }
+    static void Main()
+    {
+        Invoke(() => M(new object()));
+        Invoke(() => M((object)null));
+        Invoke(() => M((int?)1));
+        Invoke(() => M((int?)null));
+    }
+    static void Invoke(Action a)
+    {
+        try
+        {
+            a();
+            Console.WriteLine(""ok"");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.GetType());
+        }
+}
+}";
+            CompileAndVerify(source, expectedOutput: @"
+ok
+System.ArgumentNullException
+ok
+System.ArgumentNullException");
+        }
     }
 }
