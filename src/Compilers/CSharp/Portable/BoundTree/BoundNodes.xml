@@ -1528,7 +1528,7 @@
     <!-- Converted tuple must have a type -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <!-- Original tuple is preserved for the purpose of semantic model -->
-    <Field Name="SourceTuple" Type="BoundTupleLiteral" SkipInVisitor="true" ForceInNullabilityRewriter="true" />
+    <Field Name="SourceTuple" Type="BoundTupleLiteral" SkipInVisitor="ExceptNullabilityRewriter" />
   </Node>
   
   <Node Name="BoundDynamicObjectCreationExpression" Base="BoundExpression">

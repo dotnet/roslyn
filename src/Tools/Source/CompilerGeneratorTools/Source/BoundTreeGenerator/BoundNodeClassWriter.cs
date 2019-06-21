@@ -1493,7 +1493,7 @@ namespace BoundTreeGenerator
                             foreach (var field in AllNodeOrNodeListFields(node))
                             {
                                 hadField = true;
-                                WriteNodeVisitCall(field, forceVisit: ForceInNullabilityRewriter(field));
+                                WriteNodeVisitCall(field, forceVisit: VisitFieldOnlyInNullabilityRewriter(field));
                             }
 
                             if (hadField)
@@ -1705,12 +1705,13 @@ namespace BoundTreeGenerator
 
         private static bool SkipInVisitor(Field f)
         {
-            return string.Compare(f.SkipInVisitor, "true", true) == 0;
+            return string.Compare(f.SkipInVisitor, "true", true) == 0
+                || VisitFieldOnlyInNullabilityRewriter(f);
         }
 
-        private static bool ForceInNullabilityRewriter(Field f)
+        private static bool VisitFieldOnlyInNullabilityRewriter(Field f)
         {
-            return string.Compare(f.ForceInNullabilityRewriter, "true", true) == 0;
+            return string.Compare(f.SkipInVisitor, "ExceptNullabilityRewriter", true) == 0;
         }
 
         private static bool SkipInNullabilityRewriter(Node n)
