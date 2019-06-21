@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
         /// </para>
         /// </summary>
         public static async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
-            Document document, TextSpan selection, CancellationToken cancellationToken, bool traverseUpInSyntaxTreeIfOnEdgeOfSpan = false) where TSyntaxNode : SyntaxNode
+            Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var selectionStripped = await GetStrippedTextSpan(document, selection, cancellationToken).ConfigureAwait(false);
