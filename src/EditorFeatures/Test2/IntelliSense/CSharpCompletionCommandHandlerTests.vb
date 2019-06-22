@@ -4633,6 +4633,55 @@ class C
             End Using
         End Function
 
+        <WorkItem(36546, "https://github.com/dotnet/roslyn/issues/36546")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestDoNotDismissIfEmptyOnBackspaceIfStartedWithBackspace(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+using System;
+
+class C
+{
+    public void M()
+    {
+        Console.W$$
+    }
+}</Document>)
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+
+                state.SendBackspace()
+                Await state.AssertCompletionSession()
+                state.AssertCompletionItemsContainAll({"WriteLine"})
+            End Using
+        End Function
+
+        <WorkItem(36546, "https://github.com/dotnet/roslyn/issues/36546")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestDoNotDismissIfEmptyOnMultipleBackspaceIfStartedInvoke(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+using System;
+
+class C
+{
+    public void M()
+    {
+        Console.Wr$$
+    }
+}</Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                state.SendBackspace()
+                state.SendBackspace()
+                Await state.AssertCompletionSession()
+            End Using
+        End Function
+
         <WorkItem(30097, "https://github.com/dotnet/roslyn/issues/30097")>
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
