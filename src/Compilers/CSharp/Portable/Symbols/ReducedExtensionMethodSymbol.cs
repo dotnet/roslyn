@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeMap.SubstituteType(_reducedFrom.ReturnTypeWithAnnotations); }
         }
 
-        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => _reducedFrom.ReturnTypeAnnotationAttributes;
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => _reducedFrom.ReturnTypeFlowAnalysisAnnotations;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
