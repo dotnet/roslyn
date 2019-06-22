@@ -23,7 +23,7 @@
   -->
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
-    <RoslynDiagnosticsNugetPackageVersion>2.6.2-beta2</RoslynDiagnosticsNugetPackageVersion>
+    <RoslynDiagnosticsNugetPackageVersion>2.9.3</RoslynDiagnosticsNugetPackageVersion>
     <CodeStyleLayerCodeAnalysisVersion>2.8.2</CodeStyleLayerCodeAnalysisVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.0-beta1-63310-01</MicrosoftCodeAnalysisTestingVersion>
     <CodeStyleAnalyzerVersion>3.1.0-beta1-19113-04</CodeStyleAnalyzerVersion>
