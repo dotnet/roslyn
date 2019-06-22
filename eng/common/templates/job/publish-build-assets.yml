@@ -60,27 +60,18 @@ jobs:
       condition: ${{ parameters.condition }}
       continueOnError: ${{ parameters.continueOnError }}
     - task: powershell@2
-      displayName: Create BARBuildId Artifact
+      displayName: Create ReleaseConfigs Artifact
       inputs:
         targetType: inline
         script: |
-          Add-Content -Path  "$(Build.StagingDirectory)/BARBuildId.txt" -Value $(BARBuildId)
-    - task: powershell@2
-      displayName: Create Channels Artifact
-      inputs:
-        targetType: inline
-        script: |
-          Add-Content -Path  "$(Build.StagingDirectory)/Channels.txt" -Value "$(DefaultChannels)"
+          Add-Content -Path "$(Build.StagingDirectory)/ReleaseConfigs.txt" -Value $(BARBuildId)
+          Add-Content -Path "$(Build.StagingDirectory)/ReleaseConfigs.txt" -Value "$(DefaultChannels)"
+          Add-Content -Path "$(Build.StagingDirectory)/ReleaseConfigs.txt" -Value $(IsInternalBuild)
+          Add-Content -Path "$(Build.StagingDirectory)/ReleaseConfigs.txt" -Value $(IsStableBuild)
     - task: PublishBuildArtifacts@1
-      displayName: Publish BAR BuildId to VSTS
+      displayName: Publish ReleaseConfigs Artifact
       inputs:
-        PathtoPublish: '$(Build.StagingDirectory)/BARBuildId.txt'
-        PublishLocation: Container
-        ArtifactName: ReleaseConfigs
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Channels to VSTS
-      inputs:
-        PathtoPublish: '$(Build.StagingDirectory)/Channels.txt'
+        PathtoPublish: '$(Build.StagingDirectory)/ReleaseConfigs.txt'
         PublishLocation: Container
         ArtifactName: ReleaseConfigs
     - ${{ if eq(parameters.enablePublishBuildArtifacts, 'true') }}:

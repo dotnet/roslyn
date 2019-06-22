@@ -13,6 +13,13 @@ jobs:
   steps:
   - checkout: self
     clean: true
+  - task: DownloadBuildArtifacts@0
+    displayName: Download Build Artifacts
+    inputs:
+      buildType: current
+      downloadType: specific files
+      matchingPattern: "**"
+      downloadPath: $(Build.SourcesDirectory)\artifacts
   - task: NuGetToolInstaller@1
     displayName: 'Install NuGet.exe'
   - task: NuGetCommand@2

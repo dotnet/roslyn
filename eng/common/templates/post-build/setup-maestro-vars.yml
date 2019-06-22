@@ -17,22 +17,21 @@ jobs:
         targetType: inline
         script: |
           # This is needed to make Write-PipelineSetVariable works in this context
-          if ($env:BUILD_BUILDNUMBER -ne "" -and $env:BUILD_BUILDNUMBER -ne $null) {
-            $ci = $true
+          $ci = $true
 
-            . "$(Build.SourcesDirectory)/eng/common/tools.ps1"
-              
-            $BarId = Get-Content "$(Build.StagingDirectory)/ReleaseConfigs/BARBuildId.txt" 
-            Write-PipelineSetVariable -Name 'BARBuildId' -Value $BarId
+          . "$(Build.SourcesDirectory)/eng/common/tools.ps1"
 
-            Write-Host "Asked Write-PipelineSetVariable to create BARBuildId with value '$BarId'"
+          $Content = Get-Content "$(Build.StagingDirectory)/ReleaseConfigs/ReleaseConfigs.txt"
 
-            $Channels = ""
-            Get-Content "$(Build.StagingDirectory)/ReleaseConfigs/Channels.txt" | ForEach-Object { $Channels += "$_ ," }
-            Write-PipelineSetVariable -Name 'InitialChannels' -Value "$Channels"
+          $BarId = $Content | Select -Index 0
 
-            Write-Host "Asked Write-PipelineSetVariable to create InitialChannels with value '$Channels'"
-          }
-          else {
-            Write-Host "This step can only be run in an Azure DevOps CI environment."
-          }
+          $Channels = ""            
+          $Content | Select -Index 1 | ForEach-Object { $Channels += "$_ ," }
+            
+          $IsInternalBuild = $Content | Select -Index 2
+          $IsStableBuild = $Content | Select -Index 3
+
+          Write-PipelineSetVariable -Name 'BARBuildId' -Value $BarId
+          Write-PipelineSetVariable -Name 'InitialChannels' -Value "$Channels"
+          Write-PipelineSetVariable -Name 'IsInternalBuild' -Value $IsInternalBuild
+          Write-PipelineSetVariable -Name 'IsStableBuild' -Value $IsStableBuild
