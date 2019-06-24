@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,10 +21,10 @@ using System.Linq;|}";
             var (solution, locations) = CreateTestSolution(markup);
             var expected = locations["foldingRange"]
                 .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Imports, location.Range))
-                .ToImmutableArray();
+                .ToArray();
 
             var results = await RunGetFoldingRangeAsync(solution);
-            AssertCollectionsEqual(expected, results, AssertFoldingRangesEqual);
+            AssertJsonEquals(expected, results);
         }
 
         [Fact(Skip = "GetFoldingRangeAsync does not yet support comments.")]
@@ -36,13 +35,12 @@ using System.Linq;|}";
 {|foldingRange:/* A multiline
 comment */|}";
             var (solution, locations) = CreateTestSolution(markup);
-            var importLocation = locations["foldingRange"].First();
             var expected = locations["foldingRange"]
                 .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Comment, location.Range))
-                .ToImmutableArray();
+                .ToArray();
 
             var results = await RunGetFoldingRangeAsync(solution);
-            AssertCollectionsEqual(expected, results, AssertFoldingRangesEqual);
+            AssertJsonEquals(expected, results);
         }
 
         [Fact(Skip = "GetFoldingRangeAsync does not yet support regions.")]
@@ -53,13 +51,12 @@ comment */|}";
 #endregion|}
 }";
             var (solution, locations) = CreateTestSolution(markup);
-            var importLocation = locations["foldingRange"].First();
             var expected = locations["foldingRange"]
                 .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Region, location.Range))
-                .ToImmutableArray();
+                .ToArray();
 
             var results = await RunGetFoldingRangeAsync(solution);
-            AssertCollectionsEqual(expected, results, AssertFoldingRangesEqual);
+            AssertJsonEquals(expected, results);
         }
 
         private static async Task<LSP.FoldingRange[]> RunGetFoldingRangeAsync(Solution solution)
@@ -71,15 +68,6 @@ comment */|}";
             };
 
             return await GetLanguageServer(solution).GetFoldingRangeAsync(solution, request, new LSP.ClientCapabilities(), CancellationToken.None);
-        }
-
-        private static void AssertFoldingRangesEqual(LSP.FoldingRange expected, LSP.FoldingRange actual)
-        {
-            Assert.Equal(expected.Kind, actual.Kind);
-            Assert.Equal(expected.StartCharacter, actual.StartCharacter);
-            Assert.Equal(expected.EndCharacter, actual.EndCharacter);
-            Assert.Equal(expected.StartLine, actual.StartLine);
-            Assert.Equal(expected.EndLine, actual.EndLine);
         }
 
         private static LSP.FoldingRange CreateFoldingRange(LSP.FoldingRangeKind kind, LSP.Range range)

@@ -33,7 +33,7 @@ void M()
     }
 }";
             var (solution, locations) = CreateTestSolution(markup);
-            var documentURI = locations["caret"].First().Uri;
+            var documentURI = locations["caret"].Single().Uri;
             var documentText = await solution.GetDocumentFromURI(documentURI).GetTextAsync();
 
             var results = await RunFormatDocumentAsync(solution, documentURI);

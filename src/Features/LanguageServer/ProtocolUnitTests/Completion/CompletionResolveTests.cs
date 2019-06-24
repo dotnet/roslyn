@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 }";
             var (solution, locations) = CreateTestSolution(markup);
             var tags = new string[] { "Class", "Internal" };
-            var completionParams = CreateCompletionParams(locations["caret"].First());
+            var completionParams = CreateCompletionParams(locations["caret"].Single());
             var completionItem = CreateCompletionItem("A", LSP.CompletionItemKind.Class, tags, completionParams);
             var description = new ClassifiedTextElement(CreateClassifiedTextRunForClass("A"));
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             var expected = CreateResolvedCompletionItem("A", LSP.CompletionItemKind.Class, null, completionParams, description, "class A", null);
 
             var results = (LSP.VSCompletionItem)await RunResolveCompletionItemAsync(solution, completionItem, clientCapabilities);
-            AssertCompletionItemsEqual(expected, results, true);
+            AssertJsonEquals(expected, results);
         }
 
         private static async Task<object> RunResolveCompletionItemAsync(Solution solution, LSP.CompletionItem completionItem, LSP.ClientCapabilities clientCapabilities = null)

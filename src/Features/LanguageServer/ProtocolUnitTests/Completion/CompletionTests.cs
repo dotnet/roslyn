@@ -23,11 +23,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
     }
 }";
             var (solution, locations) = CreateTestSolution(markup);
-            var expected = CreateCompletionItem("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" }, CreateCompletionParams(locations["caret"].First()));
+            var expected = CreateCompletionItem("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" }, CreateCompletionParams(locations["caret"].Single()));
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
 
-            var results = (LSP.CompletionItem[])await RunGetCompletionsAsync(solution, locations["caret"].First(), clientCapabilities);
-            AssertCompletionItemsEqual(expected, (LSP.VSCompletionItem)results.First(), false);
+            var results = (LSP.CompletionItem[])await RunGetCompletionsAsync(solution, locations["caret"].Single(), clientCapabilities);
+            AssertJsonEquals(expected, results.First());
         }
 
         private static async Task<object> RunGetCompletionsAsync(Solution solution, LSP.Location caret, LSP.ClientCapabilities clientCapabilities = null)

@@ -24,7 +24,7 @@ class B
 }";
             var (solution, locations) = CreateTestSolution(markup);
 
-            var results = await RunGotoTypeDefinitionAsync(solution, locations["caret"].First());
+            var results = await RunGotoTypeDefinitionAsync(solution, locations["caret"].Single());
             AssertLocationsEqual(locations["definition"], results);
         }
 
@@ -49,7 +49,7 @@ class B
             };
             var (solution, locations) = CreateTestSolution(markups);
 
-            var results = await RunGotoTypeDefinitionAsync(solution, locations["caret"].First());
+            var results = await RunGotoTypeDefinitionAsync(solution, locations["caret"].Single());
             AssertLocationsEqual(locations["definition"], results);
         }
 
@@ -67,7 +67,7 @@ class B
 }";
             var (solution, locations) = CreateTestSolution(markup);
 
-            var results = await RunGotoTypeDefinitionAsync(solution, locations["caret"].First());
+            var results = await RunGotoTypeDefinitionAsync(solution, locations["caret"].Single());
             Assert.Empty(results);
         }
 

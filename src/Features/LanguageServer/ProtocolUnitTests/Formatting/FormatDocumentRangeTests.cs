@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
     }
 }";
             var (solution, locations) = CreateTestSolution(markup);
-            var rangeToFormat = locations["format"].First();
+            var rangeToFormat = locations["format"].Single();
             var documentText = await solution.GetDocumentFromURI(rangeToFormat.Uri).GetTextAsync();
 
             var results = await RunFormatDocumentRangeAsync(solution, rangeToFormat);

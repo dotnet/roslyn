@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
 }";
             var (solution, locations) = CreateTestSolution(markup);
 
-            var results = await RunGotoDefinitionAsync(solution, locations["caret"].First());
+            var results = await RunGotoDefinitionAsync(solution, locations["caret"].Single());
             AssertLocationsEqual(locations["definition"], results);
         }
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
             };
             var (solution, locations) = CreateTestSolution(markups);
 
-            var results = await RunGotoDefinitionAsync(solution, locations["caret"].First());
+            var results = await RunGotoDefinitionAsync(solution, locations["caret"].Single());
             AssertLocationsEqual(locations["definition"], results);
         }
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
 }";
             var (solution, locations) = CreateTestSolution(markup);
 
-            var results = await RunGotoDefinitionAsync(solution, locations["caret"].First());
+            var results = await RunGotoDefinitionAsync(solution, locations["caret"].Single());
             Assert.Empty(results);
         }
 

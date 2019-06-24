@@ -27,7 +27,7 @@ class A : IA
 }";
             var (solution, locations) = CreateTestSolution(markup);
 
-            var results = await RunFindImplementationAsync(solution, locations["caret"].First());
+            var results = await RunFindImplementationAsync(solution, locations["caret"].Single());
             AssertLocationsEqual(locations["implementation"], results);
         }
 
@@ -55,7 +55,7 @@ class A : IA
             };
             var (solution, locations) = CreateTestSolution(markups);
 
-            var results = await RunFindImplementationAsync(solution, locations["caret"].First());
+            var results = await RunFindImplementationAsync(solution, locations["caret"].Single());
             AssertLocationsEqual(locations["implementation"], results);
         }
 
@@ -72,7 +72,7 @@ class A : IA
 }";
             var (solution, locations) = CreateTestSolution(markup);
 
-            var results = await RunFindImplementationAsync(solution, locations["caret"].First());
+            var results = await RunFindImplementationAsync(solution, locations["caret"].Single());
             Assert.Empty(results);
         }
 

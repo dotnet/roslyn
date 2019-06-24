@@ -41,32 +41,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
                 Signatures = new LSP.SignatureInformation[] { CreateSignatureInformation("int A.M2(string a)", "M2 is a method.", "a", "") }
             };
 
-            var results = await RunGetSignatureHelpAsync(solution, locations["caret"].First());
-            AssertSignatureHelpEquals(expected, results);
+            var results = await RunGetSignatureHelpAsync(solution, locations["caret"].Single());
+            AssertJsonEquals(expected, results);
         }
 
         private static async Task<LSP.SignatureHelp> RunGetSignatureHelpAsync(Solution solution, LSP.Location caret)
             => await GetLanguageServer(solution).GetSignatureHelpAsync(solution, CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), CancellationToken.None);
-
-        private static void AssertSignatureHelpEquals(LSP.SignatureHelp expected, LSP.SignatureHelp actual)
-        {
-            Assert.Equal(expected.ActiveParameter, actual.ActiveParameter);
-            Assert.Equal(expected.ActiveSignature, actual.ActiveSignature);
-            AssertCollectionsEqual(expected.Signatures, actual.Signatures, AssertSignatureInformationsEqual);
-        }
-
-        private static void AssertSignatureInformationsEqual(LSP.SignatureInformation expected, LSP.SignatureInformation actual)
-        {
-            Assert.Equal(expected.Label, actual.Label);
-            AssertMarkupContentsEqual(expected.Documentation, actual.Documentation);
-            AssertCollectionsEqual(expected.Parameters, actual.Parameters, AssertParameterInformationsEqual);
-        }
-
-        private static void AssertParameterInformationsEqual(LSP.ParameterInformation expected, LSP.ParameterInformation actual)
-        {
-            Assert.Equal(expected.Label, actual.Label);
-            AssertMarkupContentsEqual(expected.Documentation, actual.Documentation);
-        }
 
         private static LSP.SignatureInformation CreateSignatureInformation(string methodLabal, string methodDocumentation, string parameterLabel, string parameterDocumentation)
             => new LSP.SignatureInformation()
