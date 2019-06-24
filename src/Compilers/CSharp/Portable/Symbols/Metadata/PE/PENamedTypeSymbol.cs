@@ -642,15 +642,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return GetAttributes();
         }
 
-        internal override byte? GetLocalNullableContextValue()
+        internal override byte? GetNullableContextValue()
         {
             byte? value;
             if (!_lazyNullableContextValue.TryGetByte(out value))
             {
-               value = ContainingPEModule.Module.HasNullableContextAttribute(_handle, out byte arg) ? (byte?)arg : null;
+                value = ContainingPEModule.Module.HasNullableContextAttribute(_handle, out byte arg) ?
+                    arg :
+                    _container.GetNullableContextValue();
                 _lazyNullableContextValue = value.ToNullableContextFlags();
             }
             return value;
+        }
+
+        internal override byte? GetLocalNullableContextValue()
+        {
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override IEnumerable<string> MemberNames

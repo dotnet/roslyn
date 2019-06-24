@@ -818,16 +818,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes() => Signature.ReturnParam.GetAttributes();
 
-        internal override byte? GetLocalNullableContextValue()
+        internal override byte? GetNullableContextValue()
         {
             byte? value;
             if (!_packedFlags.TryGetNullableContext(out value))
             {
-                value = _containingType.ContainingPEModule.Module.HasNullableContextAttribute(_handle, out byte arg) ? (byte?)arg : null;
+                value = _containingType.ContainingPEModule.Module.HasNullableContextAttribute(_handle, out byte arg) ?
+                    arg :
+                    _containingType.GetNullableContextValue();
                 _packedFlags.SetNullableContext(value);
             }
-
             return value;
+        }
+
+        internal override byte? GetLocalNullableContextValue()
+        {
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override MethodKind MethodKind

@@ -1162,19 +1162,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, attributeDescription.FullName);
         }
 
-        internal byte? GetNullableContextValue()
+        internal virtual byte? GetNullableContextValue()
         {
-            var symbol = this;
-            do
-            {
-                var value = symbol.GetLocalNullableContextValue();
-                if (value != null)
-                {
-                    return value;
-                }
-                symbol = symbol.ContainingSymbol;
-            } while (!(symbol is null));
-            return null;
+            return GetLocalNullableContextValue() ?? ContainingSymbol?.GetNullableContextValue();
         }
 
         internal virtual byte? GetLocalNullableContextValue()
