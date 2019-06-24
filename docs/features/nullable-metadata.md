@@ -160,12 +160,19 @@ namespace System.Runtime.CompilerServices
     [System.AttributeUsage(AttributeTargets.Module, AllowMultiple = false)]
     public sealed class NullablePublicOnlyAttribute : Attribute
     {
+        public readonly bool IncludesInternals;
+        public NullablePublicOnlyAttribute(bool includesInternals)
+        {
+            IncludesInternals = includesInternals;
+        }
     }
 }
 ```
 
 The `NullablePublicOnlyAttribute` type is for compiler use only - it is not permitted in source.
 The type declaration is synthesized by the compiler if not already included in the compilation.
+
+`IncludesInternal` is true if `internal` members are annotated in addition to `public` and `protected` members.
 
 ## Compatibility
 

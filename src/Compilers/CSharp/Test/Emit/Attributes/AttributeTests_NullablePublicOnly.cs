@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -57,14 +58,13 @@ public class B : A<object?>
         }
 
         [Fact]
-        public void ExplicitAttribute_MissingParameterlessConstructor()
+        public void ExplicitAttribute_MissingSingleValueConstructor()
         {
             var source1 =
 @"namespace System.Runtime.CompilerServices
 {
     public sealed class NullablePublicOnlyAttribute : Attribute
     {
-        public NullablePublicOnlyAttribute(bool b) { }
     }
 }";
             var source2 =
@@ -203,11 +203,14 @@ public class B : A<object?>
             var sourceAttribute =
 @"namespace System.Runtime.CompilerServices
 {
-    internal class NullablePublicOnlyAttribute : System.Attribute { }
+    internal class NullablePublicOnlyAttribute : System.Attribute
+    {
+        internal NullablePublicOnlyAttribute(bool b) { }
+    }
 }";
             var source =
 @"using System.Runtime.CompilerServices;
-[assembly: NullablePublicOnly]";
+[assembly: NullablePublicOnly(false)]";
 
             // C#7
             var comp = CreateCompilation(new[] { sourceAttribute, source }, parseOptions: TestOptions.Regular7);
@@ -220,9 +223,9 @@ public class B : A<object?>
             static void verifyDiagnostics(CSharpCompilation comp)
             {
                 comp.VerifyDiagnostics(
-                    // (2,12): error CS8335: Do not use 'System.Runtime.CompilerServices.NullablePublicOnlyAttribute'. This is reserved for compiler usage.
-                    // [assembly: NullablePublicOnly]
-                    Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "NullablePublicOnly").WithArguments("System.Runtime.CompilerServices.NullablePublicOnlyAttribute").WithLocation(2, 12));
+                // (2,12): error CS8335: Do not use 'System.Runtime.CompilerServices.NullablePublicOnlyAttribute'. This is reserved for compiler usage.
+                // [assembly: NullablePublicOnly(false)]
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "NullablePublicOnly(false)").WithArguments("System.Runtime.CompilerServices.NullablePublicOnlyAttribute").WithLocation(2, 12));
             }
         }
 
@@ -233,16 +236,53 @@ public class B : A<object?>
             var sourceAttribute =
 @"namespace System.Runtime.CompilerServices
 {
-    internal class NullablePublicOnlyAttribute : System.Attribute { }
+    internal class NullablePublicOnlyAttribute : System.Attribute
+    {
+        internal NullablePublicOnlyAttribute(bool b) { }
+    }
 }";
             var source =
 @"using System.Runtime.CompilerServices;
-[NullablePublicOnly]
+[NullablePublicOnly(false)]
 class Program
 {
 }";
             var comp = CreateCompilation(new[] { sourceAttribute, source });
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AttributeField()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Linq;
+using System.Reflection;
+class Program
+{
+    static void Main()
+    {
+        var value = GetAttributeValue(typeof(Program).Assembly.Modules.First());
+        Console.WriteLine(value == null ? ""<null>"" : value.ToString());
+    }    
+    static bool? GetAttributeValue(Module module)
+    {
+        var attribute = module.GetCustomAttributes(false).SingleOrDefault(a => a.GetType().Name == ""NullablePublicOnlyAttribute"");
+        if (attribute == null) return null;
+        var field = attribute.GetType().GetField(""IncludesInternals"");
+        return (bool)field.GetValue(attribute);
+    }    
+}";
+            var sourceIVTs =
+@"using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo(""Other"")]";
+
+            var parseOptions = TestOptions.Regular8;
+            CompileAndVerify(source, parseOptions: parseOptions, expectedOutput: "<null>");
+            CompileAndVerify(source, parseOptions: parseOptions.WithFeature("nullablePublicOnly"), expectedOutput: "False");
+            CompileAndVerify(new[] { source, sourceIVTs }, parseOptions: parseOptions, expectedOutput: "<null>");
+            CompileAndVerify(new[] { source, sourceIVTs }, parseOptions: parseOptions.WithFeature("nullablePublicOnly"), expectedOutput: "True");
         }
     }
 }

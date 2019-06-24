@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis
 
         private static readonly byte[][] s_signaturesOfNullableAttribute = { s_signature_HasThis_Void_Byte, s_signature_HasThis_Void_SzArray_Byte };
         private static readonly byte[][] s_signaturesOfNullableContextAttribute = { s_signature_HasThis_Void_Byte };
-        private static readonly byte[][] s_signaturesOfNullablePublicOnlyAttribute = { s_signature_HasThis_Void };
+        private static readonly byte[][] s_signaturesOfNullablePublicOnlyAttribute = { s_signature_HasThis_Void_Boolean };
 
         private static readonly byte[][] s_signaturesOfExperimentalAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfExcludeFromCodeCoverageAttribute = { s_signature_HasThis_Void };

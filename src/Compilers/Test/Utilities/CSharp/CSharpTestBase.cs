@@ -79,6 +79,11 @@ namespace System.Runtime.CompilerServices
     [System.AttributeUsage(AttributeTargets.Module, AllowMultiple = false)]
     public sealed class NullablePublicOnlyAttribute : Attribute
     {
+        public readonly bool IncludesInternals;
+        public NullablePublicOnlyAttribute(bool includesInternals)
+        {
+            IncludesInternals = includesInternals;
+        }
     }
 }";
 

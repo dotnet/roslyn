@@ -564,7 +564,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (EmitNullablePublicOnlyAttribute)
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullablePublicOnlyAttribute());
+                var includesInternals = ImmutableArray.Create(
+                    new TypedConstant(compilation.GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, _assemblySymbol.InternalsAreVisible));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullablePublicOnlyAttribute(includesInternals));
             }
         }
 

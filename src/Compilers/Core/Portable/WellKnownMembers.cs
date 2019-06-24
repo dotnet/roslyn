@@ -2928,8 +2928,9 @@ namespace Microsoft.CodeAnalysis
                 (byte)MemberFlags.Constructor,                                                                              // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_NullablePublicOnlyAttribute - WellKnownType.ExtSentinel), // DeclaringTypeId
                 0,                                                                                                          // Arity
-                    0,                                                                                                      // Method Signature
+                    1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
 
                 // System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                                                                  // Flags

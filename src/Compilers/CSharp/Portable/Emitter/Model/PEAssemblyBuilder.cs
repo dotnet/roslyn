@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedEmbeddedAttributeSymbol _lazyIsUnmanagedAttribute;
         private SynthesizedEmbeddedNullableAttributeSymbol _lazyNullableAttribute;
         private SynthesizedEmbeddedNullableContextAttributeSymbol _lazyNullableContextAttribute;
-        private SynthesizedEmbeddedAttributeSymbol _lazyNullablePublicOnlyAttribute;
+        private SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol _lazyNullablePublicOnlyAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -210,17 +210,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.SynthesizeNullableContextAttribute(arguments);
         }
 
-        internal override SynthesizedAttributeData SynthesizeNullablePublicOnlyAttribute()
+        internal override SynthesizedAttributeData SynthesizeNullablePublicOnlyAttribute(ImmutableArray<TypedConstant> arguments)
         {
             if ((object)_lazyNullablePublicOnlyAttribute != null)
             {
                 return new SynthesizedAttributeData(
                     _lazyNullablePublicOnlyAttribute.Constructors[0],
-                    ImmutableArray<TypedConstant>.Empty,
+                    arguments,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
             }
 
-            return base.SynthesizeNullablePublicOnlyAttribute();
+            return base.SynthesizeNullablePublicOnlyAttribute(arguments);
         }
 
         protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
@@ -316,10 +316,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             if ((needsAttributes & EmbeddableAttributes.NullablePublicOnlyAttribute) != 0)
             {
-                CreateEmbeddedAttributeIfNeeded(
+                CreateEmbeddedNullablePublicOnlyAttributeIfNeeded(
                     ref _lazyNullablePublicOnlyAttribute,
-                    diagnostics,
-                    AttributeDescription.NullablePublicOnlyAttribute);
+                    diagnostics);
             }
         }
 
@@ -354,6 +353,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 AddDiagnosticsForExistingAttribute(AttributeDescription.NullableContextAttribute, diagnostics);
                 symbol = new SynthesizedEmbeddedNullableContextAttributeSymbol(_sourceAssembly.DeclaringCompilation, diagnostics);
+            }
+        }
+
+        private void CreateEmbeddedNullablePublicOnlyAttributeIfNeeded(
+            ref SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol symbol,
+            DiagnosticBag diagnostics)
+        {
+            if (symbol is null)
+            {
+                AddDiagnosticsForExistingAttribute(AttributeDescription.NullablePublicOnlyAttribute, diagnostics);
+                symbol = new SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol(_sourceAssembly.DeclaringCompilation, diagnostics);
             }
         }
 

@@ -1542,10 +1542,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor, arguments, isOptionalUse: true);
         }
 
-        internal virtual SynthesizedAttributeData SynthesizeNullablePublicOnlyAttribute()
+        internal virtual SynthesizedAttributeData SynthesizeNullablePublicOnlyAttribute(ImmutableArray<TypedConstant> arguments)
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
-            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor);
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor, arguments);
         }
 
         protected virtual SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
