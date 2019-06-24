@@ -43,5 +43,24 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             return false;
         }
+
+        /// <summary>
+        /// Determines if the given array is a tainted data source.
+        /// </summary>
+        /// <param name="sourceSymbolMap"></param>
+        /// <param name="arrayTypeSymbol"></param>
+        /// <returns></returns>
+        public static bool IsSourceArray(this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap, IArrayTypeSymbol arrayTypeSymbol)
+        {
+            foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(arrayTypeSymbol.ElementType as INamedTypeSymbol))
+            {
+                if (sourceInfo.TaintArray)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

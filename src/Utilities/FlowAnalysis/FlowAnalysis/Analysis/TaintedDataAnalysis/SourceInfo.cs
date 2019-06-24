@@ -17,12 +17,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// 
         /// <param name="taintedProperties">Properties that generate tainted data.</param>
         /// <param name="taintedMethods">Methods that generate tainted data.</param>
-        public SourceInfo(string fullTypeName, bool isInterface, ImmutableHashSet<string> taintedProperties, ImmutableHashSet<string> taintedMethods)
+        public SourceInfo(string fullTypeName, bool isInterface, ImmutableHashSet<string> taintedProperties, ImmutableHashSet<string> taintedMethods, bool taintArray)
         {
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
             IsInterface = isInterface;
             TaintedProperties = taintedProperties ?? throw new ArgumentNullException(nameof(taintedProperties));
             TaintedMethods = taintedMethods ?? throw new ArgumentNullException(nameof(taintedMethods));
+            TaintArray = taintArray;
         }
 
         /// <summary>
@@ -45,12 +46,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public ImmutableHashSet<string> TaintedMethods { get; }
 
+        /// <summary>
+        /// Indicates array of this type generates tainted data.
+        /// </summary>
+        public bool TaintArray { get; }
+
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(this.TaintedProperties,
+            return HashUtilities.Combine(this.TaintArray.GetHashCode(),
+                HashUtilities.Combine(this.TaintedProperties,
                 HashUtilities.Combine(this.TaintedMethods,
                 HashUtilities.Combine(this.IsInterface.GetHashCode(),
-                    StringComparer.Ordinal.GetHashCode(this.FullTypeName))));
+                    StringComparer.Ordinal.GetHashCode(this.FullTypeName)))));
         }
 
         public override bool Equals(object obj)
@@ -64,7 +71,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && this.FullTypeName == other.FullTypeName
                 && this.IsInterface == other.IsInterface
                 && this.TaintedProperties == other.TaintedProperties
-                && this.TaintedMethods == other.TaintedMethods;
+                && this.TaintedMethods == other.TaintedMethods
+                && this.TaintArray == other.TaintArray;
         }
     }
 }

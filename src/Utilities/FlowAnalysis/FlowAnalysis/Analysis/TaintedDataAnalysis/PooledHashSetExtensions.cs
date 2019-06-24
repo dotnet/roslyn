@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 
@@ -61,7 +62,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             string fullTypeName,
             bool isInterface,
             string[] taintedProperties,
-            string[] taintedMethods)
+            string[] taintedMethods,
+            bool taintArray = false)
         {
             SourceInfo metadata = new SourceInfo(
                 fullTypeName,
@@ -70,7 +72,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ?? ImmutableHashSet<string>.Empty,
                 taintedMethods:
                     taintedMethods?.ToImmutableHashSet(StringComparer.Ordinal)
-                    ?? ImmutableHashSet<string>.Empty);
+                    ?? ImmutableHashSet<string>.Empty,
+                taintArray: taintArray);
             builder.Add(metadata);
         }
 

@@ -297,9 +297,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     taintedAbstractValues = taintedAbstractValues.Concat(baseAbstractValue);
                 }
 
+                TaintedDataAbstractValue result = null;
                 if (taintedAbstractValues.Any())
                 {
-                    return TaintedDataAbstractValue.MergeTainted(taintedAbstractValues);
+                    result = TaintedDataAbstractValue.MergeTainted(taintedAbstractValues);
+                }
+
+                if (this.DataFlowAnalysisContext.SourceInfos.IsSourceArray(operation.Parent.Type as IArrayTypeSymbol)
+                    && operation.ElementValues.All(s => s.ConstantValue.HasValue))
+                {
+                    var taintedDataAbstractValue = TaintedDataAbstractValue.CreateTainted(operation.Parent.Type, operation.Syntax, this.OwningSymbol);
+                    result = result == null ? taintedDataAbstractValue : TaintedDataAbstractValue.MergeTainted(result, taintedDataAbstractValue);
+                }
+
+                if (result != null)
+                {
+                    return result;
                 }
                 else
                 {
