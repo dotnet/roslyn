@@ -3464,11 +3464,11 @@ namespace Microsoft.Cci
                         case ITypeReference marshallerTypeRef:
                             this.SerializeTypeName(marshallerTypeRef, writer);
                             break;
-                        case { }:
-                            writer.WriteSerializedString((string)marshaller);
+                        case null:
+                            writer.WriteByte(0);
                             break;
                         default:
-                            writer.WriteByte(0);
+                            writer.WriteSerializedString((string)marshaller);
                             break;
                     }
 
