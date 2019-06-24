@@ -153,22 +153,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             bool pessimisticAnalysis = false)
         {
             PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> allResults = null;
-            List<(ControlFlowGraph, ISymbol)> cfgs = new List<(ControlFlowGraph, ISymbol)>();
             foreach ((IOperation Operation, ISymbol ContainingSymbol) in rootOperationsNeedingAnalysis)
             {
-                cfgs.Clear();
                 ControlFlowGraph enclosingControlFlowGraph = Operation.GetEnclosingControlFlowGraph();
-                cfgs.Add((enclosingControlFlowGraph, ContainingSymbol));
-                PropertySetAnalysisResult enclosingResult = PropertySetAnalysis.GetOrComputeResult(
+                PropertySetAnalysisResult enclosingResult = InvokeDfaAndAccumulateResults(
                     enclosingControlFlowGraph,
-                    compilation,
-                    ContainingSymbol,
-                    typeToTrackMetadataName,
-                    constructorMapper,
-                    propertyMappers,
-                    hazardousUsageEvaluators,
-                    interproceduralAnalysisConfig,
-                    pessimisticAnalysis);
+                    ContainingSymbol);
                 if (enclosingResult == null)
                 {
                     continue;
@@ -179,9 +169,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 {
                     if (!enclosingResult.VisitedLocalFunctions.Contains(localFunctionSymbol))
                     {
-                        cfgs.Add(
-                            (enclosingControlFlowGraph.GetLocalFunctionControlFlowGraph(localFunctionSymbol),
-                             localFunctionSymbol));
+                        InvokeDfaAndAccumulateResults(
+                            enclosingControlFlowGraph.GetLocalFunctionControlFlowGraph(localFunctionSymbol),
+                            localFunctionSymbol);
                     }
                 }
 
@@ -191,53 +181,54 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 {
                     if (!enclosingResult.VisitedLambdas.Contains(flowAnonymousFunctionOperation))
                     {
-                        cfgs.Add(
-                            (enclosingControlFlowGraph.GetAnonymousFunctionControlFlowGraph(flowAnonymousFunctionOperation),
-                             flowAnonymousFunctionOperation.Symbol));
-                    }
-                }
-
-                foreach ((ControlFlowGraph cfg, ISymbol owningSymbol) in cfgs)
-                {
-                    PropertySetAnalysisResult dfaResult =
-                        cfg == enclosingControlFlowGraph
-                        ? enclosingResult
-                        : PropertySetAnalysis.GetOrComputeResult(
-                            cfg,
-                            compilation,
-                            owningSymbol,
-                            typeToTrackMetadataName,
-                            constructorMapper,
-                            propertyMappers,
-                            hazardousUsageEvaluators,
-                            interproceduralAnalysisConfig,
-                            pessimisticAnalysis);
-                    if (dfaResult == null || dfaResult.HazardousUsages.IsEmpty)
-                    {
-                        continue;
-                    }
-
-                    if (allResults == null)
-                    {
-                        allResults = PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>.GetInstance();
-                    }
-
-                    foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp
-                        in dfaResult.HazardousUsages)
-                    {
-                        if (allResults.TryGetValue(kvp.Key, out HazardousUsageEvaluationResult existingValue))
-                        {
-                            allResults[kvp.Key] = PropertySetAnalysis.MergeHazardousUsageEvaluationResult(existingValue, kvp.Value);
-                        }
-                        else
-                        {
-                            allResults.Add(kvp.Key, kvp.Value);
-                        }
+                        InvokeDfaAndAccumulateResults(
+                            enclosingControlFlowGraph.GetAnonymousFunctionControlFlowGraph(flowAnonymousFunctionOperation),
+                            flowAnonymousFunctionOperation.Symbol);
                     }
                 }
             }
 
             return allResults;
+
+            // Merges results from single PropertySet DFA invocation into allResults.
+            PropertySetAnalysisResult InvokeDfaAndAccumulateResults(ControlFlowGraph cfg, ISymbol owningSymbol)
+            {
+                PropertySetAnalysisResult propertySetAnalysisResult =
+                    PropertySetAnalysis.GetOrComputeResult(
+                        cfg,
+                        compilation,
+                        owningSymbol,
+                        typeToTrackMetadataName,
+                        constructorMapper,
+                        propertyMappers,
+                        hazardousUsageEvaluators,
+                        interproceduralAnalysisConfig,
+                        pessimisticAnalysis);
+                if (propertySetAnalysisResult == null || propertySetAnalysisResult.HazardousUsages.IsEmpty)
+                {
+                    return propertySetAnalysisResult;
+                }
+
+                if (allResults == null)
+                {
+                    allResults = PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>.GetInstance();
+                }
+
+                foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp
+                    in propertySetAnalysisResult.HazardousUsages)
+                {
+                    if (allResults.TryGetValue(kvp.Key, out HazardousUsageEvaluationResult existingValue))
+                    {
+                        allResults[kvp.Key] = PropertySetAnalysis.MergeHazardousUsageEvaluationResult(existingValue, kvp.Value);
+                    }
+                    else
+                    {
+                        allResults.Add(kvp.Key, kvp.Value);
+                    }
+                }
+
+                return propertySetAnalysisResult;
+            }
         }
 
         /// <summary>
