@@ -8,7 +8,7 @@ A number of NuGet packages are published from the Roslyn repo:
 
 This package contains the C# and Visual Basic compiler toolset for .NET Desktop and .NET Core. This includes the compilers, msbuild tasks and targets files. When installed in a project this will override the compiler toolset installed in MSBuild. 
 
-Note: this package is intended as a replacement for Microsoft.Net.Compilers and Microsoft.NETCore.Compilers. Those packages are now deprecated and will be deleted in the future.
+Note: this package is intended as a replacement for Microsoft.Net.Compilers (which is a Windows-only package) and Microsoft.NETCore.Compilers. Those packages are now deprecated and will be deleted in the future.
 
 ## Versioning
 Below are the versions of the language available in the NuGet packages. Remember to set a specific language version (or "latest") if you want to use one that is newer than "default" (ie. latest major version).
