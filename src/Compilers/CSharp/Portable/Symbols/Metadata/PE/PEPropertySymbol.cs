@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // (when synthesizing nullable state for a private member in a [NullableContext] but without
             // explicit [Nullable]) because the accessibility of the property has not been calculated yet.
             // At worst, this means we have incorrect nullability info for inaccessible properties.
-            propertyTypeWithAnnotations = NullableTypeDecoder.TransformType(propertyTypeWithAnnotations, handle, moduleSymbol, _containingType, _containingType.GetNullableContextValue());
+            propertyTypeWithAnnotations = NullableTypeDecoder.TransformType(propertyTypeWithAnnotations, handle, moduleSymbol, accessSymbol: _containingType, nullableContext: _containingType);
             propertyTypeWithAnnotations = TupleTypeDecoder.DecodeTupleTypesIfApplicable(propertyTypeWithAnnotations, handle, moduleSymbol);
 
             _propertyTypeWithAnnotations = propertyTypeWithAnnotations;
@@ -687,11 +687,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var propertyParam = propertyParams[i];
                 var paramHandle = i < numAccessorParams ? accessorParams[i].Handle : propertyParam.Handle;
                 var ordinal = i - 1;
-                byte? nullableContext = property.GetNullableContextValue();
                 bool isBad;
 
                 // https://github.com/dotnet/roslyn/issues/29821: handle extra annotations
-                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, isPropertyVirtual, ordinal, paramHandle, propertyParam, nullableContext, extraAnnotations: default, out isBad);
+                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, isPropertyVirtual, ordinal, paramHandle, propertyParam, nullableContext: property, extraAnnotations: default, out isBad);
 
                 if (isBad)
                 {

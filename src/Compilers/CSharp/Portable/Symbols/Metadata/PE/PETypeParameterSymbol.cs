@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             var type = TypeWithAnnotations.Create(typeSymbol);
-            type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol, _containingSymbol, _containingSymbol.GetNullableContextValue());
+            type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol, accessSymbol: _containingSymbol, nullableContext: _containingSymbol);
             type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, constraintHandle, moduleSymbol);
             return type;
         }

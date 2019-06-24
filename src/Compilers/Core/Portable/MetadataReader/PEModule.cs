@@ -1166,7 +1166,7 @@ namespace Microsoft.CodeAnalysis
 
         internal bool HasNullablePublicOnlyAttribute(EntityHandle token, out bool includesInternals)
         {
-            AttributeInfo info = FindLastTargetAttribute(token, AttributeDescription.NullablePublicOnlyAttribute);
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.NullablePublicOnlyAttribute);
             if (info.HasValue)
             {
                 Debug.Assert(info.SignatureIndex == 0);

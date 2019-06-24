@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             bool isContainingSymbolVirtual,
             int ordinal,
             ParamInfo<TypeSymbol> parameterInfo,
-            byte? nullableContext,
+            Symbol nullableContext,
             ImmutableArray<byte> extraAnnotations,
             bool isReturn,
             out bool isBad)
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             int ordinal,
             ParameterHandle handle,
             ParamInfo<TypeSymbol> parameterInfo,
-            byte? nullableContext,
+            Symbol nullableContext,
             ImmutableArray<byte> extraAnnotations,
             out bool isBad)
         {
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             TypeWithAnnotations typeWithAnnotations,
             ImmutableArray<byte> extraAnnotations,
             ParameterHandle handle,
-            byte? nullableContext,
+            Symbol nullableContext,
             int countOfCustomModifiers,
             out bool isBad)
         {
@@ -224,12 +224,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 typeWithAnnotations = TupleTypeSymbol.TryTransformToTuple(typeWithAnnotations.Type, out TupleTypeSymbol tuple) ?
                     TypeWithAnnotations.Create(tuple) :
                     typeWithAnnotations;
-                if (!extraAnnotations.IsDefault || nullableContext != null)
+                if (!extraAnnotations.IsDefault)
                 {
-                    typeWithAnnotations = NullableTypeDecoder.TransformType(
-                        typeWithAnnotations,
-                        defaultTransformFlag: extraAnnotations.IsDefault ? nullableContext.GetValueOrDefault() : (byte)0,
-                        extraAnnotations);
+                    typeWithAnnotations = NullableTypeDecoder.TransformType(typeWithAnnotations, defaultTransformFlag: 0, extraAnnotations);
+                }
+                else
+                {
+                    byte? value = nullableContext.GetNullableContextValue();
+                    if (value.HasValue)
+                    {
+                        typeWithAnnotations = NullableTypeDecoder.TransformType(typeWithAnnotations, value.GetValueOrDefault(), default);
+                    }
                 }
 
                 _lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
@@ -277,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // explicit [Nullable]) because the accessibility of the property has not been calculated yet.
                 // At worst, this means we have incorrect nullability info for inaccessible properties.
                 var accessSymbol = containingSymbol.Kind == SymbolKind.Property ? containingSymbol.ContainingSymbol : containingSymbol;
-                typeWithAnnotations = NullableTypeDecoder.TransformType(typeWithAnnotations, handle, moduleSymbol, accessSymbol, nullableContext, extraAnnotations);
+                typeWithAnnotations = NullableTypeDecoder.TransformType(typeWithAnnotations, handle, moduleSymbol, accessSymbol: accessSymbol, nullableContext: nullableContext, extraAnnotations);
                 typeWithAnnotations = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeWithAnnotations, handle, moduleSymbol);
             }
 
@@ -314,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             TypeSymbol type,
             ImmutableArray<byte> extraAnnotations,
             ParameterHandle handle,
-            byte? nullableContext,
+            Symbol nullableContext,
             ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers,
             bool isReturn,
             out bool isBad)
@@ -360,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 TypeWithAnnotations type,
                 ImmutableArray<byte> extraAnnotations,
                 ParameterHandle handle,
-                byte? nullableContext,
+                Symbol nullableContext,
                 out bool isBad) :
                     base(moduleSymbol, containingSymbol, ordinal, isByRef, type, extraAnnotations, handle, nullableContext,
                          refCustomModifiers.NullToEmpty().Length + type.CustomModifiers.Length,
