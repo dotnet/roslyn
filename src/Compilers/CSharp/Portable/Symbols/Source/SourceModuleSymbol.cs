@@ -527,6 +527,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 ReportExplicitUseOfNullabilityAttribute(in arguments, AttributeDescription.NullableContextAttribute);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullablePublicOnlyAttribute))
+            {
+                ReportExplicitUseOfNullabilityAttribute(in arguments, AttributeDescription.NullablePublicOnlyAttribute);
+            }
         }
 
         private bool EmitNullablePublicOnlyAttribute

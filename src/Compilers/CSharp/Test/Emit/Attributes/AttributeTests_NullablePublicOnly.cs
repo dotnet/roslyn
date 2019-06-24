@@ -210,7 +210,9 @@ public class B : A<object?>
 }";
             var source =
 @"using System.Runtime.CompilerServices;
-[assembly: NullablePublicOnly(false)]";
+[assembly: NullablePublicOnly(false)]
+[module: NullablePublicOnly(false)]
+";
 
             // C#7
             var comp = CreateCompilation(new[] { sourceAttribute, source }, parseOptions: TestOptions.Regular7);
@@ -223,9 +225,9 @@ public class B : A<object?>
             static void verifyDiagnostics(CSharpCompilation comp)
             {
                 comp.VerifyDiagnostics(
-                // (2,12): error CS8335: Do not use 'System.Runtime.CompilerServices.NullablePublicOnlyAttribute'. This is reserved for compiler usage.
-                // [assembly: NullablePublicOnly(false)]
-                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "NullablePublicOnly(false)").WithArguments("System.Runtime.CompilerServices.NullablePublicOnlyAttribute").WithLocation(2, 12));
+                // (3,10): error CS8335: Do not use 'System.Runtime.CompilerServices.NullablePublicOnlyAttribute'. This is reserved for compiler usage.
+                // [module: NullablePublicOnly(false)]
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "NullablePublicOnly(false)").WithArguments("System.Runtime.CompilerServices.NullablePublicOnlyAttribute").WithLocation(3, 10));
             }
         }
 
@@ -252,6 +254,53 @@ class Program
         }
 
         [Fact]
+        public void ExplicitAttribute_WithNullableAttribute()
+        {
+            var sourceAttribute =
+@"#nullable enable
+namespace System.Runtime.CompilerServices
+{
+    public class NullablePublicOnlyAttribute : System.Attribute
+    {
+        public NullablePublicOnlyAttribute(bool b) { }
+        public NullablePublicOnlyAttribute(
+            object x,
+            object? y,
+#nullable disable
+            object z)
+        {
+        }
+    }
+}";
+            var comp = CreateCompilation(sourceAttribute);
+            var ref0 = comp.EmitToImageReference();
+            var expected =
+@"System.Runtime.CompilerServices.NullablePublicOnlyAttribute
+    NullablePublicOnlyAttribute(System.Object! x, System.Object? y, System.Object z)
+        [Nullable(1)] System.Object! x
+        [Nullable(2)] System.Object? y
+";
+            AssertNullableAttributes(comp, expected);
+
+            var source =
+@"#nullable enable
+public class Program
+{
+    public object _f1;
+    public object? _f2;
+#nullable disable
+    public object _f3;
+}";
+            comp = CreateCompilation(source, references: new[] { ref0 });
+            expected =
+@"Program
+    [Nullable(1)] System.Object! _f1
+    [Nullable(2)] System.Object? _f2
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
         public void AttributeField()
         {
             var source =
@@ -265,14 +314,14 @@ class Program
     {
         var value = GetAttributeValue(typeof(Program).Assembly.Modules.First());
         Console.WriteLine(value == null ? ""<null>"" : value.ToString());
-    }    
+    }
     static bool? GetAttributeValue(Module module)
     {
         var attribute = module.GetCustomAttributes(false).SingleOrDefault(a => a.GetType().Name == ""NullablePublicOnlyAttribute"");
         if (attribute == null) return null;
         var field = attribute.GetType().GetField(""IncludesInternals"");
         return (bool)field.GetValue(attribute);
-    }    
+    }
 }";
             var sourceIVTs =
 @"using System.Runtime.CompilerServices;
@@ -283,6 +332,17 @@ class Program
             CompileAndVerify(source, parseOptions: parseOptions.WithFeature("nullablePublicOnly"), expectedOutput: "False");
             CompileAndVerify(new[] { source, sourceIVTs }, parseOptions: parseOptions, expectedOutput: "<null>");
             CompileAndVerify(new[] { source, sourceIVTs }, parseOptions: parseOptions.WithFeature("nullablePublicOnly"), expectedOutput: "True");
+        }
+
+        private void AssertNullableAttributes(CSharpCompilation comp, string expected)
+        {
+            CompileAndVerify(comp, symbolValidator: module => AssertNullableAttributes(module, expected));
+        }
+
+        private static void AssertNullableAttributes(ModuleSymbol module, string expected)
+        {
+            var actual = NullableAttributesVisitor.GetString((PEModuleSymbol)module);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual);
         }
     }
 }

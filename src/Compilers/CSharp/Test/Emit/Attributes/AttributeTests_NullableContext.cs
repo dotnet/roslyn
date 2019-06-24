@@ -210,13 +210,13 @@ class Program
     {
         Console.WriteLine(GetAttributeValue(typeof(A)));
         Console.WriteLine(GetAttributeValue(typeof(B)));
-    }    
+    }
     static byte GetAttributeValue(Type type)
     {
         var attribute = type.GetCustomAttributes(false).Single(a => a.GetType().Name == ""NullableContextAttribute"");
         var field = attribute.GetType().GetField(""Flag"");
         return (byte)field.GetValue(attribute);
-    }    
+    }
 }";
             var expectedOutput =
 @"1

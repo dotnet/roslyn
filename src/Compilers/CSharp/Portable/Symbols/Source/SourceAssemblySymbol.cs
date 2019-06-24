@@ -2357,10 +2357,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().AssemblyAlgorithmIdAttributeSetting = algorithmId;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullablePublicOnlyAttribute))
-            {
-                ReportExplicitUseOfNullabilityAttribute(in arguments, AttributeDescription.NullablePublicOnlyAttribute);
-            }
         }
 
         // Checks that the integral arguments for the given well-known attribute are non-negative.
