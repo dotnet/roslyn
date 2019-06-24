@@ -8,6 +8,7 @@ using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
@@ -23,7 +24,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <summary>
         /// Operation visitor to flow the location validation values across a given statement in a basic block.
         /// </summary>
-        private sealed class PropertySetDataFlowOperationVisitor :
+        private sealed partial class PropertySetDataFlowOperationVisitor :
             AbstractLocationDataFlowOperationVisitor<PropertySetAnalysisData, PropertySetAnalysisContext, PropertySetAnalysisResult, PropertySetAbstractValue>
         {
             /// <summary>
@@ -41,7 +42,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             /// <remarks>
             /// Mapping of AnalysisEntity (for a field or property of the tracked type) to AbstractLocation(s) to IAssignmentOperation(s)
             /// </remarks>
-            private PooledDictionary<AnalysisEntity, PooledDictionary<AbstractLocation, PooledHashSet<IAssignmentOperation>>> TrackedFieldPropertyAssignmentsOpt;
+            private PooledDictionary<AnalysisEntity, TrackedAssignmentData> TrackedFieldPropertyAssignmentsOpt;
 
             /// <summary>
             /// The type containing the property set we're tracking.
@@ -64,7 +65,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
                 if (this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetInitializationHazardousUsageEvaluator(out _))
                 {
-                    this.TrackedFieldPropertyAssignmentsOpt = PooledDictionary<AnalysisEntity, PooledDictionary<AbstractLocation, PooledHashSet<IAssignmentOperation>>>.GetInstance();
+                    this.TrackedFieldPropertyAssignmentsOpt = PooledDictionary<AnalysisEntity, TrackedAssignmentData>.GetInstance();
                 }
             }
 
@@ -222,6 +223,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             {
                 PropertySetAbstractValue baseValue = base.VisitAssignmentOperation(operation, argument);
 
+                // If we need to evaluate hazardous usages on initializations, track assignments of properties and fields, so
+                // at the end of the CFG we can figure out which assignment operations to flag.
                 if (this.TrackedFieldPropertyAssignmentsOpt != null
                     && this.TrackedTypeSymbol.Equals(operation.Target.Type)
                     && (operation.Target.Kind == OperationKind.PropertyReference
@@ -254,26 +257,33 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     if (targetAnalysisEntity != null)
                     {
                         PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(operation.Value);
-                        foreach (AbstractLocation abstractLocation in pointsToAbstractValue.Locations)
+                        if (!this.TrackedFieldPropertyAssignmentsOpt.TryGetValue(
+                                targetAnalysisEntity,
+                                out TrackedAssignmentData trackedAssignmentData))
                         {
-                            if (!this.TrackedFieldPropertyAssignmentsOpt.TryGetValue(
-                                    targetAnalysisEntity,
-                                    out PooledDictionary<AbstractLocation, PooledHashSet<IAssignmentOperation>> locationsToAssignments))
-                            {
-                                locationsToAssignments =
-                                    PooledDictionary<AbstractLocation, PooledHashSet<IAssignmentOperation>>.GetInstance();
-                                this.TrackedFieldPropertyAssignmentsOpt.Add(targetAnalysisEntity, locationsToAssignments);
-                            }
+                            trackedAssignmentData = new TrackedAssignmentData();
+                            this.TrackedFieldPropertyAssignmentsOpt.Add(targetAnalysisEntity, trackedAssignmentData);
+                        }
 
-                            if (!locationsToAssignments.TryGetValue(
-                                    abstractLocation,
-                                    out PooledHashSet<IAssignmentOperation> assignments))
+                        if (pointsToAbstractValue.Kind == PointsToAbstractValueKind.KnownLocations)
+                        {
+                            foreach (AbstractLocation abstractLocation in pointsToAbstractValue.Locations)
                             {
-                                assignments = PooledHashSet<IAssignmentOperation>.GetInstance();
-                                locationsToAssignments.Add(abstractLocation, assignments);
+                                trackedAssignmentData.TrackAssignmentWithAbstractLocation(operation, abstractLocation);
                             }
-
-                            assignments.Add(operation);
+                        }
+                        else if (pointsToAbstractValue.Kind == PointsToAbstractValueKind.Unknown
+                            || pointsToAbstractValue.Kind == PointsToAbstractValueKind.UnknownNotNull)
+                        {
+                            trackedAssignmentData.TrackAssignmentWithUnknownLocation(operation);
+                        }
+                        else if (pointsToAbstractValue.NullState == NullAbstractValue.Null)
+                        {
+                            // Do nothing.
+                        }
+                        else
+                        {
+                            Debug.Fail($"Unhandled PointsToAbstractValue: Kind = {pointsToAbstractValue.Kind}, NullState = {pointsToAbstractValue.NullState}");
                         }
                     }
                 }
@@ -333,7 +343,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             /// Processes PropertySetAbstractValues at the end of the ControlFlowGraph.
             /// </summary>
             /// <param name="exitBlockOutput">Exit block output.</param>
-            /// <remarks>When evaluating hazardous usages on evaluations.
+            /// <remarks>When evaluating hazardous usages on initializations.
             /// class Class
             /// {
             ///     public static readonly Settings InsecureSettings = new Settings { AllowAnyoneAdminAccess = true };
@@ -352,7 +362,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         out HazardousUsageEvaluator initializationHazardousUsageEvaluator);
                     Debug.Assert(initializationHazardousUsageEvaluator != null);
 
-                    foreach (KeyValuePair<AnalysisEntity, PooledDictionary<AbstractLocation, PooledHashSet<IAssignmentOperation>>> kvp
+                    foreach (KeyValuePair<AnalysisEntity, TrackedAssignmentData> kvp
                         in this.TrackedFieldPropertyAssignmentsOpt)
                     {
                         if (!this.DataFlowAnalysisContext.PointsToAnalysisResultOpt.ExitBlockOutput.Data.TryGetValue(
@@ -361,42 +371,89 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                             continue;
                         }
 
-                        foreach (AbstractLocation abstractLocation in pointsToAbstractValue.Locations)
+                        if (pointsToAbstractValue.Kind == PointsToAbstractValueKind.KnownLocations)
                         {
-                            if (!kvp.Value.TryGetValue(
-                                    abstractLocation,
-                                    out PooledHashSet<IAssignmentOperation> assignments))
+                            if (kvp.Value.AbstractLocationsToAssignments != null)
                             {
-                                continue;
-                            }
-
-                            PropertySetAbstractValue propertySetAbstractValue =
-                                exitBlockOutput.Data[abstractLocation] ?? PropertySetAbstractValue.Unknown;
-                            HazardousUsageEvaluationResult result =
-                                initializationHazardousUsageEvaluator.ValueEvaluator(propertySetAbstractValue);
-                            if (result != HazardousUsageEvaluationResult.Unflagged)
-                            {
-                                foreach (IAssignmentOperation assignmentOperation in assignments)
+                                foreach (AbstractLocation abstractLocation in pointsToAbstractValue.Locations)
                                 {
-                                    this.MergeHazardousUsageResult(
-                                        assignmentOperation.Syntax,
-                                        methodSymbol: null,    // No method invocation; just evaluating initialization value.
-                                        result);
+                                    if (!kvp.Value.AbstractLocationsToAssignments.TryGetValue(
+                                            abstractLocation,
+                                            out PooledHashSet<IAssignmentOperation> assignments))
+                                    {
+                                        Debug.Fail("Expected to have tracked assignment operations for a given location");
+                                        continue;
+                                    }
+
+                                    if (abstractLocation.IsNull)
+                                    {
+                                        continue;
+                                    }
+
+                                    if (!exitBlockOutput.Data.TryGetValue(
+                                            abstractLocation,
+                                            out PropertySetAbstractValue propertySetAbstractValue))
+                                    {
+                                        propertySetAbstractValue = PropertySetAbstractValue.Unknown;
+                                    }
+
+                                    HazardousUsageEvaluationResult result =
+                                        initializationHazardousUsageEvaluator.ValueEvaluator(propertySetAbstractValue);
+                                    if (result != HazardousUsageEvaluationResult.Unflagged)
+                                    {
+                                        foreach (IAssignmentOperation assignmentOperation in assignments)
+                                        {
+                                            this.MergeHazardousUsageResult(
+                                                assignmentOperation.Syntax,
+                                                methodSymbol: null,    // No method invocation; just evaluating initialization value.
+                                                result);
+                                        }
+                                    }
                                 }
                             }
+                            else
+                            {
+                                Debug.Fail("Expected to have tracked assignment operations with locations");
+                            }
+                        }
+                        else if (pointsToAbstractValue.Kind == PointsToAbstractValueKind.Unknown
+                            || pointsToAbstractValue.Kind == PointsToAbstractValueKind.UnknownNotNull)
+                        {
+                            if (kvp.Value.AssignmentsWithUnknownLocation != null)
+                            {
+                                HazardousUsageEvaluationResult result =
+                                    initializationHazardousUsageEvaluator.ValueEvaluator(PropertySetAbstractValue.Unknown);
+                                if (result != HazardousUsageEvaluationResult.Unflagged)
+                                {
+                                    foreach (IAssignmentOperation assignmentOperation in kvp.Value.AssignmentsWithUnknownLocation)
+                                    {
+                                        this.MergeHazardousUsageResult(
+                                            assignmentOperation.Syntax,
+                                            methodSymbol: null,    // No method invocation; just evaluating initialization value.
+                                            result);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                Debug.Fail("Expected to have tracked assignment operations with unknown PointsTo");
+                            }
+                        }
+                        else if (pointsToAbstractValue.NullState == NullAbstractValue.Null)
+                        {
+                            // Do nothing.
+                        }
+                        else
+                        {
+                            Debug.Fail($"Unhandled PointsToAbstractValue: Kind = {pointsToAbstractValue.Kind}, NullState = {pointsToAbstractValue.NullState}");
                         }
                     }
                 }
                 finally
                 {
-                    foreach (PooledDictionary<AbstractLocation, PooledHashSet<IAssignmentOperation>> locationsToAssignments in this.TrackedFieldPropertyAssignmentsOpt.Values)
+                    foreach (TrackedAssignmentData trackedAssignmentData in this.TrackedFieldPropertyAssignmentsOpt.Values)
                     {
-                        foreach (PooledHashSet<IAssignmentOperation> assignments in locationsToAssignments.Values)
-                        {
-                            assignments.Free();
-                        }
-
-                        locationsToAssignments.Free();
+                        trackedAssignmentData.Free();
                     }
 
                     this.TrackedFieldPropertyAssignmentsOpt.Free();

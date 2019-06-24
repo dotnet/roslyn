@@ -30,8 +30,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 case NullAbstractValue.NotNull:
                     return PropertySetAbstractValueKind.Unflagged;
 
-                default:
+                case NullAbstractValue.MaybeNull:
                     return PropertySetAbstractValueKind.MaybeFlagged;
+
+                default:
+                    return PropertySetAbstractValueKind.Unknown;
             }
         }
 
@@ -117,16 +120,81 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         }
 
         /// <summary>
+        /// A <see cref="HazardousUsageEvaluator.EvaluationCallback"/> for all properties flagged being hazardous, treating all
+        /// unknown as maybe flagged.
+        /// </summary>
+        /// <param name="propertySetAbstractValue">PropertySetAbstract value.</param>
+        /// <returns>If all properties are flagged, then flagged; if at least one property is unflagged, then unflagged;
+        /// otherwise (including all unknown) maybe flagged.</returns>
+        public static HazardousUsageEvaluationResult HazardousIfAllFlaggedOrAllUnknown(
+            PropertySetAbstractValue propertySetAbstractValue)
+        {
+            return HazardousIfAllFlagged(propertySetAbstractValue, assumeAllUnknownInsecure: true);
+        }
+
+        /// <summary>
+        /// A <see cref="HazardousUsageEvaluator.EvaluationCallback"/> for all properties flagged being hazardous, treating all
+        /// unknown as unflagged.
+        /// </summary>
+        /// <param name="propertySetAbstractValue">PropertySetAbstract value.</param>
+        /// <returns>If all properties are flagged, then flagged; if at least one property is unflagged, then unflagged;
+        /// otherwise (excluding all unknown) maybe flagged.</returns>
+        public static HazardousUsageEvaluationResult HazardousIfAllFlaggedAndAtLeastOneKnown(
+            PropertySetAbstractValue propertySetAbstractValue)
+        {
+            return HazardousIfAllFlagged(propertySetAbstractValue, assumeAllUnknownInsecure: false);
+        }
+
+        /// <summary>
+        /// A <see cref="HazardousUsageEvaluator.InvocationEvaluationCallback"/> for all properties flagged being hazardous,
+        /// treating all unknown as maybe flagged.
+        /// </summary>
+        /// <param name="methodSymbol">Ignored.  If your scenario cares about the method, don't use this.</param>
+        /// <param name="propertySetAbstractValue">PropertySetAbstract value.</param>
+        /// <returns>If all properties are flagged, then flagged; if all properties are unflagged, then unflagged; otherwise
+        /// (including all unknown) maybe flagged.</returns>
+        [SuppressMessage("Usage", "CA1801", Justification = "Intentionally ignored; have to match delegate signature")]
+        [SuppressMessage("Usage", "IDE0060", Justification = "Intentionally ignored; have to match delegate signature")]
+        public static HazardousUsageEvaluationResult HazardousIfAllFlaggedOrAllUnknown(
+            IMethodSymbol methodSymbol,
+            PropertySetAbstractValue propertySetAbstractValue)
+        {
+            return HazardousIfAllFlagged(propertySetAbstractValue, assumeAllUnknownInsecure: true);
+        }
+
+        /// <summary>
+        /// A <see cref="HazardousUsageEvaluator.InvocationEvaluationCallback"/> for all properties flagged being hazardous,
+        /// treating all unknown as unflagged
+        /// </summary>
+        /// <param name="methodSymbol">Ignored.  If your scenario cares about the method, don't use this.</param>
+        /// <param name="propertySetAbstractValue">PropertySetAbstract value.</param>
+        /// <returns>If all properties are flagged, then flagged; if all properties are unflagged, then unflagged; otherwise
+        /// (excluding all unknown) maybe flagged.</returns>
+        [SuppressMessage("Usage", "CA1801", Justification = "Intentionally ignored; have to match delegate signature")]
+        [SuppressMessage("Usage", "IDE0060", Justification = "Intentionally ignored; have to match delegate signature")]
+        public static HazardousUsageEvaluationResult HazardousIfAllFlaggedAndAtLeastOneKnown(
+            IMethodSymbol methodSymbol,
+            PropertySetAbstractValue propertySetAbstractValue)
+        {
+            return HazardousIfAllFlagged(propertySetAbstractValue, assumeAllUnknownInsecure: false);
+        }
+
+
+        /// <summary>
         /// A <see cref="HazardousUsageEvaluator.EvaluationCallback"/> for all properties flagged being hazardous.
         /// </summary>
         /// <param name="propertySetAbstractValue">PropertySetAbstract value.</param>
-        /// <returns>If all properties are flagged, then flagged; if at least one property is unflagged, then unflagged; otherwise maybe flagged.</returns>
-        public static HazardousUsageEvaluationResult HazardousIfAllFlagged(PropertySetAbstractValue propertySetAbstractValue)
+        /// <returns>If all properties are flagged, then flagged; if at least one property is unflagged, then unflagged; otherwise (including all unknown) maybe flagged.</returns>
+        private static HazardousUsageEvaluationResult HazardousIfAllFlagged(
+            PropertySetAbstractValue propertySetAbstractValue,
+            bool assumeAllUnknownInsecure)
         {
             if (propertySetAbstractValue.KnownValuesCount == 0)
             {
-                // No known values implies only PropertySetAbstractValueKind.Unknown.
-                return HazardousUsageEvaluationResult.MaybeFlagged;
+                // No known values implies all properties are PropertySetAbstractValueKind.Unknown.
+                return assumeAllUnknownInsecure
+                    ? HazardousUsageEvaluationResult.MaybeFlagged
+                    : HazardousUsageEvaluationResult.Unflagged;
             }
 
             bool allFlagged = true;
@@ -155,23 +223,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             }
             else
             {
+                // Mix of flagged and unknown.
                 return HazardousUsageEvaluationResult.MaybeFlagged;
             }
-        }
-
-        /// <summary>
-        /// A <see cref="HazardousUsageEvaluator.InvocationEvaluationCallback"/> for all properties flagged being hazardous.
-        /// </summary>
-        /// <param name="methodSymbol">Ignored.  If your scenario cares about the method, don't use this.</param>
-        /// <param name="propertySetAbstractValue">PropertySetAbstract value.</param>
-        /// <returns>If all properties are flagged, then flagged; if all properties are unflagged, then unflagged; otherwise maybe flagged.</returns>
-        [SuppressMessage("Usage", "CA1801", Justification = "Intentionally ignored; have to match delegate signature")]
-        [SuppressMessage("Usage", "IDE0060", Justification = "Intentionally ignored; have to match delegate signature")]
-        public static HazardousUsageEvaluationResult HazardousIfAllFlagged(
-            IMethodSymbol methodSymbol,
-            PropertySetAbstractValue propertySetAbstractValue)
-        {
-            return HazardousIfAllFlagged(propertySetAbstractValue);
         }
     }
 }
