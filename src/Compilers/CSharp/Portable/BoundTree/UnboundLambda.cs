@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     useSiteDiagnostics.Add(info);
                 }
             }
-            if (nullableState == null)
+            if (nullableState == null || !Binder.Compilation.RunNullableWalker)
             {
                 return InferredReturnType.TypeWithAnnotations;
             }
