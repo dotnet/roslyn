@@ -2884,7 +2884,7 @@ class Program<T, U, V>
                 VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F31").TypeWithAnnotations, new byte[] { 0 }, new byte[] { 0 }, "V");
                 VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F32").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { 0 }, "V?");
                 VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F33").TypeWithAnnotations, new byte[] { 1, 0 }, new byte[] { 1, 0 }, "V[]!");
-                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F34").TypeWithAnnotations, new byte[] { 1, 0 }, new byte[] { 1 , 0}, "C<V>!");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F34").TypeWithAnnotations, new byte[] { 1, 0 }, new byte[] { 1, 0 }, "C<V>!");
                 VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F35").TypeWithAnnotations, new byte[] { 0, 0 }, new byte[] { 0, 0 }, "S<V>");
             }
         }
