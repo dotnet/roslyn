@@ -1484,6 +1484,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
+        ' TypeDeclaration  ::=
+        '    ModuleDeclaration  |
+        '    NonModuleDeclaration
+        ' NonModuleDeclaration  ::=
+        '    EnumDeclaration  |
+        '    StructureDeclaration  |
+        '    InterfaceDeclaration  |
+        '    ClassDeclaration  |
+        '    DelegateDeclaration
+        Public Function IsTypeDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTypeDeclaration
+            Select Case node.Kind()
+                Case SyntaxKind.EnumBlock,
+                     SyntaxKind.StructureBlock,
+                     SyntaxKind.InterfaceBlock,
+                     SyntaxKind.ClassBlock,
+                     SyntaxKind.ModuleBlock,
+                     SyntaxKind.DelegateSubStatement,
+                     SyntaxKind.DelegateFunctionStatement
+                    Return True
+            End Select
+
+            Return False
+        End Function
+
         Public Sub AddFirstMissingCloseBrace(root As SyntaxNode, contextNode As SyntaxNode, ByRef newRoot As SyntaxNode, ByRef newContextNode As SyntaxNode) Implements ISyntaxFactsService.AddFirstMissingCloseBrace
             ' Nothing to be done.  VB doesn't have close braces
             newRoot = root
