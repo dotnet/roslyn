@@ -838,9 +838,9 @@ class C
     public event EventHandler E;
 }";
             var compilation = CreateCompilation(source).VerifyDiagnostics(
-                // (4,38): warning CS0067: The event 'C.E' is never used
-                //     public static event EventHandler E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 38));
+                // (4,31): warning CS0067: The event 'C.E' is never used
+                //     public event EventHandler E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 31));
             var eventSymbol = compilation.GetMember<EventSymbol>("C.E");
             Assert.True(eventSymbol.RequiresInstanceReceiver);
         }
