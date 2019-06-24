@@ -122,9 +122,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Run the nullable walker during the flow analysis passes. True if the project-level nullable
-        /// context option is set, or if any file file enables nullable or just the nullable warnings.
+        /// context option is set, or if any file enables nullable or just the nullable warnings.
         /// </summary>
-        private ThreeState _lazyRunNullableWalker;
+        private ThreeState _lazyShouldRunNullableWalker;
 
         public override string Language
         {
@@ -192,15 +192,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature("peverify-compat") != null;
 
-        internal bool RunNullableWalker
+        internal bool ShouldRunNullableWalker
         {
             get
             {
-                if (!_lazyRunNullableWalker.HasValue())
+                if (!_lazyShouldRunNullableWalker.HasValue())
                 {
                     if (Options.NullableContextOptions != NullableContextOptions.Disable)
                     {
-                        _lazyRunNullableWalker = ThreeState.True;
+                        _lazyShouldRunNullableWalker = ThreeState.True;
                         return true;
                     }
 
@@ -208,15 +208,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (((CSharpSyntaxTree)syntaxTree).HasNullableEnables())
                         {
-                            _lazyRunNullableWalker = ThreeState.True;
+                            _lazyShouldRunNullableWalker = ThreeState.True;
                             return true;
                         }
                     }
 
-                    _lazyRunNullableWalker = ThreeState.False;
+                    _lazyShouldRunNullableWalker = ThreeState.False;
                 }
 
-                return _lazyRunNullableWalker.Value();
+                return _lazyShouldRunNullableWalker.Value();
             }
         }
 
