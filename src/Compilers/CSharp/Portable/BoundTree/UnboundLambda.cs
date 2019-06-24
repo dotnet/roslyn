@@ -108,7 +108,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(conversions != null);
-                Debug.Assert(Binder.Compilation.ShouldRunNullableWalker);
                 // Diagnostics from NullableWalker.Analyze can be dropped here since Analyze
                 // will be called again from NullableWalker.ApplyConversion when the
                 // BoundLambda is converted to an anonymous function.
