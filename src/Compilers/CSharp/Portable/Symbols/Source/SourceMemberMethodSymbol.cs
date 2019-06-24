@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int isMetadataVirtualInt = isMetadataVirtual ? IsMetadataVirtualBit : 0;
 
                 _flags = methodKindInt | declarationModifiersInt | isExtensionMethodInt | isMetadataVirtualIgnoringInterfaceImplementationChangesInt | isMetadataVirtualInt;
-                _flags2 = returnsVoid ? ReturnsVoidBit : 0;
+                _flags2 = (returnsVoid ? ReturnsVoidBit : 0) | ReturnsVoidIsSetBit;
             }
 
             public bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)

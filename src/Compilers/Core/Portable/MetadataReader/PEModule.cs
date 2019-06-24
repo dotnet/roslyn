@@ -1164,6 +1164,22 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        internal bool HasNullablePublicOnlyAttribute(EntityHandle token, out bool includesInternals)
+        {
+            AttributeInfo info = FindLastTargetAttribute(token, AttributeDescription.NullablePublicOnlyAttribute);
+            if (info.HasValue)
+            {
+                Debug.Assert(info.SignatureIndex == 0);
+                if (TryExtractValueFromAttribute(info.Handle, out bool value, s_attributeBooleanValueExtractor))
+                {
+                    includesInternals = value;
+                    return true;
+                }
+            }
+            includesInternals = false;
+            return false;
+        }
+
         internal ImmutableArray<string> GetInternalsVisibleToAttributeValues(EntityHandle token)
         {
             List<AttributeInfo> attrInfos = FindTargetAttributes(token, AttributeDescription.InternalsVisibleToAttribute);

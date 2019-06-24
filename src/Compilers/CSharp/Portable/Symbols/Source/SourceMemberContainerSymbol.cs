@@ -3347,12 +3347,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 typeParameter.GetCommonNullableValues(compilation, ref builder);
             }
-            foreach (var pair in GetMembersByName())
+            foreach (var member in GetMembersUnordered())
             {
-                foreach (var member in pair.Value)
-                {
-                    member.GetCommonNullableValues(compilation, ref builder);
-                }
+                member.GetCommonNullableValues(compilation, ref builder);
             }
             return builder.MostCommonValue;
         }

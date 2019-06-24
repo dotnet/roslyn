@@ -717,10 +717,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (_lazyNullableMemberMetadata == NullableMemberMetadata.Unknown)
             {
-                _lazyNullableMemberMetadata = GetAttributes().IndexOfAttribute(this, AttributeDescription.NullablePublicOnlyAttribute) >= 0 ?
-                    (_assemblySymbol.GetAttributes().IndexOfAttribute(this, AttributeDescription.InternalsVisibleToAttribute) >= 0 ?
-                        NullableMemberMetadata.Internal :
-                        NullableMemberMetadata.Public) :
+                _lazyNullableMemberMetadata = _module.HasNullablePublicOnlyAttribute(Token, out bool includesInternals) ?
+                    (includesInternals ? NullableMemberMetadata.Internal : NullableMemberMetadata.Public) :
                     NullableMemberMetadata.All;
             }
 
