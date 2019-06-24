@@ -3929,8 +3929,7 @@ class C
             End Function
         End Class
 
-        <InlineData(CompletionImplementation.Legacy)>
-        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/29110")>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function Filters_EmptyList1(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
@@ -3947,7 +3946,8 @@ class C
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
                 Dim filters = state.GetCompletionItemFilters()
                 Dim dict = New Dictionary(Of CompletionItemFilter, Boolean)
                 For Each f In filters
@@ -3958,14 +3958,13 @@ class C
 
                 Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
                 state.RaiseFiltersChanged(args)
-                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
                 Assert.Null(state.GetSelectedItem())
 
             End Using
         End Function
 
-        <InlineData(CompletionImplementation.Legacy)>
-        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/29110")>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function Filters_EmptyList2(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
@@ -3982,7 +3981,7 @@ class C
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
                 Dim filters = state.GetCompletionItemFilters()
                 Dim dict = New Dictionary(Of CompletionItemFilter, Boolean)
                 For Each f In filters
@@ -3993,7 +3992,7 @@ class C
 
                 Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
                 state.RaiseFiltersChanged(args)
-                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
                 Assert.Null(state.GetSelectedItem())
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
@@ -4001,8 +4000,7 @@ class C
             End Using
         End Function
 
-        <InlineData(CompletionImplementation.Legacy)>
-        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/29110")>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function Filters_EmptyList3(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
@@ -4019,7 +4017,7 @@ class C
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
                 Dim filters = state.GetCompletionItemFilters()
                 Dim dict = New Dictionary(Of CompletionItemFilter, Boolean)
                 For Each f In filters
@@ -4030,7 +4028,7 @@ class C
 
                 Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
                 state.RaiseFiltersChanged(args)
-                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
                 Assert.Null(state.GetSelectedItem())
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
@@ -4038,8 +4036,7 @@ class C
             End Using
         End Function
 
-        <InlineData(CompletionImplementation.Legacy)>
-        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/29110")>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function Filters_EmptyList4(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
@@ -4056,7 +4053,7 @@ class C
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
                 Dim filters = state.GetCompletionItemFilters()
                 Dim dict = New Dictionary(Of CompletionItemFilter, Boolean)
                 For Each f In filters
@@ -4067,7 +4064,7 @@ class C
 
                 Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
                 state.RaiseFiltersChanged(args)
-                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
                 Assert.Null(state.GetSelectedItem())
                 state.SendTypeChars(".")
                 Await state.AssertNoCompletionSession()
@@ -4633,6 +4630,55 @@ class C
                 state.SendTypeChars("M(M(M(M(")
                 Await state.AssertNoCompletionSession()
                 Assert.Equal("        Ma(m:(Ma(m:(", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(36546, "https://github.com/dotnet/roslyn/issues/36546")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestDoNotDismissIfEmptyOnBackspaceIfStartedWithBackspace(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+using System;
+
+class C
+{
+    public void M()
+    {
+        Console.W$$
+    }
+}</Document>)
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+
+                state.SendBackspace()
+                Await state.AssertCompletionSession()
+                state.AssertCompletionItemsContainAll({"WriteLine"})
+            End Using
+        End Function
+
+        <WorkItem(36546, "https://github.com/dotnet/roslyn/issues/36546")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestDoNotDismissIfEmptyOnMultipleBackspaceIfStartedInvoke(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+using System;
+
+class C
+{
+    public void M()
+    {
+        Console.Wr$$
+    }
+}</Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                state.SendBackspace()
+                state.SendBackspace()
+                Await state.AssertCompletionSession()
             End Using
         End Function
 
@@ -5254,6 +5300,35 @@ class C
                 Assert.True(state.IsSoftSelected())
                 state.SendTypeChars("ToStr(")
                 Assert.Contains("var e = d.ToString(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem(36187, "https://github.com/dotnet/roslyn/issues/36187")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
+        Public Async Function CompletionWithTwoOverloadsOneOfThemIsEmpty(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class C
+{
+    private enum A
+    {
+    	A,
+    	B,
+    }
+
+    private void Get(string a) { }
+    private void Get(A a) { }
+
+    private void Test()
+    {
+    	Get$$
+    }
+}
+]]></Document>)
+
+                state.SendTypeChars("(")
+                Await state.AssertSelectedCompletionItem(displayText:="A", isHardSelected:=True)
             End Using
         End Function
 

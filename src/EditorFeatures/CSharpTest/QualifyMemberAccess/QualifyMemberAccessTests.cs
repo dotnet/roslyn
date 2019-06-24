@@ -1374,6 +1374,26 @@ CodeStyleOptions.QualifyPropertyAccess);
 CodeStyleOptions.QualifyEventAccess);
         }
 
+        [WorkItem(32093, "https://github.com/dotnet/roslyn/issues/32093")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_IfInBaseConstructor()
+        {
+            await TestMissingAsyncWithOption(
+@"public class Base
+{
+    public string Foo { get; }
+    public Base(string foo){}
+}
+public class Derived : Base
+{
+    public Derived()
+        : base(nameof([|Foo|]))
+    {}
+}
+",
+                CodeStyleOptions.QualifyFieldAccess);
+        }
+
         [WorkItem(21519, "https://github.com/dotnet/roslyn/issues/21519")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_InAccessorExpressionBody()

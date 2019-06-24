@@ -164,6 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected ImmutableArray<Location> locations;
         protected string lazyDocComment;
+        protected string lazyExpandedDocComment;
 
         //null if has never been computed. Initial binding diagnostics
         //are stashed here in service of API usage patterns
@@ -357,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes =>
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations =>
             DecodeReturnTypeAnnotationAttributes(GetDecodedReturnTypeWellKnownAttributeData());
 
         public sealed override MethodKind MethodKind
@@ -674,6 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
+            ref var lazyDocComment = ref expandIncludes ? ref this.lazyExpandedDocComment : ref this.lazyDocComment;
             return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
         }
 

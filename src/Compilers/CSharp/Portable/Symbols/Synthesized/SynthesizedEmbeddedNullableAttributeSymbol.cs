@@ -1,19 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.Cci;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-
     internal sealed class SynthesizedEmbeddedNullableAttributeSymbol : SynthesizedEmbeddedAttributeSymbolBase
     {
         private readonly ImmutableArray<FieldSymbol> _fields;
@@ -25,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private const string NullableFlagsFieldName = "NullableFlags";
 
         public SynthesizedEmbeddedNullableAttributeSymbol(
-          CSharpCompilation compilation,
-          DiagnosticBag diagnostics)
+            CSharpCompilation compilation,
+            DiagnosticBag diagnostics)
             : base(AttributeDescription.NullableAttribute, compilation, diagnostics)
         {
             var byteType = TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Byte));
@@ -126,8 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             protected override void GenerateMethodBodyStatements(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, DiagnosticBag diagnostics) => _getConstructorBody(factory, statements, _parameters);
         }
-
-
     }
 }
 

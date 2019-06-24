@@ -11,10 +11,9 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -426,14 +425,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
         {
-            return GetDeclaredBaseType();
+            return GetDeclaredBaseType(skipTransformsIfNecessary: false);
         }
 
-        private NamedTypeSymbol GetDeclaredBaseType()
+        private NamedTypeSymbol GetDeclaredBaseType(bool skipTransformsIfNecessary)
         {
             if (ReferenceEquals(_lazyDeclaredBaseType, ErrorTypeSymbol.UnknownResultType))
             {
-                Interlocked.CompareExchange(ref _lazyDeclaredBaseType, MakeDeclaredBaseType(), ErrorTypeSymbol.UnknownResultType);
+                var baseType = MakeDeclaredBaseType();
+                if (!(baseType is null))
+                {
+                    if (skipTransformsIfNecessary)
+                    {
+                        // If the transforms are not necessary, return early without updating the
+                        // base type field. This avoids cycles decoding nullability in particular.
+                        return baseType;
+                    }
+
+                    var moduleSymbol = ContainingPEModule;
+                    TypeSymbol decodedType = DynamicTypeDecoder.TransformType(baseType, 0, _handle, moduleSymbol);
+                    decodedType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(decodedType, _handle, moduleSymbol);
+                    baseType = (NamedTypeSymbol)NullableTypeDecoder.TransformType(TypeWithAnnotations.Create(decodedType), _handle, moduleSymbol).Type;
+                }
+
+                Interlocked.CompareExchange(ref _lazyDeclaredBaseType, baseType, ErrorTypeSymbol.UnknownResultType);
             }
 
             return _lazyDeclaredBaseType;
@@ -457,17 +472,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     var moduleSymbol = ContainingPEModule;
                     EntityHandle token = moduleSymbol.Module.GetBaseTypeOfTypeOrThrow(_handle);
-
                     if (!token.IsNil)
                     {
-                        TypeSymbol decodedType = new MetadataDecoder(moduleSymbol, this).GetTypeOfToken(token);
-                        decodedType = DynamicTypeDecoder.TransformType(decodedType, 0, _handle, moduleSymbol);
-                        decodedType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(decodedType,
-                                                                                    _handle,
-                                                                                    moduleSymbol);
-                        return (NamedTypeSymbol)NullableTypeDecoder.TransformType(TypeWithAnnotations.Create(decodedType),
-                                                                                  _handle,
-                                                                                  moduleSymbol).Type;
+                        return (NamedTypeSymbol)new MetadataDecoder(moduleSymbol, this).GetTypeOfToken(token);
                     }
                 }
                 catch (BadImageFormatException mrEx)
@@ -1603,7 +1610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                     else
                     {
-                        TypeSymbol @base = GetDeclaredBaseType();
+                        TypeSymbol @base = GetDeclaredBaseType(skipTransformsIfNecessary: true);
 
                         result = TypeKind.Class;
 
