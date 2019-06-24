@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var result = results[f];
                 TMember member = result.Member;
-                if (result.Result.IsValid && member.RequiresInstanceReceiver == keepStatic)
+                if (result.Result.IsValid && member.RequiresInstanceReceiver() == keepStatic)
                 {
                     results[f] = new MemberResolutionResult<TMember>(member, result.LeastOverriddenMember, MemberAnalysisResult.StaticInstanceMismatch());
                 }

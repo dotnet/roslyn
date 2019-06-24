@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 ErrorCode errorCode =
-                    symbol.RequiresInstanceReceiver
+                    symbol.RequiresInstanceReceiver()
                     ? Binder.WasImplicitReceiver(receiverOpt) && binder.InFieldInitializer && !binder.BindingTopLevelScriptCode
                         ? ErrorCode.ERR_FieldInitRefNonstatic
                         : ErrorCode.ERR_ObjectRequired

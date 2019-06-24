@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // None of the checks below apply if the receiver can't be classified as a type or value. 
                 Debug.Assert(!invokedAsExtensionMethod);
             }
-            else if (!memberSymbol.RequiresInstanceReceiver)
+            else if (!memberSymbol.RequiresInstanceReceiver())
             {
                 Debug.Assert(!invokedAsExtensionMethod || (receiverOpt != null));
 
