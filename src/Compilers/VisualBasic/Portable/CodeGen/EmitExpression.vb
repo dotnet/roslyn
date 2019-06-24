@@ -288,10 +288,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim nullCheckOnCopy = conditional.CaptureReceiver OrElse (receiverType.IsReferenceType AndAlso receiverType.TypeKind = TypeKind.TypeParameter)
 
                 If nullCheckOnCopy Then
-                    Dim tempLocal As LocalDefinition = EmitReceiverRef(receiver, isAccessConstrained:=Not receiverType.IsReferenceType, addressKind:=AddressKind.ReadOnly)
+                    receiverTemp = EmitReceiverRef(receiver, isAccessConstrained:=Not receiverType.IsReferenceType, addressKind:=AddressKind.ReadOnly)
 
                     If Not receiverType.IsReferenceType Then
-                        If tempLocal Is Nothing Then
+                        If receiverTemp Is Nothing Then
                             ' unconstrained case needs to handle case where T Is actually a struct.
                             ' such values are never nulls
                             ' we will emit a check for such case, but the check Is really a JIT-time 
@@ -322,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                             ' we are calling the expression on a copy of the target anyway, 
                             ' so even if T Is a struct, we don't need to make sure we call the expression on the original target.
 
-                            _builder.EmitLocalLoad(tempLocal)
+                            _builder.EmitLocalLoad(receiverTemp)
                             EmitBox(receiverType, receiver.Syntax)
                         End If
                     Else
