@@ -587,7 +587,8 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                logger = new StreamErrorLogger(errorLog, GetToolName(), GetCompilerVersion(), GetAssemblyVersion(), Culture);
+                // TODO: Make a SarifV1 or V2 ErrorLogger depending on command line.
+                logger = new SarifV1ErrorLogger(errorLog, GetToolName(), GetCompilerVersion(), GetAssemblyVersion(), Culture);
             }
 
             ReportDiagnostics(diagnostics.ToReadOnlyAndFree(), consoleOutput, errorLoggerOpt: logger);

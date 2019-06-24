@@ -17,7 +17,7 @@ using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
-    public class ErrorLoggerTests : CommandLineTestBase
+    public class SarifV1ErrorLoggerTests : CommandLineTestBase
     {
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void NoDiagnostics()

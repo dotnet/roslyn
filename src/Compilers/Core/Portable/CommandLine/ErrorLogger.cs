@@ -20,6 +20,24 @@ namespace Microsoft.CodeAnalysis
         public abstract void LogDiagnostic(Diagnostic diagnostic);
     }
 
+    internal abstract class StreamErrorLogger : ErrorLogger, IDisposable
+    {
+        protected JsonWriter _writer { get; } // TODO: Rename to Writer.
+
+        public StreamErrorLogger(Stream stream)
+        {
+            Debug.Assert(stream != null);
+            Debug.Assert(stream.Position == 0);
+
+            _writer = new JsonWriter(new StreamWriter(stream));
+        }
+
+        public virtual void Dispose()
+        {
+            _writer.Dispose();
+        }
+    }
+
     /// <summary>
     /// Used for logging all compiler diagnostics into a given <see cref="Stream"/>.
     /// This logger is responsible for closing the given stream on <see cref="Dispose"/>.
@@ -29,18 +47,14 @@ namespace Microsoft.CodeAnalysis
     /// https://sarifweb.azurewebsites.net
     /// https://github.com/sarif-standard/sarif-spec
     /// </summary>
-    internal sealed class StreamErrorLogger : ErrorLogger, IDisposable
+    internal sealed class SarifV1ErrorLogger : StreamErrorLogger, IDisposable
     {
-        private readonly JsonWriter _writer;
         private readonly DiagnosticDescriptorSet _descriptors;
         private readonly CultureInfo _culture;
 
-        public StreamErrorLogger(Stream stream, string toolName, string toolFileVersion, Version toolAssemblyVersion, CultureInfo culture)
+        public SarifV1ErrorLogger(Stream stream, string toolName, string toolFileVersion, Version toolAssemblyVersion, CultureInfo culture)
+            : base(stream)
         {
-            Debug.Assert(stream != null);
-            Debug.Assert(stream.Position == 0);
-
-            _writer = new JsonWriter(new StreamWriter(stream));
             _descriptors = new DiagnosticDescriptorSet();
             _culture = culture;
 
@@ -309,7 +323,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             _writer.WriteArrayEnd();  // results
 
@@ -318,7 +332,8 @@ namespace Microsoft.CodeAnalysis
             _writer.WriteObjectEnd(); // run
             _writer.WriteArrayEnd();  // runs
             _writer.WriteObjectEnd(); // root
-            _writer.Dispose();
+
+            base.Dispose();
         }
 
         /// <summary>
