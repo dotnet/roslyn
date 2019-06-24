@@ -1346,17 +1346,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics,
                     out AsyncStateMachine asyncStateMachine);
 
-                if (bodyWithoutAsync.HasErrors)
-                {
-                    return bodyWithoutAsync;
-                }
-
-                BoundStatement bodyWithNullChecks = NullCheckRewriter.Rewrite(bodyWithoutAsync, method, compilationState, diagnostics);
-
                 Debug.Assert((object)iteratorStateMachine == null || (object)asyncStateMachine == null);
                 stateMachineTypeOpt = (StateMachineTypeSymbol)iteratorStateMachine ?? asyncStateMachine;
 
-                return bodyWithNullChecks;
+                return bodyWithoutAsync;
             }
             catch (BoundTreeVisitor.CancelledByStackGuardException ex)
             {

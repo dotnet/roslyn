@@ -347,10 +347,7 @@ class C
         {
             return null;
         }
-        set
-        {
-            items[0] = value;
-        }
+        set { }
     }
     public static void Main() { }
 }";
@@ -618,6 +615,39 @@ ok
 System.ArgumentNullException
 ok
 System.ArgumentNullException");
+        }
+
+        [Fact]
+        public void TestNullCheckingExpectedOutput2()
+        {
+            var source = @"
+using System;
+class Program
+{
+    static void M(int? i!)
+    {
+    }
+    static void Main()
+    {
+        Invoke(() => M((int?)1));
+        Invoke(() => M((int?)null));
+    }
+    static void Invoke(Action a)
+    {
+        try
+        {
+            a();
+            Console.WriteLine(""ok"");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.GetType());
+        }
+}
+}";
+            CompileAndVerify(source, expectedOutput: @"
+ok
+System.Exception");
         }
     }
 }

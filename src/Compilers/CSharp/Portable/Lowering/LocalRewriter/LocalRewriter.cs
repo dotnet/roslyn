@@ -94,7 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Presence of sequence points in the tree affects final IL, therefore, we always generate them.
                 var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, statement, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics,
                                                       dynamicInstrumenter != null ? new DebugInfoInjector(dynamicInstrumenter) : DebugInfoInjector.Singleton);
-
                 statement.CheckLocalsDefined();
                 var loweredStatement = (BoundStatement)localRewriter.Visit(statement);
                 loweredStatement.CheckLocalsDefined();
@@ -117,6 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
                 LocalRewritingValidator.Validate(loweredStatement);
 #endif
+                loweredStatement = localRewriter.RewriteNullChecking(loweredStatement);
                 return loweredStatement;
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)

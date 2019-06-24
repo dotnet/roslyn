@@ -9,45 +9,23 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class NullCheckRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+    internal sealed partial class LocalRewriter
     {
-        private readonly MethodSymbol _method;
-        private readonly SyntheticBoundNodeFactory _fact;
-        private NullCheckRewriter(
-            MethodSymbol method,
-            SyntaxNode syntax,
-            TypeCompilationState compilationState,
-            DiagnosticBag diagnostics)
+        internal BoundStatement RewriteNullChecking(BoundStatement body)
         {
-            _method = method;
-            _fact = new SyntheticBoundNodeFactory(method, syntax, compilationState, diagnostics);
-        }
-
-        internal static BoundStatement Rewrite(
-            BoundStatement body,
-            MethodSymbol method,
-            TypeCompilationState compilationState,
-            DiagnosticBag diagnostics)
-        {
-            if (!method.Parameters.Any(x => x is SourceParameterSymbolBase param
-                                            && param.IsNullChecked))
+            if (_factory.CurrentFunction.Parameters.Any(x => x is SourceParameterSymbolBase param
+                                            && param.IsNullChecked)
+                && ((BoundStatement)Visit(body) is BoundBlock block))
             {
-                return body;
+                return (BoundStatement)AddNullChecksToBody(block);
             }
-
-            var rewriter = new NullCheckRewriter(method, body.Syntax, compilationState, diagnostics);
-            return (BoundStatement)rewriter.Visit(body);
-        }
-
-        public override BoundNode VisitBlock(BoundBlock node)
-        {
-            return AddNullChecksToBody(node);
+            return body;
         }
 
         private BoundNode AddNullChecksToBody(BoundBlock body)
         {
             var statementList = ArrayBuilder<BoundStatement>.GetInstance();
-            foreach (ParameterSymbol x in _method.Parameters)
+            foreach (ParameterSymbol x in _factory.TopLevelMethod.Parameters)
             {
                 if (x is SourceParameterSymbolBase param
                     && param.IsNullChecked)
@@ -63,35 +41,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             statementList.AddRange(body.Statements);
 
-            return _fact.Block(body.Locals, statementList.ToImmutableAndFree());
+            return _factory.Block(body.Locals, statementList.ToImmutableAndFree());
         }
 
         private BoundStatement ConstructIfStatementForParameter(BoundBlock body, SourceParameterSymbolBase parameter)
         {
             BoundExpression paramIsNullCondition;
-            var loweredLeft = _fact.Parameter(parameter);
+            var loweredLeft = _factory.Parameter(parameter);
+            var loweredRight = _factory.Literal(ConstantValue.Null, parameter.Type);
+
             if (loweredLeft.Type.IsNullableType())
             {
-                var getNullableMethod = LocalRewriter.UnsafeGetNullableMethod(
-                                                    body.Syntax,
-                                                    loweredLeft.Type,
-                                                    SpecialMember.System_Nullable_T_get_HasValue,
-                                                    _method.DeclaringCompilation,
-                                                    _fact.Diagnostics);
-                paramIsNullCondition = BoundCall.Synthesized(
-                                                    body.Syntax,
-                                                    loweredLeft,
-                                                    getNullableMethod);
+                paramIsNullCondition = MakeNullableHasValue(body.Syntax, loweredLeft);
             }
             else
             {
-                var loweredRight = _fact.Literal(ConstantValue.Null, parameter.Type);
-                paramIsNullCondition = _fact.ObjectEqual(_fact.Convert(_fact.SpecialType(SpecialType.System_Object), loweredLeft), loweredRight);
+                paramIsNullCondition = MakeNullCheck(body.Syntax, loweredLeft, BinaryOperatorKind.Equal);
+                //paramIsNullCondition = _factory.ObjectEqual(_factory.Convert(_factory.SpecialType(SpecialType.System_Object), loweredLeft), loweredRight);
             }
-
             // PROTOTYPE : Make ArgumentNullException
-            BoundThrowStatement throwArgNullStatement = _fact.Throw(_fact.New(_fact.WellKnownType(WellKnownType.System_Exception)));
-            return _fact.HiddenSequencePoint(_fact.If(paramIsNullCondition, throwArgNullStatement));
+            BoundThrowStatement throwArgNullStatement = _factory.Throw(_factory.New(_factory.WellKnownType(WellKnownType.System_Exception)));
+            return _factory.HiddenSequencePoint(_factory.If(paramIsNullCondition, throwArgNullStatement));
         }
     }
 }
