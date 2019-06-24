@@ -3030,5 +3030,24 @@ class C
 
             await TestAsync(text, "global::Program", testNode: false);
         }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36046"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestInferringThroughGenericFunctionWithNullableReturn()
+        {
+            var text =
+@"#nullable enable
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        string? s = Identity([|input|]);
+    }
+
+    static T Identity<T>(T value) { return value; }
+}";
+
+            await TestAsync(text, "global::System.String?");
+        }
     }
 }

@@ -54,15 +54,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return hierarchy.TryGetProperty(__VSHPROPID.VSHPROPID_ExtObject, out project);
         }
 
-        public static Guid GetProjectGuid(this IVsHierarchy hierarchy)
-        {
-            ErrorHandler.ThrowOnFailure(hierarchy.GetGuidProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ProjectIDGuid, out var guid));
-            return guid;
-        }
-
-        public static bool TryGetProjectGuid(this IVsHierarchy hierarchy, out Guid guid)
-            => ErrorHandler.Succeeded(hierarchy.GetGuidProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ProjectIDGuid, out guid)) && guid != Guid.Empty;
-
         public static bool TryGetName(this IVsHierarchy hierarchy, out string name)
         {
             return hierarchy.TryGetProperty(__VSHPROPID.VSHPROPID_Name, out name);

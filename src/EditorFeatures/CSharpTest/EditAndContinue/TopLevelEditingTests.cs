@@ -6458,6 +6458,20 @@ partial class C
         }
 
         [Fact]
+        public void EventFieldUpdate_VariableDeclarator()
+        {
+            var src1 = "class C { event Action a; }";
+            var src2 = "class C { event Action a = () => { }; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [a]@23 -> [a = () => { }]@23");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
         public void FieldReorder()
         {
             var src1 = "class C { int a = 0; int b = 1; int c = 2; }";
