@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
                 workspace.GetService(Of IForegroundNotificationService),
                 AsynchronousOperationListenerProvider.NullProvider)
 
-            Dim doc = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault()
+            Dim doc = buffer.CurrentSnapshot.GetDocuments().FirstOrDefault()
             Dim context = New TaggerContext(Of BraceHighlightTag)(
                 doc, buffer.CurrentSnapshot, New SnapshotPoint(buffer.CurrentSnapshot, position))
             Await producer.ProduceTagsAsync_ForTestingPurposesOnly(context)

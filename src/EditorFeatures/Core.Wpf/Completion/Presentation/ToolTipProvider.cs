@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             }
 
             var textSnapshot = context.Properties.GetProperty<ITextSnapshot>(CompletionPresenterSession.TextSnapshotKey);
-            var document = textSnapshot?.GetOpenDocumentInCurrentContextWithChanges();
+            var document = textSnapshot?.GetDocument();
             if (document == null)
             {
                 return null;

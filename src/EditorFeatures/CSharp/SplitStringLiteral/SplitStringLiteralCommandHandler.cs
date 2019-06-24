@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
         private bool SplitString(ITextView textView, ITextBuffer subjectBuffer, SnapshotPoint caret)
         {
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = subjectBuffer.CurrentSnapshot.GetDocument();
 
             if (document != null)
             {

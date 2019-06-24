@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             // if a file's content-type changes (e.g., File.cs is renamed to File.vb) after the list of providers has been populated, then we need to re-filter
             if (_providers == null || currentContentType != _lastSeenContentType)
             {
-                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = snapshot.GetDocument();
                 if (document != null)
                 {
                     _providers = document.Project.LanguageServices.WorkspaceServices.SelectMatchingExtensionValues(

@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 spanToFormat = spanToFormat.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeInclusive)
                 dirtyRegion = dirtyRegion.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeInclusive)
 
-                Dim document = currentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+                Dim document = currentSnapshot.GetDocument()
                 If document Is Nothing Then
                     Return
                 End If

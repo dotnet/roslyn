@@ -176,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         private Task<bool> FixTextBufferAsync(TextBufferCodeCleanUpScope textBufferScope, ICodeCleanUpExecutionContext context)
         {
             var buffer = textBufferScope.SubjectBuffer;
-            var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = buffer.CurrentSnapshot.GetDocument();
             if (document == null)
             {
                 return SpecializedTasks.False;
@@ -187,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             // Local function
             async Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken cancellationToken)
             {
-                var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = buffer.CurrentSnapshot.GetDocument();
                 var newDoc = await FixDocumentAsync(document, context.EnabledFixIds, progressTracker, cancellationToken).ConfigureAwait(true);
                 return newDoc.Project.Solution;
             }

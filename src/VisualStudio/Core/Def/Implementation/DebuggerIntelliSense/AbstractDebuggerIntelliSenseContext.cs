@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         {
             // Get the workspace, and from there, the solution and document containing this buffer.
             // If there's an ExternalSource, we won't get a document. Give up in that case.
-            Document document = ContextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            Document document = ContextBuffer.CurrentSnapshot.GetDocument();
             if (document == null)
             {
                 _projectionBuffer = null;

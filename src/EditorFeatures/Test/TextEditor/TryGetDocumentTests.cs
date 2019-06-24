@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
                 buffer.Insert(startPosition + 1, " ");
                 buffer.Insert(startPosition + 2, "}");
 
-                Document newDocument = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault();
+                Document newDocument = buffer.CurrentSnapshot.GetDocuments().FirstOrDefault();
                 Assert.NotNull(newDocument);
 
                 var expected = @"class C

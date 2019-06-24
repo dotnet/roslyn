@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim bufferManager = _bufferManagerFactory.CreateForBuffer(subjectBuffer)
 
             If bufferManager.IsMovementBetweenStatements(oldCaretPositionInCurrentSnapshot, newCaretPosition.Value, cancellationToken) Then
-                Dim document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+                Dim document = subjectBuffer.CurrentSnapshot.GetDocument()
                 If document Is Nothing Then
                     Return False
                 End If
@@ -231,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Return
                 End If
 
-                Dim document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+                Dim document = args.SubjectBuffer.CurrentSnapshot.GetDocument()
                 If document IsNot Nothing Then
                     Dim formattingRuleService = document.Project.Solution.Workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)()
                     If formattingRuleService.ShouldNotFormatOrCommitOnPaste(document) Then

@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     // Our cache is not there, or is out of date.  We need to compute the up to date 
                     // results.
 
-                    var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    var document = snapshot.GetDocument();
                     if (document == null)
                     {
                         return Array.Empty<ITagSpan<IClassificationTag>>();

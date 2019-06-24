@@ -88,7 +88,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
         Private Sub DeleteQuestionMark(textView As ITextView, subjectBuffer As ITextBuffer, caretPosition As Integer)
             Dim currentSnapshot = subjectBuffer.CurrentSnapshot
-            Dim document = currentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+            Dim document = currentSnapshot.GetDocument()
             If document IsNot Nothing Then
                 Dim editorWorkspace = document.Project.Solution.Workspace
                 Dim text = currentSnapshot.AsText()

@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 return VSCommanding.CommandState.Unspecified;
             }
 
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = subjectBuffer.CurrentSnapshot.GetDocument();
             if (document?.SupportsSyntaxTree != true)
             {
                 return VSCommanding.CommandState.Unspecified;
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             }
 
 
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = subjectBuffer.CurrentSnapshot.GetDocument();
             if (document?.SupportsSyntaxTree != true)
             {
                 return false;

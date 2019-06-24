@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 
             using (Logger.LogBlock(FunctionId.SmartIndentation_Start, cancellationToken))
             {
-                var document = lineToBeIndented.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = lineToBeIndented.Snapshot.GetDocument();
                 if (document == null)
                 {
                     return null;

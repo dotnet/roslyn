@@ -93,8 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
             using (context.OperationContext.AddScope(allowCancellation: false, message))
             {
-
-                var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = subjectBuffer.CurrentSnapshot.GetDocument();
                 if (document == null)
                 {
                     return true;
@@ -151,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
         private void Format(ICommentSelectionService service, ITextSnapshot snapshot, IEnumerable<ITrackingSpan> changes, CancellationToken cancellationToken)
         {
-            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = snapshot.GetDocument();
             if (document == null)
             {
                 return;

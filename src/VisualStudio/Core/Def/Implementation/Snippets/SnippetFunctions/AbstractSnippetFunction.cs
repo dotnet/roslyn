@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         protected bool TryGetDocument(out Document document)
         {
-            document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            document = _subjectBuffer.CurrentSnapshot.GetDocument();
             return document != null;
         }
 

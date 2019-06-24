@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         private (Document, IGoToDefinitionService) GetDocumentAndService(ITextSnapshot snapshot)
         {
-            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = snapshot.GetDocument();
             return (document, document?.GetLanguageService<IGoToDefinitionService>());
         }
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         // Internal for testing purposes only.
         internal bool TryExecuteCommand(ITextSnapshot snapshot, int caretPosition, CommandExecutionContext context)
-            => TryExecuteCommand(snapshot.GetOpenDocumentInCurrentContextWithChanges(), caretPosition, context);
+            => TryExecuteCommand(snapshot.GetDocument(), caretPosition, context);
 
         internal bool TryExecuteCommand(Document document, int caretPosition, CommandExecutionContext context)
             => TryExecuteCommand(document, caretPosition, document.GetLanguageService<IGoToDefinitionService>(), context);

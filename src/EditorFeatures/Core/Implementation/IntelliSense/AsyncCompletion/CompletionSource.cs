@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
             }
 
-            var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = triggerLocation.Snapshot.GetDocument();
             if (document == null)
             {
                 return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             SnapshotSpan applicableToSpan,
             CancellationToken cancellationToken)
         {
-            var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = triggerLocation.Snapshot.GetDocument();
             if (document == null)
             {
                 return new AsyncCompletionData.CompletionContext(ImmutableArray<VSCompletionItem>.Empty);
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return null;
             }
 
-            var document = triggerSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = triggerSnapshot.GetDocument();
             if (document == null)
             {
                 return null;

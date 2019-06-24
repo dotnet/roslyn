@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
     {
         internal static bool GetFeatureOnOffOption(this ITextBuffer buffer, Option<bool> option)
         {
-            var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = buffer.CurrentSnapshot.GetDocument();
 
             if (document != null)
             {
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             // Add a FailFast to help diagnose 984249.  Hopefully this will let us know what the issue is.
             try
             {
-                var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = buffer.CurrentSnapshot.GetDocument();
 
                 if (document != null)
                 {

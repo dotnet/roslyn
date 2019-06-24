@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             AssertIsForeground();
 
             // Crash if we don't find a document, we're already in a bad state.
-            var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = this.SubjectBuffer.CurrentSnapshot.GetDocument();
             Contract.ThrowIfNull(document, nameof(document));
             return document;
         }

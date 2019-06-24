@@ -1,1 +1,2 @@
-
+static Microsoft.CodeAnalysis.Text.Extensions.GetDocument(this Microsoft.VisualStudio.Text.ITextSnapshot text) -> Microsoft.CodeAnalysis.Document
+static Microsoft.CodeAnalysis.Text.Extensions.GetDocuments(this Microsoft.VisualStudio.Text.ITextSnapshot text) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Document>

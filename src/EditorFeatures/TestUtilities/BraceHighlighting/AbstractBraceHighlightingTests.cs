@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 
                 var testDocument = workspace.Documents.First();
                 var buffer = testDocument.TextBuffer;
-                var document = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault();
+                var document = buffer.CurrentSnapshot.GetDocuments().FirstOrDefault();
                 var context = new TaggerContext<BraceHighlightTag>(
                     document, buffer.CurrentSnapshot,
                     new SnapshotPoint(buffer.CurrentSnapshot, cursorPosition));

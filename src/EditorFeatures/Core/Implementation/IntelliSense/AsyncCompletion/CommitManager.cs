@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // We can make changes to buffers. We would like to be sure nobody can change them at the same time.
             AssertIsForeground();
 
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = subjectBuffer.CurrentSnapshot.GetDocument();
             if (document == null)
             {
                 return CommitResultUnhandled;
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return CommitResultUnhandled;
             }
 
-            var triggerDocument = triggerSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var triggerDocument = triggerSnapshot.GetDocument();
             if (triggerDocument == null)
             {
                 return CommitResultUnhandled;
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     // The edit updates the snapshot however other extensions may make changes there.
                     // Therefore, it is required to use subjectBuffer.CurrentSnapshot for further calculations rather than the updated current snapsot defined above.
-                    document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    document = subjectBuffer.CurrentSnapshot.GetDocument();
                     var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
                     var formattingService = document?.GetLanguageService<IEditorFormattingService>();
 

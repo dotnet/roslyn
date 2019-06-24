@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             var snapshot = SubjectBuffer.CurrentSnapshot;
             using (new CaretPositionRestorer(SubjectBuffer, EditHandler.AssociatedViewService))
             {
-                Document getFromDocument() => SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                Document getFromDocument() => SubjectBuffer.CurrentSnapshot.GetDocument();
                 InvokeCore(getFromDocument, progressTracker, cancellationToken);
             }
         }

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             {
                 var selectedSpan = snapshotSpans[0];
                 var snapshot = args.SubjectBuffer.CurrentSnapshot;
-                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = snapshot.GetDocument();
                 if (document != null)
                 {
                     // Do a find-refs at the *start* of the selection.  That way if the

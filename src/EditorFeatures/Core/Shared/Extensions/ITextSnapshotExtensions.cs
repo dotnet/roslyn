@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// </summary>
         public static void FormatAndApplyToBuffer(this ITextSnapshot snapshot, TextSpan span, IEnumerable<AbstractFormattingRule> rules, CancellationToken cancellationToken)
         {
-            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = snapshot.GetDocument();
             if (document == null)
             {
                 return;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         }
 
         /// <summary>
-        /// Get <see cref="Document"/> from <see cref="Text.Extensions.GetOpenDocumentInCurrentContextWithChanges(ITextSnapshot)"/>
+        /// Get <see cref="Document"/> from <see cref="Text.Extensions.GetDocument(ITextSnapshot)"/>
         /// once <see cref="IWorkspaceStatusService.WaitUntilFullyLoadedAsync(CancellationToken)"/> returns
         /// </summary>
         public static async Task<Document> GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 }
 
                 // get proper document
-                return snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                return snapshot.GetDocument();
             }
         }
     }

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             AssertIsForeground();
 
             var textSnapshot = _subjectBuffer.CurrentSnapshot;
-            var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = textSnapshot.GetDocument();
             if (document == null)
             {
                 return;

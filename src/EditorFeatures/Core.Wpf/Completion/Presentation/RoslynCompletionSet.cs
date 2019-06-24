@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         private Document GetDocument()
         {
-            return SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            return SubjectBuffer.CurrentSnapshot.GetDocument();
         }
 
         public override IReadOnlyList<IIntellisenseFilter> Filters => _filters;

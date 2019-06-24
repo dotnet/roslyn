@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
         private void GetProjectItems(out IList<NavigationBarProjectItem> projectItems, out NavigationBarProjectItem selectedProjectItem)
         {
-            var documents = _subjectBuffer.CurrentSnapshot.GetRelatedDocumentsWithChanges();
+            var documents = _subjectBuffer.CurrentSnapshot.GetDocuments();
             if (!documents.Any())
             {
                 projectItems = SpecializedCollections.EmptyList<NavigationBarProjectItem>();
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 return false;
             }
 
-            var document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = _subjectBuffer.CurrentSnapshot.GetDocument();
             if (document == null)
             {
                 return false;
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             }
             else
             {
-                var document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = _subjectBuffer.CurrentSnapshot.GetDocument();
                 if (document != null)
                 {
                     var languageService = document.GetLanguageService<INavigationBarItemService>();

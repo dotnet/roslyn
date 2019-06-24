@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
                 AsynchronousOperationListenerProvider.NullProvider);
 
             var context = new TaggerContext<BraceHighlightTag>(
-                buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault(),
+                buffer.CurrentSnapshot.GetDocuments().FirstOrDefault(),
                 buffer.CurrentSnapshot, new SnapshotPoint(buffer.CurrentSnapshot, position));
             await producer.ProduceTagsAsync_ForTestingPurposesOnly(context);
 

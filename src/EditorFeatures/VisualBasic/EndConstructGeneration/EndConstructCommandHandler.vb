@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             End If
 
             Dim textSnapshot = args.SubjectBuffer.CurrentSnapshot
-            Dim document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+            Dim document = textSnapshot.GetDocument()
             If document Is Nothing Then
                 Return
             End If
@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             End If
 
             Dim textSnapshot = subjectBuffer.CurrentSnapshot
-            Dim document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+            Dim document = textSnapshot.GetDocument()
             If document Is Nothing Then
                 Return
             End If

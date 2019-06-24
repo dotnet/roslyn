@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             {
                 var buffer = args.SubjectBuffer;
 
-                var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = buffer.CurrentSnapshot.GetDocument();
                 if (document == null)
                 {
                     return;

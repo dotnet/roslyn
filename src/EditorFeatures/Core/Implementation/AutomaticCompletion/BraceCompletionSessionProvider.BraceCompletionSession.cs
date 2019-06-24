@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 }
 
                 OpeningPoint = snapshot.CreateTrackingPoint(openingSnapshotPoint, PointTrackingMode.Positive);
-                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = snapshot.GetDocument();
 
                 if (!_session.CheckOpeningPoint(this, cancellationToken))
                 {
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 // Brace completion is not cancellable.
                 var cancellationToken = CancellationToken.None;
                 var snapshot = this.SubjectBuffer.CurrentSnapshot;
-                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = snapshot.GetDocument();
 
                 SnapshotPoint closingSnapshotPoint = ClosingPoint.GetPoint(snapshot);
                 if (!HasForwardTyping && _session.AllowOverType(this, cancellationToken))

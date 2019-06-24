@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
         Public Sub ExpandDirtyRegion(snapshotSpan As SnapshotSpan)
             If _dirtyState Is Nothing Then
-                Dim document = snapshotSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges()
+                Dim document = snapshotSpan.Snapshot.GetDocument()
                 If document IsNot Nothing Then
                     _dirtyState = New DirtyState(snapshotSpan, snapshotSpan.Snapshot, document)
                 End If
@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Sub
 
         Private Function TryComputeExpandedSpanToFormat(dirtySpan As SnapshotSpan, ByRef formattingInfo As FormattingInfo, cancellationToken As CancellationToken) As Boolean
-            Dim document = dirtySpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges()
+            Dim document = dirtySpan.Snapshot.GetDocument()
             If document Is Nothing Then
                 Return False
             End If
@@ -224,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 Return False
             End If
 
-            Dim document = newPoint.Snapshot.GetOpenDocumentInCurrentContextWithChanges()
+            Dim document = newPoint.Snapshot.GetDocument()
             If document Is Nothing Then
                 Return False
             End If
@@ -249,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             If _dirtyState Is Nothing Then
                 ' Grab the current document for the text buffer before it changes so we can get any
                 ' cached versions
-                Dim documentBeforePreviousEdit = e.Before.GetOpenDocumentInCurrentContextWithChanges()
+                Dim documentBeforePreviousEdit = e.Before.GetDocument()
                 If documentBeforePreviousEdit IsNot Nothing Then
                     _documentBeforePreviousEdit = documentBeforePreviousEdit
                     ' Kick off a task to eagerly force compute InternalsVisibleTo semantics for all the references.

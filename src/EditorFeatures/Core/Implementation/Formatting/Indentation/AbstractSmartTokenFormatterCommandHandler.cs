@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
             }
 
             var currentPosition = caretPoint.Value;
-            var document = currentPosition.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = currentPosition.Snapshot.GetDocument();
             if (document == null)
             {
                 return;
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
             // first set the caret at the beginning of the text on the line
             view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(lineInSubjectBuffer.Snapshot, lineInSubjectBuffer.Start + firstNonWhitespaceIndex));
 
-            var document = lineInSubjectBuffer.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = lineInSubjectBuffer.Snapshot.GetDocument();
             if (document == null)
             {
                 return;

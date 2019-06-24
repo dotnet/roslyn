@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 return;
             }
 
-            var document = triggerPoint.Value.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = triggerPoint.Value.Snapshot.GetDocument();
             if (document == null)
             {
                 return;

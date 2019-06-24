@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
 
             var caret = caretOpt.Value;
-            var document = caret.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = caret.Snapshot.GetDocument();
             if (document == null)
             {
                 return;

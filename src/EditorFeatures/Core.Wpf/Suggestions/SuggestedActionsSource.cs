@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
                 {
-                    var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    var document = range.Snapshot.GetDocument();
                     if (document == null)
                     {
                         // this is here to fail test and see why it is failed.
@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // roslyn document.  This can fail, for example, in projection scenarios where
                 // we are called with a range snapshot that refers to the projection buffer
                 // and not the actual roslyn code that is being projected into it.
-                var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = range.Snapshot.GetDocument();
                 if (document == null)
                 {
                     return null;
@@ -994,7 +994,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var provider = _owner;
                 using (var asyncToken = _owner.OperationListener.BeginAsyncOperation(nameof(GetSuggestedActionCategoriesAsync)))
                 {
-                    var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    var document = range.Snapshot.GetDocument();
                     if (document == null)
                     {
                         return null;

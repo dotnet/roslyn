@@ -322,7 +322,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         /// </summary>
         protected override async Task<IEnumerable<string>> GetNamespacesToImportAsync(IEnumerable<string> namespacesToImport, IInteractiveWindow interactiveWindow)
         {
-            var document = interactiveWindow.CurrentLanguageBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = interactiveWindow.CurrentLanguageBuffer.CurrentSnapshot.GetDocument();
             var compilation = await document.Project.GetCompilationAsync().ConfigureAwait(true);
             return namespacesToImport.Where(ns => compilation.GlobalNamespace.GetQualifiedNamespace(ns) != null);
         }

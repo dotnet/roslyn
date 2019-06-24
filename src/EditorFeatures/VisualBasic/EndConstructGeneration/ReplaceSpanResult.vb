@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                                    editorOperationsFactoryService As IEditorOperationsFactoryService)
 
             Dim current = subjectBuffer.CurrentSnapshot
-            Dim document = current.GetOpenDocumentInCurrentContextWithChanges()
+            Dim document = current.GetDocument()
             If document Is Nothing Then
                 Return
             End If

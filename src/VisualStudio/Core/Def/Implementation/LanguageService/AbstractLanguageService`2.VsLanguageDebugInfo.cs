@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         title: ServicesVSResources.Debugger,
                         message: ServicesVSResources.Determining_breakpoint_location,
                         allowCancel: true,
-                        action: waitContext =>
+                        action: (Action<IWaitContext>)(waitContext =>
                         {
                             var cancellationToken = waitContext.CancellationToken;
                             var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                                 if (nullablePoint.HasValue)
                                 {
                                     var point = nullablePoint.Value;
-                                    var document = point.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                                    var document = CodeAnalysis.Text.Extensions.GetDocument(point.Snapshot);
 
                                     if (document != null)
                                     {
@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                                     }
                                 }
                             }
-                        });
+                        }));
 
                         if (succeeded)
                         {
@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         title: ServicesVSResources.Debugger,
                         message: ServicesVSResources.Determining_autos,
                         allowCancel: true,
-                        action: waitContext =>
+                        action: (Action<IWaitContext>)(waitContext =>
                     {
                         var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
 
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                             var nullablePoint = snapshot.TryGetPoint(iLine, iCol);
                             if (nullablePoint.HasValue)
                             {
-                                Document document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                                var document = CodeAnalysis.Text.Extensions.GetDocument(snapshot);
                                 if (document != null)
                                 {
                                     var point = nullablePoint.Value;
@@ -167,7 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                                 }
                             }
                         }
-                    });
+                    }));
 
                     if (succeeded)
                     {
@@ -390,7 +390,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         title: ServicesVSResources.Debugger,
                         message: ServicesVSResources.Getting_DataTip_text,
                         allowCancel: true,
-                        action: waitContext =>
+                        action: (Action<IWaitContext>)(waitContext =>
                     {
                         var debugger = _languageService.Debugger;
                         DBGMODE[] debugMode = new DBGMODE[1];
@@ -404,7 +404,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                             var subjectBuffer = editorAdapters.GetDataBuffer(pBuffer);
 
                             var textSnapshot = subjectBuffer.CurrentSnapshot;
-                            var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                            var document = CodeAnalysis.Text.Extensions.GetDocument(textSnapshot);
 
                             if (document != null)
                             {
@@ -423,7 +423,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                                 }
                             }
                         }
-                    });
+                    }));
 
                     pbstrText = pbstrTextInternal;
                     return result;

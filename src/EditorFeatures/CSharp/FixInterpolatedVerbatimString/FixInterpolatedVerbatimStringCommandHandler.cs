@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
                         snapshot[position - 2] == '$' &&
                         snapshot[position - 3] == '@')
                     {
-                        var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                        var document = snapshot.GetDocument();
                         if (document != null)
                         {
                             var root = document.GetSyntaxRootSynchronously(executionContext.OperationContext.UserCancellationToken);

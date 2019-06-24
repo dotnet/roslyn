@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private async Task<TriggerIdentifierKind> DetermineIfRenamableIdentifierAsync(SnapshotSpan snapshotSpan, bool initialCheck)
             {
                 AssertIsBackground();
-                var document = snapshotSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = snapshotSpan.Snapshot.GetDocument();
                 if (document != null)
                 {
                     var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();

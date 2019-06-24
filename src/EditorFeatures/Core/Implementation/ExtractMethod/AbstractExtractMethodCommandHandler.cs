@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             // start inline rename
             var methodNameAtInvocation = result.InvocationNameToken;
             var snapshotAfterFormatting = textBuffer.CurrentSnapshot;
-            var documentAfterFormatting = snapshotAfterFormatting.GetOpenDocumentInCurrentContextWithChanges();
+            var documentAfterFormatting = snapshotAfterFormatting.GetDocument();
             _renameService.StartInlineSession(documentAfterFormatting, methodNameAtInvocation.Span, cancellationToken);
 
             // select invocation span

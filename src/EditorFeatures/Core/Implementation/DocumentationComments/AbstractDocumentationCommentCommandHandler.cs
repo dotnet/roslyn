@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return false;
             }
 
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = subjectBuffer.CurrentSnapshot.GetDocument();
             if (document == null)
             {
                 return false;
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return VSCommanding.CommandState.Unavailable;
             }
 
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = args.SubjectBuffer.CurrentSnapshot.GetDocument();
             if (document == null)
             {
                 return VSCommanding.CommandState.Unavailable;
@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return;
             }
 
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = subjectBuffer.CurrentSnapshot.GetDocument();
             if (document == null)
             {
                 return;
@@ -714,7 +714,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
         private bool CurrentLineStartsWithExteriorTrivia(ITextBuffer subjectBuffer, int position)
         {
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = subjectBuffer.CurrentSnapshot.GetDocument();
             if (document == null)
             {
                 return false;

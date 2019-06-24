@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             private async Task<RenameTrackingSolutionSet> RenameSymbolWorkerAsync(CancellationToken cancellationToken)
             {
-                var document = _snapshotSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = _snapshotSpan.Snapshot.GetDocument();
                 var newName = _snapshotSpan.GetText();
 
                 if (document == null)
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                 var renameTrackingSolutionSet = RenameSymbolAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
-                var document = _snapshotSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = _snapshotSpan.Snapshot.GetDocument();
                 var newName = _snapshotSpan.GetText();
 
                 var workspace = document.Project.Solution.Workspace;

@@ -64,7 +64,22 @@ namespace Microsoft.CodeAnalysis.Text
         /// updated to contain the same text as the snapshot if necessary. There may be multiple <see cref="Document"/>s associated with the buffer
         /// if the file is linked into multiple projects or is part of a Shared Project.
         /// </summary>
+        [Obsolete("Use GetDocuments instead")]
         public static IEnumerable<Document> GetRelatedDocumentsWithChanges(this ITextSnapshot text)
+            => text.GetDocuments();
+
+        /// <summary>
+        /// Gets the <see cref="Document"/>s from the corresponding <see cref="Workspace.CurrentSolution"/> 
+        /// that are associated with the <see cref="ITextSnapshot"/>'s buffer, updated to contain 
+        /// the same text as the snapshot if necessary. There may be multiple <see cref="Document"/>s
+        /// associated with the buffer if the file is linked into multiple projects or is part of a 
+        /// Shared Project.
+        /// 
+        /// Use <see cref="GetDocument"/> to get the particular <see cref="Document"/> of all the 
+        /// linked <see cref="Document"/>s that is currently being edited by a user in a particular
+        /// host.
+        /// </summary>
+        public static IEnumerable<Document> GetDocuments(this ITextSnapshot text)
             => text.AsText().GetRelatedDocumentsWithChanges();
 
         /// <summary>
@@ -73,7 +88,19 @@ namespace Microsoft.CodeAnalysis.Text
         /// associated with the buffer if it is linked into multiple projects or is part of a Shared Project. In this case, the <see cref="Workspace"/>
         /// is responsible for keeping track of which of these <see cref="Document"/>s is in the current project context.
         /// </summary>
+        [Obsolete("Use GetDocument instead")]
         public static Document GetOpenDocumentInCurrentContextWithChanges(this ITextSnapshot text)
+            => text.GetDocument();
+
+        /// <summary>
+        /// Gets the <see cref="Document"/> from the corresponding <see cref="Workspace.CurrentSolution"/> that is associated with the <see cref="ITextSnapshot"/>'s buffer
+        /// in its current project context, updated to contain the same text as the snapshot if necessary. There may be multiple <see cref="Document"/>s
+        /// associated with the buffer if it is linked into multiple projects or is part of a Shared Project. In this case, the <see cref="Workspace"/>
+        /// is responsible for keeping track of which of these <see cref="Document"/>s is in the current project context.
+        /// 
+        /// Use <see cref="GetDocuments"/> to retrieve all potential <see cref="Document"/>s for a given <see cref="ITextSnapshot"/>.
+        /// </summary>
+        public static Document GetDocument(this ITextSnapshot text)
             => text.AsText().GetOpenDocumentInCurrentContextWithChanges();
 
         /// <summary>

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
 
                 var snapshot = triggerSpan.Snapshot;
                 var position = triggerSpan.Start;
-                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = snapshot.GetDocument();
                 if (document == null)
                 {
                     return null;
