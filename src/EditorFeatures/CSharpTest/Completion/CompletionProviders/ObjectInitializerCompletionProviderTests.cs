@@ -1107,6 +1107,37 @@ class Program
             await VerifyItemExistsAsync(markup, "PropB");
         }
 
+        [WorkItem(36702, "https://github.com/dotnet/roslyn/issues/36702")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NestedPropertyInitializers6()
+        {
+            var markup = @"
+class A
+{
+    public B PropB { get; }
+}
+
+class B
+{
+    public C PropC { get; }
+}
+
+class C
+{
+    public int P { get; }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new A { PropB = { $$ } }
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "PropC");
+        }
+
         private async Task VerifyExclusiveAsync(string markup, bool exclusive)
         {
             using (var workspace = TestWorkspace.CreateCSharp(markup))
