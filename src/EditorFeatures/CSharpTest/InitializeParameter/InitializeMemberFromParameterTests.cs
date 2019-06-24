@@ -1050,7 +1050,7 @@ class C
     @"
 class C
 {
-    public C([||]string p_t_s_end)
+    public C([||]string p_t_s)
     {
     }
 }",
@@ -1059,11 +1059,11 @@ class C
 {
     private readonly string _s;
 
-    public C([||]string p_t_s_end)
+    public C([||]string p_t_s)
     {
-        _s = p_t_s_end;
+        _s = p_t_s;
     }
-}", index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscore, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAnd_endSuffix, LanguageNames.CSharp)));
+}", index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscore, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
