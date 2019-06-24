@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // See https://github.com/dotnet/roslyn/blob/master/docs/features/nullable-metadata.md
         internal bool ConstraintsNeedNullableAttribute()
         {
-            if (!DeclaringCompilation.ShouldEmitNullableAttributes(ContainingSymbol))
+            if (!DeclaringCompilation.ShouldEmitNullableAttributes(this))
             {
                 return false;
             }
@@ -381,12 +381,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var compilation = DeclaringCompilation;
-            var container = ContainingSymbol;
-            if (compilation.ShouldEmitNullableAttributes(container))
+            if (compilation.ShouldEmitNullableAttributes(this))
             {
                 AddSynthesizedAttribute(
                     ref attributes,
-                    moduleBuilder.SynthesizeNullableAttributeIfNecessary(container.GetNullableContextValue(), GetSynthesizedNullableAttributeValue()));
+                    moduleBuilder.SynthesizeNullableAttributeIfNecessary(GetNullableContextValue(), GetSynthesizedNullableAttributeValue()));
             }
         }
 

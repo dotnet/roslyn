@@ -1775,6 +1775,7 @@ public class Program
             D<System.Object?>? value
         void PublicEvent.remove
             D<System.Object?>? value
+    [Nullable(1)] event D<System.Object!>! InternalEvent
     [Nullable({ 1, 2 })] event D<System.Object?>! ProtectedEvent
         void ProtectedEvent.add
             [Nullable({ 1, 2 })] D<System.Object?>! value
@@ -1785,19 +1786,20 @@ public class Program
             [Nullable({ 1, 2 })] D<System.Object?>! value
         void ProtectedInternalEvent.remove
             [Nullable({ 1, 2 })] D<System.Object?>! value
+    [Nullable({ 2, 1 })] event D<System.Object!>? PrivateProtectedEvent
 ";
             var expectedPublicAndInternal = @"
-[NullableContext(1)] [Nullable(0)] Program
+[NullableContext(2)] [Nullable(0)] Program
     Program()
-    [Nullable(2)] event D<System.Object?>? PublicEvent
-        [NullableContext(2)] void PublicEvent.add
+    event D<System.Object?>? PublicEvent
+        void PublicEvent.add
             D<System.Object?>? value
-        [NullableContext(2)] void PublicEvent.remove
+        void PublicEvent.remove
             D<System.Object?>? value
-    event D<System.Object!>! InternalEvent
-        void InternalEvent.add
+    [Nullable(1)] event D<System.Object!>! InternalEvent
+        [NullableContext(1)] void InternalEvent.add
             D<System.Object!>! value
-        void InternalEvent.remove
+        [NullableContext(1)] void InternalEvent.remove
             D<System.Object!>! value
     [Nullable({ 1, 2 })] event D<System.Object?>! ProtectedEvent
         void ProtectedEvent.add
@@ -1964,14 +1966,14 @@ public class Program
     private object? PrivateProperty => null;
 }";
             var expectedPublicOnly = @"
-[NullableContext(1)] [Nullable(0)] Program
+[NullableContext(2)] [Nullable(0)] Program
     Program()
-    System.Object! PublicProperty { get; }
-        System.Object! PublicProperty.get
-    System.Object! ProtectedProperty { get; }
-        System.Object! ProtectedProperty.get
-    [Nullable(2)] System.Object? ProtectedInternalProperty { get; }
-        [NullableContext(2)] System.Object? ProtectedInternalProperty.get
+    [Nullable(1)] System.Object! PublicProperty { get; }
+        [NullableContext(1)] System.Object! PublicProperty.get
+    [Nullable(1)] System.Object! ProtectedProperty { get; }
+        [NullableContext(1)] System.Object! ProtectedProperty.get
+    System.Object? ProtectedInternalProperty { get; }
+        System.Object? ProtectedInternalProperty.get
 ";
             var expectedPublicAndInternal = @"
 [NullableContext(2)] [Nullable(0)] Program
@@ -2381,6 +2383,7 @@ public class A
     private static object? M(object arg) => null;
     private object? P => null;
     private object? this[object x, object? y] => null;
+    private event D<object?> E;
     public static void M()
     {
         object? f(object arg) => arg;
@@ -2422,48 +2425,66 @@ internal class B : I<object>
                 // (9,36): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     private object? this[object x, object? y] => null;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object? y").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(9, 36),
-                // (12,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
-                //         object? f(object arg) => arg;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(12, 9),
-                // (12,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
-                //         object? f(object arg) => arg;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object arg").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(12, 19),
+                // (10,30): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //     private event D<object?> E;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(10, 30),
                 // (13,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
-                //         object? l(object arg) { return arg; }
+                //         object? f(object arg) => arg;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(13, 9),
                 // (13,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
-                //         object? l(object arg) { return arg; }
+                //         object? f(object arg) => arg;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object arg").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(13, 19),
-                // (14,26): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                // (14,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //         object? l(object arg) { return arg; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(14, 9),
+                // (14,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //         object? l(object arg) { return arg; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object arg").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(14, 19),
+                // (15,26): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //         D<object> d = () => new object();
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=>").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(14, 26),
-                // (17,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=>").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(15, 26),
+                // (18,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 // internal delegate T D<T>();
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(17, 19),
-                // (17,23): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(18, 19),
+                // (18,23): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 // internal delegate T D<T>();
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(17, 23),
-                // (18,22): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(18, 23),
+                // (19,22): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 // internal interface I<T> { }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(18, 22),
-                // (19,16): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(19, 22),
+                // (20,16): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 // internal class B : I<object>
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "B").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(19, 16),
-                // (21,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "B").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(20, 16),
+                // (22,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     public static object operator!(B b) => b;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(21, 19),
-                // (21,36): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(22, 19),
+                // (22,36): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     public static object operator!(B b) => b;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "B b").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(21, 36),
-                // (22,29): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "B b").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(22, 36),
+                // (23,29): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     public event D<object?> E;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(22, 29),
-                // (23,31): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(23, 29),
+                // (24,31): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     private (object, object?) F;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(23, 31));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(24, 31));
 
             comp = CreateCompilation(new[] { sourceAttribute, source }, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (8,13): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //     private object? P => null;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(8, 13),
+                // (9,13): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //     private object? this[object x, object? y] => null;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(9, 13),
+                // (9,26): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //     private object? this[object x, object? y] => null;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object x").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(9, 26),
+                // (9,36): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //     private object? this[object x, object? y] => null;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object? y").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(9, 36),
+                // (10,30): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //     private event D<object?> E;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(10, 30));
         }
 
         [Fact]
@@ -2475,8 +2496,10 @@ internal class B : I<object>
     public sealed class NullableAttribute : Attribute { }
 }";
             var source =
-@"public class Program
+@"#pragma warning disable 414
+public class Program
 {
+    private object? F = null;
     private object? P => null;
 }";
             var options = TestOptions.ReleaseDll;
@@ -2484,18 +2507,30 @@ internal class B : I<object>
 
             var comp = CreateCompilation(new[] { sourceAttribute, source }, options: options, parseOptions: parseOptions);
             comp.VerifyEmitDiagnostics(
-                // (3,13): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                // (4,19): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     private object? F = null;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 19),
+                // (4,21): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //     private object? F = null;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(4, 21),
+                // (5,13): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     private object? P => null;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(3, 13),
-                // (3,19): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(5, 13),
+                // (5,19): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     private object? P => null;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 19));
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 19));
 
             comp = CreateCompilation(new[] { sourceAttribute, source }, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
             comp.VerifyEmitDiagnostics(
-                // (3,19): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                // (4,19): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     private object? F = null;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 19),
+                // (5,13): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     private object? P => null;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 19));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(5, 13),
+                // (5,19): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     private object? P => null;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 19));
         }
 
         [Fact]

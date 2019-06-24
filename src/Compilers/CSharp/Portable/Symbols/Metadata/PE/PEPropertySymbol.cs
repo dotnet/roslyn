@@ -174,9 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
 
             // The containing type is passed to NullableTypeDecoder.TransformType to determine access
-            // (when synthesizing nullable state for a private member in a [NullableContext] but without
-            // explicit [Nullable]) because the accessibility of the property has not been calculated yet.
-            // At worst, this means we have incorrect nullability info for inaccessible properties.
+            // because the property does not have explicit accessibility in metadata.
             propertyTypeWithAnnotations = NullableTypeDecoder.TransformType(propertyTypeWithAnnotations, handle, moduleSymbol, accessSymbol: _containingType, nullableContext: _containingType);
             propertyTypeWithAnnotations = TupleTypeDecoder.DecodeTupleTypesIfApplicable(propertyTypeWithAnnotations, handle, moduleSymbol);
 

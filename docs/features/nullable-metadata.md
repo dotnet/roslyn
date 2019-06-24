@@ -154,6 +154,10 @@ If private member attributes are dropped, the compiler will emit a `[module: Nul
 The presence or absence of the `NullablePublicOnlyAttribute` can be used by tools to interpret
 the nullability of private members that do not have an associated `NullableAttribute` attribute.
 
+For members that do not have explicit accessibility in metadata
+(specifically for parameters, type parameters, events, and properties),
+the compiler uses the accessibility of the container to determine whether to emit nullable attributes. 
+
 ```C#
 namespace System.Runtime.CompilerServices
 {
