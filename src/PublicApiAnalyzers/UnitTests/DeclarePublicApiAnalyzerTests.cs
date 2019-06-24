@@ -185,6 +185,17 @@ public class C
         }
 
         [Fact]
+        public async Task EmptyPublicAPIFiles()
+        {
+            var source = @"";
+
+            var shippedText = @"";
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact]
         public async Task SimpleMissingType()
         {
             var source = @"
