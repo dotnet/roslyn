@@ -38,9 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 #if DEBUG
             static PackedFlags()
             {
-                // Verify a few things about the values we combine into flags.  This way, if they ever
-                // change, this will get hit and you will know you have to update this type as well.
-
                 Debug.Assert(EnumUtilities.ContainsAllValues<FlowAnalysisAnnotations>(0xFF));
             }
 #endif
