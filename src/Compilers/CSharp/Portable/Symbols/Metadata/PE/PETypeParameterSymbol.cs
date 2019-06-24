@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                                 inProgress = inProgress.Prepend(this);
                                 foreach (TypeWithAnnotations constraintType in symbolsBuilder)
                                 {
-                                    if (!ConstraintsHelper.IsObjectConstraintSignificant(IsNotNullableIfReferenceTypeFromConstraintType(constraintType, inProgress, out _), bestObjectConstraint))
+                                    if (!ConstraintsHelper.IsObjectConstraintSignificant(IsNotNullableFromConstraintType(constraintType, inProgress, out _), bestObjectConstraint))
                                     {
                                         bestObjectConstraint = default;
                                         break;
@@ -277,28 +277,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return type;
         }
 
-        private static bool? IsNotNullableIfReferenceTypeFromConstraintType(TypeWithAnnotations constraintType, ConsList<PETypeParameterSymbol> inProgress, out bool isNonNullableValueType)
+        private static bool? IsNotNullableFromConstraintType(TypeWithAnnotations constraintType, ConsList<PETypeParameterSymbol> inProgress, out bool isNonNullableValueType)
         {
             if (!(constraintType.Type is PETypeParameterSymbol typeParameter) ||
                 (object)typeParameter.ContainingSymbol != inProgress.Head.ContainingSymbol ||
                 typeParameter.GetConstraintHandleCollection().Count == 0)
             {
-                return IsNotNullableIfReferenceTypeFromConstraintType(constraintType, out isNonNullableValueType);
+                return IsNotNullableFromConstraintType(constraintType, out isNonNullableValueType);
             }
 
-            bool? isNotNullableIfReferenceType = typeParameter.CalculateIsNotNullableIfReferenceType(inProgress, out isNonNullableValueType);
+            bool? isNotNullable = typeParameter.CalculateIsNotNullable(inProgress, out isNonNullableValueType);
 
             if (isNonNullableValueType)
             {
-                Debug.Assert(isNotNullableIfReferenceType == true);
+                Debug.Assert(isNotNullable == true);
                 return true;
             }
 
-            if (constraintType.NullableAnnotation.IsAnnotated() || isNotNullableIfReferenceType == false)
+            if (constraintType.NullableAnnotation.IsAnnotated() || isNotNullable == false)
             {
                 return false;
             }
-            else if (constraintType.NullableAnnotation.IsOblivious() || isNotNullableIfReferenceType == null)
+            else if (constraintType.NullableAnnotation.IsOblivious() || isNotNullable == null)
             {
                 return null;
             }
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return true;
         }
 
-        private bool? CalculateIsNotNullableIfReferenceType(ConsList<PETypeParameterSymbol> inProgress, out bool isNonNullableValueType)
+        private bool? CalculateIsNotNullable(ConsList<PETypeParameterSymbol> inProgress, out bool isNonNullableValueType)
         {
             if (inProgress.ContainsReference(this))
             {
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return fromNonTypeConstraints;
             }
 
-            bool? fromTypes = IsNotNullableIfReferenceTypeFromConstraintTypes(constraintTypes, inProgress, out isNonNullableValueType);
+            bool? fromTypes = IsNotNullableFromConstraintTypes(constraintTypes, inProgress, out isNonNullableValueType);
 
             if (isNonNullableValueType)
             {
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return fromNonTypeConstraints;
         }
 
-        private static bool? IsNotNullableIfReferenceTypeFromConstraintTypes(ImmutableArray<TypeWithAnnotations> constraintTypes, ConsList<PETypeParameterSymbol> inProgress, out bool isNonNullableValueType)
+        private static bool? IsNotNullableFromConstraintTypes(ImmutableArray<TypeWithAnnotations> constraintTypes, ConsList<PETypeParameterSymbol> inProgress, out bool isNonNullableValueType)
         {
             Debug.Assert(!constraintTypes.IsDefaultOrEmpty);
 
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             bool? result = false;
             foreach (TypeWithAnnotations constraintType in constraintTypes)
             {
-                bool? fromType = IsNotNullableIfReferenceTypeFromConstraintType(constraintType, inProgress, out isNonNullableValueType);
+                bool? fromType = IsNotNullableFromConstraintType(constraintType, inProgress, out isNonNullableValueType);
 
                 if (isNonNullableValueType)
                 {
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override bool? IsNotNullableIfReferenceType
+        internal override bool? IsNotNullable
         {
             get
             {
@@ -507,11 +507,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             symbolsBuilder.Add(type);
                         }
 
-                        return IsNotNullableIfReferenceTypeFromConstraintTypes(symbolsBuilder.ToImmutableAndFree());
+                        return IsNotNullableFromConstraintTypes(symbolsBuilder.ToImmutableAndFree());
                     }
                 }
 
-                return CalculateIsNotNullableIfReferenceType();
+                return CalculateIsNotNullable();
             }
         }
 
