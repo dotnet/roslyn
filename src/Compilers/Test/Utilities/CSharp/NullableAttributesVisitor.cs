@@ -78,6 +78,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             _nullableContext = previousContext;
         }
 
+        public override void VisitEvent(EventSymbol @event)
+        {
+            ReportSymbol(@event);
+            Visit(@event.AddMethod);
+            Visit(@event.RemoveMethod);
+        }
+
         public override void VisitProperty(PropertySymbol property)
         {
             ReportSymbol(property);

@@ -180,7 +180,7 @@ class C
                 references: new[] { ref0 },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyEmitDiagnostics(
-                // (3,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                // (3,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     object? F() => null;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 11),
                 // error CS0518: Predefined type 'System.Byte' is not defined or imported
@@ -1771,27 +1771,83 @@ public class Program
 [NullableContext(2)] [Nullable(0)] Program
     Program()
     event D<System.Object?>? PublicEvent
+        void PublicEvent.add
+            D<System.Object?>? value
+        void PublicEvent.remove
+            D<System.Object?>? value
     [Nullable({ 1, 2 })] event D<System.Object?>! ProtectedEvent
+        void ProtectedEvent.add
+            [Nullable({ 1, 2 })] D<System.Object?>! value
+        void ProtectedEvent.remove
+            [Nullable({ 1, 2 })] D<System.Object?>! value
     [Nullable({ 1, 2 })] event D<System.Object?>! ProtectedInternalEvent
+        void ProtectedInternalEvent.add
+            [Nullable({ 1, 2 })] D<System.Object?>! value
+        void ProtectedInternalEvent.remove
+            [Nullable({ 1, 2 })] D<System.Object?>! value
 ";
             var expectedPublicAndInternal = @"
 [NullableContext(1)] [Nullable(0)] Program
     Program()
     [Nullable(2)] event D<System.Object?>? PublicEvent
+        [NullableContext(2)] void PublicEvent.add
+            D<System.Object?>? value
+        [NullableContext(2)] void PublicEvent.remove
+            D<System.Object?>? value
     event D<System.Object!>! InternalEvent
+        void InternalEvent.add
+            D<System.Object!>! value
+        void InternalEvent.remove
+            D<System.Object!>! value
     [Nullable({ 1, 2 })] event D<System.Object?>! ProtectedEvent
+        void ProtectedEvent.add
+            [Nullable({ 1, 2 })] D<System.Object?>! value
+        void ProtectedEvent.remove
+            [Nullable({ 1, 2 })] D<System.Object?>! value
     [Nullable({ 1, 2 })] event D<System.Object?>! ProtectedInternalEvent
+        void ProtectedInternalEvent.add
+            [Nullable({ 1, 2 })] D<System.Object?>! value
+        void ProtectedInternalEvent.remove
+            [Nullable({ 1, 2 })] D<System.Object?>! value
     [Nullable({ 2, 1 })] event D<System.Object!>? PrivateProtectedEvent
+        void PrivateProtectedEvent.add
+            [Nullable({ 2, 1 })] D<System.Object!>? value
+        void PrivateProtectedEvent.remove
+            [Nullable({ 2, 1 })] D<System.Object!>? value
 ";
             var expectedAll = @"
 [NullableContext(2)] [Nullable(0)] Program
     Program()
     event D<System.Object?>? PublicEvent
+        void PublicEvent.add
+            D<System.Object?>? value
+        void PublicEvent.remove
+            D<System.Object?>? value
     [Nullable(1)] event D<System.Object!>! InternalEvent
+        [NullableContext(1)] void InternalEvent.add
+            D<System.Object!>! value
+        [NullableContext(1)] void InternalEvent.remove
+            D<System.Object!>! value
     [Nullable({ 1, 2 })] event D<System.Object?>! ProtectedEvent
+        void ProtectedEvent.add
+            [Nullable({ 1, 2 })] D<System.Object?>! value
+        void ProtectedEvent.remove
+            [Nullable({ 1, 2 })] D<System.Object?>! value
     [Nullable({ 1, 2 })] event D<System.Object?>! ProtectedInternalEvent
+        void ProtectedInternalEvent.add
+            [Nullable({ 1, 2 })] D<System.Object?>! value
+        void ProtectedInternalEvent.remove
+            [Nullable({ 1, 2 })] D<System.Object?>! value
     [Nullable({ 2, 1 })] event D<System.Object!>? PrivateProtectedEvent
+        void PrivateProtectedEvent.add
+            [Nullable({ 2, 1 })] D<System.Object!>? value
+        void PrivateProtectedEvent.remove
+            [Nullable({ 2, 1 })] D<System.Object!>? value
     event D<System.Object?>? PrivateEvent
+        void PrivateEvent.add
+            D<System.Object?>? value
+        void PrivateEvent.remove
+            D<System.Object?>? value
 ";
             EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
         }
