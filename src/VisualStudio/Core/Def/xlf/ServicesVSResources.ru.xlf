@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
-        <target state="new">A new namespace will be created</target>
+        <target state="translated">Будет создано пространство имен</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_current_file">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
         <source>Enable nullable reference analysis IDE features</source>
-        <target state="new">Enable nullable reference analysis IDE features</target>
+        <target state="translated">Включить функции IDE для анализа ссылок, допускающих значение NULL</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -134,22 +134,22 @@
       </trans-unit>
       <trans-unit id="Members">
         <source>Members</source>
-        <target state="translated">Элементы</target>
+        <target state="translated">Члены</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifier_preferences_colon">
         <source>Modifier preferences:</source>
-        <target state="translated">Предпочтения для модификатора:</target>
+        <target state="translated">Предпочтения модификатора:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to Namespace</source>
-        <target state="new">Move to Namespace</target>
+        <target state="translated">Переместить в пространство имен</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
         <source>Namespace</source>
-        <target state="new">Namespace</target>
+        <target state="translated">Пространство имен</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0">
@@ -349,7 +349,7 @@
       </trans-unit>
       <trans-unit id="Pull_Members_Up">
         <source>Pull Members Up</source>
-        <target state="translated">Поиск элементов</target>
+        <target state="translated">Повышение элементов</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -359,7 +359,7 @@
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename {0} to {1}</source>
-        <target state="translated">Переименовать "{0}" в "{1}"</target>
+        <target state="translated">Переименовать {0} в {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
@@ -389,7 +389,7 @@
       </trans-unit>
       <trans-unit id="Select_Dependents">
         <source>Select _Dependents</source>
-        <target state="translated">Выбрать _зависимые</target>
+        <target state="translated">Выбрать _зависимости</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_Public">
@@ -424,12 +424,12 @@
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
-        <target state="new">Target Namespace:</target>
+        <target state="translated">Целевое пространство имен:</target>
         <note />
       </trans-unit>
       <trans-unit id="This_is_an_invalid_namespace">
         <source>This is an invalid namespace</source>
-        <target state="new">This is an invalid namespace</target>
+        <target state="translated">Это недопустимое пространство имен.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -474,7 +474,7 @@
       </trans-unit>
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
-        <target state="translated">Эта рабочая область не поддерживает изменение параметров компиляции Visual Basic.</target>
+        <target state="translated">Эта рабочая область не поддерживает обновление параметров компиляции Visual Basic.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
