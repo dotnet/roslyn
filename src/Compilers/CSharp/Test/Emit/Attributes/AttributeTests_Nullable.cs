@@ -1287,6 +1287,35 @@ public class B
         }
 
         [Fact]
+        public void EmitAttribute_Indexers()
+        {
+            var source =
+@"#nullable enable
+public class Program
+{
+    public object this[object? x, object? y] => throw new System.NotImplementedException();
+    public object this[object? z] { set { } }
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"[NullableContext(1)] [Nullable(0)] Program
+    Program()
+    System.Object! this[System.Object! x, System.Object! y] { get; }
+        System.Object! x
+        System.Object! y
+        [NullableContext(2)] [Nullable(1)] System.Object! this[System.Object! x, System.Object! y].get
+            System.Object? x
+            System.Object? y
+    System.Object! this[System.Object? z] { set; }
+        [Nullable(2)] System.Object? z
+        void this[System.Object? z].set
+            [Nullable(2)] System.Object? z
+            System.Object! value
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
         public void EmitAttribute_OperatorReturnType()
         {
             var source =

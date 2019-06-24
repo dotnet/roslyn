@@ -1213,12 +1213,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Property:
                     if (compilation.ShouldEmitNullableAttributes(this))
                     {
-                        var property = (PropertySymbol)this;
-                        builder.AddValue(property.TypeWithAnnotations);
-                        foreach (var parameter in property.Parameters)
-                        {
-                            parameter.GetCommonNullableValues(compilation, ref builder);
-                        }
+                        builder.AddValue(((PropertySymbol)this).TypeWithAnnotations);
+                        // Attributes are not emitted for property parameters.
                     }
                     break;
                 case SymbolKind.Parameter:

@@ -739,8 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     case NullableMemberMetadata.Internal:
                         return true;
                     default:
-                        Debug.Assert(false);
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(nullableMemberMetadata);
                 }
             }
 
