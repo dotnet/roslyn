@@ -96,6 +96,54 @@ public class Program
         }
 
         [Fact]
+        public void ExplicitAttribute_ReferencedInSource()
+        {
+            var sourceAttribute =
+@"namespace System.Runtime.CompilerServices
+{
+    internal class NullableContextAttribute : System.Attribute
+    {
+        internal NullableContextAttribute(byte b) { }
+    }
+}";
+            var source =
+@"#pragma warning disable 169
+using System.Runtime.CompilerServices;
+[assembly: NullableContext(0)]
+[module: NullableContext(0)]
+[NullableContext(0)]
+class Program
+{
+    [NullableContext(0)]object F;
+    [NullableContext(0)]static object M1() => throw null;
+    [return: NullableContext(0)]static object M2() => throw null;
+    static void M3([NullableContext(0)]object arg) { }
+}";
+
+            // C#7
+            var comp = CreateCompilation(new[] { sourceAttribute, source }, parseOptions: TestOptions.Regular7);
+            verifyDiagnostics(comp);
+
+            // C#8
+            comp = CreateCompilation(new[] { sourceAttribute, source });
+            verifyDiagnostics(comp);
+
+            static void verifyDiagnostics(CSharpCompilation comp)
+            {
+                comp.VerifyDiagnostics(
+                    // (4,10): error CS8335: Do not use 'System.Runtime.CompilerServices.NullableContextAttribute'. This is reserved for compiler usage.
+                    // [module: NullableContext(0)]
+                    Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "NullableContext(0)").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(4, 10),
+                    // (5,2): error CS8335: Do not use 'System.Runtime.CompilerServices.NullableContextAttribute'. This is reserved for compiler usage.
+                    // [NullableContext(0)]
+                    Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "NullableContext(0)").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(5, 2),
+                    // (9,6): error CS8335: Do not use 'System.Runtime.CompilerServices.NullableContextAttribute'. This is reserved for compiler usage.
+                    //     [NullableContext(0)]static object M1() => throw null;
+                    Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "NullableContext(0)").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(9, 6));
+            }
+        }
+
+        [Fact]
         public void ExplicitAttribute_WithNullableContext()
         {
             var sourceAttribute =

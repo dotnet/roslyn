@@ -195,5 +195,54 @@ public class B : A<object?>
             var actualNames = attributes.Select(a => a.AttributeClass.ToTestDisplayString()).ToArray();
             AssertEx.SetEqual(actualNames, expectedNames);
         }
+
+        [Fact]
+        [WorkItem(36457, "https://github.com/dotnet/roslyn/issues/36457")]
+        public void ExplicitAttribute_ReferencedInSource_Assembly()
+        {
+            var sourceAttribute =
+@"namespace System.Runtime.CompilerServices
+{
+    internal class NullablePublicOnlyAttribute : System.Attribute { }
+}";
+            var source =
+@"using System.Runtime.CompilerServices;
+[assembly: NullablePublicOnly]";
+
+            // C#7
+            var comp = CreateCompilation(new[] { sourceAttribute, source }, parseOptions: TestOptions.Regular7);
+            verifyDiagnostics(comp);
+
+            // C#8
+            comp = CreateCompilation(new[] { sourceAttribute, source });
+            verifyDiagnostics(comp);
+
+            static void verifyDiagnostics(CSharpCompilation comp)
+            {
+                comp.VerifyDiagnostics(
+                    // (2,12): error CS8335: Do not use 'System.Runtime.CompilerServices.NullablePublicOnlyAttribute'. This is reserved for compiler usage.
+                    // [assembly: NullablePublicOnly]
+                    Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "NullablePublicOnly").WithArguments("System.Runtime.CompilerServices.NullablePublicOnlyAttribute").WithLocation(2, 12));
+            }
+        }
+
+        [Fact]
+        [WorkItem(36457, "https://github.com/dotnet/roslyn/issues/36457")]
+        public void ExplicitAttribute_ReferencedInSource_Other()
+        {
+            var sourceAttribute =
+@"namespace System.Runtime.CompilerServices
+{
+    internal class NullablePublicOnlyAttribute : System.Attribute { }
+}";
+            var source =
+@"using System.Runtime.CompilerServices;
+[NullablePublicOnly]
+class Program
+{
+}";
+            var comp = CreateCompilation(new[] { sourceAttribute, source });
+            comp.VerifyDiagnostics();
+        }
     }
 }
