@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (loweredLeft.Type.IsNullableType())
             {
-                paramIsNullCondition = MakeNullableHasValue(loweredLeft.Syntax, loweredLeft);
+                paramIsNullCondition = _factory.Not(MakeNullableHasValue(loweredLeft.Syntax, loweredLeft));
             }
             else
             {

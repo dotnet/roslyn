@@ -626,7 +626,7 @@ ok
 System.ArgumentNullException");
         }
 
-        [Fact(Skip = "PROTOTYPE")]
+        [Fact]
         public void TestNullCheckingExpectedOutput2()
         {
             var source = @"
