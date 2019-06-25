@@ -102,6 +102,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sawLocalFunctions = localRewriter._sawLocalFunctions;
                 sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
 
+                if (visited is BoundBlock block)
+                {
+                    loweredStatement = localRewriter.RewriteNullChecking(block);
+                }
+
                 if (localRewriter._needsSpilling && !loweredStatement.HasErrors)
                 {
                     // Move spill sequences to a top-level statement. This handles "lifting" await and the switch expression.
@@ -113,11 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (dynamicInstrumenter != null)
                 {
                     dynamicAnalysisSpans = dynamicInstrumenter.DynamicAnalysisSpans;
-                }
-
-                if (visited is BoundBlock block)
-                {
-                    loweredStatement = localRewriter.RewriteNullChecking(block);
                 }
 #if DEBUG
                 LocalRewritingValidator.Validate(loweredStatement);
