@@ -2840,11 +2840,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsStaticEqualsMethod(MethodSymbol method)
         {
-            if (compilation.GetSpecialTypeMember(SpecialMember.System_Object__EqualsObjectObject).Equals(method))
+            if (method.Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__EqualsObjectObject)))
             {
                 return true;
             }
-            else if (compilation.GetSpecialTypeMember(SpecialMember.System_Object__ReferenceEquals).Equals(method))
+            else if (method.Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__ReferenceEquals)))
             {
                 return true;
             }
@@ -2864,7 +2864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var objectEqualsMethod = compilation.GetSpecialTypeMember(SpecialMember.System_Object__Equals);
-            return objectEqualsMethod.Equals(method.GetLeastOverriddenMethod(accessingTypeOpt: null));
+            return method.GetLeastOverriddenMethod(accessingTypeOpt: null).Equals(objectEqualsMethod);
         }
 
 
