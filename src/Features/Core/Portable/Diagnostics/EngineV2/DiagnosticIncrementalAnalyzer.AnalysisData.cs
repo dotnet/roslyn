@@ -35,15 +35,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public DocumentAnalysisData(VersionStamp version, ImmutableArray<DiagnosticData> items)
             {
-                this.Version = version;
-                this.Items = items;
-                this.OldItems = default;
+                Version = version;
+                Items = items;
+                OldItems = default;
             }
 
             public DocumentAnalysisData(VersionStamp version, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems) :
                 this(version, newItems)
             {
-                this.OldItems = oldItems;
+                OldItems = oldItems;
             }
 
             public DocumentAnalysisData ToPersistData()
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public bool FromCache
             {
-                get { return this.OldItems.IsDefault; }
+                get { return OldItems.IsDefault; }
             }
         }
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> newResult) :
                 this(projectId, version, newResult)
             {
-                this.OldResult = oldResult;
+                OldResult = oldResult;
             }
 
             public DiagnosticAnalysisResult GetResult(DiagnosticAnalyzer analyzer)
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public bool FromCache
             {
-                get { return this.OldResult == null; }
+                get { return OldResult == null; }
             }
 
             public static async Task<ProjectAnalysisData> CreateAsync(Project project, IEnumerable<StateSet> stateSets, bool avoidLoadingData, CancellationToken cancellationToken)

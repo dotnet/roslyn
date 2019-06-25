@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
-using Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
@@ -30,17 +30,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
 
     internal class CSharpCompletionService : CommonCompletionService
     {
-        private readonly ImmutableArray<CompletionProvider> _defaultCompletionProviders =
-            ImmutableArray.Create<CompletionProvider>(
+        private readonly Workspace _workspace;
+        private readonly ImmutableArray<CompletionProvider> _defaultCompletionProviders;
+
+        public CSharpCompletionService(
+            Workspace workspace, ImmutableArray<CompletionProvider>? exclusiveProviders = null)
+            : base(workspace, exclusiveProviders)
+        {
+            _workspace = workspace;
+
+            var defaultCompletionProviders = ImmutableArray.Create<CompletionProvider>(
                 new AttributeNamedParameterCompletionProvider(),
                 new NamedParameterCompletionProvider(),
                 new KeywordCompletionProvider(),
+                new SpeculativeTCompletionProvider(),
                 new SymbolCompletionProvider(),
                 new ExplicitInterfaceMemberCompletionProvider(),
                 new ExplicitInterfaceTypeCompletionProvider(),
                 new ObjectCreationCompletionProvider(),
                 new ObjectInitializerCompletionProvider(),
-                new SpeculativeTCompletionProvider(),
                 new CSharpSuggestionModeCompletionProvider(),
                 new EnumAndCompletionListTagCompletionProvider(),
                 new CrefCompletionProvider(),
@@ -53,17 +61,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
                 new TupleNameCompletionProvider(),
                 new DeclarationNameCompletionProvider(),
                 new InternalsVisibleToCompletionProvider(),
-                new PropertySubpatternCompletionProvider(),
-                new EmbeddedLanguageCompletionProvider(CSharpEmbeddedLanguageFeaturesProvider.Instance),
-                new TypeImportCompletionProvider());
+                new PropertySubpatternCompletionProvider());
 
-        private readonly Workspace _workspace;
+            var languageServices = workspace.Services.GetLanguageServices(LanguageNames.CSharp);
+            var languagesProvider = languageServices.GetService<IEmbeddedLanguagesProvider>();
+            if (languagesProvider != null)
+            {
+                defaultCompletionProviders = defaultCompletionProviders.Add(
+                    new EmbeddedLanguageCompletionProvider(languagesProvider));
+            }
 
-        public CSharpCompletionService(
-            Workspace workspace, ImmutableArray<CompletionProvider>? exclusiveProviders = null)
-            : base(workspace, exclusiveProviders)
-        {
-            _workspace = workspace;
+            defaultCompletionProviders = defaultCompletionProviders.Add(new TypeImportCompletionProvider());
+
+            _defaultCompletionProviders = defaultCompletionProviders;
         }
 
         public override string Language => LanguageNames.CSharp;

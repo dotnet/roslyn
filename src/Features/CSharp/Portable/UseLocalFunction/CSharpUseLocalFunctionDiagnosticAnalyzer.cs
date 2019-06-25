@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
     {
         public CSharpUseLocalFunctionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseLocalFunctionDiagnosticId,
+                   CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction,
+                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(FeaturesResources.Use_local_function), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {

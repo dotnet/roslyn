@@ -1379,7 +1379,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
                 else if (filtered.Severity == DiagnosticSeverity.Error &&
-                         !filtered.IsSuppressed)
+                    !filtered.IsSuppressed)
                 {
                     hasError = true;
                 }
