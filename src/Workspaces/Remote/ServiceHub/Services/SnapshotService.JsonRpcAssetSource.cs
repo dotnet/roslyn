@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, scopeId, checksums, cancellationToken))
                 {
+                    // Surround this with a try/catch to report exceptions because we want to report any crashes here.
                     try
                     {
                         return await _owner.RunServiceAsync(() =>
@@ -47,6 +48,18 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
+                }
+            }
+
+            public override async Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
+            {
+                using (RoslynLogger.LogBlock(FunctionId.SnapshotService_IsExperimentEnabledAsync, experimentName, cancellationToken))
+                {
+                    return await _owner.RunServiceAsync(() =>
+                    {
+                        return _owner.InvokeAsync<bool>(WellKnownServiceHubServices.AssetService_IsExperimentEnabledAsync,
+                            new object[] { experimentName }, cancellationToken);
+                    }, cancellationToken).ConfigureAwait(false);
                 }
             }
 

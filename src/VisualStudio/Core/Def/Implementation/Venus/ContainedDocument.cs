@@ -51,6 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private const string HelperRazor = "helper";
         private const string FunctionsRazor = "functions";
+        private const string CodeRazor = "code";
 
         private static readonly EditOptions s_venusEditOptions = new EditOptions(new StringDifferenceOptions
         {
@@ -1057,7 +1058,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             if (_project.Language == LanguageNames.CSharp)
             {
                 return CheckCode(surfaceSnapshot, position, ch, CSharpRazorBlock) ||
-                       CheckCode(surfaceSnapshot, position, ch, FunctionsRazor, CSharpRazorBlock);
+                       CheckCode(surfaceSnapshot, position, ch, FunctionsRazor, CSharpRazorBlock) ||
+                       CheckCode(surfaceSnapshot, position, ch, CodeRazor, CSharpRazorBlock);
             }
 
             if (_project.Language == LanguageNames.VisualBasic)

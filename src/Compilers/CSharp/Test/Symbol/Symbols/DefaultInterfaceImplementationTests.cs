@@ -31986,6 +31986,49 @@ I4.M1
         }
 
         [Fact]
+        public void MethodImplementationInDerived_31()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1(); 
+    void M2(); 
+}
+
+public interface I2 : I1
+{
+    public virtual void M1()
+    {}
+    new public virtual void M2()
+    {}
+}
+
+public interface I3 : I1, I2
+{
+}
+
+class Test1 : I1, I2
+{}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (10,25): warning CS0108: 'I2.M1()' hides inherited member 'I1.M1()'. Use the new keyword if hiding was intended.
+                //     public virtual void M1()
+                Diagnostic(ErrorCode.WRN_NewRequired, "M1").WithArguments("I2.M1()", "I1.M1()").WithLocation(10, 25),
+                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.M2()'
+                // class Test1 : I1, I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.M2()").WithLocation(20, 15),
+                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
+                // class Test1 : I1, I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.M1()").WithLocation(20, 15)
+                );
+        }
+
+        [Fact]
         [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
         public void PropertyImplementationInDerived_01()
         {
