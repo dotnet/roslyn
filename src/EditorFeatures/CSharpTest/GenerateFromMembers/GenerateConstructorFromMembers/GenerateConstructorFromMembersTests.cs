@@ -1394,6 +1394,17 @@ chosenSymbols: null);
 
         [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultiplePartialFieldSelection4()
+        {
+            await TestMissingAsync(
+@"class Z
+{
+    int a = [|2|], b = 3;
+}");
+        }
+
+        [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestNoFieldNamingStyle()
         {
             await TestInRegularAndScriptAsync(
@@ -1412,7 +1423,7 @@ chosenSymbols: null);
 }", options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix);
         }
 
-        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestCommonFieldNamingStyle()
         {
@@ -1432,7 +1443,7 @@ chosenSymbols: null);
 }", options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix);
         }
 
-        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSpecifiedNamingStyle()
         {
@@ -1452,7 +1463,7 @@ chosenSymbols: null);
 }", options: options.MergeStyles(options.FieldNamesAreCamelCaseBeginWithField_, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAnd_endSuffix, LanguageNames.CSharp));
         }
 
-        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSpecifiedAndCommonFieldNamingStyle()
         {
@@ -1472,7 +1483,7 @@ chosenSymbols: null);
 }", options: options.MergeStyles(options.FieldNamesAreCamelCaseBeginWithField_, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAnd_endSuffix, LanguageNames.CSharp));
         }
 
-        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSpecifiedAndCommonFieldNamingStyle2()
         {
@@ -1490,17 +1501,6 @@ chosenSymbols: null);
         s_field_a = p_a_end;
     }
 }", options: options.MergeStyles(options.FieldNamesAreCamelCaseBeginWithField_, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAnd_endSuffix, LanguageNames.CSharp));
-        }
-
-        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
-        public async Task TestMultiplePartialFieldSelection4()
-        {
-            await TestMissingAsync(
-@"class Z
-{
-    int a = [|2|], b = 3;
-}");
         }
     }
 }
