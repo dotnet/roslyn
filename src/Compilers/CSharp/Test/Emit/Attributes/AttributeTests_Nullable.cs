@@ -703,7 +703,7 @@ public class B : I<(object X, object? Y)>
         }
 
         [Fact]
-        public void EmitAttribute_ImplementedInterfaces()
+        public void EmitAttribute_ImplementedInterfaces_01()
         {
             var source =
 @"#nullable enable
@@ -735,6 +735,44 @@ public class B :
 B
     [Nullable(1)] System.Object! FB1
     [Nullable(1)] System.Object! FB2
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
+        public void EmitAttribute_ImplementedInterfaces_02()
+        {
+            var source =
+@"#nullable enable
+public interface IA { }
+public interface IB<T> : IA { }
+public interface IC<T> : IB<
+#nullable disable
+    object
+#nullable enable
+    >
+{
+}
+public class C : IC<
+#nullable disable
+    string
+#nullable enable
+    >
+{
+    public object F1;
+    public object F2;
+    public object F3;
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"IB<T>
+    [Nullable(2)] T
+IC<T>
+    [Nullable(2)] T
+C
+    [Nullable(1)] System.Object! F1
+    [Nullable(1)] System.Object! F2
+    [Nullable(1)] System.Object! F3
 ";
             AssertNullableAttributes(comp, expected);
         }

@@ -3343,7 +3343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 builder.AddValue(TypeWithAnnotations.Create(baseType));
             }
-            foreach (var @interface in InterfacesNoUseSiteDiagnostics())
+            foreach (var @interface in GetInterfacesToEmit())
             {
                 builder.AddValue(TypeWithAnnotations.Create(@interface));
             }
