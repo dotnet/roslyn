@@ -379,6 +379,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 // Local functions.
                 bool IsDisposeOwnershipTransfer()
                 {
+                    if (operation.Parameter.RefKind == RefKind.Out)
+                    {
+                        // Out arguments are always owned by the caller.
+                        return false;
+                    }
+
                     switch (operation.Parent)
                     {
                         case IObjectCreationOperation _:
