@@ -61,30 +61,30 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 s_inHandler = true;
 
-                var assemblyDirectory = GetAssemblyDirectory();
-                var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
-                var logDir = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots");
-                var baseFileName = $"{DateTime.UtcNow:HH.mm.ss}-{testName}-{eventArgs.Exception.GetType().Name}";
+                const int MaxPath = 260 - 1;
 
-                var maxLength = logDir.Length + 1 + baseFileName.Length + ".Watson.log".Length + 1;
-                const int MaxPath = 260;
-                if (maxLength > MaxPath)
+                var logDir = Path.Combine(GetAssemblyDirectory(), "xUnitResults", "Screenshots");
+
+                string GetLogPath(string testName)
+                    => Path.Combine(logDir, $"{DateTime.UtcNow:HH.mm.ss}-{testName}-{eventArgs.Exception.GetType().Name}.log");
+
+                var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
+                var logPath = GetLogPath(testName);
+
+                if (logPath.Length > MaxPath)
                 {
-                    testName = testName.Substring(0, testName.Length - (maxLength - MaxPath));
-                    baseFileName = $"{DateTime.UtcNow:HH.mm.ss}-{testName}-{eventArgs.Exception.GetType().Name}";
+                    logPath = GetLogPath(testName.Substring(0, testName.Length - (logPath.Length - MaxPath)));
                 }
 
                 Directory.CreateDirectory(logDir);
 
                 var exception = eventArgs.Exception;
-                File.WriteAllText(
-                    Path.Combine(logDir, $"{baseFileName}.log"),
-                    $"{exception}.GetType().Name{Environment.NewLine}{exception.StackTrace}");
+                File.WriteAllText(logPath, $"First chance exception {exception.GetType().Name}:{Environment.NewLine}{exception.StackTrace}");
 
-                EventLogCollector.TryWriteDotNetEntriesToFile(Path.Combine(logDir, $"{baseFileName}.DotNet.log"));
-                EventLogCollector.TryWriteWatsonEntriesToFile(Path.Combine(logDir, $"{baseFileName}.Watson.log"));
+                EventLogCollector.AppendDotNetEntriesToFile(logPath);
+                EventLogCollector.AppendWatsonEntriesToFile(logPath);
 
-                ScreenshotService.TakeScreenshot(Path.Combine(logDir, $"{baseFileName}.png"));
+                ScreenshotService.TakeScreenshot(Path.ChangeExtension(logPath, ".png"));
             }
             finally
             {

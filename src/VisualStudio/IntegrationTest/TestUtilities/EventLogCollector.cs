@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <summary>
         /// Get the WER entries for VS and VS related EXEs from the Event Log and write them to a file
         /// </summary>
-        internal static void TryWriteWatsonEntriesToFile(string filePath)
+        internal static void AppendWatsonEntriesToFile(string filePath)
         {
             try
             {
@@ -128,7 +128,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     ReverseDirection = true
                 };
 
-                var eventLogReader = new EventLogReader(eventLogQuery);
+                using var eventLogReader = new EventLogReader(eventLogQuery);
                 EventRecord eventLogRecord;
                 var watsonEntriesCount = 0;
                 while ((eventLogRecord = eventLogReader.ReadEvent()) != null)
@@ -157,35 +157,39 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 if (watsonEntries.Any())
                 {
-                    var watsonEntriesStringBuilder = new StringBuilder();
+                    var builder = new StringBuilder();
+                    builder.AppendLine();
+                    builder.AppendLine("--- Watson event log entries -------------");
+                    builder.AppendLine();
+
                     foreach (var entry in watsonEntries)
                     {
-                        watsonEntriesStringBuilder.AppendLine($"Event Time (UTC): {entry.EventTime}");
-                        watsonEntriesStringBuilder.AppendLine($"Application Name: {entry.ApplicationName}");
-                        watsonEntriesStringBuilder.AppendLine($"Application Version: {entry.ApplicationVersion}");
-                        watsonEntriesStringBuilder.AppendLine($"Faulting Module: {entry.FaultingModule}");
-                        watsonEntriesStringBuilder.AppendLine($"Faulting Module Version: {entry.FaultingModuleVersion}");
-                        watsonEntriesStringBuilder.AppendLine($"Event Name: {entry.EventName}");
-                        watsonEntriesStringBuilder.AppendLine($"Cab Id: {entry.CabId}");
-                        watsonEntriesStringBuilder.AppendLine($"Fault Bucket: {entry.FaultBucket}");
-                        watsonEntriesStringBuilder.AppendLine($"Hashed Bucket: {entry.HashedBucket}");
-                        watsonEntriesStringBuilder.AppendLine($"Watson Report Id: {entry.WatsonReportId}");
-                        watsonEntriesStringBuilder.AppendLine();
+                        builder.AppendLine($"Event Time (UTC): {entry.EventTime}");
+                        builder.AppendLine($"Application Name: {entry.ApplicationName}");
+                        builder.AppendLine($"Application Version: {entry.ApplicationVersion}");
+                        builder.AppendLine($"Faulting Module: {entry.FaultingModule}");
+                        builder.AppendLine($"Faulting Module Version: {entry.FaultingModuleVersion}");
+                        builder.AppendLine($"Event Name: {entry.EventName}");
+                        builder.AppendLine($"Cab Id: {entry.CabId}");
+                        builder.AppendLine($"Fault Bucket: {entry.FaultBucket}");
+                        builder.AppendLine($"Hashed Bucket: {entry.HashedBucket}");
+                        builder.AppendLine($"Watson Report Id: {entry.WatsonReportId}");
+                        builder.AppendLine();
                     }
 
-                    File.WriteAllText(filePath, watsonEntriesStringBuilder.ToString());
+                    File.AppendAllText(filePath, builder.ToString());
                 }
             }
             catch (Exception ex)
             {
-                File.WriteAllText(filePath, ex.ToString());
+                File.AppendAllText(filePath, $"Exception thrown while reading event log: {ex}");
             }
         }
 
         /// <summary>
         /// Get the .NetRuntime entries from the Event Log and write them to a file
         /// </summary>
-        internal static void TryWriteDotNetEntriesToFile(string filePath)
+        internal static void AppendDotNetEntriesToFile(string filePath)
         {
             try
             {
@@ -198,7 +202,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     ReverseDirection = true
                 };
 
-                var eventLogReader = new EventLogReader(eventLogQuery);
+                using var eventLogReader = new EventLogReader(eventLogQuery);
                 EventRecord eventLogRecord;
                 while ((eventLogRecord = eventLogReader.ReadEvent()) != null)
                 {
@@ -220,21 +224,25 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 if (dotNetEntries.Any())
                 {
-                    var dotNetEntriesStringBuilder = new StringBuilder();
+                    var builder = new StringBuilder();
+                    builder.AppendLine();
+                    builder.AppendLine("--- .NET Runtime event log entries -------");
+                    builder.AppendLine();
+
                     foreach (var entry in dotNetEntries)
                     {
-                        dotNetEntriesStringBuilder.AppendLine($"Event Time (UTC): {entry.EventTime}");
-                        dotNetEntriesStringBuilder.AppendLine($"Event ID: {entry.EventId}");
-                        dotNetEntriesStringBuilder.AppendLine($"Data: {entry.Data.Replace("\n", "\r\n")}");
-                        dotNetEntriesStringBuilder.AppendLine();
+                        builder.AppendLine($"Event Time (UTC): {entry.EventTime}");
+                        builder.AppendLine($"Event ID: {entry.EventId}");
+                        builder.AppendLine($"Data: {entry.Data.Replace("\n", "\r\n")}");
+                        builder.AppendLine();
                     }
 
-                    File.WriteAllText(filePath, dotNetEntriesStringBuilder.ToString());
+                    File.AppendAllText(filePath, builder.ToString());
                 }
             }
             catch (Exception ex)
             {
-                File.WriteAllText(filePath, ex.ToString());
+                File.AppendAllText(filePath, $"Exception thrown while reading event log: {ex}");
             }
         }
 
