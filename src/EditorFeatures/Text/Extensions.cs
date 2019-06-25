@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// host.
         /// </summary>
         public static IEnumerable<Document> GetDocuments(this ITextSnapshot text)
-            => text.AsText().GetRelatedDocumentsWithChanges();
+            => text.AsText().GetDocuments();
 
         /// <summary>
         /// Gets the <see cref="Document"/> from the corresponding <see cref="Workspace.CurrentSolution"/> that is associated with the <see cref="ITextSnapshot"/>'s buffer
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// Use <see cref="GetDocuments"/> to retrieve all potential <see cref="Document"/>s for a given <see cref="ITextSnapshot"/>.
         /// </summary>
         public static Document GetDocument(this ITextSnapshot text)
-            => text.AsText().GetOpenDocumentInCurrentContextWithChanges();
+            => text.AsText().GetDocument();
 
         /// <summary>
         /// Gets the <see cref="Document"/>s from the corresponding <see cref="Workspace.CurrentSolution"/> that are associated with the <see cref="ITextBuffer"/>.
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         internal static Document GetDocumentWithFrozenPartialSemantics(this SourceText text, CancellationToken cancellationToken)
         {
-            var document = text.GetOpenDocumentInCurrentContextWithChanges();
+            var document = text.GetDocument();
             return document?.WithFrozenPartialSemantics(cancellationToken);
         }
 

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         public Document GetOpenDocumentInCurrentContextWithChanges(ITextSnapshot snapshot)
         {
             var text = snapshot.AsText();
-            return text.GetOpenDocumentInCurrentContextWithChanges();
+            return text.GetDocument();
         }
     }
 }

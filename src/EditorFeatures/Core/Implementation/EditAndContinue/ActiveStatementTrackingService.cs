@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             public IEnumerable<ActiveStatementTextSpan> GetSpans(SourceText source)
             {
-                var document = source.GetOpenDocumentInCurrentContextWithChanges();
+                var document = source.GetDocument();
                 if (document == null)
                 {
                     return SpecializedCollections.EmptyEnumerable<ActiveStatementTextSpan>();

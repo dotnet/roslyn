@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
                 // different buffer snapshot should never return same roslyn text snapshot
                 Assert.NotSame(text, newText);
 
-                Document newDocument = newText.GetRelatedDocumentsWithChanges().First();
+                Document newDocument = newText.GetDocuments().First();
 
                 // different text snapshot never gives back same roslyn snapshot
                 Assert.NotSame(document, newDocument);
