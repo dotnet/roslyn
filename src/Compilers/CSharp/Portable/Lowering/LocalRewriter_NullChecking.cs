@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -8,19 +9,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
-        private BoundStatement RewriteNullChecking(ImmutableArray<BoundStatement> statements, ImmutableArray<LocalSymbol> locals)
+        private BoundStatement RewriteNullChecking(BoundBlock block)
         {
-            if (_factory.CurrentFunction.Parameters.Any(x => x is SourceParameterSymbolBase param
-                                                             && param.IsNullChecked))
-            {
-                return (BoundStatement)AddNullChecksToBody(statements, locals);
-            }
-            return _factory.Block(locals, statements);
-        }
-
-        private BoundNode AddNullChecksToBody(ImmutableArray<BoundStatement> bodyStatements, ImmutableArray<LocalSymbol> locals)
-        {
-            var statementList = ArrayBuilder<BoundStatement>.GetInstance();
+            ArrayBuilder<BoundStatement> statementList = null;
             foreach (ParameterSymbol x in _factory.CurrentFunction.Parameters)
             {
                 if (x is SourceParameterSymbolBase param
@@ -31,13 +22,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // PROTOTYPE : Warning or Error, see CodeGenNullCheckedParameterTests.TestNullCheckedSubstitution2
                         continue;
                     }
+                    statementList ??= ArrayBuilder<BoundStatement>.GetInstance();
                     var constructedIf = ConstructIfStatementForParameter(param);
                     statementList.Add(constructedIf);
                 }
             }
-            statementList.AddRange(bodyStatements);
-
-            return _factory.Block(locals, statementList.ToImmutableAndFree());
+            if (statementList is null)
+            {
+                return block;
+            }
+            else
+            {
+                statementList.AddRange(block.Statements);
+                return _factory.Block(block.Locals, statementList.ToImmutableAndFree());
+            }
         }
 
         private BoundStatement ConstructIfStatementForParameter(SourceParameterSymbolBase parameter)

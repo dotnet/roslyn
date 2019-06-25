@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (visited is BoundBlock block)
                 {
-                    loweredStatement = localRewriter.RewriteNullChecking(block.Statements, block.Locals);
+                    loweredStatement = localRewriter.RewriteNullChecking(block);
                 }
 #if DEBUG
                 LocalRewritingValidator.Validate(loweredStatement);
