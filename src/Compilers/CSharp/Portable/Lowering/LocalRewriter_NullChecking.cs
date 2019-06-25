@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression paramIsNullCondition;
             var loweredLeft = _factory.Parameter(parameter);
-            var loweredRight = _factory.Literal(ConstantValue.Null, parameter.Type);
 
             if (loweredLeft.Type.IsNullableType())
             {
