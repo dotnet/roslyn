@@ -7,8 +7,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
-    abstract class RefactoringHelpersService : IRefactoringHelpersService
+    internal abstract class RefactoringHelpersService : IRefactoringHelpersService
     {
+        public abstract SyntaxNode ExtractNodeFromDeclarationAndAssignment<TNode>(SyntaxNode current) where TNode : SyntaxNode;
+
         public Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
             Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {

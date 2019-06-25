@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
-    interface IRefactoringHelpersService : ILanguageService
+    internal interface IRefactoringHelpersService : ILanguageService
     {
         /// <summary>
         /// <para>
@@ -29,5 +29,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selection, Func<SyntaxNode, SyntaxNode> extractNode, Predicate<SyntaxNode> predicate, CancellationToken cancellationToken);
         Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
         Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(Document document, TextSpan selection, Func<SyntaxNode, SyntaxNode> extractNode, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
+        SyntaxNode ExtractNodeFromDeclarationAndAssignment<TNode>(SyntaxNode current) where TNode : SyntaxNode;
     }
 }
