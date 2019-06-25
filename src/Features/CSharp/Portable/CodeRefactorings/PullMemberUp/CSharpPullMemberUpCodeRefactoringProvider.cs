@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
         {
         }
 
-        protected override async Task<SyntaxNode> GetSelectedNode(Document document, TextSpan span, CancellationToken cancellationToken)
+        protected override async Task<SyntaxNode> GetSelectedNodeAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
             return await refactoringHelperService.TryGetSelectedNodeAsync(

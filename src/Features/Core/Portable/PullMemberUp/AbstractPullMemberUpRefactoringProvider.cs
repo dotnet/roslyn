@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
     {
         private readonly IPullMemberUpOptionsService _service;
         private const int None = 0;
-        protected abstract Task<SyntaxNode> GetSelectedNode(Document document, TextSpan span, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxNode> GetSelectedNodeAsync(Document document, TextSpan span, CancellationToken cancellationToken);
 
         /// <summary>
         /// Test purpose only
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var cancellationToken = context.CancellationToken;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var selectedMemberNode = await GetSelectedNode(document, context.Span, cancellationToken).ConfigureAwait(false);
+            var selectedMemberNode = await GetSelectedNodeAsync(document, context.Span, cancellationToken).ConfigureAwait(false);
             if (selectedMemberNode == null)
             {
                 return;

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             CancellationToken cancellationToken,
             out DocumentUpdateInfo documentUpdate);
 
-        protected abstract Task<TQueryExpression> FindNodeToRefactor(Document document, TextSpan selection, CancellationToken cancellationToken);
+        protected abstract Task<TQueryExpression> FindNodeToRefactorAsync(Document document, TextSpan selection, CancellationToken cancellationToken);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             var cancellationToken = context.CancellationToken;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var queryExpression = await FindNodeToRefactor(document, context.Span, cancellationToken).ConfigureAwait(false);
+            var queryExpression = await FindNodeToRefactorAsync(document, context.Span, cancellationToken).ConfigureAwait(false);
             if (queryExpression == null)
             {
                 return;
