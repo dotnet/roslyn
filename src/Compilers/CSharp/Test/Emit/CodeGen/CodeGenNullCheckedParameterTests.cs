@@ -658,5 +658,122 @@ class Program
 ok
 System.Exception");
         }
+
+        [Fact]
+        public void TestNullCheckingExpectedOutput3()
+        {
+            var source = @"
+using System;
+class A<T>
+{
+    internal virtual void M<U>(U u!) where U : T { }
+}
+class B1<T> : A<T> where T : class
+{
+    internal override void M<U>(U u!) { }
+}
+class Program
+{
+    static void Main()
+    {
+        B1<string> b1 = new B1<string>();
+        Invoke(() => b1.M<string>(""hello world""));
+        Invoke(() => b1.M<string>(null));
+    }
+    static void Invoke(Action a)
+    {
+        try
+        {
+            a();
+            Console.WriteLine(""ok"");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.GetType());
+        }
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"
+ok
+System.Exception");
+        }
+
+        [Fact]
+        public void TestNullCheckingExpectedOutput4()
+        {
+            var source = @"
+using System;
+class A<T>
+{
+    internal virtual void M<U>(U u!) where U : T { }
+}
+class B3<T> : A<T?> where T : struct
+{
+    internal override void M<U>(U u!) { }
+}
+class Program
+{
+    static void Main()
+    {
+        B3<bool> b3 = new B3<bool>();
+        Invoke(() => b3.M<bool?>(false));
+        Invoke(() => b3.M<bool?>(null));
+    }
+    static void Invoke(Action a)
+    {
+        try
+        {
+            a();
+            Console.WriteLine(""ok"");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.GetType());
+        }
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"
+ok
+System.Exception");
+        }
+
+        [Fact]
+        public void TestNullCheckingExpectedOutput5()
+        {
+            var source = @"
+using System;
+class A<T>
+{
+    internal virtual void M<U>(U u!) where U : T { }
+}
+class B5 : A<object>
+{
+    internal override void M<U>(U u!) { }
+}
+class Program
+{
+    static void Main()
+    {
+        B5 b5 = new B5();
+        Invoke(() => b5.M<bool?>(false));
+        Invoke(() => b5.M<bool?>(null));
+    }
+    static void Invoke(Action a)
+    {
+        try
+        {
+            a();
+            Console.WriteLine(""ok"");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.GetType());
+        }
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"
+ok
+System.Exception");
+        }
     }
 }
