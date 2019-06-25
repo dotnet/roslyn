@@ -368,6 +368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 _builder.MarkLabel(whenNotNullLabel)
 
                 If Not nullCheckOnCopy Then
+                    Debug.Assert(receiverTemp Is Nothing)
                     receiverTemp = EmitReceiverRef(receiver, isAccessConstrained:=Not receiverType.IsReferenceType, addressKind:=AddressKind.ReadOnly)
                     Debug.Assert(receiverTemp Is Nothing OrElse receiver.IsDefaultValue())
                 End If
