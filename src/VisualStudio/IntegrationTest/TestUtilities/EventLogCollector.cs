@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <summary>
         /// Get the WER entries for VS and VS related EXEs from the Event Log and write them to a file
         /// </summary>
-        internal static void AppendWatsonEntriesToFile(string filePath)
+        internal static void AppendWatsonEntries(StringBuilder builder)
         {
             try
             {
@@ -157,7 +157,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 if (watsonEntries.Any())
                 {
-                    var builder = new StringBuilder();
                     builder.AppendLine();
                     builder.AppendLine("--- Watson event log entries -------------");
                     builder.AppendLine();
@@ -176,20 +175,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                         builder.AppendLine($"Watson Report Id: {entry.WatsonReportId}");
                         builder.AppendLine();
                     }
-
-                    File.AppendAllText(filePath, builder.ToString());
                 }
             }
             catch (Exception ex)
             {
-                File.AppendAllText(filePath, $"Exception thrown while reading event log: {ex}");
+                builder.AppendLine($"Exception thrown while reading event log: {ex}");
             }
         }
 
         /// <summary>
         /// Get the .NetRuntime entries from the Event Log and write them to a file
         /// </summary>
-        internal static void AppendDotNetEntriesToFile(string filePath)
+        internal static void AppendDotNetEntries(StringBuilder builder)
         {
             try
             {
@@ -224,7 +221,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 if (dotNetEntries.Any())
                 {
-                    var builder = new StringBuilder();
                     builder.AppendLine();
                     builder.AppendLine("--- .NET Runtime event log entries -------");
                     builder.AppendLine();
@@ -236,13 +232,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                         builder.AppendLine($"Data: {entry.Data.Replace("\n", "\r\n")}");
                         builder.AppendLine();
                     }
-
-                    File.AppendAllText(filePath, builder.ToString());
                 }
             }
             catch (Exception ex)
             {
-                File.AppendAllText(filePath, $"Exception thrown while reading event log: {ex}");
+                builder.AppendLine($"Exception thrown while reading event log: {ex}");
             }
         }
 

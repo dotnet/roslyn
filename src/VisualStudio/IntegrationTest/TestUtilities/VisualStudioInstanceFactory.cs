@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Text;
 using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.Setup.Configuration;
@@ -79,10 +80,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 Directory.CreateDirectory(logDir);
 
                 var exception = eventArgs.Exception;
-                File.WriteAllText(logPath, $"First chance exception {exception.GetType().Name}:{Environment.NewLine}{exception.StackTrace}");
+                var builder = new StringBuilder();
 
-                EventLogCollector.AppendDotNetEntriesToFile(logPath);
-                EventLogCollector.AppendWatsonEntriesToFile(logPath);
+                builder.AppendLine($"First chance exception {exception.GetType().Name}:");
+                builder.AppendLine(exception.StackTrace);
+
+                EventLogCollector.AppendDotNetEntries(builder);
+                EventLogCollector.AppendWatsonEntries(builder);
+                File.WriteAllText(logPath, builder.ToString());
 
                 ScreenshotService.TakeScreenshot(Path.ChangeExtension(logPath, ".png"));
             }
