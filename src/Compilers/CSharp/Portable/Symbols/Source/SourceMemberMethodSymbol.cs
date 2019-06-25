@@ -1697,7 +1697,7 @@ done:
             }
         }
 
-        // Consider moving this state to SourceMethodSymbol so allow emitting NullableContextAttributes
+        // Consider moving this state to SourceMethodSymbol to emit NullableContextAttributes
         // on lambdas and local functions (see https://github.com/dotnet/roslyn/issues/36736).
         internal override byte? GetLocalNullableContextValue()
         {
