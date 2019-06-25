@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,8 +29,14 @@ namespace Microsoft.CodeAnalysis
         /// of tokens gracefully.
         /// </para>
         /// </summary>
-        public static async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
+        public static Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
             Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+        {
+            return TryGetSelectedNodeAsync<TSyntaxNode>(document, selection, (n) => n, cancellationToken);
+        }
+
+        public static async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
+            Document document, TextSpan selection, Func<SyntaxNode, SyntaxNode> extractNode, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var selectionStripped = await GetStrippedTextSpan(document, selection, cancellationToken).ConfigureAwait(false);
@@ -38,9 +45,9 @@ namespace Microsoft.CodeAnalysis
             SyntaxNode prevNode;
             do
             {
-                if (node is TSyntaxNode)
+                if (extractNode(node) is TSyntaxNode extrNode)
                 {
-                    return (TSyntaxNode)node;
+                    return extrNode;
                 }
 
                 prevNode = node;
@@ -60,9 +67,9 @@ namespace Microsoft.CodeAnalysis
             do
             {
                 // either touches a Token which parent is `TSyntaxNode` or is whose ancestor's span ends on selection
-                if (leftNode is TSyntaxNode)
+                if (extractNode(leftNode) is TSyntaxNode extrNode)
                 {
-                    return (TSyntaxNode)leftNode;
+                    return extrNode;
                 }
 
                 leftNode = leftNode?.Parent;
@@ -74,9 +81,9 @@ namespace Microsoft.CodeAnalysis
             do
             {
                 // either touches a Token which parent is `TSyntaxNode` or is whose ancestor's span starts on selection
-                if (rightNode is TSyntaxNode)
+                if (extractNode(rightNode) is TSyntaxNode extrNode)
                 {
-                    return (TSyntaxNode)rightNode;
+                    return extrNode;
                 }
 
                 rightNode = rightNode?.Parent;
