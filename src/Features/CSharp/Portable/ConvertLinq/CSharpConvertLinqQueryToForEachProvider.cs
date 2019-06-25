@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertLinq;
+using Microsoft.CodeAnalysis.CSharp.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -46,36 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
         /// </summary>
         protected override async Task<QueryExpressionSyntax> FindNodeToRefactor(Document document, TextSpan selection, CancellationToken cancellationToken)
         {
-            return await CodeRefactoringHelpers.TryGetSelectedNodeAsync<QueryExpressionSyntax>(document, selection, ExtractQueryExpression<QueryExpressionSyntax>, cancellationToken).ConfigureAwait(false);
-
-            static SyntaxNode ExtractQueryExpression<TNode>(SyntaxNode current) where TNode : SyntaxNode
-            {
-                switch (current)
-                {
-                    case LocalDeclarationStatementSyntax localDeclaration:
-                        {
-                            if (localDeclaration.Declaration.Variables.Count == 1 && localDeclaration.Declaration.Variables.First().Initializer != null)
-                            {
-                                var initializer = localDeclaration.Declaration.Variables.First().Initializer;
-                                return initializer.Value as TNode;
-                            }
-
-                            break;
-                        }
-
-                    case ExpressionStatementSyntax expressionStatement:
-                        {
-                            if (expressionStatement.Expression is AssignmentExpressionSyntax assignmentExpression)
-                            {
-                                return assignmentExpression.Right as TNode;
-                            }
-
-                            break;
-                        }
-                }
-
-                return current;
-            }
+            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>() as CSharpRefactoringHelpersService;
+            return await refactoringHelperService.TryGetSelectedNodeAsync<QueryExpressionSyntax>(document, selection, refactoringHelperService.ExtractNodeFromDeclarationAndAssignment<QueryExpressionSyntax>, cancellationToken).ConfigureAwait(false);
         }
 
         private sealed class Converter
