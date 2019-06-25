@@ -92,11 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var filterText = session.ApplicableToSpan.GetText(data.Snapshot);
             var reason = data.Trigger.Reason;
-
-            if (!session.Properties.TryGetProperty(CompletionSource.InitialTriggerKind, out CompletionTriggerKind initialRoslynTriggerKind))
-            {
-                initialRoslynTriggerKind = CompletionTriggerKind.Invoke;
-            }
+            var initialRoslynTriggerKind = Helpers.GetRoslynTriggerKind(data.InitialTrigger);
 
             // Check if the user is typing a number. If so, only proceed if it's a number
             // directly after a <dot>. That's because it is actually reasonable for completion

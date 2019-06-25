@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="cmdidCSharpOrganizeSortUsings|ButtonText">
         <source>Sort &amp;Usings</source>
-        <target state="new">Sort &amp;Usings</target>
+        <target state="translated">对 using 排序(&amp;U)</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidCSharpOrganizeSortUsings|LocCanonicalName">
         <source>SortUsings</source>
-        <target state="new">SortUsings</target>
+        <target state="translated">SortUsings</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidContextOrganizeRemoveAndSort|ButtonText">
