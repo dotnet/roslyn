@@ -1276,5 +1276,34 @@ class C
     }
 }");
         }
+
+        [WorkItem(34830, "https://github.com/dotnet/roslyn/issues/34830")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task RegressionTest_ShouldReportUnusedParameter()
+        {
+            var options = Option(CodeStyleOptions.UnusedParameters,
+                new CodeStyleOption<UnusedParametersPreference>(default, NotificationOption.Suggestion));
+
+            await TestDiagnosticMissingAsync(
+@"using System;
+using System.Threading.Tasks;
+
+public interface IFoo { event Action Fooed; }
+
+public sealed class C : IDisposable
+{
+    private readonly Task<IFoo> foo;
+
+    public C(Task<IFoo> [|foo|])
+    {
+        this.foo = foo;
+        Task.Run(async () => (await foo).Fooed += fooed);
+    }
+
+    private void fooed() { }
+
+    public void Dispose() => foo.Result.Fooed -= fooed;
+}", options);
+        }
     }
 }
