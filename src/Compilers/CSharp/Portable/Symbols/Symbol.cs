@@ -1214,6 +1214,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (this is SourceTypeParameterSymbolBase typeParameter)
                     {
                         builder.AddValue(typeParameter.GetSynthesizedNullableAttributeValue());
+                        foreach (var constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
+                        {
+                            builder.AddValue(constraintType);
+                        }
                     }
                     break;
             }

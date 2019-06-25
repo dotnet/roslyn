@@ -703,7 +703,7 @@ public class B : I<(object X, object? Y)>
         }
 
         [Fact]
-        public void EmitMetadata_ImplementedInterfaces()
+        public void EmitAttribute_ImplementedInterfaces()
         {
             var source =
 @"#nullable enable
@@ -1212,6 +1212,96 @@ public class C2<T2>
                     Assert.True(typeParameter.HasNotNullConstraint);
                 }
             });
+        }
+
+        [Fact]
+        public void EmitAttribute_ConstraintTypes_01()
+        {
+            var source =
+@"#nullable enable
+public interface IA { }
+public interface IB<T> { }
+public interface I0<T>
+#nullable disable
+    where T : IA, IB<int>
+#nullable enable
+{
+    object F01();
+    object F02();
+}
+public interface I1<T>
+    where T : IA, IB<int>
+{
+    object? F11();
+    object? F12();
+}
+public interface I2<T>
+    where T : IA?, IB<object?>?
+{
+    object F21();
+    object F22();
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"[NullableContext(2)] IB<T>
+    T
+I0<T> where T : IA, IB<System.Int32>
+    [NullableContext(1)] System.Object! F01()
+    [NullableContext(1)] System.Object! F02()
+[NullableContext(1)] I1<T> where T : IA!, IB<System.Int32>!
+    [Nullable(0)] T
+    [NullableContext(2)] System.Object? F11()
+    [NullableContext(2)] System.Object? F12()
+[NullableContext(1)] I2<T> where T : IA?, IB<System.Object?>?
+    [Nullable(0)] T
+    System.Object! F21()
+    System.Object! F22()
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
+        public void EmitAttribute_ConstraintTypes_02()
+        {
+            var source =
+@"#nullable enable
+public interface IA { }
+public interface IB<T> { }
+public class Program
+{
+    public static void M0<T>(object x, object y)
+#nullable disable
+        where T : IA, IB<int>
+#nullable enable
+    {
+    }
+    public static void M1<T>(object? x, object? y)
+        where T : IA, IB<int>
+    {
+    }
+    public static void M2<T>(object x, object y)
+        where T : IA?, IB<object?>?
+    {
+    }
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"[NullableContext(2)] IB<T>
+    T
+Program
+    void M0<T>(System.Object! x, System.Object! y) where T : IA, IB<System.Int32>
+        [Nullable(1)] System.Object! x
+        [Nullable(1)] System.Object! y
+    [NullableContext(1)] void M1<T>(System.Object? x, System.Object? y) where T : IA!, IB<System.Int32>!
+        [Nullable(0)] T
+        [Nullable(2)] System.Object? x
+        [Nullable(2)] System.Object? y
+    [NullableContext(1)] void M2<T>(System.Object! x, System.Object! y) where T : IA?, IB<System.Object?>?
+        [Nullable(0)] T
+        System.Object! x
+        System.Object! y
+";
+            AssertNullableAttributes(comp, expected);
         }
 
         [Fact]

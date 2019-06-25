@@ -3355,6 +3355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 member.GetCommonNullableValues(compilation, ref builder);
             }
+            // Not including lambdas or local functions.
             return builder.MostCommonValue;
         }
 
