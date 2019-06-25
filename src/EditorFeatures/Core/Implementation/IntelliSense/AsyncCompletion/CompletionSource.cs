@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly ITextView _textView;
         private readonly bool _isDebuggerTextView;
         private readonly ImmutableHashSet<string> _roles;
+        private IExperimentationService _experimentationService;
 
         internal CompletionSource(ITextView textView, IThreadingContext threadingContext) : base(threadingContext)
         {
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Therefore, in each completion session we use a list of commit character for a specific completion service and a specific content type.
             _textView.Properties[PotentialCommitCharacters] = service.GetRules().DefaultCommitCharacters;
 
-            CheckForExperimentStatus(_textView, document);
+            CheckForExperimentStatus(_textView, document, GetOrCreateExperimentationService(document.Project.Solution.Workspace, cancellationToken));
 
             var sourceText = document.GetTextSynchronously(cancellationToken);
 
@@ -119,17 +120,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 : AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
 
             // For telemetry reporting purpose
-            static void CheckForExperimentStatus(ITextView textView, Document document)
+            static void CheckForExperimentStatus(ITextView textView, Document document, IExperimentationService experimentationService)
             {
                 var workspace = document.Project.Solution.Workspace;
 
-                var experimentationService = workspace.Services.GetService<IExperimentationService>();
                 textView.Properties[TargetTypeFilterExperimentEnabled] = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TargetTypedCompletionFilter);
 
                 var importCompletionOptionValue = workspace.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
                 var importCompletionExperimentValue = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TypeImportCompletion);
                 var isTypeImportEnababled = importCompletionOptionValue == true || (importCompletionOptionValue == null && importCompletionExperimentValue);
                 textView.Properties[TypeImportCompletionEnabled] = isTypeImportEnababled;
+            }
+        }
+
+        private IExperimentationService GetOrCreateExperimentationService(Workspace workspace, CancellationToken cancellationToken)
+        {
+            if (_experimentationService is null)
+            {
+                Interlocked.CompareExchange(ref _experimentationService, CreateExperimentationService(workspace, ThreadingContext, cancellationToken), null);
+            }
+
+            return _experimentationService;
+
+            // Local function
+            static IExperimentationService CreateExperimentationService(Workspace workspace, IThreadingContext threadingContext, CancellationToken cancellationToken)
+            {
+                return threadingContext.JoinableTaskFactory.Run(async () =>
+                {
+                    var experimentationServiceFactory = workspace.Services.GetRequiredService<IExperimentationServiceFactory>();
+                    return await experimentationServiceFactory.GetExperimentationServiceAsync(cancellationToken).ConfigureAwait(false);
+                });
             }
         }
 

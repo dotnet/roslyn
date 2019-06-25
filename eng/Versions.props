@@ -66,6 +66,7 @@
     <MicrosoftIdentityModelClientsActiveDirectoryVersion>3.13.8</MicrosoftIdentityModelClientsActiveDirectoryVersion>
     <MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>15.8.27812-alpha</MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>
     <MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>14.3.25407-alpha</MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>
+    <MicrosoftInternalVisualStudioShellInterop141DesignTimeVersion>14.0.25023</MicrosoftInternalVisualStudioShellInterop141DesignTimeVersion>
     <MicrosoftMetadataVisualizerVersion>1.0.0-beta1-63011-01</MicrosoftMetadataVisualizerVersion>
     <MicrosoftMSXMLVersion>8.0.0.0-alpha</MicrosoftMSXMLVersion>
     <MicrosoftNetCompilersToolsetVersion>3.2.0-beta4-19312-15</MicrosoftNetCompilersToolsetVersion>

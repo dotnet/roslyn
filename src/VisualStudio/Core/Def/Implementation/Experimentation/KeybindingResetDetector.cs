@@ -90,15 +90,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             _serviceProvider = serviceProvider;
         }
 
-        public Task InitializeAsync()
+        public async Task InitializeAsync()
         {
             // Immediately bail if the user has asked to never see this bar again.
             if (_workspace.Options.GetOption(KeybindingResetOptions.NeverShowAgain))
             {
-                return Task.CompletedTask;
+                return;
             }
 
-            return InvokeBelowInputPriorityAsync(InitializeCore);
+            var experimentationServiceFactory = _workspace.Services.GetRequiredService<IExperimentationServiceFactory>();
+            _experimentationService = await experimentationServiceFactory.GetExperimentationServiceAsync(CancellationToken.None).ConfigureAwait(false);
+
+            await InvokeBelowInputPriorityAsync(InitializeCore).ConfigureAwait(false);
         }
 
         private void InitializeCore()
@@ -106,7 +109,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             AssertIsForeground();
 
             // Ensure one of the flights is enabled, otherwise bail
-            _experimentationService = _workspace.Services.GetRequiredService<IExperimentationService>();
             if (!_experimentationService.IsExperimentEnabled(ExternalFlightName) && !_experimentationService.IsExperimentEnabled(InternalFlightName))
             {
                 return;

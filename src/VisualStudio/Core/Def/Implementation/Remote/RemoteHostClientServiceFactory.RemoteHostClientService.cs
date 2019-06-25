@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             public Workspace Workspace => _workspace;
             public IAsynchronousOperationListener Listener => _listener;
 
-            public void Enable()
+            public void Enable(IExperimentationService experimentationService)
             {
                 lock (_gate)
                 {
@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     }
 
                     // set bitness
-                    SetRemoteHostBitness();
+                    SetRemoteHostBitness(experimentationService);
 
                     // make sure we run it on background thread
                     _shutdownCancellationTokenSource = new CancellationTokenSource();
@@ -178,13 +178,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return remoteClientTask;
             }
 
-            private void SetRemoteHostBitness()
+            private void SetRemoteHostBitness(IExperimentationService experimentationService)
             {
                 var x64 = _workspace.Options.GetOption(RemoteHostOptions.OOP64Bit);
                 if (!x64)
                 {
-                    x64 = _workspace.Services.GetService<IExperimentationService>().IsExperimentEnabled(
-                        WellKnownExperimentNames.RoslynOOP64bit);
+                    x64 = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.RoslynOOP64bit);
                 }
 
                 // log OOP bitness

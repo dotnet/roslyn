@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
             if (importCompletionOptionValue == false ||
-                (importCompletionOptionValue == null && !IsTypeImportCompletionExperimentEnabled(workspace)))
+                (importCompletionOptionValue == null && !await IsTypeImportCompletionExperimentEnabledAsync(workspace, cancellationToken).ConfigureAwait(false)))
             {
                 return;
             }
@@ -62,11 +62,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private bool IsTypeImportCompletionExperimentEnabled(Workspace workspace)
+        private async Task<bool> IsTypeImportCompletionExperimentEnabledAsync(Workspace workspace, CancellationToken cancellationToken)
         {
             if (!_isTypeImportCompletionExperimentEnabled.HasValue)
             {
-                var experimentationService = workspace.Services.GetService<IExperimentationService>();
+                var experimentationServiceFactory = workspace.Services.GetService<IExperimentationServiceFactory>();
+                var experimentationService = await experimentationServiceFactory.GetExperimentationServiceAsync(cancellationToken).ConfigureAwait(false);
                 _isTypeImportCompletionExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TypeImportCompletion);
             }
 

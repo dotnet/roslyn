@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -89,7 +90,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 this.Workspace.StartSolutionCrawler();
 
                 // start remote host
-                EnableRemoteHostClientService();
+                var experimentationServiceFactory = Workspace.Services.GetRequiredService<IExperimentationServiceFactory>();
+                var experimentationService = await experimentationServiceFactory.GetExperimentationServiceAsync(cancellationToken).ConfigureAwait(true);
+                EnableRemoteHostClientService(experimentationService);
             }
 
             LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
@@ -186,9 +189,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             return false;
         }
 
-        private void EnableRemoteHostClientService()
+        private void EnableRemoteHostClientService(IExperimentationService experimentationService)
         {
-            ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).Enable();
+            ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).Enable(experimentationService);
         }
 
         private void DisableRemoteHostClientService()

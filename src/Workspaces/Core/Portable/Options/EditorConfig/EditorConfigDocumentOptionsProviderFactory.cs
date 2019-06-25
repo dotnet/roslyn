@@ -21,32 +21,41 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
 
         public IDocumentOptionsProvider TryCreate(Workspace workspace)
         {
-            if (!ShouldUseNativeEditorConfigSupport(workspace))
-            {
-                // Simply disable if the feature isn't on
-                return null;
-            }
-
-            return new EditorConfigDocumentOptionsProvider(workspace.Services.GetService<IErrorLoggerService>());
+            return new EditorConfigDocumentOptionsProvider(
+                workspace.Services.GetService<IErrorLoggerService>(),
+                workspace.Services.GetRequiredService<IExperimentationServiceFactory>());
         }
 
-        public static bool ShouldUseNativeEditorConfigSupport(Workspace workspace)
+        public static bool ShouldUseNativeEditorConfigSupport(IExperimentationService experimentationService)
         {
-            var experimentationService = workspace.Services.GetService<IExperimentationService>();
             return experimentationService.IsExperimentEnabled(WellKnownExperimentNames.NativeEditorConfigSupport);
         }
 
         private class EditorConfigDocumentOptionsProvider : IDocumentOptionsProvider
         {
             private readonly IErrorLoggerService _errorLogger;
+            private readonly IExperimentationServiceFactory _experimentationServiceFactory;
+            private bool? _enabled;
 
-            public EditorConfigDocumentOptionsProvider(IErrorLoggerService errorLogger)
+            public EditorConfigDocumentOptionsProvider(IErrorLoggerService errorLogger, IExperimentationServiceFactory experimentationServiceFactory)
             {
                 _errorLogger = errorLogger;
+                _experimentationServiceFactory = experimentationServiceFactory;
             }
 
             public async Task<IDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
             {
+                if (_enabled is null)
+                {
+                    var experimentationService = await _experimentationServiceFactory.GetExperimentationServiceAsync(cancellationToken);
+                    _enabled = ShouldUseNativeEditorConfigSupport(experimentationService);
+                }
+
+                if (_enabled != true)
+                {
+                    return null;
+                }
+
                 var options = await document.GetAnalyzerOptionsAsync(cancellationToken).ConfigureAwait(false);
 
                 return new DocumentOptions(options, _errorLogger);

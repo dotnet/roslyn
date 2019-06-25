@@ -28,10 +28,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             if (workspaceServices.Workspace is VisualStudioWorkspace vsWorkspace)
             {
-                var experimentationService = vsWorkspace.Services.GetService<IExperimentationService>();
-                if (!experimentationService.IsExperimentEnabled(WellKnownExperimentNames.PartialLoadMode))
+                var experimentationServiceFactory = vsWorkspace.Services.GetService<IExperimentationServiceFactory>();
+                var experimentationServiceTask = experimentationServiceFactory.GetExperimentationServiceAsync(CancellationToken.None);
+                if (experimentationServiceTask.IsCompleted && !experimentationServiceTask.Result.IsExperimentEnabled(WellKnownExperimentNames.PartialLoadMode))
                 {
-                    // don't enable partial load mode for ones that are not in experiment yet
+                    // Don't enable partial load mode for ones that are not in experiment yet. If the experimentation
+                    // service isn't available by the time this is called, the VS Service instance is used and it will
+                    // check the value of the experiment at the time individual features are needed.
                     return WorkspaceStatusService.Default;
                 }
 
@@ -49,6 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private class Service : IWorkspaceStatusService
         {
             private readonly VisualStudioWorkspace _workspace;
+            private bool? _experimentEnabled;
 
             // only needed for testing
             private ResettableDelay _lastTimeCalled;
@@ -63,6 +67,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public async System.Threading.Tasks.Task WaitUntilFullyLoadedAsync(CancellationToken cancellationToken)
             {
+                if (!await IsPartialLoadModeExperimentEnabledAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return;
+                }
+
                 if (_workspace.Options.GetOption(ExperimentationOptions.SolutionStatusService_ForceDelay))
                 {
                     await System.Threading.Tasks.Task.Delay(_workspace.Options.GetOption(ExperimentationOptions.SolutionStatusService_DelayInMS)).ConfigureAwait(false);
@@ -82,8 +91,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 await taskCompletionSource.Task.ConfigureAwait(false);
             }
 
-            public Task<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
+            public async Task<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
             {
+                if (!await IsPartialLoadModeExperimentEnabledAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return true;
+                }
+
                 if (_workspace.Options.GetOption(ExperimentationOptions.SolutionStatusService_ForceDelay))
                 {
                     // this is for prototype/mock for people/teams trying partial solution load prototyping
@@ -106,21 +120,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         _lastTimeCalled = new ResettableDelay(delayInMilliseconds: delay, AsynchronousOperationListenerProvider.NullListener);
                         _ = _lastTimeCalled.Task.SafeContinueWith(_ => StatusChanged?.Invoke(this, true), TaskScheduler.Default);
 
-                        return SpecializedTasks.False;
+                        return false;
                     }
 
                     if (_lastTimeCalled.Task.IsCompleted)
                     {
                         _lastTimeCalled = null;
-                        return SpecializedTasks.True;
+                        return true;
                     }
 
                     _lastTimeCalled.Reset();
-                    return SpecializedTasks.False;
+                    return false;
                 }
 
                 // we are using this API for now, until platform provide us new API for prototype
-                return KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsActive ? SpecializedTasks.True : SpecializedTasks.False;
+                return KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsActive;
+            }
+
+            private async Task<bool> IsPartialLoadModeExperimentEnabledAsync(CancellationToken cancellationToken)
+            {
+                if (_experimentEnabled is null)
+                {
+                    var experimentationServiceFactory = _workspace.Services.GetRequiredService<IExperimentationServiceFactory>();
+                    var experimentationService = await experimentationServiceFactory.GetExperimentationServiceAsync(cancellationToken).ConfigureAwait(false);
+                    _experimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.PartialLoadMode);
+                }
+
+                return _experimentEnabled.Value;
             }
         }
     }

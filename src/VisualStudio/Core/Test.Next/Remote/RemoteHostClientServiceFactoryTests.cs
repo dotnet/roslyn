@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Options;
@@ -30,18 +31,18 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
     public class RemoteHostClientServiceFactoryTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public void Creation()
+        public async Task Creation()
         {
-            var service = CreateRemoteHostClientService();
+            var (service, _) = await CreateRemoteHostClientServiceAsync();
             Assert.NotNull(service);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task Enable_Disable()
         {
-            var service = CreateRemoteHostClientService();
+            var (service, experimentationService) = await CreateRemoteHostClientServiceAsync();
 
-            service.Enable();
+            service.Enable(experimentationService);
 
             var enabledClient = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
             Assert.NotNull(enabledClient);
@@ -55,8 +56,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task ClientId()
         {
-            var service = CreateRemoteHostClientService();
-            service.Enable();
+            var (service, experimentationService) = await CreateRemoteHostClientServiceAsync();
+            service.Enable(experimentationService);
 
             var client1 = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
             var id1 = client1.ClientId;
@@ -78,9 +79,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices());
 
             var analyzerReference = new AnalyzerFileReference(typeof(object).Assembly.Location, new NullAssemblyAnalyzerLoader());
-            var service = CreateRemoteHostClientService(workspace, SpecializedCollections.SingletonEnumerable<AnalyzerReference>(analyzerReference));
+            var (service, experimentationService) = await CreateRemoteHostClientServiceAsync(workspace, SpecializedCollections.SingletonEnumerable<AnalyzerReference>(analyzerReference));
 
-            service.Enable();
+            service.Enable(experimentationService);
 
             // make sure client is ready
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
@@ -101,9 +102,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices());
 
             var analyzerReference = new AnalyzerFileReference(typeof(object).Assembly.Location, new NullAssemblyAnalyzerLoader());
-            var service = CreateRemoteHostClientService(workspace, SpecializedCollections.SingletonEnumerable<AnalyzerReference>(analyzerReference));
+            var (service, experimentationService) = await CreateRemoteHostClientServiceAsync(workspace, SpecializedCollections.SingletonEnumerable<AnalyzerReference>(analyzerReference));
 
-            service.Enable();
+            service.Enable(experimentationService);
 
             // make sure client is ready
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None) as InProcRemoteHostClient;
@@ -124,9 +125,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var listenerProvider = exportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             var analyzerReference = new AnalyzerFileReference(typeof(object).Assembly.Location, new NullAssemblyAnalyzerLoader());
 
-            var service = CreateRemoteHostClientService(workspace, SpecializedCollections.SingletonEnumerable<AnalyzerReference>(analyzerReference), listenerProvider);
+            var (service, experimentationService) = await CreateRemoteHostClientServiceAsync(workspace, SpecializedCollections.SingletonEnumerable<AnalyzerReference>(analyzerReference), listenerProvider);
 
-            service.Enable();
+            service.Enable(experimentationService);
 
             // make sure client is ready
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
@@ -150,9 +151,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestSessionWithNoSolution()
         {
-            var service = CreateRemoteHostClientService();
+            var (service, experimentationService) = await CreateRemoteHostClientServiceAsync();
 
-            service.Enable();
+            service.Enable(experimentationService);
 
             var mock = new MockLogAndProgressService();
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
@@ -171,8 +172,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         public async Task TestSessionClosed()
         {
             // enable local remote host service
-            var service = CreateRemoteHostClientService();
-            service.Enable();
+            var (service, experimentationService) = await CreateRemoteHostClientServiceAsync();
+            service.Enable(experimentationService);
 
             var client = (InProcRemoteHostClient)(await service.TryGetRemoteHostClientAsync(CancellationToken.None));
 
@@ -203,9 +204,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestRequestNewRemoteHost()
         {
-            var service = CreateRemoteHostClientService();
+            var (service, experimentationService) = await CreateRemoteHostClientServiceAsync();
 
-            service.Enable();
+            service.Enable(experimentationService);
 
             var completionTask = new TaskCompletionSource<bool>();
 
@@ -228,7 +229,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             service.Disable();
         }
 
-        private RemoteHostClientServiceFactory.RemoteHostClientService CreateRemoteHostClientService(
+        private async Task<(RemoteHostClientServiceFactory.RemoteHostClientService remoteHostClientService, IExperimentationService experimentationService)> CreateRemoteHostClientServiceAsync(
             Workspace workspace = null,
             IEnumerable<AnalyzerReference> hostAnalyzerReferences = null,
             IAsynchronousOperationListenerProvider listenerProvider = null)
@@ -240,9 +241,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var analyzerService = GetDiagnosticAnalyzerService(hostAnalyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>());
 
+            var experimentationServiceFactory = workspace.Services.GetRequiredService<IExperimentationServiceFactory>();
+            var experimentationService = await experimentationServiceFactory.GetExperimentationServiceAsync(CancellationToken.None).ConfigureAwait(false);
+
             var threadingContext = ((IMefHostExportProvider)workspace.Services.HostServices).GetExports<IThreadingContext>().Single().Value;
             var factory = new RemoteHostClientServiceFactory(threadingContext, listenerProvider ?? AsynchronousOperationListenerProvider.NullProvider, analyzerService);
-            return factory.CreateService(workspace.Services) as RemoteHostClientServiceFactory.RemoteHostClientService;
+            return (factory.CreateService(workspace.Services) as RemoteHostClientServiceFactory.RemoteHostClientService, experimentationService);
         }
 
         private IDiagnosticAnalyzerService GetDiagnosticAnalyzerService(IEnumerable<AnalyzerReference> references)
