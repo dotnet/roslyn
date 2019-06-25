@@ -1213,5 +1213,68 @@ internal sealed class CustomSerializingType : ISerializable
 }",
     Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
+
+        [WorkItem(36715, "https://github.com/dotnet/roslyn/issues/36715")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task GenericLocalFunction_02()
+        {
+            await TestDiagnosticsAsync(
+@"using System.Collections.Generic;
+
+class C
+{
+    void M(object [|value|])
+    {
+        try
+        {
+            value = LocalFunc(0);
+        }
+        finally
+        {
+            value = LocalFunc(0);
+        }
+
+        return;
+
+        IEnumerable<T> LocalFunc<T>(T value)
+        {
+            yield return value;
+        }
+    }
+}",
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [WorkItem(36715, "https://github.com/dotnet/roslyn/issues/36715")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task GenericLocalFunction_03()
+        {
+            await TestDiagnosticsAsync(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void M(object [|value|])
+    {
+        Func<object, IEnumerable<object>> myDel = LocalFunc;
+        try
+        {
+            value = myDel(value);
+        }
+        finally
+        {
+            value = myDel(value);
+        }
+
+        return;
+
+        IEnumerable<T> LocalFunc<T>(T value)
+        {
+            yield return value;
+        }
+    }
+}");
+        }
     }
 }
