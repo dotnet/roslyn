@@ -426,12 +426,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             {
                 var value = base.VisitIsNull(operation, argument);
 
-                // Mark a location as validated on paths where we know it is non-null.
+                // Mark a location as validated on paths where user has performed an IsNull check.
                 // See comments in VisitBinaryOperatorCore override above for further details.
-                if (FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse)
-                {
-                    MarkValidatedLocations(operation.Operand);
-                }
+                MarkValidatedLocations(operation.Operand);
 
                 return value;
             }

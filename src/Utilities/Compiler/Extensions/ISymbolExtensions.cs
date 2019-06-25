@@ -202,7 +202,7 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool MatchMemberDerivedByName(this ISymbol member, INamedTypeSymbol type, string name)
         {
-            return member != null && member.ContainingType.DerivesFrom(type) && member.MetadataName == name;
+            return member != null && member.MetadataName == name && member.ContainingType.DerivesFrom(type);
         }
 
         public static bool MatchMethodDerivedByName(this IMethodSymbol method, INamedTypeSymbol type, string name)
@@ -484,7 +484,7 @@ namespace Analyzer.Utilities.Extensions
             }
 
             return symbol.IsOverride &&
-                symbol.GetOverriddenMember().IsOverrideOrImplementationOfInterfaceMember(interfaceMember);
+                symbol.GetOverriddenMember()?.IsOverrideOrImplementationOfInterfaceMember(interfaceMember) == true;
         }
 
         /// <summary>
@@ -546,11 +546,11 @@ namespace Analyzer.Utilities.Extensions
                     return ((IParameterSymbol)symbol).Type;
 
                 default:
-                    return GetMemerType(symbol);
+                    return GetMemberType(symbol);
             }
         }
 
-        public static ITypeSymbol GetMemerType(this ISymbol symbol)
+        public static ITypeSymbol GetMemberType(this ISymbol symbol)
         {
             switch (symbol.Kind)
             {

@@ -67,6 +67,16 @@
         <target state="translated">公用 API 檔案的內容無效</target>
         <note />
       </trans-unit>
+      <trans-unit id="PublicApiFilesMissingMessage">
+        <source>The solution must contain two files with the type "AdditionalFiles": PublicAPI.Unshipped.txt and PublicAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
+        <target state="new">The solution must contain two files with the type "AdditionalFiles": PublicAPI.Unshipped.txt and PublicAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFilesMissingTitle">
+        <source>One or both of the public API files are missing</source>
+        <target state="new">One or both of the public API files are missing</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">
         <source>implicit constructor for {0}</source>
         <target state="translated">{0} 的隱含建構函式</target>

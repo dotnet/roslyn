@@ -29,6 +29,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 isConstructorSanitizing: false,
                 sanitizingMethods: new[] {
                     "Substring",
+                },
+                sanitizingInstanceMethods: new[] {
+                    "StartsWith",
                 });
 
             SanitizerInfos = builder.ToImmutableAndFree();

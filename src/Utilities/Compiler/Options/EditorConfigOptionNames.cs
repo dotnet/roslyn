@@ -34,6 +34,11 @@ namespace Analyzer.Utilities
         public const string ExcludeSingleLetterTypeParameters = "exclude_single_letter_type_parameters";
 
         /// <summary>
+        /// Integral option to configure sufficient IterationCount when using weak KDF algorithm.
+        /// </summary>
+        public const string SufficientIterationCountForWeakKDFAlgorithm = "sufficient_IterationCount_for_weak_KDF_algorithm";
+
+        /// <summary>
         /// String option to configure names of null check validation methods (separated by '~') that validate arguments passed to the method are non-null for CA1062 (https://docs.microsoft.com/visualstudio/code-quality/ca1062-validate-arguments-of-public-methods).
         /// Allowed method name formats:
         ///   1. Method name only (includes all methods with the name, regardless of the containing type or namespace)
