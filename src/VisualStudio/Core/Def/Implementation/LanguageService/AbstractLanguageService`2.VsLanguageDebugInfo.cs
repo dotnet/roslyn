@@ -390,7 +390,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         title: ServicesVSResources.Debugger,
                         message: ServicesVSResources.Getting_DataTip_text,
                         allowCancel: true,
-                        action: (Action<IWaitContext>)(waitContext =>
+                        action: waitContext =>
                     {
                         var debugger = _languageService.Debugger;
                         DBGMODE[] debugMode = new DBGMODE[1];
@@ -404,7 +404,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                             var subjectBuffer = editorAdapters.GetDataBuffer(pBuffer);
 
                             var textSnapshot = subjectBuffer.CurrentSnapshot;
-                            var document = CodeAnalysis.Text.Extensions.GetDocument(textSnapshot);
+                            var document = textSnapshot.GetDocument();
 
                             if (document != null)
                             {
@@ -423,7 +423,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                                 }
                             }
                         }
-                    }));
+                    });
 
                     pbstrText = pbstrTextInternal;
                     return result;
