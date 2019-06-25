@@ -240,7 +240,9 @@ class Program
             Assert.Equal((byte)0, getMostCommonValue(0));
             Assert.Equal((byte)1, getMostCommonValue(1));
             Assert.Equal((byte)2, getMostCommonValue(2));
+#if !DEBUG
             Assert.Throws<InvalidOperationException>(() => getMostCommonValue(3));
+#endif
             Assert.Equal((byte)0, getMostCommonValue(0, 0));
             Assert.Equal((byte)0, getMostCommonValue(0, 1));
             Assert.Equal((byte)0, getMostCommonValue(1, 0));
@@ -248,7 +250,9 @@ class Program
             Assert.Equal((byte)1, getMostCommonValue(1, 2));
             Assert.Equal((byte)1, getMostCommonValue(2, 1));
             Assert.Equal((byte)2, getMostCommonValue(2, 2));
+#if !DEBUG
             Assert.Throws<InvalidOperationException>(() => getMostCommonValue(2, 3));
+#endif
             Assert.Equal((byte)0, getMostCommonValue(0, null));
             Assert.Equal((byte)0, getMostCommonValue(null, 0));
             Assert.Equal((byte)1, getMostCommonValue(1, null));
