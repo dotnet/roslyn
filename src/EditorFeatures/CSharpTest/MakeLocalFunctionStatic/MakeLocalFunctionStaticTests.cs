@@ -359,5 +359,40 @@ class C
 }}",
 parseOptions: CSharp8ParseOptions);
         }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [InlineData("\r\n")]
+        [InlineData("\r\n\r\n")]
+        public async Task TestLeadingTriviaBeforeComment(string leadingTrivia)
+        {
+            await TestInRegularAndScriptAsync(
+$@"using System;
+
+class C
+{{
+    void M()
+    {{{leadingTrivia}
+        //Local function comment
+        int [||]fibonacci(int n)
+        {{
+            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+        }}
+    }}
+}}",
+$@"using System;
+
+class C
+{{
+    void M()
+    {{{leadingTrivia}
+        //Local function comment
+        static int fibonacci(int n)
+        {{
+            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+        }}
+    }}
+}}",
+parseOptions: CSharp8ParseOptions);
+        }
     }
 }
