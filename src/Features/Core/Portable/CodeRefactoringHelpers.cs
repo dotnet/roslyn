@@ -39,14 +39,22 @@ namespace Microsoft.CodeAnalysis
         public static async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
             Document document, TextSpan selection, Func<SyntaxNode, SyntaxNode> extractNode, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
+            return await TryGetSelectedNodeAsync(document, selection, extractNode, n => n is TSyntaxNode, cancellationToken).ConfigureAwait(false) as TSyntaxNode;
+        }
+
+        public static async Task<SyntaxNode> TryGetSelectedNodeAsync(
+            Document document, TextSpan selection, Func<SyntaxNode, SyntaxNode> extractNode, Predicate<SyntaxNode> predicate, CancellationToken cancellationToken)
+        {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var selectionStripped = await GetStrippedTextSpan(document, selection, cancellationToken).ConfigureAwait(false);
 
+            // Handle selections
             var node = root.FindNode(selectionStripped, getInnermostNodeForTie: true);
             SyntaxNode prevNode;
             do
             {
-                if (extractNode(node) is TSyntaxNode extrNode)
+                var extrNode = extractNode(node);
+                if (extrNode != default && predicate(extrNode))
                 {
                     return extrNode;
                 }
@@ -69,7 +77,8 @@ namespace Microsoft.CodeAnalysis
             do
             {
                 // either touches a Token which parent is `TSyntaxNode` or is whose ancestor's span ends on selection
-                if (extractNode(leftNode) is TSyntaxNode extrNode)
+                var extrNode = extractNode(leftNode);
+                if (extrNode != default && predicate(extrNode))
                 {
                     return extrNode;
                 }
@@ -83,7 +92,8 @@ namespace Microsoft.CodeAnalysis
             do
             {
                 // either touches a Token which parent is `TSyntaxNode` or is whose ancestor's span starts on selection
-                if (extractNode(rightNode) is TSyntaxNode extrNode)
+                var extrNode = extractNode(rightNode);
+                if (extrNode != default && predicate(extrNode))
                 {
                     return extrNode;
                 }

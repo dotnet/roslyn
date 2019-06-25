@@ -382,6 +382,15 @@ namespace Roslyn.Utilities
         public static readonly Func<T, T> Identity = t => t;
         public static readonly Func<T, bool> True = t => true;
     }
+
+    /// <summary>
+    /// Cached versions of commonly used delegates.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    internal static class Predicates<T>
+    {
+        public static readonly Predicate<T> True = t => true;
+    }
 }
 
 namespace System.Linq

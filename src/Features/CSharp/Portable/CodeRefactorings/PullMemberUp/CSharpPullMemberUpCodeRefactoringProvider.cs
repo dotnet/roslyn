@@ -1,12 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
 {
@@ -25,42 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
         {
         }
 
-        protected override bool IsSelectionValid(TextSpan span, SyntaxNode selectedNode)
+        protected override async Task<SyntaxNode> GetSelectedNode(Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var identifier = GetIdentifier(selectedNode);
-            if (identifier == default)
-            {
-                return false;
-            }
-            else if (identifier.FullSpan.Contains(span) && span.Contains(identifier.Span))
-            {
-                // Selection lies within the identifier's span
-                return true;
-            }
-            else if (identifier.Span.Contains(span) && span.IsEmpty)
-            {
-                // Cursor stands on the identifier
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        private SyntaxToken GetIdentifier(SyntaxNode selectedNode)
-        {
-            switch (selectedNode)
-            {
-                case MemberDeclarationSyntax memberDeclarationSyntax:
-                    // Nested type is checked in before this method is called.
-                    return memberDeclarationSyntax.GetNameToken();
-                case VariableDeclaratorSyntax variableDeclaratorSyntax:
-                    // It handles multiple fields or events declared in one line
-                    return variableDeclaratorSyntax.Identifier;
-                default:
-                    return default;
-            }
+            return await CodeRefactoringHelpers.TryGetSelectedNodeAsync(
+                document, span, Functions<SyntaxNode>.Identity,
+                (n) => n is MemberDeclarationSyntax || n is VariableDeclaratorSyntax, cancellationToken).ConfigureAwait(false);
         }
     }
 }
