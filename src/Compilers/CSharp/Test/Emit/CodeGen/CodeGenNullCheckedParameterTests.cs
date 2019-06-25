@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System;
 using System.Collections.Immutable;
 using Xunit;
 
@@ -338,6 +339,7 @@ class C
         public void TestNullCheckedIndexedGetterSetter()
         {
             var source = @"
+using System;
 class C
 {
     private object[] items = {'h', ""hello""};
@@ -345,11 +347,18 @@ class C
     {
         get
         {
-            return null;
+            return items[0].ToString();
         }
-        set { }
+        set
+        {
+            items[0] = value;
+        }
     }
-    public static void Main() { }
+    public static void Main() 
+    {
+        C c = new C();
+        Console.WriteLine((string)c[""world""] ?? ""didn't work"");
+    }
 }";
             // Release
             var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe);
@@ -617,7 +626,7 @@ ok
 System.ArgumentNullException");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE")]
         public void TestNullCheckingExpectedOutput2()
         {
             var source = @"

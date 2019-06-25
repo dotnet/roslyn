@@ -1,24 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
-        internal BoundStatement RewriteNullChecking(BoundStatement body)
+        internal BoundStatement RewriteNullChecking(ImmutableArray<BoundStatement> statements, ImmutableArray<LocalSymbol> locals)
         {
             if (_factory.CurrentFunction.Parameters.Any(x => x is SourceParameterSymbolBase param
-                                            && param.IsNullChecked)
-                && ((BoundStatement)Visit(body) is BoundBlock block))
+                                                             && param.IsNullChecked))
             {
-                return (BoundStatement)AddNullChecksToBody(block);
+                return (BoundStatement)AddNullChecksToBody(statements, locals);
             }
-            return body;
+            return _factory.Block(locals, statements);
         }
 
-        private BoundNode AddNullChecksToBody(BoundBlock body)
+        private BoundNode AddNullChecksToBody(ImmutableArray<BoundStatement> bodyStatements, ImmutableArray<LocalSymbol> locals)
         {
             var statementList = ArrayBuilder<BoundStatement>.GetInstance();
             foreach (ParameterSymbol x in _factory.TopLevelMethod.Parameters)
@@ -31,16 +32,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // PROTOTYPE : Warning or Error, see CodeGenNullCheckedParameterTests.TestNullCheckedSubstitution2
                         continue;
                     }
-                    var constructedIf = ConstructIfStatementForParameter(body, param);
+                    var constructedIf = ConstructIfStatementForParameter(param);
                     statementList.Add(constructedIf);
                 }
             }
-            statementList.AddRange(body.Statements);
+            statementList.AddRange(bodyStatements);
 
-            return _factory.Block(body.Locals, statementList.ToImmutableAndFree());
+            return _factory.Block(locals, statementList.ToImmutableAndFree());
         }
 
-        private BoundStatement ConstructIfStatementForParameter(BoundBlock body, SourceParameterSymbolBase parameter)
+        private BoundStatement ConstructIfStatementForParameter(SourceParameterSymbolBase parameter)
         {
             BoundExpression paramIsNullCondition;
             var loweredLeft = _factory.Parameter(parameter);
@@ -48,15 +49,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (loweredLeft.Type.IsNullableType())
             {
-                paramIsNullCondition = MakeNullableHasValue(body.Syntax, loweredLeft);
+                paramIsNullCondition = MakeNullableHasValue(loweredLeft.Syntax, loweredLeft);
             }
             else
             {
-                paramIsNullCondition = MakeNullCheck(body.Syntax, loweredLeft, BinaryOperatorKind.Equal);
-                //paramIsNullCondition = _factory.ObjectEqual(_factory.Convert(_factory.SpecialType(SpecialType.System_Object), loweredLeft), loweredRight);
+                paramIsNullCondition = MakeNullCheck(loweredLeft.Syntax, loweredLeft, BinaryOperatorKind.Equal);
             }
             // PROTOTYPE : Make ArgumentNullException
             BoundThrowStatement throwArgNullStatement = _factory.Throw(_factory.New(_factory.WellKnownType(WellKnownType.System_Exception)));
+
             return _factory.HiddenSequencePoint(_factory.If(paramIsNullCondition, throwArgNullStatement));
         }
     }

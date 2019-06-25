@@ -95,7 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, statement, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics,
                                                       dynamicInstrumenter != null ? new DebugInfoInjector(dynamicInstrumenter) : DebugInfoInjector.Singleton);
                 statement.CheckLocalsDefined();
-                var loweredStatement = (BoundStatement)localRewriter.Visit(statement);
+                var visited = localRewriter.Visit(statement);
+                var loweredStatement = (BoundStatement)visited;
                 loweredStatement.CheckLocalsDefined();
                 sawLambdas = localRewriter._sawLambdas;
                 sawLocalFunctions = localRewriter._sawLocalFunctions;
@@ -113,10 +114,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     dynamicAnalysisSpans = dynamicInstrumenter.DynamicAnalysisSpans;
                 }
+
+                if (visited is BoundBlock block)
+                {
+                    loweredStatement = localRewriter.RewriteNullChecking(block.Statements, block.Locals);
+                }
 #if DEBUG
                 LocalRewritingValidator.Validate(loweredStatement);
 #endif
-                loweredStatement = localRewriter.RewriteNullChecking(loweredStatement);
                 return loweredStatement;
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
