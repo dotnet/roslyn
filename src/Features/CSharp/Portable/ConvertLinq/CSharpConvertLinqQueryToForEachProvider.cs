@@ -52,22 +52,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             {
                 switch (current)
                 {
-                    case LocalDeclarationStatementSyntax lds:
+                    case LocalDeclarationStatementSyntax localDeclaration:
                         {
-                            if (lds.Declaration.Variables.Count == 1 && lds.Declaration.Variables.First().Initializer != null)
+                            if (localDeclaration.Declaration.Variables.Count == 1 && localDeclaration.Declaration.Variables.First().Initializer != null)
                             {
-                                var initializer = lds.Declaration.Variables.First().Initializer;
+                                var initializer = localDeclaration.Declaration.Variables.First().Initializer;
                                 return initializer.Value as TNode;
                             }
 
                             break;
                         }
 
-                    case ExpressionStatementSyntax es:
+                    case ExpressionStatementSyntax expressionStatement:
                         {
-                            if (es.Expression is AssignmentExpressionSyntax aes)
+                            if (expressionStatement.Expression is AssignmentExpressionSyntax assignmentExpression)
                             {
-                                return aes.Right as TNode;
+                                return assignmentExpression.Right as TNode;
                             }
 
                             break;

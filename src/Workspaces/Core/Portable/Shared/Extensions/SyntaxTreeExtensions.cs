@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         /// <summary>
-        /// Gets a token that contains or which start edge touches <paramref name="position"/>. I.e returns token 
+        /// Gets a token that contains or whose start edge touches <paramref name="position"/>. I.e returns token 
         /// directly to the right from <paramref name="position"/> or a token that encompasses <paramref name="position"/>.
         /// If such Token doesn't exist a Kind = None Token is returned. 
         /// </summary>
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         /// <summary>
-        /// Gets a token which end edge touches specified <paramref name="position"/>. I.e returns token 
+        /// Gets a token whose end edge touches specified <paramref name="position"/>. I.e returns token 
         /// directly to the left from <paramref name="position"/> or a token of Kind = None if the caret is 
         /// not the end of any Token. 
         /// </summary>

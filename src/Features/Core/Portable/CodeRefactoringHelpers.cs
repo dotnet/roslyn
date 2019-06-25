@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         public static Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
             Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
-            return TryGetSelectedNodeAsync<TSyntaxNode>(document, selection, (n) => n, cancellationToken);
+            return TryGetSelectedNodeAsync<TSyntaxNode>(document, selection, Functions<SyntaxNode>.Identity, cancellationToken);
         }
 
         public static async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
@@ -53,7 +54,8 @@ namespace Microsoft.CodeAnalysis
                 prevNode = node;
                 node = node.Parent;
 
-            } while (node != null && prevNode.FullWidth() == node.FullWidth());
+            }
+            while (node != null && prevNode.FullWidth() == node.FullWidth());
 
             // only consider what is direct selection touching when selection is empty 
             // prevents `[|C|] methodName(){}` from registering as relevant for method Node
@@ -73,8 +75,8 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 leftNode = leftNode?.Parent;
-            } while (leftNode != null && leftNode.Span.End == selection.Start);
-
+            }
+            while (leftNode != null && leftNode.Span.End == selection.Start);
 
             var tokenToRight = await root.SyntaxTree.GetTouchingTokenToRightOrInAsync(selectionStripped.Start, cancellationToken).ConfigureAwait(false);
             var rightNode = tokenToRight.Parent;
@@ -87,10 +89,10 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 rightNode = rightNode?.Parent;
-            } while (rightNode != null && rightNode.Span.Start == selection.Start);
+            }
+            while (rightNode != null && rightNode.Span.Start == selection.Start);
 
             return default;
-
         }
 
         public static Task<bool> RefactoringSelectionIsValidAsync(
@@ -246,9 +248,7 @@ namespace Microsoft.CodeAnalysis
                 start++;
             }
 
-            return start == end
-                ? new TextSpan(start, 0)
-                : TextSpan.FromBounds(start, end);
+            return TextSpan.FromBounds(start, end);
         }
     }
 }
