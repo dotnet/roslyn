@@ -36,7 +36,7 @@ jobs:
       continueOnError: ${{ parameters.continueOnError }}
   - ${{ if eq(parameters.overrideParameters, '') }}:
     - powershell: eng/common/sdl/execute-all-sdl-tools.ps1
-        -GuardianPackageName Microsoft.Guardian.Cli.0.3.2
+        -GuardianPackageName Microsoft.Guardian.Cli.0.6.0
         -NugetPackageDirectory $(Build.SourcesDirectory)\.packages
         -AzureDevOpsAccessToken $(dn-bot-dotnet-build-rw-code-rw)
         ${{ parameters.additionalParameters }}
