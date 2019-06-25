@@ -4,7 +4,6 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.LanguageServer</RootNamespace>
-    <CreateVsixContainer>false</CreateVsixContainer>
     <TargetFramework>net472</TargetFramework>
     
     <IsPackable>true</IsPackable>

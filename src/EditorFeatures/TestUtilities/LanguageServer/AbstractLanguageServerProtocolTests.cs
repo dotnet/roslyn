@@ -63,14 +63,17 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         protected static void AssertLocationsEqual(IEnumerable<LSP.Location> expectedLocations, IEnumerable<LSP.Location> actualLocations)
         {
-            var orderedActualLocations = actualLocations.OrderBy((l1, l2) =>
+            var orderedActualLocations = actualLocations.OrderBy(CompareLocations);
+            var orderedExpectedLocations = expectedLocations.OrderBy(CompareLocations);
+
+            AssertJsonEquals(orderedExpectedLocations, orderedActualLocations);
+
+            static int CompareLocations(LSP.Location l1, LSP.Location l2)
             {
                 var compareDocument = l1.Uri.OriginalString.CompareTo(l2.Uri.OriginalString);
                 var compareRange = CompareRange(l1.Range, l2.Range);
                 return compareDocument != 0 ? compareDocument : compareRange;
-            });
-
-            AssertJsonEquals(expectedLocations, orderedActualLocations);
+            }
         }
 
         protected static int CompareRange(LSP.Range r1, LSP.Range r2)

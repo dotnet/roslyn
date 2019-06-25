@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
 
                 IList<TextChange> textChanges;
-                // Formatting on new lines must be handled differently.
                 if (SyntaxFacts.IsNewLine(request.Character[0]))
                 {
                     textChanges = await formattingService.GetFormattingChangesOnReturnAsync(document, position, cancellationToken).ConfigureAwait(false);
