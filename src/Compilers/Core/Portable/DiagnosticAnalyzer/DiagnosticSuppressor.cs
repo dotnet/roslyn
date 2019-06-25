@@ -12,7 +12,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // Disallow suppressors from reporting diagnostics or registering analysis actions.
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
 
-        public sealed override void Initialize(AnalysisContext context) { }
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.EnableConcurrentExecution();
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+        }
 
         /// <summary>
         /// Returns a set of descriptors for the suppressions that this suppressor is capable of producing.
