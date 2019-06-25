@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
             private readonly ConcurrentDictionary<IFieldSymbol, /*disposed*/bool> _fieldDisposeValueMap;
             private readonly DisposeAnalysisHelper _disposeAnalysisHelper;
             private bool _hasErrors;
+            private bool _hasDisposeMethod;
 
             public SymbolAnalyzer(ImmutableHashSet<IFieldSymbol> disposableFields, DisposeAnalysisHelper disposeAnalysisHelper)
             {
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
 
             private void OnSymbolEnd(SymbolAnalysisContext symbolEndContext)
             {
-                if (_hasErrors)
+                if (_hasErrors || !_hasDisposeMethod)
                 {
                     return;
                 }
@@ -244,6 +245,8 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
 
                 void AnalyzeDisposeMethod()
                 {
+                    _hasDisposeMethod = true;
+
                     if (_hasErrors)
                     {
                         return;

@@ -193,7 +193,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
-            if (data.Trigger.Reason == CompletionTriggerReason.Backspace &&
+            // DismissIfLastCharacterDeleted should be applied only when started with Insertion, and then Deleted all characters typed.
+            // This confirms with the original VS 2010 behavior.
+            if (initialRoslynTriggerKind == CompletionTriggerKind.Insertion &&
+                data.Trigger.Reason == CompletionTriggerReason.Backspace &&
                 completionRules.DismissIfLastCharacterDeleted &&
                 session.ApplicableToSpan.GetText(data.Snapshot).Length == 0)
             {
@@ -549,6 +552,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     ? item2.Rules.MatchPriority : MatchPriority.Default;
 
                 if (item1Priority > item2Priority)
+                {
+                    return true;
+                }
+
+                prefixLength1 = item1.FilterText.GetCaseSensitivePrefixLength(result1.FilterText);
+                prefixLength2 = item2.FilterText.GetCaseSensitivePrefixLength(result2.FilterText);
+
+                // If there are "Abc" vs "abc", we should prefer the case typed by user.
+                if (prefixLength1 > prefixLength2)
                 {
                     return true;
                 }

@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 attributes: default, varianceKind: VarianceKind.None,
                 name: name, constraintTypes: ImmutableArray.Create<ITypeSymbol>(),
                 hasConstructorConstraint: false, hasReferenceConstraint: false, hasValueConstraint: false,
-                hasUnmanagedConstraint: false, ordinal: ordinal);
+                hasUnmanagedConstraint: false, hasNotNullConstraint: false, ordinal: ordinal);
         }
 
         /// <summary>
@@ -268,9 +268,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             bool hasConstructorConstraint = false,
             bool hasReferenceConstraint = false,
             bool hasUnmanagedConstraint = false,
-            bool hasValueConstraint = false, int ordinal = 0)
+            bool hasValueConstraint = false,
+            bool hasNotNullConstraint = false,
+            int ordinal = 0)
         {
-            return new CodeGenerationTypeParameterSymbol(null, attributes, varianceKind, name, constraintTypes, hasConstructorConstraint, hasReferenceConstraint, hasValueConstraint, hasUnmanagedConstraint, ordinal);
+            return new CodeGenerationTypeParameterSymbol(null, attributes, varianceKind, name, constraintTypes, hasConstructorConstraint, hasReferenceConstraint, hasValueConstraint, hasUnmanagedConstraint, hasNotNullConstraint, ordinal);
         }
 
         /// <summary>
@@ -432,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 attributes,
                 accessibility ?? method.DeclaredAccessibility,
                 modifiers ?? method.GetSymbolModifiers(),
-                method.ReturnType,
+                method.GetReturnTypeWithAnnotatedNullability(),
                 method.RefKind,
                 explicitInterfaceImplementations,
                 name ?? method.Name,
@@ -458,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 attributes,
                 accessibility ?? property.DeclaredAccessibility,
                 modifiers ?? property.GetSymbolModifiers(),
-                property.Type,
+                property.GetTypeWithAnnotatedNullability(),
                 property.RefKind,
                 explicitInterfaceImplementations,
                 name ?? property.Name,
@@ -482,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 attributes,
                 accessibility ?? @event.DeclaredAccessibility,
                 modifiers ?? @event.GetSymbolModifiers(),
-                @event.Type,
+                @event.GetTypeWithAnnotatedNullability(),
                 explicitInterfaceImplementations,
                 name ?? @event.Name,
                 addMethod,
