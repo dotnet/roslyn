@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
 
                 // The containing type is passed to NullableTypeDecoder.TransformType to determine access
-                // because the property does not have explicit accessibility in metadata.
+                // because the event does not have explicit accessibility in metadata.
                 type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol, accessSymbol: _containingType, nullableContext: _containingType);
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, handle, moduleSymbol);
                 _eventTypeWithAnnotations = type;

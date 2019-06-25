@@ -703,6 +703,43 @@ public class B : I<(object X, object? Y)>
         }
 
         [Fact]
+        public void EmitMetadata_ImplementedInterfaces()
+        {
+            var source =
+@"#nullable enable
+public interface I<T> { }
+public class A :
+    I<object>,
+    I<string?>
+{
+    public object FA1;
+    public object FA2;
+}
+public class B :
+#nullable disable
+    I<object>,
+#nullable enable
+    I<int>
+{
+    public object FB1;
+    public object FB2;
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"[NullableContext(2)] I<T>
+    T
+[NullableContext(1)] [Nullable(0)] A
+    System.Object! FA1
+    System.Object! FA2
+    A()
+B
+    [Nullable(1)] System.Object! FB1
+    [Nullable(1)] System.Object! FB2
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
         public void EmitAttribute_Constraint_Nullable()
         {
             var source =
@@ -1610,7 +1647,7 @@ public class Program
         }
 
         [Fact]
-        public void EmitPrivateMetadata_Types()
+        public void EmitPrivateMetadata_BaseTypes()
         {
             var source =
 @"public class Base<T, U> { }

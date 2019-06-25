@@ -3343,6 +3343,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 builder.AddValue(TypeWithAnnotations.Create(baseType));
             }
+            foreach (var @interface in InterfacesNoUseSiteDiagnostics())
+            {
+                builder.AddValue(TypeWithAnnotations.Create(@interface));
+            }
             foreach (var typeParameter in TypeParameters)
             {
                 typeParameter.GetCommonNullableValues(compilation, ref builder);
