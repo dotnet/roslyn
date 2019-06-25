@@ -551,6 +551,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     return true;
                 }
+
+                prefixLength1 = item1.FilterText.GetCaseSensitivePrefixLength(result1.FilterText);
+                prefixLength2 = item2.FilterText.GetCaseSensitivePrefixLength(result2.FilterText);
+
+                // If there are "Abc" vs "abc", we should prefer the case typed by user.
+                if (prefixLength1 > prefixLength2)
+                {
+                    return true;
+                }
             }
             return false;
         }

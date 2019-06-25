@@ -66,7 +66,7 @@ End Class")
             Dim additionalFile = dir.CreateFile("file.txt")
             Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("
 [*.vb]
-dotnet_diagnostic.bc42024.severity = suppress")
+dotnet_diagnostic.bc42024.severity = none")
             Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
                 "/nologo",
                 "/t:library",
@@ -96,13 +96,13 @@ End Class")
             Dim additionalFile = dir.CreateFile("file.txt")
             Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("
 [*.vb]
-dotnet_diagnostic.bc42024.severity = suppress
-dotnet_diagnostic.warning01.severity = suppress
-dotnet_diagnostic.Warning03.severity = suppress
+dotnet_diagnostic.bc42024.severity = none
+dotnet_diagnostic.warning01.severity = none
+dotnet_diagnostic.Warning03.severity = none
 my_option = my_val
 
 [*.txt]
-dotnet_diagnostic.bc42024.severity = suppress
+dotnet_diagnostic.bc42024.severity = none
 my_option2 = my_val2")
             Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
                 "/nologo",
