@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
-        internal BoundStatement RewriteNullChecking(ImmutableArray<BoundStatement> statements, ImmutableArray<LocalSymbol> locals)
+        private BoundStatement RewriteNullChecking(ImmutableArray<BoundStatement> statements, ImmutableArray<LocalSymbol> locals)
         {
             if (_factory.CurrentFunction.Parameters.Any(x => x is SourceParameterSymbolBase param
                                                              && param.IsNullChecked))
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode AddNullChecksToBody(ImmutableArray<BoundStatement> bodyStatements, ImmutableArray<LocalSymbol> locals)
         {
             var statementList = ArrayBuilder<BoundStatement>.GetInstance();
-            foreach (ParameterSymbol x in _factory.TopLevelMethod.Parameters)
+            foreach (ParameterSymbol x in _factory.CurrentFunction.Parameters)
             {
                 if (x is SourceParameterSymbolBase param
                     && param.IsNullChecked)
