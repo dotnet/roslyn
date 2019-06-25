@@ -9261,7 +9261,7 @@ using System.Diagnostics; // Unused.
 }
 public class Program
 {
-    private object? P => null;
+    private object? F = null;
 }";
             string errorMessage = "error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'";
 
