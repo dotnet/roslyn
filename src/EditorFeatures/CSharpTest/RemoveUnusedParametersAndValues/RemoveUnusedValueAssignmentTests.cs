@@ -6999,5 +6999,48 @@ class C
     int M2() => 0;
 }", options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(33464, "https://github.com/dotnet/roslyn/issues/33464")]
+        public async Task UsingDeclaration()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C : IDisposable
+{
+    public void Dispose()
+    {
+    }
+
+    void M()
+    {
+        using var [|x|] = new C();
+    }
+}", options: PreferDiscard,
+    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(33464, "https://github.com/dotnet/roslyn/issues/33464")]
+        public async Task UsingDeclarationWithInitializer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C : IDisposable
+{
+    public int P { get; set; }
+    public void Dispose()
+    {
+    }
+
+    void M()
+    {
+        using var [|x|] = new C() { P = 1 };
+    }
+}", options: PreferDiscard,
+    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
     }
 }
