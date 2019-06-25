@@ -35,13 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             private int _bits;
 
-#if DEBUG
-            static PackedFlags()
-            {
-                Debug.Assert(EnumUtilities.ContainsAllValues<FlowAnalysisAnnotations>(0xFF));
-            }
-#endif
-
             public bool SetFlowAnalysisAnnotations(FlowAnalysisAnnotations value)
             {
                 Debug.Assert((value & ~(FlowAnalysisAnnotations.DisallowNull | FlowAnalysisAnnotations.AllowNull | FlowAnalysisAnnotations.MaybeNull | FlowAnalysisAnnotations.NotNull)) == 0);
