@@ -79,10 +79,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 Directory.CreateDirectory(logDir);
 
+                var currentProcess = Process.GetCurrentProcess();
                 var exception = eventArgs.Exception;
                 var builder = new StringBuilder();
 
-                builder.AppendLine($"First chance exception {exception.GetType().Name}:");
+                builder.AppendLine($"First chance exception {exception.GetType().Name} thrown in process {currentProcess.ProcessName} ({currentProcess.Id}):");
                 builder.AppendLine(exception.StackTrace);
 
                 EventLogCollector.AppendDotNetEntries(builder);
