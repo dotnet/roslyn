@@ -997,12 +997,14 @@ class C : I<int, bool>
             var source0 = @"
 class C
 {
-    void M(string s) { }
+    string c;
+    ref string M(string s, (string a, string b) tuple) => ref c;
 }";
             var source1 = @"
 class C
 {
-    void M(string? s) { }
+    string c;
+    ref string? M(string? s, (string? a, string? b) tuple) => ref c;
 }";
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
