@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeParameter = (TypeParameterSymbol)type;
             // https://github.com/dotnet/roslyn/issues/30056: Test `where T : unmanaged`. See
             // UninitializedNonNullableFieldTests.TypeParameterConstraints for instance.
-            return !typeParameter.IsValueType && !(typeParameter.IsReferenceType && typeParameter.IsNotNullableIfReferenceType == true);
+            return !typeParameter.IsValueType && !(typeParameter.IsReferenceType && typeParameter.IsNotNullable == true);
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool IsPossiblyNullableReferenceTypeTypeParameter(this TypeSymbol type)
         {
-            return type is TypeParameterSymbol { IsValueType: false, IsNotNullableIfReferenceType: false };
+            return type is TypeParameterSymbol { IsValueType: false, IsNotNullable: false };
         }
 
         public static bool IsNonNullableValueType(this TypeSymbol typeArgument)
@@ -1665,8 +1665,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Cci.ITypeReference typeRef)
         {
             var builder = ArrayBuilder<Cci.ICustomAttribute>.GetInstance();
-
             var compilation = declaringSymbol.DeclaringCompilation;
+
             if (compilation != null)
             {
                 if (type.Type.ContainsTupleNames())
@@ -1678,16 +1678,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (compilation.ShouldEmitNullableAttributes(declaringSymbol) &&
-                    type.NeedsNullableAttribute())
+                if (compilation.ShouldEmitNullableAttributes(declaringSymbol))
                 {
-                    SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttribute(declaringSymbol, type);
+                    SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttributeIfNecessary(declaringSymbol, declaringSymbol.GetNullableContextValue(), type);
                     if (attr != null)
                     {
                         builder.Add(attr);
                     }
                 }
             }
+
 
             return new Cci.TypeReferenceWithAttributes(typeRef, builder.ToImmutableAndFree());
         }
