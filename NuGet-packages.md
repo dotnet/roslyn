@@ -24,7 +24,8 @@ Below are the versions of the language available in the NuGet packages. Remember
 - Version `2.8` means C# 7.3 (Visual Studio 2017 version 15.7)
 - Version `2.9` is still C# 7.3 and VB 15.5, but with more fixes (Visual Studio 2017 version 15.8)
 - Version `2.10` is still C# 7.3 and VB 15.5, but a couple more [fixes](https://github.com/dotnet/roslyn/issues?q=is%3Aissue+milestone%3A15.9+label%3AArea-Compilers+is%3Aclosed) (Visual Studio 2017 version 15.9)
-- Version `3.0` includes C# 8.0 beta (Visual Studio 2019 version 16.0), but `2.11` was used for preview1.
+- Version `3.0` includes a preview of C# 8.0 (Visual Studio 2019 version 16.0), but `2.11` was used for preview1.
+- Version `3.1` includes a preview of C# 8.0 (Visual Studio 2019 version 16.1)
 
 See the [history of C# language features](https://github.com/dotnet/csharplang/blob/master/Language-Version-History.md) for more details.
 
