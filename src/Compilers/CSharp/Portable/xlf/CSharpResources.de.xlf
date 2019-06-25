@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractEventHasAccessors">
         <source>'{0}': abstract event cannot use event accessor syntax</source>
-        <target state="new">'{0}': abstract event cannot use event accessor syntax</target>
+        <target state="translated">{0}: Das abstrakte Ereignis kann die Ereignisaccessorsyntax nicht verwenden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
-        <target state="needs-review-translation">Ungültige Option "{0}" for "/nullable". Zulässig sind nur "disable", "enable", "safeonly", "warnings" oder "safeonlywarnings".</target>
+        <target state="new">Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
         <source>The typeof operator cannot be used on a nullable reference type</source>
-        <target state="new">The typeof operator cannot be used on a nullable reference type</target>
+        <target state="translated">Der typeof-Operator kann nicht für einen Verweistyp verwendet werden, der NULL-Werte zulässt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleEnumeratorCancellationAttributes">
         <source>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</source>
-        <target state="new">The attribute [EnumeratorCancellation] cannot be used on multiple parameters</target>
+        <target state="translated">Das Attribut [EnumeratorCancellation] kann nicht für mehrere Parameter verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -284,12 +284,12 @@
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
         <source>The 'notnull' constraint must come before any other constraints</source>
-        <target state="new">The 'notnull' constraint must come before any other constraints</target>
+        <target state="translated">Die notnull-Einschränkung muss vor allen anderen Einschränkungen stehen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'disable', or 'restore'</source>
-        <target state="needs-review-translation">Erwartet: "enable", "safeonly", "disable" oder "restore"</target>
+        <target state="translated">"enable", "disable" oder "restore" erwartet.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
@@ -604,8 +604,8 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
-                              Visual C#-Compileroptionen
+        <target state="translated">
+                             Visual C#-Compileroptionen 
 
                         – AUSGABEDATEIEN –
 -out:&lt;Datei&gt;                   Gibt den Namen der Ausgabedatei an (Standardeinstellung: Basisname der
@@ -624,7 +624,7 @@
 -doc:&lt;Datei&gt;                   Die zu generierende XML-Dokumentationsdatei
 -refout:&lt;Datei&gt;                Die zu generierende Verweisassemblyausgabe
 -platform:&lt;Zeichenfolge&gt;            Schränkt ein, auf welchen Plattformen dieser Code ausgeführt werden kann: x86,
-                               Itanium, x64, arm, anycpu32bitpreferred oder
+                               Itanium, x64, arm, arm64, anycpu32bitpreferred oder
                                anycpu. Die Standardeinstellung ist "anycpu".
 
                         – EINGABEDATEIEN –
@@ -669,7 +669,7 @@
 -refonly                      Erstellt eine Referenzassembly anstelle der Hauptausgabe.
 -instrument:TestCoverage      Generiert eine Assembly, die für die
                                Erfassung von Code Coverage-Informationen instrumentiert ist.
--sourcelink:&lt;Datei&gt;            Quelllinkinformationen zum Einbetten in portable PDB-Dateien.
+-sourcelink:&lt;Datei&gt;            Quelllinkinformationen zum Einbetten in PDB-Dateien.
 
                         – FEHLER UND WARNUNGEN –
 -warnaserror[+|-]             Meldet alle Warnungen als Fehler.
@@ -689,13 +689,13 @@
 -define:&lt;Symbolliste&gt;         Definiert bedingte Kompilationssymbole (Kurz-
                                form: -d)
 -langversion:?                Zeigt die zulässigen Werte für die Sprachversion an.
--langversion:&lt;Zeichenfolge&gt;         Gibt den Sprachversionsmodus an:
+-langversion:&lt;Zeichenfolge&gt;         Gibt die Sprachversion an:
                               "default" (neueste Hauptversion) oder
                               "latest" (neueste Version, einschließlich Nebenversionen)
                               oder bestimmte Versionen wie "6" oder "7.1"
 -nullable[+|-]                Legt die Option für Nullwerte zulassenden Kontext fest: enable|disable.
--nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
-                              Legt die Option für Nullwerte zulassenden Kontext fest: enable|disable|safeonly|warnings|safeonlywarnings.
+-nullable:{enable|disable|warnings}
+                              Legt die Option für Nullwerte zulassenden Kontext fest: enable|disable|warnings.
 
                        – SICHERHEIT –
 -delaysign[+|-]               Signiert die Assembly verzögert nur mit dem öffentlichen
@@ -718,7 +718,7 @@
 -baseaddress:&lt;Adresse&gt;        Die Basisadresse für die zu erstellende Bibliothek.
 -checksumalgorithm:&lt;alg&gt;      Gibt einen Algorithmus für das Berechnen der Quelldatei-
                                prüfsumme an, die in der PDB-Datei gespeichert ist. Unterstützte Werte:
-                               SHA1 (Standard) oder SHA256.
+                               SHA1 oder SHA256 (Standard).
 -codepage:&lt;n&gt;                 Gibt die beim Öffnen von Quelldateien zu verwendende
                                Codepage an.
 -utf8output                   Ausgabecompilermeldungen in UTF-8-Codierung
@@ -735,13 +735,14 @@
                                Ausgabe des Dateinamens mit PDB-Erweiterung)
 -errorendlocation             Gibt für jeden Fehler die Zeile und Spalte 
                                des Endpunkts aus.
--preferreduilang              Gibt den bevorzugten Namen der Ausgabesprache an.
--nostdlib[+|-]                Verweist nicht auf die Standardbibliothek (mscorlib.dll).
+-preferreduilang              Gibt den Namen der bevorzugten Ausgabesprache an.
+-nosdkpath                    Deaktiviert die Suche nach dem SDK-Standardpfad für Standardbibliotheksassemblys.
+-nostdlib[+|-]                Kein Verweis auf die Standardbibliothek (mscorlib.dll).
 -subsystemversion:&lt;Zeichenfolge&gt;    Gibt die Subsystemversion dieser Assembly an.
 -lib:&lt;Dateiliste&gt;              Gibt zusätzliche Verzeichnisse an, in denen nach Verweisen
                                gesucht werden soll.
 -errorreport:&lt;Zeichenfolge&gt;         Gibt die Verarbeitung interner Compilerfehler an:
-                               "prompt", "send", "queue" oder "none". Der Standardwert ist
+                               "prompt", "send", "queue" oder "none". Der Standardwert lautet
                                "queue".
 -appconfig:&lt;Datei&gt;             Gibt eine Anwendungskonfigurationsdatei
                                mit Assemblybindungseinstellungen an.
@@ -803,12 +804,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureNestedStackalloc">
         <source>stackalloc in nested expressions</source>
-        <target state="new">stackalloc in nested expressions</target>
+        <target state="translated">"stackalloc" in geschachtelten Ausdrücken</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNotNullGenericTypeConstraint">
         <source>notnull generic type constraint</source>
-        <target state="new">notnull generic type constraint</target>
+        <target state="translated">notnull-Einschränkung für generischen Typ</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
@@ -823,7 +824,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnable">
         <source>warning action enable</source>
-        <target state="new">warning action enable</target>
+        <target state="translated">Warnungsaktion "enable"</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRangeOperator">
@@ -1333,12 +1334,12 @@
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <target state="translated">Ein möglicher NULL-Wert darf nicht an ein Ziel übergeben werden, das mit dem [DisallowNull]-Attribut markiert ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
         <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <target state="translated">Ein möglicher NULL-Wert darf nicht an ein Ziel übergeben werden, das mit dem [DisallowNull]-Attribut markiert ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1393,12 +1394,12 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="needs-review-translation">Die Anmerkung für Nullable-Verweistypen darf nur in Code innerhalb eines #nullable-Kontexts verwendet werden.</target>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="needs-review-translation">Die Anmerkung für Nullable-Verweistypen darf nur in Code innerhalb eines #nullable-Kontexts verwendet werden.</target>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
@@ -1513,12 +1514,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation">
         <source>Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</source>
-        <target state="new">Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</target>
+        <target state="translated">Partielle Methodendeklarationen von "{0}" weisen eine inkonsistente NULL-NULL-Zulässigkeit in den Einschränkungen für den Typparameter "{1}" auf.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title">
         <source>Partial method declarations have inconsistent nullability in constraints for type parameter</source>
-        <target state="new">Partial method declarations have inconsistent nullability in constraints for type parameter</target>
+        <target state="translated">Partielle Methodendeklarationen weisen eine inkonsistente NULL-Zulässigkeit in Einschränkungen für den Typparameter auf.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInExplicitlyImplementedInterface">
@@ -1663,12 +1664,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint">
         <source>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</source>
-        <target state="new">The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</target>
+        <target state="translated">Der Typ "{2}" kann nicht als Typparameter "{1}" im generischen Typ oder in der generischen Methode "{0}" verwendet werden. Die NULL-Zulässigkeit des Typarguments "{2}" entspricht nicht der notnull-Einschränkung.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint_Title">
         <source>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</source>
-        <target state="new">The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</target>
+        <target state="translated">Der Typ kann nicht als Typparameter im generischen Typ oder in der generischen Methode verwendet werden. Die NULL-Zulässigkeit des Typarguments entspricht nicht der notnull-Einschränkung.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint">
@@ -1763,12 +1764,12 @@
       </trans-unit>
       <trans-unit id="WRN_UndecoratedCancellationTokenParameter">
         <source>Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
-        <target state="new">Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
+        <target state="translated">Der Async-Iterator "{0}" weist mindestens einen Parameter vom Typ "CancellationToken" auf, aber keiner der Parameter umfasst das Attribut "EnumeratorCancellation", deshalb wird der Parameter für das Abbruchtoken aus dem generierten "IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator" nicht verwendet.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UndecoratedCancellationTokenParameter_Title">
         <source>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
-        <target state="new">Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
+        <target state="translated">Der Async-Iterator-Member weist mindestens einen Parameter vom Typ "CancellationToken" auf, aber keiner der Parameter umfasst das Attribut "EnumeratorCancellation", deshalb wird der Parameter für das Abbruchtoken aus dem generierten "IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator" nicht verwendet.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -4692,7 +4693,7 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
         <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
-        <target state="new">Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</target>
+        <target state="translated">Partielle Methodendeklarationen von "{0}" weisen inkonsistente Einschränkungen für den Typparameter "{1}" auf.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodToDelegate">
@@ -5801,12 +5802,12 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
         <source>Expected disable, restore or enable</source>
-        <target state="needs-review-translation">"disable", "restore", "enable" oder "safeonly" erwartet</target>
+        <target state="translated">"disable", "restore" oder "enable" erwartet</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
         <source>Expected disable, restore or enable after #pragma warning</source>
-        <target state="needs-review-translation">Nach "#pragma warning" wurde "disable", "restore", "enable" oder "safeonly" erwartet</target>
+        <target state="translated">Nach "#pragma warning" wurde "disable", "restore" oder "enable" erwartet</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">

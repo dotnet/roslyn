@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-HANT" original="../FeaturesResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../FeaturesResources.resx">
     <body>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
@@ -59,12 +59,12 @@
       </trans-unit>
       <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
         <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="new">Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <target state="translated">請避免在您的程式碼中指派非必要的值，因為這可能表示值會重複計算。如果值未重複計算，而且您想要保留指派，請將指派目標變更為名稱以底線開頭的區域變數，並可選擇在後面接著整數，例如 '_'、'_1'、'_2' 等。這些會視為特殊的捨棄符號名稱。</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
         <source>Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="new">Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <target state="translated">請避免在您的程式碼中使用參數。如果無法移除參數，請變更其名稱，使其以底線開頭，並可選擇在後面接著整數，例如 '_'、'_1'、'_2' 等。這些會視為特殊的捨棄符號名稱。</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_namespace_to_0">
@@ -114,27 +114,27 @@
       </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
-        <target state="new">A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</target>
+        <target state="translated">實作 System.IDisposable 的類型，宣告的欄位會是也實作 IDisposable 的類型。該欄位的 Dispose 方法，並非由宣告類型的 Dispose 方法呼叫。若要修正此規則違規，如果由您負責配置及釋放由該欄位所保留的非受控資源，則請在會實作 IDisposable 的欄位類型欄位上，呼叫 Dispose。</target>
         <note />
       </trans-unit>
       <trans-unit id="Disposable_field_0_is_never_disposed">
         <source>Disposable field '{0}' is never disposed</source>
-        <target state="new">Disposable field '{0}' is never disposed</target>
+        <target state="translated">可處置的欄位 '{0}' 從未經過處置</target>
         <note />
       </trans-unit>
       <trans-unit id="Disposable_fields_should_be_disposed">
         <source>Disposable fields should be disposed</source>
-        <target state="new">Disposable fields should be disposed</target>
+        <target state="translated">可處置的欄位應受到處置</target>
         <note />
       </trans-unit>
       <trans-unit id="Disposable_object_created_by_0_is_never_disposed">
         <source>Disposable object created by '{0}' is never disposed</source>
-        <target state="new">Disposable object created by '{0}' is never disposed</target>
+        <target state="translated">'{0}' 建立的可處置物件從未經過處置</target>
         <note />
       </trans-unit>
       <trans-unit id="Dispose_objects_before_losing_scope">
         <source>Dispose objects before losing scope</source>
-        <target state="new">Dispose objects before losing scope</target>
+        <target state="translated">必須在超出範圍前處置物件</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
@@ -164,12 +164,12 @@
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
         <source>Generate parameter '{0}'</source>
-        <target state="new">Generate parameter '{0}'</target>
+        <target state="translated">產生參數 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0_and_overrides_implementations">
         <source>Generate parameter '{0}' (and overrides/implementations)</source>
-        <target state="new">Generate parameter '{0}' (and overrides/implementations)</target>
+        <target state="translated">產生參數 '{0}' (以及覆寫/實作)</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -259,7 +259,7 @@
       </trans-unit>
       <trans-unit id="MethodMustReturnStreamThatSupportsReadAndSeek">
         <source>{0} must return a stream that supports read and seek operations.</source>
-        <target state="new">{0} must return a stream that supports read and seek operations.</target>
+        <target state="translated">{0} 必須傳回支援讀取和搜尋作業的資料流。</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -389,7 +389,7 @@
       </trans-unit>
       <trans-unit id="StreamMustSupportReadAndSeek">
         <source>Stream must support read and seek operations.</source>
-        <target state="new">Stream must support read and seek operations.</target>
+        <target state="translated">資料流必須支援讀取及搜尋作業。</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
@@ -399,12 +399,12 @@
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
         <source>Unnecessary assignment of a value</source>
-        <target state="new">Unnecessary assignment of a value</target>
+        <target state="translated">指派了不必要的值</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value_to_0">
         <source>Unnecessary assignment of a value to '{0}'</source>
-        <target state="new">Unnecessary assignment of a value to '{0}'</target>
+        <target state="translated">對 '{0}' 指派了不必要的值</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
@@ -444,7 +444,7 @@
       </trans-unit>
       <trans-unit id="UseRecommendedDisposePatternDescription">
         <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
-        <target state="new">Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</target>
+        <target state="translated">請使用建議的處置模式，確保區域範圍的可處置物件在所有路徑上均會經過處置。在可能的情況下，請將建立包在 'using' 陳述式或 'using' 宣告內。否則，請使用 try-finally 模式，同時在 try 區域之前先宣告專用的區域變數，並在 'finally' 區域中的非 null 值上，設定無條件 Dispose 引動過程，比如 'x?.Dispose()'。如果 try 區域內已明確地處置了該物件，或是處置擁有權已轉移到另一個物件或方法，則請在這類作業之後，對區域變數指派 'null'，以避免在 'finally' 中發生雙重處置</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
@@ -499,12 +499,12 @@
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern">
         <source>Use recommended dispose pattern</source>
-        <target state="new">Use recommended dispose pattern</target>
+        <target state="translated">使用建議的處置模式</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally">
         <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
-        <target state="new">Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</target>
+        <target state="translated">請使用建議的處置模式，確保 '{0}' 建立的物件在所有路徑上均會經過處置: using 陳述式/宣告或 try/finally</target>
         <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Use_simple_using_statement">
@@ -569,7 +569,7 @@
       </trans-unit>
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
-        <target state="new">in Source (attribute)</target>
+        <target state="translated">在來源中 (屬性)</target>
         <note />
       </trans-unit>
       <trans-unit id="overload">

@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Make_0_inheritable">
         <source>Make '{0}' inheritable</source>
-        <target state="needs-review-translation">'{0}'을(를) 상속 가능으로 지정</target>
+        <target state="translated">'{0}'을(를) 상속 가능으로 지정</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Sort_Imports">
         <source>&amp;Sort Imports</source>
-        <target state="new">&amp;Sort Imports</target>
+        <target state="translated">가져오기 정렬(&amp;S)</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
