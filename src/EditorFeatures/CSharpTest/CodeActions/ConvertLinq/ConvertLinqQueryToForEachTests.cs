@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
@@ -4358,7 +4359,7 @@ class Query
         #endregion
 
         #region CaretSelection
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach), WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task DeclarationSelection()
         {
             string source = @"
@@ -4396,7 +4397,7 @@ class Query
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach), WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task LocalAssignmentSelection()
         {
             string source = @"
