@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var results = await _symbolSearchService.FindPackagesWithTypeAsync(
-                    source.Name, name, arity, cancellationToken).ConfigureAwait(false);
+                    source.Source, name, arity, cancellationToken).ConfigureAwait(false);
                 if (results == null)
                 {
                     return;
