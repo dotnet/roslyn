@@ -1202,7 +1202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
 
-                         var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
+                        var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
 
                         var emittedBody = GenerateMethodBody(
                             _moduleBeingBuiltOpt,
