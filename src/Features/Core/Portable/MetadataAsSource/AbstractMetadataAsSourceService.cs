@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var formattedDoc = await Formatter.FormatAsync(
                 docWithAssemblyInfo, SpecializedCollections.SingletonEnumerable(node.FullSpan), options: null, rules: GetFormattingRules(docWithAssemblyInfo), cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            var reducers = this.GetReducers();
+            var reducers = GetReducers();
             return await Simplifier.ReduceAsync(formattedDoc, reducers, null, cancellationToken).ConfigureAwait(false);
         }
 

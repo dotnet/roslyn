@@ -686,8 +686,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                     foreach (var parameter in method.Parameters)
                     {
-                        bool isUsed = false;
-                        bool isSymbolRead = false;
+                        var isUsed = false;
+                        var isSymbolRead = false;
                         var isRefOrOutParam = parameter.IsRefOrOut();
 
                         // Iterate through symbol usage results for each operation block.

@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
 
                 var argumentName = parameters[argumentIndex].Name;
 
-                if (this.SupportsNonTrailingNamedArguments(root.SyntaxTree.Options) &&
+                if (SupportsNonTrailingNamedArguments(root.SyntaxTree.Options) &&
                     argumentIndex < argumentCount - 1)
                 {
                     context.RegisterRefactoring(
