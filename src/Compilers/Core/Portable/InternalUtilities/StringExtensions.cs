@@ -276,5 +276,17 @@ namespace Roslyn.Utilities
 
             return x;
         }
+
+        public static int GetCaseSensitivePrefixLength(this string string1, string string2)
+        {
+            int x = 0;
+            while (x < string1.Length && x < string2.Length &&
+                   string1[x] == string2[x])
+            {
+                x++;
+            }
+
+            return x;
+        }
     }
 }
