@@ -22,6 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         public BasicEditAndContinue(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
             : base(instanceFactory, testOutputHelper)
         {
+            FatalError.Handler = FailFast.OnFatalException;
         }
 
         protected override string LanguageName => LanguageNames.VisualBasic;
@@ -67,7 +68,7 @@ End Module
                 VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
                 VisualStudio.Debugger.CheckExpression("names(1)", "String", "\"bar\"");
             }
-            catch (AggregateException ex) when (FatalError.Report(ex))
+            catch (Exception ex) when (FatalError.Report(ex))
             {
             }
         }
@@ -101,7 +102,7 @@ End Try");
                 VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
                 VisualStudio.Editor.Verify.CurrentLineText("End Try");
             }
-            catch (AggregateException ex) when (FatalError.Report(ex))
+            catch (Exception ex) when (FatalError.Report(ex))
             {
             }
         }
@@ -138,7 +139,7 @@ End Module");
                 VisualStudio.Debugger.Stop(waitForDesignMode: true);
                 VisualStudio.ErrorList.Verify.NoBuildErrors();
             }
-            catch (AggregateException ex) when (FatalError.Report(ex))
+            catch (Exception ex) when (FatalError.Report(ex))
             {
             }
         }
@@ -209,7 +210,7 @@ End Module
 
                 VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             }
-            catch (AggregateException ex) when (FatalError.Report(ex))
+            catch (Exception ex) when (FatalError.Report(ex))
             {
             }
         }
@@ -277,7 +278,7 @@ End Module
                 VisualStudio.Dialog.VerifyClosed(microsoftVisualStudioDialogName);
                 VisualStudio.Editor.Verify.IsProjectItemDirty(expectedValue: false);
             }
-            catch (AggregateException ex) when (FatalError.Report(ex))
+            catch (Exception ex) when (FatalError.Report(ex))
             {
             }
         }
@@ -339,7 +340,7 @@ End Module
                 VisualStudio.LocalsWindow.Verify.CheckEntry("iInt", "Integer", "30");
                 VisualStudio.LocalsWindow.Verify.CheckEntry("lLng", "Long", "444");
             }
-            catch (AggregateException ex) when (FatalError.Report(ex))
+            catch (Exception ex) when (FatalError.Report(ex))
             {
             }
         }
@@ -374,7 +375,7 @@ System.Diagnostics.Debugger.Break()");
 
                 VisualStudio.Debugger.CheckExpression("iInt", "Integer", "5");
             }
-            catch (AggregateException ex) when (FatalError.Report(ex))
+            catch (Exception ex) when (FatalError.Report(ex))
             {
             }
         }
