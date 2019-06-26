@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project>
   <!--
@@ -55,7 +55,7 @@
     <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.17</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>$(CodeStyleAnalyzerVersion)</MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>
-    <MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>2.9.3-beta1.19301.2+4c8365b9</MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>
+    <MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>2.9.4-beta1.19321.5+ffe2b1b5</MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>
     <MicrosoftCodeQualityAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftCodeQualityAnalyzersVersion>
     <SystemCompositionVersion>1.0.31</SystemCompositionVersion>
     <MicrosoftCSharpVersion>4.3.0</MicrosoftCSharpVersion>
@@ -114,6 +114,8 @@
     <MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>16.2.1072</MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>
     <MicrosoftVisualStudioLiveShareLanguageServicesVersion>1.0.181</MicrosoftVisualStudioLiveShareLanguageServicesVersion>
     <MicrosoftVisualStudioLanguageStandardClassificationVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioLanguageStandardClassificationVersion>
+    <MicrosoftVisualStudioLanguageServerProtocolVersion>16.2.1078</MicrosoftVisualStudioLanguageServerProtocolVersion>
+    <MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>16.2.1078</MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>
     <MicrosoftVisualStudioOLEInteropVersion>7.10.6071</MicrosoftVisualStudioOLEInteropVersion>
     <MicrosoftVisualStudioPlatformVSEditorVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioPlatformVSEditorVersion>
     <MicrosoftVisualStudioProgressionCodeSchemaVersion>15.8.27812-alpha</MicrosoftVisualStudioProgressionCodeSchemaVersion>

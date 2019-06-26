@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             var (solution, locations) = CreateTestSolution(markup);
             var expected = new LSP.SymbolInformation[]
             {
-                CreateSymbolInformation(LSP.SymbolKind.Class, "A", locations["class"].First())
+                CreateSymbolInformation(LSP.SymbolKind.Class, "A", locations["class"].Single())
             };
 
             var results = await RunGetWorkspaceSymbolsAsync(solution, "A").ConfigureAwait(false);
-            AssertCollectionsEqual(expected, results, AssertSymbolInformationsEqual);
+            AssertJsonEquals(expected, results);
         }
 
         [Fact]
@@ -44,11 +44,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             var (solution, locations) = CreateTestSolution(markup);
             var expected = new LSP.SymbolInformation[]
             {
-                CreateSymbolInformation(LSP.SymbolKind.Method, "M", locations["method"].First())
+                CreateSymbolInformation(LSP.SymbolKind.Method, "M", locations["method"].Single())
             };
 
             var results = await RunGetWorkspaceSymbolsAsync(solution, "M").ConfigureAwait(false);
-            AssertCollectionsEqual(expected, results, AssertSymbolInformationsEqual);
+            AssertJsonEquals(expected, results);
         }
 
         [Fact(Skip = "GetWorkspaceSymbolsAsync does not yet support locals.")]
@@ -67,11 +67,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             var (solution, locations) = CreateTestSolution(markup);
             var expected = new LSP.SymbolInformation[]
             {
-                CreateSymbolInformation(LSP.SymbolKind.Variable, "i", locations["local"].First())
+                CreateSymbolInformation(LSP.SymbolKind.Variable, "i", locations["local"].Single())
             };
 
             var results = await RunGetWorkspaceSymbolsAsync(solution, "i").ConfigureAwait(false);
-            AssertCollectionsEqual(expected, results, AssertSymbolInformationsEqual);
+            AssertJsonEquals(expected, results);
         }
 
         [Fact]
@@ -93,12 +93,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             var expected = new LSP.SymbolInformation[]
             {
                 CreateSymbolInformation(LSP.SymbolKind.Field, "F", locations["field"][0]),
-                CreateSymbolInformation(LSP.SymbolKind.Class, "F", locations["class"].First()),
+                CreateSymbolInformation(LSP.SymbolKind.Class, "F", locations["class"].Single()),
                 CreateSymbolInformation(LSP.SymbolKind.Field, "F", locations["field"][1])
             };
 
             var results = await RunGetWorkspaceSymbolsAsync(solution, "F").ConfigureAwait(false);
-            AssertCollectionsEqual(expected, results, AssertSymbolInformationsEqual);
+            AssertJsonEquals(expected, results);
         }
 
         [Fact]
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             };
 
             var results = await RunGetWorkspaceSymbolsAsync(solution, "M").ConfigureAwait(false);
-            AssertCollectionsEqual(expected, results, AssertSymbolInformationsEqual);
+            AssertJsonEquals(expected, results);
         }
 
         [Fact]

@@ -331,6 +331,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             // Skip blocks from attributes (which have OperationKind.None) and parameter initializers.
                             // We don't have any unused values in such operation blocks.
                             return false;
+
+                        default:
+                            if (operationBlock.HasAnyOperationDescendant(o => o.Kind == OperationKind.None))
+                            {
+                                // Workaround for https://github.com/dotnet/roslyn/issues/32100
+                                // Bail out in presence of OperationKind.None - not implemented IOperation.
+                                return false;
+                            }
+
+                            break;
                     }
 
                     // We currently do not support points-to analysis, which is needed to accurately track locations of

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +7,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
@@ -39,9 +40,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         private Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, Solution solution, RequestType request,
-            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken) where RequestType : class
         {
-            var handler = (IRequestHandler<RequestType, ResponseType>)_requestHandlers[methodName].Value;
+            Contract.ThrowIfNull(solution);
+            Contract.ThrowIfNull(request);
+            if (string.IsNullOrEmpty(methodName))
+            {
+                Contract.Fail("Invalid method name");
+            }
+
+            var handler = (IRequestHandler<RequestType, ResponseType>)_requestHandlers[methodName]?.Value;
+            Contract.ThrowIfNull(handler, string.Format("Request handler not found for method {0}", methodName));
+
             return handler.HandleRequestAsync(solution, request, clientCapabilities, cancellationToken);
         }
 
