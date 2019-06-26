@@ -90,6 +90,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// Extractor function for <see cref="TryGetSelectedNodeAsync(Document, TextSpan, Predicate{SyntaxNode}, Func{SyntaxNode, SyntaxNode}, CancellationToken)"/> methods that retrieves expressions from 
         /// declarations and assignments. Otherwise returns unchanged <paramref name="node"/>.
         /// </summary>
-        SyntaxNode DefaultNodeExtractor<TNode>(SyntaxNode node) where TNode : SyntaxNode;
+        SyntaxNode DefaultNodeExtractor(SyntaxNode node);
     }
 }

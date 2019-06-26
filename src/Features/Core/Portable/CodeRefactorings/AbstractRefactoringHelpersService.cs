@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -11,17 +12,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     internal abstract class AbstractRefactoringHelpersService : IRefactoringHelpersService
     {
-        public abstract SyntaxNode DefaultNodeExtractor<TNode>(SyntaxNode node) where TNode : SyntaxNode;
+        public abstract SyntaxNode DefaultNodeExtractor(SyntaxNode node);
 
         public async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
             Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
-            return await TryGetSelectedNodeAsync(document, selection, n => n is TSyntaxNode, DefaultNodeExtractor<TSyntaxNode>, cancellationToken).ConfigureAwait(false) as TSyntaxNode;
+            return await TryGetSelectedNodeAsync(document, selection, n => n is TSyntaxNode, DefaultNodeExtractor, cancellationToken).ConfigureAwait(false) as TSyntaxNode;
         }
 
         public Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selection, Predicate<SyntaxNode> predicate, CancellationToken cancellationToken)
         {
-            return TryGetSelectedNodeAsync(document, selection, predicate, DefaultNodeExtractor<SyntaxNode>, cancellationToken);
+            return TryGetSelectedNodeAsync(document, selection, predicate, DefaultNodeExtractor, cancellationToken);
         }
 
         public async Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selection, Predicate<SyntaxNode> predicate, Func<SyntaxNode, SyntaxNode> extractNode, CancellationToken cancellationToken)
