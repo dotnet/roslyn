@@ -135,7 +135,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
                 return default;
             }
-
         }
     }
 }
