@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -7,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
-    internal abstract class RefactoringHelpersService : IRefactoringHelpersService
+    internal abstract class AbstractRefactoringHelpersService : IRefactoringHelpersService
     {
         public abstract SyntaxNode ExtractNodeFromDeclarationAndAssignment<TNode>(SyntaxNode node) where TNode : SyntaxNode;
 
@@ -29,6 +31,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             var selectionStripped = await CodeRefactoringHelpers.GetStrippedTextSpan(document, selection, cancellationToken).ConfigureAwait(false);
 
             // Handle selections
+            // - the smallest node whose span inlcudes whole selection
+            // - extraction from such node is attempted, result tested via predicate
+            // - travels upwards through same-sized nodes, extracting and testing predicate
             var node = root.FindNode(selectionStripped, getInnermostNodeForTie: true);
             SyntaxNode prevNode;
             do
@@ -45,22 +50,24 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
             while (node != null && prevNode.FullWidth() == node.FullWidth());
 
-            // only consider what is direct selection touching when selection is empty 
-            // prevents `[|C|] methodName(){}` from registering as relevant for method Node
+            // consider what selection is touching only when it's empty -> prevents
+            // `[|C|] methodName(){}` from registering as relevant for method Node
             if (!selection.IsEmpty)
             {
                 return default;
             }
 
+            // Handle Tokens & Nodes that start/end to left/right of given (empty) selection
+
             var tokenToLeft = await root.SyntaxTree.GetTouchingTokenToLeftAsync(selectionStripped.Start, cancellationToken).ConfigureAwait(false);
             var leftNode = tokenToLeft.Parent;
             do
             {
-                // either touches a Token which parent is `TSyntaxNode` or is whose ancestor's span ends on selection
-                var extrNode = extractNode(leftNode);
-                if (extrNode != default && predicate(extrNode))
+                // consider either a Node that is a parent of touched Token (selection can be within) or ancestor Node of such Token whose span ends on selection
+                var extractedNode = extractNode(leftNode);
+                if (extractedNode != default && predicate(extractedNode))
                 {
-                    return extrNode;
+                    return extractedNode;
                 }
 
                 leftNode = leftNode?.Parent;
@@ -71,11 +78,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             var rightNode = tokenToRight.Parent;
             do
             {
-                // either touches a Token which parent is `TSyntaxNode` or is whose ancestor's span starts on selection
-                var extrNode = extractNode(rightNode);
-                if (extrNode != default && predicate(extrNode))
+                // consider either a Node that is a parent of touched Token (selection can be within) or ancestor Node of such Token whose span starts on selection
+                var extractedNode = extractNode(rightNode);
+                if (extractedNode != default && predicate(extractedNode))
                 {
-                    return extrNode;
+                    return extractedNode;
                 }
 
                 rightNode = rightNode?.Parent;
@@ -84,6 +91,5 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             return default;
         }
-
     }
 }

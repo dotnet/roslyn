@@ -4359,7 +4359,8 @@ class Query
         #endregion
 
         #region CaretSelection
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach), WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task DeclarationSelection()
         {
             string source = @"
@@ -4397,7 +4398,8 @@ class Query
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach), WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task LocalAssignmentSelection()
         {
             string source = @"
