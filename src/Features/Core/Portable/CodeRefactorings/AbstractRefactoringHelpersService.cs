@@ -11,21 +11,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     internal abstract class AbstractRefactoringHelpersService : IRefactoringHelpersService
     {
-        public abstract SyntaxNode ExtractNodeFromDeclarationAndAssignment<TNode>(SyntaxNode node) where TNode : SyntaxNode;
-
-        public Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
-            Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
-        {
-            return TryGetSelectedNodeAsync<TSyntaxNode>(document, selection, Functions<SyntaxNode>.Identity, cancellationToken);
-        }
+        public abstract SyntaxNode DefaultNodeExtractor<TNode>(SyntaxNode node) where TNode : SyntaxNode;
 
         public async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
-            Document document, TextSpan selection, Func<SyntaxNode, SyntaxNode> extractNode, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+            Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
-            return await TryGetSelectedNodeAsync(document, selection, extractNode, n => n is TSyntaxNode, cancellationToken).ConfigureAwait(false) as TSyntaxNode;
+            return await TryGetSelectedNodeAsync(document, selection, n => n is TSyntaxNode, DefaultNodeExtractor<TSyntaxNode>, cancellationToken).ConfigureAwait(false) as TSyntaxNode;
         }
 
-        public async Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selection, Func<SyntaxNode, SyntaxNode> extractNode, Predicate<SyntaxNode> predicate, CancellationToken cancellationToken)
+        public Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selection, Predicate<SyntaxNode> predicate, CancellationToken cancellationToken)
+        {
+            return TryGetSelectedNodeAsync(document, selection, predicate, DefaultNodeExtractor<SyntaxNode>, cancellationToken);
+        }
+
+        public async Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selection, Predicate<SyntaxNode> predicate, Func<SyntaxNode, SyntaxNode> extractNode, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var selectionStripped = await CodeRefactoringHelpers.GetStrippedTextSpan(document, selection, cancellationToken).ConfigureAwait(false);
@@ -38,15 +37,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             SyntaxNode prevNode;
             do
             {
-                var extrNode = extractNode(node);
-                if (extrNode != default && predicate(extrNode))
+                var wantedNode = TryGetAcceptedNodeOrExtracted(node, predicate, extractNode);
+                if (wantedNode != default)
                 {
-                    return extrNode;
+                    return wantedNode;
                 }
 
                 prevNode = node;
                 node = node.Parent;
-
             }
             while (node != null && prevNode.FullWidth() == node.FullWidth());
 
@@ -71,10 +69,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 do
                 {
                     // consider either a Node that is a parent of touched Token (selection can be within) or ancestor Node of such Token whose span starts on selection
-                    var extractedNode = extractNode(rightNode);
-                    if (extractedNode != default && predicate(extractedNode))
+                    var wantedNode = TryGetAcceptedNodeOrExtracted(rightNode, predicate, extractNode);
+                    if (wantedNode != default)
                     {
-                        return extractedNode;
+                        return wantedNode;
                     }
 
                     rightNode = rightNode?.Parent;
@@ -103,10 +101,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 do
                 {
                     // consider either a Node that is a parent of touched Token (selection can be within) or ancestor Node of such Token whose span ends on selection
-                    var extractedNode = extractNode(leftNode);
-                    if (extractedNode != default && predicate(extractedNode))
+                    var wantedNode = TryGetAcceptedNodeOrExtracted(leftNode, predicate, extractNode);
+                    if (wantedNode != default)
                     {
-                        return extractedNode;
+                        return wantedNode;
                     }
 
                     leftNode = leftNode?.Parent;
@@ -116,6 +114,28 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             // nothing found
             return default;
+
+            static SyntaxNode TryGetAcceptedNodeOrExtracted(SyntaxNode node, Predicate<SyntaxNode> predicate, Func<SyntaxNode, SyntaxNode> extractNode)
+            {
+                if (node == default)
+                {
+                    return default;
+                }
+
+                if (predicate(node))
+                {
+                    return node;
+                }
+
+                var extrNode = extractNode(node);
+                if (extrNode != default && predicate(extrNode))
+                {
+                    return extrNode;
+                }
+
+                return default;
+            }
+
         }
     }
 }

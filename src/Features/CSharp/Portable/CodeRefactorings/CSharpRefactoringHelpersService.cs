@@ -2,13 +2,14 @@
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
 {
     [ExportLanguageService(typeof(IRefactoringHelpersService), LanguageNames.CSharp), Shared]
     internal class CSharpRefactoringHelpersService : AbstractRefactoringHelpersService
     {
-        public override SyntaxNode ExtractNodeFromDeclarationAndAssignment<TNode>(SyntaxNode node)
+        public override SyntaxNode DefaultNodeExtractor<TNode>(SyntaxNode node)
         {
             switch (node)
             {

@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
     Friend Class VisualBasicRefactoringHelpersService
         Inherits AbstractRefactoringHelpersService
 
-        Public Overrides Function ExtractNodeFromDeclarationAndAssignment(Of TNode As SyntaxNode)(node As SyntaxNode) As SyntaxNode
+        Public Overrides Function DefaultNodeExtractor(Of TNode As SyntaxNode)(node As SyntaxNode) As SyntaxNode
             If TypeOf node Is LocalDeclarationStatementSyntax Then
                 Dim localDeclaration = CType(node, LocalDeclarationStatementSyntax)
                 If localDeclaration.Declarators.Count = 1 And localDeclaration.Declarators.First.Initializer IsNot Nothing Then

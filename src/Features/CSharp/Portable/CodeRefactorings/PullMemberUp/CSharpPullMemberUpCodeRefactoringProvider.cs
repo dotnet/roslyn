@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
         {
             var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
             return await refactoringHelperService.TryGetSelectedNodeAsync(
-                document, span, Functions<SyntaxNode>.Identity,
-                n => n is MemberDeclarationSyntax || n is VariableDeclaratorSyntax, cancellationToken).ConfigureAwait(false);
+                document, span, n => n is MemberDeclarationSyntax || n is VariableDeclaratorSyntax, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
         protected override async Task<QueryExpressionSyntax> FindNodeToRefactorAsync(Document document, TextSpan selection, CancellationToken cancellationToken)
         {
             var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-            return await refactoringHelperService.TryGetSelectedNodeAsync<QueryExpressionSyntax>(document, selection, refactoringHelperService.ExtractNodeFromDeclarationAndAssignment<QueryExpressionSyntax>, cancellationToken).ConfigureAwait(false);
+            return await refactoringHelperService.TryGetSelectedNodeAsync<QueryExpressionSyntax>(document, selection, cancellationToken).ConfigureAwait(false);
         }
 
         private sealed class Converter
