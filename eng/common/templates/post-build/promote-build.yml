@@ -25,4 +25,3 @@ jobs:
             "Authorization" = "Bearer $(MaestroAccessToken)"
           }
           Invoke-RestMethod -Method Post -Headers $headers -Uri https://maestro-prod.westus2.cloudapp.azure.com/api/channels/$(ChannelId)/builds/$(BARBuildId)?api-version=2019-01-16
-      enabled: false
