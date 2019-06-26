@@ -547,17 +547,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeWithAnnotations WithTypeAndModifiers(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers) =>
             _extensions.WithTypeAndModifiers(this, typeSymbol, customModifiers);
 
-        /// <summary>
-        /// Used by callers before calling CSharpCompilation.EnsureNullableAttributeExists().
-        /// </summary>
-        /// <remarks>
-        /// This method ignores any [NullableContext]. For example, if there is a [NullableContext(1)]
-        /// at the containing type, and this type reference is oblivious, NeedsNullableAttribute()
-        /// will return false even though a [Nullable(0)] will be emitted for this type reference.
-        /// In practice, this shouldn't be an issue though since EnsuresNullableAttributeExists()
-        /// will have returned true for at least some of other type references that required
-        /// [Nullable(1)] and were subsequently aggregated to the [NullableContext(1)].
-        /// </remarks>
         public bool NeedsNullableAttribute()
         {
             return NeedsNullableAttribute(this, typeOpt: null);
@@ -596,43 +585,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public void AddNullableTransforms(ArrayBuilder<byte> transforms)
         {
-            AddNullableTransforms(this, transforms);
-        }
+            var type = Type;
 
-        private static void AddNullableTransforms(TypeWithAnnotations typeWithAnnotations, ArrayBuilder<byte> transforms)
-        {
-            while (true)
+            if (!SkipNullableTransform(type))
             {
-                var type = typeWithAnnotations.Type;
-
-                if (!SkipNullableTransform(type))
+                byte flag;
+                if (NullableAnnotation.IsOblivious() || type.IsValueType)
                 {
-                    var annotation = typeWithAnnotations.NullableAnnotation;
-                    byte flag;
-                    if (annotation.IsOblivious() || type.IsValueType)
-                    {
-                        flag = NullableAnnotationExtensions.ObliviousAttributeValue;
-                    }
-                    else if (annotation.IsAnnotated())
-                    {
-                        flag = NullableAnnotationExtensions.AnnotatedAttributeValue;
-                    }
-                    else
-                    {
-                        flag = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
-                    }
-                    transforms.Add(flag);
+                    flag = NullableAnnotationExtensions.ObliviousAttributeValue;
                 }
-
-                if (type.TypeKind != TypeKind.Array)
+                else if (NullableAnnotation.IsAnnotated())
                 {
-                    type.AddNullableTransforms(transforms);
-                    return;
+                    flag = NullableAnnotationExtensions.AnnotatedAttributeValue;
                 }
-
-                // Avoid recursion to allow for deeply-nested arrays.
-                typeWithAnnotations = ((ArrayTypeSymbol)type).ElementTypeWithAnnotations;
+                else
+                {
+                    flag = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
+                }
+                transforms.Add(flag);
             }
+
+            type.AddNullableTransforms(transforms);
         }
 
         public bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeWithAnnotations result)

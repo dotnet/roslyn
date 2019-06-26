@@ -95,32 +95,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 )
             );
         }
-    }
 
-    internal sealed class SynthesizedEmbeddedAttributeConstructorWithBodySymbol : SynthesizedInstanceConstructor
-    {
-        private readonly ImmutableArray<ParameterSymbol> _parameters;
-
-        private readonly Action<SyntheticBoundNodeFactory, ArrayBuilder<BoundStatement>, ImmutableArray<ParameterSymbol>> _getConstructorBody;
-
-        internal SynthesizedEmbeddedAttributeConstructorWithBodySymbol(
-            NamedTypeSymbol containingType,
-            Func<MethodSymbol, ImmutableArray<ParameterSymbol>> getParameters,
-            Action<SyntheticBoundNodeFactory, ArrayBuilder<BoundStatement>, ImmutableArray<ParameterSymbol>> getConstructorBody) :
-            base(containingType)
+        private sealed class SynthesizedEmbeddedAttributeConstructorWithBodySymbol : SynthesizedInstanceConstructor
         {
-            _parameters = getParameters(this);
-            _getConstructorBody = getConstructorBody;
+            private readonly ImmutableArray<ParameterSymbol> _parameters;
+
+            private readonly Action<SyntheticBoundNodeFactory, ArrayBuilder<BoundStatement>, ImmutableArray<ParameterSymbol>> _getConstructorBody;
+
+            internal SynthesizedEmbeddedAttributeConstructorWithBodySymbol(
+                NamedTypeSymbol containingType,
+                Func<MethodSymbol, ImmutableArray<ParameterSymbol>> getParameters,
+                Action<SyntheticBoundNodeFactory, ArrayBuilder<BoundStatement>, ImmutableArray<ParameterSymbol>> getConstructorBody) :
+                base(containingType)
+            {
+                _parameters = getParameters(this);
+                _getConstructorBody = getConstructorBody;
+            }
+
+            public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
+
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            {
+                GenerateMethodBodyCore(compilationState, diagnostics);
+            }
+
+            protected override void GenerateMethodBodyStatements(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, DiagnosticBag diagnostics) => _getConstructorBody(factory, statements, _parameters);
         }
-
-        public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
-
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
-        {
-            GenerateMethodBodyCore(compilationState, diagnostics);
-        }
-
-        protected override void GenerateMethodBodyStatements(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, DiagnosticBag diagnostics) => _getConstructorBody(factory, statements, _parameters);
     }
 }
 

@@ -26,8 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedEmbeddedAttributeSymbol _lazyIsByRefLikeAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsUnmanagedAttribute;
         private SynthesizedEmbeddedNullableAttributeSymbol _lazyNullableAttribute;
-        private SynthesizedEmbeddedNullableContextAttributeSymbol _lazyNullableContextAttribute;
-        private SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol _lazyNullablePublicOnlyAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyNullablePublicOnlyAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -84,7 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             builder.AddIfNotNull(_lazyIsUnmanagedAttribute);
             builder.AddIfNotNull(_lazyIsByRefLikeAttribute);
             builder.AddIfNotNull(_lazyNullableAttribute);
-            builder.AddIfNotNull(_lazyNullableContextAttribute);
             builder.AddIfNotNull(_lazyNullablePublicOnlyAttribute);
 
             return builder.ToImmutableAndFree();
@@ -197,30 +195,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.SynthesizeNullableAttribute(member, arguments);
         }
 
-        internal override SynthesizedAttributeData SynthesizeNullableContextAttribute(ImmutableArray<TypedConstant> arguments)
-        {
-            if ((object)_lazyNullableContextAttribute != null)
-            {
-                return new SynthesizedAttributeData(
-                    _lazyNullableContextAttribute.Constructors[0],
-                    arguments,
-                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
-            }
-
-            return base.SynthesizeNullableContextAttribute(arguments);
-        }
-
-        internal override SynthesizedAttributeData SynthesizeNullablePublicOnlyAttribute(ImmutableArray<TypedConstant> arguments)
+        internal override SynthesizedAttributeData SynthesizeNullablePublicOnlyAttribute()
         {
             if ((object)_lazyNullablePublicOnlyAttribute != null)
             {
                 return new SynthesizedAttributeData(
                     _lazyNullablePublicOnlyAttribute.Constructors[0],
-                    arguments,
+                    ImmutableArray<TypedConstant>.Empty,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
             }
 
-            return base.SynthesizeNullablePublicOnlyAttribute(arguments);
+            return base.SynthesizeNullablePublicOnlyAttribute();
         }
 
         protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
@@ -307,18 +292,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     diagnostics);
             }
 
-            if ((needsAttributes & EmbeddableAttributes.NullableContextAttribute) != 0)
-            {
-                CreateEmbeddedNullableContextAttributeIfNeeded(
-                    ref _lazyNullableContextAttribute,
-                    diagnostics);
-            }
-
             if ((needsAttributes & EmbeddableAttributes.NullablePublicOnlyAttribute) != 0)
             {
-                CreateEmbeddedNullablePublicOnlyAttributeIfNeeded(
+                CreateEmbeddedAttributeIfNeeded(
                     ref _lazyNullablePublicOnlyAttribute,
-                    diagnostics);
+                    diagnostics,
+                    AttributeDescription.NullablePublicOnlyAttribute);
             }
         }
 
@@ -342,28 +321,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 AddDiagnosticsForExistingAttribute(AttributeDescription.NullableAttribute, diagnostics);
                 symbol = new SynthesizedEmbeddedNullableAttributeSymbol(_sourceAssembly.DeclaringCompilation, diagnostics);
-            }
-        }
-
-        private void CreateEmbeddedNullableContextAttributeIfNeeded(
-            ref SynthesizedEmbeddedNullableContextAttributeSymbol symbol,
-            DiagnosticBag diagnostics)
-        {
-            if (symbol is null)
-            {
-                AddDiagnosticsForExistingAttribute(AttributeDescription.NullableContextAttribute, diagnostics);
-                symbol = new SynthesizedEmbeddedNullableContextAttributeSymbol(_sourceAssembly.DeclaringCompilation, diagnostics);
-            }
-        }
-
-        private void CreateEmbeddedNullablePublicOnlyAttributeIfNeeded(
-            ref SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol symbol,
-            DiagnosticBag diagnostics)
-        {
-            if (symbol is null)
-            {
-                AddDiagnosticsForExistingAttribute(AttributeDescription.NullablePublicOnlyAttribute, diagnostics);
-                symbol = new SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol(_sourceAssembly.DeclaringCompilation, diagnostics);
             }
         }
 

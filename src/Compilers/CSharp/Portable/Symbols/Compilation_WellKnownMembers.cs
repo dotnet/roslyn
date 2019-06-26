@@ -478,11 +478,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableAttribute, diagnostics, location, modifyCompilation);
         }
 
-        internal void EnsureNullableContextAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
-        {
-            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableContextAttribute, diagnostics, location, modifyCompilation);
-        }
-
         internal void EnsureNullablePublicOnlyAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullablePublicOnlyAttribute, diagnostics, location, modifyCompilation);
@@ -521,13 +516,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         WellKnownType.System_Runtime_CompilerServices_NullableAttribute,
                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags);
-
-                case EmbeddableAttributes.NullableContextAttribute:
-                    return CheckIfAttributeShouldBeEmbedded(
-                        diagnosticsOpt,
-                        locationOpt,
-                        WellKnownType.System_Runtime_CompilerServices_NullableContextAttribute,
-                        WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor);
 
                 case EmbeddableAttributes.NullablePublicOnlyAttribute:
                     return CheckIfAttributeShouldBeEmbedded(

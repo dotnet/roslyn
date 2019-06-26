@@ -1246,9 +1246,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.SynthesizeTupleNamesAttribute(type.Type));
             }
 
-            if (compilation.ShouldEmitNullableAttributes(this))
+            if (compilation.ShouldEmitNullableAttributes(this) && type.NeedsNullableAttribute())
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, ContainingType.GetNullableContextValue(), type));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }
 
             if (this.ReturnsByRefReadonly)

@@ -3342,34 +3342,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            // For symbols that do not have explicit accessibility in metadata,
-            // use the accessibility of the container.
-            symbol = getExplicitAccessibilitySymbol(symbol);
-
             if (!AccessCheck.IsEffectivelyPublicOrInternal(symbol, out bool isInternal))
             {
                 return false;
             }
 
             return !isInternal || SourceAssembly.InternalsAreVisible;
-
-            static Symbol getExplicitAccessibilitySymbol(Symbol symbol)
-            {
-                while (true)
-                {
-                    switch (symbol.Kind)
-                    {
-                        case SymbolKind.Parameter:
-                        case SymbolKind.TypeParameter:
-                        case SymbolKind.Property:
-                        case SymbolKind.Event:
-                            symbol = symbol.ContainingSymbol;
-                            break;
-                        default:
-                            return symbol;
-                    }
-                }
-            }
         }
 
         internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager)

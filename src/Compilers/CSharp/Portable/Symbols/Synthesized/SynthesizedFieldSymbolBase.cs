@@ -69,9 +69,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.SynthesizeTupleNamesAttribute(Type));
             }
 
-            if (compilation.ShouldEmitNullableAttributes(this))
+            if (compilation.ShouldEmitNullableAttributes(this) && typeWithAnnotations.NeedsNullableAttribute())
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, ContainingType.GetNullableContextValue(), typeWithAnnotations));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, typeWithAnnotations));
             }
         }
 

@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1154,87 +1155,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 diagnostics.Add(ErrorCode.ERR_BlockBodyAndExpressionBody, syntax.GetLocation());
             }
-        }
-
-        internal void ReportExplicitUseOfNullabilityAttribute(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, AttributeDescription attributeDescription)
-        {
-            // Attribute should not be set explicitly.
-            arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, attributeDescription.FullName);
-        }
-
-        internal virtual byte? GetNullableContextValue()
-        {
-            return GetLocalNullableContextValue() ?? ContainingSymbol?.GetNullableContextValue();
-        }
-
-        internal virtual byte? GetLocalNullableContextValue()
-        {
-            return null;
-        }
-
-        internal void GetCommonNullableValues(CSharpCompilation compilation, ref MostCommonNullableValueBuilder builder)
-        {
-            switch (this.Kind)
-            {
-                case SymbolKind.NamedType:
-                    if (compilation.ShouldEmitNullableAttributes(this))
-                    {
-                        builder.AddValue(this.GetLocalNullableContextValue());
-                    }
-                    break;
-                case SymbolKind.Event:
-                    if (compilation.ShouldEmitNullableAttributes(this))
-                    {
-                        builder.AddValue(((EventSymbol)this).TypeWithAnnotations);
-                    }
-                    break;
-                case SymbolKind.Field:
-                    if (compilation.ShouldEmitNullableAttributes(this))
-                    {
-                        builder.AddValue(((FieldSymbol)this).TypeWithAnnotations);
-                    }
-                    break;
-                case SymbolKind.Method:
-                    if (compilation.ShouldEmitNullableAttributes(this))
-                    {
-                        builder.AddValue(this.GetLocalNullableContextValue());
-                    }
-                    break;
-                case SymbolKind.Property:
-                    if (compilation.ShouldEmitNullableAttributes(this))
-                    {
-                        builder.AddValue(((PropertySymbol)this).TypeWithAnnotations);
-                        // Attributes are not emitted for property parameters.
-                    }
-                    break;
-                case SymbolKind.Parameter:
-                    builder.AddValue(((ParameterSymbol)this).TypeWithAnnotations);
-                    break;
-                case SymbolKind.TypeParameter:
-                    if (this is SourceTypeParameterSymbolBase typeParameter)
-                    {
-                        builder.AddValue(typeParameter.GetSynthesizedNullableAttributeValue());
-                        foreach (var constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
-                        {
-                            builder.AddValue(constraintType);
-                        }
-                    }
-                    break;
-            }
-        }
-
-        internal bool ShouldEmitNullableContextValue(out byte value)
-        {
-            byte? localValue = GetLocalNullableContextValue();
-            if (localValue == null)
-            {
-                value = 0;
-                return false;
-            }
-
-            value = localValue.GetValueOrDefault();
-            byte containingValue = ContainingSymbol?.GetNullableContextValue() ?? 0;
-            return value != containingValue;
         }
 
         #region ISymbol Members
