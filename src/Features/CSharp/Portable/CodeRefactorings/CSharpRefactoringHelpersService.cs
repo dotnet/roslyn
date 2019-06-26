@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
     [ExportLanguageService(typeof(IRefactoringHelpersService), LanguageNames.CSharp), Shared]
     internal class CSharpRefactoringHelpersService : RefactoringHelpersService
     {
-        public override SyntaxNode ExtractNodeFromDeclarationAndAssignment<TNode>(SyntaxNode current)
+        public override SyntaxNode ExtractNodeFromDeclarationAndAssignment<TNode>(SyntaxNode node)
         {
-            switch (current)
+            switch (node)
             {
                 case LocalDeclarationStatementSyntax localDeclaration:
                     {
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
                     }
             }
 
-            return current;
+            return node;
         }
     }
 }
