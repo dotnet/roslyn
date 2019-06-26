@@ -486,6 +486,14 @@ namespace Microsoft.CodeAnalysis
             bool hasErrors = false;
             foreach (var diag in diagnostics)
             {
+                reportDiagnostic(diag);
+            }
+
+            return hasErrors;
+
+            // Local functions
+            void reportDiagnostic(Diagnostic diag)
+            {
                 if (_reportedDiagnostics.Contains(diag))
                 {
                     // TODO: This invariant fails (at least) in the case where we see a member declaration "x = 1;".
@@ -496,20 +504,38 @@ namespace Microsoft.CodeAnalysis
                     // we previously created.
                     //this assert isn't valid if we change the design to not bail out after each phase.
                     //System.Diagnostics.Debug.Assert(diag.Severity != DiagnosticSeverity.Error);
-                    continue;
+                    return;
                 }
                 else if (diag.Severity == DiagnosticSeverity.Hidden)
                 {
                     // Not reported from the command-line compiler.
-                    continue;
+                    return;
                 }
 
                 // We want to report diagnostics with source suppression in the error log file.
                 // However, these diagnostics should not be reported on the console output.
                 errorLoggerOpt?.LogDiagnostic(diag);
+
+                // If the diagnostic was suppressed by one or more DiagnosticSuppressor(s), then we report info diagnostics for each suppression
+                // so that the suppression information is available in the binary logs and verbose build logs.
+                if (diag.ProgrammaticSuppressionInfo != null)
+                {
+                    foreach (var (id, justification) in diag.ProgrammaticSuppressionInfo.Suppressions)
+                    {
+                        var suppressionDiag = new SuppressionDiagnostic(diag, id, justification);
+                        if (_reportedDiagnostics.Add(suppressionDiag))
+                        {
+                            PrintError(suppressionDiag, consoleOutput);
+                        }
+                    }
+
+                    _reportedDiagnostics.Add(diag);
+                    return;
+                }
+
                 if (diag.IsSuppressed)
                 {
-                    continue;
+                    return;
                 }
 
                 // Diagnostics that aren't suppressed will be reported to the console output and, if they are errors,
@@ -523,8 +549,6 @@ namespace Microsoft.CodeAnalysis
 
                 _reportedDiagnostics.Add(diag);
             }
-
-            return hasErrors;
         }
 
         /// <summary>Returns true if there were any errors, false otherwise.</summary>
@@ -1022,9 +1046,16 @@ namespace Microsoft.CodeAnalysis
                             // TryComplete, we may miss diagnostics.
                             var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation).Result;
                             diagnostics.AddRange(hostDiagnostics);
-                            if (hostDiagnostics.Any(IsReportedError))
+
+                            if (!diagnostics.IsEmptyWithoutResolution)
                             {
-                                success = false;
+                                // Apply diagnostic suppressions for analyzer and/or compiler diagnostics from diagnostic suppressors.
+                                analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
+
+                                if (HasUnsuppressedErrors(diagnostics))
+                                {
+                                    success = false;
+                                }
                             }
                         }
                     }

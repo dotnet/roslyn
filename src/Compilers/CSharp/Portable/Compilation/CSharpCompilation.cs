@@ -2730,9 +2730,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
 
-                bool hasMethodBodyErrorOrWarningAsError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag);
+                bool hasMethodBodyError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag);
 
-                if (hasDeclarationErrors || hasMethodBodyErrorOrWarningAsError)
+                if (hasDeclarationErrors || hasMethodBodyError)
                 {
                     return false;
                 }

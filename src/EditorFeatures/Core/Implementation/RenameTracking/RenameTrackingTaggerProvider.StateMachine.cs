@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     trackingSession.CanInvokeRename(syntaxFactsService, languageHeuristicsService, isSmartTagCheck, waitForResult, cancellationToken);
             }
 
-            internal async Task<IEnumerable<Diagnostic>> GetDiagnostic(SyntaxTree tree, DiagnosticDescriptor diagnosticDescriptor, CancellationToken cancellationToken)
+            internal Diagnostic TryGetDiagnostic(SyntaxTree tree, DiagnosticDescriptor diagnosticDescriptor, CancellationToken cancellationToken)
             {
                 try
                 {
@@ -287,9 +287,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     // method. If it does, we may give an incorrect response, but the diagnostics 
                     // engine will know that the document changed and not display the lightbulb anyway.
 
-                    if (Buffer.AsTextContainer().CurrentText != await tree.GetTextAsync(cancellationToken).ConfigureAwait(false))
+                    if (Buffer.AsTextContainer().CurrentText != tree.GetText(cancellationToken))
                     {
-                        return SpecializedCollections.EmptyEnumerable<Diagnostic>();
+                        return null;
                     }
 
                     if (CanInvokeRename(out var trackingSession, waitForResult: true, cancellationToken: cancellationToken))
@@ -306,10 +306,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                             tree.GetLocation(textSpan),
                             properties);
 
-                        return SpecializedCollections.SingletonEnumerable(diagnostic);
+                        return diagnostic;
                     }
 
-                    return SpecializedCollections.EmptyEnumerable<Diagnostic>();
+                    return null;
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {

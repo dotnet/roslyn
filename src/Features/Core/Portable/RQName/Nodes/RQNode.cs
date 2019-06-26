@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         {
             var childList = new List<SimpleTreeNode>();
             AppendChildren(childList);
-            return new SimpleGroupNode(this.RQKeyword, childList);
+            return new SimpleGroupNode(RQKeyword, childList);
         }
     }
 }
