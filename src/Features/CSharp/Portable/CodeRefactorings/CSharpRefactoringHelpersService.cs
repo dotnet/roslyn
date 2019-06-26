@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
 {
-    [ExportLanguageService(typeof(ISyntaxTriviaService), LanguageNames.CSharp), Shared]
+    [ExportLanguageService(typeof(IRefactoringHelpersService), LanguageNames.CSharp), Shared]
     internal class CSharpRefactoringHelpersService : RefactoringHelpersService
     {
         public override SyntaxNode ExtractNodeFromDeclarationAndAssignment<TNode>(SyntaxNode current)

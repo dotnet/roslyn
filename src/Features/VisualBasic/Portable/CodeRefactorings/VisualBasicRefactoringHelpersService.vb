@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
-    <ExportLanguageService(GetType(ISyntaxTriviaService), LanguageNames.CSharp), [Shared]>
+    <ExportLanguageService(GetType(IRefactoringHelpersService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicRefactoringHelpersService
         Inherits RefactoringHelpersService
 
