@@ -279,14 +279,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             {
                 Debug.Assert(!targetMethod.IsLambdaOrLocalFunctionOrDelegate());
 
-                if (targetMethod.ContainingType.SpecialType == SpecialType.System_String)
+                if (targetMethod.IsArgumentNullCheckMethod())
                 {
-                    if (targetMethod.IsStatic &&
-                        targetMethod.Name.StartsWith("IsNull", StringComparison.Ordinal) &&
-                        targetMethod.Parameters.Length == 1 &&
-                        arguments.Length == 1)
+                    if (arguments.Length == 1)
                     {
-                        // string.IsNullOrXXX check.
+                        // "static bool SomeType.IsNullXXX(obj)" check.
                         MarkValidatedLocations(arguments[0]);
                     }
                 }
@@ -337,6 +334,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                                     break;
                                 }
                             }
+                        }
+                    }
+                }
+
+
+                // Mark arguments passed to parameters of null check validation methods as validated.
+                // Also mark arguments passed to parameters with ValidatedNotNullAttribute as validated.
+                var isNullCheckValidationMethod = DataFlowAnalysisContext.IsNullCheckValidationMethod(targetMethod.OriginalDefinition);
+                foreach (var argument in arguments)
+                {
+                    var notValidatedLocations = GetNotValidatedLocations(argument);
+                    if (notValidatedLocations.Any())
+                    {
+                        if (isNullCheckValidationMethod || HasValidatedNotNullAttribute(argument.Parameter))
+                        {
+                            MarkValidatedLocations(argument);
                         }
                     }
                 }
@@ -413,11 +426,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             {
                 var value = base.VisitIsNull(operation, argument);
 
-                // Mark a location as validated on paths where we know it is non-null.
+                // Mark a location as validated on paths where user has performed an IsNull check.
                 // See comments in VisitBinaryOperatorCore override above for further details.
-                if (FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse)
+                MarkValidatedLocations(operation.Operand);
+
+                return value;
+            }
+
+            public override ParameterValidationAbstractValue VisitIsType(IIsTypeOperation operation, object argument)
+            {
+                var value = base.VisitIsType(operation, argument);
+
+                // Mark a location as validated on paths where user has performed an IsType check, for example 'x is object'.
+                // See comments in VisitBinaryOperatorCore override above for further details.
+                if (FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue)
                 {
-                    MarkValidatedLocations(operation.Operand);
+                    MarkValidatedLocations(operation.ValueOperand);
                 }
 
                 return value;

@@ -73,7 +73,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             }
         }
 
-        internal static bool ShouldBeTracked(ITypeSymbol typeSymbol) => typeSymbol.IsReferenceTypeOrNullableValueType();
+        internal static bool ShouldBeTracked(ITypeSymbol typeSymbol) => typeSymbol.IsReferenceTypeOrNullableValueType() ||
+            typeSymbol is ITypeParameterSymbol typeParameter && !typeParameter.IsValueType;
 
         internal static bool ShouldBeTracked(AnalysisEntity analysisEntity)
             => ShouldBeTracked(analysisEntity.Type) || analysisEntity.IsLValueFlowCaptureEntity || analysisEntity.IsThisOrMeInstance;
