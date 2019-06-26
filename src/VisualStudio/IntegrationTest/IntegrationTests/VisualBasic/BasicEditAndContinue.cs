@@ -92,7 +92,7 @@ End Try");
             VisualStudio.Editor.Verify.CurrentLineText("End Try");
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36763")]
         public void EditLambdaExpression()
         {
             VisualStudio.Editor.SetText(@"
