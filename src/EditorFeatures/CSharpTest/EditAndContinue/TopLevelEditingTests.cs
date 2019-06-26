@@ -2599,6 +2599,61 @@ class C
         }
 
         [Fact]
+        public void MethodUpdate_UpdateParameterToNullable()
+        {
+            string src1 = @"
+class C
+{
+    static void M(string s)
+    {
+    }
+}";
+            string src2 = @"
+class C
+{
+    static void M(string? s)
+    {
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [string s]@32 -> [string? s]@32");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "string? s", FeaturesResources.parameter));
+        }
+
+        [Fact]
+        public void MethodUpdate_UpdateParameterToNonNullable()
+        {
+            string src1 = @"
+class C
+{
+    static void M(string? s)
+    {
+        
+    }
+}";
+            string src2 = @"
+class C
+{
+    static void M(string s)
+    {
+        
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [string? s]@32 -> [string s]@32");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "string s", FeaturesResources.parameter));
+        }
+
+
+        [Fact]
         public void MethodUpdate_RenameMethodName()
         {
             string src1 = @"
@@ -6931,6 +6986,20 @@ class C
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, "int? left", FeaturesResources.field));
+        }
+
+        [Fact]
+        public void FieldTypeUpdateNonNullable()
+        {
+            var src1 = "class C { int? left; }";
+            var src2 = "class C { int left; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [int? left]@10 -> [int left]@10");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "int left", FeaturesResources.field));
         }
 
         [Fact]

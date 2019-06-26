@@ -9170,6 +9170,178 @@ int G1(int[] p) { return p[2]; }
                 "Update [(int, int) x]@35 -> [(int, int) y]@35");
         }
 
-        #endregion 
+        #endregion
+
+        #region Nullables
+
+        [Fact]
+        public void AddNullCheckBeforeAccessingNullable()
+        {
+            string src1 = @"
+using System;
+
+class C
+{
+    static T id<T>(T t) => t;
+    static T F<T>(Func<T> f) => f();
+
+    static void M(string? x)
+    {
+        var y1 = new { A = id(x) };
+        var y2 = F(() => new { B = id(x) });
+        var z = new Func<string>(() => y1.A + y2.B);
+    }
+}";
+            string src2 = @"
+using System;
+
+class C
+{
+    static T id<T>(T t) => t;
+    static T F<T>(Func<T> f) => f();
+
+    static void M(string? x)
+    {
+        if (x is null) throw new Exception();
+        var y1 = new { A = id(x) };
+        var y2 = F(() => new { B = id(x) });
+        var z = new Func<string>(() => y1.A + y2.B);
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                // (9,25): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static void M(string? x)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(9, 25));
+        }
+
+        [Fact]
+        public void RemoveNullCheckBeforeAccessingNullable()
+        {
+            string src1 = @"
+using System;
+
+class C
+{
+    static T id<T>(T t) => t;
+    static T F<T>(Func<T> f) => f();
+
+    static void M(string? x)
+    {
+        if (x is null) throw new Exception();
+        var y1 = new { A = id(x) };
+        var y2 = F(() => new { B = id(x) });
+        var z = new Func<string>(() => y1.A + y2.B);
+    }
+}";
+            string src2 = @"
+using System;
+
+class C
+{
+    static T id<T>(T t) => t;
+    static T F<T>(Func<T> f) => f();
+
+    static void M(string? x)
+    {
+        var y1 = new { A = id(x) };
+        var y2 = F(() => new { B = id(x) });
+        var z = new Func<string>(() => y1.A + y2.B);
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                // (9,25): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static void M(string? x)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(9, 25));
+        }
+
+        [Fact]
+        public void AddNullCheckBeforeAccessingNullableWithAsync()
+        {
+            string src1 = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static T id<T>(T t) => t;
+    static Task<T> F<T>(Func<T> f) => Task.FromResult(f());
+
+    static async void M(string? x)
+    {
+        var y = await F(() => new { A = id(x) });
+        var z = new Func<string>(() => y.A);
+    }
+}";
+            string src2 = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static T id<T>(T t) => t;
+    static Task<T> F<T>(Func<T> f) => Task.FromResult(f());
+
+    static async void M(string? x)
+    {
+        if (x is null) throw new Exception();
+        var y = await F(() => new { A = id(x) });
+        var z = new Func<string>(() => y.A);
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                // (10,31): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static async void M(string? x)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(10, 31));
+        }
+
+        [Fact]
+        public void RemoveNullCheckBeforeAccessingNullableWithAsync()
+        {
+            string src1 = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static T id<T>(T t) => t;
+    static Task<T> F<T>(Func<T> f) => Task.FromResult(f());
+
+    static async void M(string? x)
+    {
+        if (x is null) throw new Exception();
+        var y = await F(() => new { A = id(x) });
+        var z = new Func<string>(() => y.A);
+    }
+}";
+            string src2 = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static T id<T>(T t) => t;
+    static Task<T> F<T>(Func<T> f) => Task.FromResult(f());
+
+    static async void M(string? x)
+    {
+        var y = await F(() => new { A = id(x) });
+        var z = new Func<string>(() => y.A);
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                // (10,31): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static async void M(string? x)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(10, 31));
+        }
+
+        #endregion
     }
 }

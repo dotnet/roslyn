@@ -8942,6 +8942,130 @@ class C
 
         #endregion
 
+        #region Nullable
+
+        [Fact]
+        public void ChangeLocalNullableToNonNullable()
+        {
+            string src1 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>string? s = ""a"";</AS:0>
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>string s = ""a"";</AS:0>
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void ChangeLocalNonNullableToNullable()
+        {
+            string src1 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>string s = ""a"";</AS:0>
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>string? s = ""a"";</AS:0>
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void ChangeArrayOfNullableToArrayOfNonNullable()
+        {
+            string src1 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>var arr = new string?[] {""a""};</AS:0>
+        foreach (var s in arr)
+        {
+        }
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>var arr = new string[] {""a""};</AS:0>
+        foreach (var s in arr)
+        {
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void ChangeArrayOfNonNullableToArrayOfNullable()
+        {
+            string src1 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>var arr = new string[] {""a""};</AS:0>
+        foreach (var s in arr)
+        {
+        }
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>var arr = new string?[] {""a""};</AS:0>
+        foreach (var s in arr)
+        {
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        #endregion
+
         #region Misc
 
         [Fact]
