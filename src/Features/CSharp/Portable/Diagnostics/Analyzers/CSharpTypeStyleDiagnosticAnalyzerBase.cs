@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
@@ -16,7 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         protected CSharpTypeStyleDiagnosticAnalyzerBase(
             string diagnosticId, LocalizableString title, LocalizableString message)
-            : base(diagnosticId, title, message)
+            : base(diagnosticId,
+                   ImmutableHashSet.Create<ILanguageSpecificOption>(CSharpCodeStyleOptions.VarForBuiltInTypes, CSharpCodeStyleOptions.VarWhenTypeIsApparent, CSharpCodeStyleOptions.VarElsewhere),
+                   LanguageNames.CSharp,
+                   title, message)
         {
         }
 

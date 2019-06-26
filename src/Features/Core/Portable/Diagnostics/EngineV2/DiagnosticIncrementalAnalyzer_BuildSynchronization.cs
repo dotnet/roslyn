@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (map.Count > 0 && PreferLiveErrorsOnOpenedFiles(workspace))
                 {
                     // enqueue re-analysis of open documents.
-                    this.Owner.Reanalyze(workspace, documentIds: workspace.GetOpenDocumentIds(), highPriority: true);
+                    Owner.Reanalyze(workspace, documentIds: workspace.GetOpenDocumentIds(), highPriority: true);
                 }
             }
         }
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             if (existingDiagnostics.Length > 0)
             {
                 // retain hidden live diagnostics since it won't be comes from build.
-                builder = builder ?? ImmutableArray.CreateBuilder<DiagnosticData>();
+                builder ??= ImmutableArray.CreateBuilder<DiagnosticData>();
                 builder.AddRange(existingDiagnostics.Where(d => d.Severity == DiagnosticSeverity.Hidden));
             }
 
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     continue;
                 }
 
-                builder = builder ?? ImmutableArray.CreateBuilder<DiagnosticData>();
+                builder ??= ImmutableArray.CreateBuilder<DiagnosticData>();
                 builder.AddRange(items.Select(d => CreateLiveDiagnostic(descriptor, d)));
             }
 

@@ -7,13 +7,16 @@ Microsoft.CodeAnalysis.ApplyChangesKind.RemoveAnalyzerConfigDocument = 18 -> Mic
 Microsoft.CodeAnalysis.Project.AddAnalyzerConfigDocument(string name, Microsoft.CodeAnalysis.Text.SourceText text, System.Collections.Generic.IEnumerable<string> folders = null, string filePath = null) -> Microsoft.CodeAnalysis.TextDocument
 Microsoft.CodeAnalysis.Project.AnalyzerConfigDocuments.get -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.AnalyzerConfigDocument>
 Microsoft.CodeAnalysis.Project.ContainsAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> bool
+Microsoft.CodeAnalysis.Project.DefaultNamespace.get -> string
 Microsoft.CodeAnalysis.Project.GetAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> Microsoft.CodeAnalysis.AnalyzerConfigDocument
 Microsoft.CodeAnalysis.Project.RemoveAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> Microsoft.CodeAnalysis.Project
+Microsoft.CodeAnalysis.Project.WithDefaultNamespace(string defaultNamespace) -> Microsoft.CodeAnalysis.Project
 Microsoft.CodeAnalysis.ProjectChanges.GetAddedAnalyzerConfigDocuments() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId>
 Microsoft.CodeAnalysis.ProjectChanges.GetChangedAnalyzerConfigDocuments() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId>
 Microsoft.CodeAnalysis.ProjectChanges.GetRemovedAnalyzerConfigDocuments() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId>
 Microsoft.CodeAnalysis.ProjectInfo.AnalyzerConfigDocuments.get -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.DocumentInfo>
 Microsoft.CodeAnalysis.ProjectInfo.WithAnalyzerConfigDocuments(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> analyzerConfigDocuments) -> Microsoft.CodeAnalysis.ProjectInfo
+Microsoft.CodeAnalysis.ProjectInfo.WithDefaultNamespace(string defaultNamespace) -> Microsoft.CodeAnalysis.ProjectInfo
 Microsoft.CodeAnalysis.Solution.AddAdditionalDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentInfo> documentInfos) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.AddAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId, string name, Microsoft.CodeAnalysis.Text.SourceText text, System.Collections.Generic.IEnumerable<string> folders = null, string filePath = null) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.AddAnalyzerConfigDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentInfo> documentInfos) -> Microsoft.CodeAnalysis.Solution
@@ -23,6 +26,7 @@ Microsoft.CodeAnalysis.Solution.RemoveAnalyzerConfigDocument(Microsoft.CodeAnaly
 Microsoft.CodeAnalysis.Solution.WithAnalyzerConfigDocumentText(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.PreservationMode mode = Microsoft.CodeAnalysis.PreservationMode.PreserveValue) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.WithAnalyzerConfigDocumentText(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.TextAndVersion textAndVersion, Microsoft.CodeAnalysis.PreservationMode mode = Microsoft.CodeAnalysis.PreservationMode.PreserveValue) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.WithAnalyzerConfigDocumentTextLoader(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.TextLoader loader, Microsoft.CodeAnalysis.PreservationMode mode) -> Microsoft.CodeAnalysis.Solution
+Microsoft.CodeAnalysis.Solution.WithProjectDefaultNamespace(Microsoft.CodeAnalysis.ProjectId projectId, string defaultNamespace) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.TextDocumentKind
 Microsoft.CodeAnalysis.TextDocumentKind.AdditionalDocument = 1 -> Microsoft.CodeAnalysis.TextDocumentKind
 Microsoft.CodeAnalysis.TextDocumentKind.AnalyzerConfigDocument = 2 -> Microsoft.CodeAnalysis.TextDocumentKind
@@ -77,6 +81,7 @@ override Microsoft.CodeAnalysis.AdhocWorkspace.OpenAnalyzerConfigDocument(Micros
 override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
 override Microsoft.CodeAnalysis.Options.OptionKey.ToString() -> string
 static Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.AdditiveTypeNames.get -> System.Collections.Immutable.ImmutableArray<string>
+static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeActions.CodeAction> nestedActions, bool isInlinable) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Project project, string pattern, Microsoft.CodeAnalysis.SymbolFilter filter, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Project project, string pattern, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Solution solution, string pattern, Microsoft.CodeAnalysis.SymbolFilter filter, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>

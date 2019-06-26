@@ -1,9 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Operations
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -13,17 +11,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class VisualBasicRemoveUnusedParametersAndValuesDiagnosticAnalyzer
         Inherits AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer
-        Protected Overrides ReadOnly Property UnusedValueExpressionStatementOption As [Option](Of CodeStyleOption(Of UnusedValuePreference))
-            Get
-                Return VisualBasicCodeStyleOptions.UnusedValueExpressionStatement
-            End Get
-        End Property
 
-        Protected Overrides ReadOnly Property UnusedValueAssignmentOption As [Option](Of CodeStyleOption(Of UnusedValuePreference))
-            Get
-                Return VisualBasicCodeStyleOptions.UnusedValueAssignment
-            End Get
-        End Property
+        Public Sub New()
+            MyBase.New(unusedValueExpressionStatementOption:=VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
+                       unusedValueAssignmentOption:=VisualBasicCodeStyleOptions.UnusedValueAssignment,
+                       LanguageNames.VisualBasic)
+        End Sub
 
         Protected Overrides Function SupportsDiscard(tree As SyntaxTree) As Boolean
             Return False

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Debug.Assert(customTags.Length == tags.Length);
 
-            for (int i = 0; i < tags.Length; i++)
+            for (var i = 0; i < tags.Length; i++)
             {
                 Debug.Assert(customTags[i] == tags[i]);
             }
