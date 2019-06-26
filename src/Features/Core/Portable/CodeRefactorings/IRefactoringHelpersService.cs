@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// - Whole node of a type <typeparamref name="TSyntaxNode"/> is selected.
         /// </para>
         /// <para>
-        /// Attempts extracting (and testing with <paramref name="predicate"/> a Node for each Node it consideres (see above).
+        /// Attempts extracting a Node of type <typeparamref name="TSyntaxNode"/> for each Node it consideres (see above).
         /// By default extracts initializer expressions from declarations and assignments.
         /// </para>
         /// <para>
