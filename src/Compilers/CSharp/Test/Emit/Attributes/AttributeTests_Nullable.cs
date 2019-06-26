@@ -3264,6 +3264,43 @@ public class Program
         }
 
         [Fact]
+        public void EmitAttribute_ValueTypes_09()
+        {
+            var source1 =
+@"#nullable enable
+public interface I
+{
+    void M1(int x);
+    void M2(int[]? x);
+    void M3(int x, object? y);
+}";
+            var comp = CreateCompilation(source1);
+            var expected1 =
+@"[NullableContext(2)] I
+    void M1(System.Int32 x)
+        System.Int32 x
+    void M2(System.Int32[]? x)
+        System.Int32[]? x
+    void M3(System.Int32 x, System.Object? y)
+        System.Int32 x
+        System.Object? y
+";
+            AssertNullableAttributes(comp, expected1);
+            var ref0 = comp.EmitToImageReference();
+
+            var source2 =
+@"#nullable enable
+class C : I
+{
+    public void M1(int x) { }
+    public void M2(int[]? x) { }
+    public void M3(int x, object? y) { }
+}";
+            comp = CreateCompilation(source2, references: new[] { ref0 });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void UseSiteError_LambdaReturnType()
         {
             var source0 =
