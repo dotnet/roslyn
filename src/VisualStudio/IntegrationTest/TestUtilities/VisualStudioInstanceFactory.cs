@@ -328,6 +328,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // Disable background download UI to avoid toasts
                 Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Setup\\BackgroundDownload\" Value dword 0").WaitForExit();
 
+                // Disable IntelliTrace
+                Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"Debugger\" EnableIntelliTrace dword 0").WaitForExit();
+
                 // Remove legacy experiment setting for controlling async completion to ensure it does not interfere.
                 // We no longer set this value, but it could be in place from an earlier test run on the same machine.
                 var disabledFlights = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\ABExp\LocalTest", "DisabledFlights", Array.Empty<string>()) as string[] ?? Array.Empty<string>();
