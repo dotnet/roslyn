@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// - Whole node of a type <typeparamref name="TSyntaxNode"/> is selected.
         /// </para>
         /// <para>
-        /// The <paramref name="extractNode"/> function enables testing with <paramref name="predicate"/> and potentially returning Nodes 
+        /// The <paramref name="extractNode"/> function enables returning Nodes of type <typeparamref name="TSyntaxNode"/>
         /// that are under those that might be selected / considered (as described above). It is a <see cref="Func{SyntaxNode, SyntaxNode}"/> that
-        /// should always return either given Node or a Node somewhere below it that should be tested with <paramref name="predicate"/> and
+        /// should always return either given Node or a Node somewhere below it that should be tested for type <typeparamref name="TSyntaxNode"/> and
         /// potentially returned instead of current Node. 
         /// E.g. <see cref="ExtractNodeFromDeclarationAndAssignment{TNode}(SyntaxNode)"/>
         /// allows returning right side Expresion node even if whole AssignmentNode is selected.
