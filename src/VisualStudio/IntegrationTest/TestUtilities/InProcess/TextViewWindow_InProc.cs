@@ -163,6 +163,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 dte.Find.Action = EnvDTE.vsFindAction.vsFindActionFind;
 
                 var originalPosition = GetCaretPosition();
+
+                var caretBuffer = GetBufferContainingCaret(view);
+                if (caretBuffer is null) throw new ArgumentNullException(nameof(caretBuffer));
+
                 view.Caret.MoveTo(new SnapshotPoint(GetBufferContainingCaret(view).CurrentSnapshot, 0));
 
                 if (occurrence > 0)
