@@ -463,6 +463,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             var providers = GetFilteredProviders(roles, trigger, options);
+            // AW: use for loop and check cancellation token
             return providers.Any(p => p.ShouldTriggerCompletion(text, caretPosition, trigger, options));
         }
 

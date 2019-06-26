@@ -73,10 +73,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             SnapshotPoint triggerLocation,
             CancellationToken cancellationToken)
         {
-            // We take sourceText from document to get a snapshot span.
-            // We would like to be sure that nobody changes buffers at the same time.
-            AssertIsForeground();
-
             if (_textView.Selection.Mode == TextSelectionMode.Box)
             {
                 // No completion with multiple selection
@@ -106,10 +102,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             _textView.Properties[PotentialCommitCharacters] = service.GetRules().DefaultCommitCharacters;
 
             CheckForExperimentStatus(_textView, document);
+            var sourceText = triggerLocation.Snapshot.TextBuffer.AsTextContainer().CurrentText;
 
-            var sourceText = document.GetTextSynchronously(cancellationToken);
+            if (cancellationToken.IsCancellationRequested)
+                return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
 
-            return ShouldTriggerCompletion(trigger, triggerLocation, sourceText, document, service)
+            return ShouldTriggerCompletion(trigger, triggerLocation, sourceText, document, service, cancellationToken)
                 ? new AsyncCompletionData.CompletionStartData(
                     participation: AsyncCompletionData.CompletionParticipation.ProvidesItems,
                     applicableToSpan: new SnapshotSpan(
@@ -137,7 +135,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             SnapshotPoint triggerLocation,
             SourceText sourceText,
             Document document,
-            CompletionService completionService)
+            CompletionService completionService,
+            CancellationToken token)
         {
             // The trigger reason guarantees that user wants a completion.
             if (trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Invoke ||
@@ -161,6 +160,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             var roslynTrigger = Helpers.GetRoslynTrigger(trigger, triggerLocation);
+
+            if (token.IsCancellationRequested)
+            {
+                return false;
+            }
 
             // The completion service decides that user may want a completion.
             if (completionService.ShouldTriggerCompletion(sourceText, triggerLocation.Position, roslynTrigger))
