@@ -597,6 +597,30 @@ namespace Analyzer.Utilities.Extensions
         {
             return invocationOperation.IsExtensionMethodAndHasNoInstance() ? invocationOperation.Arguments[0].Value.Syntax : invocationOperation.Instance.Syntax;
         }
+
+        public static ISymbol GetReferencedMemberOrLocalOrParameter(this IOperation operation)
+        {
+            switch (operation)
+            {
+                case IMemberReferenceOperation memberReference:
+                    return memberReference.Member;
+
+                case IParameterReferenceOperation parameterReference:
+                    return parameterReference.Parameter;
+
+                case ILocalReferenceOperation localReference:
+                    return localReference.Local;
+
+                case IParenthesizedOperation parenthesized:
+                    return parenthesized.Operand.GetReferencedMemberOrLocalOrParameter();
+
+                case IConversionOperation conversion:
+                    return conversion.Operand.GetReferencedMemberOrLocalOrParameter();
+
+                default:
+                    return null;
+            }
+        }
     }
 }
 

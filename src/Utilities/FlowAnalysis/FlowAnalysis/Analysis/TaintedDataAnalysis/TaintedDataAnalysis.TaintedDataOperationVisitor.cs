@@ -232,6 +232,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     return TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
                 }
+                else if (visitedInstance != null && this.IsSanitizingInstanceMethod(method))
+                {
+                    if (AnalysisEntityFactory.TryCreate(visitedInstance, out AnalysisEntity analysisEntity))
+                    {
+                        this.CurrentAnalysisData.SetAbstractValue(analysisEntity, TaintedDataAbstractValue.NotTainted);
+                    }
+
+                    return TaintedDataAbstractValue.NotTainted;
+                }
 
                 return baseVisit;
             }
@@ -407,6 +416,24 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     }
 
                     if (sanitizerInfo.SanitizingMethods.Contains(method.MetadataName))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            /// <summary>
+            /// Determines if untaint the instance after calling the method.
+            /// </summary>
+            /// <param name="method">Instance method being called.</param>
+            /// <returns>True if untaint the instance, false otherwise.</returns>
+            private bool IsSanitizingInstanceMethod(IMethodSymbol method)
+            {
+                foreach (SanitizerInfo sanitizerInfo in this.DataFlowAnalysisContext.SanitizerInfos.GetInfosForType(method.ContainingType))
+                {
+                    if (sanitizerInfo.SanitizingInstanceMethods.Contains(method.MetadataName))
                     {
                         return true;
                     }

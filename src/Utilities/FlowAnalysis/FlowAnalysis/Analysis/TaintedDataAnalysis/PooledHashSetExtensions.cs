@@ -80,13 +80,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             string fullTypeName,
             bool isInterface,
             bool isConstructorSanitizing,
-            string[] sanitizingMethods)
+            string[] sanitizingMethods,
+            string[] sanitizingInstanceMethods = null)
         {
             SanitizerInfo info = new SanitizerInfo(
                 fullTypeName,
                 isInterface: isInterface,
                 isConstructorSanitizing: isConstructorSanitizing,
                 sanitizingMethods: sanitizingMethods?.ToImmutableHashSet(StringComparer.Ordinal)
+                    ?? ImmutableHashSet<string>.Empty,
+                sanitizingInstanceMethods: sanitizingInstanceMethods?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty);
             builder.Add(info);
         }

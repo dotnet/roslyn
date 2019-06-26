@@ -62,12 +62,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public static AbstractLocation CreateThisOrMeLocation(INamedTypeSymbol namedTypeSymbol, ImmutableStack<IOperation> creationCallStackOpt)
             => Create(creationOpt: null, creationCallStackOpt: creationCallStackOpt, analysisEntityOpt: null, symbolOpt: namedTypeSymbol, captureIdOpt: null, locationType: namedTypeSymbol);
         public static AbstractLocation CreateSymbolLocation(ISymbol symbol, ImmutableStack<IOperation> creationCallStackOpt)
-            => Create(creationOpt: null, creationCallStackOpt: creationCallStackOpt, analysisEntityOpt: null, symbolOpt: symbol, captureIdOpt: null, locationType: symbol.GetMemerOrLocalOrParameterType());
+            => Create(creationOpt: null, creationCallStackOpt: creationCallStackOpt, analysisEntityOpt: null, symbolOpt: symbol, captureIdOpt: null, locationType: symbol.GetMemberOrLocalOrParameterType());
         public static AbstractLocation CreateFlowCaptureLocation(InterproceduralCaptureId captureId, ITypeSymbol locationType, ImmutableStack<IOperation> creationCallStackOpt)
             => Create(creationOpt: null, creationCallStackOpt: creationCallStackOpt, analysisEntityOpt: null, symbolOpt: null, captureIdOpt: captureId, locationType: locationType);
 
         public IOperation CreationOpt { get; }
         public ImmutableStack<IOperation> CreationCallStack { get; }
+
+        /// <summary>
+        /// Returns the top of <see cref="CreationCallStack"/> if this location was created through an interprocedural method invocation, i.e. <see cref="CreationCallStack"/> is non-empty.
+        /// Otherwise, returns <see cref="CreationOpt"/>.
+        /// </summary>
+        public IOperation GetTopOfCreationCallStackOrCreation()
+        {
+            if (CreationCallStack.IsEmpty)
+            {
+                return CreationOpt;
+            }
+
+            return CreationCallStack.Peek();
+        }
+
         public AnalysisEntity AnalysisEntityOpt { get; }
         public ISymbol SymbolOpt { get; }
         public InterproceduralCaptureId? CaptureIdOpt { get; }
