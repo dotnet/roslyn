@@ -110,6 +110,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool RequiresInstanceReceiver
+        {
+            get
+            {
+                return UnderlyingMethod.RequiresInstanceReceiver;
+            }
+        }
+
         public override bool IsVirtual
         {
             get
