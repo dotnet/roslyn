@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 {
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 return default;
             }
 
-            if (!parseOptions.Features.ContainsKey("run-nullable-analysis"))
+            if (!parseOptions.Features.ContainsKey(CompilerFeatureFlags.RunNullableAnalysis))
             {
                 return default;
             }
