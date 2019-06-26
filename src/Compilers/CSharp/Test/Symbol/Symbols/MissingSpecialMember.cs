@@ -803,6 +803,7 @@ namespace System
 
                             WellKnownType.System_Collections_IList,
                             WellKnownType.System_Collections_ICollection,
+                            WellKnownType.System_Collections_Generic_IEqualityComparer_T,
                             WellKnownType.System_Collections_Generic_EqualityComparer_T,
                             WellKnownType.System_Collections_Generic_List_T,
                             WellKnownType.System_Collections_Generic_IDictionary_KV,
@@ -864,8 +865,8 @@ namespace System
                 Assert.True(type <= WellKnownType.CSharp7Sentinel);
             }
 
-            // There were 204 well-known types prior to CSharp7
-            Assert.Equal(204, (int)(WellKnownType.CSharp7Sentinel - WellKnownType.First));
+            // There were 205 well-known types prior to CSharp7
+            Assert.Equal(205, (int)(WellKnownType.CSharp7Sentinel - WellKnownType.First));
         }
 
         [Fact]
