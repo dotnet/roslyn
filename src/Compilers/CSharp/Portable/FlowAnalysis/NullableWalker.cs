@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
             // https://github.com/dotnet/roslyn/issues/34993 Enable for all calls
-            if (compilation.NullableAnalysisEnabled)
+            if (compilation.NullableSemanticAnalysisEnabled)
             {
                 DebugVerifier.Verify(analyzedNullabilitiesMap, snapshotManager, node);
             }
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
 
 #if DEBUG
-            if (binder.Compilation.NullableAnalysisEnabled)
+            if (binder.Compilation.NullableSemanticAnalysisEnabled)
             {
                 DebugVerifier.Verify(analyzedNullabilitiesMap, snapshotManagerOpt: null, node);
             }
@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             var compilation = binder.Compilation;
-            if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
+            if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker)
             {
                 return;
             }
@@ -4145,6 +4145,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
         {
+            // Visit the source tuple so that the semantic model can correctly report nullability for it
+            // Disable diagnostics, as we don't want to duplicate any that are produced by visiting the converted literal below
+            VisitWithoutDiagnostics(node.SourceTuple);
+
             VisitTupleExpression(node);
             return null;
         }

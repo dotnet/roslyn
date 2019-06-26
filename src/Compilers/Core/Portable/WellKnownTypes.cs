@@ -265,6 +265,7 @@ namespace Microsoft.CodeAnalysis
 
         Microsoft_CodeAnalysis_Runtime_Instrumentation,
         System_Runtime_CompilerServices_NullableAttribute,
+        System_Runtime_CompilerServices_NullableContextAttribute,
         System_Runtime_CompilerServices_NullablePublicOnlyAttribute,
         System_Runtime_CompilerServices_ReferenceAssemblyAttribute,
 
@@ -565,6 +566,7 @@ namespace Microsoft.CodeAnalysis
             "Microsoft.CodeAnalysis.Runtime.Instrumentation",
 
             "System.Runtime.CompilerServices.NullableAttribute",
+            "System.Runtime.CompilerServices.NullableContextAttribute",
             "System.Runtime.CompilerServices.NullablePublicOnlyAttribute",
             "System.Runtime.CompilerServices.ReferenceAssemblyAttribute",
 
