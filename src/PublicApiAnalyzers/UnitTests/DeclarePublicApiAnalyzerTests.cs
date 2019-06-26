@@ -136,7 +136,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
 
         #region Diagnostic tests
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
+        [WorkItem(2622, "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
         public async Task AnalyzerFileMissing_Shipped()
         {
             var source = @"
@@ -149,10 +150,11 @@ public class C
             string shippedText = null;
             string unshippedText = @"";
 
-            await VerifyCSharpAsync(source, shippedText, unshippedText, new DiagnosticResult(DeclarePublicApiAnalyzer.PublicApiFilesMissing));
+            await VerifyCSharpAsync(source, shippedText, unshippedText, GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C"));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
+        [WorkItem(2622, "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
         public async Task AnalyzerFileMissing_Unshipped()
         {
             var source = @"
@@ -165,10 +167,11 @@ public class C
             string shippedText = @"";
             string unshippedText = null;
 
-            await VerifyCSharpAsync(source, shippedText, unshippedText, new DiagnosticResult(DeclarePublicApiAnalyzer.PublicApiFilesMissing));
+            await VerifyCSharpAsync(source, shippedText, unshippedText, GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C"));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
+        [WorkItem(2622, "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
         public async Task AnalyzerFileMissing_Both()
         {
             var source = @"
@@ -181,7 +184,7 @@ public class C
             string shippedText = null;
             string unshippedText = null;
 
-            await VerifyCSharpAsync(source, shippedText, unshippedText, new DiagnosticResult(DeclarePublicApiAnalyzer.PublicApiFilesMissing));
+            await VerifyCSharpAsync(source, shippedText, unshippedText, GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C"));
         }
 
         [Fact]
