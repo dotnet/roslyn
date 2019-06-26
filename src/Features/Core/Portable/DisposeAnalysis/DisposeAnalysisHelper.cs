@@ -113,7 +113,8 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                         context.Options, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
                         exceptionPathsAnalysis: false, context.CancellationToken, out pointsToAnalysisResult,
                         interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt,
-                        defaultDisposeOwnershipTransferAtConstructor: true);
+                        defaultDisposeOwnershipTransferAtConstructor: true,
+                        defaultDisposeOwnershipTransferAtMethodCall: true);
                     if (disposeAnalysisResult != null)
                     {
                         return true;
@@ -147,7 +148,8 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                         context.Options, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
                         exceptionPathsAnalysis: false, context.CancellationToken, out pointsToAnalysisResult,
                         interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt,
-                        defaultDisposeOwnershipTransferAtConstructor: true);
+                        defaultDisposeOwnershipTransferAtConstructor: true,
+                        defaultDisposeOwnershipTransferAtMethodCall: true);
                     if (disposeAnalysisResult != null)
                     {
                         return true;

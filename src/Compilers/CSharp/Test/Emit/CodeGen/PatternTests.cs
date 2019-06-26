@@ -2882,7 +2882,6 @@ static class Program
 }");
         }
 
-        // https://github.com/dotnet/roslyn/issues/35010 Support deconstruction assignment
         [Fact]
         public void DoNotShareInputForMutatingWhenClause()
         {

@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TupleTypeSymbol.ReportNamesMismatchesIfAny(destination, sourceTuple, diagnostics);
                     source = new BoundConvertedTupleLiteral(
                         sourceTuple.Syntax,
-                        sourceTuple.Type,
+                        sourceTuple,
                         sourceTuple.Arguments,
                         sourceTuple.Type, // same type to keep original element names 
                         sourceTuple.HasErrors).WithSuppression(sourceTuple.IsSuppressed);
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression result = new BoundConvertedTupleLiteral(
                 sourceTuple.Syntax,
-                sourceTuple.Type,
+                sourceTuple,
                 convertedArguments.ToImmutableAndFree(),
                 targetType).WithSuppression(sourceTuple.IsSuppressed);
 
