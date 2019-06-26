@@ -27,6 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Dictionary<SyntaxNode, ImmutableArray<BoundNode>> _guardedNodeMap = new Dictionary<SyntaxNode, ImmutableArray<BoundNode>>();
         private Dictionary<SyntaxNode, BoundStatement> _lazyGuardedSynthesizedStatementsMap;
         private NullableWalker.SnapshotManager _lazySnapshotManager;
+        /// <summary>
+        /// Only used when this is a speculative semantic model.
+        /// </summary>
+        private NullableWalker.SnapshotManager _parentSnapshotManagerOpt;
 
         internal readonly Binder RootBinder;
 
@@ -63,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.RootBinder = rootBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
             _containingSemanticModelOpt = containingSemanticModelOpt;
             _parentSemanticModelOpt = parentSemanticModelOpt;
-            _lazySnapshotManager = snapshotManagerOpt;
+            _parentSnapshotManagerOpt = snapshotManagerOpt;
             _speculatedPosition = speculatedPosition;
 
             _operationFactory = new Lazy<CSharpOperationFactory>(() => new CSharpOperationFactory(this));
@@ -1890,7 +1894,7 @@ done:
             }
             else
             {
-                bindAndRewrite(takeSnapshots: true);
+                bindAndRewrite();
             }
 
             void ensureSpeculativeNodeBound()
@@ -1898,20 +1902,19 @@ done:
                 // Not all speculative models are created with existing snapshots. Attributes,
                 // TypeSyntaxes, and MethodBodies do not depend on existing state in a member,
                 // and so the SnapshotManager can be null in these cases.
-                if (_lazySnapshotManager is null)
+                if (_parentSnapshotManagerOpt is null)
                 {
-                    bindAndRewrite(takeSnapshots: false);
+                    bindAndRewrite();
                     return;
                 }
 
-                var analyzedNullabilitiesBuilder = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>();
-                boundRoot = NullableWalker.AnalyzeAndRewriteSpeculation(_speculatedPosition, boundRoot, binder, _lazySnapshotManager);
-                GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot);
+                boundRoot = NullableWalker.AnalyzeAndRewriteSpeculation(_speculatedPosition, boundRoot, binder, _parentSnapshotManagerOpt, out var newSnapshots);
+                GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, newSnapshots);
             }
 
-            void bindAndRewrite(bool takeSnapshots)
+            void bindAndRewrite()
             {
-                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnostics, takeSnapshots, out var snapshotManager);
+                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnostics, takeSnapshots: true, out var snapshotManager);
 #if DEBUG
                 // Don't actually cache the results if the nullable analysis is not enabled in debug mode.
                 if (!Compilation.NullableSemanticAnalysisEnabled) return;

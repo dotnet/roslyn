@@ -43,11 +43,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             }
 
-            internal (NullableWalker, VariableState) RestoreWalkerToAnalyzeNewNode(
+            internal (NullableWalker, VariableState, Symbol) RestoreWalkerToAnalyzeNewNode(
                 int position,
                 BoundNode nodeToAnalyze,
                 Binder binder,
-                ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMap)
+                ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMap,
+                SnapshotManager.Builder newManagerOpt)
             {
                 var snapshotPosition = _incrementalSnapshots.BinarySearch(position, BinarySearchComparer);
 
@@ -74,9 +75,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            variableState,
                                            returnTypesOpt: null,
                                            analyzedNullabilityMap,
-                                           snapshotBuilderOpt: null,
+                                           snapshotBuilderOpt: newManagerOpt,
                                            isSpeculative: true),
-                        variableState);
+                        variableState,
+                        globalState.Symbol);
             }
 
 #if DEBUG
