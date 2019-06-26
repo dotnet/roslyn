@@ -163,7 +163,7 @@ namespace System.Diagnostics.CodeAnalysis
         protected const string DoesNotReturnAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
-    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public class DoesNotReturnAttribute : Attribute
     {
         public DoesNotReturnAttribute () { }

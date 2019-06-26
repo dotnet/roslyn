@@ -680,6 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             FlowAnalysisAnnotations annotations = FlowAnalysisAnnotations.None;
             if (module.HasAttribute(handle, AttributeDescription.AllowNullAttribute)) annotations |= FlowAnalysisAnnotations.AllowNull;
             if (module.HasAttribute(handle, AttributeDescription.DisallowNullAttribute)) annotations |= FlowAnalysisAnnotations.DisallowNull;
+
             if (module.HasAttribute(handle, AttributeDescription.MaybeNullAttribute))
             {
                 annotations |= FlowAnalysisAnnotations.MaybeNull;
@@ -688,6 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 annotations |= (when ? FlowAnalysisAnnotations.MaybeNullWhenTrue : FlowAnalysisAnnotations.MaybeNullWhenFalse);
             }
+
             if (module.HasAttribute(handle, AttributeDescription.NotNullAttribute))
             {
                 annotations |= FlowAnalysisAnnotations.NotNull;
@@ -696,8 +698,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 annotations |= (when ? FlowAnalysisAnnotations.NotNullWhenTrue : FlowAnalysisAnnotations.NotNullWhenFalse);
             }
-            if (module.HasAttribute(handle, AttributeDescription.AssertsTrueAttribute)) annotations |= FlowAnalysisAnnotations.AssertsTrue;
-            if (module.HasAttribute(handle, AttributeDescription.AssertsFalseAttribute)) annotations |= FlowAnalysisAnnotations.AssertsFalse;
+
+            if (module.HasMaybeNullWhenOrNotNullWhenAttribute(handle, AttributeDescription.DoesNotReturnIfAttribute, out bool condition))
+            {
+                annotations |= (condition ? FlowAnalysisAnnotations.DoesNotReturnIfTrue : FlowAnalysisAnnotations.DoesNotReturnIfFalse);
+            }
+
             return annotations;
         }
 

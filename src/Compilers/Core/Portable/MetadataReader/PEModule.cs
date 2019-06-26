@@ -947,6 +947,11 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, AttributeDescription.IsReadOnlyAttribute).HasValue;
         }
 
+        internal bool HasDoesNotReturnAttribute(EntityHandle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.DoesNotReturnAttribute).HasValue;
+        }
+
         internal bool HasIsUnmanagedAttribute(EntityHandle token)
         {
             return FindTargetAttribute(token, AttributeDescription.IsUnmanagedAttribute).HasValue;
@@ -1083,11 +1088,11 @@ namespace Microsoft.CodeAnalysis
         internal bool HasMaybeNullWhenOrNotNullWhenAttribute(EntityHandle token, AttributeDescription description, out bool when)
         {
             Debug.Assert(description.Namespace == "System.Diagnostics.CodeAnalysis");
-            Debug.Assert(description.Name == "MaybeNullWhenAttribute" || description.Name == "NotNullWhenAttribute");
+            Debug.Assert(description.Name == "MaybeNullWhenAttribute" || description.Name == "NotNullWhenAttribute" || description.Name == "DoesNotReturnIfAttribute");
 
             AttributeInfo info = FindTargetAttribute(token, description);
             if (info.HasValue &&
-                // MaybeNullWhen(bool), NotNullWhen(bool)
+                // MaybeNullWhen(bool), NotNullWhen(bool), DoesNotReturnIf(bool)
                 info.SignatureIndex == 0)
             {
                 return TryExtractValueFromAttribute(info.Handle, out when, s_attributeBooleanValueExtractor);
