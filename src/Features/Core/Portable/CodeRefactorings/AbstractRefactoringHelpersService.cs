@@ -57,38 +57,64 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 return default;
             }
 
-            // Handle Tokens & Nodes that start/end to left/right of given (empty) selection
+            // get Token for current selection (empty) location
+            var tokenOnSelection = root.FindToken(selectionStripped.Start);
 
-            var tokenToLeft = await root.SyntaxTree.GetTouchingTokenToLeftAsync(selectionStripped.Start, cancellationToken).ConfigureAwait(false);
-            var leftNode = tokenToLeft.Parent;
-            do
+            // Token to right or containing current selection
+            var tokenToRightOrIn = tokenOnSelection.Span.Contains(selectionStripped.Start)
+                ? tokenOnSelection
+                : default;
+
+            if (tokenToRightOrIn != default)
             {
-                // consider either a Node that is a parent of touched Token (selection can be within) or ancestor Node of such Token whose span ends on selection
-                var extractedNode = extractNode(leftNode);
-                if (extractedNode != default && predicate(extractedNode))
+                var rightNode = tokenOnSelection.Parent;
+                do
                 {
-                    return extractedNode;
+                    // consider either a Node that is a parent of touched Token (selection can be within) or ancestor Node of such Token whose span starts on selection
+                    var extractedNode = extractNode(rightNode);
+                    if (extractedNode != default && predicate(extractedNode))
+                    {
+                        return extractedNode;
+                    }
+
+                    rightNode = rightNode?.Parent;
                 }
-
-                leftNode = leftNode?.Parent;
+                while (rightNode != null && rightNode.Span.Start == selection.Start);
             }
-            while (leftNode != null && leftNode.Span.End == selection.Start);
 
-            var tokenToRight = await root.SyntaxTree.GetTouchingTokenToRightOrInAsync(selectionStripped.Start, cancellationToken).ConfigureAwait(false);
-            var rightNode = tokenToRight.Parent;
-            do
+            // if selection inside tokenToRightOrIn -> no Token can be to Left (tokenToRightOrIn is left from selection)
+            if (tokenToRightOrIn != default && tokenToRightOrIn.Span.Start != selectionStripped.Start)
             {
-                // consider either a Node that is a parent of touched Token (selection can be within) or ancestor Node of such Token whose span starts on selection
-                var extractedNode = extractNode(rightNode);
-                if (extractedNode != default && predicate(extractedNode))
-                {
-                    return extractedNode;
-                }
-
-                rightNode = rightNode?.Parent;
+                return default;
             }
-            while (rightNode != null && rightNode.Span.Start == selection.Start);
 
+            // Token to left
+            var tokenPreSelection = (tokenOnSelection.Span.End == selectionStripped.Start)
+                ? tokenOnSelection
+                : tokenOnSelection.GetPreviousToken();
+
+            var tokenToLeft = (tokenPreSelection.Span.End == selectionStripped.Start)
+                ? tokenPreSelection
+                : default;
+
+            if (tokenToLeft != default)
+            {
+                var leftNode = tokenToLeft.Parent;
+                do
+                {
+                    // consider either a Node that is a parent of touched Token (selection can be within) or ancestor Node of such Token whose span ends on selection
+                    var extractedNode = extractNode(leftNode);
+                    if (extractedNode != default && predicate(extractedNode))
+                    {
+                        return extractedNode;
+                    }
+
+                    leftNode = leftNode?.Parent;
+                }
+                while (leftNode != null && leftNode.Span.End == selection.Start);
+            }
+
+            // nothing found
             return default;
         }
     }
