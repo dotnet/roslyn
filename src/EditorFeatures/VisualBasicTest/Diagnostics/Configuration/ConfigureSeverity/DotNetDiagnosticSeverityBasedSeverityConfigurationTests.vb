@@ -169,19 +169,7 @@ dotnet_diagnostic.XYZ0001.severity = none
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
-                Dim expected = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.vb"">
-Class Program1
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_diagnostic.XYZ0001.severity = none
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
+                Await TestMissingInRegularAndScriptAsync(input)
             End Function
 
             <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
