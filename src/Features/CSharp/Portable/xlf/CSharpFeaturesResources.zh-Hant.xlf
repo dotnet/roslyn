@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-HANT" original="../CSharpFeaturesResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../CSharpFeaturesResources.resx">
     <body>
       <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
         <source>Add await and ConfigureAwait(false)</source>
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
         <source>Convert switch statement to expression</source>
-        <target state="new">Convert switch statement to expression</target>
+        <target state="translated">將 switch 陳述式轉換為運算式</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="Sort_Usings">
         <source>&amp;Sort Usings</source>
-        <target state="new">&amp;Sort Usings</target>
+        <target state="translated">排序 Using(&amp;S)</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
@@ -144,7 +144,7 @@
       </trans-unit>
       <trans-unit id="Use_switch_expression">
         <source>Use 'switch' expression</source>
-        <target state="new">Use 'switch' expression</target>
+        <target state="translated">使用 'switch' 運算式</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
@@ -524,7 +524,7 @@
       </trans-unit>
       <trans-unit id="ref_local_or_expression">
         <source>ref local or expression</source>
-        <target state="translated">ref 本機或運算式</target>
+        <target state="translated">ref 區域或運算式</target>
         <note>{Locked="ref"} "ref" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="v7_switch">

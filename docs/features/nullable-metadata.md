@@ -148,11 +148,15 @@ for members that are inaccessible outside the assembly (`private` members, and a
 if the assembly does not contain `InternalsVisibleToAttribute` attributes).
 
 The compiler behavior is configured from a command-line flag.
-For now a feature flag is used: `-feature:nullablePublicOnly`.
+For now a feature flag is used: `-features:nullablePublicOnly`.
 
 If private member attributes are dropped, the compiler will emit a `[module: NullablePublicOnly]` attribute.
 The presence or absence of the `NullablePublicOnlyAttribute` can be used by tools to interpret
 the nullability of private members that do not have an associated `NullableAttribute` attribute.
+
+For members that do not have explicit accessibility in metadata
+(specifically for parameters, type parameters, events, and properties),
+the compiler uses the accessibility of the container to determine whether to emit nullable attributes. 
 
 ```C#
 namespace System.Runtime.CompilerServices
@@ -160,12 +164,19 @@ namespace System.Runtime.CompilerServices
     [System.AttributeUsage(AttributeTargets.Module, AllowMultiple = false)]
     public sealed class NullablePublicOnlyAttribute : Attribute
     {
+        public readonly bool IncludesInternals;
+        public NullablePublicOnlyAttribute(bool includesInternals)
+        {
+            IncludesInternals = includesInternals;
+        }
     }
 }
 ```
 
 The `NullablePublicOnlyAttribute` type is for compiler use only - it is not permitted in source.
 The type declaration is synthesized by the compiler if not already included in the compilation.
+
+`IncludesInternal` is true if `internal` members are annotated in addition to `public` and `protected` members.
 
 ## Compatibility
 
