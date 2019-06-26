@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        protected CommonFieldWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        protected FieldWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attributesBag = this.GetAttributesBag();
             }
 
-            return (CommonFieldWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (FieldWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
         internal sealed override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
@@ -162,11 +162,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
             {
-                arguments.GetOrCreateData<CommonFieldWellKnownAttributeData>().HasSpecialNameAttribute = true;
+                arguments.GetOrCreateData<FieldWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NonSerializedAttribute))
             {
-                arguments.GetOrCreateData<CommonFieldWellKnownAttributeData>().HasNonSerializedAttribute = true;
+                arguments.GetOrCreateData<FieldWellKnownAttributeData>().HasNonSerializedAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.FieldOffsetAttribute))
             {
@@ -188,12 +188,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // Set field offset even if the attribute specifies an invalid value, so that
                     // post-validation knows that the attribute is applied and reports better errors.
-                    arguments.GetOrCreateData<CommonFieldWellKnownAttributeData>().SetFieldOffset(offset);
+                    arguments.GetOrCreateData<FieldWellKnownAttributeData>().SetFieldOffset(offset);
                 }
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.MarshalAsAttribute))
             {
-                MarshalAsAttributeDecoder<CommonFieldWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.Field, MessageProvider.Instance);
+                MarshalAsAttributeDecoder<FieldWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.Field, MessageProvider.Instance);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
             {
@@ -232,6 +232,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // NullableAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.AllowNullAttribute))
+            {
+                arguments.GetOrCreateData<FieldWellKnownAttributeData>().HasAllowNullAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.DisallowNullAttribute))
+            {
+                arguments.GetOrCreateData<FieldWellKnownAttributeData>().HasDisallowNullAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullAttribute))
+            {
+                arguments.GetOrCreateData<FieldWellKnownAttributeData>().HasMaybeNullAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullAttribute))
+            {
+                arguments.GetOrCreateData<FieldWellKnownAttributeData>().HasNotNullAttribute = true;
+            }
+        }
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations
+            => DecodeFlowAnalysisAttributes(GetDecodedWellKnownAttributeData());
+
+        private static FlowAnalysisAnnotations DecodeFlowAnalysisAttributes(FieldWellKnownAttributeData attributeData)
+        {
+            var annotations = FlowAnalysisAnnotations.None;
+            if (attributeData != null)
+            {
+                if (attributeData.HasAllowNullAttribute) annotations |= FlowAnalysisAnnotations.AllowNull;
+                if (attributeData.HasDisallowNullAttribute) annotations |= FlowAnalysisAnnotations.DisallowNull;
+                if (attributeData.HasMaybeNullAttribute) annotations |= FlowAnalysisAnnotations.MaybeNull;
+                if (attributeData.HasNotNullAttribute) annotations |= FlowAnalysisAnnotations.NotNull;
+            }
+            return annotations;
         }
 
         /// <summary>
@@ -243,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (!attrValue.IsBad)
             {
-                var data = arguments.GetOrCreateData<CommonFieldWellKnownAttributeData>();
+                var data = arguments.GetOrCreateData<FieldWellKnownAttributeData>();
                 ConstantValue constValue;
 
                 if (this.IsConst)
@@ -295,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
             Debug.Assert(symbolPart == AttributeLocation.None);
 
-            var data = (CommonFieldWellKnownAttributeData)decodedData;
+            var data = (FieldWellKnownAttributeData)decodedData;
             int? fieldOffset = data != null ? data.Offset : null;
 
             if (fieldOffset.HasValue)
