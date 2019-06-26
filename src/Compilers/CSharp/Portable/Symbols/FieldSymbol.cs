@@ -56,6 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
+
         /// <summary>
         /// Gets the type of this field.
         /// </summary>
