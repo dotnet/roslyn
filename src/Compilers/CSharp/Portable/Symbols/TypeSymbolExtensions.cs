@@ -1180,6 +1180,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static int ComputeHashCode(this NamedTypeSymbol type)
         {
+            Debug.Assert(!type.Equals(type.OriginalDefinition, TypeCompareKind.AllIgnoreOptions) || wasConstructedForAnnotations(type));
+
+            if (wasConstructedForAnnotations(type))
+            {
+                // A type that uses its own type parameters as type arguments was constructed only for the purpose of adding annotations.
+                // In that case we'll use the hash from the definition.
+
+                return type.OriginalDefinition.GetHashCode();
+            }
+
             int code = type.OriginalDefinition.GetHashCode();
             code = Hash.Combine(type.ContainingType, code);
 
@@ -1209,6 +1219,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 code++;
             }
             return code;
+
+            static bool wasConstructedForAnnotations(NamedTypeSymbol type)
+            {
+                do
+                {
+                    var typeArguments = type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                    var typeParameters = type.OriginalDefinition.TypeParameters;
+
+                    for (int i = 0; i < typeArguments.Length; i++)
+                    {
+                        if (!typeParameters[i].Equals(typeArguments[i].Type.OriginalDefinition))
+                        {
+                            return false;
+                        }
+                    }
+
+                    type = type.ContainingType;
+                }
+                while (type is object && !type.IsDefinition);
+
+                return true;
+            }
         }
 
         /// <summary>
