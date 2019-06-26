@@ -6772,6 +6772,34 @@ class Program
                 Diagnostic(RudeEditKind.ReadOnlyReferences, "local", FeaturesResources.local_function));
         }
 
+        [Fact]
+        public void LocalFunction_ChangeToStatic_Update()
+        {
+            var src1 = @"class Test { void M() { int local() { throw null; } } }";
+            var src2 = @"class Test { void M() { static int local() { throw null; } } }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            edits.VerifyEdits(
+                "Update [void M() { int local() { throw null; } }]@13 -> [void M() { static int local() { throw null; } }]@13");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunction_ChangeToNonStatic_Update()
+        {
+            var src1 = @"class Test { void M() { static int local() { throw null; } } }";
+            var src2 = @"class Test { void M() { int local() { throw null; } } }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            edits.VerifyEdits(
+                "Update [void M() { static int local() { throw null; } }]@13 -> [void M() { int local() { throw null; } }]@13");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
         #endregion
 
         #region Queries
