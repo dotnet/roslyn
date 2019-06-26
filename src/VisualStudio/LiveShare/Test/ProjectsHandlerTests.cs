@@ -17,14 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
             var expected = solution.Projects.Select(p => CreateLspProject(p)).ToArray();
 
             var results = await TestHandleAsync<object, CustomProtocol.Project[]>(solution, null);
-            AssertCollectionsEqual(expected, results, AssertProjectsEqual);
-        }
-
-        private void AssertProjectsEqual(CustomProtocol.Project expected, CustomProtocol.Project actual)
-        {
-            Assert.Equal(expected.Language, actual.Language);
-            Assert.Equal(expected.Name, actual.Name);
-            AssertCollectionsEqual(expected.SourceFiles, actual.SourceFiles, Assert.Equal);
+            AssertJsonEquals(expected, results);
         }
 
         private static CustomProtocol.Project CreateLspProject(Project project)

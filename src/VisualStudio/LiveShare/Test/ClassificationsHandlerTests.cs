@@ -26,13 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
             var classifyLocation = ranges["classify"].First();
 
             var results = await TestHandleAsync<ClassificationParams, object[]>(solution, CreateClassificationParams(classifyLocation));
-            AssertCollectionsEqual(new ClassificationSpan[] { CreateClassificationSpan("keyword", classifyLocation.Range) }, results, AssertClassificationsEqual);
-        }
-
-        private static void AssertClassificationsEqual(ClassificationSpan expected, ClassificationSpan actual)
-        {
-            Assert.Equal(expected.Classification, actual.Classification);
-            Assert.Equal(expected.Range, actual.Range);
+            AssertJsonEquals(new ClassificationSpan[] { CreateClassificationSpan("keyword", classifyLocation.Range) }, results);
         }
 
         private static ClassificationSpan CreateClassificationSpan(string classification, Range range)

@@ -28,10 +28,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
             var (solution, ranges) = CreateTestSolution(markup);
             var renameLocation = ranges["caret"].First();
             var renameValue = "RENAME";
-            var expectedEdits = ranges["renamed"];
+            var expectedEdits = ranges["renamed"].Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
             var results = await TestHandleAsync<LSP.RenameParams, LSP.WorkspaceEdit>(solution, CreateRenameParams(renameLocation, renameValue));
-            AssertDocumentEditsEqual(expectedEdits, renameValue, results.DocumentChanges.First().Edits);
+            AssertJsonEquals(expectedEdits, results.DocumentChanges.First().Edits);
         }
 
         private static void AssertDocumentEditsEqual(IList<LSP.Location> expectedRenameLocations, string expectedRenameValue, LSP.TextEdit[] actualEdits)
