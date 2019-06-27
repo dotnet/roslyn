@@ -51,18 +51,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  inlineDescription: containingNamespace);
         }
 
-        public static CompletionItem CreateAttributeNameItem(CompletionItem attributeItem, string attributeName)
+        public static CompletionItem CreateAttributeItemWithoutSuffix(CompletionItem attributeItem, string attributeNameWithoutSuffix)
         {
             Debug.Assert(!attributeItem.Properties.ContainsKey(AttributeFullName));
 
             var newProperties = attributeItem.Properties.Add(AttributeFullName, attributeItem.DisplayText);
 
             var sortTextBuilder = PooledStringBuilder.GetInstance();
-            sortTextBuilder.Builder.AppendFormat(SortTextFormat, attributeName, attributeItem.InlineDescription);
+            sortTextBuilder.Builder.AppendFormat(SortTextFormat, attributeNameWithoutSuffix, attributeItem.InlineDescription);
 
             return CompletionItem.Create(
-                 displayText: attributeName,
-                 filterText: attributeName,
+                 displayText: attributeNameWithoutSuffix,
+                 filterText: attributeNameWithoutSuffix,
                  sortText: sortTextBuilder.ToStringAndFree(),
                  properties: newProperties,
                  tags: attributeItem.Tags,

@@ -297,6 +297,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     item.IsCached = true;
                     correspondingBuilder.Add(new TypeImportCompletionItemInfo(item, isPublic));
 
+                    return;
+
                     static bool IsAttributeWithAttributeSuffix(INamedTypeSymbol symbol)
                     {
                         // Do the simple textual check first. Then the more expensive symbolic check.
@@ -357,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     if (item.DisplayText.TryGetWithoutAttributeSuffix(isCaseSensitive: isCaseSensitive, out var attributeName))
                     {
                         // We don't want to cache this item.
-                        return itemInfo.WithItem(TypeImportCompletionItem.CreateAttributeNameItem(item, attributeName));
+                        return itemInfo.WithItem(TypeImportCompletionItem.CreateAttributeItemWithoutSuffix(item, attributeName));
                     }
 
                     return itemInfo;

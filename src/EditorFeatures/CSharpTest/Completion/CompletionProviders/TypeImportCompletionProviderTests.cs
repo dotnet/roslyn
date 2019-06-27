@@ -1028,6 +1028,7 @@ namespace Test
         [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
         public async Task AttributeTypeWithoutSuffixInAttributeNameContext()
         {
+            // attribute suffix isn't capitalized
             var file1 = @"
 namespace Foo
 {
@@ -1054,6 +1055,7 @@ namespace Test
         [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
         public async Task CommitAttributeTypeWithoutSuffixInAttributeNameContext(SourceCodeKind kind)
         {
+            // attribute suffix isn't capitalized
             var file1 = @"
 namespace Foo
 {
@@ -1084,6 +1086,7 @@ namespace Test
         [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
         public async Task AttributeTypeWithoutSuffixInNonAttributeNameContext()
         {
+            // attribute suffix isn't capitalized
             var file1 = @"
 namespace Foo
 {
@@ -1112,6 +1115,7 @@ namespace Test
         [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
         public async Task CommitAttributeTypeWithoutSuffixInNonAttributeNameContext(SourceCodeKind kind)
         {
+            // attribute suffix isn't capitalized
             var file1 = @"
 namespace Foo
 {
