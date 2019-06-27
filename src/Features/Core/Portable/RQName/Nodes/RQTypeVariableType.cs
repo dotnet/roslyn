@@ -10,12 +10,12 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 
         public RQTypeVariableType(string name)
         {
-            this.Name = name;
+            Name = name;
         }
 
         public override SimpleTreeNode ToSimpleTree()
         {
-            return new SimpleGroupNode(RQNameStrings.TyVar, this.Name);
+            return new SimpleGroupNode(RQNameStrings.TyVar, Name);
         }
     }
 }

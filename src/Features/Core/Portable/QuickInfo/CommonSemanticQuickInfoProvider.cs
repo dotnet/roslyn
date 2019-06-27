@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             var enclosingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
 
             ImmutableArray<ISymbol> symbols;
-            if (GetBindableNodeForTokenIndicatingLambda(token, out SyntaxNode lambdaSyntax))
+            if (GetBindableNodeForTokenIndicatingLambda(token, out var lambdaSyntax))
             {
                 symbols = ImmutableArray.Create(semanticModel.GetSymbolInfo(lambdaSyntax).Symbol);
             }
