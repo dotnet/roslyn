@@ -108,7 +108,7 @@ class C : I<C, object>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var method = type.GetMethod("I<C,System.Object>.M");
-                CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, true, "C", "C", "C", "object");
+                CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, true, "C", "C", "C");
             };
 
             CompileAndVerify(
@@ -5175,10 +5175,11 @@ class C
         }
 
         /// <summary>
-        /// Redundant '.ctor' and System.ValueType constraints should be
+        /// Redundant System.Object constraints should be removed
+        /// and '.ctor' and System.ValueType constraints should be
         /// removed if 'valuetype' is specified. By contrast, redundant
         /// 'class' constraints should not be removed if explicit class
-        /// constraint is specified. System.Object constraint shouldn't be removed either.
+        /// constraint is specified.
         /// </summary>
         [WorkItem(543335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543335")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -5199,7 +5200,7 @@ class C
             var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
             var @namespace = compilation.GlobalNamespace;
             CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("O1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
-            CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("O2").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
+            CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("O2").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("V1").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
             CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("V2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
             CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("V3").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
@@ -5245,8 +5246,8 @@ class C
             CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
             type = @namespace.GetMember<NamedTypeSymbol>("B1");
-            CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
-            CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType", "object");
+            CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
+            CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
             type = @namespace.GetMember<NamedTypeSymbol>("B2");
             CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "ValueType", "ValueType", "ValueType");
             CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
@@ -5354,6 +5355,10 @@ class C1 : C0
             CreateCompilationWithILAndMscorlib40(csharpSource, ilSource).VerifyDiagnostics();
         }
 
+        /// <summary>
+        /// Object constraints should be dropped from TypeParameterSymbol.ConstraintTypes
+        /// on import and type substitution.
+        /// </summary>
         [WorkItem(543831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543831")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ObjectConstraintTypes()
@@ -5419,13 +5424,13 @@ class D0 : D<object>
             var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource).VerifyDiagnostics();
             var @namespace = compilation.GlobalNamespace;
             var type = @namespace.GetMember<NamedTypeSymbol>("I0");
-            CheckConstraints(type.Interfaces()[0].GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
+            CheckConstraints(type.Interfaces()[0].GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("A1");
             CheckConstraints(type.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("A2");
-            CheckConstraints(type.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
+            CheckConstraints(type.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("I1");
-            CheckConstraints(type.Interfaces()[0].GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
+            CheckConstraints(type.Interfaces()[0].GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("B0");
             CheckConstraints(type.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("B1");
@@ -5437,9 +5442,9 @@ class D0 : D<object>
             type = @namespace.GetMember<NamedTypeSymbol>("C1");
             CheckConstraints(type.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("C2");
-            CheckConstraints(type.GetMethod("I<System.Object>.M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
+            CheckConstraints(type.GetMethod("I<System.Object>.M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("D0");
-            CheckConstraints(type.BaseType().GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
+            CheckConstraints(type.BaseType().GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
         }
 
         /// <summary>
@@ -5474,7 +5479,7 @@ class A1 : A<C>
                 type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I1");
                 CheckConstraints(type.TypeParameters[0], TypeParameterConstraintKind.None, false, true, "C", "C", "C");
                 var method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A0").GetMember<MethodSymbol>("M");
-                CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
+                CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
                 method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A1").GetMember<MethodSymbol>("M");
                 CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, true, "C", "C", "C");
             };
@@ -5538,16 +5543,16 @@ class D2 : D<A>
             var compilation = CreateCompilation(source);
             var @namespace = compilation.GlobalNamespace;
             var type = @namespace.GetMember<NamedTypeSymbol>("C0");
-            CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
-            CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType", "object");
+            CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
+            CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
             type = @namespace.GetMember<NamedTypeSymbol>("C1");
             CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "ValueType", "ValueType", "ValueType");
             CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType", "ValueType");
             type = @namespace.GetMember<NamedTypeSymbol>("D0");
-            CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "IA", "object");
-            CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "IB", "object");
-            CheckConstraints(type.GetMember<MethodSymbol>("M3").TypeParameters[0], TypeParameterConstraintKind.None, false, true, "A", "A", "A", "object");
-            CheckConstraints(type.GetMember<MethodSymbol>("M4").TypeParameters[0], TypeParameterConstraintKind.None, false, true, "B", "B", "B", "object");
+            CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "IA");
+            CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "IB");
+            CheckConstraints(type.GetMember<MethodSymbol>("M3").TypeParameters[0], TypeParameterConstraintKind.None, false, true, "A", "A", "A");
+            CheckConstraints(type.GetMember<MethodSymbol>("M4").TypeParameters[0], TypeParameterConstraintKind.None, false, true, "B", "B", "B");
             type = @namespace.GetMember<NamedTypeSymbol>("D1");
             CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "IA");
             CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "IB", "IA");

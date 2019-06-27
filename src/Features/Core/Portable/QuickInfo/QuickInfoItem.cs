@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             ImmutableArray<QuickInfoSection> sections,
             ImmutableArray<TextSpan> relatedSpans)
         {
-            this.Span = span;
-            this.Tags = tags.IsDefault ? ImmutableArray<string>.Empty : tags;
-            this.Sections = sections.IsDefault ? ImmutableArray<QuickInfoSection>.Empty : sections;
-            this.RelatedSpans = relatedSpans.IsDefault ? ImmutableArray<TextSpan>.Empty : relatedSpans;
+            Span = span;
+            Tags = tags.IsDefault ? ImmutableArray<string>.Empty : tags;
+            Sections = sections.IsDefault ? ImmutableArray<QuickInfoSection>.Empty : sections;
+            RelatedSpans = relatedSpans.IsDefault ? ImmutableArray<TextSpan>.Empty : relatedSpans;
         }
 
         public static QuickInfoItem Create(

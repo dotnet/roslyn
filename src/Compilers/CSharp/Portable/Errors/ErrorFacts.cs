@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add(getId(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull));
 
             builder.Add(getId(ErrorCode.WRN_ConvertingNullableToNonNullable));
+            builder.Add(getId(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment));
 
             NullableFlowAnalysisWarnings = builder.ToImmutable();
 
@@ -368,6 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullReferenceReturn:
                 case ErrorCode.WRN_NullReferenceArgument:
                 case ErrorCode.WRN_NullReferenceIterationVariable:
+                case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
@@ -390,7 +392,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullAsNonNullable:
                 case ErrorCode.WRN_NullableValueTypeMayBeNull:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
-                case ErrorCode.WRN_DefaultLiteralConvertedToNullIsNotIntended:
                 case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
                 case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
@@ -410,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
                 case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
-                case ErrorCode.WRN_SpecialTypeAsBound:
+                case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
                     return 1;
                 default:
                     return 0;

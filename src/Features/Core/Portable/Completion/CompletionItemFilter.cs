@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public bool Matches(CompletionItem item)
         {
-            foreach (var tag in this.Tags)
+            foreach (var tag in Tags)
             {
                 if (item.Tags.Contains(tag))
                 {

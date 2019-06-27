@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis
 
             public bool HasUnmanagedTypeConstraint => WrappedSymbol.HasUnmanagedTypeConstraint;
 
+            public bool HasNotNullConstraint => WrappedSymbol.HasNotNullConstraint;
+
             public bool HasConstructorConstraint => WrappedSymbol.HasConstructorConstraint;
 
             public ImmutableArray<ITypeSymbol> ConstraintTypes => WrappedSymbol.ConstraintTypes;

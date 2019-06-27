@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using EnvDTE;
@@ -62,6 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private Workspace _workspace;
 
         private bool _allowProjectSystemOperations = true;
+        private bool _initialized;
 
         [ImportingConstructor]
         public AnalyzersCommandHandler(
@@ -112,6 +114,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 var buildManager = (IVsSolutionBuildManager)_serviceProvider.GetService(typeof(SVsSolutionBuildManager));
                 buildManager.AdviseUpdateSolutionEvents(this, out var cookie);
+
+                _initialized = true;
             }
         }
 
@@ -189,11 +193,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private bool ShouldShowDiagnosticContextMenu(IEnumerable<object> items)
         {
-            return items.All(item => item is BaseDiagnosticItem);
+            return _initialized && items.All(item => item is BaseDiagnosticItem);
         }
 
         private void UpdateDiagnosticContextMenu()
         {
+            Debug.Assert(_initialized);
+
             UpdateSeverityMenuItemsChecked();
             UpdateSeverityMenuItemsEnabled();
             UpdateOpenHelpLinkMenuItemVisibility();

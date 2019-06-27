@@ -35,20 +35,20 @@ namespace Microsoft.CodeAnalysis.Host
 
             var taskSchedulerFactory = workspace.Services.GetService<IWorkspaceTaskSchedulerFactory>();
             _taskScheduler = taskSchedulerFactory.CreateBackgroundTaskScheduler();
-            _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
+            _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
-            workspace.DocumentOpened += this.OnDocumentOpened;
-            workspace.DocumentClosed += this.OnDocumentClosed;
+            workspace.DocumentOpened += OnDocumentOpened;
+            workspace.DocumentClosed += OnDocumentClosed;
         }
 
         private void OnDocumentOpened(object sender, DocumentEventArgs args)
         {
-            this.Parse(args.Document);
+            Parse(args.Document);
         }
 
         private void OnDocumentClosed(object sender, DocumentEventArgs args)
         {
-            this.CancelParse(args.Document.Id);
+            CancelParse(args.Document.Id);
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
@@ -58,15 +58,15 @@ namespace Microsoft.CodeAnalysis.Host
                 case WorkspaceChangeKind.SolutionCleared:
                 case WorkspaceChangeKind.SolutionRemoved:
                 case WorkspaceChangeKind.SolutionAdded:
-                    this.CancelAllParses();
+                    CancelAllParses();
                     break;
 
                 case WorkspaceChangeKind.DocumentRemoved:
-                    this.CancelParse(args.DocumentId);
+                    CancelParse(args.DocumentId);
                     break;
 
                 case WorkspaceChangeKind.DocumentChanged:
-                    this.ParseIfOpen(args.NewSolution.GetDocument(args.DocumentId));
+                    ParseIfOpen(args.NewSolution.GetDocument(args.DocumentId));
                     break;
 
                 case WorkspaceChangeKind.ProjectChanged:
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Host
                     {
                         foreach (var doc in newProject.Documents)
                         {
-                            this.ParseIfOpen(doc);
+                            ParseIfOpen(doc);
                         }
                     }
 
@@ -95,9 +95,9 @@ namespace Microsoft.CodeAnalysis.Host
         {
             using (_stateLock.DisposableRead())
             {
-                if (!this.IsStarted)
+                if (!IsStarted)
                 {
-                    this.IsStarted = true;
+                    IsStarted = true;
                 }
             }
         }
@@ -106,10 +106,10 @@ namespace Microsoft.CodeAnalysis.Host
         {
             using (_stateLock.DisposableWrite())
             {
-                if (this.IsStarted)
+                if (IsStarted)
                 {
-                    this.CancelAllParses_NoLock();
-                    this.IsStarted = false;
+                    CancelAllParses_NoLock();
+                    IsStarted = false;
                 }
             }
         }
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             using (_stateLock.DisposableWrite())
             {
-                this.CancelAllParses_NoLock();
+                CancelAllParses_NoLock();
             }
         }
 
@@ -155,9 +155,9 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 lock (_parseGate)
                 {
-                    this.CancelParse(document.Id);
+                    CancelParse(document.Id);
 
-                    if (this.IsStarted)
+                    if (IsStarted)
                     {
                         ParseDocumentAsync(document);
                     }
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             if (document != null && document.IsOpen())
             {
-                this.Parse(document);
+                Parse(document);
             }
         }
 
