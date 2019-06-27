@@ -775,5 +775,162 @@ class Program
 ok
 System.Exception");
         }
+
+        [Fact]
+        public void NullCheckedLambdaParameter()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        Func<string, string> func1 = x! => x;
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.<>c.<M>b__0_0(string)", @"
+{
+    // Code size       11 (0xb)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.1
+    IL_000a:  ret
+}");
+        }
+
+        [Fact]
+        public void NullCheckedLambdaWithMultipleParameters()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        Func<string, string, string> func1 = (x!, y) => x;
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.<>c.<M>b__0_0(string, string)", @"
+{
+    // Code size       11 (0xb)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.1
+    IL_000a:  ret
+}");
+        }
+
+        [Fact]
+        public void ManyNullCheckedLambdasTest()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        Func<string, string, string> func1 = (x!, y!) => x;
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.<>c.<M>b__0_0(string, string)", @"
+{
+    // Code size       20 (0x14)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.2
+    IL_000a:  brtrue.s   IL_0012
+    IL_000c:  newobj     ""System.Exception..ctor()""
+    IL_0011:  throw
+    IL_0012:  ldarg.1
+    IL_0013:  ret
+}");
+        }
+
+        [Fact]
+        public void NoGeneratedNullCheckIfNonNullableTest()
+        {
+            // PROTOTYPE: Should be warning or error here.
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        Func<int, int> func1 = x! => x;
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.<>c.<M>b__0_0(int)", @"
+{
+    // Code size        2 (0x2)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void NullCheckedDiscardTest()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        Func<string, string> func1 = x! => x;
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.<>c.<M>b__0_0(string)", @"
+{
+    // Code size       11 (0xb)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.1
+    IL_000a:  ret
+}");
+        }
+
+        [Fact]
+        public void NullCheckedLambdaInsideFieldTest()
+        {
+            var source = @"
+using System;
+class C
+{
+    Func<string, string> func1 = x! => x;
+    public void M()
+    {
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.<>c.<.ctor>b__2_0(string)", @"
+{
+    // Code size       11 (0xb)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.1
+    IL_000a:  ret
+}");
+        }
     }
 }
