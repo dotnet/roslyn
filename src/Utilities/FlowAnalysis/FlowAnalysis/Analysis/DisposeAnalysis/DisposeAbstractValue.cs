@@ -47,8 +47,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             Debug.Assert(Kind != DisposeAbstractValueKind.NotDisposable);
             Debug.Assert(Kind != DisposeAbstractValueKind.Unknown);
 
-            var kind = this.Kind > DisposeAbstractValueKind.Escaped ? this.Kind : DisposeAbstractValueKind.Escaped;
-            return new DisposeAbstractValue(DisposingOrEscapingOperations.Add(escapingOperation), kind);
+            return new DisposeAbstractValue(ImmutableHashSet.Create(escapingOperation), DisposeAbstractValueKind.Escaped);
         }
 
         [Conditional("DEBUG")]
