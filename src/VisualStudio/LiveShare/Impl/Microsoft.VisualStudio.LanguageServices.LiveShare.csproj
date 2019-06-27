@@ -6,7 +6,6 @@
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.LiveShare</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.LanguageServices.LiveShare</AssemblyName>
     <TargetFramework>net472</TargetFramework>
-    <CreateVsixContainer>false</CreateVsixContainer>
     <IsPackable>true</IsPackable>
     <PackageDescription>
       A private package for the liveshare team to grant access to LSP implementations.
