@@ -81,6 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Returns true if this symbol requires an instance reference as the implicit reciever. This is false if the symbol is static, or a <see cref="LocalFunctionSymbol"/>
+        /// </summary>
+        public virtual bool RequiresInstanceReceiver => !IsStatic;
+
+        /// <summary>
         /// True if the method itself is excluded from code coverage instrumentation.
         /// True for source methods marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
         /// </summary>
@@ -1102,7 +1107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         CodeAnalysis.NullableAnnotation IMethodSymbol.ReceiverNullableAnnotation => ReceiverNullableAnnotation;
 
         protected virtual CodeAnalysis.NullableAnnotation ReceiverNullableAnnotation =>
-            IsStatic ? CodeAnalysis.NullableAnnotation.NotApplicable : CodeAnalysis.NullableAnnotation.NotAnnotated;
+            RequiresInstanceReceiver ? CodeAnalysis.NullableAnnotation.NotAnnotated : CodeAnalysis.NullableAnnotation.NotApplicable;
 
         IMethodSymbol IMethodSymbol.ReducedFrom
         {
