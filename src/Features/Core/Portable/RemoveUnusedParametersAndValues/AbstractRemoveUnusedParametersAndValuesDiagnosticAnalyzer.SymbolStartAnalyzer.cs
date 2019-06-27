@@ -57,6 +57,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 var deserializationConstructorCheck = new DeserializationConstructorCheck(context.Compilation);
                 context.RegisterSymbolStartAction(symbolStartContext =>
                 {
+                    if (HasSyntaxErrors((INamedTypeSymbol)symbolStartContext.Symbol, symbolStartContext.CancellationToken))
+                    {
+                        // Bail out on syntax errors.
+                        return;
+                    }
+
                     // Create a new SymbolStartAnalyzer instance for every named type symbol
                     // to ensure there is no shared state (such as identified unused parameters within the type),
                     // as that would lead to duplicate diagnostics being reported from symbol end action callbacks
@@ -64,6 +70,22 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     var symbolAnalyzer = new SymbolStartAnalyzer(analyzer, eventsArgType, attributeSetForMethodsToIgnore, deserializationConstructorCheck);
                     symbolAnalyzer.OnSymbolStart(symbolStartContext);
                 }, SymbolKind.NamedType);
+
+                return;
+
+                // Local functions
+                static bool HasSyntaxErrors(INamedTypeSymbol namedTypeSymbol, CancellationToken cancellationToken)
+                {
+                    foreach (var tree in namedTypeSymbol.Locations.Select(l => l.SourceTree))
+                    {
+                        if (tree.GetDiagnostics(cancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
             }
 
             private void OnSymbolStart(SymbolStartAnalysisContext context)
@@ -183,7 +205,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 // we don't have to bail out on reporting unused parameters for all public methods.
 
                 if (parameter.IsImplicitlyDeclared ||
-                    parameter.Name.Length == 0 ||
                     parameter.Name == DiscardVariableName ||
                     !(parameter.ContainingSymbol is IMethodSymbol method) ||
                     method.IsImplicitlyDeclared ||
