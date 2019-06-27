@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Roslyn.Utilities;
-using System.IO;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurationFixProvider
     {
         internal abstract class AbstractGlobalSuppressMessageCodeAction : AbstractSuppressionCodeAction
         {
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
             protected async Task<Document> GetOrCreateSuppressionsDocumentAsync(CancellationToken c)
             {
-                int index = 1;
+                var index = 1;
                 var suppressionsFileName = s_globalSuppressionsFileName + Fixer.DefaultFileExtension;
                 var suppressionsFilePath = GetSuppressionsFilePath(suppressionsFileName);
 

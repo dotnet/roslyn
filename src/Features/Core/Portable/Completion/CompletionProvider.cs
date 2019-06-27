@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         protected CompletionProvider()
         {
-            this.Name = this.GetType().FullName;
+            Name = GetType().FullName;
         }
 
         /// <summary>

@@ -41,13 +41,13 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 bool abstractly,
                 ISymbol throughMember)
             {
-                this.Service = service;
-                this.Document = document;
-                this.State = state;
-                this.Abstractly = abstractly;
-                this.Explicitly = explicitly;
-                this.ThroughMember = throughMember;
-                _equivalenceKey = ComputeEquivalenceKey(state, explicitly, abstractly, throughMember, this.GetType().FullName);
+                Service = service;
+                Document = document;
+                State = state;
+                Abstractly = abstractly;
+                Explicitly = explicitly;
+                ThroughMember = throughMember;
+                _equivalenceKey = ComputeEquivalenceKey(state, explicitly, abstractly, throughMember, GetType().FullName);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementAbstractlyCodeAction(
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
                 CancellationToken cancellationToken)
             {
-                var factory = this.Document.GetLanguageService<SyntaxGenerator>();
+                var factory = Document.GetLanguageService<SyntaxGenerator>();
                 var modifiers = new DeclarationModifiers(isAbstract: generateAbstractly, isNew: addNew, isUnsafe: addUnsafe);
 
                 var useExplicitInterfaceSymbol = generateInvisibly || !Service.CanImplementImplicitly;
@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             private bool IdentifiersMatch(string identifier1, string identifier2)
             {
-                return this.IsCaseSensitive
+                return IsCaseSensitive
                     ? identifier1 == identifier2
                     : StringComparer.OrdinalIgnoreCase.Equals(identifier1, identifier2);
             }
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 get
                 {
-                    return this.Document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive;
+                    return Document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive;
                 }
             }
 
@@ -617,7 +617,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
 
                 return SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(
-                    member1, member2, this.IsCaseSensitive);
+                    member1, member2, IsCaseSensitive);
             }
         }
     }

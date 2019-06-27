@@ -9,13 +9,13 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Shared.Naming;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
                 // Get the parts of the parameter name and the appropriate naming rules so
                 // that we can name the field/property accordingly.
-                var parameterNameParts = this.GetParameterWordParts(parameter);
+                var parameterNameParts = GetParameterWordParts(parameter);
                 var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
 
                 var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
