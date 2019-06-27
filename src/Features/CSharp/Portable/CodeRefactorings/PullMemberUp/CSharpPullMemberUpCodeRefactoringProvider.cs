@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
         {
             var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
 
+            // Consider MemberDeclaration (types, methods, events, delegates, ...) and VariableDeclarator (pure variables)
             var memberDecl = await refactoringHelperService.TryGetSelectedNodeAsync<MemberDeclarationSyntax>(document, span, cancellationToken).ConfigureAwait(false);
             if (memberDecl != default)
             {
