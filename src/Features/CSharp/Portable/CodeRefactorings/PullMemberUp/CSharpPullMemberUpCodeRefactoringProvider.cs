@@ -31,8 +31,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
         protected override async Task<SyntaxNode> GetSelectedNodeAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-            return await refactoringHelperService.TryGetSelectedNodeAsync(
-                document, span, n => n is MemberDeclarationSyntax || n is VariableDeclaratorSyntax, cancellationToken).ConfigureAwait(false);
+
+            var memberDecl = await refactoringHelperService.TryGetSelectedNodeAsync<MemberDeclarationSyntax>(document, span, cancellationToken).ConfigureAwait(false);
+            if (memberDecl != default)
+            {
+                return memberDecl;
+            }
+
+            var varDecl = await refactoringHelperService.TryGetSelectedNodeAsync<VariableDeclaratorSyntax>(document, span, cancellationToken).ConfigureAwait(false);
+            return varDecl;
         }
     }
 }

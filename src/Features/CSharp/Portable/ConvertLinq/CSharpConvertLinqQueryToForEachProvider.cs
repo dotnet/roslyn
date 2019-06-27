@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
         /// <summary>
         /// Finds a node for the span and checks that it is either a QueryExpressionSyntax or a QueryExpressionSyntax argument within ArgumentSyntax.
         /// </summary>
-        protected override async Task<QueryExpressionSyntax> FindNodeToRefactorAsync(Document document, TextSpan selection, CancellationToken cancellationToken)
+        protected override Task<QueryExpressionSyntax> FindNodeToRefactorAsync(Document document, TextSpan selection, CancellationToken cancellationToken)
         {
             var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-            return await refactoringHelperService.TryGetSelectedNodeAsync<QueryExpressionSyntax>(document, selection, cancellationToken).ConfigureAwait(false);
+            return refactoringHelperService.TryGetSelectedNodeAsync<QueryExpressionSyntax>(document, selection, cancellationToken);
         }
 
         private sealed class Converter
