@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var data = await this.GetDescriptionAndNodeAsync(root, node, semanticModel, diagnostic, document, cancellationToken).ConfigureAwait(false);
+            var data = await GetDescriptionAndNodeAsync(root, node, semanticModel, diagnostic, document, cancellationToken).ConfigureAwait(false);
             if (data.Node == null)
             {
                 return null;

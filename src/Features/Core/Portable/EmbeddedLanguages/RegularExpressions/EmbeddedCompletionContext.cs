@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             public void AddIfMissing(RegexItem item)
             {
-                if (this._names.Add(item.DisplayText))
+                if (_names.Add(item.DisplayText))
                 {
-                    this.Items.Add(item);
+                    Items.Add(item);
                 }
             }
         }

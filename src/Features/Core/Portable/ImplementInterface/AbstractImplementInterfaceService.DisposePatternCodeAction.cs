@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             var idisposable = TryGetSymbolForIDisposable(state.Model.Compilation);
             return (idisposable != null) &&
                    unimplementedMembers.Any(m => m.type.Equals(idisposable)) &&
-                   this.CanImplementDisposePattern(state.ClassOrStructType, state.ClassOrStructDecl);
+                   CanImplementDisposePattern(state.ClassOrStructType, state.ClassOrStructDecl);
         }
 
         internal class ImplementInterfaceWithDisposePatternCodeAction : ImplementInterfaceCodeAction

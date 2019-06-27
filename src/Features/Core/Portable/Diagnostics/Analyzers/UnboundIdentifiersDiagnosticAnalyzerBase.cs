@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
-            context.RegisterSyntaxNodeAction(AnalyzeNode, this.SyntaxKindsOfInterest.ToArray());
+            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKindsOfInterest.ToArray());
         }
 
         protected DiagnosticDescriptor GetDiagnosticDescriptor(string id, LocalizableString messageFormat)

@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName
             var namespaceNames = RQNodeBuilder.GetNameParts(@type.ContainingNamespace);
             var typeInfos = new List<RQUnconstructedTypeInfo>();
 
-            for (INamedTypeSymbol currentType = type; currentType != null; currentType = currentType.ContainingType)
+            for (var currentType = type; currentType != null; currentType = currentType.ContainingType)
             {
                 typeInfos.Insert(0, new RQUnconstructedTypeInfo(currentType.Name, currentType.TypeParameters.Length));
             }

@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             editor.ReplaceNode(
                 ifStatement,
-                this.WrapWithBlockIfAppropriate(ifStatement, returnStatement));
+                WrapWithBlockIfAppropriate(ifStatement, returnStatement));
 
             // if the if-statement had no 'else' clause, then we were using the following statement
             // as the 'false' statement.  If so, remove it explicitly.

@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             // Normalize the whitespace.
             var pendingWhitespace = false;
             var hadAnyNonWhitespace = false;
-            for (int i = 0; i < rawText.Length; i++)
+            for (var i = 0; i < rawText.Length; i++)
             {
                 if (char.IsWhiteSpace(rawText[i]))
                 {

@@ -39,11 +39,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             Contract.ThrowIfNull(owner);
 
-            this.Owner = owner;
-            this.Workspace = workspace;
-            this.HostAnalyzerManager = hostAnalyzerManager;
-            this.HostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
-            this.DiagnosticLogAggregator = new DiagnosticLogAggregator(owner);
+            Owner = owner;
+            Workspace = workspace;
+            HostAnalyzerManager = hostAnalyzerManager;
+            HostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
+            DiagnosticLogAggregator = new DiagnosticLogAggregator(owner);
 
             _correlationId = correlationId;
 

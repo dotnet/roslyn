@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Notification
 
         private void RaiseOpenDocumentSemanticChangedEvent(Document document)
         {
-            this.OpenedDocumentSemanticChanged?.Invoke(this, document);
+            OpenedDocumentSemanticChanged?.Invoke(this, document);
         }
 
         private class NotificationService : IIncrementalAnalyzer

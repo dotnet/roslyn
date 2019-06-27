@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
                 CancellationToken cancellationToken)
             {
-                var factory = this.Document.GetLanguageService<SyntaxGenerator>();
+                var factory = Document.GetLanguageService<SyntaxGenerator>();
                 var attributesToRemove = AttributesToRemove(compilation);
 
                 var getAccessor = GenerateGetAccessor(
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
 
                 var setMethod = property.SetMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(
-                     this.State.ClassOrStructType,
+                     State.ClassOrStructType,
                      attributesToRemove);
 
                 return CodeGenerationSymbolFactory.CreateAccessorSymbol(
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
 
                 var getMethod = property.GetMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(
-                     this.State.ClassOrStructType,
+                     State.ClassOrStructType,
                      attributesToRemove);
 
                 return CodeGenerationSymbolFactory.CreateAccessorSymbol(
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     return default;
                 }
 
-                var factory = this.Document.GetLanguageService<SyntaxGenerator>();
+                var factory = Document.GetLanguageService<SyntaxGenerator>();
                 if (ThroughMember != null)
                 {
                     var throughExpression = CreateThroughExpression(factory);
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     return default;
                 }
 
-                var factory = this.Document.GetLanguageService<SyntaxGenerator>();
+                var factory = Document.GetLanguageService<SyntaxGenerator>();
                 if (ThroughMember != null)
                 {
                     var throughExpression = CreateThroughExpression(factory);

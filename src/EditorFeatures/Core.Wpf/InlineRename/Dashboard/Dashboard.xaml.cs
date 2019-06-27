@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _model = model;
             InitializeComponent();
 
-            _tabNavigableChildren = new UIElement[] { this.OverloadsCheckbox, this.CommentsCheckbox, this.StringsCheckbox, this.PreviewChangesCheckbox, this.ApplyButton, this.CloseButton }.ToList();
+            _tabNavigableChildren = new UIElement[] { this.OverloadsCheckbox, this.CommentsCheckbox, this.StringsCheckbox, this.FileRenameCheckbox, this.PreviewChangesCheckbox, this.ApplyButton, this.CloseButton }.ToList();
 
             _textView = textView;
             this.DataContext = model;
@@ -226,6 +226,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 else if (string.Equals(e.Key, RenameShortcutKey.PreviewChanges, StringComparison.OrdinalIgnoreCase))
                 {
                     this.PreviewChangesCheckbox.IsChecked = !this.PreviewChangesCheckbox.IsChecked;
+                }
+                else if (string.Equals(e.Key, RenameShortcutKey.RenameFile, StringComparison.OrdinalIgnoreCase))
+                {
+                    this.FileRenameCheckbox.IsChecked = !this.FileRenameCheckbox.IsChecked;
                 }
                 else if (string.Equals(e.Key, RenameShortcutKey.Apply, StringComparison.OrdinalIgnoreCase))
                 {

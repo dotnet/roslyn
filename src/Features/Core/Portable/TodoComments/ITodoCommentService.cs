@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         public TodoCommentDescriptor(string text, int priority) : this()
         {
-            this.Text = text;
-            this.Priority = priority;
+            Text = text;
+            Priority = priority;
         }
     }
 
@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         public TodoComment(TodoCommentDescriptor descriptor, string message, int position) : this()
         {
-            this.Descriptor = descriptor;
-            this.Message = message;
-            this.Position = position;
+            Descriptor = descriptor;
+            Message = message;
+            Position = position;
         }
     }
 

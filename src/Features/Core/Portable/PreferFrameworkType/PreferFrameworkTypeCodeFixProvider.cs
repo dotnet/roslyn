@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
             {
                 context.RegisterCodeFix(
                     new PreferFrameworkTypeCodeAction(
-                        c => this.FixAsync(context.Document, diagnostic, c)),
+                        c => FixAsync(context.Document, diagnostic, c)),
                     context.Diagnostics);
             }
 

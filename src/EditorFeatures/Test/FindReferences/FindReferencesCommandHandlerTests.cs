@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
             var handler = new FindReferencesCommandHandler(
-                SpecializedCollections.SingletonEnumerable(new Lazy<IStreamingFindUsagesPresenter>(() => presenter)),
+                presenter,
                 listenerProvider);
 
             var textView = workspace.Documents[0].GetTextView();

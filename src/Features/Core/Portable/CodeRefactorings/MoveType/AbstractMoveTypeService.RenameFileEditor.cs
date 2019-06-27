@@ -21,12 +21,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             public override Task<Solution> GetModifiedSolutionAsync()
             {
-                var oldDocument = SemanticDocument.Document;
-                var newDocumentId = DocumentId.CreateNewId(oldDocument.Project.Id, FileName);
-
-                var modifiedSolution = oldDocument.Project.Solution
-                    .RemoveDocument(oldDocument.Id)
-                    .AddDocument(newDocumentId, FileName, SemanticDocument.Text, oldDocument.Folders);
+                var modifiedSolution = SemanticDocument.Project.Solution
+                    .WithDocumentName(SemanticDocument.Document.Id, FileName);
 
                 return Task.FromResult(modifiedSolution);
             }

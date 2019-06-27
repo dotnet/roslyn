@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static void DecodeSymbols(List<string> ids, Compilation compilation, List<ISymbol> symbols)
         {
-            for (int i = 0; i < ids.Count;)
+            for (var i = 0; i < ids.Count;)
             {
                 var id = ids[i];
                 var symbol = DecodeSymbol(id, compilation);

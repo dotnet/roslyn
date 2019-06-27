@@ -5,17 +5,11 @@ using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal sealed class TopLevelSuppressionCodeAction : CodeAction.CodeActionWithNestedActions
+    internal sealed class TopLevelSuppressionCodeAction : AbstractConfigurationActionWithNestedActions
     {
-        public TopLevelSuppressionCodeAction(
-            Diagnostic diagnostic,
-            ImmutableArray<NestedSuppressionCodeAction> nestedActions)
-            : base(string.Format(FeaturesResources.Suppress_0, diagnostic.Id),
-                   ImmutableArray<CodeAction>.CastUp(nestedActions), isInlinable: false)
+        public TopLevelSuppressionCodeAction(Diagnostic diagnostic, ImmutableArray<NestedSuppressionCodeAction> nestedActions)
+            : base(ImmutableArray<CodeAction>.CastUp(nestedActions), string.Format(FeaturesResources.Suppress_0, diagnostic.Id))
         {
         }
-
-        // Put suppressions at the end of everything.
-        internal override CodeActionPriority Priority => CodeActionPriority.None;
     }
 }
