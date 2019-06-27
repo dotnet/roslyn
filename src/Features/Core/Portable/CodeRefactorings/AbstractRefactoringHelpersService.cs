@@ -1,23 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     internal abstract class AbstractRefactoringHelpersService : IRefactoringHelpersService
     {
-        public abstract SyntaxNode DefaultNodeExtractor(SyntaxNode node);
-
         public async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
             Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
-            return await TryGetSelectedNodeAsync(document, selection, n => n is TSyntaxNode, DefaultNodeExtractor, cancellationToken).ConfigureAwait(false) as TSyntaxNode;
+            return await TryGetSelectedNodeAsync(document, selection, n => n is TSyntaxNode, cancellationToken).ConfigureAwait(false) as TSyntaxNode;
         }
 
         public Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selection, Predicate<SyntaxNode> predicate, CancellationToken cancellationToken)
@@ -25,8 +22,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             return TryGetSelectedNodeAsync(document, selection, predicate, DefaultNodeExtractor, cancellationToken);
         }
 
-        public async Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selection, Predicate<SyntaxNode> predicate, Func<SyntaxNode, SyntaxNode> extractNode, CancellationToken cancellationToken)
+        public async Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selection, Predicate<SyntaxNode> predicate, Func<SyntaxNode, ISyntaxFactsService, SyntaxNode> extractNode, CancellationToken cancellationToken)
         {
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var selectionStripped = await CodeRefactoringHelpers.GetStrippedTextSpan(document, selection, cancellationToken).ConfigureAwait(false);
 
@@ -38,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             SyntaxNode prevNode;
             do
             {
-                var wantedNode = TryGetAcceptedNodeOrExtracted(node, predicate, extractNode);
+                var wantedNode = TryGetAcceptedNodeOrExtracted(node, predicate, extractNode, syntaxFacts);
                 if (wantedNode != default)
                 {
                     return wantedNode;
@@ -70,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 do
                 {
                     // consider either a Node that is a parent of touched Token (selection can be within) or ancestor Node of such Token whose span starts on selection
-                    var wantedNode = TryGetAcceptedNodeOrExtracted(rightNode, predicate, extractNode);
+                    var wantedNode = TryGetAcceptedNodeOrExtracted(rightNode, predicate, extractNode, syntaxFacts);
                     if (wantedNode != default)
                     {
                         return wantedNode;
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 do
                 {
                     // consider either a Node that is a parent of touched Token (selection can be within) or ancestor Node of such Token whose span ends on selection
-                    var wantedNode = TryGetAcceptedNodeOrExtracted(leftNode, predicate, extractNode);
+                    var wantedNode = TryGetAcceptedNodeOrExtracted(leftNode, predicate, extractNode, syntaxFacts);
                     if (wantedNode != default)
                     {
                         return wantedNode;
@@ -116,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // nothing found
             return default;
 
-            static SyntaxNode TryGetAcceptedNodeOrExtracted(SyntaxNode node, Predicate<SyntaxNode> predicate, Func<SyntaxNode, SyntaxNode> extractNode)
+            static SyntaxNode TryGetAcceptedNodeOrExtracted(SyntaxNode node, Predicate<SyntaxNode> predicate, Func<SyntaxNode, ISyntaxFactsService, SyntaxNode> extractNode, ISyntaxFactsService syntaxFacts)
             {
                 if (node == default)
                 {
@@ -128,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     return node;
                 }
 
-                var extrNode = extractNode(node);
+                var extrNode = extractNode(node, syntaxFacts);
                 if (extrNode != default && predicate(extrNode))
                 {
                     return extrNode;
@@ -136,6 +134,43 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
                 return default;
             }
+        }
+
+        public virtual SyntaxNode DefaultNodeExtractor(SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        {
+            // var a = b;
+            // -> b
+            if (syntaxFacts.IsLocalDeclarationStatement(node))
+            {
+                var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(node);
+                if (variables.Count == 1)
+                {
+                    var declaredVariable = variables.First();
+                    var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(declaredVariable);
+
+                    if (initializer != default)
+                    {
+                        var value = syntaxFacts.GetValueOfEqualsValueClause(initializer);
+                        if (value != default)
+                        {
+                            return value;
+                        }
+                    }
+                }
+            }
+
+            // a = b;
+            // -> b
+            if (syntaxFacts.IsSimpleAssignmentStatement(node))
+            {
+                syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(node, out _, out _, out var rightSide);
+                if (rightSide != default)
+                {
+                    return rightSide;
+                }
+            }
+
+            return node;
         }
     }
 }

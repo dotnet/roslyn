@@ -4,6 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// that are under those that might be selected / considered (as described above). It is a <see cref="Func{SyntaxNode, SyntaxNode}"/> that
         /// should always return either given Node or a Node somewhere below it that should be tested with <paramref name="predicate"/> and
         /// potentially returned instead of current Node. 
-        /// E.g. <see cref="DefaultNodeExtractor{TNode}(SyntaxNode)"/>
+        /// E.g. <see cref="DefaultNodeExtractor(SyntaxNode, ISyntaxFactsService)"/>
         /// allows returning right side Expresion node even if whole AssignmentNode is selected.
         /// </para>
         /// <para>
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// of tokens gracefully.
         /// </para>
         /// </summary>
-        Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selection, Predicate<SyntaxNode> predicate, Func<SyntaxNode, SyntaxNode> extractNode, CancellationToken cancellationToken);
+        Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selection, Predicate<SyntaxNode> predicate, Func<SyntaxNode, ISyntaxFactsService, SyntaxNode> extractNode, CancellationToken cancellationToken);
 
         /// <summary>
         /// <para>
@@ -87,9 +88,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selection, Predicate<SyntaxNode> predicate, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Extractor function for <see cref="TryGetSelectedNodeAsync(Document, TextSpan, Predicate{SyntaxNode}, Func{SyntaxNode, SyntaxNode}, CancellationToken)"/> methods that retrieves expressions from 
+        /// Extractor function for <see cref="TryGetSelectedNodeAsync(Document, TextSpan, Predicate{SyntaxNode}, Func{SyntaxNode, ISyntaxFactsService, SyntaxNode}, CancellationToken)"/> methods that retrieves expressions from 
         /// declarations and assignments. Otherwise returns unchanged <paramref name="node"/>.
         /// </summary>
-        SyntaxNode DefaultNodeExtractor(SyntaxNode node);
+        SyntaxNode DefaultNodeExtractor(SyntaxNode node, ISyntaxFactsService syntaxFacts);
     }
 }

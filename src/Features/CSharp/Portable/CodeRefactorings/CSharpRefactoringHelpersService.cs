@@ -9,36 +9,5 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
     [ExportLanguageService(typeof(IRefactoringHelpersService), LanguageNames.CSharp), Shared]
     internal class CSharpRefactoringHelpersService : AbstractRefactoringHelpersService
     {
-        public override SyntaxNode DefaultNodeExtractor(SyntaxNode node)
-        {
-            switch (node)
-            {
-                case LocalDeclarationStatementSyntax localDeclaration:
-                    {
-                        if (localDeclaration.Declaration.Variables.Count == 1 && localDeclaration.Declaration.Variables.First().Initializer != null)
-                        {
-                            var initializer = localDeclaration.Declaration.Variables.First().Initializer;
-                            return initializer.Value;
-                        }
-
-                        break;
-                    }
-
-                case ExpressionStatementSyntax expressionStatement:
-                    {
-                        if (expressionStatement.Expression is AssignmentExpressionSyntax assignmentExpression)
-                        {
-                            if (assignmentExpression.Right != null)
-                            {
-                                return assignmentExpression.Right;
-                            }
-                        }
-
-                        break;
-                    }
-            }
-
-            return node;
-        }
     }
 }
