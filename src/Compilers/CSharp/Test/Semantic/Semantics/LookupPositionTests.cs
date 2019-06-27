@@ -23,6 +23,52 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private const char KeyPositionMarker = '`';
 
         [Fact]
+        public void PositionalRecord1()
+        {
+            var text = @"
+class C(int x, int y);";
+            var expectedNames = MakeExpectedSymbols(
+                Add( // Global
+                    "System",
+                    "Microsoft",
+                    "C"));
+
+            TestLookupNames(text, expectedNames);
+        }
+
+        [Fact]
+        public void PositionalRecord2()
+        {
+            var text = @"
+`class C`<T`>(int x, T t = default(T));";
+            var expectedNames = MakeExpectedSymbols(
+                Add( // Global
+                    "System",
+                    "Microsoft",
+                    "C<T>"),
+                Add( // C Type parameters
+                    "T"),
+                Add( // Members
+                    "System.Int32 C<T>.x { get; }",
+                    "T C<T>.t { get; }",
+                    "System.Boolean C<T>.Equals(C<T> value)",
+                    "System.Boolean C<T>.Equals(System.Object value)",
+                    "System.Boolean System.Object.Equals(System.Object obj)",
+                    "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                    "System.Int32 C<T>.GetHashCode()",
+                    "System.Int32 System.Object.GetHashCode()",
+                    "System.Object System.Object.MemberwiseClone()",
+                    "void System.Object.Finalize()",
+                    "System.String System.Object.ToString()",
+                    "System.Type System.Object.GetType()"),
+                s_pop
+                );
+
+            TestLookupNames(text, expectedNames);
+        }
+
+        [Fact]
         public void ExpressionBodiedProp()
         {
             var text = @"

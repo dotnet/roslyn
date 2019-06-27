@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SourcePropertySymbol : PropertySymbol, IAttributeTargetSymbol
+    internal sealed class SourcePropertySymbol : SourceOrRecordPropertySymbol
     {
         private const string DefaultIndexerName = "Item";
 
@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SourceMemberContainerTypeSymbol _containingType;
         private readonly string _name;
         private readonly SyntaxReference _syntaxRef;
-        private readonly Location _location;
         private readonly DeclarationModifiers _modifiers;
         private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
         private readonly SourcePropertyAccessorSymbol _getMethod;
@@ -59,13 +58,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
            string name,
            Location location,
            DiagnosticBag diagnostics)
+            : base(location)
         {
             // This has the value that IsIndexer will ultimately have, once we've populated the fields of this object.
             bool isIndexer = syntax.Kind() == SyntaxKind.IndexerDeclaration;
             var interfaceSpecifier = GetExplicitInterfaceSpecifier(syntax);
             bool isExplicitInterfaceImplementation = (interfaceSpecifier != null);
 
-            _location = location;
             _containingType = containingType;
             _syntaxRef = syntax.GetReference();
             _refKind = syntax.Type.GetRefKind();
@@ -530,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal bool HasPointerType
+        internal override bool HasPointerType
         {
             get
             {
@@ -587,22 +586,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override LexicalSortKey GetLexicalSortKey()
         {
-            return new LexicalSortKey(_location, this.DeclaringCompilation);
+            return new LexicalSortKey(Location, this.DeclaringCompilation);
         }
 
         public override ImmutableArray<Location> Locations
         {
             get
             {
-                return ImmutableArray.Create(_location);
-            }
-        }
-
-        internal Location Location
-        {
-            get
-            {
-                return _location;
+                return ImmutableArray.Create(Location);
             }
         }
 
@@ -761,6 +752,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (BasePropertyDeclarationSyntax)_syntaxRef.GetSyntax();
             }
         }
+
+        public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
+            => CSharpSyntaxNode.AttributeLists;
 
         internal SyntaxTree SyntaxTree
         {
@@ -1133,25 +1127,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Attributes
 
-        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner
-        {
-            get { return this; }
-        }
+        protected override IAttributeTargetSymbol AttributesOwner => this;
 
-        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation
-        {
-            get { return AttributeLocation.Property; }
-        }
+        protected override AttributeLocation DefaultAttributeLocation => AttributeLocation.Property;
 
-        AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
-        {
-            get
-            {
-                return _isAutoProperty
-                    ? AttributeLocation.Property | AttributeLocation.Field
-                    : AttributeLocation.Property;
-            }
-        }
+        protected override AttributeLocation AllowedAttributeLocations
+            => _isAutoProperty
+                ? AttributeLocation.Property | AttributeLocation.Field
+                : AttributeLocation.Property;
 
         /// <summary>
         /// Returns a bag of custom attributes applied on the property and data decoded from well-known attributes. Returns null if there are no attributes.
@@ -1543,7 +1526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 var diagnostics = DiagnosticBag.GetInstance();
                                 var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
-                                this.Type.CheckAllConstraints(DeclaringCompilation, conversions, _location, diagnostics);
+                                this.Type.CheckAllConstraints(DeclaringCompilation, conversions, Location, diagnostics);
 
                                 var type = this.Type;
                                 if (type.IsRestrictedType(ignoreSpanLikeTypes: true))
@@ -1594,15 +1577,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // "Inconsistent accessibility: indexer return type '{1}' is less accessible than indexer '{0}'"
                 // "Inconsistent accessibility: property type '{1}' is less accessible than property '{0}'"
-                diagnostics.Add((this.IsIndexer ? ErrorCode.ERR_BadVisIndexerReturn : ErrorCode.ERR_BadVisPropertyType), _location, this, type.Type);
+                diagnostics.Add((this.IsIndexer ? ErrorCode.ERR_BadVisIndexerReturn : ErrorCode.ERR_BadVisPropertyType), Location, this, type.Type);
             }
 
-            diagnostics.Add(_location, useSiteDiagnostics);
+            diagnostics.Add(Location, useSiteDiagnostics);
 
             if (type.IsVoidType())
             {
                 ErrorCode errorCode = this.IsIndexer ? ErrorCode.ERR_IndexerCantHaveVoidType : ErrorCode.ERR_PropertyCantHaveVoidType;
-                diagnostics.Add(errorCode, _location, this);
+                diagnostics.Add(errorCode, Location, this);
             }
 
             return type;
@@ -1618,15 +1601,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (syntax.ExplicitInterfaceSpecifier == null && !this.IsNoMoreVisibleThan(param.Type, ref useSiteDiagnostics))
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadVisIndexerParam, _location, this, param.Type);
+                    diagnostics.Add(ErrorCode.ERR_BadVisIndexerParam, Location, this, param.Type);
                 }
                 else if ((object)_setMethod != null && param.Name == ParameterSymbol.ValueParameterName)
                 {
-                    diagnostics.Add(ErrorCode.ERR_DuplicateGeneratedName, param.Locations.FirstOrDefault() ?? _location, param.Name);
+                    diagnostics.Add(ErrorCode.ERR_DuplicateGeneratedName, param.Locations.FirstOrDefault() ?? Location, param.Name);
                 }
             }
 
-            diagnostics.Add(_location, useSiteDiagnostics);
+            diagnostics.Add(Location, useSiteDiagnostics);
             return parameters;
         }
 

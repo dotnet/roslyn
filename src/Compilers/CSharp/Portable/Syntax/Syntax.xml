@@ -3000,13 +3000,14 @@
       <Kind Name="IdentifierToken"/>
     </Field>
     <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
+    <Field Name="ParameterList" Type="ParameterListSyntax" Optional="true" />
     <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true"/>
     <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
-    <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
+    <Field Name="OpenBraceToken" Optional="true" Type="SyntaxToken" Override="true">
       <Kind Name="OpenBraceToken"/>
     </Field>
     <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;" Override="true"/>
-    <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true">
+    <Field Name="CloseBraceToken" Optional="true" Type="SyntaxToken" Override="true">
       <Kind Name="CloseBraceToken"/>
     </Field>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
@@ -3030,13 +3031,14 @@
       <Kind Name="IdentifierToken"/>
     </Field>
     <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
+    <Field Name="ParameterList" Type="ParameterListSyntax" Optional="true" />
     <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true"/>
     <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
-    <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
+    <Field Name="OpenBraceToken" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="OpenBraceToken"/>
     </Field>
     <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;" Override="true"/>
-    <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true">
+    <Field Name="CloseBraceToken" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="CloseBraceToken"/>
     </Field>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">

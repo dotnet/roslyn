@@ -30,11 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             actualErrors.Verify(expectedErrors);
         }
 
-        public static void ParseAndValidate(string text, CSharpParseOptions options, params DiagnosticDescription[] expectedErrors)
+        public static SyntaxTree ParseAndValidate(string text, CSharpParseOptions options, params DiagnosticDescription[] expectedErrors)
         {
             var parsedTree = ParseWithRoundTripCheck(text, options: options);
             var actualErrors = parsedTree.GetDiagnostics();
             actualErrors.Verify(expectedErrors);
+            return parsedTree;
         }
 
         public static void ParseAndValidateFirst(string text, DiagnosticDescription expectedFirstError)
@@ -109,12 +110,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(text, options: null, expectedErrors);
         }
 
-        /// <summary>
-        /// Parses given string and initializes a depth-first preorder enumerator.
-        /// </summary>
-        protected SyntaxTree UsingTree(string text, CSharpParseOptions options = null)
+        private SyntaxTree UsingTree(
+            string text,
+            CSharpParseOptions options,
+            params DiagnosticDescription[] expectedErrors)
         {
-            var tree = ParseTree(text, options);
+            var tree = ParseAndValidate(text, options, expectedErrors);
             var nodes = EnumerateNodes(tree.GetCompilationUnitRoot());
 #if PARSING_TESTS_DUMP
             nodes = nodes.ToArray(); //force eval to dump contents
@@ -123,6 +124,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             return tree;
         }
+
+        /// <summary>
+        /// Parses given string and initializes a depth-first preorder enumerator.
+        /// </summary>
+        protected SyntaxTree UsingTree(string text, CSharpParseOptions options = null)
+        {
+            var tree = ParseTree(text, options);
+            UsingNode((CSharpSyntaxNode)tree.GetRoot());
+            return tree;
+        }
+
+        /// <summary>
+        /// Parses given string and initializes a depth-first preorder enumerator.
+        /// </summary>
+        protected SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
+            => UsingTree(text, options: null, expectedErrors);
 
         /// <summary>
         /// Parses given string and initializes a depth-first preorder enumerator.

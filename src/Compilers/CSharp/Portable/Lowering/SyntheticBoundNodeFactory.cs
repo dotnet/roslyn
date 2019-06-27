@@ -532,6 +532,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundIsOperator(this.Syntax, operand, Type(type), c, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean)) { WasCompilerGenerated = true };
         }
 
+        public BoundExpression Is(BoundExpression operand, TypeSymbol type, BoundLocal local)
+        {
+            // (local = operand as type) != null
+            return ObjectNotEqual(AssignmentExpression(local, As(operand, type)), Null(type));
+        }
+
         public BoundBinaryOperator LogicalAnd(BoundExpression left, BoundExpression right)
         {
             return Binary(BinaryOperatorKind.LogicalBoolAnd, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean), left, right);
