@@ -488,15 +488,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             Binder binder,
             SnapshotManager originalSnapshots,
+            bool takeNewSnapshots,
             out SnapshotManager newSnapshots)
         {
             var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>();
-            var newSnapshotBuilder = new SnapshotManager.Builder();
+            var newSnapshotBuilder = takeNewSnapshots ? new SnapshotManager.Builder() : null;
             var (walker, initialState, symbol) = originalSnapshots.RestoreWalkerToAnalyzeNewNode(position, node, binder, analyzedNullabilities, newSnapshotBuilder);
             Analyze(walker, symbol, diagnostics: null, initialState, snapshotBuilderOpt: newSnapshotBuilder);
 
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
-            newSnapshots = newSnapshotBuilder.ToManagerAndFree();
+            newSnapshots = newSnapshotBuilder?.ToManagerAndFree();
 
 #if DEBUG
             if (binder.Compilation.NullableSemanticAnalysisEnabled)
