@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -107,8 +107,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="request">the document and range to get code actions for.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>a list of commands representing code actions.</returns>
-        public Task<LSP.Command[]> GetCodeActionsAsync(Solution solution, LSP.CodeActionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-            => ExecuteRequestAsync<LSP.CodeActionParams, LSP.Command[]>(LSP.Methods.TextDocumentCodeActionName, solution, request, clientCapabilities, cancellationToken);
+        public Task<object[]> GetCodeActionsAsync(Solution solution, LSP.CodeActionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.CodeActionParams, object[]>(LSP.Methods.TextDocumentCodeActionName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a completion request by returning the valid completions at the location.

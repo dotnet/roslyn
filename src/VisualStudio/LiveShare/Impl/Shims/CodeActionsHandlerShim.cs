@@ -15,7 +15,7 @@ using LiveShareCodeAction = Microsoft.VisualStudio.LiveShare.LanguageServices.Pr
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
     [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.TextDocumentCodeActionName)]
-    internal class CodeActionsHandlerShim : AbstractLiveShareHandlerShim<CodeActionParams, Command[]>
+    internal class CodeActionsHandlerShim : AbstractLiveShareHandlerShim<CodeActionParams, object[]>
     {
         [ImportingConstructor]
         public CodeActionsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
@@ -23,21 +23,26 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
         }
 
-        public async override Task<Command[]> HandleAsync(CodeActionParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        public async override Task<object[]> HandleAsync(CodeActionParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
             var result = await base.HandleAsync(param, requestContext, cancellationToken).ConfigureAwait(false);
             // Liveshare has a custom type for code actions (predates LSP code actions) with the same shape.
             // We must convert the LSP code action to the liveshare code action because they have a hard dependecy on their type.
             // TODO - Get liveshare to remove hard dependency on custom liveshare code action type from host side.
             // See Liveshare's LanguageServiceProviderHandler.
-            foreach (var command in result)
+            if (result is Command[] commands)
             {
-                var liveshareCodeActions = command.Arguments.Where(a => a is CodeAction).Select(codeAction => GetLiveShareCodeAction(codeAction as CodeAction)).ToArray();
-                // Only modify the result if any code actions were able to be converted.
-                if (liveshareCodeActions.Length > 0)
+                foreach (var command in commands)
                 {
-                    command.Arguments = liveshareCodeActions;
+                    var liveshareCodeActions = command.Arguments.Where(a => a is CodeAction).Select(codeAction => GetLiveShareCodeAction(codeAction as CodeAction)).ToArray();
+                    // Only modify the result if any code actions were able to be converted.
+                    if (liveshareCodeActions.Length > 0)
+                    {
+                        command.Arguments = liveshareCodeActions;
+                    }
                 }
+
+                return commands;
             }
 
             return result;
