@@ -45,6 +45,7 @@ namespace Analyzer.Utilities
             foreach (var name in symbolNames)
             {
                 if (name.Equals(".ctor", StringComparison.Ordinal) ||
+                    name.Equals(".cctor", StringComparison.Ordinal) ||
                     !name.Contains(".") && !name.Contains(":"))
                 {
                     namesBuilder.Add(name);
@@ -54,9 +55,13 @@ namespace Analyzer.Utilities
                     var nameWithPrefix = (string.IsNullOrEmpty(optionalPrefix) || name.StartsWith(optionalPrefix, StringComparison.Ordinal)) ?
                         name :
                         optionalPrefix + name;
+
                     // Documentation comment ID for constructors uses '#ctor', but '#' is a comment start token for editorconfig.
                     // We instead search for a '..ctor' in editorconfig and replace it with a '.#ctor' here.
+                    // Similarly, handle static constructors ".cctor"
                     nameWithPrefix = nameWithPrefix.Replace("..ctor", ".#ctor");
+                    nameWithPrefix = nameWithPrefix.Replace("..cctor", ".#cctor");
+
                     foreach (var symbol in DocumentationCommentId.GetSymbolsForDeclarationId(nameWithPrefix, compilation))
                     {
                         if (symbol != null)

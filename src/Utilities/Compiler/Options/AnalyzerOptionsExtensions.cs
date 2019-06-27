@@ -135,7 +135,7 @@ namespace Analyzer.Utilities
                     return false;
                 }
 
-                var names = s.Split('~').ToImmutableArray();
+                var names = s.Split('|').ToImmutableArray();
                 option = SymbolNamesOption.Create(names, compilation, namePrefixOpt);
                 return true;
             }
