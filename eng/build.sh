@@ -234,19 +234,19 @@ function BuildSolution {
   local test=false
   local test_runtime=""
   local mono_tool=""
+  local test_runtime_args=""
   if [[ "$test_mono" == true ]]; then
-    
-    mono_path="$scriptroot/invoke-mono.sh"
-    # Echo out the mono version to the comamnd line so it's visible in CI logs. It's not fixed
+    mono_path=`command -v mono`
+    # Echo out the mono version to the command line so it's visible in CI logs. It's not fixed
     # as we're using a feed vs. a hard coded package.
     if [[ "$ci" == true ]]; then
       mono --version
-      chmod +x "$mono_path"
     fi
 
     test=true
     test_runtime="/p:TestRuntime=Mono"
     mono_tool="/p:MonoTool=\"$mono_path\""
+    test_runtime_args="--debug"
   elif [[ "$test_core_clr" == true ]]; then
     test=true
     test_runtime="/p:TestRuntime=Core /p:TestTargetFrameworks=netcoreapp3.0%3Bnetcoreapp2.1"
@@ -273,6 +273,7 @@ function BuildSolution {
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=true \
     /p:RestoreDisableParallel=$disable_parallel_restore \
+    /p:TestRuntimeAdditionalArguments=$test_runtime_args \
     $test_runtime \
     $mono_tool \
     $properties

@@ -416,12 +416,12 @@
       </trans-unit>
       <trans-unit id="IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream">
         <source>Including private members should not be used when emitting to the secondary assembly output.</source>
-        <target state="translated">보조 어셈블리 출력으로 내보낼 때 개인 멤버를 포함해서는 안 됩니다.</target>
+        <target state="translated">보조 어셈블리 출력으로 내보낼 때 프라이빗 멤버를 포함해서는 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="MustIncludePrivateMembersUnlessRefAssembly">
         <source>Must include private members unless emitting a ref assembly.</source>
-        <target state="translated">참조 어셈블리를 내보내지 않는 경우 개인 멤버를 포함해야 합니다.</target>
+        <target state="translated">참조 어셈블리를 내보내지 않는 경우 프라이빗 멤버를 포함해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="EmbeddingPdbUnexpectedWhenEmittingMetadata">

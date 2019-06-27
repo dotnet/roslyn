@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="An_empty_Visual_Basic_script_file">
         <source>An empty Visual Basic script file.</source>
-        <target state="translated">Prázdný soubor skriptu Visual Basicu.</target>
+        <target state="translated">Prázdný soubor skriptu Visual Basicu</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_Script">

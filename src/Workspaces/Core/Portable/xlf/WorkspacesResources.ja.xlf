@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
         <source>Adding analyzer config documents is not supported.</source>
-        <target state="new">Adding analyzer config documents is not supported.</target>
+        <target state="translated">アナライザー構成ドキュメントの追加はサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
         <source>Changing analyzer config documents is not supported.</source>
-        <target state="new">Changing analyzer config documents is not supported.</target>
+        <target state="translated">アナライザー構成ドキュメントの変更はサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_document_0_is_not_supported">
@@ -641,7 +641,7 @@ $ アンカーは、\n に一致しますが、\r\n (復帰文字と改行文字
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_long">
         <source>The ? quantifier matches the preceding element zero or one time. It is equivalent to the {0,1} quantifier. ? is a greedy quantifier whose lazy equivalent is ??.</source>
-        <target state="translated">? 量指定子は、直前の要素の 0 回または 1 回の繰り返しに一致します。これは {0,1} と同じです。? は最長一致の量指定子であり、最短一致でこれに対応するのは ?? です。</target>
+        <target state="translated">? 量指定子は、直前の要素の 0 回または 1 回の繰り返しに一致します。これは {0,1} 量指定子と同じです。? は最長一致の量指定子であり、最短一致でこれに対応するのは ?? です。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_short">
@@ -683,7 +683,7 @@ $ アンカーは、\n に一致しますが、\r\n (復帰文字と改行文字
         <source>A named or numbered backreference.
 
 'name' is the name of a capturing group defined in the regular expression pattern.</source>
-        <target state="translated">名前付き前方参照または番号付き前方参照。
+        <target state="translated">名前付きまたは番号付きの前方参照。
 
 'name' は、正規表現パターンで定義されているキャプチャ グループの名前です。</target>
         <note />
@@ -815,7 +815,7 @@ ECMAScript 準拠の動作が指定されている場合、\S は [^ \f\n\r\t\v]
     Pc	Punctuation, Connector
 
 If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]</source>
-        <target state="translated">\W は単語以外の文字に一致します。次に示す Unicode カテゴリの文字を除く任意の文字と一致します。
+        <target state="translated">\W は単語以外の文字に一致します。次に示す Unicode カテゴリのものを除く任意の文字と一致します。
 
     Ll	文字、小文字
     Lu	文字、大文字
@@ -1224,7 +1224,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Removing_analyzer_config_documents_is_not_supported">
         <source>Removing analyzer config documents is not supported.</source>
-        <target state="new">Removing analyzer config documents is not supported.</target>
+        <target state="translated">アナライザー構成ドキュメントの削除はサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">

@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-HANT" original="../CSharpResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../CSharpResources.resx">
     <body>
       <trans-unit id="CannotCreateConstructedFromConstructed">
         <source>Cannot create constructed generic type from another constructed generic type.</source>
@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractEventHasAccessors">
         <source>'{0}': abstract event cannot use event accessor syntax</source>
-        <target state="new">'{0}': abstract event cannot use event accessor syntax</target>
+        <target state="translated">'{0}' 抽象事件無法使用事件存取子語法</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
-        <target state="needs-review-translation">/nullable 的選項 '{0}' 無效; 必須為 'disable'、'enable'、'safeonly'、'warnings' 或 'safeonlywarnings'</target>
+        <target state="new">Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
         <source>The typeof operator cannot be used on a nullable reference type</source>
-        <target state="new">The typeof operator cannot be used on a nullable reference type</target>
+        <target state="translated">typeof 運算子不得用於可為 Null 的參考型別上</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleEnumeratorCancellationAttributes">
         <source>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</source>
-        <target state="new">The attribute [EnumeratorCancellation] cannot be used on multiple parameters</target>
+        <target state="translated">無法在多個參數上使用屬性 [EnumeratorCancellation]。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -284,12 +284,12 @@
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
         <source>The 'notnull' constraint must come before any other constraints</source>
-        <target state="new">The 'notnull' constraint must come before any other constraints</target>
+        <target state="translated">'notnull' 限制式必須在所有其他限制式之前</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'disable', or 'restore'</source>
-        <target state="needs-review-translation">必須為 'enable'、'safeonly'、'disable' 或 'restore'</target>
+        <target state="translated">應為 'enable'、'disable' 或 'restore'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
@@ -604,147 +604,150 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
-                              Visual C# 編譯器選項
+        <target state="translated">
+                             Visual C# 編譯器選項
 
                        - 輸出檔案 -
 -out:&lt;檔案&gt;                   指定輸出檔案名稱 (預設: 具有主要類別的檔案或
-                               第一個檔案的基底名稱)
--target:exe                   建置主控台可執行檔 (預設) (簡短 
-                               形式: -t:exe)
--target:winexe                建置程式庫 (簡短形式: -t:library)
- -target:module                建置可加入其他組件中的 
-                               模組 (簡短形式: -t:module)
- -target:appcontainerexe       建置 Appcontainer 可執行檔 (簡短形式: 
-                               -t:appcontainerexe)
- -target:winmdobj              建置 WinMDExp 所取用的 
-                               Windows 執行階段中繼檔案 (簡短模式: -t:winmdobj)
- -doc:&lt;檔案&gt;                   要產生的 XML 文件檔案
+                              第一個檔案的基底名稱)
+-target:exe                   建置主控台可執行檔 (預設) (簡短
+                              形式: -t:exe)
+-target:winexe                建置 Windows 可執行檔 (簡短形式:
+                              -t:winexe)
+-target:library               建置程式庫 (簡短形式: -t:library)
+-target:module                建置可新增至其他組件中的
+                              模組 (簡短形式: -t:module)
+-target:appcontainerexe       建置 Appcontainer 可執行檔 (簡短形式:
+                              -t:appcontainerexe)
+-target:winmdobj              建置 WinMDExp 所取用的 Windows 執行階段
+                              中繼檔案 (簡短形式: -t:winmdobj)
+-doc:&lt;檔案&gt;                   要產生的 XML 文件檔案
 -refout:&lt;檔案&gt;                要產生的參考組件輸出
 -platform:&lt;字串&gt;            限制此程式碼可執行的平台: x86、
-                               Itanium、x64、arm、arm64、anycpu32bitpreferred 或 
-                               anycpu。預設為 anycpu。
+                              Itanium、x64、arm、arm64、anycpu32bitpreferred 或
+                              anycpu。預設為 anycpu。
 
-                        - 輸入檔案 -
- -recurse:&lt;萬用字元&gt;           根據萬用字元規格，包含
-                               目前目錄和子目錄中的所有
-                               檔案
+                       - 輸入檔案 -
+-recurse:&lt;萬用字元&gt;           依據萬用字元的規格，納入
+                              目前目錄和子目錄中的所有
+                              檔案
 -reference:&lt;別名&gt;=&lt;檔案&gt;     使用給定的別名，參考指定組件檔
-                               的中繼資料 (簡短形式: -r)
+                              的中繼資料 (簡短形式: -r)
 -reference:&lt;檔案清單&gt;        參考指定組件檔的中繼資料
-                               (簡短形式: -r)
+                              (簡短形式: -r)
 -addmodule:&lt;檔案清單&gt;        將指定的模組連結至這個組件
--link:&lt;檔案清單&gt;             從指定的 Interop 組件檔內嵌
-                               中繼資料 (簡短形式: -l)
+-link:&lt;檔案清單&gt;             從指定的 Interop 組件檔，
+                              內嵌中繼資料 (簡短形式: -l)
 -analyzer:&lt;檔案清單&gt;         從這個組件執行分析器
-                               (簡短形式: -a)
+                              (簡短形式: -a)
 -additionalfile:&lt;檔案清單&gt;   不會直接影響程式碼產生，
-                               但分析器可用以產生錯誤或警告的
-                               其他檔案。
--embed                        內嵌 PDB 中的所有來源檔案。
--embed:&lt;檔案清單&gt;            內嵌 PDB 中的特定檔案。
+                              但分析器可用以產生錯誤或警告的
+                              其他檔案。
+-embed                        在 PDB 中內嵌所有來源檔案。
+-embed:&lt;檔案清單&gt;            在 PDB 中內嵌特定檔案。
 
                        - 資源 -
 -win32res:&lt;檔案&gt;              指定 Win32 資源檔 (.res)
 -win32icon:&lt;檔案&gt;             使用此圖示進行輸出
 -win32manifest:&lt;檔案&gt;         指定 Win32 資訊清單檔案 (.xml)
--nowin32manifest              不要包含預設 Win32 資訊清單
--resource:&lt;詳細資訊清單&gt;           內嵌指定的資源 (簡短形式: -res)
--linkresource:&lt;詳細資訊清單&gt;       將指定的資源連結至這個組件 
-                               (簡短形式: -linkres) 其中 resinfo 的格式 
-                               為 &lt;檔案&gt;[,&lt;字串名稱&gt;[,public|private]]
+-nowin32manifest              不要納入預設 Win32 資訊清單
+-resource:&lt;resinfo&gt;           內嵌指定的資源 (簡短形式: -res)
+-linkresource:&lt;resinfo&gt;       將指定的資源連結至這個組件
+                              (簡短形式: -linkres) 其中 resinfo 的格式為
+                              &lt;檔案&gt;[,&lt;字串名稱&gt;[,public|private]]
 
                        - 產生程式碼 -
 -debug[+|-]                   發出偵錯資訊
 -debug:{full|pdbonly|portable|embedded}
-                              指定偵錯類型 ('full' 為預設，
-                               'portable' 為跨平台格式，
-                               'embedded' 為內嵌至 target .dll 或 .exe 中的
-                               跨平台格式)
+                              指定偵錯類型 ('full' 為預設值，
+                              'portable' 為跨平台格式，
+                              'embedded' 為內嵌至 target .dll 或 .exe 中的
+                              跨平台格式)
 -optimize[+|-]                啟用最佳化 (簡短形式: -o)
 -deterministic                產生確定性組件
-                               (包括模組版本 GUID 與時間戳記)
- -instrument:TestCoverage      產生已檢測的組件以收集
-                               涵蓋範圍資訊
--sourcelink:&lt;檔案&gt;            要內嵌至可攜式 PDB 中的來源連結資訊。
+                              (包括模組版本 GUID 與時間戳記)
+-refonly                      產生代替主要輸出的參考組件
+-instrument:TestCoverage      產生已檢測的組件以收集
+                              涵蓋範圍資訊
+-sourcelink:&lt;檔案&gt;            要內嵌至 PDB 中的來源連結資訊。
 
-                        - 錯誤及警告 -
- -warnaserror[+|-]             將所有警告回報為錯誤
- -warnaserror[+|-]: 將特定警告回報為錯誤
- -warn:&lt;n&gt;                     設定警告層級 (0-4) (簡短形式: -w)
- -nowarn:&lt;警告清單&gt;           停用特定的警告訊息
--ruleset:&lt;檔案&gt;               指定停用特定診斷的
-                               規則集檔案。
+                       - 錯誤及警告 -
+-warnaserror[+|-]             將所有警告回報為錯誤
+-warnaserror[+|-]:&lt;警告清單&gt; 將特定警告回報為錯誤
+-warn:&lt;n&gt;                     設定警告層級 (0-4) (簡短形式: -w)
+-nowarn:&lt;警告清單&gt;           停用特定的警告訊息
+-ruleset:&lt;檔案&gt;               指定停用特定診斷的規則集
+                              檔案。
 -errorlog:&lt;檔案&gt;              指定要記錄所有編譯器和分析器診斷的
-                               檔案。
- -reportanalyzer               回報其他分析器資訊，例如
-                               執行時間。
+                              檔案。
+-reportanalyzer               回報其他分析器資訊，例如
+                              執行時間。
 
                        - 語言 -
 -checked[+|-]                 產生溢位核對
 -unsafe[+|-]                  允許 'unsafe' 程式碼
--define:&lt;符號清單&gt;         定義條件式編譯符號 (簡短 
-形式: -d)
+-define:&lt;符號清單&gt;         定義條件式編譯符號 (簡短
+                              形式: -d)
 -langversion:?                顯示適用於語言版本的允許值
 -langversion:&lt;字串&gt;         指定語言版本，例如
                               `default` (最新主要版本)，或
                               `latest` (最新版本，包括次要版本)，
-                              或
-特定版本如 `6` 或 `7.1`
+                              或特定版本如 `6` 或 `7.1`
 -nullable[+|-]                指定可為 Null 的內容選項 enable|disable。
--nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
-                              指定可為 Null 的內容選項 enable|disable|safeonly|warnings|safeonlywarnings。
+-nullable:{enable|disable|warnings}
+                              指定可為 Null 的內容選項 enable|disable|warnings。
 
                        - 安全性 -
--delaysign[+|-]               只使用強式名稱金鑰的公開部分
-                               延遲簽署組件
- -publicsign[+|-]              只使用強式名稱金鑰的公開
-                               部分公開簽署組件
- -keyfile&lt;檔案&gt;               指定強式名稱金鑰檔
+-delaysign[+|-]               只使用強式名稱金鑰的公開部分，
+                              延遲簽署組件
+-publicsign[+|-]              只使用強式名稱金鑰的公開
+                              部分，公開簽署組件
+-keyfile:&lt;檔案&gt;               指定強式名稱金鑰檔
 -keycontainer:&lt;字串&gt;        指定強式名稱金鑰容器
- -highentropyva[+|-]           啟用高度 Entropy ASLR
+-highentropyva[+|-]           啟用高度 Entropy ASLR
 
-                        - 其他 -
+                       - 其他 -
 @&lt;檔案&gt;                       讀取回應檔以取得更多選項
- -help                         顯示本使用方式訊息 (簡短形式: -?)
- -nologo                       隱藏編譯器著作權訊息
- -noconfig                     不自動包含 CSC.RSP 檔
- -parallel[+|-]                並行建置。
- -version                      顯示編譯器版本號碼並結束。
+-help                         顯示本使用方式訊息 (簡短形式: -?)
+-nologo                       隱藏編譯器著作權訊息
+-noconfig                     不自動包含 CSC.RSP 檔
+-parallel[+|-]                並行建置。
+-version                      顯示編譯器版本號碼並結束。
 
-                        - 進階 -
- -baseaddress:&lt;位址&gt;        要建置的程式庫基底位址
--checksumalgorithm:&lt;演算法&gt;      為計算儲存在 PDB 中的原始程式檔總和檢查碼
-                               指定演算法。支援的值為:
-                               SHA1 (預設) 或 SHA256。
+                       - 進階 -
+-baseaddress:&lt;位址&gt;        要建置的程式庫基底位址
+-checksumalgorithm:&lt;演算法&gt;      為計算儲存在 PDB 中的原始程式檔總和檢查碼，
+                              指定演算法。支援的值為:
+                              SHA1 或 SHA256 (預設)。
 -codepage:&lt;n&gt;                 指定開啟原始程式檔時要使用的
-                               字碼頁
- -utf8output                   以 UTF-8 編碼方式輸出編譯器訊息
- -main:&lt;類型&gt;                  指定包含進入點
-                               (忽略所有其他可能的進入點) 的類型 (簡短 
-                               形式: -m)
- -fullpaths                    編譯器產生完整路徑
- -filealign:&lt;n&gt;                指定用於輸出檔案區段的
-                               對齊
- -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                               為編譯器輸出的來源路徑名稱
-                               指定對應。
--pdb:&lt;檔案&gt;                   指定偵錯資訊檔案名稱 (預設: 
-                               副檔名為 .pdb 的輸出檔案名稱)
- -errorendlocation             輸出每個錯誤之結束位置的
-                               行與資料行
- -preferreduilang              指定慣用的輸出語言名稱。
+                              字碼頁
+-utf8output                   以 UTF-8 編碼方式輸出編譯器訊息
+-main:&lt;類型&gt;                  指定包含進入點
+                              (忽略所有其他可能的進入點) 的類型 (簡短
+                              形式: -m)
+-fullpaths                    編譯器產生完整路徑
+-filealign:&lt;n&gt;                指定用於輸出檔案區段的
+                              對齊
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                              為編譯器輸出的來源路徑名稱，
+                              指定對應。
+-pdb:&lt;檔案&gt;                   指定偵錯資訊檔案名稱 (預設:
+                              副檔名為 .pdb 的輸出檔案名稱)
+-errorendlocation             輸出每個錯誤之結束位置的
+                              行與資料行
+-preferreduilang              指定慣用的輸出語言名稱。
+-nosdkpath                    停用搜尋標準程式庫組件的預設 SDK 路徑。
 -nostdlib[+|-]                不參考標準程式庫 (mscorlib.dll)
 -subsystemversion:&lt;字串&gt;    指定這個組件的子系統版本
--lib:&lt;檔案清單&gt;              指定要搜尋的其他目錄以供
-                               參考
+-lib:&lt;檔案清單&gt;              指定要搜尋的其他目錄
+                              以供參考
 -errorreport:&lt;字串&gt;         指定如何處理內部編譯器錯誤:
-                              prompt、send、queue 或 none。預設為 
-                              queue。
+                              prompt、send、queue 或 none。預設為
+                              queue.
 -appconfig:&lt;檔案&gt;             指定包含組件繫結設定的
-                               應用程式組態檔
+                              應用程式組態檔
 -moduleassemblyname:&lt;字串&gt;  將包含此模組的
-                               組件之名稱
+                              組件之名稱
 -modulename:&lt;字串&gt;          指定來源模組的名稱
 </target>
         <note>Visual C# Compiler Options</note>
@@ -801,12 +804,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureNestedStackalloc">
         <source>stackalloc in nested expressions</source>
-        <target state="new">stackalloc in nested expressions</target>
+        <target state="translated">巢狀運算式中的 stackalloc</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNotNullGenericTypeConstraint">
         <source>notnull generic type constraint</source>
-        <target state="new">notnull generic type constraint</target>
+        <target state="translated">notnull 泛型型別限制式</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
@@ -821,7 +824,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnable">
         <source>warning action enable</source>
-        <target state="new">warning action enable</target>
+        <target state="translated">警告動作 enable</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRangeOperator">
@@ -1331,12 +1334,12 @@
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <target state="translated">可能為 null 的值，不能傳遞到標記了 [DisallowNull] 屬性的目標</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
         <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <target state="translated">可能為 null 的值，不能傳遞到標記了 [DisallowNull] 屬性的目標</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1391,12 +1394,12 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="needs-review-translation">可為 Null 的參考型別註解應只用於 '#nullable' 內容中的程式碼。</target>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="needs-review-translation">可為 Null 的參考型別註解應只用於 '#nullable' 內容中的程式碼。</target>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
@@ -1511,12 +1514,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation">
         <source>Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</source>
-        <target state="new">Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</target>
+        <target state="translated">'{0}' 的部分方法宣告在類型參數 '{1}' 的限制式中，有不一致的可 NULL 性</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title">
         <source>Partial method declarations have inconsistent nullability in constraints for type parameter</source>
-        <target state="new">Partial method declarations have inconsistent nullability in constraints for type parameter</target>
+        <target state="translated">部分方法宣告在類型參數的限制式中，有不一致的可 NULL 性</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInExplicitlyImplementedInterface">
@@ -1560,8 +1563,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation">
-        <source>Nullability of reference types in type of parameter '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="translated">參數 '{0}' 型別中參考型別的可 Null 性與隱含實作的成員 '{1}' 不符合。</target>
+        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</source>
+        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
@@ -1610,8 +1613,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation">
-        <source>Nullability of reference types in return type doesn't match implicitly implemented member '{0}'.</source>
-        <target state="translated">傳回型別中參考型別的可 Null 性與隱含實作的成員 '{0}' 不符合。</target>
+        <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
+        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
@@ -1640,13 +1643,23 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation">
-        <source>Nullability of reference types in type doesn't match implicitly implemented member '{0}'.</source>
-        <target state="translated">型別中參考型別的可 Null 性與隱含實作的成員 '{0}' 不符合。</target>
+        <source>Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
+        <target state="new">Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in type doesn't match implicitly implemented member.</source>
         <target state="translated">型別中參考型別的可 Null 性與隱含實作的成員不符合。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
+        <source>Nullability of reference types in type doesn't match overridden member.</source>
+        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
+        <source>Nullability of reference types in type doesn't match overridden member.</source>
+        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
@@ -1661,12 +1674,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint">
         <source>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</source>
-        <target state="new">The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</target>
+        <target state="translated">型別 '{2}' 無法作為型別參數 '{1}' 用於泛型型別或方法 '{0}' 中。型別引數 '{2}' 的可 Null 性與 'notnull' 限制式不符合。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint_Title">
         <source>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</source>
-        <target state="new">The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</target>
+        <target state="translated">型別無法作為型別參數用於泛型型別或方法中。型別引數的可 Null 性與 'notnull' 限制式不符合。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint">
@@ -1761,12 +1774,12 @@
       </trans-unit>
       <trans-unit id="WRN_UndecoratedCancellationTokenParameter">
         <source>Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
-        <target state="new">Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
+        <target state="translated">非同步迭代器 '{0}' 有一或多個類型 'CancellationToken' 的參數，但因為沒有任何參數有裝飾 'EnumeratorCancellation' 屬性，所以將不會取用來自已產生 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' 的取消權杖參數</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UndecoratedCancellationTokenParameter_Title">
         <source>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
-        <target state="new">Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
+        <target state="translated">非同步迭代器成員有一或多個類型 'CancellationToken' 的參數，但因為沒有任何參數有裝飾 'EnumeratorCancellation' 屬性，所以將不會取用來自已產生 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' 的取消權杖參數</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -4690,7 +4703,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
         <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
-        <target state="new">Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</target>
+        <target state="translated">{0}' 的部分方法宣告對型別參數 '{1}' 有不一致的條件約束</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodToDelegate">
@@ -5799,12 +5812,12 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
         <source>Expected disable, restore or enable</source>
-        <target state="needs-review-translation">必須是 disable、restore、enable 或 safeonly</target>
+        <target state="translated">應為 disable、restore 或 enable</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
         <source>Expected disable, restore or enable after #pragma warning</source>
-        <target state="needs-review-translation">#pragma warning 後面必須有 disable、restore、enable 或 safeonly</target>
+        <target state="translated">#pragma 警告後面應為 disable、restore 或 enable</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">

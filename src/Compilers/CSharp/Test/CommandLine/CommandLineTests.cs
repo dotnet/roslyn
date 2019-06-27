@@ -154,7 +154,7 @@ class C
 }");
             var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText(@"
 [*.cs]
-dotnet_diagnostic.cs0169.severity = suppress");
+dotnet_diagnostic.cs0169.severity = none");
             var cmd = CreateCSharpCompiler(null, dir.Path, new[] {
                 "/nologo",
                 "/t:library",
@@ -184,12 +184,12 @@ class C
             var additionalFile = dir.CreateFile("file.txt");
             var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText(@"
 [*.cs]
-dotnet_diagnostic.cs0169.severity = suppress
-dotnet_diagnostic.Warning01.severity = suppress
+dotnet_diagnostic.cs0169.severity = none
+dotnet_diagnostic.Warning01.severity = none
 my_option = my_val
 
 [*.txt]
-dotnet_diagnostic.cs0169.severity = suppress
+dotnet_diagnostic.cs0169.severity = none
 my_option2 = my_val2");
             var cmd = CreateCSharpCompiler(null, dir.Path, new[] {
                 "/nologo",
@@ -9261,7 +9261,7 @@ using System.Diagnostics; // Unused.
 }
 public class Program
 {
-    private object? P => null;
+    private object? F = null;
 }";
             string errorMessage = "error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'";
 

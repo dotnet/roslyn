@@ -1462,7 +1462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// is a constructed type with a nullable reference type present in its type argument tree,
         /// returns a synthesized NullableAttribute with encoded nullable transforms array.
         /// </summary>
-        internal SynthesizedAttributeData SynthesizeNullableAttribute(Symbol symbol, TypeWithAnnotations type)
+        internal SynthesizedAttributeData SynthesizeNullableAttributeIfNecessary(Symbol symbol, byte? nullableContextValue, TypeWithAnnotations type)
         {
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
             {
@@ -1473,36 +1473,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var flagsBuilder = ArrayBuilder<byte>.GetInstance();
             type.AddNullableTransforms(flagsBuilder);
 
-            Debug.Assert(flagsBuilder.Any());
-            Debug.Assert(flagsBuilder.Contains(NullableAnnotationExtensions.NotAnnotatedAttributeValue) || flagsBuilder.Contains(NullableAnnotationExtensions.AnnotatedAttributeValue));
-
-            WellKnownMember constructor;
-            ImmutableArray<TypedConstant> arguments;
-            NamedTypeSymbol byteType = Compilation.GetSpecialType(SpecialType.System_Byte);
-            Debug.Assert((object)byteType != null);
-
-            if (flagsBuilder.All(flag => flag == NullableAnnotationExtensions.NotAnnotatedAttributeValue) || flagsBuilder.All(flag => flag == NullableAnnotationExtensions.AnnotatedAttributeValue))
+            SynthesizedAttributeData attribute;
+            if (!flagsBuilder.Any())
             {
-                constructor = WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte;
-                arguments = ImmutableArray.Create(new TypedConstant(byteType, TypedConstantKind.Primitive, flagsBuilder[0]));
+                attribute = null;
             }
             else
             {
-                var constantsBuilder = ArrayBuilder<TypedConstant>.GetInstance(flagsBuilder.Count);
-
-                foreach (byte flag in flagsBuilder)
+                Debug.Assert(flagsBuilder.All(f => f <= 2));
+                byte? commonValue = MostCommonNullableValueBuilder.GetCommonValue(flagsBuilder);
+                if (commonValue != null)
                 {
-                    Debug.Assert(flag == NullableAnnotationExtensions.ObliviousAttributeValue || flag == NullableAnnotationExtensions.NotAnnotatedAttributeValue || flag == NullableAnnotationExtensions.AnnotatedAttributeValue);
-                    constantsBuilder.Add(new TypedConstant(byteType, TypedConstantKind.Primitive, flag));
+                    attribute = SynthesizeNullableAttributeIfNecessary(nullableContextValue, commonValue.GetValueOrDefault());
                 }
-
-                var byteArray = ArrayTypeSymbol.CreateSZArray(byteType.ContainingAssembly, TypeWithAnnotations.Create(byteType));
-                constructor = WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags;
-                arguments = ImmutableArray.Create(new TypedConstant(byteArray, constantsBuilder.ToImmutableAndFree()));
+                else
+                {
+                    NamedTypeSymbol byteType = Compilation.GetSpecialType(SpecialType.System_Byte);
+                    var byteArrayType = ArrayTypeSymbol.CreateSZArray(byteType.ContainingAssembly, TypeWithAnnotations.Create(byteType));
+                    var value = flagsBuilder.SelectAsArray((flag, byteType) => new TypedConstant(byteType, TypedConstantKind.Primitive, flag), byteType);
+                    attribute = SynthesizeNullableAttribute(
+                        WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
+                        ImmutableArray.Create(new TypedConstant(byteArrayType, value)));
+                }
             }
 
             flagsBuilder.Free();
-            return SynthesizeNullableAttribute(constructor, arguments);
+            return attribute;
+        }
+
+        internal SynthesizedAttributeData SynthesizeNullableAttributeIfNecessary(byte? nullableContextValue, byte nullableValue)
+        {
+            if (nullableValue == nullableContextValue ||
+                (nullableContextValue == null && nullableValue == 0))
+            {
+                return null;
+            }
+
+            NamedTypeSymbol byteType = Compilation.GetSpecialType(SpecialType.System_Byte);
+            return SynthesizeNullableAttribute(
+                WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
+                ImmutableArray.Create(new TypedConstant(byteType, TypedConstantKind.Primitive, nullableValue)));
         }
 
         internal virtual SynthesizedAttributeData SynthesizeNullableAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
@@ -1512,10 +1522,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(member, arguments, isOptionalUse: true);
         }
 
-        internal virtual SynthesizedAttributeData SynthesizeNullablePublicOnlyAttribute()
+        internal SynthesizedAttributeData SynthesizeNullableContextAttribute(Symbol symbol, byte value)
+        {
+            var module = Compilation.SourceModule;
+            if ((object)module != symbol && (object)module != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            return SynthesizeNullableContextAttribute(
+                ImmutableArray.Create(new TypedConstant(Compilation.GetSpecialType(SpecialType.System_Byte), TypedConstantKind.Primitive, value)));
+        }
+
+        internal virtual SynthesizedAttributeData SynthesizeNullableContextAttribute(ImmutableArray<TypedConstant> arguments)
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
-            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor);
+            // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor, arguments, isOptionalUse: true);
+        }
+
+        internal virtual SynthesizedAttributeData SynthesizeNullablePublicOnlyAttribute(ImmutableArray<TypedConstant> arguments)
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor, arguments);
         }
 
         protected virtual SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
@@ -1565,11 +1595,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal void EnsureNullableAttributeExists()
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableAttribute);
-        }
-
-        internal void EnsureNullablePublicOnlyAttributeExists()
-        {
-            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullablePublicOnlyAttribute);
         }
     }
 }

@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
             // https://github.com/dotnet/roslyn/issues/34993 Enable for all calls
-            if (compilation.NullableAnalysisEnabled)
+            if (compilation.NullableSemanticAnalysisEnabled)
             {
                 DebugVerifier.Verify(analyzedNullabilitiesMap, snapshotManager, node);
             }
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
 
 #if DEBUG
-            if (binder.Compilation.NullableAnalysisEnabled)
+            if (binder.Compilation.NullableSemanticAnalysisEnabled)
             {
                 DebugVerifier.Verify(analyzedNullabilitiesMap, snapshotManagerOpt: null, node);
             }
@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             var compilation = binder.Compilation;
-            if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
+            if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker)
             {
                 return;
             }
@@ -738,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
             }
 
-            Debug.Assert(member?.IsStatic != true);
+            Debug.Assert(member?.RequiresInstanceReceiver() ?? true);
 
             return (object)member != null &&
                 (object)receiver != null &&
@@ -2841,7 +2841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var type = receiverType.Type;
                 var method = node.Method;
-                if (!method.IsStatic &&
+                if (method.RequiresInstanceReceiver &&
                     type?.IsNullableType() == true &&
                     method.ContainingType.IsReferenceType)
                 {
@@ -2883,6 +2883,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol method => method.ReturnTypeFlowAnalysisAnnotations,
                 PropertySymbol property => property.GetOwnOrInheritedGetMethod()?.ReturnTypeFlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None,
                 ParameterSymbol parameter => parameter.FlowAnalysisAnnotations,
+                FieldSymbol field => field.FlowAnalysisAnnotations,
                 _ => FlowAnalysisAnnotations.None
             };
 
@@ -4047,6 +4048,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
         {
+            // Visit the source tuple so that the semantic model can correctly report nullability for it
+            // Disable diagnostics, as we don't want to duplicate any that are produced by visiting the converted literal below
+            VisitWithoutDiagnostics(node.SourceTuple);
+
             VisitTupleExpression(node);
             return null;
         }
@@ -5212,15 +5217,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return FlowAnalysisAnnotations.None;
             }
 
-            var symbol = expr switch
+            var annotations = expr switch
             {
-                BoundPropertyAccess property => property.PropertySymbol,
-                BoundIndexerAccess indexer => indexer.Indexer,
-                _ => null
+                BoundPropertyAccess property => getSetterAnnotations(property.PropertySymbol),
+                BoundIndexerAccess indexer => getSetterAnnotations(indexer.Indexer),
+                BoundFieldAccess field => field.FieldSymbol.FlowAnalysisAnnotations,
+                _ => FlowAnalysisAnnotations.None
             };
 
-            var annotations = symbol?.GetOwnOrInheritedSetMethod()?.Parameters.Last()?.FlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None;
             return annotations & (FlowAnalysisAnnotations.DisallowNull | FlowAnalysisAnnotations.AllowNull);
+
+            static FlowAnalysisAnnotations getSetterAnnotations(PropertySymbol property)
+                => property.GetOwnOrInheritedSetMethod()?.Parameters.Last()?.FlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None;
         }
 
         private static bool UseLegacyWarnings(BoundExpression expr, TypeWithAnnotations exprType)
@@ -5837,7 +5845,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverType = (receiverOpt != null) ? VisitRvalueWithState(receiverOpt) : default;
 
             SpecialMember? nullableOfTMember = null;
-            if (!member.IsStatic)
+            if (member.RequiresInstanceReceiver())
             {
                 member = AsMemberOfType(receiverType.Type, member);
                 nullableOfTMember = GetNullableOfTMember(member);
