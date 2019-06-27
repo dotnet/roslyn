@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
@@ -17,11 +16,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         /// A optional highlighter that can highlight spans for an embedded language string.
         /// </summary>
         IDocumentHighlightsService DocumentHighlightsService { get; }
-
-        /// <summary>
-        /// An optional analyzer that produces diagnostics for an embedded language string.
-        /// </summary>
-        AbstractBuiltInCodeStyleDiagnosticAnalyzer DiagnosticAnalyzer { get; }
 
         /// <summary>
         /// An optional completion provider that can provide completion items for this

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -54,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
 
                 var currentDocument = document;
-                for (int i = 0; i < pragmaActions.Length; i++)
+                for (var i = 0; i < pragmaActions.Length; i++)
                 {
                     var originalpragmaAction = pragmaActions[i];
                     var diagnostic = diagnostics[i];
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         properties: diagnostic.Properties,
                         isSuppressed: diagnostic.IsSuppressed);
 
-                    var newSuppressionFixes = await suppressionFixProvider.GetSuppressionsAsync(currentDocument, currentDiagnosticSpan, SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken).ConfigureAwait(false);
+                    var newSuppressionFixes = await suppressionFixProvider.GetFixesAsync(currentDocument, currentDiagnosticSpan, SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken).ConfigureAwait(false);
                     var newSuppressionFix = newSuppressionFixes.SingleOrDefault();
                     if (newSuppressionFix != null)
                     {

@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 walker.Free();
             }
 
-            if (compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
+            if (compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() && compilation.ShouldRunNullableWalker)
             {
                 NullableWalker.Analyze(compilation, member, node, diagnostics);
             }

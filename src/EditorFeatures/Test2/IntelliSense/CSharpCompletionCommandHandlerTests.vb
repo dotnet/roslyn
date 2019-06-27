@@ -2952,6 +2952,38 @@ class$$ C
             End Using
         End Function
 
+        <WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36513")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TypingBackspaceShouldPreserveCase(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                <Document><![CDATA[
+class Program
+{
+    void M()
+    {
+        Structure structure;
+        structure.$$
+    }
+
+    struct Structure
+    {
+        public int A;
+    }
+}]]></Document>)
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+
+                state.SendBackspace()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("structure")
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                state.AssertCompletionItemsContainAll({"A"})
+            End Using
+        End Function
+
         <WorkItem(1065600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065600")>
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -4874,8 +4906,11 @@ class C
         End Function
 
         <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/35301"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSendCommitIfUniqueInDeletionSession(completionImplementation As CompletionImplementation) As Task
+            ' We explicitly use a weak matching on Delete.
+            ' It matches by the first letter. Therefore, if backspace in s.Length, it matches s.Length and s.LastIndexOf.
+            ' In this case, CommitIfUnique is not applied.
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                               <Document>
 class C
@@ -4883,7 +4918,7 @@ class C
     void Method()
     {
         var s = "";
-        s.Length$$
+        s.Normalize$$
     }
 }
                               </Document>)
@@ -4895,7 +4930,7 @@ class C
                 Await state.AssertCompletionSession()
                 state.SendCommitUniqueCompletionListItem()
                 Await state.AssertNoCompletionSession()
-                Assert.Contains("s.Length", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("s.Normalize", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -4950,8 +4985,11 @@ class C
 
         ' Implementation for the Modern completion only
         <InlineData(CompletionImplementation.Modern)>
-        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/35301"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSendCommitIfUniqueInDeletionSessionWithIntelliCode(completionImplementation As CompletionImplementation) As Task
+            ' We explicitly use a weak matching on Delete.
+            ' It matches by the first letter. Therefore, if backspace in s.Length, it matches s.Length and s.LastIndexOf.
+            ' In this case, CommitIfUnique is not applied.
             Dim provider = New IntelliCodeMockProvider()
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                               <Document>
@@ -4960,7 +4998,7 @@ class C
     void Method()
     {
         var s = "";
-        s.Length$$
+        s.Normalize$$
     }
 }
                               </Document>, {provider})
@@ -4970,10 +5008,10 @@ class C
 
                 state.SendBackspace()
                 Await state.AssertCompletionSession()
-                state.AssertCompletionItemsContainAll({"Length", "★ Length"})
+                state.AssertCompletionItemsContainAll({"Normalize", "★ Normalize"})
                 state.SendCommitUniqueCompletionListItem()
                 Await state.AssertNoCompletionSession()
-                Assert.Contains("s.Length", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("s.Normalize", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -5332,6 +5370,45 @@ class C
             End Using
         End Function
 
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WorkItem(24960, "https://github.com/dotnet/roslyn/issues/24960")>
+        Public Async Function TypeParameterTOnType(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                <Document><![CDATA[
+class C<T>
+{
+    $$
+}]]>
+                </Document>)
+
+                state.SendTypeChars("T")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem("T")
+            End Using
+        End Function
+
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WorkItem(24960, "https://github.com/dotnet/roslyn/issues/24960")>
+        Public Async Function TypeParameterTOnMethod(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                <Document><![CDATA[
+class C
+{
+    void M<T>()
+    {
+        $$
+    }
+}]]>
+                </Document>)
+
+                state.SendTypeChars("T")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem("T")
+            End Using
+        End Function
+
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 
@@ -5374,6 +5451,7 @@ class C
 
             Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
                 context.AddItem(CompletionItem.Create(displayText:="★ Length", filterText:="Length"))
+                context.AddItem(CompletionItem.Create(displayText:="★ Normalize", filterText:="Normalize"))
                 context.AddItem(CompletionItem.Create(displayText:="Length", filterText:="Length"))
                 context.AddItem(CompletionItem.Create(displayText:="ToString()", filterText:="ToString"))
                 context.AddItem(CompletionItem.Create(displayText:="First()", filterText:="First"))

@@ -4,13 +4,15 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal interface ICodeStyleOption
     {
         XElement ToXElement();
+        object Value { get; }
+        NotificationOption Notification { get; }
+        ICodeStyleOption WithValue(object value);
     }
 
     /// <summary>
@@ -40,6 +42,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         public T Value { get; set; }
+
+        object ICodeStyleOption.Value => this.Value;
+        ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption<T>((T)value, Notification);
 
         private int EnumValueAsInt32 => (int)(object)Value;
 

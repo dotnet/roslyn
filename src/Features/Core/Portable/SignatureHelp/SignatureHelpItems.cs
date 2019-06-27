@@ -92,12 +92,12 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 Debug.Assert(selectedItem.Value >= 0, "actual item was not part of the final list");
             }
 
-            this.Items = distinctItems;
-            this.ApplicableSpan = applicableSpan;
-            this.ArgumentIndex = argumentIndex;
-            this.ArgumentCount = argumentCount;
-            this.SelectedItemIndex = selectedItem;
-            this.ArgumentName = argumentName;
+            Items = distinctItems;
+            ApplicableSpan = applicableSpan;
+            ArgumentIndex = argumentIndex;
+            ArgumentCount = argumentCount;
+            SelectedItemIndex = selectedItem;
+            ArgumentName = argumentName;
         }
     }
 }
