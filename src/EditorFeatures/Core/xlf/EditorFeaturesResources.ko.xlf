@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
         <source>The symbol has no base.</source>
-        <target state="new">The symbol has no base.</target>
+        <target state="translated">기호에 베이스가 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
@@ -334,7 +334,7 @@
       </trans-unit>
       <trans-unit id="_0_bases">
         <source>'{0}' bases</source>
-        <target state="new">'{0}' bases</target>
+        <target state="translated">'{0}' 기본</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
@@ -914,7 +914,7 @@
       </trans-unit>
       <trans-unit id="Can_t_compare_positions_from_different_text_snapshots">
         <source>Can't compare positions from different text snapshots</source>
-        <target state="translated">다른 텍스트 스냅숏에서 위치를 비교할 수 없습니다.</target>
+        <target state="translated">다른 텍스트 스냅샷에서 위치를 비교할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Entity_Reference">

@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractEventHasAccessors">
         <source>'{0}': abstract event cannot use event accessor syntax</source>
-        <target state="new">'{0}': abstract event cannot use event accessor syntax</target>
+        <target state="translated">'{0}': 抽象イベントはイベント アクセサーの構文を使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
-        <target state="needs-review-translation">/nullable のオプションとして '{0}' は無効です。'disable'、'enable'、'safeonly'、'warnings'、'safeonlywarnings' のいずれかにする必要があります</target>
+        <target state="new">Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
         <source>The typeof operator cannot be used on a nullable reference type</source>
-        <target state="new">The typeof operator cannot be used on a nullable reference type</target>
+        <target state="translated">NULL 許容参照型では typeof 演算子を使用できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleEnumeratorCancellationAttributes">
         <source>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</source>
-        <target state="new">The attribute [EnumeratorCancellation] cannot be used on multiple parameters</target>
+        <target state="translated">属性 [EnumeratorCancellation] を複数のパラメーターで使用することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -284,12 +284,12 @@
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
         <source>The 'notnull' constraint must come before any other constraints</source>
-        <target state="new">The 'notnull' constraint must come before any other constraints</target>
+        <target state="translated">'notnull' 制約は、他の制約の前に指定されなければなりません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'disable', or 'restore'</source>
-        <target state="needs-review-translation">'enable'、'safeonly'、'disable'、'restore' のいずれかが必要でした</target>
+        <target state="translated">'enable'、'disable'、'restore' のいずれかが必要でした</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
@@ -349,7 +349,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyModMissingAccessor">
         <source>'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</source>
-        <target state="translated">'{0}': 'readonly' は、プロパティまたはインデクサーが get アクセサーおよび set アクセサーの両方を含む場合にのみ、アクセサーで使用できます</target>
+        <target state="translated">'{0}': 'readonly' は、プロパティまたはインデクサーが get および set の両方のアクセサーを含む場合にのみ、アクセサーで使用できます</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -604,74 +604,74 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
-                              Visual C# Compiler のオプション
+        <target state="translated">
+                             Visual C# コンパイラのオプション
 
-                        - 出力ファイル -
- -out:&lt;file&gt;                   出力ファイル名を指定します (既定: メイン クラスを含むファイル 
-                               または最初のファイルのベース名)
- -target:exe                   コンソール実行可能ファイルをビルドします (既定) (短い 
-                               形式: -t:exe)
+                       - 出力ファイル -
+ -out:&lt;file&gt;                   出力ファイル名を指定します (既定: メイン クラスを含むファイル
+                              または最初のファイルのベース名)
+ -target:exe                   コンソール実行可能ファイルをビルドします (既定) (短い
+                              形式: -t:exe)
  -target:winexe                Windows 実行可能ファイルをビルドします (短い形式: 
-                               -t:winexe)
+                              -t:winexe)
 -target:library               ライブラリをビルドします (短い形式: -t:library)
--target:module                別のアセンブリに追加できるモジュールをビルド 
-                               します (短い形式: -t:module)
--target:appcontainerexe       Appcontainer 実行可能ファイルをビルドします (短い形式: 
-                               -t:appcontainerexe)
--target:winmdobj              WinMDExp で使用される 
-                               Windows ランタイムの中間ファイルをビルドします (短い形式: -t:winmdobj)
+-target:module                別のアセンブリに追加できるモジュールを
+                               ビルドします (短い形式: -t:module)
+-target:appcontainerexe       Appcontainer 実行可能ファイルをビルドします (短い形式:
+                              -t:appcontainerexe)
+-target:winmdobj              WinMDExp で使用される
+                        Windows ランタイムの中間ファイルをビルドします (短い形式: -t:winmdobj)
 -doc:&lt;file&gt;                   生成する XML ドキュメント ファイル
--refout:&lt;file&gt;                生成する参照アセンブリの出力
--platform:&lt;string&gt;            このコードを実行できるプラットフォームを x86、
-                               Itanium、x64、arm、arm64、anycpu32bitpreferred、
-                               anycpu に限定します。既定は anycpu です。
+-refout:&lt;file&gt;              生成する参照アセンブリの出力
+-platform:&lt;string&gt;            このコードを実行できるプラットフォームを
+                              Itx86、Itanium、x64、arm、arm64、anycpu32bitpreferred、
+                              anycpu に限定します。既定は anycpu です。
 
-                        - 入力ファイル -
--recurse:&lt;wildcard&gt;           ワイルドカードの指定に従い、現行ディレクトリおよび 
-                               サブディレクトリ内のすべてのファイルを
+                       - 入力ファイル -
+-recurse:&lt;wildcard&gt;           ワイルドカードの指定に従い、現行ディレクトリおよび
+                              サブディレクトリ内のすべてのファイルを
                                インクルードします
 -reference:&lt;alias&gt;=&lt;file&gt;     指定されたエイリアスを使用して、指定された
-                               アセンブリ ファイルのメタデータを参照します (短い形式: -r)
- -reference:&lt;file list&gt;        指定されたアセンブリ ファイルのメタデータを参照
-                               します (短い形式: -r)
+                              アセンブリ ファイルのメタデータを参照します (短い形式: -r)
+ -reference:&lt;file list&gt;        指定されたアセンブリ ファイルのメタデータを
+                              参照します (短い形式: -r)
  -addmodule:&lt;file list&gt;        指定されたモジュールをこのアセンブリにリンクします
- -link:&lt;file list&gt;             指定された相互運用アセンブリ ファイルのメタデータを 
-                               埋め込みます (短い形式: -l)
+ -link:&lt;file list&gt;             指定された相互運用アセンブリ ファイルの
+                              メタデータを埋め込みます (短い形式: -l)
 -analyzer:&lt;file list&gt;         このアセンブリからアナライザーを実行します
-                               (短い形式: -a)
+                              (短い形式: -a)
 -additionalfile:&lt;file list&gt;   コード生成には直接影響しないものの、
-                               アナライザーがエラーまたは警告を
-                               生成するときに使用する可能性のある追加ファイル。
+                              アナライザーがエラーまたは警告を
+                              生成するときに使用する可能性のある追加ファイル。
 -embed                        すべてのソース ファイルを PDB に埋め込みます。
 -embed:&lt;file list&gt;            特定のファイルを PDB に埋め込みます。
  
-                        - リソース -
+                       - リソース -
 -win32res:&lt;file&gt;              Win32 リソース ファイル (.res) を指定します
 -win32icon:&lt;file&gt;             出力にこのアイコンを使用します
 -win32manifest:&lt;file&gt;         Win32 マニフェスト ファイル (.xml) を指定します
 -nowin32manifest              既定の Win32 マニフェストはインクルードしません
 -resource:&lt;resinfo&gt;           指定されたリソースを埋め込みます (短い形式: -res)
 -linkresource:&lt;resinfo&gt;       指定されたリソースをこのアセンブリにリンクします
-                               (短い形式: -linkres) resinfo の形式
-                               は &lt;file&gt;[,&lt;string name&gt;[,public|private]] です
+                              (短い形式: -linkres) resinfo の形式
+                              は &lt;file&gt;[,&lt;string name&gt;[,public|private]] です
 
-                        - コード生成 -
+                       - コード生成 -
 -debug[+|-]                   デバッグ情報を出力します
 -debug:{full|pdbonly|portable|embedded}
-                               デバッグの種類を指定します ('full' が既定です。
-                               'portable' はクロスプラットフォーム形式です。
-                               'embedded' は、ターゲット .dll または .exe に
-                               埋め込まれるクロスプラットフォーム形式です)
+                              デバッグの種類を指定します ('full' が既定です。
+                              'portable' はクロスプラットフォーム形式です。
+                              'embedded' は、ターゲット .dll または .exe に
+                              埋め込まれるクロスプラットフォーム形式です)
 -optimize[+|-]                最適化を有効にします (短い形式: -o)
 -deterministic                決定論的アセンブリを生成します
-                               (モジュール バージョン GUID やタイムスタンプを含みます)
+                              (モジュール バージョン GUID やタイムスタンプを含みます)
 -refonly                      メイン出力の代わりに参照アセンブリを生成します
 -instrument:TestCoverage      カバレッジ情報を収集するようにインストルメント化された
                               アセンブリを生成します
 -sourcelink:&lt;file&gt;            PDB に埋め込むソース リンク情報。
 
-                        - エラーと警告 -
+                       - エラーと警告 -
 -warnaserror[+|-]             すべての警告をエラーとして報告します
 -warnaserror[+|-]:&lt;warn list&gt; 特定の警告をエラーとして報告します
 -warn:&lt;n&gt;                     警告レベル (0-4) を設定します (短い形式: -w)
@@ -690,15 +690,15 @@
                                形式: -d)
 -langversion:?                許容される言語バージョンの値を表示します。
 -langversion:&lt;string&gt;         `default` (最新のメジャー バージョン)、
-                              `latest` (マイナー バージョンを含む最新バージョン) または 
-                              `6` や `7.1` などの特定のバージョンにより、
+                              `latest` (マイナー バージョンを含む最新バージョン)、
+                              `6` や `7.1` などの特定のバージョンなど、
                               言語バージョンを指定します
--nullable[+|-]                Null 許容コンテキストオプションの enable|disable を指定します。
--nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
-                              Null 許容コンテキストオプションの enable|disable|safeonly|warnings|safeonlywarnings を指定します。
+-nullable[+|-]                Null 許容コンテキスト オプションの enable|disable を指定します。
+-nullable:{enable|disable|warnings}
+                              Null 許容コンテキストオプションの enable|disable|warnings を指定します。
 
                         - セキュリティ -
--delaysign[+|-]               厳密な名前キーのパブリックな部分のみを使って 
+-delaysign[+|-]               厳密な名前キーのパブリックな部分のみを使って
                                アセンブリを遅延署名します
 -publicsign[+|-]              厳密な名前キーのパブリックな部分のみを使って
                                アセンブリを公開署名します
@@ -709,7 +709,7 @@
                         - その他 -
 @&lt;file&gt;                       応答ファイルを読み取り、オプションを追加します
 -help                         この使用法に関するメッセージを表示します (短い形式: -?)
--nologo                       コンパイル時の著作権メッセージを表示しません
+-nologo                       コンパイラの著作権メッセージを表示しません
 -noconfig                     CSC.RSP ファイルを自動的に含めません
 -parallel[+|-]                ビルドを並列処理します。
 -version                      コンパイラ バージョンの数字を表示して終了します。
@@ -726,28 +726,28 @@
                                (他のエントリ ポイントはすべて無視します) (短い 
                                形式: -m)
 -fullpaths                    コンパイラは完全修飾パスを生成します
--filealign:&lt;n&gt;                出力ファイル セクションで使用する配置を指定 
-                               します
+-filealign:&lt;n&gt;                出力ファイル セクションで使用する配置を
+                               指定します
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                コンパイラが出力するソース パス名のマッピングを
                                指定します。
 -pdb:&lt;file&gt;                   デバッグ情報ファイル名を指定します (既定: 
                                .pdb 拡張子の付いた出力ファイル名)
--errorendlocation             各エラーの終了位置の出力行と 
+-errorendlocation             各エラーの終了位置の出力行と
                                出力列
 -preferreduilang              出力用の言語名を指定します。
 -nosdkpath                    標準ライブラリ アセンブリの既定の SDK パスの検索を無効にします。
 -nostdlib[+|-]                標準ライブラリ (mscorlib.dll) は参照しません
 -subsystemversion:&lt;string&gt;    このアセンブリのサブシステム バージョンを指定します
--lib:&lt;file list&gt;              参照を検索する追加ディレクトリを指定 
-                               します
--errorreport:&lt;string&gt;         内部コンパイラ エラーの処理方法を指定します: 
-                               prompt、send、queue、none です。既定値は 
+-lib:&lt;file list&gt;              参照を検索する追加ディレクトリを
+                               指定します
+-errorreport:&lt;string&gt;         内部コンパイラ エラーの処理方法
+                               (prompt、send、queue、none) を指定します。既定値は 
                                queue です。
 -appconfig:&lt;file&gt;             アセンブリ バインド設定を含む
                                アプリケーション構成ファイルを指定します
--moduleassemblyname:&lt;string&gt;  このモジュールが一部となるアセンブリ名
-                               です
+-moduleassemblyname:&lt;string&gt;  このモジュールが一部となる
+                               アセンブリ名です
 -modulename:&lt;string&gt;          ソース モジュールの名前を指定します
 </target>
         <note>Visual C# Compiler Options</note>
@@ -804,12 +804,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureNestedStackalloc">
         <source>stackalloc in nested expressions</source>
-        <target state="new">stackalloc in nested expressions</target>
+        <target state="translated">入れ子になった式の stackalloc</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNotNullGenericTypeConstraint">
         <source>notnull generic type constraint</source>
-        <target state="new">notnull generic type constraint</target>
+        <target state="translated">notnull ジェネリック型の制約</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
@@ -824,7 +824,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnable">
         <source>warning action enable</source>
-        <target state="new">warning action enable</target>
+        <target state="translated">警告アクション enable</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRangeOperator">
@@ -1334,12 +1334,12 @@
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <target state="translated">[DisallowNull] 属性でマークされたターゲットに Null の可能性がある値を渡すことはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
         <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <target state="translated">[DisallowNull] 属性でマークされたターゲットに Null の可能性がある値を渡すことはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1394,12 +1394,12 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="needs-review-translation">'#nullable' コンテキスト内のコードでのみ、Null 許容参照型の注釈を使用する必要があります。</target>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="needs-review-translation">'#nullable' コンテキスト内のコードでのみ、Null 許容参照型の注釈を使用する必要があります。</target>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
@@ -1514,12 +1514,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation">
         <source>Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</source>
-        <target state="new">Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</target>
+        <target state="translated">'{0}' の部分メソッド宣言には、型パラメーター '{1}' の制約に NULL 値の許容の矛盾があります</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title">
         <source>Partial method declarations have inconsistent nullability in constraints for type parameter</source>
-        <target state="new">Partial method declarations have inconsistent nullability in constraints for type parameter</target>
+        <target state="translated">部分メソッド宣言には、型パラメーターの制約に NULL 値の許容の矛盾があります</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInExplicitlyImplementedInterface">
@@ -1674,12 +1674,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint">
         <source>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</source>
-        <target state="new">The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</target>
+        <target state="translated">型 '{2}' を、ジェネリック型またはメソッド '{0}' 内で型パラメーター '{1}' として使用することはできません。型引数 '{2}' の Null 許容性が 'notnull' 制約と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint_Title">
         <source>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</source>
-        <target state="new">The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</target>
+        <target state="translated">この型を、ジェネリック型またはメソッド内で型パラメーターとして使用することはできません。型引数の Null 許容性が 'notnull' 制約と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint">
@@ -1724,12 +1724,12 @@
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
         <source>Thrown value may be null.</source>
-        <target state="translated">スローされた値は null になる場合があります。</target>
+        <target state="translated">スローされた値が null である可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull_Title">
         <source>Thrown value may be null.</source>
-        <target state="translated">スローされた値は null になる場合があります。</target>
+        <target state="translated">スローされた値が null である可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
@@ -1774,12 +1774,12 @@
       </trans-unit>
       <trans-unit id="WRN_UndecoratedCancellationTokenParameter">
         <source>Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
-        <target state="new">Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
+        <target state="translated">非同期反復子 '{0}' には型 'CancellationToken' の 1 つ以上のパラメーターがありますが、'EnumeratorCancellation' 属性で修飾されているパラメーターはありません。そのため、生成された 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' からの取り消しトークン パラメーターは使用されません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UndecoratedCancellationTokenParameter_Title">
         <source>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
-        <target state="new">Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
+        <target state="translated">非同期反復子メンバーには型 'CancellationToken' の 1 つ以上のパラメーターがありますが、'EnumeratorCancellation' 属性で修飾されているパラメーターはありません。そのため、生成された 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' からの取り消しトークン パラメーターは使用されません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -4703,7 +4703,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
         <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
-        <target state="new">Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</target>
+        <target state="translated">{0}' の部分メソッド宣言には、型パラメーター '{1}' に対して矛盾する制約が含まれています</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodToDelegate">
@@ -5812,12 +5812,12 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
         <source>Expected disable, restore or enable</source>
-        <target state="needs-review-translation">disable、restore、enable、または safeonly が必要です</target>
+        <target state="translated">disable、restore、または enable が必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
         <source>Expected disable, restore or enable after #pragma warning</source>
-        <target state="needs-review-translation">#pragma 警告の後に disable、restore、enable、または safeonly が必要です</target>
+        <target state="translated">#pragma 警告の後に disable、restore、または enable が必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">
