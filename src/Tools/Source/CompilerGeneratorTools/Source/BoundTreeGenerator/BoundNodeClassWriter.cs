@@ -826,24 +826,13 @@ namespace BoundTreeGenerator
             switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
-                    //Blank();
-                    //WriteLine("public override R Accept<A, R>(BoundTreeVisitor<A, R> visitor, A arg)");
-                    //Brace();
-                    //WriteLine("return visitor.Visit{0}(this, arg);", StripBound(name));
-                    //Unbrace();
-
+                    WriteLine("[DebuggerHidden]");
                     WriteLine("public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.Visit{0}(this);", StripBound(name));
                     break;
 
                 case TargetLanguage.VB:
-                    //Blank();
-                    //WriteLine("Public Overrides Function Accept(Of A, R)(visitor as BoundTreeVisitor(Of A, R), arg As A) As R");
-                    //Indent();
-                    //WriteLine("Return visitor.Visit{0}(Me, arg)", StripBound(name));
-                    //Outdent();
-                    //WriteLine("End Function");
-
                     Blank();
+                    WriteLine("<DebuggerHidden>");
                     WriteLine("Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode");
                     Indent();
                     WriteLine("Return visitor.Visit{0}(Me)", StripBound(name));
@@ -1030,7 +1019,7 @@ namespace BoundTreeGenerator
                     Brace();
 
                     Blank();
-                    WriteLine("[MethodImpl(MethodImplOptions.NoInlining)]");
+                    WriteLine("[MethodImpl(MethodImplOptions.NoInlining), DebuggerHidden]");
                     WriteLine("internal R VisitInternal(BoundNode node, A arg)");
                     Brace();
                     WriteLine("switch (node.Kind)");
@@ -1047,29 +1036,6 @@ namespace BoundTreeGenerator
                     WriteLine("return default(R);");
                     Unbrace(); // end method
                     Unbrace(); // end class
-
-                    //Blank();
-                    //WriteLine("internal abstract partial class BoundTreeVisitor");
-                    //Brace();
-
-                    //Blank();
-                    //WriteLine("[MethodImpl(MethodImplOptions.NoInlining)]");
-                    //WriteLine("internal BoundNode VisitInternal(BoundNode node)");
-                    //Brace();
-                    //WriteLine("switch (node.Kind)");
-                    //Brace();
-                    //foreach (var node in tree.Types.OfType<Node>())
-                    //{
-                    //    WriteLine("case BoundKind.{0}: ", FixKeyword(StripBound(node.Name)));
-                    //    Indent();
-                    //    WriteLine("return Visit{0}(node as {1});", StripBound(node.Name), node.Name);
-                    //    Outdent();
-                    //}
-                    //Unbrace(); // end switch
-                    //Blank();
-                    //WriteLine("return null;");
-                    //Unbrace(); // end method
-                    //Unbrace(); // end class
 
                     Blank();
                     WriteLine("internal abstract partial class BoundTreeVisitor<A,R>");
@@ -1096,7 +1062,7 @@ namespace BoundTreeGenerator
                     Indent();
 
                     Blank();
-                    WriteLine("<MethodImpl(MethodImplOptions.NoInlining)>");
+                    WriteLine("<MethodImpl(MethodImplOptions.NoInlining), DebuggerHidden>");
                     WriteLine("Friend Function VisitInternal(node As BoundNode, arg As A) As R");
                     Indent();
                     WriteLine("Select Case node.Kind");
@@ -1117,33 +1083,6 @@ namespace BoundTreeGenerator
                     Blank();
                     Outdent();
                     WriteLine("End Class");
-
-                    //Blank();
-                    //WriteLine("Friend MustInherit Partial Class BoundTreeVisitor");
-                    //Indent();
-
-                    //Blank();
-                    //WriteLine("<MethodImpl(MethodImplOptions.NoInlining)>");
-                    //WriteLine("Friend Function VisitInternal(node As BoundNode) As BoundNode");
-                    //Indent();
-                    //WriteLine("Select Case node.Kind");
-                    //Indent();
-                    //foreach (var node in tree.Types.OfType<Node>())
-                    //{
-                    //    WriteLine("Case BoundKind.{0}: ", FixKeyword(StripBound(node.Name)));
-                    //    Indent();
-                    //    WriteLine("Return Visit{0}(CType(node, {1}))", StripBound(node.Name), node.Name);
-                    //    Outdent();
-                    //}
-                    //Outdent();
-                    //WriteLine("End Select");
-                    //WriteLine("Return DefaultVisit(node)");
-                    //Outdent();
-                    //WriteLine("End Function");
-
-                    //Blank();
-                    //Outdent();
-                    //WriteLine("End Class");
 
                     Blank();
                     WriteLine("Friend MustInherit Partial Class BoundTreeVisitor(Of A,R)");

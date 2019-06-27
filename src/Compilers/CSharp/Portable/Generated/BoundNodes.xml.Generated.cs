@@ -264,6 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public FieldSymbol Field { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitFieldEqualsValue(this);
 
         public BoundFieldEqualsValue Update(FieldSymbol field, ImmutableArray<LocalSymbol> locals, BoundExpression value)
@@ -293,6 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public PropertySymbol Property { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitPropertyEqualsValue(this);
 
         public BoundPropertyEqualsValue Update(PropertySymbol property, ImmutableArray<LocalSymbol> locals, BoundExpression value)
@@ -322,6 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public ParameterSymbol Parameter { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitParameterEqualsValue(this);
 
         public BoundParameterEqualsValue Update(ParameterSymbol parameter, ImmutableArray<LocalSymbol> locals, BoundExpression value)
@@ -349,6 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public BoundStatement Statement { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitGlobalStatementInitializer(this);
 
         public BoundGlobalStatementInitializer Update(BoundStatement statement)
@@ -423,6 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public uint ValEscape { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDeconstructValuePlaceholder(this);
 
         public BoundDeconstructValuePlaceholder Update(uint valEscape, TypeSymbol type)
@@ -462,6 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitTupleOperandPlaceholder(this);
 
         public BoundTupleOperandPlaceholder Update(TypeSymbol type)
@@ -501,6 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitAwaitableValuePlaceholder(this);
 
         public BoundAwaitableValuePlaceholder Update(TypeSymbol type)
@@ -540,6 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDisposableValuePlaceholder(this);
 
         public BoundDisposableValuePlaceholder Update(TypeSymbol type)
@@ -577,6 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public RefKind RefKind { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDup(this);
 
         public BoundDup Update(RefKind refKind, TypeSymbol type)
@@ -611,6 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public BoundExpression Expression { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitPassByCopy(this);
 
         public BoundPassByCopy Update(BoundExpression expression, TypeSymbol type)
@@ -653,6 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<Symbol> Symbols { get; }
 
         public ImmutableArray<BoundExpression> ChildBoundNodes { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitBadExpression(this);
 
         public BoundBadExpression Update(LookupResultKind resultKind, ImmutableArray<Symbol> symbols, ImmutableArray<BoundExpression> childBoundNodes, TypeSymbol type)
@@ -687,6 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public ImmutableArray<BoundNode> ChildBoundNodes { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitBadStatement(this);
 
         public BoundBadStatement Update(ImmutableArray<BoundNode> childBoundNodes)
@@ -714,6 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public BoundBlock FinallyBlock { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitExtractedFinallyBlock(this);
 
         public BoundExtractedFinallyBlock Update(BoundBlock finallyBlock)
@@ -747,6 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<BoundExpression> BoundDimensionsOpt { get; }
 
         public TypeWithAnnotations TypeWithAnnotations { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitTypeExpression(this);
 
         public BoundTypeExpression Update(AliasSymbol aliasOpt, BoundTypeExpression boundContainingTypeOpt, ImmutableArray<BoundExpression> boundDimensionsOpt, TypeWithAnnotations typeWithAnnotations, TypeSymbol type)
@@ -790,6 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public BoundTypeOrValueData Data { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitTypeOrValueExpression(this);
 
         public BoundTypeOrValueExpression Update(BoundTypeOrValueData data, TypeSymbol type)
@@ -837,6 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public NamespaceSymbol NamespaceSymbol { get; }
 
         public AliasSymbol AliasOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitNamespaceExpression(this);
 
         public BoundNamespaceExpression Update(NamespaceSymbol namespaceSymbol, AliasSymbol aliasOpt)
@@ -885,6 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly LookupResultKind _ResultKind;
         public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitUnaryOperator(this);
 
         public BoundUnaryOperator Update(UnaryOperatorKind operatorKind, BoundExpression operand, ConstantValue constantValueOpt, MethodSymbol methodOpt, LookupResultKind resultKind, TypeSymbol type)
@@ -936,6 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly LookupResultKind _ResultKind;
         public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitIncrementOperator(this);
 
         public BoundIncrementOperator Update(UnaryOperatorKind operatorKind, BoundExpression operand, MethodSymbol methodOpt, Conversion operandConversion, Conversion resultConversion, LookupResultKind resultKind, TypeSymbol type)
@@ -974,6 +992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Operand { get; }
 
         public bool IsManaged { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitAddressOfOperator(this);
 
         public BoundAddressOfOperator Update(BoundExpression operand, bool isManaged, TypeSymbol type)
@@ -1009,6 +1028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public BoundExpression Operand { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitPointerIndirectionOperator(this);
 
         public BoundPointerIndirectionOperator Update(BoundExpression operand, TypeSymbol type)
@@ -1051,6 +1071,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Index { get; }
 
         public bool Checked { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitPointerElementAccess(this);
 
         public BoundPointerElementAccess Update(BoundExpression expression, BoundExpression index, bool @checked, TypeSymbol type)
@@ -1089,6 +1110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Operand { get; }
 
         public MethodSymbol GetTypeFromHandle { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitRefTypeOperator(this);
 
         public BoundRefTypeOperator Update(BoundExpression operand, MethodSymbol getTypeFromHandle, TypeSymbol type)
@@ -1124,6 +1146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public BoundExpression Operand { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitMakeRefOperator(this);
 
         public BoundMakeRefOperator Update(BoundExpression operand, TypeSymbol type)
@@ -1162,6 +1185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public NullableAnnotation NullableAnnotation { get; }
 
         public BoundExpression Operand { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitRefValueOperator(this);
 
         public BoundRefValueOperator Update(NullableAnnotation nullableAnnotation, BoundExpression operand, TypeSymbol type)
@@ -1200,6 +1224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Operand { get; }
 
         public MethodSymbol MethodOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitFromEndIndexExpression(this);
 
         public BoundFromEndIndexExpression Update(BoundExpression operand, MethodSymbol methodOpt, TypeSymbol type)
@@ -1240,6 +1265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression RightOperandOpt { get; }
 
         public MethodSymbol MethodOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitRangeExpression(this);
 
         public BoundRangeExpression Update(BoundExpression leftOperandOpt, BoundExpression rightOperandOpt, MethodSymbol methodOpt, TypeSymbol type)
@@ -1306,6 +1332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly LookupResultKind _ResultKind;
         public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitBinaryOperator(this);
 
         public BoundBinaryOperator Update(BinaryOperatorKind operatorKind, ConstantValue constantValueOpt, MethodSymbol methodOpt, LookupResultKind resultKind, BoundExpression left, BoundExpression right, TypeSymbol type)
@@ -1360,6 +1387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BinaryOperatorKind OperatorKind { get; }
 
         public TupleBinaryOperatorInfo.Multiple Operators { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitTupleBinaryOperator(this);
 
         public BoundTupleBinaryOperator Update(BoundExpression left, BoundExpression right, BoundExpression convertedLeft, BoundExpression convertedRight, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo.Multiple operators, TypeSymbol type)
@@ -1412,6 +1440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly LookupResultKind _ResultKind;
         public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitUserDefinedConditionalLogicalOperator(this);
 
         public BoundUserDefinedConditionalLogicalOperator Update(BinaryOperatorKind operatorKind, MethodSymbol logicalOperator, MethodSymbol trueOperator, MethodSymbol falseOperator, LookupResultKind resultKind, BoundExpression left, BoundExpression right, TypeSymbol type)
@@ -1464,6 +1493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly LookupResultKind _ResultKind;
         public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitCompoundAssignmentOperator(this);
 
         public BoundCompoundAssignmentOperator Update(BinaryOperatorSignature @operator, BoundExpression left, BoundExpression right, Conversion leftConversion, Conversion finalConversion, LookupResultKind resultKind, TypeSymbol type)
@@ -1504,6 +1534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Right { get; }
 
         public bool IsRef { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitAssignmentOperator(this);
 
         public BoundAssignmentOperator Update(BoundExpression left, BoundExpression right, bool isRef, TypeSymbol type)
@@ -1546,6 +1577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundConversion Right { get; }
 
         public bool IsUsed { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDeconstructionAssignmentOperator(this);
 
         public BoundDeconstructionAssignmentOperator Update(BoundTupleExpression left, BoundConversion right, bool isUsed, TypeSymbol type)
@@ -1590,6 +1622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Conversion LeftConversion { get; }
 
         public BoundNullCoalescingOperatorResultKind OperatorResultKind { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitNullCoalescingOperator(this);
 
         public BoundNullCoalescingOperator Update(BoundExpression leftOperand, BoundExpression rightOperand, Conversion leftConversion, BoundNullCoalescingOperatorResultKind operatorResultKind, TypeSymbol type)
@@ -1628,6 +1661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression LeftOperand { get; }
 
         public BoundExpression RightOperand { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitNullCoalescingAssignmentOperator(this);
 
         public BoundNullCoalescingAssignmentOperator Update(BoundExpression leftOperand, BoundExpression rightOperand, TypeSymbol type)
@@ -1677,6 +1711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Alternative { get; }
 
         public ConstantValue ConstantValueOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitConditionalOperator(this);
 
         public BoundConditionalOperator Update(bool isRef, BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue constantValueOpt, TypeSymbol type)
@@ -1716,6 +1751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Expression { get; }
 
         public ImmutableArray<BoundExpression> Indices { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitArrayAccess(this);
 
         public BoundArrayAccess Update(BoundExpression expression, ImmutableArray<BoundExpression> indices, TypeSymbol type)
@@ -1751,6 +1787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public BoundExpression Expression { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitArrayLength(this);
 
         public BoundArrayLength Update(BoundExpression expression, TypeSymbol type)
@@ -1790,6 +1827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Expression { get; }
 
         public AwaitableInfo AwaitableInfo { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitAwaitExpression(this);
 
         public BoundAwaitExpression Update(BoundExpression expression, AwaitableInfo awaitableInfo, TypeSymbol type)
@@ -1849,6 +1887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public BoundTypeExpression SourceType { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitTypeOfOperator(this);
 
         public BoundTypeOfOperator Update(BoundTypeExpression sourceType, MethodSymbol getTypeFromHandle, TypeSymbol type)
@@ -1894,6 +1933,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public MethodSymbol Method { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitMethodDefIndex(this);
 
         public BoundMethodDefIndex Update(MethodSymbol method, TypeSymbol type)
@@ -1933,6 +1973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitMaximumMethodDefIndex(this);
 
         public BoundMaximumMethodDefIndex Update(TypeSymbol type)
@@ -1976,6 +2017,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public int AnalysisKind { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitInstrumentationPayloadRoot(this);
 
         public BoundInstrumentationPayloadRoot Update(int analysisKind, TypeSymbol type)
@@ -2015,6 +2057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitModuleVersionId(this);
 
         public BoundModuleVersionId Update(TypeSymbol type)
@@ -2054,6 +2097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitModuleVersionIdString(this);
 
         public BoundModuleVersionIdString Update(TypeSymbol type)
@@ -2099,6 +2143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public Cci.DebugSourceDocument Document { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitSourceDocumentIndex(this);
 
         public BoundSourceDocumentIndex Update(Cci.DebugSourceDocument document, TypeSymbol type)
@@ -2148,6 +2193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MethodSymbol Method { get; }
 
         public MethodSymbol GetMethodFromHandle { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitMethodInfo(this);
 
         public BoundMethodInfo Update(MethodSymbol method, MethodSymbol getMethodFromHandle, TypeSymbol type)
@@ -2197,6 +2243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public FieldSymbol Field { get; }
 
         public MethodSymbol GetFieldFromHandle { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitFieldInfo(this);
 
         public BoundFieldInfo Update(FieldSymbol field, MethodSymbol getFieldFromHandle, TypeSymbol type)
@@ -2231,6 +2278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundTypeExpression TargetType { get; }
 
         public ConstantValue ConstantValueOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDefaultExpression(this);
 
         public BoundDefaultExpression Update(BoundTypeExpression targetType, ConstantValue constantValueOpt, TypeSymbol type)
@@ -2273,6 +2321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundTypeExpression TargetType { get; }
 
         public Conversion Conversion { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitIsOperator(this);
 
         public BoundIsOperator Update(BoundExpression operand, BoundTypeExpression targetType, Conversion conversion, TypeSymbol type)
@@ -2315,6 +2364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundTypeExpression TargetType { get; }
 
         public Conversion Conversion { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitAsOperator(this);
 
         public BoundAsOperator Update(BoundExpression operand, BoundTypeExpression targetType, Conversion conversion, TypeSymbol type)
@@ -2353,6 +2403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundTypeExpression SourceType { get; }
 
         public ConstantValue ConstantValueOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitSizeOfOperator(this);
 
         public BoundSizeOfOperator Update(BoundTypeExpression sourceType, ConstantValue constantValueOpt, TypeSymbol type)
@@ -2406,6 +2457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ConstantValue ConstantValueOpt { get; }
 
         public ConversionGroup ConversionGroupOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitConversion(this);
 
         public BoundConversion Update(BoundExpression operand, Conversion conversion, bool isBaseConversion, bool @checked, bool explicitCastInCode, ConstantValue constantValueOpt, ConversionGroup conversionGroupOpt, TypeSymbol type)
@@ -2445,6 +2497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Operand { get; }
 
         public MethodSymbol ConversionMethod { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitReadOnlySpanFromArray(this);
 
         public BoundReadOnlySpanFromArray Update(BoundExpression operand, MethodSymbol conversionMethod, TypeSymbol type)
@@ -2484,6 +2537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitArgList(this);
 
         public BoundArgList Update(TypeSymbol type)
@@ -2521,6 +2575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<BoundExpression> Arguments { get; }
 
         public ImmutableArray<RefKind> ArgumentRefKindsOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitArgListOperator(this);
 
         public BoundArgListOperator Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt, TypeSymbol type)
@@ -2566,6 +2621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Expression { get; }
 
         public MethodSymbol GetPinnableOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitFixedLocalCollectionInitializer(this);
 
         public BoundFixedLocalCollectionInitializer Update(TypeSymbol elementPointerType, Conversion elementPointerTypeConversion, BoundExpression expression, MethodSymbol getPinnableOpt, TypeSymbol type)
@@ -2611,6 +2667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public BoundStatement StatementOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitSequencePoint(this);
 
         public BoundSequencePoint Update(BoundStatement statementOpt)
@@ -2638,6 +2695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundStatement StatementOpt { get; }
 
         public TextSpan Span { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitSequencePointWithSpan(this);
 
         public BoundSequencePointWithSpan Update(BoundStatement statementOpt, TextSpan span)
@@ -2670,6 +2728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<LocalSymbol> Locals { get; }
 
         public ImmutableArray<LocalFunctionSymbol> LocalFunctions { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitBlock(this);
 
         public BoundBlock Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, ImmutableArray<BoundStatement> statements)
@@ -2698,6 +2757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public ImmutableArray<LocalSymbol> Locals { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitScope(this);
 
         public BoundScope Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements)
@@ -2729,6 +2789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<StateMachineFieldSymbol> Fields { get; }
 
         public BoundStatement Statement { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitStateMachineScope(this);
 
         public BoundStateMachineScope Update(ImmutableArray<StateMachineFieldSymbol> fields, BoundStatement statement)
@@ -2768,6 +2829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<BoundExpression> ArgumentsOpt { get; }
 
         public bool InferredType { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitLocalDeclaration(this);
 
         public BoundLocalDeclaration Update(LocalSymbol localSymbol, BoundTypeExpression declaredTypeOpt, BoundExpression initializerOpt, ImmutableArray<BoundExpression> argumentsOpt, bool inferredType)
@@ -2804,6 +2866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public ImmutableArray<BoundLocalDeclaration> LocalDeclarations { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitMultipleLocalDeclarations(this);
 
         public BoundMultipleLocalDeclarations Update(ImmutableArray<BoundLocalDeclaration> localDeclarations)
@@ -2837,6 +2900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Conversion IDisposableConversion { get; }
 
         public AwaitableInfo AwaitOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitUsingLocalDeclarations(this);
 
         public BoundUsingLocalDeclarations Update(MethodSymbol disposeMethodOpt, Conversion iDisposableConversion, AwaitableInfo awaitOpt, ImmutableArray<BoundLocalDeclaration> localDeclarations)
@@ -2870,6 +2934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundBlock BlockBody { get; }
 
         public BoundBlock ExpressionBody { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitLocalFunctionStatement(this);
 
         public BoundLocalFunctionStatement Update(LocalFunctionSymbol symbol, BoundBlock blockBody, BoundBlock expressionBody)
@@ -2900,6 +2965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public NoOpStatementFlavor Flavor { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitNoOpStatement(this);
 
         public BoundNoOpStatement Update(NoOpStatementFlavor flavor)
@@ -2927,6 +2993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public RefKind RefKind { get; }
 
         public BoundExpression ExpressionOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitReturnStatement(this);
 
         public BoundReturnStatement Update(RefKind refKind, BoundExpression expressionOpt)
@@ -2954,6 +3021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public BoundExpression Expression { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitYieldReturnStatement(this);
 
         public BoundYieldReturnStatement Update(BoundExpression expression)
@@ -2980,6 +3048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitYieldBreakStatement(this);
     }
 
@@ -2993,6 +3062,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public BoundExpression ExpressionOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitThrowStatement(this);
 
         public BoundThrowStatement Update(BoundExpression expressionOpt)
@@ -3020,6 +3090,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public BoundExpression Expression { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitExpressionStatement(this);
 
         public BoundExpressionStatement Update(BoundExpression expression)
@@ -3056,6 +3127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public GeneratedLabelSymbol Label { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitBreakStatement(this);
 
         public BoundBreakStatement Update(GeneratedLabelSymbol label)
@@ -3092,6 +3164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public GeneratedLabelSymbol Label { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitContinueStatement(this);
 
         public BoundContinueStatement Update(GeneratedLabelSymbol label)
@@ -3142,6 +3215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundSwitchLabel DefaultLabel { get; }
 
         public GeneratedLabelSymbol BreakLabel { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitSwitchStatement(this);
 
         public BoundSwitchStatement Update(BoundExpression expression, ImmutableArray<LocalSymbol> innerLocals, ImmutableArray<LocalFunctionSymbol> innerLocalFunctions, ImmutableArray<BoundSwitchSection> switchSections, BoundDecisionDag decisionDag, BoundSwitchLabel defaultLabel, GeneratedLabelSymbol breakLabel)
@@ -3180,6 +3254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public LabelSymbol DefaultLabel { get; }
 
         public MethodSymbol EqualityMethod { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitSwitchDispatch(this);
 
         public BoundSwitchDispatch Update(BoundExpression expression, ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, LabelSymbol defaultLabel, MethodSymbol equalityMethod)
@@ -3214,6 +3289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundStatement Consequence { get; }
 
         public BoundStatement AlternativeOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitIfStatement(this);
 
         public BoundIfStatement Update(BoundExpression condition, BoundStatement consequence, BoundStatement alternativeOpt)
@@ -3297,6 +3373,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDoStatement(this);
 
         public BoundDoStatement Update(ImmutableArray<LocalSymbol> locals, BoundExpression condition, BoundStatement body, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
@@ -3325,6 +3402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitWhileStatement(this);
 
         public BoundWhileStatement Update(ImmutableArray<LocalSymbol> locals, BoundExpression condition, BoundStatement body, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
@@ -3371,6 +3449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundStatement Increment { get; }
 
         public BoundStatement Body { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitForStatement(this);
 
         public BoundForStatement Update(ImmutableArray<LocalSymbol> outerLocals, BoundStatement initializer, ImmutableArray<LocalSymbol> innerLocals, BoundExpression condition, BoundStatement increment, BoundStatement body, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
@@ -3430,6 +3509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundStatement Body { get; }
 
         public bool Checked { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitForEachStatement(this);
 
         public BoundForEachStatement Update(ForEachEnumeratorInfo enumeratorInfoOpt, Conversion elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression iterationErrorExpressionOpt, BoundExpression expression, BoundForEachDeconstructStep deconstructionOpt, AwaitableInfo awaitOpt, BoundStatement body, bool @checked, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
@@ -3461,6 +3541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundDeconstructionAssignmentOperator DeconstructionAssignment { get; }
 
         public BoundDeconstructValuePlaceholder TargetPlaceholder { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitForEachDeconstructStep(this);
 
         public BoundForEachDeconstructStep Update(BoundDeconstructionAssignmentOperator deconstructionAssignment, BoundDeconstructValuePlaceholder targetPlaceholder)
@@ -3507,6 +3588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public AwaitableInfo AwaitOpt { get; }
 
         public MethodSymbol DisposeMethodOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitUsingStatement(this);
 
         public BoundUsingStatement Update(ImmutableArray<LocalSymbol> locals, BoundMultipleLocalDeclarations declarationsOpt, BoundExpression expressionOpt, Conversion iDisposableConversion, BoundStatement body, AwaitableInfo awaitOpt, MethodSymbol disposeMethodOpt)
@@ -3542,6 +3624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundMultipleLocalDeclarations Declarations { get; }
 
         public BoundStatement Body { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitFixedStatement(this);
 
         public BoundFixedStatement Update(ImmutableArray<LocalSymbol> locals, BoundMultipleLocalDeclarations declarations, BoundStatement body)
@@ -3573,6 +3656,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Argument { get; }
 
         public BoundStatement Body { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitLockStatement(this);
 
         public BoundLockStatement Update(BoundExpression argument, BoundStatement body)
@@ -3613,6 +3697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public LabelSymbol FinallyLabelOpt { get; }
 
         public bool PreferFaultHandler { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitTryStatement(this);
 
         public BoundTryStatement Update(BoundBlock tryBlock, ImmutableArray<BoundCatchBlock> catchBlocks, BoundBlock finallyBlockOpt, LabelSymbol finallyLabelOpt, bool preferFaultHandler)
@@ -3656,6 +3741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundBlock Body { get; }
 
         public bool IsSynthesizedAsyncCatchAll { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitCatchBlock(this);
 
         public BoundCatchBlock Update(ImmutableArray<LocalSymbol> locals, BoundExpression exceptionSourceOpt, TypeSymbol exceptionTypeOpt, BoundExpression exceptionFilterOpt, BoundBlock body, bool isSynthesizedAsyncCatchAll)
@@ -3686,6 +3772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public ConstantValue ConstantValueOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitLiteral(this);
 
         public BoundLiteral Update(ConstantValue constantValueOpt, TypeSymbol type)
@@ -3725,6 +3812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitThisReference(this);
 
         public BoundThisReference Update(TypeSymbol type)
@@ -3764,6 +3852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitPreviousSubmissionReference(this);
 
         public BoundPreviousSubmissionReference Update(TypeSymbol type)
@@ -3803,6 +3892,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitHostObjectMemberReference(this);
 
         public BoundHostObjectMemberReference Update(TypeSymbol type)
@@ -3836,6 +3926,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitBaseReference(this);
 
         public BoundBaseReference Update(TypeSymbol type)
@@ -3893,6 +3984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ConstantValue ConstantValueOpt { get; }
 
         public bool IsNullableUnknown { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitLocal(this);
 
         public BoundLocal Update(LocalSymbol localSymbol, BoundLocalDeclarationKind declarationKind, ConstantValue constantValueOpt, bool isNullableUnknown, TypeSymbol type)
@@ -3944,6 +4036,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public LocalSymbol LocalSymbol { get; }
 
         public PseudoVariableExpressions EmitExpressions { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitPseudoVariable(this);
 
         public BoundPseudoVariable Update(LocalSymbol localSymbol, PseudoVariableExpressions emitExpressions, TypeSymbol type)
@@ -3983,6 +4076,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public RangeVariableSymbol RangeVariableSymbol { get; }
 
         public BoundExpression Value { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitRangeVariable(this);
 
         public BoundRangeVariable Update(RangeVariableSymbol rangeVariableSymbol, BoundExpression value, TypeSymbol type)
@@ -4028,6 +4122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public ParameterSymbol ParameterSymbol { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitParameter(this);
 
         public BoundParameter Update(ParameterSymbol parameterSymbol, TypeSymbol type)
@@ -4071,6 +4166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public LabelSymbol Label { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitLabelStatement(this);
 
         public BoundLabelStatement Update(LabelSymbol label)
@@ -4104,6 +4200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression CaseExpressionOpt { get; }
 
         public BoundLabel LabelExpressionOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitGotoStatement(this);
 
         public BoundGotoStatement Update(LabelSymbol label, BoundExpression caseExpressionOpt, BoundLabel labelExpressionOpt)
@@ -4135,6 +4232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public LabelSymbol Label { get; }
 
         public BoundStatement Body { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitLabeledStatement(this);
 
         public BoundLabeledStatement Update(LabelSymbol label, BoundStatement body)
@@ -4171,6 +4269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public LabelSymbol Label { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitLabel(this);
 
         public BoundLabel Update(LabelSymbol label, TypeSymbol type)
@@ -4214,6 +4313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public ImmutableArray<BoundStatement> Statements { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitStatementList(this);
 
         public BoundStatementList Update(ImmutableArray<BoundStatement> statements)
@@ -4248,6 +4348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool JumpIfTrue { get; }
 
         public LabelSymbol Label { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitConditionalGoto(this);
 
         public BoundConditionalGoto Update(BoundExpression condition, bool jumpIfTrue, LabelSymbol label)
@@ -4289,6 +4390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public LabelSymbol DefaultLabel { get; }
 
         public bool ReportedNotExhaustive { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitSwitchExpression(this);
 
         public BoundSwitchExpression Update(BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol defaultLabel, bool reportedNotExhaustive, TypeSymbol type)
@@ -4338,6 +4440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Value { get; }
 
         public LabelSymbol Label { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitSwitchExpressionArm(this);
 
         public BoundSwitchExpressionArm Update(ImmutableArray<LocalSymbol> locals, BoundPattern pattern, BoundExpression whenClause, BoundExpression value, LabelSymbol label)
@@ -4374,6 +4477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public BoundDecisionDagNode RootNode { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDecisionDag(this);
 
         public BoundDecisionDag Update(BoundDecisionDagNode rootNode)
@@ -4419,6 +4523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundDagEvaluation Evaluation { get; }
 
         public BoundDecisionDagNode  Next { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitEvaluationDecisionDagNode(this);
 
         public BoundEvaluationDecisionDagNode Update(BoundDagEvaluation evaluation, BoundDecisionDagNode  next)
@@ -4454,6 +4559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundDecisionDagNode  WhenTrue { get; }
 
         public BoundDecisionDagNode  WhenFalse { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitTestDecisionDagNode(this);
 
         public BoundTestDecisionDagNode Update(BoundDagTest test, BoundDecisionDagNode  whenTrue, BoundDecisionDagNode  whenFalse)
@@ -4491,6 +4597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundDecisionDagNode  WhenTrue { get; }
 
         public BoundDecisionDagNode  WhenFalse { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitWhenDecisionDagNode(this);
 
         public BoundWhenDecisionDagNode Update(ImmutableArray<BoundPatternBinding> bindings, BoundExpression whenExpression, BoundDecisionDagNode  whenTrue, BoundDecisionDagNode  whenFalse)
@@ -4527,6 +4634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public LabelSymbol Label { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitLeafDecisionDagNode(this);
 
         public BoundLeafDecisionDagNode Update(LabelSymbol label)
@@ -4575,6 +4683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundDagEvaluation Source { get; }
 
         public int Index { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDagTemp(this);
 
         public BoundDagTemp Update(TypeSymbol type, BoundDagEvaluation source, int index)
@@ -4603,6 +4712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public TypeSymbol Type { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDagTypeTest(this);
 
         public BoundDagTypeTest Update(TypeSymbol type, BoundDagTemp input)
@@ -4627,6 +4737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDagNonNullTest(this);
 
         public BoundDagNonNullTest Update(BoundDagTemp input)
@@ -4651,6 +4762,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDagExplicitNullTest(this);
 
         public BoundDagExplicitNullTest Update(BoundDagTemp input)
@@ -4679,6 +4791,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public ConstantValue Value { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDagValueTest(this);
 
         public BoundDagValueTest Update(ConstantValue value, BoundDagTemp input)
@@ -4719,6 +4832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public MethodSymbol DeconstructMethod { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDagDeconstructEvaluation(this);
 
         public BoundDagDeconstructEvaluation Update(MethodSymbol deconstructMethod, BoundDagTemp input)
@@ -4747,6 +4861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public TypeSymbol Type { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDagTypeEvaluation(this);
 
         public BoundDagTypeEvaluation Update(TypeSymbol type, BoundDagTemp input)
@@ -4775,6 +4890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public FieldSymbol Field { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDagFieldEvaluation(this);
 
         public BoundDagFieldEvaluation Update(FieldSymbol field, BoundDagTemp input)
@@ -4803,6 +4919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public PropertySymbol Property { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDagPropertyEvaluation(this);
 
         public BoundDagPropertyEvaluation Update(PropertySymbol property, BoundDagTemp input)
@@ -4834,6 +4951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public PropertySymbol Property { get; }
 
         public int Index { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDagIndexEvaluation(this);
 
         public BoundDagIndexEvaluation Update(PropertySymbol property, int index, BoundDagTemp input)
@@ -4866,6 +4984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<LocalSymbol> Locals { get; }
 
         public ImmutableArray<BoundSwitchLabel> SwitchLabels { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitSwitchSection(this);
 
         public BoundSwitchSection Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundSwitchLabel> switchLabels, ImmutableArray<BoundStatement> statements)
@@ -4900,6 +5019,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundPattern Pattern { get; }
 
         public BoundExpression WhenClause { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitSwitchLabel(this);
 
         public BoundSwitchLabel Update(LabelSymbol label, BoundPattern pattern, BoundExpression whenClause)
@@ -4943,6 +5063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public BoundExpression Expression { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitSequencePointExpression(this);
 
         public BoundSequencePointExpression Update(BoundExpression expression, TypeSymbol type)
@@ -4986,6 +5107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<BoundExpression> SideEffects { get; }
 
         public BoundExpression Value { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitSequence(this);
 
         public BoundSequence Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression value, TypeSymbol type)
@@ -5029,6 +5151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<BoundStatement> SideEffects { get; }
 
         public BoundExpression Value { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitSpillSequence(this);
 
         public BoundSpillSequence Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> sideEffects, BoundExpression value, TypeSymbol type)
@@ -5077,6 +5200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool Invoked { get; }
 
         public bool Indexed { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDynamicMemberAccess(this);
 
         public BoundDynamicMemberAccess Update(BoundExpression receiver, ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, string name, bool invoked, bool indexed, TypeSymbol type)
@@ -5139,6 +5263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<RefKind> ArgumentRefKindsOpt { get; }
 
         public ImmutableArray<MethodSymbol> ApplicableMethods { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDynamicInvocation(this);
 
         public BoundDynamicInvocation Update(ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<MethodSymbol> applicableMethods, BoundExpression expression, ImmutableArray<BoundExpression> arguments, TypeSymbol type)
@@ -5178,6 +5303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Receiver { get; }
 
         public BoundExpression AccessExpression { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitConditionalAccess(this);
 
         public BoundConditionalAccess Update(BoundExpression receiver, BoundExpression accessExpression, TypeSymbol type)
@@ -5226,6 +5352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression WhenNullOpt { get; }
 
         public int Id { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitLoweredConditionalAccess(this);
 
         public BoundLoweredConditionalAccess Update(BoundExpression receiver, MethodSymbol hasValueMethodOpt, BoundExpression whenNotNull, BoundExpression whenNullOpt, int id, TypeSymbol type)
@@ -5269,6 +5396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public int Id { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitConditionalReceiver(this);
 
         public BoundConditionalReceiver Update(int id, TypeSymbol type)
@@ -5308,6 +5436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression ValueTypeReceiver { get; }
 
         public BoundExpression ReferenceTypeReceiver { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitComplexConditionalReceiver(this);
 
         public BoundComplexConditionalReceiver Update(BoundExpression valueTypeReceiver, BoundExpression referenceTypeReceiver, TypeSymbol type)
@@ -5358,6 +5487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public DiagnosticInfo LookupError { get; }
 
         public BoundMethodGroupFlags Flags { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitMethodGroup(this);
 
         public BoundMethodGroup Update(ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, string name, ImmutableArray<MethodSymbol> methods, Symbol lookupSymbolOpt, DiagnosticInfo lookupError, BoundMethodGroupFlags flags, BoundExpression receiverOpt, LookupResultKind resultKind)
@@ -5392,6 +5522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public ImmutableArray<PropertySymbol> Properties { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitPropertyGroup(this);
 
         public BoundPropertyGroup Update(ImmutableArray<PropertySymbol> properties, BoundExpression receiverOpt, LookupResultKind resultKind)
@@ -5459,6 +5590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override LookupResultKind ResultKind { get { return _ResultKind;} }
 
         public Binder BinderOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitCall(this);
 
         public BoundCall Update(BoundExpression receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool isDelegateCall, bool expanded, bool invokedAsExtensionMethod, ImmutableArray<int> argsToParamsOpt, LookupResultKind resultKind, Binder binderOpt, TypeSymbol type)
@@ -5507,6 +5639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression ReceiverOpt { get; }
 
         public BoundExpression Argument { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitEventAssignmentOperator(this);
 
         public BoundEventAssignmentOperator Update(EventSymbol @event, bool isAddition, bool isDynamic, BoundExpression receiverOpt, BoundExpression argument, TypeSymbol type)
@@ -5562,6 +5695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly LookupResultKind _ResultKind;
         public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitAttribute(this);
 
         public BoundAttribute Update(MethodSymbol constructor, ImmutableArray<BoundExpression> constructorArguments, ImmutableArray<string> constructorArgumentNamesOpt, ImmutableArray<int> constructorArgumentsToParamsOpt, bool constructorExpanded, ImmutableArray<BoundExpression> namedArguments, LookupResultKind resultKind, TypeSymbol type)
@@ -5626,6 +5760,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundObjectInitializerExpressionBase InitializerExpressionOpt { get; }
 
         public Binder BinderOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitObjectCreationExpression(this);
 
         public BoundObjectCreationExpression Update(MethodSymbol constructor, ImmutableArray<MethodSymbol> constructorsGroup, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, ConstantValue constantValueOpt, BoundObjectInitializerExpressionBase initializerExpressionOpt, Binder binderOpt, TypeSymbol type)
@@ -5678,6 +5813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<string> ArgumentNamesOpt { get; }
 
         public ImmutableArray<bool> InferredNamesOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitTupleLiteral(this);
 
         public BoundTupleLiteral Update(ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, ImmutableArray<BoundExpression> arguments, TypeSymbol type)
@@ -5714,6 +5850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public BoundTupleLiteral SourceTuple { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitConvertedTupleLiteral(this);
 
         public BoundConvertedTupleLiteral Update(BoundTupleLiteral sourceTuple, ImmutableArray<BoundExpression> arguments, TypeSymbol type)
@@ -5766,6 +5903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundObjectInitializerExpressionBase InitializerExpressionOpt { get; }
 
         public ImmutableArray<MethodSymbol> ApplicableMethods { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDynamicObjectCreationExpression(this);
 
         public BoundDynamicObjectCreationExpression Update(string name, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, BoundObjectInitializerExpressionBase initializerExpressionOpt, ImmutableArray<MethodSymbol> applicableMethods, TypeSymbol type)
@@ -5803,6 +5941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public string GuidString { get; }
 
         public BoundObjectInitializerExpressionBase InitializerExpressionOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitNoPiaObjectCreationExpression(this);
 
         public BoundNoPiaObjectCreationExpression Update(string guidString, BoundObjectInitializerExpressionBase initializerExpressionOpt, TypeSymbol type)
@@ -5851,6 +5990,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitObjectInitializerExpression(this);
 
         public BoundObjectInitializerExpression Update(ImmutableArray<BoundExpression> initializers, TypeSymbol type)
@@ -5912,6 +6052,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public TypeSymbol ReceiverType { get; }
 
         public Binder BinderOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitObjectInitializerMember(this);
 
         public BoundObjectInitializerMember Update(Symbol memberSymbol, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, LookupResultKind resultKind, TypeSymbol receiverType, Binder binderOpt, TypeSymbol type)
@@ -5963,6 +6104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public string MemberName { get; }
 
         public TypeSymbol ReceiverType { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDynamicObjectInitializerMember(this);
 
         public BoundDynamicObjectInitializerMember Update(string memberName, TypeSymbol receiverType, TypeSymbol type)
@@ -5995,6 +6137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitCollectionInitializerExpression(this);
 
         public BoundCollectionInitializerExpression Update(ImmutableArray<BoundExpression> initializers, TypeSymbol type)
@@ -6053,6 +6196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override LookupResultKind ResultKind { get { return _ResultKind;} }
 
         public Binder BinderOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitCollectionElementInitializer(this);
 
         public BoundCollectionElementInitializer Update(MethodSymbol addMethod, ImmutableArray<BoundExpression> arguments, BoundExpression implicitReceiverOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, bool invokedAsExtensionMethod, LookupResultKind resultKind, Binder binderOpt, TypeSymbol type)
@@ -6090,6 +6234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public ImmutableArray<MethodSymbol> ApplicableMethods { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDynamicCollectionElementInitializer(this);
 
         public BoundDynamicCollectionElementInitializer Update(ImmutableArray<MethodSymbol> applicableMethods, BoundExpression expression, ImmutableArray<BoundExpression> arguments, TypeSymbol type)
@@ -6129,6 +6274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitImplicitReceiver(this);
 
         public BoundImplicitReceiver Update(TypeSymbol type)
@@ -6172,6 +6318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<BoundExpression> Arguments { get; }
 
         public ImmutableArray<BoundAnonymousPropertyDeclaration> Declarations { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitAnonymousObjectCreationExpression(this);
 
         public BoundAnonymousObjectCreationExpression Update(MethodSymbol constructor, ImmutableArray<BoundExpression> arguments, ImmutableArray<BoundAnonymousPropertyDeclaration> declarations, TypeSymbol type)
@@ -6217,6 +6364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public PropertySymbol Property { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitAnonymousPropertyDeclaration(this);
 
         public BoundAnonymousPropertyDeclaration Update(PropertySymbol property, TypeSymbol type)
@@ -6251,6 +6399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public BoundObjectInitializerExpressionBase InitializerExpressionOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitNewT(this);
 
         public BoundNewT Update(BoundObjectInitializerExpressionBase initializerExpressionOpt, TypeSymbol type)
@@ -6292,6 +6441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MethodSymbol MethodOpt { get; }
 
         public bool IsExtensionMethod { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDelegateCreationExpression(this);
 
         public BoundDelegateCreationExpression Update(BoundExpression argument, MethodSymbol methodOpt, bool isExtensionMethod, TypeSymbol type)
@@ -6330,6 +6480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<BoundExpression> Bounds { get; }
 
         public BoundArrayInitialization InitializerOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitArrayCreation(this);
 
         public BoundArrayCreation Update(ImmutableArray<BoundExpression> bounds, BoundArrayInitialization initializerOpt, TypeSymbol type)
@@ -6364,6 +6515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public ImmutableArray<BoundExpression> Initializers { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitArrayInitialization(this);
 
         public BoundArrayInitialization Update(ImmutableArray<BoundExpression> initializers)
@@ -6417,6 +6569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Count { get; }
 
         public BoundArrayInitialization InitializerOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitStackAllocArrayCreation(this);
 
         public BoundStackAllocArrayCreation Update(TypeSymbol elementType, BoundExpression count, BoundArrayInitialization initializerOpt, TypeSymbol type)
@@ -6450,6 +6603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitConvertedStackAllocExpression(this);
 
         public new BoundConvertedStackAllocExpression Update(TypeSymbol elementType, BoundExpression count, BoundArrayInitialization initializerOpt, TypeSymbol type)
@@ -6501,6 +6655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsByValue { get; }
 
         public bool IsDeclaration { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitFieldAccess(this);
 
         public BoundFieldAccess Update(BoundExpression receiverOpt, FieldSymbol fieldSymbol, ConstantValue constantValueOpt, LookupResultKind resultKind, bool isByValue, bool isDeclaration, TypeSymbol type)
@@ -6546,6 +6701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public FieldSymbol FieldSymbol { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitHoistedFieldAccess(this);
 
         public BoundHoistedFieldAccess Update(FieldSymbol fieldSymbol, TypeSymbol type)
@@ -6588,6 +6744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly LookupResultKind _ResultKind;
         public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitPropertyAccess(this);
 
         public BoundPropertyAccess Update(BoundExpression receiverOpt, PropertySymbol propertySymbol, LookupResultKind resultKind, TypeSymbol type)
@@ -6633,6 +6790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly LookupResultKind _ResultKind;
         public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitEventAccess(this);
 
         public BoundEventAccess Update(BoundExpression receiverOpt, EventSymbol eventSymbol, bool isUsableAsField, LookupResultKind resultKind, TypeSymbol type)
@@ -6693,6 +6851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Binder BinderOpt { get; }
 
         public bool UseSetterForDefaultArgumentGeneration { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitIndexerAccess(this);
 
         public BoundIndexerAccess Update(BoundExpression receiverOpt, PropertySymbol indexer, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, Binder binderOpt, bool useSetterForDefaultArgumentGeneration, TypeSymbol type)
@@ -6740,6 +6899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Symbol PatternSymbol { get; }
 
         public BoundExpression Argument { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitIndexOrRangePatternIndexerAccess(this);
 
         public BoundIndexOrRangePatternIndexerAccess Update(BoundExpression receiver, PropertySymbol lengthOrCountProperty, Symbol patternSymbol, BoundExpression argument, TypeSymbol type)
@@ -6788,6 +6948,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<RefKind> ArgumentRefKindsOpt { get; }
 
         public ImmutableArray<PropertySymbol> ApplicableIndexers { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDynamicIndexerAccess(this);
 
         public BoundDynamicIndexerAccess Update(BoundExpression receiverOpt, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<PropertySymbol> applicableIndexers, TypeSymbol type)
@@ -6838,6 +6999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> Diagnostics { get; }
 
         public Binder Binder { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitLambda(this);
 
         public BoundLambda Update(UnboundLambda unboundLambda, LambdaSymbol symbol, BoundBlock body, ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics, Binder binder, TypeSymbol type)
@@ -6874,6 +7036,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public UnboundLambdaState Data { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitUnboundLambda(this);
 
         public UnboundLambda Update(UnboundLambdaState data)
@@ -6916,6 +7079,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public RangeVariableSymbol DefinedSymbol { get; }
 
         public Binder Binder { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitQueryClause(this);
 
         public BoundQueryClause Update(BoundExpression value, RangeVariableSymbol definedSymbol, Binder binder, TypeSymbol type)
@@ -6940,6 +7104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitTypeOrInstanceInitializers(this);
 
         public new BoundTypeOrInstanceInitializers Update(ImmutableArray<BoundStatement> statements)
@@ -6972,6 +7137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Argument { get; }
 
         public ConstantValue ConstantValueOpt { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitNameOfOperator(this);
 
         public BoundNameOfOperator Update(BoundExpression argument, ConstantValue constantValueOpt, TypeSymbol type)
@@ -7006,6 +7172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public ImmutableArray<BoundExpression> Parts { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitInterpolatedString(this);
 
         public BoundInterpolatedString Update(ImmutableArray<BoundExpression> parts, TypeSymbol type)
@@ -7046,6 +7213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Alignment { get; }
 
         public BoundLiteral Format { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitStringInsert(this);
 
         public BoundStringInsert Update(BoundExpression value, BoundExpression alignment, BoundLiteral format, TypeSymbol type)
@@ -7096,6 +7264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public LabelSymbol WhenTrueLabel { get; }
 
         public LabelSymbol WhenFalseLabel { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitIsPatternExpression(this);
 
         public BoundIsPatternExpression Update(BoundExpression expression, BoundPattern pattern, BoundDecisionDag decisionDag, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel, TypeSymbol type)
@@ -7159,6 +7328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Value { get; }
 
         public ConstantValue ConstantValue { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitConstantPattern(this);
 
         public BoundConstantPattern Update(BoundExpression value, ConstantValue constantValue, TypeSymbol inputType)
@@ -7191,6 +7361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDiscardPattern(this);
 
         public BoundDiscardPattern Update(TypeSymbol inputType)
@@ -7227,6 +7398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundTypeExpression DeclaredType { get; }
 
         public bool IsVar { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDeclarationPattern(this);
 
         public BoundDeclarationPattern Update(Symbol variable, BoundExpression variableAccess, BoundTypeExpression declaredType, bool isVar, TypeSymbol inputType)
@@ -7269,6 +7441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Symbol Variable { get; }
 
         public BoundExpression VariableAccess { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitRecursivePattern(this);
 
         public BoundRecursivePattern Update(BoundTypeExpression declaredType, MethodSymbol deconstructMethod, ImmutableArray<BoundSubpattern> deconstruction, ImmutableArray<BoundSubpattern> properties, Symbol variable, BoundExpression variableAccess, TypeSymbol inputType)
@@ -7305,6 +7478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MethodSymbol GetItemMethod { get; }
 
         public ImmutableArray<BoundSubpattern> Subpatterns { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitITuplePattern(this);
 
         public BoundITuplePattern Update(MethodSymbol getLengthMethod, MethodSymbol getItemMethod, ImmutableArray<BoundSubpattern> subpatterns, TypeSymbol inputType)
@@ -7335,6 +7509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Symbol Symbol { get; }
 
         public BoundPattern Pattern { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitSubpattern(this);
 
         public BoundSubpattern Update(Symbol symbol, BoundPattern pattern)
@@ -7361,6 +7536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDiscardExpression(this);
 
         public BoundDiscardExpression Update(TypeSymbol type)
@@ -7395,6 +7571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public BoundExpression Expression { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitThrowExpression(this);
 
         public BoundThrowExpression Update(BoundExpression expression, TypeSymbol type)
@@ -7444,6 +7621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitOutVariablePendingInference(this);
 
         public OutVariablePendingInference Update(Symbol variableSymbol, BoundExpression receiverOpt)
@@ -7475,6 +7653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDeconstructionVariablePendingInference(this);
 
         public DeconstructionVariablePendingInference Update(Symbol variableSymbol, BoundExpression receiverOpt)
@@ -7508,6 +7687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitOutDeconstructVarPendingInference(this);
 
         public OutDeconstructVarPendingInference Update()
@@ -7538,6 +7718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitNonConstructorMethodBody(this);
 
         public BoundNonConstructorMethodBody Update(BoundBlock blockBody, BoundBlock expressionBody)
@@ -7568,6 +7749,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<LocalSymbol> Locals { get; }
 
         public BoundExpressionStatement Initializer { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitConstructorMethodBody(this);
 
         public BoundConstructorMethodBody Update(ImmutableArray<LocalSymbol> locals, BoundExpressionStatement initializer, BoundBlock blockBody, BoundBlock expressionBody)
@@ -7598,6 +7780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Expression { get; }
 
         public NullableAnnotation NullableAnnotation { get; }
+        [DebuggerHidden]
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitExpressionWithNullability(this);
 
         public BoundExpressionWithNullability Update(BoundExpression expression, NullableAnnotation nullableAnnotation, TypeSymbol type)
@@ -7622,7 +7805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal abstract partial class BoundTreeVisitor<A,R>
     {
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining), DebuggerHidden]
         internal R VisitInternal(BoundNode node, A arg)
         {
             switch (node.Kind)

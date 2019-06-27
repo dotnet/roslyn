@@ -313,6 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        [DebuggerStepThrough]
         private BoundNode VisitWithStackGuard(BoundNode node)
         {
             var expression = node as BoundExpression;
@@ -324,6 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.Visit(node);
         }
 
+        [DebuggerStepThrough]
         protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
         {
             return (BoundExpression)base.Visit(node);
