@@ -422,11 +422,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public Data(UpdatedEventArgs args, ImmutableArray<DiagnosticData> diagnostics)
             {
-                this.Workspace = args.Workspace;
-                this.ProjectId = args.ProjectId;
-                this.DocumentId = args.DocumentId;
-                this.Id = args.Id;
-                this.Diagnostics = diagnostics;
+                Workspace = args.Workspace;
+                ProjectId = args.ProjectId;
+                DocumentId = args.DocumentId;
+                Id = args.Id;
+                Diagnostics = diagnostics;
             }
         }
     }

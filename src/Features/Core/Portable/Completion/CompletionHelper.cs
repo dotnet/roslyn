@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Completion
             string completionItemText, string pattern,
             CultureInfo culture, bool includeMatchSpans)
         {
-            var patternMatcher = this.GetPatternMatcher(pattern, culture, includeMatchSpans);
+            var patternMatcher = GetPatternMatcher(pattern, culture, includeMatchSpans);
             var match = patternMatcher.GetFirstMatch(completionItemText);
 
             if (match != null)
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // Start with the culture-specific comparison, and fall back to en-US.
             if (!culture.Equals(EnUSCultureInfo))
             {
-                patternMatcher = this.GetPatternMatcher(pattern, EnUSCultureInfo, includeMatchSpans);
+                patternMatcher = GetPatternMatcher(pattern, EnUSCultureInfo, includeMatchSpans);
                 match = patternMatcher.GetFirstMatch(completionItemText);
 
                 if (match != null)

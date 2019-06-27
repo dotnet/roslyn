@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return true;
                 }
 
-                TypeKindOptions typeKindValue = TypeKindOptions.None;
+                var typeKindValue = TypeKindOptions.None;
                 if (_service.TryGetBaseList(state.NameOrMemberAccessExpression, out typeKindValue) || _service.TryGetBaseList(state.SimpleName, out typeKindValue))
                 {
                     typeKindValueFinal = typeKindValue;

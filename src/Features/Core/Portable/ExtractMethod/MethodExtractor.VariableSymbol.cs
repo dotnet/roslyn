@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             protected VariableSymbol(Compilation compilation, ITypeSymbol type)
             {
-                this.OriginalTypeHadAnonymousTypeOrDelegate = type.ContainsAnonymousType();
-                this.OriginalType = this.OriginalTypeHadAnonymousTypeOrDelegate ? type.RemoveAnonymousTypes(compilation) : type;
+                OriginalTypeHadAnonymousTypeOrDelegate = type.ContainsAnonymousType();
+                OriginalType = OriginalTypeHadAnonymousTypeOrDelegate ? type.RemoveAnonymousTypes(compilation) : type;
             }
 
             public abstract int DisplayOrder { get; }
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             protected override int CompareTo(VariableSymbol right)
             {
-                return this.CompareTo((ParameterVariableSymbol)right);
+                return CompareTo((ParameterVariableSymbol)right);
             }
 
             public int CompareTo(ParameterVariableSymbol other)
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             protected override int CompareTo(VariableSymbol right)
             {
-                return this.CompareTo((LocalVariableSymbol<T>)right);
+                return CompareTo((LocalVariableSymbol<T>)right);
             }
 
             public int CompareTo(LocalVariableSymbol<T> other)
@@ -249,12 +249,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public override void AddIdentifierTokenAnnotationPair(
                 List<Tuple<SyntaxToken, SyntaxAnnotation>> annotations, CancellationToken cancellationToken)
             {
-                annotations.Add(Tuple.Create(this.GetOriginalIdentifierToken(cancellationToken), _annotation));
+                annotations.Add(Tuple.Create(GetOriginalIdentifierToken(cancellationToken), _annotation));
             }
 
             public override bool GetUseSaferDeclarationBehavior(CancellationToken cancellationToken)
             {
-                var identifier = this.GetOriginalIdentifierToken(cancellationToken);
+                var identifier = GetOriginalIdentifierToken(cancellationToken);
 
                 // check whether there is a noisy trivia around the token.
                 if (ContainsNoisyTrivia(identifier.LeadingTrivia))
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             protected override int CompareTo(VariableSymbol right)
             {
-                return this.CompareTo((QueryVariableSymbol)right);
+                return CompareTo((QueryVariableSymbol)right);
             }
 
             public int CompareTo(QueryVariableSymbol other)

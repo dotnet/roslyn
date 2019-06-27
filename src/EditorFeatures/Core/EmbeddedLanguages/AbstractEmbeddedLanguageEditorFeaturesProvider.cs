@@ -11,17 +11,15 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages
     /// Abstract implementation of the C# and VB embedded language providers.
     /// </summary>
     internal abstract class AbstractEmbeddedLanguageEditorFeaturesProvider
-        : AbstractEmbeddedLanguageFeaturesProvider, IEmbeddedLanguageEditorFeaturesProvider
+        : AbstractEmbeddedLanguageFeaturesProvider
     {
-        new public ImmutableArray<IEmbeddedLanguageEditorFeatures> Languages { get; }
+        public override ImmutableArray<IEmbeddedLanguage> Languages { get; }
 
         protected AbstractEmbeddedLanguageEditorFeaturesProvider(EmbeddedLanguageInfo info) : base(info)
         {
-            // No 'Fallback' language added here.  That's because the Fallback language doesn't
-            // support any of the IEmbeddedLanguageFeatures or IEmbeddedLanguageEditorFeatures
-            // capabilities.
-            Languages = ImmutableArray.Create<IEmbeddedLanguageEditorFeatures>(
-                new RegexEmbeddedLanguageEditorFeatures(this, info));
+            Languages = ImmutableArray.Create<IEmbeddedLanguage>(
+                new RegexEmbeddedLanguageEditorFeatures(this, info),
+                new FallbackEmbeddedLanguage(info));
         }
     }
 }

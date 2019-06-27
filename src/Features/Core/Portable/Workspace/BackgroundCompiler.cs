@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Host
             _compilationScheduler = taskSchedulerFactory.CreateBackgroundTaskScheduler();
 
             _cancellationSource = new CancellationTokenSource();
-            _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
+            _workspace.WorkspaceChanged += OnWorkspaceChanged;
             _workspace.DocumentOpened += OnDocumentOpened;
             _workspace.DocumentClosed += OnDocumentClosed;
         }
@@ -39,11 +39,11 @@ namespace Microsoft.CodeAnalysis.Host
         {
             if (_workspace != null)
             {
-                this.CancelBuild(releasePreviousCompilations: true);
+                CancelBuild(releasePreviousCompilations: true);
 
                 _workspace.DocumentClosed -= OnDocumentClosed;
                 _workspace.DocumentOpened -= OnDocumentOpened;
-                _workspace.WorkspaceChanged -= this.OnWorkspaceChanged;
+                _workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
                 _workspace = null;
             }
@@ -51,12 +51,12 @@ namespace Microsoft.CodeAnalysis.Host
 
         private void OnDocumentOpened(object sender, DocumentEventArgs args)
         {
-            this.Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
+            Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
         }
 
         private void OnDocumentClosed(object sender, DocumentEventArgs args)
         {
-            this.Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
+            Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
@@ -66,16 +66,16 @@ namespace Microsoft.CodeAnalysis.Host
                 case WorkspaceChangeKind.SolutionCleared:
                 case WorkspaceChangeKind.SolutionAdded:
                 case WorkspaceChangeKind.SolutionRemoved:
-                    this.CancelBuild(releasePreviousCompilations: true);
+                    CancelBuild(releasePreviousCompilations: true);
                     break;
 
                 case WorkspaceChangeKind.SolutionChanged:
                 case WorkspaceChangeKind.ProjectRemoved:
-                    this.Rebuild(args.NewSolution);
+                    Rebuild(args.NewSolution);
                     break;
 
                 default:
-                    this.Rebuild(args.NewSolution, args.ProjectId);
+                    Rebuild(args.NewSolution, args.ProjectId);
                     break;
             }
         }
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 // Keep the previous compilations around so that we can incrementally
                 // build the current compilations without rebuilding the entire DeclarationTable
-                this.CancelBuild(releasePreviousCompilations: false);
+                CancelBuild(releasePreviousCompilations: false);
 
                 var allProjects = _workspace.GetOpenDocumentIds().Select(d => d.ProjectId).ToSet();
 
