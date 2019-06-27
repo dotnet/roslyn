@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using ICSharpCode.Decompiler.IL;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -1012,6 +1013,74 @@ class C
     IL_000c:  newobj     ""System.Exception..ctor()""
     IL_0011:  throw
     IL_0012:  ret
+}");
+        }
+
+        [Fact]
+        public void TestLocalFunctionWithShadowedNullCheckedInnerParam()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M(string x)
+    {
+        InnerM(""hello"");
+        void InnerM(string x!) { }
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.<M>g__InnerM|0_0(string)", @"
+{
+    // Code size       10 (0xa)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ret
+}");
+            compilation.VerifyIL("C.M(string)", @"
+{
+    // Code size       11 (0xb)
+    .maxstack  1
+    IL_0000:  ldstr      ""hello""
+    IL_0005:  call       ""void C.<M>g__InnerM|0_0(string)""
+    IL_000a:  ret
+}");
+        }
+
+        [Fact]
+        public void TestLocalFunctionWithShadowedNullCheckedOuterParam()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M(string x!)
+    {
+        InnerM(""hello"");
+        void InnerM(string x) { }
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.<M>g__InnerM|0_0(string)", @"
+{
+    // Code size        1 (0x1)
+    .maxstack  0
+    IL_0000:  ret
+}");
+            compilation.VerifyIL("C.M(string)", @"
+{
+    // Code size       20 (0x14)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldstr      ""hello""
+    IL_000e:  call       ""void C.<M>g__InnerM|0_0(string)""
+    IL_0013:  ret
 }");
         }
     }
