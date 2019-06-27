@@ -242,7 +242,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 _factory.CurrentFunction = node.Symbol;
-                return base.VisitLambda(node);
+                var visited = base.VisitLambda(node);
+                if (visited is BoundLambda lambda)
+                    visited = RewriteNullChecking(lambda);
+                return visited;
             }
             finally
             {

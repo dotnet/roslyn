@@ -38,6 +38,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+
+        private BoundLambda RewriteNullChecking(BoundLambda lambda)
+        {
+            ArrayBuilder<BoundStatement> statementList = null;
+            foreach (ParameterSymbol x in _factory.CurrentFunction.Parameters)
+            {
+                if (x is SourceParameterSymbolBase param
+                    && param.IsNullChecked)
+                {
+                    if (param.Type.IsValueType && !param.Type.IsNullableTypeOrTypeParameter())
+                    {
+                        // PROTOTYPE : Warning or Error, see CodeGenNullCheckedParameterTests.TestNullCheckedSubstitution2
+                        continue;
+                    }
+                    statementList ??= ArrayBuilder<BoundStatement>.GetInstance();
+                    var constructedIf = ConstructIfStatementForParameter(param);
+                    statementList.Add(constructedIf);
+                }
+            }
+            if (statementList is null)
+            {
+                return lambda;
+            }
+            else
+            {
+                statementList.AddRange(lambda.Body.Statements);
+                var newBody = _factory.Block(lambda.Body.Locals, statementList.ToImmutableAndFree());
+                return lambda.Update(lambda.UnboundLambda, lambda.Symbol, newBody, lambda.Diagnostics, lambda.Binder, lambda.Type);
+            }
+        }
+
         private BoundStatement ConstructIfStatementForParameter(SourceParameterSymbolBase parameter)
         {
             BoundExpression paramIsNullCondition;
