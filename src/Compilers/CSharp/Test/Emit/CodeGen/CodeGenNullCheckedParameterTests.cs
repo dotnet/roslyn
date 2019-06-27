@@ -1083,5 +1083,88 @@ class C
     IL_0013:  ret
 }");
         }
+
+        [Fact]
+        public void TestNullCheckedConstructors()
+        {
+            var source = @"
+class C
+{
+    public C(string x!) { }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C..ctor(string)", @"
+{
+    // Code size       16 (0x10)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.0
+    IL_000a:  call       ""object..ctor()""
+    IL_000f:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCheckedConstructorWithBaseChain()
+        {
+            var source = @"
+class B
+{
+    public B(string y) { }
+}
+class C : B
+{
+    public C(string x!) : base(x) { }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C..ctor(string)", @"
+{
+    // Code size       17 (0x11)
+    .maxstack  2
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.0
+    IL_000a:  ldarg.1
+    IL_000b:  call       ""B..ctor(string)""
+    IL_0010:  ret
+}");
+            compilation.VerifyIL("B..ctor(string)", @"
+{
+    // Code size        7 (0x7)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  call       ""object..ctor()""
+    IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCheckedConstructorWithThisChain()
+        {
+            var source = @"
+class C
+{
+    public C() { }
+    public C(string x!) : this() { }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C..ctor(string)", @"
+{
+    // Code size       16 (0x10)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.0
+    IL_000a:  call       ""C..ctor()""
+    IL_000f:  ret
+}");
+        }
     }
 }
