@@ -12,27 +12,27 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Projects
 {
-    //[Export(typeof(IRemoteProjectInfoProvider))]
+    [Export(typeof(IRemoteProjectInfoProvider))]
     internal class RoslynRemoteProjectInfoProvider : IRemoteProjectInfoProvider
     {
         private const string SystemUriSchemeExternal = "vslsexternal";
 
         private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
-        //private readonly IVsRemoteWorkspaceManager _remoteWorkspaceManager;
+        private readonly RemoteLanguageServiceWorkspace _remoteLanguageServiceWorkspace;
 
         [ImportingConstructor]
-        public RoslynRemoteProjectInfoProvider(RoslynLspClientServiceFactory roslynLspClientServiceFactory)//, IVsRemoteWorkspaceManager remoteWorkspaceManager)
+        public RoslynRemoteProjectInfoProvider(RoslynLspClientServiceFactory roslynLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
-            //_remoteWorkspaceManager = remoteWorkspaceManager ?? throw new ArgumentNullException(nameof(remoteWorkspaceManager));
+            _remoteLanguageServiceWorkspace = remoteLanguageServiceWorkspace ?? throw new ArgumentNullException(nameof(RemoteLanguageServiceWorkspace));
         }
 
         public async Task<ImmutableArray<ProjectInfo>> GetRemoteProjectInfosAsync(CancellationToken cancellationToken)
         {
-            /*if (!_remoteWorkspaceManager.IsRemoteSession)
+            if (!_remoteLanguageServiceWorkspace.IsRemoteSession)
             {
                 return ImmutableArray<ProjectInfo>.Empty;
-            }*/
+            }
 
             var lspClient = _roslynLspClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)

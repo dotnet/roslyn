@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-/*using System.Composition;
+using System.Composition;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.GotoDefinition
     internal class CSharpLspGotoDefinitionService : RoslynGotoDefinitionService
     {
         [ImportingConstructor]
-        public CSharpLspGotoDefinitionService(IStreamingFindUsagesPresenter streamingPresenter, RoslynLSPClientServiceFactory roslynLspClientServiceFactory,
+        public CSharpLspGotoDefinitionService(IStreamingFindUsagesPresenter streamingPresenter, RoslynLspClientServiceFactory roslynLspClientServiceFactory,
             RemoteLanguageServiceWorkspace remoteWorkspace, IThreadingContext threadingContext)
             : base(streamingPresenter, roslynLspClientServiceFactory, remoteWorkspace, threadingContext) { }
     }
@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.GotoDefinition
     internal class VBLspGotoDefinitionService : RoslynGotoDefinitionService
     {
         [ImportingConstructor]
-        public VBLspGotoDefinitionService(IStreamingFindUsagesPresenter streamingPresenter, RoslynLSPClientServiceFactory roslynLspClientServiceFactory,
+        public VBLspGotoDefinitionService(IStreamingFindUsagesPresenter streamingPresenter, RoslynLspClientServiceFactory roslynLspClientServiceFactory,
             RemoteLanguageServiceWorkspace remoteWorkspace, IThreadingContext threadingContext)
             : base(streamingPresenter, roslynLspClientServiceFactory, remoteWorkspace, threadingContext) { }
     }
-}*/
+}
