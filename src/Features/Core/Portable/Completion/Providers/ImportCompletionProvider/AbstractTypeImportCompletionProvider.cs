@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.Completion.Log;
+using Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Experiments;
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var document = completionContext.Document;
             var project = document.Project;
             var workspace = project.Solution.Workspace;
-            var typeImportCompletionService = workspace.Services.GetService<ITypeImportCompletionService>();
+            var typeImportCompletionService = document.GetLanguageService<ITypeImportCompletionService>();
 
             // Find all namespaces in scope at current cursor location, 
             // which will be used to filter so the provider only returns out-of-scope types.

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private const string TypeAritySuffixName = nameof(TypeAritySuffixName);
         private const string AttributeFullName = nameof(AttributeFullName);
 
-        public static CompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace, bool isCSharp)
+        public static CompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace, string genericTypeSuffix)
         {
             PooledDictionary<string, string> propertyBuilder = null;
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  tags: GlyphTags.GetTags(typeSymbol.GetGlyph()),
                  rules: CompletionItemRules.Default,
                  displayTextPrefix: null,
-                 displayTextSuffix: typeSymbol.Arity == 0 ? string.Empty : GetDisplayTextSuffixForGeneric(isCSharp),
+                 displayTextSuffix: typeSymbol.Arity == 0 ? string.Empty : genericTypeSuffix,
                  inlineDescription: containingNamespace);
         }
 
@@ -72,14 +72,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  inlineDescription: attributeItem.InlineDescription);
         }
 
-        public static CompletionItem CreateItemWithGenericDisplaySuffix(CompletionItem item, bool isCSharp)
+        public static CompletionItem CreateItemWithGenericDisplaySuffix(CompletionItem item, string genericTypeSuffix)
         {
-            return item.WithDisplayTextSuffix(GetDisplayTextSuffixForGeneric(isCSharp));
-        }
-
-        private static string GetDisplayTextSuffixForGeneric(bool isCSharp)
-        {
-            return isCSharp ? "<>" : "(Of ...)";
+            return item.WithDisplayTextSuffix(genericTypeSuffix);
         }
 
         public static string GetContainingNamespace(CompletionItem item)
