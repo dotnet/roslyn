@@ -5477,7 +5477,6 @@ class C
             Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
                 context.AddItem(CompletionItem.Create(displayText:="★ Length", filterText:="Length"))
                 context.AddItem(CompletionItem.Create(displayText:="★ Normalize", filterText:="Normalize"))
-
                 context.AddItem(CompletionItem.Create(displayText:="Length", filterText:="Length"))
                 context.AddItem(CompletionItem.Create(displayText:="ToString()", filterText:="ToString"))
                 context.AddItem(CompletionItem.Create(displayText:="First()", filterText:="First"))
