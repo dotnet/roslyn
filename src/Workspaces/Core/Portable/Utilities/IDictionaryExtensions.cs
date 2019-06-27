@@ -50,7 +50,7 @@ namespace Roslyn.Utilities
                 collection = ImmutableArray<TValue>.Empty;
             }
 
-            dictionary[key] = collection.IsEmpty && value == default ? defaultArray : collection.Add(value);
+            dictionary[key] = collection.IsEmpty && value == defaultArray[0] ? defaultArray : collection.Add(value);
         }
 
         public static void MultiRemove<TKey, TValue, TCollection>(this IDictionary<TKey, TCollection> dictionary, TKey key, TValue value)
