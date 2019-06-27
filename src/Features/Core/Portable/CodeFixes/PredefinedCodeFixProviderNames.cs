@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ReplaceDefaultLiteral = nameof(ReplaceDefaultLiteral);
         public const string RemoveUnnecessaryCast = nameof(RemoveUnnecessaryCast);
         public const string DeclareAsNullable = nameof(DeclareAsNullable);
+        public const string PossiblyDeclareAsNullable = nameof(PossiblyDeclareAsNullable);
         public const string RemoveUnnecessaryImports = nameof(RemoveUnnecessaryImports);
         public const string RemoveUnreachableCode = nameof(RemoveUnreachableCode);
         public const string RemoveUnusedValues = nameof(RemoveUnusedValues);

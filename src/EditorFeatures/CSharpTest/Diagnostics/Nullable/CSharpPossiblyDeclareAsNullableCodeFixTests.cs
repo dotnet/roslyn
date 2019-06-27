@@ -1,34 +1,42 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.DeclareAsNullable;
+using Microsoft.CodeAnalysis.CSharp.CodeFixes.PossiblyDeclareAsNullable;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.DeclareAsNullable
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PossiblyDeclareAsNullable
 {
-    // TODO:
+    // Consider adding support for:
+    // symbol in another document
+    // symbol in another project
     // a.b.c.s$$ == null
     // somet$$hing?.x
-    // symbol not from this project
-    // x is null
     // (object)x == null
-    // ReferenceEquals and other equality methods
+    // switch(...) { case null: ...
+    // e switch { null => ...
+    // ReferenceEquals(x, null) and other equality methods
 
-    [Trait(Traits.Feature, Traits.Features.CodeActionsPossiblyDeclareAsNullable)]
-    public class PossiblyDeclareAsNullableRefactoringTests : AbstractCSharpCodeActionTest
+    [Trait(Traits.Feature, Traits.Features.CodeActionsDeclareAsNullable)]
+    public class CSharpPossiblyDeclareAsNullableCodeFixTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new PossiblyDeclareAsNullableCodeRefactoringProvider();
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new CSharpPossiblyDeclareAsNullableDiagnosticAnalyzer(), new CSharpPossiblyDeclareAsNullableCodeFixProvider());
 
-        private static readonly TestParameters s_nullableFeature = new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        private static readonly TestParameters s_nullableFeature =
+            new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+
+        private readonly string NullableEnable = @"
+#nullable enable
+";
 
         [Fact]
-        public async Task TestParameterEqualsNull()
+        public async Task ParameterEqualsNull()
         {
-            var code = @"
+            var code = NullableEnable + @"
 class C
 {
     static void M(string s)
@@ -40,7 +48,7 @@ class C
     }
 }";
 
-            var expected = @"
+            var expected = NullableEnable + @"
 class C
 {
     static void M(string? s)
@@ -56,7 +64,137 @@ class C
         }
 
         [Fact]
-        public async Task TestAlreadyNullableStringType()
+        public async Task FieldFromAnotherDocument()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+#nullable enable
+partial class C
+{
+    void M()
+    {
+        if (s [|==|] null)
+        {
+            return;
+        }
+    }
+}
+        </Document>
+        <Document>
+#nullable enable
+partial class C
+{
+    string s;
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            // Fix not offered when in another document, at the moment
+            await TestMissingInRegularAndScriptAsync(input, parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FieldFromAnotherProject()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+#nullable enable
+class C
+{
+    void M(D d)
+    {
+        if (d.s [|==|] null)
+        {
+            return;
+        }
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+#nullable enable
+public class D
+{
+    public string s;
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            // Fix not offered when in another project, at the moment
+            await TestMissingInRegularAndScriptAsync(input, parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task ConditionalAccess()
+        {
+            var code = NullableEnable + @"
+class C
+{
+    static void M(string s)
+    {
+        if ([|s|]?.Length == 0)
+        {
+            return;
+        }
+    }
+}";
+
+            var expected = NullableEnable + @"
+class C
+{
+    static void M(string? s)
+    {
+        if (s?.Length == 0)
+        {
+            return;
+        }
+    }
+}";
+
+            await TestInRegularAndScript1Async(code, expected, parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task LocalIsNull()
+        {
+            var code = NullableEnable + @"
+class C
+{
+    static void M()
+    {
+        string s = """";
+        if (s [|is|] null)
+        {
+            return;
+        }
+    }
+}";
+
+            var expected = NullableEnable + @"
+class C
+{
+    static void M()
+    {
+        string? s = """";
+        if (s is null)
+        {
+            return;
+        }
+    }
+}";
+
+            await TestInRegularAndScript1Async(code, expected, parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task AlreadyNullableStringType()
         {
             var code = @"
 class C
@@ -74,7 +212,7 @@ class C
         }
 
         [Fact]
-        public async Task TestNullableValueType()
+        public async Task NullableValueType()
         {
             var code = @"
 class C
@@ -92,7 +230,7 @@ class C
         }
 
         [Fact]
-        public async Task TestCursorOnEquals()
+        public async Task CursorOnEquals()
         {
             var code = @"
 class C
@@ -122,7 +260,7 @@ class C
         }
 
         [Fact]
-        public async Task TestCursorOnNull()
+        public async Task CursorOnNull()
         {
             var code = @"
 class C
@@ -152,7 +290,7 @@ class C
         }
 
         [Fact]
-        public async Task TestParameterNotEqualsNull()
+        public async Task ParameterNotEqualsNull()
         {
             var code = @"
 class C
@@ -182,7 +320,7 @@ class C
         }
 
         [Fact]
-        public async Task TestNullEqualsParameter()
+        public async Task NullEqualsParameter()
         {
             var code = @"
 class C
@@ -212,7 +350,7 @@ class C
         }
 
         [Fact]
-        public async Task TestLocalEqualsNull()
+        public async Task LocalEqualsNull()
         {
             var code = @"
 class C
@@ -246,7 +384,7 @@ class C
         }
 
         [Fact]
-        public async Task TestFieldEqualsNull()
+        public async Task FieldEqualsNull()
         {
             var code = @"
 class C
@@ -278,7 +416,7 @@ class C
         }
 
         [Fact]
-        public async Task TestMultiLocalEqualsNull()
+        public async Task MultiLocalEqualsNull()
         {
             var code = @"
 class C
@@ -298,7 +436,7 @@ class C
         }
 
         [Fact]
-        public async Task TestPropertyEqualsNull()
+        public async Task PropertyEqualsNull()
         {
             var code = @"
 class C
@@ -330,7 +468,7 @@ class C
         }
 
         [Fact]
-        public async Task TestMethodEqualsNull()
+        public async Task MethodEqualsNull()
         {
             var code = @"
 class C
@@ -362,7 +500,7 @@ class C
         }
 
         [Fact]
-        public async Task TestGenericMethodEqualsNull()
+        public async Task GenericMethodEqualsNull()
         {
             var code = @"
 class C
@@ -381,7 +519,7 @@ class C
         }
 
         [Fact]
-        public async Task TestPartialMethodEqualsNull()
+        public async Task PartialMethodEqualsNull()
         {
             var code = @"
 partial class C
@@ -401,6 +539,26 @@ partial class C
 }";
 
             await TestMissingInRegularAndScriptAsync(code, parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixAll()
+        {
+            await TestMissingInRegularAndScriptAsync(
+NullableEnable + @"
+class Program
+{
+class C
+{
+    static void M(string s)
+    {
+        return ;
+        if (s {|FixAllInDocument:==|}] null)
+        {
+            return;
+        }
+    }
+}");
         }
     }
 }
