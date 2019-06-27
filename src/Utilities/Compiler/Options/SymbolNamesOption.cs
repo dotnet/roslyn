@@ -56,11 +56,13 @@ namespace Analyzer.Utilities
                         name :
                         optionalPrefix + name;
 
+#pragma warning disable CA1307 // Specify StringComparison - https://github.com/dotnet/roslyn-analyzers/issues/1552
                     // Documentation comment ID for constructors uses '#ctor', but '#' is a comment start token for editorconfig.
                     // We instead search for a '..ctor' in editorconfig and replace it with a '.#ctor' here.
                     // Similarly, handle static constructors ".cctor"
                     nameWithPrefix = nameWithPrefix.Replace("..ctor", ".#ctor");
                     nameWithPrefix = nameWithPrefix.Replace("..cctor", ".#cctor");
+#pragma warning restore
 
                     foreach (var symbol in DocumentationCommentId.GetSymbolsForDeclarationId(nameWithPrefix, compilation))
                     {
