@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             {
                 await CreateConstantFieldActionsAsync(state, actions, cancellationToken).ConfigureAwait(false);
 
-                var blocks = this.GetContainingExecutableBlocks(state.Expression);
+                var blocks = GetContainingExecutableBlocks(state.Expression);
                 var block = blocks.FirstOrDefault();
 
                 if (!BlockOverlapsHiddenPosition(block, cancellationToken))
@@ -198,12 +198,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
         private async Task<bool> CanGenerateIntoContainerAsync(State state, CodeAction action, CancellationToken cancellationToken)
         {
-            var result = await this.IntroduceFieldAsync(
+            var result = await IntroduceFieldAsync(
                 state.Document, state.Expression,
                 allOccurrences: false, isConstant: state.IsConstant, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            SyntaxNode destination = result.Item2;
-            int insertionIndex = result.Item3;
+            var destination = result.Item2;
+            var insertionIndex = result.Item3;
 
             if (!destination.OverlapsHiddenPosition(cancellationToken))
             {
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             if (destination is TTypeDeclarationSyntax typeDecl)
             {
-                var insertionIndices = this.GetInsertionIndices(typeDecl, cancellationToken);
+                var insertionIndices = GetInsertionIndices(typeDecl, cancellationToken);
                 if (insertionIndices != null &&
                     insertionIndices.Count > insertionIndex &&
                     insertionIndices[insertionIndex])
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return true;
             }
 
-            if (allOccurrences && this.CanReplace(nodeInCurrent))
+            if (allOccurrences && CanReplace(nodeInCurrent))
             {
                 // Original expression and current node being semantically equivalent isn't enough when the original expression 
                 // is a member access via instance reference (either implicit or explicit), the check only ensures that the expression

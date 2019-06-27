@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
-            if (TryConvert(queryExpression, semanticModel, semanticFacts, cancellationToken, out DocumentUpdateInfo documentUpdateInfo))
+            if (TryConvert(queryExpression, semanticModel, semanticFacts, cancellationToken, out var documentUpdateInfo))
             {
                 context.RegisterRefactoring(
                     new MyCodeAction(

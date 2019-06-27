@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Fading;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -14,7 +15,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
     internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer
-        : DiagnosticAnalyzer, IBuiltInAnalyzer, IInProcessAnalyzer
+        : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         // NOTE: This is a trigger diagnostic, which doesn't show up in the ruleset editor and hence doesn't need a conventional IDE Diagnostic ID string.
         internal const string DiagnosticFixableId = "RemoveUnnecessaryImportsFixable";
@@ -33,6 +34,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         private DiagnosticDescriptor _unnecessaryClassificationIdDescriptor;
         private DiagnosticDescriptor _classificationIdDescriptor;
+        private DiagnosticDescriptor _unnecessaryGeneratedCodeClassificationIdDescriptor;
+        private DiagnosticDescriptor _generatedCodeClassificationIdDescriptor;
 
         private void EnsureClassificationIdDescriptors()
         {
@@ -56,6 +59,24 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                                              DiagnosticCategory.Style,
                                              DiagnosticSeverity.Hidden,
                                              isEnabledByDefault: true);
+
+                _unnecessaryGeneratedCodeClassificationIdDescriptor =
+                    new DiagnosticDescriptor(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId + "_gen",
+                                             titleAndMessageFormat,
+                                             titleAndMessageFormat,
+                                             DiagnosticCategory.Style,
+                                             DiagnosticSeverity.Hidden,
+                                             isEnabledByDefault: true,
+                                             customTags: new[] { WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable });
+
+                _generatedCodeClassificationIdDescriptor =
+                    new DiagnosticDescriptor(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId + "_gen",
+                                             titleAndMessageFormat,
+                                             titleAndMessageFormat,
+                                             DiagnosticCategory.Style,
+                                             DiagnosticSeverity.Hidden,
+                                             isEnabledByDefault: true,
+                                             customTags: new[] { WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable });
             }
         }
 
@@ -64,18 +85,23 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             get
             {
                 EnsureClassificationIdDescriptors();
-                return ImmutableArray.Create(s_fixableIdDescriptor, _unnecessaryClassificationIdDescriptor, _classificationIdDescriptor);
+                return ImmutableArray.Create(
+                    s_fixableIdDescriptor,
+                    _unnecessaryClassificationIdDescriptor,
+                    _classificationIdDescriptor,
+                    _unnecessaryGeneratedCodeClassificationIdDescriptor,
+                    _generatedCodeClassificationIdDescriptor);
             }
         }
 
-        public bool OpenFileOnly(Workspace workspace) => true;
+        public bool OpenFileOnly(Workspace workspace) => false;
 
         public override void Initialize(AnalysisContext context)
         {
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
-            context.RegisterSemanticModelAction(this.AnalyzeSemanticModel);
+            context.RegisterSemanticModelAction(AnalyzeSemanticModel);
         }
 
         private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
@@ -104,9 +130,19 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
                 EnsureClassificationIdDescriptors();
                 var fadeOut = workspaceOptions.Services.Workspace.Options.GetOption(FadingOptions.FadeOutUnusedImports, language);
-                var descriptor = fadeOut ? _unnecessaryClassificationIdDescriptor : _classificationIdDescriptor;
 
-                Func<SyntaxNode, SyntaxToken> getLastTokenFunc = GetLastTokenDelegateForContiguousSpans();
+                DiagnosticDescriptor descriptor;
+                var syntaxFacts = workspaceOptions.Services.GetLanguageServices(language).GetRequiredService<ISyntaxFactsService>();
+                if (GeneratedCodeUtilities.IsGeneratedCode(tree, t => syntaxFacts.IsRegularComment(t) || syntaxFacts.IsDocumentationComment(t), context.CancellationToken))
+                {
+                    descriptor = fadeOut ? _unnecessaryGeneratedCodeClassificationIdDescriptor : _generatedCodeClassificationIdDescriptor;
+                }
+                else
+                {
+                    descriptor = fadeOut ? _unnecessaryClassificationIdDescriptor : _classificationIdDescriptor;
+                }
+
+                var getLastTokenFunc = GetLastTokenDelegateForContiguousSpans();
                 var contiguousSpans = unnecessaryImports.GetContiguousSpans(getLastTokenFunc);
                 var diagnostics =
                     CreateClassificationDiagnostics(contiguousSpans, tree, descriptor, cancellationToken).Concat(
