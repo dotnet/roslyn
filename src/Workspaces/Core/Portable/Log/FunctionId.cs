@@ -457,8 +457,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         GraphQuery_Overrides,
 
         Intellisense_AsyncCompletion_Data,
-        Intellisense_CompletionProviders_Data
+        Intellisense_CompletionProviders_Data,
         SnapshotService_IsExperimentEnabledAsync,
-        PartialLoad_FullyLoaded
+        PartialLoad_FullyLoaded,
     }
 }
