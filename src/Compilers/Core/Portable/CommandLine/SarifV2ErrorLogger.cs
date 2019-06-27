@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
             _writer.WriteObjectStart(); // result
             _writer.Write("ruleId", diagnostic.Id);
             int ruleIndex = _descriptors.Add(diagnostic.Descriptor);
-            _writer.Write("ruleIndex", ruleIndex.ToString(CultureInfo.InvariantCulture));
+            _writer.Write("ruleIndex", ruleIndex);
 
             string message = diagnostic.GetMessage(_culture);
             if (!string.IsNullOrEmpty(message))
