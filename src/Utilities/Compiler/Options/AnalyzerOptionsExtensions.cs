@@ -115,25 +115,28 @@ namespace Analyzer.Utilities
             return analyzerConfigOptions.GetOptionValue(optionName, rule, uint.TryParse, defaultValue);
         }
 
-        public static ImmutableArray<string> GetSeparatedStringOptionValue(
+        public static SymbolNamesOption GetSymbolNamesOptionValue(
             this AnalyzerOptions options,
             string optionName,
             DiagnosticDescriptor rule,
-            CancellationToken cancellationToken)
+            Compilation compilation,
+            CancellationToken cancellationToken,
+            string namePrefixOpt = null)
         {
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(cancellationToken);
-            return analyzerConfigOptions.GetOptionValue<ImmutableArray<string>>(optionName, rule, TryParse, defaultValue: ImmutableArray<string>.Empty);
+            return analyzerConfigOptions.GetOptionValue(optionName, rule, TryParse, defaultValue: SymbolNamesOption.Empty);
 
             // Local functions.
-            bool TryParse(string s, out ImmutableArray<string> parts)
+            bool TryParse(string s, out SymbolNamesOption option)
             {
                 if (string.IsNullOrEmpty(s))
                 {
-                    parts = ImmutableArray<string>.Empty;
+                    option = SymbolNamesOption.Empty;
                     return false;
                 }
 
-                parts = s.Split('~').ToImmutableArray();
+                var names = s.Split('|').ToImmutableArray();
+                option = SymbolNamesOption.Create(names, compilation, namePrefixOpt);
                 return true;
             }
         }
