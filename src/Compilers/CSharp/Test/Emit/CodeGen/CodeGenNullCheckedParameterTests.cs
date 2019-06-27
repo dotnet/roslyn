@@ -932,5 +932,87 @@ class C
     IL_000a:  ret
 }");
         }
+
+        [Fact]
+        public void NullCheckedLocalFunction()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        InnerM(""hello world"");
+        void InnerM(string x!) { }
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.<M>g__InnerM|0_0(string)", @"
+{
+    // Code size       10 (0xa)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ret
+}");
+        }
+
+        [Fact]
+        public void NullCheckedLocalFunctionWithManyParams()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        InnerM(""hello"",  ""world"");
+        void InnerM(string x!, string y) { }
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.<M>g__InnerM|0_0(string, string)", @"
+{
+    // Code size       10 (0xa)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ret
+}");
+        }
+
+        [Fact]
+        public void TestLocalFunctionWithManyNullCheckedParams()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        InnerM(""hello"",  ""world"");
+        void InnerM(string x!, string y!) { }
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.<M>g__InnerM|0_0(string, string)", @"
+{
+    // Code size       19 (0x13)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.1
+    IL_000a:  brtrue.s   IL_0012
+    IL_000c:  newobj     ""System.Exception..ctor()""
+    IL_0011:  throw
+    IL_0012:  ret
+}");
+        }
     }
 }
