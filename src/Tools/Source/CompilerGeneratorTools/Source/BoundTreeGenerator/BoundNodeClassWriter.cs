@@ -826,13 +826,13 @@ namespace BoundTreeGenerator
             switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
-                    WriteLine("[DebuggerHidden]");
+                    WriteLine("[DebuggerStepThrough]");
                     WriteLine("public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.Visit{0}(this);", StripBound(name));
                     break;
 
                 case TargetLanguage.VB:
                     Blank();
-                    WriteLine("<DebuggerHidden>");
+                    WriteLine("<DebuggerStepThrough>");
                     WriteLine("Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode");
                     Indent();
                     WriteLine("Return visitor.Visit{0}(Me)", StripBound(name));
@@ -1019,7 +1019,7 @@ namespace BoundTreeGenerator
                     Brace();
 
                     Blank();
-                    WriteLine("[MethodImpl(MethodImplOptions.NoInlining), DebuggerHidden]");
+                    WriteLine("[MethodImpl(MethodImplOptions.NoInlining), DebuggerStepThrough]");
                     WriteLine("internal R VisitInternal(BoundNode node, A arg)");
                     Brace();
                     WriteLine("switch (node.Kind)");
@@ -1062,7 +1062,7 @@ namespace BoundTreeGenerator
                     Indent();
 
                     Blank();
-                    WriteLine("<MethodImpl(MethodImplOptions.NoInlining), DebuggerHidden>");
+                    WriteLine("<MethodImpl(MethodImplOptions.NoInlining), DebuggerStepThrough>");
                     WriteLine("Friend Function VisitInternal(node As BoundNode, arg As A) As R");
                     Indent();
                     WriteLine("Select Case node.Kind");

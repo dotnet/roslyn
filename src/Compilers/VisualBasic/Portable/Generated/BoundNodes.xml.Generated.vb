@@ -259,7 +259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitTypeArguments(Me)
         End Function
@@ -286,7 +286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitOmittedArgument(Me)
         End Function
@@ -345,7 +345,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLValueToRValueWrapper(Me)
         End Function
@@ -416,7 +416,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitWithLValueExpressionPlaceholder(Me)
         End Function
@@ -449,7 +449,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitWithRValueExpressionPlaceholder(Me)
         End Function
@@ -489,7 +489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitRValuePlaceholder(Me)
         End Function
@@ -529,7 +529,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLValuePlaceholder(Me)
         End Function
@@ -565,7 +565,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitDup(Me)
         End Function
@@ -621,7 +621,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitBadExpression(Me)
         End Function
@@ -655,7 +655,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitBadStatement(Me)
         End Function
@@ -694,7 +694,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitParenthesized(Me)
         End Function
@@ -736,7 +736,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitBadVariable(Me)
         End Function
@@ -793,7 +793,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitArrayAccess(Me)
         End Function
@@ -828,7 +828,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitArrayLength(Me)
         End Function
@@ -863,7 +863,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitGetType(Me)
         End Function
@@ -907,7 +907,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitFieldInfo(Me)
         End Function
@@ -951,7 +951,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitMethodInfo(Me)
         End Function
@@ -993,7 +993,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitTypeExpression(Me)
         End Function
@@ -1035,7 +1035,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitTypeOrValueExpression(Me)
         End Function
@@ -1090,7 +1090,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitNamespaceExpression(Me)
         End Function
@@ -1134,7 +1134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitMethodDefIndex(Me)
         End Function
@@ -1167,7 +1167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitMaximumMethodDefIndex(Me)
         End Function
@@ -1218,7 +1218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitInstrumentationPayloadRoot(Me)
         End Function
@@ -1260,7 +1260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitModuleVersionId(Me)
         End Function
@@ -1293,7 +1293,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitModuleVersionIdString(Me)
         End Function
@@ -1337,7 +1337,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitSourceDocumentIndex(Me)
         End Function
@@ -1401,7 +1401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUnaryOperator(Me)
         End Function
@@ -1449,7 +1449,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUserDefinedUnaryOperator(Me)
         End Function
@@ -1489,7 +1489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitNullableIsTrueOperator(Me)
         End Function
@@ -1562,7 +1562,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitBinaryOperator(Me)
         End Function
@@ -1618,7 +1618,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUserDefinedBinaryOperator(Me)
         End Function
@@ -1682,7 +1682,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUserDefinedShortCircuitingOperator(Me)
         End Function
@@ -1715,7 +1715,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitCompoundAssignmentTargetPlaceholder(Me)
         End Function
@@ -1780,7 +1780,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitAssignmentOperator(Me)
         End Function
@@ -1836,7 +1836,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitReferenceAssignment(Me)
         End Function
@@ -1879,7 +1879,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitAddressOfOperator(Me)
         End Function
@@ -1945,7 +1945,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitTernaryConditionalExpression(Me)
         End Function
@@ -2018,7 +2018,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitBinaryConditionalExpression(Me)
         End Function
@@ -2117,7 +2117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitConversion(Me)
         End Function
@@ -2172,7 +2172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitRelaxationLambda(Me)
         End Function
@@ -2220,7 +2220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitConvertedTupleElements(Me)
         End Function
@@ -2268,7 +2268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUserDefinedConversion(Me)
         End Function
@@ -2340,7 +2340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitDirectCast(Me)
         End Function
@@ -2404,7 +2404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitTryCast(Me)
         End Function
@@ -2456,7 +2456,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitTypeOf(Me)
         End Function
@@ -2500,7 +2500,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitSequencePoint(Me)
         End Function
@@ -2534,7 +2534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitSequencePointExpression(Me)
         End Function
@@ -2573,7 +2573,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitSequencePointWithSpan(Me)
         End Function
@@ -2609,7 +2609,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitNoOpStatement(Me)
         End Function
@@ -2692,7 +2692,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitMethodGroup(Me)
         End Function
@@ -2734,7 +2734,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitPropertyGroup(Me)
         End Function
@@ -2786,7 +2786,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitReturnStatement(Me)
         End Function
@@ -2825,7 +2825,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitYieldStatement(Me)
         End Function
@@ -2856,7 +2856,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitThrowStatement(Me)
         End Function
@@ -2890,7 +2890,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitRedimStatement(Me)
         End Function
@@ -2954,7 +2954,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitRedimClause(Me)
         End Function
@@ -2988,7 +2988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitEraseStatement(Me)
         End Function
@@ -3085,7 +3085,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitCall(Me)
         End Function
@@ -3145,7 +3145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitAttribute(Me)
         End Function
@@ -3216,7 +3216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLateMemberAccess(Me)
         End Function
@@ -3288,7 +3288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLateInvocation(Me)
         End Function
@@ -3331,7 +3331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLateAddressOfOperator(Me)
         End Function
@@ -3401,7 +3401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitTupleLiteral(Me)
         End Function
@@ -3436,7 +3436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitConvertedTupleLiteral(Me)
         End Function
@@ -3525,7 +3525,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitObjectCreationExpression(Me)
         End Function
@@ -3559,7 +3559,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitNoPiaObjectCreationExpression(Me)
         End Function
@@ -3610,7 +3610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitAnonymousTypeCreationExpression(Me)
         End Function
@@ -3661,7 +3661,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitAnonymousTypePropertyAccess(Me)
         End Function
@@ -3704,7 +3704,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitAnonymousTypeFieldInitializer(Me)
         End Function
@@ -3780,7 +3780,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitObjectInitializerExpression(Me)
         End Function
@@ -3811,7 +3811,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitCollectionInitializerExpression(Me)
         End Function
@@ -3842,7 +3842,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitNewT(Me)
         End Function
@@ -3909,7 +3909,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitDelegateCreationExpression(Me)
         End Function
@@ -3981,7 +3981,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitArrayCreation(Me)
         End Function
@@ -4058,7 +4058,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitArrayLiteral(Me)
         End Function
@@ -4092,7 +4092,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitArrayInitialization(Me)
         End Function
@@ -4164,7 +4164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitFieldAccess(Me)
         End Function
@@ -4261,7 +4261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitPropertyAccess(Me)
         End Function
@@ -4304,7 +4304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitEventAccess(Me)
         End Function
@@ -4355,7 +4355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitBlock(Me)
         End Function
@@ -4398,7 +4398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitStateMachineScope(Me)
         End Function
@@ -4474,7 +4474,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLocalDeclaration(Me)
         End Function
@@ -4517,7 +4517,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitAsNewLocalDeclarations(Me)
         End Function
@@ -4559,7 +4559,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitDimStatement(Me)
         End Function
@@ -4594,7 +4594,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitInitializer(Me)
         End Function
@@ -4648,7 +4648,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitFieldInitializer(Me)
         End Function
@@ -4683,7 +4683,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitPropertyInitializer(Me)
         End Function
@@ -4726,7 +4726,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitParameterEqualsValue(Me)
         End Function
@@ -4760,7 +4760,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitGlobalStatementInitializer(Me)
         End Function
@@ -4817,7 +4817,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitSequence(Me)
         End Function
@@ -4851,7 +4851,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitExpressionStatement(Me)
         End Function
@@ -4902,7 +4902,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitIfStatement(Me)
         End Function
@@ -4970,7 +4970,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitSelectStatement(Me)
         End Function
@@ -5013,7 +5013,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitCaseBlock(Me)
         End Function
@@ -5055,7 +5055,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitCaseStatement(Me)
         End Function
@@ -5121,7 +5121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitSimpleCaseClause(Me)
         End Function
@@ -5181,7 +5181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitRangeCaseClause(Me)
         End Function
@@ -5217,7 +5217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitRelationalCaseClause(Me)
         End Function
@@ -5324,7 +5324,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitDoLoopStatement(Me)
         End Function
@@ -5369,7 +5369,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitWhileStatement(Me)
         End Function
@@ -5500,7 +5500,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitForToUserDefinedOperators(Me)
         End Function
@@ -5572,7 +5572,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitForToStatement(Me)
         End Function
@@ -5619,7 +5619,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitForEachStatement(Me)
         End Function
@@ -5661,7 +5661,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitExitStatement(Me)
         End Function
@@ -5703,7 +5703,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitContinueStatement(Me)
         End Function
@@ -5762,7 +5762,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitTryStatement(Me)
         End Function
@@ -5836,7 +5836,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitCatchBlock(Me)
         End Function
@@ -5885,7 +5885,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLiteral(Me)
         End Function
@@ -5918,7 +5918,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitMeReference(Me)
         End Function
@@ -5958,7 +5958,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitValueTypeMeReference(Me)
         End Function
@@ -5991,7 +5991,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitMyBaseReference(Me)
         End Function
@@ -6024,7 +6024,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitMyClassReference(Me)
         End Function
@@ -6068,7 +6068,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitPreviousSubmissionReference(Me)
         End Function
@@ -6101,7 +6101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitHostObjectMemberReference(Me)
         End Function
@@ -6161,7 +6161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLocal(Me)
         End Function
@@ -6225,7 +6225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitPseudoVariable(Me)
         End Function
@@ -6287,7 +6287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitParameter(Me)
         End Function
@@ -6329,7 +6329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitByRefArgumentPlaceholder(Me)
         End Function
@@ -6404,7 +6404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitByRefArgumentWithCopyBack(Me)
         End Function
@@ -6452,7 +6452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLateBoundArgumentSupportingAssignmentWithCapture(Me)
         End Function
@@ -6494,7 +6494,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLabelStatement(Me)
         End Function
@@ -6536,7 +6536,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLabel(Me)
         End Function
@@ -6578,7 +6578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitGotoStatement(Me)
         End Function
@@ -6612,7 +6612,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitStatementList(Me)
         End Function
@@ -6663,7 +6663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitConditionalGoto(Me)
         End Function
@@ -6715,7 +6715,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitWithStatement(Me)
         End Function
@@ -6804,7 +6804,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUnboundLambda(Me)
         End Function
@@ -6885,7 +6885,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLambda(Me)
         End Function
@@ -6920,7 +6920,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitQueryExpression(Me)
         End Function
@@ -6974,7 +6974,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitQuerySource(Me)
         End Function
@@ -7009,7 +7009,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitToQueryableCollectionConversion(Me)
         End Function
@@ -7112,7 +7112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitQueryableSource(Me)
         End Function
@@ -7150,7 +7150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitQueryClause(Me)
         End Function
@@ -7185,7 +7185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitOrdering(Me)
         End Function
@@ -7245,7 +7245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitQueryLambda(Me)
         End Function
@@ -7289,7 +7289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitRangeVariableAssignment(Me)
         End Function
@@ -7353,7 +7353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitGroupTypeInferenceLambda(Me)
         End Function
@@ -7407,7 +7407,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitAggregateClause(Me)
         End Function
@@ -7442,7 +7442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitGroupAggregation(Me)
         End Function
@@ -7486,7 +7486,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitRangeVariable(Me)
         End Function
@@ -7542,7 +7542,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitAddHandlerStatement(Me)
         End Function
@@ -7569,7 +7569,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitRemoveHandlerStatement(Me)
         End Function
@@ -7612,7 +7612,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitRaiseEventStatement(Me)
         End Function
@@ -7680,7 +7680,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUsingStatement(Me)
         End Function
@@ -7723,7 +7723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitSyncLockStatement(Me)
         End Function
@@ -7776,7 +7776,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlName(Me)
         End Function
@@ -7820,7 +7820,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlNamespace(Me)
         End Function
@@ -7873,7 +7873,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlDocument(Me)
         End Function
@@ -7932,7 +7932,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlDeclaration(Me)
         End Function
@@ -7985,7 +7985,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlProcessingInstruction(Me)
         End Function
@@ -8029,7 +8029,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlComment(Me)
         End Function
@@ -8095,7 +8095,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlAttribute(Me)
         End Function
@@ -8148,7 +8148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlElement(Me)
         End Function
@@ -8183,7 +8183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlMemberAccess(Me)
         End Function
@@ -8218,7 +8218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlEmbeddedExpression(Me)
         End Function
@@ -8262,7 +8262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlCData(Me)
         End Function
@@ -8314,7 +8314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitResumeStatement(Me)
         End Function
@@ -8366,7 +8366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitOnErrorStatement(Me)
         End Function
@@ -8437,7 +8437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUnstructuredExceptionHandlingStatement(Me)
         End Function
@@ -8486,7 +8486,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUnstructuredExceptionHandlingCatchFilter(Me)
         End Function
@@ -8534,7 +8534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUnstructuredExceptionOnErrorSwitch(Me)
         End Function
@@ -8600,7 +8600,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUnstructuredExceptionResumeSwitch(Me)
         End Function
@@ -8685,7 +8685,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitAwaitOperator(Me)
         End Function
@@ -8750,7 +8750,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitSpillSequence(Me)
         End Function
@@ -8777,7 +8777,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitStopStatement(Me)
         End Function
@@ -8795,7 +8795,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitEndStatement(Me)
         End Function
@@ -8852,7 +8852,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitMidResult(Me)
         End Function
@@ -8904,7 +8904,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitConditionalAccess(Me)
         End Function
@@ -8953,7 +8953,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitConditionalAccessReceiverPlaceholder(Me)
         End Function
@@ -9026,7 +9026,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLoweredConditionalAccess(Me)
         End Function
@@ -9075,7 +9075,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitComplexConditionalAccessReceiver(Me)
         End Function
@@ -9123,7 +9123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitNameOfOperator(Me)
         End Function
@@ -9163,7 +9163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitTypeAsValueExpression(Me)
         End Function
@@ -9212,7 +9212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitInterpolatedStringExpression(Me)
         End Function
@@ -9262,7 +9262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <DebuggerHidden>
+        <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitInterpolation(Me)
         End Function
@@ -9279,7 +9279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend MustInherit Partial Class BoundTreeVisitor(Of A,R)
 
-        <MethodImpl(MethodImplOptions.NoInlining), DebuggerHidden>
+        <MethodImpl(MethodImplOptions.NoInlining), DebuggerStepThrough>
         Friend Function VisitInternal(node As BoundNode, arg As A) As R
             Select Case node.Kind
                 Case BoundKind.TypeArguments: 
