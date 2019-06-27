@@ -2843,7 +2843,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var isStaticEqualsMethod = method.Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__EqualsObjectObject))
                     || method.Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__ReferenceEquals));
-            if (isStaticEqualsMethod || isWellKnownEqualityMethodOrImplementation(method, WellKnownMember.System_Collections_Generic_IEqualityComparer_T__Equals))
+            if (isStaticEqualsMethod ||
+                isWellKnownEqualityMethodOrImplementation(compilation, method, WellKnownMember.System_Collections_Generic_IEqualityComparer_T__Equals))
             {
                 Debug.Assert(arguments.Length == 2);
                 learnFromEqualsMethodArguments(arguments[0], results[0].RValueType, arguments[1], results[1].RValueType);
@@ -2852,14 +2853,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var isObjectEqualsMethodOrOverride = method.GetLeastOverriddenMethod(accessingTypeOpt: null)
                 .Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__Equals));
-            if (isObjectEqualsMethodOrOverride || isWellKnownEqualityMethodOrImplementation(method, WellKnownMember.System_IEquatable_T__Equals))
+            if (isObjectEqualsMethodOrOverride ||
+                isWellKnownEqualityMethodOrImplementation(compilation, method, WellKnownMember.System_IEquatable_T__Equals))
             {
                 Debug.Assert(arguments.Length == 1);
                 learnFromEqualsMethodArguments(node.ReceiverOpt, receiverType, arguments[0], results[0].RValueType);
                 return;
             }
 
-            bool isWellKnownEqualityMethodOrImplementation(MethodSymbol method, WellKnownMember wellKnownMember)
+            static bool isWellKnownEqualityMethodOrImplementation(CSharpCompilation compilation, MethodSymbol method, WellKnownMember wellKnownMember)
             {
                 var wellKnownMethod = compilation.GetWellKnownTypeMember(wellKnownMember);
                 if (wellKnownMethod is null)
