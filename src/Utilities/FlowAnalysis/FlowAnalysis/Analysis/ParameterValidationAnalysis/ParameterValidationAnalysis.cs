@@ -42,10 +42,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                    analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken, defaultMaxInterproceduralMethodCallChain);
             var performCopyAnalysis = analyzerOptions.GetCopyAnalysisOption(rule, defaultValue: false, cancellationToken);
-            var nullCheckValidationMethods = analyzerOptions.GetSeparatedStringOptionValue(
+            var nullCheckValidationMethods = analyzerOptions.GetSymbolNamesOptionValue(
                 EditorConfigOptionNames.NullCheckValidationMethods,
                 rule,
-                cancellationToken);
+                compilation,
+                cancellationToken,
+                namePrefixOpt: "M:");
             return GetOrComputeHazardousParameterUsages(topmostBlock, compilation, owningSymbol,
                 nullCheckValidationMethods, interproceduralAnalysisConfig, performCopyAnalysis, pessimisticAnalysis);
         }
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             IBlockOperation topmostBlock,
             Compilation compilation,
             ISymbol owningSymbol,
-            ImmutableArray<string> nullCheckValidationMethods,
+            SymbolNamesOption nullCheckValidationMethods,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool performCopyAnalysis,
             bool pessimisticAnalysis = true)
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
             WellKnownTypeProvider wellKnownTypeProvider,
-            ImmutableArray<string> nullCheckValidationMethods,
+            SymbolNamesOption nullCheckValidationMethods,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             PointsToAnalysisResult pointsToAnalysisResult)

@@ -148,6 +148,35 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
+        /// Returns true if the given symbol has been configured to be excluded from analysis by options.
+        /// </summary>
+        public static bool IsConfiguredToSkipAnalysis(
+            this ISymbol symbol,
+            AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+        {
+            var excludedSymbols = options.GetSymbolNamesOptionValue(EditorConfigOptionNames.ExcludedSymbolNames, rule, compilation, cancellationToken);
+            if (excludedSymbols.IsEmpty)
+            {
+                return false;
+            }
+
+            while (symbol != null)
+            {
+                if (excludedSymbols.Contains(symbol))
+                {
+                    return true;
+                }
+
+                symbol = symbol.ContainingSymbol;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// True if the symbol is externally visible outside this assembly.
         /// </summary>
         public static bool IsExternallyVisible(this ISymbol symbol) =>

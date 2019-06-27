@@ -46,5 +46,15 @@ namespace Analyzer.Utilities
         ///      with an optional "M:" prefix.
         /// </summary>
         public const string NullCheckValidationMethods = "null_check_validation_methods";
+
+        /// <summary>
+        /// String option to configure names of symbols (separated by '~') that are excluded for analysis.
+        /// Configurable rules: CA1303 (https://docs.microsoft.com/visualstudio/code-quality/ca1303-do-not-pass-literals-as-localized-parameters).
+        /// Allowed method name formats:
+        ///   1. Symbol name only (includes all symbols with the name, regardless of the containing type or namespace)
+        ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format
+        ///      with an optional symbol kind prefix, such as "M:" prefix for methods, "T:" prefix for types, etc.
+        /// </summary>
+        public const string ExcludedSymbolNames = "excluded_symbol_names";
     }
 }
