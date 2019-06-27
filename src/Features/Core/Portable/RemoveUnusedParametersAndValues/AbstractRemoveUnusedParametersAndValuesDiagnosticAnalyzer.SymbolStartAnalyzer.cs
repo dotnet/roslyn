@@ -183,6 +183,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 // we don't have to bail out on reporting unused parameters for all public methods.
 
                 if (parameter.IsImplicitlyDeclared ||
+                    parameter.Name.Length == 0 ||
                     parameter.Name == DiscardVariableName ||
                     !(parameter.ContainingSymbol is IMethodSymbol method) ||
                     method.IsImplicitlyDeclared ||
@@ -190,6 +191,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     method.IsAbstract ||
                     method.IsVirtual ||
                     method.IsOverride ||
+                    method.PartialImplementationPart != null ||
                     !method.ExplicitOrImplicitInterfaceImplementations().IsEmpty ||
                     method.IsAccessor() ||
                     method.IsAnonymousFunction() ||
