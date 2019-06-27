@@ -100,6 +100,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     ? _nullString
                     : GetValueString(nullableValue, inspectionContext, ObjectDisplayOptions.None, GetValueFlags.IncludeTypeName);
             }
+            else if (lmrType.IsIntPtr() || lmrType.IsUIntPtr())
+            {
+                var fieldValue = value.GetFieldValue(InternalWellKnownMemberNames.IntPtrAndUIntPtrStringValue, inspectionContext);
+                return FormatPrimitive(fieldValue, ObjectDisplayOptions.UseHexadecimalNumbers, inspectionContext);
+            }
             else
             {
                 int cardinality;
