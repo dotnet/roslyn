@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text.Adornments;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -35,88 +37,37 @@ namespace Roslyn.Test.Utilities
             return exportProviderFactory.CreateExportProvider();
         }
 
-        protected static void AssertSymbolInformationsEqual(LSP.SymbolInformation expected, LSP.SymbolInformation actual)
+        /// <summary>
+        /// Asserts two objects are equivalent by converting to JSON and ignoring whitespace.
+        /// </summary>
+        /// <typeparam name="T">the JSON object type.</typeparam>
+        /// <param name="expected">the expected object to be converted to JSON.</param>
+        /// <param name="actual">the actual object to be converted to JSON.</param>
+        protected static void AssertJsonEquals<T>(T expected, T actual)
         {
-            if (expected is null)
-            {
-                Assert.Null(actual);
-                return;
-            }
-
-            Assert.Equal(expected.Kind, actual.Kind);
-            Assert.Equal(expected.Name, actual.Name);
-            Assert.Equal(expected.Location, actual.Location);
+            var expectedStr = JsonConvert.SerializeObject(expected);
+            var actualStr = JsonConvert.SerializeObject(actual);
+            AssertEqualIgnoringWhitespace(expectedStr, actualStr);
         }
 
-        protected static void AssertMarkupContentsEqual(LSP.MarkupContent expected, LSP.MarkupContent actual)
+        protected static void AssertEqualIgnoringWhitespace(string expected, string actual)
         {
-            if (expected is null)
-            {
-                Assert.Null(actual);
-                return;
-            }
-
-            Assert.Equal(expected.Kind, actual.Kind);
-            Assert.Equal(expected.Value, actual.Value);
-        }
-
-        protected static void AssertTextEditsEqual(LSP.TextEdit expected, LSP.TextEdit actual)
-        {
-            if (expected is null)
-            {
-                Assert.Null(actual);
-                return;
-            }
-
-            Assert.Equal(expected.NewText, actual.NewText);
-            Assert.Equal(expected.Range, actual.Range);
-        }
-
-        protected static void AssertCompletionItemsEqual(LSP.VSCompletionItem expected, LSP.VSCompletionItem actual, bool isResolved)
-        {
-            Assert.Equal(expected.FilterText, actual.FilterText);
-            Assert.Equal(expected.InsertText, actual.InsertText);
-            Assert.Equal(expected.Label, actual.Label);
-            Assert.Equal(expected.InsertTextFormat, actual.InsertTextFormat);
-            Assert.Equal(expected.Kind, actual.Kind);
-
-            AssertTextEditsEqual(expected.TextEdit, actual.TextEdit);
-            AssertIconsEqual(expected.Icon, actual.Icon);
-
-            if (isResolved)
-            {
-                Assert.Equal(expected.Detail, actual.Detail);
-                AssertMarkupContentsEqual(expected.Documentation, actual.Documentation);
-                AssertCollectionsEqual(expected.Description.Runs, actual.Description.Runs, AssertClassifiedTextRunsEqual);
-            }
-
-            // local functions
-            static void AssertClassifiedTextRunsEqual(ClassifiedTextRun expectedRun, ClassifiedTextRun actualRun)
-            {
-                Assert.Equal(expectedRun.Text, actualRun.Text);
-                Assert.Equal(expectedRun.ClassificationTypeName, actualRun.ClassificationTypeName);
-            }
-
-            static void AssertIconsEqual(ImageElement expectedIcon, ImageElement actualIcon)
-            {
-                if (expectedIcon != null)
-                {
-                    Assert.Equal(expectedIcon.AutomationName, actualIcon.AutomationName);
-                    Assert.Equal(expectedIcon.ImageId.Guid, actualIcon.ImageId.Guid);
-                    Assert.Equal(expectedIcon.ImageId.Id, actualIcon.ImageId.Id);
-                }
-            }
+            var expectedWithoutWhitespace = Regex.Replace(expected, @"\s+", string.Empty);
+            var actualWithoutWhitespace = Regex.Replace(actual, @"\s+", string.Empty);
+            Assert.Equal(expectedWithoutWhitespace, actualWithoutWhitespace);
         }
 
         /// <summary>
         /// Assert that two location lists are equivalent.
-        /// Locations are not returned in a consistent order, so they must be sorted.
+        /// Locations are not always returned in a consistent order so they must be sorted.
         /// </summary>
         protected static void AssertLocationsEqual(IEnumerable<LSP.Location> expectedLocations, IEnumerable<LSP.Location> actualLocations)
         {
-            AssertCollectionsEqual(expectedLocations, actualLocations.Select(loc => (object)loc), Assert.Equal, CompareLocations);
+            var orderedActualLocations = actualLocations.OrderBy(CompareLocations);
+            var orderedExpectedLocations = expectedLocations.OrderBy(CompareLocations);
 
-            // local functions
+            AssertJsonEquals(orderedExpectedLocations, orderedActualLocations);
+
             static int CompareLocations(LSP.Location l1, LSP.Location l2)
             {
                 var compareDocument = l1.Uri.OriginalString.CompareTo(l2.Uri.OriginalString);
@@ -130,23 +81,6 @@ namespace Roslyn.Test.Utilities
             var compareLine = r1.Start.Line.CompareTo(r2.Start.Line);
             var compareChar = r1.Start.Character.CompareTo(r2.Start.Character);
             return compareLine != 0 ? compareLine : compareChar;
-        }
-
-        /// <summary>
-        /// Asserts that two collections are equal.
-        /// Optionally uses a sorting function before comparing the lists.
-        /// </summary>
-        protected static void AssertCollectionsEqual<T>(IEnumerable<T> expected, IEnumerable<object> actual, Action<T, T> assertionFunction, Func<T, T, int> compareFunc = null)
-        {
-            Assert.Equal(expected.Count(), actual.Count());
-            var actualWithType = actual.Select(actualObject => (T)actualObject);
-
-            var expectedResult = compareFunc != null ? expected.OrderBy((T t1, T t2) => compareFunc(t1, t2)).ToList() : expected.ToList();
-            var actualResult = compareFunc != null ? actualWithType.OrderBy((T t1, T t2) => compareFunc(t1, t2)).ToList() : actualWithType.ToList();
-            for (var i = 0; i < actualResult.Count; i++)
-            {
-                assertionFunction(expectedResult[i], actualResult[i]);
-            }
         }
 
         protected static string ApplyTextEdits(LSP.TextEdit[] edits, SourceText originalMarkup)
@@ -164,12 +98,13 @@ namespace Roslyn.Test.Utilities
             return text.ToString();
         }
 
-        protected static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location)
+        protected static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, string containerName = null)
             => new LSP.SymbolInformation()
             {
                 Kind = kind,
                 Name = name,
-                Location = location
+                Location = location,
+                ContainerName = containerName
             };
 
         protected static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(Uri uri)
@@ -226,7 +161,8 @@ namespace Roslyn.Test.Utilities
                 CodeActionParams = new LSP.CodeActionParams()
                 {
                     TextDocument = CreateTextDocumentIdentifier(location.Uri),
-                    Range = location.Range
+                    Range = location.Range,
+                    Context = new LSP.CodeActionContext()
                 },
                 Title = codeActionTitle
             };

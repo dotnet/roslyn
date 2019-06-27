@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
 using System.Threading;
@@ -46,31 +46,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
 
                 var linePositionSpan = text.Lines.GetLinePositionSpan(span.TextSpan);
+
+                // TODO - Figure out which blocks should be returned as a folding range (and what kind).
+                // https://github.com/dotnet/roslyn/projects/45#card-20049168
+                var foldingRangeKind = span.Type switch
+                {
+                    BlockTypes.Comment => (FoldingRangeKind?)FoldingRangeKind.Comment,
+                    BlockTypes.Imports => FoldingRangeKind.Imports,
+                    BlockTypes.PreprocessorRegion => FoldingRangeKind.Region,
+                    _ => null,
+                };
+
                 foldingRanges.Add(new FoldingRange()
                 {
                     StartLine = linePositionSpan.Start.Line,
                     StartCharacter = linePositionSpan.Start.Character,
                     EndLine = linePositionSpan.End.Line,
                     EndCharacter = linePositionSpan.End.Character,
-                    Kind = ConvertToWellKnownBlockType(span.Type),
+                    Kind = foldingRangeKind
                 });
             }
 
             return foldingRanges.ToArrayAndFree();
-
-            // local functions
-            // TODO - Figure out which blocks should be returned as a folding range (and what kind).
-            // https://github.com/dotnet/roslyn/projects/45#card-20049168
-            static FoldingRangeKind? ConvertToWellKnownBlockType(string kind)
-            {
-                switch (kind)
-                {
-                    case BlockTypes.Comment: return FoldingRangeKind.Comment;
-                    case BlockTypes.Imports: return FoldingRangeKind.Imports;
-                    case BlockTypes.PreprocessorRegion: return FoldingRangeKind.Region;
-                    default: return null;
-                }
-            }
         }
     }
 }
