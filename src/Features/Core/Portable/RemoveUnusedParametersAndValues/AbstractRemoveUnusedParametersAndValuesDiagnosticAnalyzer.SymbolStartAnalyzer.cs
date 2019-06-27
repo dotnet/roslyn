@@ -76,9 +76,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 // Local functions
                 static bool HasSyntaxErrors(INamedTypeSymbol namedTypeSymbol, CancellationToken cancellationToken)
                 {
-                    foreach (var tree in namedTypeSymbol.Locations.Select(l => l.SourceTree))
+                    foreach (var syntaxRef in namedTypeSymbol.DeclaringSyntaxReferences)
                     {
-                        if (tree.GetDiagnostics(cancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
+                        var syntax = syntaxRef.GetSyntax(cancellationToken);
+                        if (syntax.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
                         {
                             return true;
                         }
