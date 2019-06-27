@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project rot for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         public IDictionary<OptionKey, object> FieldNamesAreCamelCaseWithUnderscore =>
             Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), FieldNamesAreCamelCaseWithUnderscoreOption());
 
-        public IDictionary<OptionKey, object> FieldNamesAreCamelCaseBeginWithField_ =>
+        public IDictionary<OptionKey, object> FieldNamesAreCamelCaseBeginWithFieldUnderscore =>
             Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), FieldNamesAreCamelCaseBeginWithField_Option());
 
         public IDictionary<OptionKey, object> MethodNamesArePascalCase =>
@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         public IDictionary<OptionKey, object> ParameterNamesAreCamelCaseWithPUnderscorePrefix =>
             Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), ParameterNamesAreCamelCaseWithPUnderscorePrefixOption());
 
-        public IDictionary<OptionKey, object> ParameterNamesAreCamelCaseWithPUnderscorePrefixAnd_endSuffix =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), ParameterNamesAreCamelCaseWithPUnderscorePrefixOptionand_endSuffix());
+        public IDictionary<OptionKey, object> ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix =>
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), ParameterNamesAreCamelCaseWithPUnderscorePrefixOptionandUnderscoreEndSuffix());
 
         public IDictionary<OptionKey, object> LocalNamesAreCamelCase =>
             Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), LocalNamesAreCamelCaseOption());
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             return info;
         }
 
-        private static NamingStylePreferences ParameterNamesAreCamelCaseWithPUnderscorePrefixOptionand_endSuffix()
+        private static NamingStylePreferences ParameterNamesAreCamelCaseWithPUnderscorePrefixOptionandUnderscoreEndSuffix()
         {
             var symbolSpecification = new SymbolSpecification(
                 null,

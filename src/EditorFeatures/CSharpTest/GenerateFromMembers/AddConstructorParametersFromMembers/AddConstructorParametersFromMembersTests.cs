@@ -1237,7 +1237,7 @@ class C
     }
 }
 ";
-            await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAnd_endSuffix);
+            await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix);
         }
 
         [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
@@ -1296,7 +1296,7 @@ class C
 }
 ";
             await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.MergeStyles(
-                options.FieldNamesAreCamelCaseBeginWithField_, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+                options.FieldNamesAreCamelCaseBeginWithFieldUnderscore, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
         }
 
         [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
@@ -1326,7 +1326,7 @@ class C
 }
 ";
             await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.MergeStyles(
-                options.FieldNamesAreCamelCaseBeginWithField_, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+                options.FieldNamesAreCamelCaseBeginWithFieldUnderscore, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
         }
 
         [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
@@ -1356,7 +1356,7 @@ class C
 }
 ";
             await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.MergeStyles(
-                options.FieldNamesAreCamelCaseBeginWithField_, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+                options.FieldNamesAreCamelCaseBeginWithFieldUnderscore, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
         }
     }
 }
