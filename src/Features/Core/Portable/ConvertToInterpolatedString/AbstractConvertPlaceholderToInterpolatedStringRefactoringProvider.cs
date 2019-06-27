@@ -6,15 +6,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 {
@@ -173,7 +172,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             ISyntaxFactsService syntaxFactsService)
         {
             var builder = ArrayBuilder<TExpressionSyntax>.GetInstance();
-            for (int i = 1; i < arguments.Count; i++)
+            for (var i = 1; i < arguments.Count; i++)
             {
                 var argumentExpression = syntaxFactsService.GetExpressionOfArgument(GetArgument(arguments, i, syntaxFactsService));
                 var convertedType = semanticModel.GetTypeInfo(argumentExpression).ConvertedType;

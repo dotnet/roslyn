@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private class TelemetryCounter : IDisposable
         {
-            private int _tick;
+            private readonly int _tick;
 
             public int ItemsCount { get; set; }
 

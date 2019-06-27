@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Structure
 
         private ImmutableArray<BlockStructureProvider> GetImportedProviders()
         {
-            var language = this.Language;
+            var language = Language;
             var mefExporter = (IMefHostExportProvider)_workspace.Services.HostServices;
 
             var providers = mefExporter.GetExports<BlockStructureProvider, LanguageMetadata>()

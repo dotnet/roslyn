@@ -937,6 +937,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Configure {0} code style.
+        /// </summary>
+        internal static string Configure_0_code_style {
+            get {
+                return ResourceManager.GetString("Configure_0_code_style", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configure {0} severity.
+        /// </summary>
+        internal static string Configure_0_severity {
+            get {
+                return ResourceManager.GetString("Configure_0_severity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to const field.
         /// </summary>
         internal static string const_field {

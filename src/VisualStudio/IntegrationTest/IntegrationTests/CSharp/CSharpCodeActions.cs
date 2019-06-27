@@ -491,6 +491,14 @@ public class P2 { }");
                 "Generate nested class 'Stream'",
                 "Generate new type...",
                 "Remove unused variable",
+                "Configure or Suppress issues",
+                // https://github.com/dotnet/roslyn/issues/36330
+                //"Configure CS0168 severity",
+                //"None",
+                //"Silent",
+                //"Suggestion",
+                //"Warning",
+                //"Error",
                 "Suppress CS0168",
                 "in Source"
             };
@@ -531,6 +539,14 @@ namespace NS
                 "Generate nested class 'Foober'",
                 "Generate new type...",
                 "Goober - using N;",
+                "Configure or Suppress issues",
+                // https://github.com/dotnet/roslyn/issues/36330
+                //"Configure CS0168 severity",
+                //"None",
+                //"Silent",
+                //"Suggestion",
+                //"Warning",
+                //"Error",
                 "Suppress CS0168",
                 "in Source",
             };
@@ -566,6 +582,14 @@ class Program
                 "Introduce local constant for all occurrences of '2'",
                 "Extract Method",
                 generateImplicitTitle,
+                "Configure or Suppress issues",
+                // https://github.com/dotnet/roslyn/issues/36330
+                //"Configure CS0612 severity",
+                //"None",
+                //"Silent",
+                //"Suggestion",
+                //"Warning",
+                //"Error",
                 "Suppress CS0612",
                 "in Source",
             };
@@ -621,6 +645,58 @@ public class Program
             VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
             VisualStudio.Editor.Verify.TextContains("using System.Runtime.InteropServices");
 
+        }
+
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36330"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+        public void ConfigureCodeStyleOptionValueAndSeverity()
+        {
+            SetUpEditor(@"
+using System;
+public class Program
+{
+    static void Main(string[] args)
+    {
+        var $$x = new Program();
+    }
+}");
+            VisualStudio.Editor.InvokeCodeActionList();
+            var expectedItems = new[]
+            {
+                "Use discard '__'",  // IDE0059
+                "Use explicit type instead of 'var'",   // IDE0008
+                "Configure or Suppress issues",
+                    "Configure IDE0008 code style",
+                        "csharp__style__var__elsewhere",
+                            "true",
+                            "false",
+                        "csharp__style__var__for__built__in__types",
+                            "true",
+                            "false",
+                        "csharp__style__var__when__type__is__apparent",
+                            "true",
+                            "false",
+                    "Configure IDE0008 severity",
+                        "None",
+                        "Silent",
+                        "Suggestion",
+                        "Warning",
+                        "Error",
+                    "Configure IDE0059 code style",
+                        "unused__local__variable",
+                        "discard__variable",
+                    "Configure IDE0059 severity",
+                        "None",
+                        "Silent",
+                        "Suggestion",
+                        "Warning",
+                        "Error",
+                    "Suppress IDE0059",
+                        "in Source",
+                        "in Suppression File",
+                        "in Source (attribute)",
+            };
+
+            VisualStudio.Editor.Verify.CodeActions(expectedItems, ensureExpectedItemsAreOrdered: true);
         }
     }
 }

@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             var tempReturnValue = fromValue;
             foreach (var removeValue in removeValues)
             {
-                tempReturnValue = tempReturnValue & ~removeValue;
+                tempReturnValue &= ~removeValue;
             }
 
             return tempReturnValue;
