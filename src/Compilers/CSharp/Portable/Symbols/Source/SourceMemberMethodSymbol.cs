@@ -1261,15 +1261,7 @@ done:
         }
 
         private static FlowAnalysisAnnotations DecodeFlowAnalysisAttributes(MethodWellKnownAttributeData attributeData)
-        {
-            var annotations = FlowAnalysisAnnotations.None;
-            if (attributeData != null)
-            {
-                if (attributeData.HasDoesNotReturnAttribute) annotations |= FlowAnalysisAnnotations.DoesNotReturn;
-            }
-
-            return annotations;
-        }
+            => attributeData?.HasDoesNotReturnAttribute == true ? FlowAnalysisAnnotations.DoesNotReturn : FlowAnalysisAnnotations.None;
 
         private bool VerifyObsoleteAttributeAppliedToMethod(
             ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments,
