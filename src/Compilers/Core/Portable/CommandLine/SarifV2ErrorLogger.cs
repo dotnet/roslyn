@@ -44,6 +44,14 @@ namespace Microsoft.CodeAnalysis
             int ruleIndex = _descriptors.Add(diagnostic.Descriptor);
             _writer.Write("ruleIndex", ruleIndex.ToString(CultureInfo.InvariantCulture));
 
+            string message = diagnostic.GetMessage(_culture);
+            if (!string.IsNullOrEmpty(message))
+            {
+                _writer.WriteObjectStart("message");
+                _writer.Write("text", message);
+                _writer.WriteObjectEnd();
+            }
+
             _writer.WriteObjectEnd(); // result
         }
 
