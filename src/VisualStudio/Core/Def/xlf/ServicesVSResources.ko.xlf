@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
-        <target state="new">A new namespace will be created</target>
+        <target state="translated">새 네임스페이스가 만들어집니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_current_file">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
         <source>Enable nullable reference analysis IDE features</source>
-        <target state="new">Enable nullable reference analysis IDE features</target>
+        <target state="translated">nullable 참조 분석 IDE 기능 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -144,12 +144,12 @@
       </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to Namespace</source>
-        <target state="new">Move to Namespace</target>
+        <target state="translated">네임스페이스로 이동</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
         <source>Namespace</source>
-        <target state="new">Namespace</target>
+        <target state="translated">네임스페이스</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0">
@@ -424,12 +424,12 @@
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
-        <target state="new">Target Namespace:</target>
+        <target state="translated">대상 네임스페이스:</target>
         <note />
       </trans-unit>
       <trans-unit id="This_is_an_invalid_namespace">
         <source>This is an invalid namespace</source>
-        <target state="new">This is an invalid namespace</target>
+        <target state="translated">잘못된 네임스페이스입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -444,7 +444,7 @@
       </trans-unit>
       <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
         <source>Use enhanced colors for C# and Basic</source>
-        <target state="translated">C# 및 Basic에 향상된 색 사용</target>
+        <target state="translated">C# 및 Basic용 향상된 색 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">

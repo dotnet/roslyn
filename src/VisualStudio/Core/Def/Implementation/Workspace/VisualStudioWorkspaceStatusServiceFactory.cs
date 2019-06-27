@@ -4,24 +4,35 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.LanguageServices.Experimentation;
+using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     [ExportWorkspaceServiceFactory(typeof(IWorkspaceStatusService), ServiceLayer.Host), Shared]
     internal class VisualStudioWorkspaceStatusServiceFactory : IWorkspaceServiceFactory
     {
+        private readonly IAsyncServiceProvider2 _serviceProvider;
+        private readonly IAsynchronousOperationListener _listener;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioWorkspaceStatusServiceFactory()
+        public VisualStudioWorkspaceStatusServiceFactory(
+            SVsServiceProvider serviceProvider, IAsynchronousOperationListenerProvider listenerProvider)
         {
+            _serviceProvider = (IAsyncServiceProvider2)serviceProvider;
+
+            // for now, we use workspace so existing tests can automatically wait for full solution load event
+            // subscription done in test
+            _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -36,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
 
                 // only VSWorkspace supports partial load mode
-                return new Service(vsWorkspace);
+                return new Service(_serviceProvider, _listener);
             }
 
             return WorkspaceStatusService.Default;
@@ -48,79 +59,86 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// </summary>
         private class Service : IWorkspaceStatusService
         {
-            private readonly VisualStudioWorkspace _workspace;
+            private readonly SemaphoreSlim _initializationGate = new SemaphoreSlim(initialCount: 1);
+            private readonly IAsyncServiceProvider2 _serviceProvider;
 
-            // only needed for testing
-            private ResettableDelay _lastTimeCalled;
+            private bool _initialized = false;
 
             public event EventHandler<bool> StatusChanged;
 
-            public Service(VisualStudioWorkspace workspace)
+            public Service(IAsyncServiceProvider2 serviceProvider, IAsynchronousOperationListener listener)
             {
-                // until we get new platform API, use legacy one that is not fully do what we want
-                _workspace = workspace;
+                _serviceProvider = serviceProvider;
+
+                // pre-emptively make sure event is subscribed. if APIs are called before it is done, calls will be blocked
+                // until event subscription is done
+                var asyncToken = listener.BeginAsyncOperation("StatusChanged_EventSubscription");
+                Task.Run(() => EnsureInitializationAsync(CancellationToken.None), CancellationToken.None).CompletesAsyncOperation(asyncToken);
             }
 
-            public async System.Threading.Tasks.Task WaitUntilFullyLoadedAsync(CancellationToken cancellationToken)
+            public async Task WaitUntilFullyLoadedAsync(CancellationToken cancellationToken)
             {
-                if (_workspace.Options.GetOption(ExperimentationOptions.SolutionStatusService_ForceDelay))
+                using (Logger.LogBlock(FunctionId.PartialLoad_FullyLoaded, KeyValueLogMessage.NoProperty, cancellationToken))
                 {
-                    await System.Threading.Tasks.Task.Delay(_workspace.Options.GetOption(ExperimentationOptions.SolutionStatusService_DelayInMS)).ConfigureAwait(false);
+                    await EnsureInitializationAsync(cancellationToken).ConfigureAwait(false);
+
+                    var status = await GetProgressStageStatusAsync(cancellationToken).ConfigureAwait(false);
+                    if (status == null)
+                    {
+                        return;
+                    }
+
+                    var completionTask = status.WaitForCompletionAsync();
+                    Logger.Log(FunctionId.PartialLoad_FullyLoaded, KeyValueLogMessage.Create(LogType.Trace, m => m["AlreadyFullyLoaded"] = completionTask.IsCompleted));
+
+                    // TODO: WaitForCompletionAsync should accept cancellation directly.
+                    //       for now, use WithCancellation to indirectly add cancellation
+                    await completionTask.WithCancellation(cancellationToken).ConfigureAwait(false);
                 }
-
-                if (await IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    // already fully loaded
-                    return;
-                }
-
-                var taskCompletionSource = new TaskCompletionSource<object>();
-
-                // we are using this API for now, until platform provide us new API for prototype
-                KnownUIContexts.SolutionExistsAndFullyLoadedContext.WhenActivated(() => taskCompletionSource.SetResult(null));
-
-                await taskCompletionSource.Task.ConfigureAwait(false);
             }
 
-            public Task<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
+            public async Task<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
             {
-                if (_workspace.Options.GetOption(ExperimentationOptions.SolutionStatusService_ForceDelay))
+                await EnsureInitializationAsync(cancellationToken).ConfigureAwait(false);
+
+                var status = await GetProgressStageStatusAsync(cancellationToken).ConfigureAwait(false);
+                if (status == null)
                 {
-                    // this is for prototype/mock for people/teams trying partial solution load prototyping
-                    // it shouldn't concern anyone outside of that group. 
-                    //
-                    // "experimentationService.IsExperimentEnabled(WellKnownExperimentNames.PartialLoadMode)" check above
-                    // make sure this part of code "Service : IWorkspaceStatusService" is not exposed anyone outside of
-                    // the partial solution load group.
-                    //
-                    // for ones that is in the group, one can try lightbulb behavior through internal option page
-                    // such as moving around caret on lines where LB should show up.
-                    //
-                    // it works as below
-                    // 1. when this is first called, we return false and start timer to change its status in delayInMS
-                    // 2. once delayInMs passed, we clear the delay and return true.
-                    // 3. if it is called before the timeout, we reset the timer and return false
-                    if (_lastTimeCalled == null)
-                    {
-                        var delay = _workspace.Options.GetOption(ExperimentationOptions.SolutionStatusService_DelayInMS);
-                        _lastTimeCalled = new ResettableDelay(delayInMilliseconds: delay, AsynchronousOperationListenerProvider.NullListener);
-                        _ = _lastTimeCalled.Task.SafeContinueWith(_ => StatusChanged?.Invoke(this, true), TaskScheduler.Default);
-
-                        return SpecializedTasks.False;
-                    }
-
-                    if (_lastTimeCalled.Task.IsCompleted)
-                    {
-                        _lastTimeCalled = null;
-                        return SpecializedTasks.True;
-                    }
-
-                    _lastTimeCalled.Reset();
-                    return SpecializedTasks.False;
+                    return false;
                 }
 
-                // we are using this API for now, until platform provide us new API for prototype
-                return KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsActive ? SpecializedTasks.True : SpecializedTasks.False;
+                return !status.Status.IsInProgress;
+            }
+
+            private async Task<IVsOperationProgressStageStatus> GetProgressStageStatusAsync(CancellationToken cancellationToken)
+            {
+                var service = await _serviceProvider.GetServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>(throwOnFailure: false)
+                                                    .WithCancellation(cancellationToken).ConfigureAwait(false);
+
+                return service?.GetStageStatus(CommonOperationProgressStageIds.Intellisense);
+            }
+
+            private async Task EnsureInitializationAsync(CancellationToken cancellationToken)
+            {
+                using (await _initializationGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    if (_initialized)
+                    {
+                        return;
+                    }
+
+                    _initialized = true;
+
+                    // with IAsyncServiceProvider, to get a service from BG, there is not much else
+                    // we can do to avoid this pattern to subscribe to events
+                    var status = await GetProgressStageStatusAsync(cancellationToken).ConfigureAwait(false);
+                    if (status == null)
+                    {
+                        return;
+                    }
+
+                    status.InProgressChanged += (_, e) => this.StatusChanged?.Invoke(this, !e.Status.IsInProgress);
+                }
             }
         }
     }
