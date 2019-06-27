@@ -82,6 +82,11 @@
         <target state="translated">패턴 일치에 대한 피연산자가 잘못되었습니다. 값이 필요하지만 '{0}'을(를) 찾았습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadSarifVersion">
+        <source>Invalid option '{0}' for /sarifversion. Supported values are 1 and 2. Default is 1.</source>
+        <target state="new">Invalid option '{0}' for /sarifversion. Supported values are 1 and 2. Default is 1.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist는 'in' 또는 'out'으로 전달되는 인수를 가질 수 없습니다.</target>

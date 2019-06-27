@@ -82,6 +82,11 @@
         <target state="translated">Opérande non valide pour les critères spéciaux ; la valeur nécessaire n'est pas celle trouvée, '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadSarifVersion">
+        <source>Invalid option '{0}' for /sarifversion. Supported values are 1 and 2. Default is 1.</source>
+        <target state="new">Invalid option '{0}' for /sarifversion. Supported values are 1 and 2. Default is 1.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist ne peut pas avoir un argument passé par 'in' ou 'out'</target>

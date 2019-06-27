@@ -82,6 +82,11 @@
         <target state="translated">用于模式匹配的操作数无效；需要值，但找到的是“{0}”。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadSarifVersion">
+        <source>Invalid option '{0}' for /sarifversion. Supported values are 1 and 2. Default is 1.</source>
+        <target state="new">Invalid option '{0}' for /sarifversion. Supported values are 1 and 2. Default is 1.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist 不能有 "in" 或 "out" 传递的参数</target>

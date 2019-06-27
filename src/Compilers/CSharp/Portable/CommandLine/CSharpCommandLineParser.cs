@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool refOnly = false;
             string documentationPath = null;
             string errorLogPath = null;
+            SarifVersion sarifVersion = SarifVersion.Default;
             bool parseDocumentationComments = false; //Don't just null check documentationFileName because we want to do this even if the file name is invalid.
             bool utf8output = false;
             OutputKind outputKind = OutputKind.ConsoleApplication;
@@ -1192,6 +1193,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             continue;
 
+                        case "sarifversion":
+                            unquoted = RemoveQuotesAndSlashes(value);
+                           if (string.IsNullOrEmpty(unquoted))
+                           {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, ":<version>", RemoveQuotesAndSlashes(arg));
+                           }
+                           else if (!SarifVersionFacts.TryParse(unquoted, out sarifVersion))
+                           {
+                               AddDiagnostic(diagnostics, ErrorCode.ERR_BadSarifVersion, unquoted);
+                           }
+                           continue;
+
                         case "appconfig":
                             unquoted = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(unquoted))
@@ -1436,6 +1449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 OutputDirectory = outputDirectory,
                 DocumentationPath = documentationPath,
                 ErrorLogPath = errorLogPath,
+                SarifVersion = sarifVersion,
                 AppConfigPath = appConfigPath,
                 SourceFiles = sourceFiles.AsImmutable(),
                 Encoding = codepage,

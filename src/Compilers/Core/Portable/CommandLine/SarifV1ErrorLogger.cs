@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis
             return !string.IsNullOrEmpty(location.GetLineSpan().Path);
         }
 
-        private static readonly Uri _fileRoot = new Uri("file:///");
+        private static readonly Uri s_fileRoot = new Uri("file:///");
 
         private static string GetUri(string path)
         {
@@ -158,8 +158,7 @@ namespace Microsoft.CodeAnalysis
             // interpreted by resolvers (see SyntaxTree.FilePath documentation).
 
             // Common case: absolute path -> absolute URI
-            Uri uri;
-            if (Uri.TryCreate(path, UriKind.Absolute, out uri))
+            if (Uri.TryCreate(path, UriKind.Absolute, out Uri uri))
             {
                 // We use Uri.AbsoluteUri and not Uri.ToString() because Uri.ToString() 
                 // is unescaped (e.g. spaces remain unreplaced by %20) and therefore 
@@ -173,7 +172,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // There is no AbsoluteUri equivalent for relative URI references and ToString() 
                 // won't escape without this relative -> absolute -> relative trick.
-                return _fileRoot.MakeRelativeUri(new Uri(_fileRoot, uri)).ToString();
+                return s_fileRoot.MakeRelativeUri(new Uri(s_fileRoot, uri)).ToString();
             }
 
             // Last resort: UrlEncode the whole opaque string.
@@ -322,10 +321,10 @@ namespace Microsoft.CodeAnalysis
         private sealed class DiagnosticDescriptorSet
         {
             // DiagnosticDescriptor.Id -> auto-incremented counter
-            private Dictionary<string, int> _counters = new Dictionary<string, int>();
+            private readonly Dictionary<string, int> _counters = new Dictionary<string, int>();
 
             // DiagnosticDescriptor -> unique key
-            private Dictionary<DiagnosticDescriptor, string> _keys = new Dictionary<DiagnosticDescriptor, string>(new Comparer());
+            private readonly Dictionary<DiagnosticDescriptor, string> _keys = new Dictionary<DiagnosticDescriptor, string>(new Comparer());
 
             /// <summary>
             /// The total number of descriptors in the set.
@@ -341,15 +340,13 @@ namespace Microsoft.CodeAnalysis
             public string Add(DiagnosticDescriptor descriptor)
             {
                 // Case 1: Descriptor has already been seen -> retrieve key from cache.
-                string key;
-                if (_keys.TryGetValue(descriptor, out key))
+                if (_keys.TryGetValue(descriptor, out string key))
                 {
                     return key;
                 }
 
                 // Case 2: First time we see a descriptor with a given ID -> use its ID as the key.
-                int counter;
-                if (!_counters.TryGetValue(descriptor.Id, out counter))
+                if (!_counters.TryGetValue(descriptor.Id, out int counter))
                 {
                     _counters.Add(descriptor.Id, 0);
                     _keys.Add(descriptor, descriptor.Id);
@@ -415,7 +412,7 @@ namespace Microsoft.CodeAnalysis
                         return true;
                     }
 
-                    if (ReferenceEquals(x, null) || ReferenceEquals(y, null))
+                    if (x is null || y is null)
                     {
                         return false;
                     }
@@ -436,7 +433,7 @@ namespace Microsoft.CodeAnalysis
 
                 public int GetHashCode(DiagnosticDescriptor obj)
                 {
-                    if (ReferenceEquals(obj, null))
+                    if (obj is null)
                     {
                         return 0;
                     }

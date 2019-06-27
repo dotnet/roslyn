@@ -587,8 +587,19 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                // TODO: Make a SarifV1 or V2 ErrorLogger depending on command line.
-                logger = new SarifV1ErrorLogger(errorLog, GetToolName(), GetCompilerVersion(), GetAssemblyVersion(), Culture);
+                string toolName = GetToolName();
+                string compilerVersion = GetCompilerVersion();
+                Version assemblyVersion = GetAssemblyVersion();
+
+                if (Arguments.SarifVersion == SarifVersion.V1_0_0)
+                {
+                    // TODO: Make a SarifV1 or V2 ErrorLogger depending on command line.
+                    logger = new SarifV1ErrorLogger(errorLog, toolName, compilerVersion, assemblyVersion, Culture);
+                }
+                else
+                {
+                    logger = new SarifV2ErrorLogger(errorLog, toolName, compilerVersion, assemblyVersion, Culture);
+                }
             }
 
             ReportDiagnostics(diagnostics.ToReadOnlyAndFree(), consoleOutput, errorLoggerOpt: logger);
