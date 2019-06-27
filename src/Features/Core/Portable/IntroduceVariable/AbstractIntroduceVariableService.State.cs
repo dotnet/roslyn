@@ -185,11 +185,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             public SemanticMap GetSemanticMap(CancellationToken cancellationToken)
             {
-<<<<<<< HEAD
-                _semanticMap ??= this.Document.SemanticModel.GetSemanticMap(this.Expression, cancellationToken);
-=======
                 _semanticMap ??= Document.SemanticModel.GetSemanticMap(Expression, cancellationToken);
->>>>>>> upstream/master
                 return _semanticMap;
             }
 
