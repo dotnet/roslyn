@@ -147,11 +147,7 @@
                     <DataGrid.Columns>
                         <DataGridTemplateColumn Width="*">
                             <DataGridTemplateColumn.Header>
-                                <self:HeaderStackPanel
-                                    AutomationProperties.Name="Test Header"
-                                    AutomationProperties.IsColumnHeader="True"
-                                    AutomationProperties.LabeledBy="{Binding ElementName=MembersHeaderTextBlock}">
-                                    <self:SelectAllCheckBox
+                                <self:SelectAllCheckBox
                                             AutomationProperties.Name="{Binding SelectAllCheckBoxAutomationText}"
                                             Margin="0, 0, 4, 0"
                                             Checked="SelectAllCheckBox_Checked"
@@ -161,7 +157,6 @@
                                             DataContext="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext}"
                                             IsThreeState="{Binding ThreeStateEnable, UpdateSourceTrigger=PropertyChanged}"
                                             IsChecked="{Binding SelectAllCheckBoxState, UpdateSourceTrigger=PropertyChanged}" />
-                                </self:HeaderStackPanel>
                             </DataGridTemplateColumn.Header>
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
