@@ -8,7 +8,6 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Internal.Log;
-using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Log
 {
