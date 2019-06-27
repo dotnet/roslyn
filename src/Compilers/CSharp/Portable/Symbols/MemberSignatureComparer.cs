@@ -599,10 +599,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (!typeParameter1.IsValueType)
             {
-                bool? isNotNullableIfReferenceType1 = typeParameter1.IsNotNullableIfReferenceType;
-                bool? isNotNullableIfReferenceType2 = typeParameter2.IsNotNullableIfReferenceType;
-                if (isNotNullableIfReferenceType1.HasValue && isNotNullableIfReferenceType2.HasValue &&
-                    isNotNullableIfReferenceType1.GetValueOrDefault() != isNotNullableIfReferenceType2.GetValueOrDefault())
+                bool? isNotNullable1 = typeParameter1.IsNotNullable;
+                bool? isNotNullable2 = typeParameter2.IsNotNullable;
+                if (isNotNullable1.HasValue && isNotNullable2.HasValue &&
+                    isNotNullable1.GetValueOrDefault() != isNotNullable2.GetValueOrDefault())
                 {
                     return false;
                 }

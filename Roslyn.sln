@@ -398,6 +398,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Lang
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Package", "src\NuGet\Microsoft.Net.Compilers.Toolset\Microsoft.Net.Compilers.Toolset.Package.csproj", "{A74C7D2E-92FA-490A-B80A-28BEF56B56FC}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.Protocol", "src\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj", "{686BF57E-A6FF-467B-AAB3-44DE916A9772}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests", "src\Features\LanguageServer\ProtocolUnitTests\Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests.csproj", "{1DDE89EE-5819-441F-A060-2FF4A986F372}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.Debugger", "src\Tools\ExternalAccess\Debugger\Microsoft.CodeAnalysis.ExternalAccess.Debugger.csproj", "{655A5B07-39B8-48CD-8590-8AC0C2B708D8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.UnitTesting", "src\Tools\ExternalAccess\UnitTesting\Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.csproj", "{FA51A3CB-5174-4D99-B76E-DC31C5361DF3}"
@@ -1073,6 +1077,14 @@ Global
 		{A74C7D2E-92FA-490A-B80A-28BEF56B56FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A74C7D2E-92FA-490A-B80A-28BEF56B56FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A74C7D2E-92FA-490A-B80A-28BEF56B56FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{686BF57E-A6FF-467B-AAB3-44DE916A9772}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{686BF57E-A6FF-467B-AAB3-44DE916A9772}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{686BF57E-A6FF-467B-AAB3-44DE916A9772}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{686BF57E-A6FF-467B-AAB3-44DE916A9772}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DDE89EE-5819-441F-A060-2FF4A986F372}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DDE89EE-5819-441F-A060-2FF4A986F372}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DDE89EE-5819-441F-A060-2FF4A986F372}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DDE89EE-5819-441F-A060-2FF4A986F372}.Release|Any CPU.Build.0 = Release|Any CPU
 		{655A5B07-39B8-48CD-8590-8AC0C2B708D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{655A5B07-39B8-48CD-8590-8AC0C2B708D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{655A5B07-39B8-48CD-8590-8AC0C2B708D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1307,6 +1319,8 @@ Global
 		{1638FB04-0298-4341-B5E0-8A13B4823C81} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{5E6E9184-DEC5-4EC5-B0A4-77CFDC8CDEBE} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{A74C7D2E-92FA-490A-B80A-28BEF56B56FC} = {C52D8057-43AF-40E6-A01B-6CDBB7301985}
+		{686BF57E-A6FF-467B-AAB3-44DE916A9772} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
+		{1DDE89EE-5819-441F-A060-2FF4A986F372} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 		{655A5B07-39B8-48CD-8590-8AC0C2B708D8} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{FA51A3CB-5174-4D99-B76E-DC31C5361DF3} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{DE53934B-7FC1-48A0-85AB-C519FBBD02CF} = {8977A560-45C2-4EC2-A849-97335B382C74}

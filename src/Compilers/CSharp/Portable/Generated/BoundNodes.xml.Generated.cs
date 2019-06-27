@@ -5701,25 +5701,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundConvertedTupleLiteral : BoundTupleExpression
     {
-        public BoundConvertedTupleLiteral(SyntaxNode syntax, TypeSymbol naturalTypeOpt, ImmutableArray<BoundExpression> arguments, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ConvertedTupleLiteral, syntax, arguments, type, hasErrors || arguments.HasErrors())
+        public BoundConvertedTupleLiteral(SyntaxNode syntax, BoundTupleLiteral sourceTuple, ImmutableArray<BoundExpression> arguments, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ConvertedTupleLiteral, syntax, arguments, type, hasErrors || sourceTuple.HasErrors() || arguments.HasErrors())
         {
 
+            Debug.Assert((object)sourceTuple != null, "Field 'sourceTuple' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert((object)type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
-            this.NaturalTypeOpt = naturalTypeOpt;
+            this.SourceTuple = sourceTuple;
         }
 
 
-        public TypeSymbol NaturalTypeOpt { get; }
+        public BoundTupleLiteral SourceTuple { get; }
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitConvertedTupleLiteral(this);
 
-        public BoundConvertedTupleLiteral Update(TypeSymbol naturalTypeOpt, ImmutableArray<BoundExpression> arguments, TypeSymbol type)
+        public BoundConvertedTupleLiteral Update(BoundTupleLiteral sourceTuple, ImmutableArray<BoundExpression> arguments, TypeSymbol type)
         {
-            if (!TypeSymbol.Equals(naturalTypeOpt, this.NaturalTypeOpt, TypeCompareKind.ConsiderEverything) || arguments != this.Arguments || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (sourceTuple != this.SourceTuple || arguments != this.Arguments || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundConvertedTupleLiteral(this.Syntax, naturalTypeOpt, arguments, type, this.HasErrors);
+                var result = new BoundConvertedTupleLiteral(this.Syntax, sourceTuple, arguments, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5728,7 +5729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundExpression ShallowClone()
         {
-            var result = new BoundConvertedTupleLiteral(this.Syntax, this.NaturalTypeOpt, this.Arguments, this.Type, this.HasErrors);
+            var result = new BoundConvertedTupleLiteral(this.Syntax, this.SourceTuple, this.Arguments, this.Type, this.HasErrors);
             result.CopyAttributes(this);
             return result;
         }
@@ -9985,10 +9986,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
         {
+            BoundTupleLiteral sourceTuple = node.SourceTuple;
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
-            TypeSymbol naturalTypeOpt = this.VisitType(node.NaturalTypeOpt);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(naturalTypeOpt, arguments, type);
+            return node.Update(sourceTuple, arguments, type);
         }
         public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
@@ -11467,17 +11468,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
         {
+            BoundTupleLiteral sourceTuple = (BoundTupleLiteral)this.Visit(node.SourceTuple);
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             BoundConvertedTupleLiteral updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(node.NaturalTypeOpt, arguments, infoAndType.Type);
+                updatedNode = node.Update(sourceTuple, arguments, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(node.NaturalTypeOpt, arguments, node.Type);
+                updatedNode = node.Update(sourceTuple, arguments, node.Type);
             }
             return updatedNode;
         }
@@ -13171,7 +13173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node, object arg) => new TreeDumperNode("convertedTupleLiteral", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("naturalTypeOpt", node.NaturalTypeOpt, null),
+            new TreeDumperNode("sourceTuple", null, new TreeDumperNode[] { Visit(node.SourceTuple, null) }),
             new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
