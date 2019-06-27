@@ -124,9 +124,7 @@ namespace Analyzer.Utilities.Extensions
         public static bool HasFinalizer(this INamedTypeSymbol symbol)
         {
             return symbol.GetMembers()
-                .Where(m => m.Kind == SymbolKind.Method)
-                .Cast<IMethodSymbol>()
-                .Any(m => m.IsFinalizer());
+                .Any(m => m is IMethodSymbol method && method.IsFinalizer());
         }
 
         /// <summary>
