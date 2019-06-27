@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             _textView.Properties[PotentialCommitCharacters] = service.GetRules().DefaultCommitCharacters;
 
             CheckForExperimentStatus(_textView, document);
-            var sourceText = triggerLocation.Snapshot.TextBuffer.AsTextContainer().CurrentText;
+            var sourceText = triggerLocation.Snapshot.AsText();
 
             if (cancellationToken.IsCancellationRequested)
                 return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
