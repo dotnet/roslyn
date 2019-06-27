@@ -2131,8 +2131,8 @@ public class TestType
 {{
     public TestType();
 
-    public void [|M|]<[NullableAttribute(1)]
-    T>() where T : notnull;
+    [NullableContextAttribute(1)]
+    public void [|M|]<T>() where T : notnull;
 }}";
 
             using (var context = TestContext.Create(

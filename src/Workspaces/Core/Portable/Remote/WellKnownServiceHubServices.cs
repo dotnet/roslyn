@@ -20,5 +20,6 @@ namespace Microsoft.CodeAnalysis.Remote
         // these are OOP implementation itself should care. not features that consume OOP care
         public const string ServiceHubServiceBase_Initialize = "Initialize";
         public const string AssetService_RequestAssetAsync = "RequestAssetAsync";
+        public const string AssetService_IsExperimentEnabledAsync = "IsExperimentEnabledAsync";
     }
 }

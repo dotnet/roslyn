@@ -2952,6 +2952,38 @@ class$$ C
             End Using
         End Function
 
+        <WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36513")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TypingBackspaceShouldPreserveCase(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                <Document><![CDATA[
+class Program
+{
+    void M()
+    {
+        Structure structure;
+        structure.$$
+    }
+
+    struct Structure
+    {
+        public int A;
+    }
+}]]></Document>)
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+
+                state.SendBackspace()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("structure")
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                state.AssertCompletionItemsContainAll({"A"})
+            End Using
+        End Function
+
         <WorkItem(1065600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065600")>
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>

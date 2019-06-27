@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -33,7 +33,7 @@ void M()
     }
 }";
             var (solution, locations) = CreateTestSolution(markup);
-            var documentURI = locations["caret"].First().Uri;
+            var documentURI = locations["caret"].Single().Uri;
             var documentText = await solution.GetDocumentFromURI(documentURI).GetTextAsync();
 
             var results = await RunFormatDocumentAsync(solution, documentURI);

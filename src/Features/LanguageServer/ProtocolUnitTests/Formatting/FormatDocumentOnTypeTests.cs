@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
 }";
             var (solution, locations) = CreateTestSolution(markup);
             var characterTyped = ";";
-            var locationTyped = locations["type"].First();
+            var locationTyped = locations["type"].Single();
             var documentText = await solution.GetDocumentFromURI(locationTyped.Uri).GetTextAsync();
 
             var results = await RunFormatDocumentOnTypeAsync(solution, characterTyped, locationTyped);

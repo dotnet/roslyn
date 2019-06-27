@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -16,21 +16,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
         public async Task TestGetDocumentSymbolsAsync()
         {
             var markup =
-@"{|class:class A
+@"{|class:class {|classSelection:A|}
 {
-    {|method:void M()
+    {|method:void {|methodSelection:M|}()
     {
     }|}
 }|}";
             var (solution, locations) = CreateTestSolution(markup);
             var expected = new LSP.DocumentSymbol[]
             {
-                CreateDocumentSymbol(LSP.SymbolKind.Class, "A", locations["class"].First())
+                CreateDocumentSymbol(LSP.SymbolKind.Class, "A", "A", locations["class"].Single(), locations["classSelection"].Single())
             };
-            CreateDocumentSymbol(LSP.SymbolKind.Method, "M", locations["method"].First(), expected.First());
+            CreateDocumentSymbol(LSP.SymbolKind.Method, "M", "M()", locations["method"].Single(), locations["methodSelection"].Single(), expected.First());
 
             var results = await RunGetDocumentSymbolsAsync(solution, true);
-            AssertCollectionsEqual(expected, results, AssertDocumentSymbolEquals);
+            AssertJsonEquals(expected, results);
         }
 
         [Fact]
@@ -46,12 +46,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             var (solution, locations) = CreateTestSolution(markup);
             var expected = new LSP.SymbolInformation[]
             {
-                CreateSymbolInformation(LSP.SymbolKind.Class, "A", locations["class"].First()),
-                CreateSymbolInformation(LSP.SymbolKind.Method, "M()", locations["method"].First())
+                CreateSymbolInformation(LSP.SymbolKind.Class, "A", locations["class"].Single()),
+                CreateSymbolInformation(LSP.SymbolKind.Method, "M()", locations["method"].Single(), "A")
             };
 
             var results = await RunGetDocumentSymbolsAsync(solution, false);
-            AssertCollectionsEqual(expected, results, AssertSymbolInformationsEqual);
+            AssertJsonEquals(expected, results);
         }
 
         [Fact(Skip = "GetDocumentSymbolsAsync does not yet support locals.")]
@@ -115,14 +115,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             }
         }
 
-        private static LSP.DocumentSymbol CreateDocumentSymbol(LSP.SymbolKind kind, string name, LSP.Location location, LSP.DocumentSymbol parent = null)
+        private static LSP.DocumentSymbol CreateDocumentSymbol(LSP.SymbolKind kind, string name, string detail,
+            LSP.Location location, LSP.Location selection, LSP.DocumentSymbol parent = null)
         {
             var documentSymbol = new LSP.DocumentSymbol()
             {
                 Kind = kind,
                 Name = name,
                 Range = location.Range,
-                Children = new LSP.DocumentSymbol[0]
+                Children = new LSP.DocumentSymbol[0],
+                Detail = detail,
+                Deprecated = false,
+                SelectionRange = selection.Range
             };
 
             if (parent != null)

@@ -166,6 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                 });
             }
+
             private ProjectId GetActiveContextProjectIdAndWatchHierarchies(string moniker, IEnumerable<ProjectId> projectIds, IVsHierarchy hierarchy)
             {
                 _foregroundAffinitization.AssertIsForeground();
@@ -265,7 +266,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     {
                         return;
                     }
-                    
+
                     var activeProjectId = GetActiveContextProjectIdAndWatchHierarchies(moniker, documentIds.Select(d => d.ProjectId), hierarchy);
                     w.OnDocumentContextUpdated(documentIds.FirstOrDefault(d => d.ProjectId == activeProjectId));
                 });

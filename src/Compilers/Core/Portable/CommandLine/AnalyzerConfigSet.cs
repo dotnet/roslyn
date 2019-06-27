@@ -165,19 +165,19 @@ namespace Microsoft.CodeAnalysis
                         {
                             severity = ReportDiagnostic.Error;
                         }
-                        else if (comparer.Equals(value, "warn"))
+                        else if (comparer.Equals(value, "warning"))
                         {
                             severity = ReportDiagnostic.Warn;
                         }
-                        else if (comparer.Equals(value, "info"))
+                        else if (comparer.Equals(value, "suggestion"))
                         {
                             severity = ReportDiagnostic.Info;
                         }
-                        else if (comparer.Equals(value, "hidden"))
+                        else if (comparer.Equals(value, "silent") || comparer.Equals(value, "refactoring"))
                         {
                             severity = ReportDiagnostic.Hidden;
                         }
-                        else if (comparer.Equals(value, "suppress"))
+                        else if (comparer.Equals(value, "none"))
                         {
                             severity = ReportDiagnostic.Suppress;
                         }

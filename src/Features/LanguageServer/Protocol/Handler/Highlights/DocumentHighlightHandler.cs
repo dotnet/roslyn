@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -39,13 +39,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var highlightsForDocument = highlights.FirstOrDefault(h => h.Document.Id == document.Id);
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                return highlightsForDocument.HighlightSpans.Select(h =>
+                return highlightsForDocument.HighlightSpans.Select(h => new DocumentHighlight
                 {
-                    return new DocumentHighlight
-                    {
-                        Range = ProtocolConversions.TextSpanToRange(h.TextSpan, text),
-                        Kind = ProtocolConversions.HighlightSpanKindToDocumentHighlightKind(h.Kind),
-                    };
+                    Range = ProtocolConversions.TextSpanToRange(h.TextSpan, text),
+                    Kind = ProtocolConversions.HighlightSpanKindToDocumentHighlightKind(h.Kind),
                 }).ToArray();
             }
 
