@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Make_0_inheritable">
         <source>Make '{0}' inheritable</source>
-        <target state="translated">Ustaw element „{0}” jako możliwy do dziedziczenia</target>
+        <target state="translated">Ustaw element „{0}” jako dziedziczony</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Sort_Imports">
         <source>&amp;Sort Imports</source>
-        <target state="new">&amp;Sort Imports</target>
+        <target state="translated">&amp;Sortuj importy</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -351,7 +351,7 @@
         <source>Creates a delegate procedure instance that references the specified procedure.
 AddressOf &lt;procedureName&gt;</source>
         <target state="translated">Tworzy delegowaną instancję procedury, która odwołuje się do określonej procedury.
-AddressOf &lt;nazwaProcedury&gt;</target>
+AddressOf &lt;procedureName&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Indicates_that_an_external_procedure_has_another_name_in_its_DLL">
@@ -902,7 +902,7 @@ Iterator Function(&lt;listaParametrów&gt;) As IEnumerable(Of &lt;T&gt;)</target
         <source>Determines the run-time type of an object reference variable and compares it to a data type. Returns True or False depending, on whether the two types are compatible.
 &lt;result&gt; = TypeOf &lt;objectExpression&gt; Is &lt;typeName&gt;</source>
         <target state="translated">Określa typ zmiennej odwołania do obiektu w czasie wykonywania i porównuje go z typem danych. Zwraca wartość True lub False w zależności od tego, czy typy są zgodne.
-&lt;wynik&gt; = TypeOf &lt;wyrażenieObiektu&gt; Is &lt;nazwaTypu&gt;</target>
+&lt;result&gt; = TypeOf &lt;objectExpression&gt; Is &lt;typeName&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Used_in_a_Declare_statement_Specifies_that_Visual_Basic_should_marshal_all_strings_to_Unicode_values_in_a_call_into_an_external_procedure_and_should_look_up_the_procedure_without_modifying_its_name">
@@ -1365,7 +1365,7 @@ Option Strict {On | Off}</target>
         <source>Ensures that multiple threads do not execute the statement block at the same time.
 SyncLock &lt;object&gt;...End Synclock</source>
         <target state="translated">Gwarantuje, że wiele wątków nie wykonuje bloku instrukcji w tym samym czasie.
-SyncLock &lt;obiekt&gt;...End Synclock</target>
+SyncLock &lt;object&gt;...End Synclock</target>
         <note />
       </trans-unit>
       <trans-unit id="Includes_elements_up_to_a_specified_position_in_the_collection">
@@ -1431,14 +1431,14 @@ Using &lt;zasób1&gt;[, &lt;zasób2&gt;]...End Using</target>
         <source>Specifies the declaration of property initializations in an object initializer.
 New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</source>
         <target state="translated">Określa deklarację inicjowania właściwości w inicjatorze obiektów.
-New &lt;nazwaTypu&gt; With {[.&lt;właściwość&gt; = &lt;wyrażenie&gt;][,...]}</target>
+New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</target>
         <note />
       </trans-unit>
       <trans-unit id="Runs_a_series_of_statements_that_refer_to_a_single_object_or_structure_With_object_End_With">
         <source>Runs a series of statements that refer to a single object or structure.
 With &lt;object&gt;...End With</source>
         <target state="translated">Uruchamia serię instrukcji odwołujących się do pojedynczego obiektu lub struktury.
-With &lt;obiekt&gt;...End With</target>
+With &lt;object&gt;...End With</target>
         <note />
       </trans-unit>
       <trans-unit id="Produces_an_element_of_an_IEnumerable_or_IEnumerator">
@@ -1559,12 +1559,12 @@ Sub(&lt;listaParametrów&gt;) &lt;instrukcja&gt;</target>
       </trans-unit>
       <trans-unit id="Catch_clause">
         <source>Catch clause</source>
-        <target state="translated">Klauzula catch</target>
+        <target state="translated">Klauzula Catch</target>
         <note>{Locked="Catch"} "Catch" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Finally_clause">
         <source>Finally clause</source>
-        <target state="translated">Klauzula finally</target>
+        <target state="translated">Klauzula Finally</target>
         <note>{Locked="Finally"} "Finally" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Using_statement">
@@ -1624,7 +1624,7 @@ Sub(&lt;listaParametrów&gt;) &lt;instrukcja&gt;</target>
       </trans-unit>
       <trans-unit id="Await_expression">
         <source>Await expression</source>
-        <target state="translated">Wyrażenie await</target>
+        <target state="translated">Wyrażenie Await</target>
         <note>{Locked="Await"} "Await" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Lambda">
@@ -1634,37 +1634,37 @@ Sub(&lt;listaParametrów&gt;) &lt;instrukcja&gt;</target>
       </trans-unit>
       <trans-unit id="Where_clause">
         <source>Where clause</source>
-        <target state="translated">Klauzula where</target>
+        <target state="translated">Klauzula Where</target>
         <note>{Locked="Where"} "Where" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Select_clause">
         <source>Select clause</source>
-        <target state="translated">Klauzula select</target>
+        <target state="translated">Klauzula Select</target>
         <note>{Locked="Select"} "Select" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="From_clause">
         <source>From clause</source>
-        <target state="translated">Klauzula from</target>
+        <target state="translated">Klauzula From</target>
         <note>{Locked="From"} "From" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Aggregate_clause">
         <source>Aggregate clause</source>
-        <target state="translated">Klauzula aggregate</target>
+        <target state="translated">Klauzula Aggregate</target>
         <note>{Locked="Aggregate"} "Aggregate" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Let_clause">
         <source>Let clause</source>
-        <target state="translated">Klauzula let</target>
+        <target state="translated">Klauzula Let</target>
         <note>{Locked="Let"} "Let" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Join_clause">
         <source>Join clause</source>
-        <target state="translated">Klauzula join</target>
+        <target state="translated">Klauzula Join</target>
         <note>{Locked="Join"} "Join" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Group_Join_clause">
         <source>Group Join clause</source>
-        <target state="translated">Klauzula group join</target>
+        <target state="translated">Klauzula Group Join</target>
         <note>{Locked="Group Join"} "Group Join" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Group_By_clause">
@@ -1679,22 +1679,22 @@ Sub(&lt;listaParametrów&gt;) &lt;instrukcja&gt;</target>
       </trans-unit>
       <trans-unit id="Take_While_clause">
         <source>Take While clause</source>
-        <target state="translated">Klauzula take while</target>
+        <target state="translated">Klauzula Take While</target>
         <note>{Locked="Take While"} "Take While" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Skip_While_clause">
         <source>Skip While clause</source>
-        <target state="translated">Klauzula skip while</target>
+        <target state="translated">Klauzula Skip While</target>
         <note>{Locked="Skip While"} "Skip While" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Ordering_clause">
         <source>Ordering clause</source>
-        <target state="translated">Klauzula ordering</target>
+        <target state="translated">Klauzula Ordering</target>
         <note>{Locked="Ordering"} "Ordering" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Join_condition">
         <source>Join condition</source>
-        <target state="translated">Warunek sprzężenia</target>
+        <target state="translated">Warunek Join</target>
         <note>{Locked="Join"} "Join" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="WithEvents_field">
