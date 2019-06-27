@@ -2883,6 +2883,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol method => method.ReturnTypeFlowAnalysisAnnotations,
                 PropertySymbol property => property.GetOwnOrInheritedGetMethod()?.ReturnTypeFlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None,
                 ParameterSymbol parameter => parameter.FlowAnalysisAnnotations,
+                FieldSymbol field => field.FlowAnalysisAnnotations,
                 _ => FlowAnalysisAnnotations.None
             };
 
@@ -5216,15 +5217,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return FlowAnalysisAnnotations.None;
             }
 
-            var symbol = expr switch
+            var annotations = expr switch
             {
-                BoundPropertyAccess property => property.PropertySymbol,
-                BoundIndexerAccess indexer => indexer.Indexer,
-                _ => null
+                BoundPropertyAccess property => getSetterAnnotations(property.PropertySymbol),
+                BoundIndexerAccess indexer => getSetterAnnotations(indexer.Indexer),
+                BoundFieldAccess field => field.FieldSymbol.FlowAnalysisAnnotations,
+                _ => FlowAnalysisAnnotations.None
             };
 
-            var annotations = symbol?.GetOwnOrInheritedSetMethod()?.Parameters.Last()?.FlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None;
             return annotations & (FlowAnalysisAnnotations.DisallowNull | FlowAnalysisAnnotations.AllowNull);
+
+            static FlowAnalysisAnnotations getSetterAnnotations(PropertySymbol property)
+                => property.GetOwnOrInheritedSetMethod()?.Parameters.Last()?.FlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None;
         }
 
         private static bool UseLegacyWarnings(BoundExpression expr, TypeWithAnnotations exprType)
