@@ -16,11 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return block;
             }
-            else
-            {
-                statementList.AddRange(block.Statements);
-                return block.Update(statementList);
-            }
+            return block.Update(statementList);
         }
 
         private BoundLambda RewriteNullChecking(BoundLambda lambda)
@@ -30,11 +26,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return lambda;
             }
-            else
+            var newBody = _factory.Block(lambda.Body.Locals, statementList);
+            return lambda.Update(lambda.UnboundLambda, lambda.Symbol, newBody, lambda.Diagnostics, lambda.Binder, lambda.Type);
+        }
+
+        private BoundLocalFunctionStatement RewriteNullChecking(BoundLocalFunctionStatement localFunctionStatement)
+        {
+            var statementList = ConstructNullCheckedStatementList(_factory.CurrentFunction.Parameters, localFunctionStatement.Body.Statements);
+            if (statementList.IsDefaultOrEmpty)
             {
-                var newBody = _factory.Block(lambda.Body.Locals, statementList);
-                return lambda.Update(lambda.UnboundLambda, lambda.Symbol, newBody, lambda.Diagnostics, lambda.Binder, lambda.Type);
+                return localFunctionStatement;
             }
+            var newBody = _factory.Block(localFunctionStatement.BlockBody.Locals, statementList);
+            return localFunctionStatement.Update(localFunctionStatement.Symbol, newBody, localFunctionStatement.ExpressionBody);
         }
 
         private ImmutableArray<BoundStatement> ConstructNullCheckedStatementList(ImmutableArray<ParameterSymbol> parameters, ImmutableArray<BoundStatement> existingStatements)

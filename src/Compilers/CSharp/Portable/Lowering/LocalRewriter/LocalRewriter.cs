@@ -284,7 +284,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 _factory.CurrentFunction = localFunction;
-                return base.VisitLocalFunctionStatement(node);
+                var visited = base.VisitLocalFunctionStatement(node);
+                if (visited is BoundLocalFunctionStatement localFunctionStatement)
+                {
+                    visited = RewriteNullChecking(localFunctionStatement);
+                }
+                return visited;
             }
             finally
             {
