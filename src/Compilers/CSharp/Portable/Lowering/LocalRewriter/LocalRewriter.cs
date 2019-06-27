@@ -94,13 +94,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Presence of sequence points in the tree affects final IL, therefore, we always generate them.
                 var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, statement, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics,
                                                       dynamicInstrumenter != null ? new DebugInfoInjector(dynamicInstrumenter) : DebugInfoInjector.Singleton);
-
                 statement.CheckLocalsDefined();
-                var loweredStatement = (BoundStatement)localRewriter.Visit(statement);
+                var visited = localRewriter.Visit(statement);
+                var loweredStatement = (BoundStatement)visited;
                 loweredStatement.CheckLocalsDefined();
                 sawLambdas = localRewriter._sawLambdas;
                 sawLocalFunctions = localRewriter._sawLocalFunctions;
                 sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
+
+                if (visited is BoundBlock block)
+                {
+                    loweredStatement = localRewriter.RewriteNullChecking(block);
+                }
 
                 if (localRewriter._needsSpilling && !loweredStatement.HasErrors)
                 {
