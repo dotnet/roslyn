@@ -5044,6 +5044,43 @@ class C
 #nullable enable
 class Program
 {
+    Task<string?> M()
+    {
+        string s1 = "test";
+        return {|Simplify:Task.FromResult<string?>|}(s1);
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+#nullable enable
+class Program
+{
+    Task<string?> M()
+    {
+        string s1 = "test";
+        return Task.FromResult<string?>(s1);
+    }
+}
+]]>
+</code>
+
+            Await TestCSharpWithNullableEnabledAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_DoNotSimplifyNullableComplexGeneric() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+#nullable enable
+class Program
+{
     void M()
     {
         string? s1 = null;
