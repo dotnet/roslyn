@@ -221,17 +221,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
         }
 
         private AttributeInfo SpecialCastKindAttribute(SpecialCastKind? specialCastKind = null)
-        {
-            switch (specialCastKind)
+            => specialCastKind switch
             {
-                case SpecialCastKind.DirectCast:
-                    return new AttributeInfo(DirectCastAttributeName, "yes");
-                case SpecialCastKind.TryCast:
-                    return new AttributeInfo(TryCastAttributeName, "yes");
-                default:
-                    return AttributeInfo.Empty;
-            }
-        }
+                SpecialCastKind.DirectCast => new AttributeInfo(DirectCastAttributeName, "yes"),
+                SpecialCastKind.TryCast => new AttributeInfo(TryCastAttributeName, "yes"),
+                _ => AttributeInfo.Empty,
+            };
 
         private AttributeInfo TypeAttribute(string typeName)
         {

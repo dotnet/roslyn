@@ -265,26 +265,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             }
 
             private IndentationResult GetIndentationFromCommaSeparatedList(SyntaxToken token)
-            {
-                var node = token.Parent;
-                switch (node)
+                => token.Parent switch
                 {
-                    case BaseArgumentListSyntax argument:
-                        return GetIndentationFromCommaSeparatedList(argument.Arguments, token);
-                    case BaseParameterListSyntax parameter:
-                        return GetIndentationFromCommaSeparatedList(parameter.Parameters, token);
-                    case TypeArgumentListSyntax typeArgument:
-                        return GetIndentationFromCommaSeparatedList(typeArgument.Arguments, token);
-                    case TypeParameterListSyntax typeParameter:
-                        return GetIndentationFromCommaSeparatedList(typeParameter.Parameters, token);
-                    case EnumDeclarationSyntax enumDeclaration:
-                        return GetIndentationFromCommaSeparatedList(enumDeclaration.Members, token);
-                    case InitializerExpressionSyntax initializerSyntax:
-                        return GetIndentationFromCommaSeparatedList(initializerSyntax.Expressions, token);
-                }
+                    BaseArgumentListSyntax argument => GetIndentationFromCommaSeparatedList(argument.Arguments, token),
+                    BaseParameterListSyntax parameter => GetIndentationFromCommaSeparatedList(parameter.Parameters, token),
+                    TypeArgumentListSyntax typeArgument => GetIndentationFromCommaSeparatedList(typeArgument.Arguments, token),
+                    TypeParameterListSyntax typeParameter => GetIndentationFromCommaSeparatedList(typeParameter.Parameters, token),
+                    EnumDeclarationSyntax enumDeclaration => GetIndentationFromCommaSeparatedList(enumDeclaration.Members, token),
+                    InitializerExpressionSyntax initializerSyntax => GetIndentationFromCommaSeparatedList(initializerSyntax.Expressions, token),
 
-                return GetDefaultIndentationFromToken(token);
-            }
+                    _ => GetDefaultIndentationFromToken(token),
+                };
 
             private IndentationResult GetIndentationFromCommaSeparatedList<T>(SeparatedSyntaxList<T> list, SyntaxToken token) where T : SyntaxNode
             {

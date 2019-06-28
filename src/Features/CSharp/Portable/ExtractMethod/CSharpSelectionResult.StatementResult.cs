@@ -30,17 +30,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             public override bool ContainingScopeHasAsyncKeyword()
             {
                 var node = this.GetContainingScope();
-                var semanticModel = this.SemanticDocument.SemanticModel;
 
-                switch (node)
+                return node switch
                 {
-                    case AccessorDeclarationSyntax access: return false;
-                    case MethodDeclarationSyntax method: return method.Modifiers.Any(SyntaxKind.AsyncKeyword);
-                    case ParenthesizedLambdaExpressionSyntax lambda: return lambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword;
-                    case SimpleLambdaExpressionSyntax lambda: return lambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword;
-                    case AnonymousMethodExpressionSyntax anonymous: return anonymous.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword;
-                    default: return false;
-                }
+                    AccessorDeclarationSyntax access => false,
+                    MethodDeclarationSyntax method => method.Modifiers.Any(SyntaxKind.AsyncKeyword),
+                    ParenthesizedLambdaExpressionSyntax lambda => lambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword,
+                    SimpleLambdaExpressionSyntax lambda => lambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword,
+                    AnonymousMethodExpressionSyntax anonymous => anonymous.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword,
+                    _ => false,
+                };
             }
 
             public override SyntaxNode GetContainingScope()
