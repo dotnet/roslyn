@@ -8,10 +8,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    /// <summary>
+    /// Base class for the <see cref="SarifV1ErrorLogger"/> and <see cref="SarifV2ErrorLogger"/> classes.
+    /// The SarifV2ErrorLogger produces the standardized SARIF v2.1.0. The SarifV1ErrorLogger produces
+    /// the non-standardized SARIF v1.0.0. It is retained (and in fact, is retained as the default)
+    /// for compatibility with previous versions of the compiler. Customers who want to integrate
+    /// with standardized SARIF tooling should specify /sarifversion:2 on the command line to
+    /// produce SARIF v2.1.0.
+    /// </summary>
     internal abstract class SarifErrorLogger : ErrorLogger, IDisposable
     {
         protected JsonWriter _writer { get; }
-        protected readonly CultureInfo _culture;
+        protected CultureInfo _culture { get; }
 
         protected SarifErrorLogger(Stream stream, CultureInfo culture)
         {
