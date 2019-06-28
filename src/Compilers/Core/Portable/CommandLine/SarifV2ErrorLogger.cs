@@ -101,9 +101,16 @@ namespace Microsoft.CodeAnalysis
 
         protected override void WritePhysicalLocation(Location diagnosticLocation)
         {
+            Debug.Assert(HasPath(diagnosticLocation));
+
+            FileLinePositionSpan span = diagnosticLocation.GetLineSpan();
+
             _writer.WriteObjectStart(); // physicalLocation
+
             _writer.WriteObjectStart("artifactLocation");
+            _writer.Write("uri", GetUri(span.Path));
             _writer.WriteObjectEnd(); // artifactLocation
+
             _writer.WriteObjectEnd();
         }
 
