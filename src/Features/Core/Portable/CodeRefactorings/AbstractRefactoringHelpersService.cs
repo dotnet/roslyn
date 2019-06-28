@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
             Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
-            return await TryGetSelectedNodeAsync(document, selection, n => n is TSyntaxNode, cancellationToken).ConfigureAwait(false) as TSyntaxNode;
+            return (TSyntaxNode)await TryGetSelectedNodeAsync(document, selection, n => n is TSyntaxNode, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// of tokens gracefully.
         /// </para>
         /// </summary>
-        protected Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selection, Predicate<SyntaxNode> predicate, CancellationToken cancellationToken) => TryGetSelectedNodeAsync(document, selection, predicate, DefaultNodeExtractor, cancellationToken);
+        protected Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selection, Predicate<SyntaxNode> predicate, CancellationToken cancellationToken)
+            => TryGetSelectedNodeAsync(document, selection, predicate, DefaultNodeExtractor, cancellationToken);
 
         /// <summary>
         /// <para>
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var selectionTrimmed = await CodeRefactoringHelpers.GetTrimmedTextSpan(document, selection, cancellationToken).ConfigureAwait(false);
 
-            // Everytime a Node is considered by following alghorithm (and tested with predicate) and the predicate fails
+            // Everytime a Node is considered by following algorithm (and tested with predicate) and the predicate fails
             // extractNode is called on the node and the result is tested with predicate again. If any of those succeed
             // a respective Node gets returned.
             //
@@ -205,7 +206,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     return node;
                 }
 
-
                 var extractedNode = extractNode(node, syntaxFacts);
                 return (extractedNode != null && predicate(extractedNode))
                     ? extractedNode
@@ -225,6 +225,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </summary>
         protected virtual SyntaxNode DefaultNodeExtractor(SyntaxNode node, ISyntaxFactsService syntaxFacts)
         {
+            // REMARKS: 
+            // The set of currently attempted extractions is in no way exhaustive and covers only cases
+            // that were found to be relevant for refactorings that were moved to `TryGetSelectedNodeAsync`.
+            // Feel free to extend it / refine current heuristics. 
+
             // var a = b;
             // -> b
             if (syntaxFacts.IsLocalDeclarationStatement(node))
