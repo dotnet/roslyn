@@ -1,9 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
@@ -19,9 +18,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField
     {
         [ImportingConstructor]
         public EncapsulateFieldCommandHandler(
+            IThreadingContext threadingContext,
             ITextBufferUndoManagerProvider undoManager,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(undoManager, listenerProvider)
+            : base(threadingContext, undoManager, listenerProvider)
         {
         }
     }
