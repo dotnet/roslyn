@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 IEnumerable<AbstractFormattingRule> rules,
                 OptionSet optionSet,
                 TextLine line,
-                CancellationToken cancellationToken) :
-                base(syntaxFacts, syntaxTree, rules, optionSet, line, cancellationToken)
+                CancellationToken cancellationToken)
+                : base(syntaxFacts, syntaxTree, rules, optionSet, line, cancellationToken)
             {
             }
 

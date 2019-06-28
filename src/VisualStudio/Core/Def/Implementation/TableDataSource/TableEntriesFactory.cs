@@ -195,8 +195,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private class EmptySnapshot : AbstractTableEntriesSnapshot<TItem>
             {
-                public EmptySnapshot(int version) :
-                    base(version, ImmutableArray<TItem>.Empty, ImmutableArray<ITrackingPoint>.Empty)
+                public EmptySnapshot(int version)
+                    : base(version, ImmutableArray<TItem>.Empty, ImmutableArray<ITrackingPoint>.Empty)
                 {
                 }
 

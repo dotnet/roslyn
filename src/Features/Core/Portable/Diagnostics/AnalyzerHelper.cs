@@ -859,8 +859,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 public bool IsCompilationEndAnalyzer { get; private set; } = false;
 
-                public CollectNestedCompilationContext(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken) :
-                    base(compilation, options, cancellationToken)
+                public CollectNestedCompilationContext(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
+                    : base(compilation, options, cancellationToken)
                 {
                 }
 

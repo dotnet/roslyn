@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return analyzer.AnalyzeAsync();
             }
 
-            public CSharpAnalyzer(SelectionResult selectionResult, CancellationToken cancellationToken) :
-                base(selectionResult, cancellationToken)
+            public CSharpAnalyzer(SelectionResult selectionResult, CancellationToken cancellationToken)
+                : base(selectionResult, cancellationToken)
             {
             }
 

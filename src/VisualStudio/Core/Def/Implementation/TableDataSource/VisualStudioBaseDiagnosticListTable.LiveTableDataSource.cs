@@ -32,8 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private readonly Workspace _workspace;
             private readonly OpenDocumentTracker<DiagnosticTableItem> _tracker;
 
-            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier) :
-                base(workspace)
+            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier)
+                : base(workspace)
             {
                 _workspace = workspace;
                 _identifier = identifier;

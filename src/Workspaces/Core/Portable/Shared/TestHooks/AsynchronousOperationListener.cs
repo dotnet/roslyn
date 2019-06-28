@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         private int _counter;
         private bool _trackActiveTokens;
 
-        public AsynchronousOperationListener() :
-            this(featureName: "noname", enableDiagnosticTokens: false)
+        public AsynchronousOperationListener()
+            : this(featureName: "noname", enableDiagnosticTokens: false)
         {
         }
 

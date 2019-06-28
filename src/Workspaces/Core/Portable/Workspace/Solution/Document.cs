@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis
         private WeakReference<SemanticModel> _model;
         private Task<SyntaxTree> _syntaxTreeResultTask;
 
-        internal Document(Project project, DocumentState state) :
-            base(project, state, TextDocumentKind.Document)
+        internal Document(Project project, DocumentState state)
+            : base(project, state, TextDocumentKind.Document)
         {
         }
 

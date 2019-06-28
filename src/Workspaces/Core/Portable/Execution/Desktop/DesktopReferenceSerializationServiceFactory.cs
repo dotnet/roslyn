@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.Execution
             // typical low number, high volumn data cache.
             private static readonly ConcurrentDictionary<Encoding, byte[]> s_encodingCache = new ConcurrentDictionary<Encoding, byte[]>(concurrencyLevel: 2, capacity: 5);
 
-            public Service(ITemporaryStorageService service, IDocumentationProviderService documentationService) :
-                base(service, documentationService)
+            public Service(ITemporaryStorageService service, IDocumentationProviderService documentationService)
+                : base(service, documentationService)
             {
             }
 

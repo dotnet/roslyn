@@ -33,9 +33,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
         [ImportingConstructor]
         public SmartTokenFormatterCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService) :
-            base(undoHistoryRegistry,
-                 editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService)
+            : base(undoHistoryRegistry, editorOperationsFactoryService)
         {
         }
 

@@ -726,8 +726,8 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
 
         private class MissingMetadataReference : PortableExecutableReference
         {
-            public MissingMetadataReference() :
-                base(MetadataReferenceProperties.Assembly, "missing_reference", XmlDocumentationProvider.Default)
+            public MissingMetadataReference()
+                : base(MetadataReferenceProperties.Assembly, "missing_reference", XmlDocumentationProvider.Default)
             {
             }
 

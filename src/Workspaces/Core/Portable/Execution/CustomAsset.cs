@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         private readonly Action<ObjectWriter, CancellationToken> _writer;
 
-        public SimpleCustomAsset(WellKnownSynchronizationKind kind, Action<ObjectWriter, CancellationToken> writer) :
-            base(CreateChecksumFromStreamWriter(kind, writer), kind)
+        public SimpleCustomAsset(WellKnownSynchronizationKind kind, Action<ObjectWriter, CancellationToken> writer)
+            : base(CreateChecksumFromStreamWriter(kind, writer), kind)
         {
             // unlike SolutionAsset which gets checksum from solution states, this one build one by itself.
             _writer = writer;
@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.Execution
             return new WorkspaceAnalyzerReferenceAsset(reference, serializer, checksum);
         }
 
-        private WorkspaceAnalyzerReferenceAsset(AnalyzerReference reference, ISerializerService serializer, Checksum checksum) :
-            base(checksum, WellKnownSynchronizationKind.AnalyzerReference)
+        private WorkspaceAnalyzerReferenceAsset(AnalyzerReference reference, ISerializerService serializer, Checksum checksum)
+            : base(checksum, WellKnownSynchronizationKind.AnalyzerReference)
         {
             _reference = reference;
             _serializer = serializer;

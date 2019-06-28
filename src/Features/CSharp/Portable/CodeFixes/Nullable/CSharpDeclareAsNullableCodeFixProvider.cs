@@ -193,10 +193,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(CSharpFeaturesResources.Declare_as_nullable,
-                     createChangedDocument,
-                     CSharpFeaturesResources.Declare_as_nullable)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpFeaturesResources.Declare_as_nullable,
+                       createChangedDocument,
+                       CSharpFeaturesResources.Declare_as_nullable)
             {
             }
         }

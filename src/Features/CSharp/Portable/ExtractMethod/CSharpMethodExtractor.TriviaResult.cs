@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     result);
             }
 
-            private CSharpTriviaResult(SemanticDocument document, ITriviaSavedResult result) :
-                base(document, result, (int)SyntaxKind.EndOfLineTrivia, (int)SyntaxKind.WhitespaceTrivia)
+            private CSharpTriviaResult(SemanticDocument document, ITriviaSavedResult result)
+                : base(document, result, (int)SyntaxKind.EndOfLineTrivia, (int)SyntaxKind.WhitespaceTrivia)
             {
             }
 

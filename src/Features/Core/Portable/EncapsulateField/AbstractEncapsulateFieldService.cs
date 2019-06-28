@@ -413,14 +413,14 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 Glyph = glyph;
             }
 
-            public Result(Solution solutionWithProperty, string name, Glyph glyph, List<IFieldSymbol> failedFieldSymbols) :
-                this(solutionWithProperty, name, glyph)
+            public Result(Solution solutionWithProperty, string name, Glyph glyph, List<IFieldSymbol> failedFieldSymbols)
+                : this(solutionWithProperty, name, glyph)
             {
                 FailedFields = failedFieldSymbols.ToImmutableArrayOrEmpty();
             }
 
-            public Result(Solution originalSolution, params IFieldSymbol[] fields) :
-                this(originalSolution, string.Empty, Glyph.Error)
+            public Result(Solution originalSolution, params IFieldSymbol[] fields)
+                : this(originalSolution, string.Empty, Glyph.Error)
             {
                 FailedFields = fields.ToImmutableArrayOrEmpty();
             }

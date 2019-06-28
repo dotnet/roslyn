@@ -415,8 +415,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public readonly object Id;
             public readonly ImmutableArray<DiagnosticData> Diagnostics;
 
-            public Data(UpdatedEventArgs args) :
-                this(args, ImmutableArray<DiagnosticData>.Empty)
+            public Data(UpdatedEventArgs args)
+                : this(args, ImmutableArray<DiagnosticData>.Empty)
             {
             }
 

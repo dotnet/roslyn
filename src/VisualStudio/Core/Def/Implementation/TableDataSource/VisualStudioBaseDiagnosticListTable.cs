@@ -30,8 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             SuppressionStateColumnDefinition.ColumnName
         };
 
-        protected VisualStudioBaseDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
-            base(workspace, provider, StandardTables.ErrorsTable)
+        protected VisualStudioBaseDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider)
+            : base(workspace, provider, StandardTables.ErrorsTable)
         {
         }
 

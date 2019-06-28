@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         {
             private readonly object _gate = new object();
 
-            public ParseOptionChangedEventSource(ITextBuffer subjectBuffer, TaggerDelay delay) :
-                base(subjectBuffer, delay)
+            public ParseOptionChangedEventSource(ITextBuffer subjectBuffer, TaggerDelay delay)
+                : base(subjectBuffer, delay)
             {
             }
 

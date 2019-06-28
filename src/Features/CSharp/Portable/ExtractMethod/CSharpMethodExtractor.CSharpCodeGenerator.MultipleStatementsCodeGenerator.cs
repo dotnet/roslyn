@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 public MultipleStatementsCodeGenerator(
                     InsertionPoint insertionPoint,
                     SelectionResult selectionResult,
-                    AnalyzerResult analyzerResult) :
-                    base(insertionPoint, selectionResult, analyzerResult)
+                    AnalyzerResult analyzerResult)
+                    : base(insertionPoint, selectionResult, analyzerResult)
                 {
                 }
 

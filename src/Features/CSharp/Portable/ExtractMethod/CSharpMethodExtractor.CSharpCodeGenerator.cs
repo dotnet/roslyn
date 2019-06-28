@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             protected CSharpCodeGenerator(
                 InsertionPoint insertionPoint,
                 SelectionResult selectionResult,
-                AnalyzerResult analyzerResult) :
-                base(insertionPoint, selectionResult, analyzerResult)
+                AnalyzerResult analyzerResult)
+                : base(insertionPoint, selectionResult, analyzerResult)
             {
                 Contract.ThrowIfFalse(this.SemanticDocument == selectionResult.SemanticDocument);
 

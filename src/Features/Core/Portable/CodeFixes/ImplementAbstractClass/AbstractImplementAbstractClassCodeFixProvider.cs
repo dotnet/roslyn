@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.ImplementAbstractClass
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string id) :
-                base(FeaturesResources.Implement_Abstract_Class, createChangedDocument, id)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string id)
+                : base(FeaturesResources.Implement_Abstract_Class, createChangedDocument, id)
             {
             }
         }

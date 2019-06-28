@@ -54,8 +54,8 @@ namespace Roslyn.Test.Utilities.Remote
             Workspace workspace,
             InProcRemoteServices inprocServices,
             ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc,
-            Stream stream) :
-            base(workspace)
+            Stream stream)
+            : base(workspace)
         {
             Contract.ThrowIfNull(remotableDataRpc);
 

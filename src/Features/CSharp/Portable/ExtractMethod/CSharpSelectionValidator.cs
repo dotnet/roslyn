@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         public CSharpSelectionValidator(
             SemanticDocument document,
             TextSpan textSpan,
-            OptionSet options) :
-            base(document, textSpan, options)
+            OptionSet options)
+            : base(document, textSpan, options)
         {
         }
 

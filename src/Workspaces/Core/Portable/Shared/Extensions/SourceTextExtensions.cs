@@ -253,8 +253,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return new ObjectReaderTextReader(builder.ToImmutable(), chunkSize, length);
             }
 
-            private ObjectReaderTextReader(ImmutableArray<char[]> chunks, int chunkSize, int length) :
-                base(length)
+            private ObjectReaderTextReader(ImmutableArray<char[]> chunks, int chunkSize, int length)
+                : base(length)
             {
                 _chunks = chunks;
                 _chunkSize = chunkSize;

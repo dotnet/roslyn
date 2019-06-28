@@ -26,10 +26,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // hold last async token
             private IAsyncToken _lastToken;
 
-            public SolutionChecksumUpdater(RemoteHostClientService service, CancellationToken shutdownToken) :
-                base(service.Listener,
-                     service.Workspace.Services.GetService<IGlobalOperationNotificationService>(),
-                     service.Workspace.Options.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS), shutdownToken)
+            public SolutionChecksumUpdater(RemoteHostClientService service, CancellationToken shutdownToken)
+                : base(service.Listener,
+                       service.Workspace.Services.GetService<IGlobalOperationNotificationService>(),
+                       service.Workspace.Options.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS), shutdownToken)
             {
                 _service = service;
                 _textChangeQueue = new SimpleTaskQueue(TaskScheduler.Default);

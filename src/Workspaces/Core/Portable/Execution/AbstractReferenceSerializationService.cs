@@ -762,8 +762,8 @@ namespace Microsoft.CodeAnalysis.Execution
             private readonly DocumentationProvider _provider;
 
             public MissingMetadataReference(
-                MetadataReferenceProperties properties, string fullPath, DocumentationProvider initialDocumentation) :
-                base(properties, fullPath, initialDocumentation)
+                MetadataReferenceProperties properties, string fullPath, DocumentationProvider initialDocumentation)
+                : base(properties, fullPath, initialDocumentation)
             {
                 // TODO: doc comment provider is a bit wierd.
                 _provider = initialDocumentation;
@@ -801,8 +801,8 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public SerializedMetadataReference(
                 MetadataReferenceProperties properties, string fullPath,
-                Metadata metadata, ImmutableArray<ITemporaryStreamStorage> storagesOpt, DocumentationProvider initialDocumentation) :
-                base(properties, fullPath, initialDocumentation)
+                Metadata metadata, ImmutableArray<ITemporaryStreamStorage> storagesOpt, DocumentationProvider initialDocumentation)
+                : base(properties, fullPath, initialDocumentation)
             {
                 _metadata = metadata;
                 _storagesOpt = storagesOpt;
