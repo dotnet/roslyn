@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             declarations = declarations.OrderBy(d => d.ToString());
             expectedResults = expectedResults.OrderBy(r => r).ToArray();
 
-            for (int i = 0; i < expectedResults.Length; i++)
+            for (var i = 0; i < expectedResults.Length; i++)
             {
                 var actualResult = declarations.ElementAt(i).ToString();
                 var expectedResult = expectedResults[i];
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = CreateSolution()
                     .AddProject(pid, "TestCases", "TestCases", LanguageNames.CSharp)
                     .AddMetadataReference(pid, MscorlibRef);
-            for (int i = 0; i < sourceTexts.Length; i++)
+            for (var i = 0; i < sourceTexts.Length; i++)
             {
                 var did = DocumentId.CreateNewId(pid);
                 solution = solution.AddDocument(did, "goo" + i + ".cs", SourceText.From(sourceTexts[i]));
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static Solution GetMultipleProjectSolution(params string[] sourceTexts)
         {
             var solution = CreateSolution();
-            for (int i = 0; i < sourceTexts.Length; i++)
+            for (var i = 0; i < sourceTexts.Length; i++)
             {
                 var pid = ProjectId.CreateNewId();
                 var did = DocumentId.CreateNewId(pid);
