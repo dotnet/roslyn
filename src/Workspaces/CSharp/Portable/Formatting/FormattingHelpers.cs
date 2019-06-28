@@ -287,29 +287,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            switch (statement)
+            return statement switch
             {
-                case IfStatementSyntax ifStatement:
-                    return ifStatement.CloseParenToken.Equals(token);
-                case SwitchStatementSyntax switchStatement:
-                    return switchStatement.CloseParenToken.Equals(token);
-                case WhileStatementSyntax whileStatement:
-                    return whileStatement.CloseParenToken.Equals(token);
-                case DoStatementSyntax doStatement:
-                    return doStatement.CloseParenToken.Equals(token);
-                case ForStatementSyntax forStatement:
-                    return forStatement.CloseParenToken.Equals(token);
-                case CommonForEachStatementSyntax foreachStatement:
-                    return foreachStatement.CloseParenToken.Equals(token);
-                case LockStatementSyntax lockStatement:
-                    return lockStatement.CloseParenToken.Equals(token);
-                case UsingStatementSyntax usingStatement:
-                    return usingStatement.CloseParenToken.Equals(token);
-                case FixedStatementSyntax fixedStatement:
-                    return fixedStatement.CloseParenToken.Equals(token);
-            }
-
-            return false;
+                IfStatementSyntax ifStatement => ifStatement.CloseParenToken.Equals(token),
+                SwitchStatementSyntax switchStatement => switchStatement.CloseParenToken.Equals(token),
+                WhileStatementSyntax whileStatement => whileStatement.CloseParenToken.Equals(token),
+                DoStatementSyntax doStatement => doStatement.CloseParenToken.Equals(token),
+                ForStatementSyntax forStatement => forStatement.CloseParenToken.Equals(token),
+                CommonForEachStatementSyntax foreachStatement => foreachStatement.CloseParenToken.Equals(token),
+                LockStatementSyntax lockStatement => lockStatement.CloseParenToken.Equals(token),
+                UsingStatementSyntax usingStatement => usingStatement.CloseParenToken.Equals(token),
+                FixedStatementSyntax fixedStatement => fixedStatement.CloseParenToken.Equals(token),
+                _ => false,
+            };
         }
 
         public static bool IsDotInMemberAccessOrQualifiedName(this SyntaxToken token)

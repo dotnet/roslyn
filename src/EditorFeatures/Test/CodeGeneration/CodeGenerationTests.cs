@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 
         private static Func<SemanticModel, INamedTypeSymbol> GetTypeSymbol(string typeMetadataName)
         {
-            return s => s == null ? null : s.Compilation.GetTypeByMetadataName(typeMetadataName);
+            return s => s?.Compilation.GetTypeByMetadataName(typeMetadataName);
         }
 
         internal static IEnumerable<SyntaxToken> CreateModifierTokens(Editing.DeclarationModifiers modifiers, string language)
@@ -781,7 +781,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 
             public static async Task<TestContext> CreateAsync(string initial, string expected, string forceLanguage = null, bool ignoreResult = false)
             {
-                var language = forceLanguage != null ? forceLanguage : GetLanguage(initial);
+                var language = forceLanguage ?? GetLanguage(initial);
                 var isVisualBasic = language == LanguageNames.VisualBasic;
                 var workspace = CreateWorkspaceFromFile(initial.NormalizeLineEndings(), isVisualBasic, null, null);
                 var semanticModel = await workspace.CurrentSolution.Projects.Single().Documents.Single().GetSemanticModelAsync();

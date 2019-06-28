@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Shared
                 return true;
             }
 
-            if (object.ReferenceEquals(left, null) || object.ReferenceEquals(right, null))
+            if (left is null || right is null)
             {
                 return false;
             }

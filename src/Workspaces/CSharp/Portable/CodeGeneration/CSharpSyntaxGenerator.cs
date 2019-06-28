@@ -2923,19 +2923,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static BaseListSyntax GetBaseList(SyntaxNode declaration)
-        {
-            switch (declaration.Kind())
+            => declaration.Kind() switch
             {
-                case SyntaxKind.ClassDeclaration:
-                    return ((ClassDeclarationSyntax)declaration).BaseList;
-                case SyntaxKind.StructDeclaration:
-                    return ((StructDeclarationSyntax)declaration).BaseList;
-                case SyntaxKind.InterfaceDeclaration:
-                    return ((InterfaceDeclarationSyntax)declaration).BaseList;
-                default:
-                    return null;
-            }
-        }
+                SyntaxKind.ClassDeclaration => ((ClassDeclarationSyntax)declaration).BaseList,
+                SyntaxKind.StructDeclaration => ((StructDeclarationSyntax)declaration).BaseList,
+                SyntaxKind.InterfaceDeclaration => ((InterfaceDeclarationSyntax)declaration).BaseList,
+                _ => null,
+            };
 
         private static SyntaxNode WithBaseList(SyntaxNode declaration, BaseListSyntax baseList)
             => declaration.Kind() switch
