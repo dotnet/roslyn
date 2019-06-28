@@ -155,23 +155,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
         }
 
         private static string GetVariableKindText(VariableKind kind)
-        {
-            switch (kind)
+            => kind switch
             {
-                case VariableKind.Property:
-                    return "property";
-                case VariableKind.Method:
-                    return "method";
-                case VariableKind.Field:
-                    return "field";
-                case VariableKind.Local:
-                    return "local";
-                case VariableKind.Unknown:
-                    return "unknown";
-                default:
-                    throw new InvalidOperationException("Invalid SymbolKind: " + kind.ToString());
-            }
-        }
+                VariableKind.Property => "property",
+                VariableKind.Method => "method",
+                VariableKind.Field => "field",
+                VariableKind.Local => "local",
+                VariableKind.Unknown => "unknown",
+                _ => throw new InvalidOperationException("Invalid SymbolKind: " + kind.ToString()),
+            };
 
         private IDisposable Tag(string name, params AttributeInfo[] attributes)
         {

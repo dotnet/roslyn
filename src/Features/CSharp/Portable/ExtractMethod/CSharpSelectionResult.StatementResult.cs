@@ -77,17 +77,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                             return null;
                         }
 
-                        switch (semanticModel.GetDeclaredSymbol(access.Parent.Parent))
+                        return semanticModel.GetDeclaredSymbol(access.Parent.Parent) switch
                         {
-                            case IPropertySymbol propertySymbol:
-                                return propertySymbol.Type;
-
-                            case IEventSymbol eventSymbol:
-                                return eventSymbol.Type;
-
-                            default:
-                                return null;
-                        }
+                            IPropertySymbol propertySymbol => propertySymbol.Type,
+                            IEventSymbol eventSymbol => eventSymbol.Type,
+                            _ => null,
+                        };
 
                     case MethodDeclarationSyntax method:
                         return semanticModel.GetDeclaredSymbol(method).ReturnType;

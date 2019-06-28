@@ -173,15 +173,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
         }
 
         private static ISymbol GetType(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            switch (node)
+            => node switch
             {
-                case BaseTypeDeclarationSyntax t: return semanticModel.GetDeclaredSymbol(t, cancellationToken);
-                case DelegateDeclarationSyntax d: return semanticModel.GetDeclaredSymbol(d, cancellationToken);
-            }
-
-            return null;
-        }
+                BaseTypeDeclarationSyntax t => semanticModel.GetDeclaredSymbol(t, cancellationToken),
+                DelegateDeclarationSyntax d => semanticModel.GetDeclaredSymbol(d, cancellationToken),
+                _ => null,
+            };
 
         private static bool IsAccessor(ISymbol member)
         {

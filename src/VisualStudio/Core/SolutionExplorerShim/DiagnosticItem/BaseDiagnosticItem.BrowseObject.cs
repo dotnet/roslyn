@@ -137,25 +137,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 };
 
             private string MapReportDiagnosticToText(ReportDiagnostic report)
-            {
-                switch (report)
+                => report switch
                 {
-                    case ReportDiagnostic.Default:
-                        return SolutionExplorerShim.Default_;
-                    case ReportDiagnostic.Error:
-                        return SolutionExplorerShim.Error_;
-                    case ReportDiagnostic.Warn:
-                        return SolutionExplorerShim.Warning;
-                    case ReportDiagnostic.Info:
-                        return SolutionExplorerShim.Info;
-                    case ReportDiagnostic.Hidden:
-                        return SolutionExplorerShim.Hidden;
-                    case ReportDiagnostic.Suppress:
-                        return SolutionExplorerShim.Suppressed;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(report);
-                }
-            }
+                    ReportDiagnostic.Default => SolutionExplorerShim.Default_,
+                    ReportDiagnostic.Error => SolutionExplorerShim.Error_,
+                    ReportDiagnostic.Warn => SolutionExplorerShim.Warning,
+                    ReportDiagnostic.Info => SolutionExplorerShim.Info,
+                    ReportDiagnostic.Hidden => SolutionExplorerShim.Hidden,
+                    ReportDiagnostic.Suppress => SolutionExplorerShim.Suppressed,
+                    _ => throw ExceptionUtilities.UnexpectedValue(report),
+                };
         }
     }
 }

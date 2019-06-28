@@ -788,41 +788,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return (access & EnvDTE.vsCMAccess.vsCMAccessWithEvents) != 0;
         }
 
+        // TODO(DustinCa): Verify this list against VB
         protected SpecialType GetSpecialType(EnvDTE.vsCMTypeRef type)
-        {
-            // TODO(DustinCa): Verify this list against VB
-
-            switch (type)
+            => type switch
             {
-                case EnvDTE.vsCMTypeRef.vsCMTypeRefBool:
-                    return SpecialType.System_Boolean;
-                case EnvDTE.vsCMTypeRef.vsCMTypeRefByte:
-                    return SpecialType.System_Byte;
-                case EnvDTE.vsCMTypeRef.vsCMTypeRefChar:
-                    return SpecialType.System_Char;
-                case EnvDTE.vsCMTypeRef.vsCMTypeRefDecimal:
-                    return SpecialType.System_Decimal;
-                case EnvDTE.vsCMTypeRef.vsCMTypeRefDouble:
-                    return SpecialType.System_Double;
-                case EnvDTE.vsCMTypeRef.vsCMTypeRefFloat:
-                    return SpecialType.System_Single;
-                case EnvDTE.vsCMTypeRef.vsCMTypeRefInt:
-                    return SpecialType.System_Int32;
-                case EnvDTE.vsCMTypeRef.vsCMTypeRefLong:
-                    return SpecialType.System_Int64;
-                case EnvDTE.vsCMTypeRef.vsCMTypeRefObject:
-                    return SpecialType.System_Object;
-                case EnvDTE.vsCMTypeRef.vsCMTypeRefShort:
-                    return SpecialType.System_Int16;
-                case EnvDTE.vsCMTypeRef.vsCMTypeRefString:
-                    return SpecialType.System_String;
-                case EnvDTE.vsCMTypeRef.vsCMTypeRefVoid:
-                    return SpecialType.System_Void;
-                default:
-                    // TODO: Support vsCMTypeRef2? It doesn't appear that Dev10 C# does...
-                    throw new ArgumentException();
-            }
-        }
+                EnvDTE.vsCMTypeRef.vsCMTypeRefBool => SpecialType.System_Boolean,
+                EnvDTE.vsCMTypeRef.vsCMTypeRefByte => SpecialType.System_Byte,
+                EnvDTE.vsCMTypeRef.vsCMTypeRefChar => SpecialType.System_Char,
+                EnvDTE.vsCMTypeRef.vsCMTypeRefDecimal => SpecialType.System_Decimal,
+                EnvDTE.vsCMTypeRef.vsCMTypeRefDouble => SpecialType.System_Double,
+                EnvDTE.vsCMTypeRef.vsCMTypeRefFloat => SpecialType.System_Single,
+                EnvDTE.vsCMTypeRef.vsCMTypeRefInt => SpecialType.System_Int32,
+                EnvDTE.vsCMTypeRef.vsCMTypeRefLong => SpecialType.System_Int64,
+                EnvDTE.vsCMTypeRef.vsCMTypeRefObject => SpecialType.System_Object,
+                EnvDTE.vsCMTypeRef.vsCMTypeRefShort => SpecialType.System_Int16,
+                EnvDTE.vsCMTypeRef.vsCMTypeRefString => SpecialType.System_String,
+                EnvDTE.vsCMTypeRef.vsCMTypeRefVoid => SpecialType.System_Void,
+                _ => throw new ArgumentException(),
+            };
 
         private ITypeSymbol GetSpecialType(EnvDTE.vsCMTypeRef type, Compilation compilation)
         {

@@ -560,18 +560,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             expression = expression.WalkDownParentheses();
 
-            switch (expression.Kind())
+            return expression.Kind() switch
             {
-                case SyntaxKind.InvocationExpression:
-                    return ((InvocationExpressionSyntax)expression).ArgumentList;
-                case SyntaxKind.ObjectCreationExpression:
-                    return ((ObjectCreationExpressionSyntax)expression).ArgumentList;
-                case SyntaxKind.ElementAccessExpression:
-                    return ((ElementAccessExpressionSyntax)expression).ArgumentList;
-
-                default:
-                    return null;
-            }
+                SyntaxKind.InvocationExpression => ((InvocationExpressionSyntax)expression).ArgumentList,
+                SyntaxKind.ObjectCreationExpression => ((ObjectCreationExpressionSyntax)expression).ArgumentList,
+                SyntaxKind.ElementAccessExpression => ((ElementAccessExpressionSyntax)expression).ArgumentList,
+                _ => (BaseArgumentListSyntax)null,
+            };
         }
 
         protected override ExpressionSyntax GetReceiver(ExpressionSyntax expression)
