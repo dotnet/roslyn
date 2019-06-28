@@ -42,12 +42,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.MethodXml
                     var firstNonWhitespacePosition = line.GetFirstNonWhitespacePosition() ?? -1;
                     if (firstNonWhitespacePosition == trivia.SpanStart)
                     {
-                        using (var tag = CommentTag())
-                        {
-                            // Skip initial slashes
-                            var trimmedComment = trivia.ToString().Substring(2);
-                            EncodedText(trimmedComment);
-                        }
+                        using var tag = CommentTag();
+
+                        // Skip initial slashes
+                        var trimmedComment = trivia.ToString().Substring(2);
+                        EncodedText(trimmedComment);
                     }
                 }
             }

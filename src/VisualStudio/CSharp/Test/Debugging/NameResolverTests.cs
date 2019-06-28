@@ -27,12 +27,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task TestCSharpLanguageDebugInfoCreateNameResolver()
         {
-            using (var workspace = TestWorkspace.CreateCSharp(" "))
-            {
-                var debugInfo = new CSharpBreakpointResolutionService();
-                var results = await debugInfo.ResolveBreakpointsAsync(workspace.CurrentSolution, "goo", CancellationToken.None);
-                Assert.Equal(0, results.Count());
-            }
+            using var workspace = TestWorkspace.CreateCSharp(" ");
+
+            var debugInfo = new CSharpBreakpointResolutionService();
+            var results = await debugInfo.ResolveBreakpointsAsync(workspace.CurrentSolution, "goo", CancellationToken.None);
+            Assert.Equal(0, results.Count());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]

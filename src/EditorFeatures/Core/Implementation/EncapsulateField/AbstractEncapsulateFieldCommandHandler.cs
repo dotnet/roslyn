@@ -42,10 +42,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
                 return false;
             }
 
-            using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Applying_Encapsulate_Field_refactoring))
-            {
-                return Execute(args, waitScope);
-            }
+            using var waitScope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Applying_Encapsulate_Field_refactoring);
+
+            return Execute(args, waitScope);
         }
 
         private bool Execute(EncapsulateFieldCommandArgs args, IUIThreadOperationScope waitScope)

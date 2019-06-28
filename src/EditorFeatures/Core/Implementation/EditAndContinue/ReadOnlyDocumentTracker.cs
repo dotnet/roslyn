@@ -112,11 +112,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             AssertIsForeground();
 
             var textBuffer = GetTextBuffer(_workspace, documentId);
-            using (var readOnlyEdit = textBuffer.CreateReadOnlyRegionEdit())
-            {
-                readOnlyEdit.RemoveReadOnlyRegion(region);
-                readOnlyEdit.Apply();
-            }
+            using var readOnlyEdit = textBuffer.CreateReadOnlyRegionEdit();
+
+            readOnlyEdit.RemoveReadOnlyRegion(region);
+            readOnlyEdit.Apply();
         }
 
         private static ITextBuffer GetTextBuffer(Workspace workspace, DocumentId documentId)

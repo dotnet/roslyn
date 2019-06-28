@@ -238,15 +238,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
         /// </summary>
         private void ApplyChangesToBuffer(ExtractMethodResult extractMethodResult, ITextBuffer subjectBuffer, CancellationToken cancellationToken)
         {
-            using (var undoTransaction = _undoManager.GetTextBufferUndoManager(subjectBuffer).TextBufferUndoHistory.CreateTransaction("Extract Method"))
-            {
-                // apply extract method code to buffer
-                var document = extractMethodResult.Document;
-                document.Project.Solution.Workspace.ApplyDocumentChanges(document, cancellationToken);
+            using var undoTransaction = _undoManager.GetTextBufferUndoManager(subjectBuffer).TextBufferUndoHistory.CreateTransaction("Extract Method");
 
-                // apply changes
-                undoTransaction.Complete();
-            }
+            // apply extract method code to buffer
+            var document = extractMethodResult.Document;
+            document.Project.Solution.Workspace.ApplyDocumentChanges(document, cancellationToken);
+
+            // apply changes
+            undoTransaction.Complete();
         }
     }
 }

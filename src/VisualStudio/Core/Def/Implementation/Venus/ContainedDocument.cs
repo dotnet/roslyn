@@ -248,60 +248,59 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 yield break;
             }
 
-            using (var pooledObject = SharedPools.Default<List<TextChange>>().GetPooledObject())
+            using var pooledObject = SharedPools.Default<List<TextChange>>().GetPooledObject();
+
+            var changeQueue = pooledObject.Object;
+            changeQueue.AddRange(changes);
+
+            var spanIndex = 0;
+            var changeIndex = 0;
+            for (; spanIndex < editorVisibleSpansInOriginal.Count; spanIndex++)
             {
-                var changeQueue = pooledObject.Object;
-                changeQueue.AddRange(changes);
+                var visibleSpan = editorVisibleSpansInOriginal[spanIndex];
+                var visibleTextSpan = GetVisibleTextSpan(originalText, visibleSpan, uptoFirstAndLastLine: true);
 
-                var spanIndex = 0;
-                var changeIndex = 0;
-                for (; spanIndex < editorVisibleSpansInOriginal.Count; spanIndex++)
+                for (; changeIndex < changeQueue.Count; changeIndex++)
                 {
-                    var visibleSpan = editorVisibleSpansInOriginal[spanIndex];
-                    var visibleTextSpan = GetVisibleTextSpan(originalText, visibleSpan, uptoFirstAndLastLine: true);
+                    var change = changeQueue[changeIndex];
 
-                    for (; changeIndex < changeQueue.Count; changeIndex++)
+                    // easy case first
+                    if (change.Span.End < visibleSpan.Start)
                     {
-                        var change = changeQueue[changeIndex];
+                        // move to next change
+                        continue;
+                    }
 
-                        // easy case first
-                        if (change.Span.End < visibleSpan.Start)
+                    if (visibleSpan.End < change.Span.Start)
+                    {
+                        // move to next visible span
+                        break;
+                    }
+
+                    // make sure we are not replacing whitespace around start and at the end of visible span
+                    if (WhitespaceOnEdges(originalText, visibleTextSpan, change))
+                    {
+                        continue;
+                    }
+
+                    if (visibleSpan.Contains(change.Span))
+                    {
+                        yield return change;
+                        continue;
+                    }
+
+                    // now it is complex case where things are intersecting each other
+                    var subChanges = GetSubTextChanges(originalText, change, visibleSpan).ToList();
+                    if (subChanges.Count > 0)
+                    {
+                        if (subChanges.Count == 1 && subChanges[0] == change)
                         {
-                            // move to next change
+                            // we can't break it. not much we can do here. just don't touch and ignore this change
                             continue;
                         }
 
-                        if (visibleSpan.End < change.Span.Start)
-                        {
-                            // move to next visible span
-                            break;
-                        }
-
-                        // make sure we are not replacing whitespace around start and at the end of visible span
-                        if (WhitespaceOnEdges(originalText, visibleTextSpan, change))
-                        {
-                            continue;
-                        }
-
-                        if (visibleSpan.Contains(change.Span))
-                        {
-                            yield return change;
-                            continue;
-                        }
-
-                        // now it is complex case where things are intersecting each other
-                        var subChanges = GetSubTextChanges(originalText, change, visibleSpan).ToList();
-                        if (subChanges.Count > 0)
-                        {
-                            if (subChanges.Count == 1 && subChanges[0] == change)
-                            {
-                                // we can't break it. not much we can do here. just don't touch and ignore this change
-                                continue;
-                            }
-
-                            changeQueue.InsertRange(changeIndex + 1, subChanges);
-                            continue;
-                        }
+                        changeQueue.InsertRange(changeIndex + 1, subChanges);
+                        continue;
                     }
                 }
             }

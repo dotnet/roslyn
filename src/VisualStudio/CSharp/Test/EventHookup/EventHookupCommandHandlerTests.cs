@@ -337,20 +337,19 @@ class C
         MyEvent +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
+            using var testState = EventHookupTestState.CreateTestState(markup);
 
-                testState.SendTypeChar(' ');
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("C_MyEvent;");
 
-                testState.SendBackspace();
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertNotShowing();
-            }
+            testState.SendTypeChar(' ');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("C_MyEvent;");
+
+            testState.SendBackspace();
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertNotShowing();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]

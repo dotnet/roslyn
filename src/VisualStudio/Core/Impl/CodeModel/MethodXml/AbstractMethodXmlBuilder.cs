@@ -465,10 +465,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
             if (type.TypeKind == TypeKind.Array)
             {
                 var arrayType = (IArrayTypeSymbol)type;
-                using (var tag = ArrayTypeTag(arrayType.Rank))
-                {
-                    GenerateType(arrayType.ElementType, @implicit, assemblyQualify);
-                }
+                using var tag = ArrayTypeTag(arrayType.Rank);
+
+                GenerateType(arrayType.ElementType, @implicit, assemblyQualify);
             }
             else
             {

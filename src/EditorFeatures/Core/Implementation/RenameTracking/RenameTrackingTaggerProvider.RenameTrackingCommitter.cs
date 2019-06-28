@@ -262,33 +262,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                 var undoHistory = _undoHistoryRegistry.RegisterHistory(_stateMachine.Buffer);
 
-                using (var workspaceUndoTransaction = workspace.OpenGlobalUndoTransaction(undoName))
-                using (var localUndoTransaction = undoHistory.CreateTransaction(undoName))
+                using var workspaceUndoTransaction = workspace.OpenGlobalUndoTransaction(undoName);
+                using var localUndoTransaction = undoHistory.CreateTransaction(undoName);
+
+                var undoPrimitiveBefore = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: false);
+                localUndoTransaction.AddUndo(undoPrimitiveBefore);
+
+                if (!workspace.TryApplyChanges(newSolution))
                 {
-                    var undoPrimitiveBefore = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: false);
-                    localUndoTransaction.AddUndo(undoPrimitiveBefore);
-
-                    if (!workspace.TryApplyChanges(newSolution))
-                    {
-                        Contract.Fail("Rename Tracking could not update solution.");
-                    }
-
-                    if (!_refactorNotifyServices.TryOnAfterGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure: false))
-                    {
-                        var notificationService = workspace.Services.GetService<INotificationService>();
-                        notificationService.SendNotification(
-                            EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated,
-                            EditorFeaturesResources.Rename_Symbol,
-                            NotificationSeverity.Information);
-                    }
-
-                    // Never resume tracking session on redo
-                    var undoPrimitiveAfter = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: false);
-                    localUndoTransaction.AddUndo(undoPrimitiveAfter);
-
-                    localUndoTransaction.Complete();
-                    workspaceUndoTransaction.Commit();
+                    Contract.Fail("Rename Tracking could not update solution.");
                 }
+
+                if (!_refactorNotifyServices.TryOnAfterGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure: false))
+                {
+                    var notificationService = workspace.Services.GetService<INotificationService>();
+                    notificationService.SendNotification(
+                        EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated,
+                        EditorFeaturesResources.Rename_Symbol,
+                        NotificationSeverity.Information);
+                }
+
+                // Never resume tracking session on redo
+                var undoPrimitiveAfter = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: false);
+                localUndoTransaction.AddUndo(undoPrimitiveAfter);
+
+                localUndoTransaction.Complete();
+                workspaceUndoTransaction.Commit();
             }
         }
     }
