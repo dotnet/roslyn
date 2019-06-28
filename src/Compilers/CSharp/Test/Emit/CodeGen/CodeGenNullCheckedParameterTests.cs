@@ -447,12 +447,18 @@ class C
     public static void Main() { }
 }";
             // Release
-            var compilation = CreateCompilation(source);
-            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_get_HasValue);
-            compilation.VerifyEmitDiagnostics(
-                    // (4,28): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
-                    //     static void M(int? i!) { }
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ }").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(4, 28));
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.M(int?)", @"
+{
+    // Code size       16 (0x10)
+    .maxstack  1
+    IL_0000:  ldarga.s   V_0
+    IL_0002:  call       ""bool int?.HasValue.get""
+    IL_0007:  brtrue.s   IL_000f
+    IL_0009:  newobj     ""System.Exception..ctor()""
+    IL_000e:  throw
+    IL_000f:  ret
+}");
         }
 
         [Fact]
@@ -1165,6 +1171,52 @@ class C
     IL_000a:  call       ""C..ctor()""
     IL_000f:  ret
 }");
+        }
+
+        [Fact]
+        public void TestNullCheckedConstructorWithFieldInitializers()
+        {
+            var source = @"
+class C
+{
+    int y = 5;
+    public C(string x!) { }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C..ctor(string)", @"
+{
+    // Code size       23 (0x17)
+    .maxstack  2
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.0
+    IL_000a:  ldc.i4.5
+    IL_000b:  stfld      ""int C.y""
+    IL_0010:  ldarg.0
+    IL_0011:  call       ""object..ctor()""
+    IL_0016:  ret
+}");
+        }
+
+        [Fact(Skip = "PROTOTYPE")]
+        public void TestNullCheckedIterator()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        string[] values = {""hello"", ""world""};
+        foreach (var val in values)
+        {
+            Console.WriteLine(val);
+        }
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.Main()", @"");
         }
     }
 }
