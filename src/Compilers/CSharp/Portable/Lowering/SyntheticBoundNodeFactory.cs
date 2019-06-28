@@ -1444,7 +1444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !exprType.IsValueType ||
                 exprType.IsPointerType());
 
-            TypeSymbol boolType = SpecialType(CodeAnalysis.SpecialType.System_Boolean);//_compilation.GetSpecialType(SpecialType.System_Boolean);
+            TypeSymbol boolType = SpecialType(CodeAnalysis.SpecialType.System_Boolean);
 
             // Fold compile-time comparisons.
             if (rewrittenExpr.ConstantValue != null)
@@ -1453,14 +1453,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BinaryOperatorKind.Equal:
                         return this.Literal(ConstantValue.Create(rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
-                        //MakeLiteral(syntax, ConstantValue.Create(rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
                     case BinaryOperatorKind.NotEqual:
                         return this.Literal(ConstantValue.Create(!rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
-                        //MakeLiteral(syntax, ConstantValue.Create(!rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
                 }
             }
 
-            TypeSymbol objectType = SpecialType(CodeAnalysis.SpecialType.System_Object);//_compilation.GetSpecialType(SpecialType.System_Object);
+            TypeSymbol objectType = SpecialType(CodeAnalysis.SpecialType.System_Object);
 
             if ((object)exprType != null)
             {
@@ -1468,7 +1466,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Box type parameters.
                     rewrittenExpr = Convert(objectType, rewrittenExpr, Conversion.Boxing);
-                    //rewrittenExpr = MakeConversionNode(syntax, rewrittenExpr, Conversion.Boxing, objectType, @checked: false);
                 }
                 else if (exprType.IsNullableType())
                 {
@@ -1476,13 +1473,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             return this.Binary(operatorKind, boolType, rewrittenExpr, this.Null(objectType));
-            //return MakeBinaryOperator(
-            //    syntax,
-            //    operatorKind,
-            //    rewrittenExpr,
-            //    MakeLiteral(syntax, ConstantValue.Null, objectType),
-            //    boolType,
-            //    null);
         }
 
         internal BoundExpression MakeNullableHasValue(SyntaxNode syntax, BoundExpression expression)
