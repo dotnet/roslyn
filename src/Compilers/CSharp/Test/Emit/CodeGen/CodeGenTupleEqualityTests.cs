@@ -5536,5 +5536,99 @@ struct B
 False
 ");
         }
+
+        [Fact, WorkItem(35958, "https://github.com/dotnet/roslyn/issues/35958")]
+        public void TestMethodGroupConversionInTupleEquality_01()
+        {
+            var source = @"
+using System;
+
+public class C {
+    public static void Main()
+    {
+        Action a = M;
+        Console.WriteLine((a, M) == (M, a));
+    }
+    
+    static void M() {}
+}";
+            var comp = CompileAndVerify(source, expectedOutput: "True");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(35958, "https://github.com/dotnet/roslyn/issues/35958")]
+        public void TestMethodGroupConversionInTupleEquality_02()
+        {
+            var source = @"
+using System;
+
+public class C {
+    public static void Main()
+    {
+        Action a = () => {};
+        Console.WriteLine((a, M) == (M, a));
+    }
+    
+    static void M() {}
+}";
+            var comp = CompileAndVerify(source, expectedOutput: "False");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(35958, "https://github.com/dotnet/roslyn/issues/35958")]
+        public void TestMethodGroupConversionInTupleEquality_03()
+        {
+            var source = @"
+using System;
+
+public class C {
+    public static void Main()
+    {
+        K k = null;
+        Console.WriteLine((k, 1) == (M, 1));
+    }
+    
+    static void M() {}
+}
+
+class K
+{
+    public static bool operator ==(K k, System.Action a) => true;
+    public static bool operator !=(K k, System.Action a) => false;
+    public override bool Equals(object other) => false;
+    public override int GetHashCode() => 1;
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "True");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(35958, "https://github.com/dotnet/roslyn/issues/35958")]
+        public void TestInterpolatedStringConversionInTupleEquality_01()
+        {
+            var source = @"
+using System;
+
+public class C {
+    public static void Main()
+    {
+        K k = null;
+        Console.WriteLine((k, 1) == ($""frog"", 1));
+    }
+    
+    static void M() {}
+}
+
+class K
+{
+    public static bool operator ==(K k, IFormattable a) => a.ToString() == ""frog"";
+    public static bool operator !=(K k, IFormattable a) => false;
+    public override bool Equals(object other) => false;
+    public override int GetHashCode() => 1;
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "True");
+            comp.VerifyDiagnostics();
+        }
     }
 }
