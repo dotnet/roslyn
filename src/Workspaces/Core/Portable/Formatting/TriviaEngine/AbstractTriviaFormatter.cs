@@ -548,17 +548,12 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // okay, we are not on a its own line, use space information
-            switch (rule.SpaceOperation)
+            return rule.SpaceOperation switch
             {
-                case LineColumnRule.SpaceOperations.Preserve:
-                    return Math.Max(rule.Spaces, existingWhitespaceBetween.Spaces);
-
-                case LineColumnRule.SpaceOperations.Force:
-                    return Math.Max(rule.Spaces, 0);
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(rule.SpaceOperation);
-            }
+                LineColumnRule.SpaceOperations.Preserve => Math.Max(rule.Spaces, existingWhitespaceBetween.Spaces),
+                LineColumnRule.SpaceOperations.Force => Math.Max(rule.Spaces, 0),
+                _ => throw ExceptionUtilities.UnexpectedValue(rule.SpaceOperation),
+            };
         }
 
         private int GetRuleLines(LineColumnRule rule, LineColumn lineColumnAfterTrivia1, LineColumnDelta existingWhitespaceBetween)

@@ -53,15 +53,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            switch (node)
+            return node switch
             {
-                case SwitchSectionSyntax switchSection:
-                    return ValueTuple.Create(switchSection.GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true));
-                case AnonymousMethodExpressionSyntax anonymousMethod:
-                    return ValueTuple.Create(anonymousMethod.DelegateKeyword, anonymousMethod.GetLastToken(includeZeroWidth: true));
-            }
-
-            return default;
+                SwitchSectionSyntax switchSection => ValueTuple.Create(switchSection.GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true)),
+                AnonymousMethodExpressionSyntax anonymousMethod => ValueTuple.Create(anonymousMethod.DelegateKeyword, anonymousMethod.GetLastToken(includeZeroWidth: true)),
+                _ => default,
+            };
         }
 
         private void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
