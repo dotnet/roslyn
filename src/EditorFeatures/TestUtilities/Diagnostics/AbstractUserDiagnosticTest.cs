@@ -223,29 +223,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        private async Task<string> GetEquivalenceKeyAsync(
-            Document document, CodeFixProvider provider, ImmutableArray<Diagnostic> diagnostics)
-        {
-            if (diagnostics.Length == 0)
-            {
-                throw new InvalidOperationException("No diagnostics found intersecting with span.");
-            }
-
-            var fixes = new List<CodeFix>();
-            var context = new CodeFixContext(
-                document, diagnostics[0],
-                (a, d) => fixes.Add(new CodeFix(document.Project, a, d)),
-                CancellationToken.None);
-
-            await provider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
-            if (fixes.Count == 0)
-            {
-                throw new InvalidOperationException("No fixes produced for diagnostic.");
-            }
-
-            return fixes[0].Action.EquivalenceKey;
-        }
-
         private static FixAllState GetFixAllState(
             FixAllProvider fixAllProvider,
             IEnumerable<Diagnostic> diagnostics,
