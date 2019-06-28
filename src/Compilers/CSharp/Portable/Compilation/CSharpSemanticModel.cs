@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).GetBinder(attribute);
         }
 
-        protected static BoundExpression GetSpeculativelyBoundExpressionHelper(Binder binder, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, DiagnosticBag diagnostics)
+        private static BoundExpression GetSpeculativelyBoundExpressionHelper(Binder binder, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, DiagnosticBag diagnostics)
         {
             Debug.Assert(binder != null);
             Debug.Assert(binder.IsSemanticModelBinder);

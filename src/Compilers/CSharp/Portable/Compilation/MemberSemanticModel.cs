@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Only used when this is a speculative semantic model.
         /// </summary>
-        private NullableWalker.SnapshotManager _parentSnapshotManagerOpt;
+        private readonly NullableWalker.SnapshotManager _parentSnapshotManagerOpt;
 
         internal readonly Binder RootBinder;
 
@@ -139,8 +139,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsInTree(node) ? this : null;
         }
 
-        // We hide this property, as EnsureRootBoundForNullabilityIfNecessary can cause
-        // the cache to be populated.
+        /// <remarks>
+        /// This will cause the bound node cache to be populated if nullable semantic analysis is enabled.
+        /// </remarks>
         protected NullableWalker.SnapshotManager GetSnapshotManager()
         {
             EnsureRootBoundForNullabilityIfNecessary();

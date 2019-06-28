@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// The int key corresponds to <see cref="Snapshot.SharedStateIndex"/>.
             /// </summary>
-            private readonly ImmutableArray<SharedWalkerState> _walkerGlobalStates;
+            private readonly ImmutableArray<SharedWalkerState> _walkerSharedStates;
+
             /// <summary>
             /// The snapshot array should be sorted in ascending order by the position tuple element in order for the binary search algorithm to
             /// function correctly.
@@ -26,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static readonly Func<(int position, Snapshot snapshot), int, int> BinarySearchComparer = (current, target) => current.position.CompareTo(target);
 
-            private SnapshotManager(ImmutableArray<SharedWalkerState> walkerGlobalStates, ImmutableArray<(int position, Snapshot snapshot)> incrementalSnapshots)
+            private SnapshotManager(ImmutableArray<SharedWalkerState> walkerSharedStates, ImmutableArray<(int position, Snapshot snapshot)> incrementalSnapshots)
             {
-                _walkerGlobalStates = walkerGlobalStates;
+                _walkerSharedStates = walkerSharedStates;
                 _incrementalSnapshots = incrementalSnapshots;
 
 #if DEBUG
@@ -62,11 +63,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 (_, Snapshot incrementalSnapshot) = _incrementalSnapshots[snapshotPosition];
-                var globalState = _walkerGlobalStates[incrementalSnapshot.SharedStateIndex];
-                var variableState = new VariableState(globalState.VariableSlot, globalState.VariableBySlot, globalState.VariableTypes, incrementalSnapshot.VariableState.Clone());
-                var method = globalState.Symbol as MethodSymbol;
+                var sharedState = _walkerSharedStates[incrementalSnapshot.SharedStateIndex];
+                var variableState = new VariableState(sharedState.VariableSlot, sharedState.VariableBySlot, sharedState.VariableTypes, incrementalSnapshot.VariableState.Clone());
+                var method = sharedState.Symbol as MethodSymbol;
                 return (new NullableWalker(binder.Compilation,
-                                           globalState.Symbol,
+                                           sharedState.Symbol,
                                            useMethodSignatureParameterTypes: !(method is null),
                                            method,
                                            nodeToAnalyze,
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            snapshotBuilderOpt: newManagerOpt,
                                            isSpeculative: true),
                         variableState,
-                        globalState.Symbol);
+                        sharedState.Symbol);
             }
 
 #if DEBUG
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Fail($"Did not find a snapshot for {node} `{node.Syntax}.`");
                 }
-                Debug.Assert(_walkerGlobalStates.Length > _incrementalSnapshots[position].snapshot.SharedStateIndex, $"Did not find global state for {node} `{node.Syntax}`.");
+                Debug.Assert(_walkerSharedStates.Length > _incrementalSnapshots[position].snapshot.SharedStateIndex, $"Did not find shared state for {node} `{node.Syntax}`.");
             }
 #endif
 
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private readonly SortedDictionary<int, Snapshot> _incrementalSnapshots = new SortedDictionary<int, Snapshot>();
                 /// <summary>
                 /// Every walker is walking a specific symbol, and can potentially walk each symbol multiple times
-                /// to get to a stable state. Each of these symbols gets a single global state slot, which this
+                /// to get to a stable state. Each of these symbols gets a single shared state slot, which this
                 /// dictionary keeps track of. These slots correspond to indexes into <see cref="_walkerStates"/>.
                 /// </summary>
                 private readonly PooledDictionary<Symbol, int> _symbolToSlot = PooledDictionary<Symbol, int>.GetInstance();
@@ -200,10 +201,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal readonly LocalState VariableState;
             internal readonly int SharedStateIndex;
 
-            internal Snapshot(LocalState variableState, int globalStateIndex)
+            internal Snapshot(LocalState variableState, int sharedStateIndex)
             {
                 VariableState = variableState;
-                SharedStateIndex = globalStateIndex;
+                SharedStateIndex = sharedStateIndex;
             }
         }
     }
