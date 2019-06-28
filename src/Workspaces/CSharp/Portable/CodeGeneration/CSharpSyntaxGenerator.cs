@@ -3979,7 +3979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxTriviaList RemoveCommentLines(SyntaxTriviaList syntaxTriviaList)
         {
-            IEnumerable<IEnumerable<SyntaxTrivia>> splitIntoLines(SyntaxTriviaList triviaList)
+            static IEnumerable<IEnumerable<SyntaxTrivia>> splitIntoLines(SyntaxTriviaList triviaList)
             {
                 var index = 0;
                 for (var i = 0; i < triviaList.Count; i++)
