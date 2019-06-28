@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
@@ -219,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 // - presence of unmanaged pattern has to be matched with `valuetype`
-                // - IsUnmanagedAttribute is allowed iff there is an unmanaged pattern
+                // - IsUnmanagedAttribute is allowed iif there is an unmanaged pattern
                 if (hasUnmanagedModreqPattern && (_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) == 0 ||
                     hasUnmanagedModreqPattern != peModule.HasIsUnmanagedAttribute(_handle))
                 {
@@ -271,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             var type = TypeWithAnnotations.Create(typeSymbol);
-            type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol, accessSymbol: _containingSymbol, nullableContext: _containingSymbol);
+            type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol);
             type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, constraintHandle, moduleSymbol);
             return type;
         }
@@ -430,19 +431,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        /// <summary>
-        /// Returns the byte value from the (single byte) NullableAttribute or nearest
-        /// NullableContextAttribute. Returns 0 if neither attribute is specified.
-        /// </summary>
-        private byte GetNullableAttributeValue()
-        {
-            if (((PEModuleSymbol)this.ContainingModule).Module.HasNullableAttribute(_handle, out byte value, out _))
-            {
-                return value;
-            }
-            return _containingSymbol.GetNullableContextValue() ?? 0;
-        }
-
         internal override bool? ReferenceTypeConstraintIsNullable
         {
             get
@@ -453,12 +441,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return false;
                 }
 
-                switch (GetNullableAttributeValue())
+                if (((PEModuleSymbol)this.ContainingModule).Module.HasNullableAttribute(_handle, out byte transformFlag, out _))
                 {
-                    case NullableAnnotationExtensions.AnnotatedAttributeValue:
-                        return true;
-                    case NullableAnnotationExtensions.NotAnnotatedAttributeValue:
-                        return false;
+                    switch (transformFlag)
+                    {
+                        case NullableAnnotationExtensions.AnnotatedAttributeValue:
+                            return true;
+                        case NullableAnnotationExtensions.NotAnnotatedAttributeValue:
+                            return false;
+                    }
                 }
 
                 return null;
@@ -470,7 +461,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 return (_flags & (GenericParameterAttributes.NotNullableValueTypeConstraint | GenericParameterAttributes.ReferenceTypeConstraint)) == 0 &&
-                       GetNullableAttributeValue() == NullableAnnotationExtensions.NotAnnotatedAttributeValue;
+                       ((PEModuleSymbol)this.ContainingModule).Module.HasNullableAttribute(_handle, out byte transformFlag, out _) &&
+                       transformFlag == NullableAnnotationExtensions.NotAnnotatedAttributeValue;
             }
         }
 
@@ -487,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     if (constraints.Count == 0)
                     {
-                        if (GetNullableAttributeValue() == NullableAnnotationExtensions.AnnotatedAttributeValue)
+                        if (module.HasNullableAttribute(_handle, out byte transformFlag, out _) && transformFlag == NullableAnnotationExtensions.AnnotatedAttributeValue)
                         {
                             return false;
                         }

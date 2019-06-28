@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         IsByRefLikeAttribute = 0x02,
         IsUnmanagedAttribute = 0x04,
         NullableAttribute = 0x08,
-        NullableContextAttribute = 0x10,
-        NullablePublicOnlyAttribute = 0x20,
+        NullablePublicOnlyAttribute = 0x10,
     }
 }

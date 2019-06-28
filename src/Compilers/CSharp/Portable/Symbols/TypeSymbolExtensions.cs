@@ -1697,8 +1697,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Cci.ITypeReference typeRef)
         {
             var builder = ArrayBuilder<Cci.ICustomAttribute>.GetInstance();
-            var compilation = declaringSymbol.DeclaringCompilation;
 
+            var compilation = declaringSymbol.DeclaringCompilation;
             if (compilation != null)
             {
                 if (type.Type.ContainsTupleNames())
@@ -1710,16 +1710,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (compilation.ShouldEmitNullableAttributes(declaringSymbol))
+                if (compilation.ShouldEmitNullableAttributes(declaringSymbol) &&
+                    type.NeedsNullableAttribute())
                 {
-                    SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttributeIfNecessary(declaringSymbol, declaringSymbol.GetNullableContextValue(), type);
+                    SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttribute(declaringSymbol, type);
                     if (attr != null)
                     {
                         builder.Add(attr);
                     }
                 }
             }
-
 
             return new Cci.TypeReferenceWithAttributes(typeRef, builder.ToImmutableAndFree());
         }

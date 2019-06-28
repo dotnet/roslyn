@@ -1164,22 +1164,6 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal bool HasNullablePublicOnlyAttribute(EntityHandle token, out bool includesInternals)
-        {
-            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.NullablePublicOnlyAttribute);
-            if (info.HasValue)
-            {
-                Debug.Assert(info.SignatureIndex == 0);
-                if (TryExtractValueFromAttribute(info.Handle, out bool value, s_attributeBooleanValueExtractor))
-                {
-                    includesInternals = value;
-                    return true;
-                }
-            }
-            includesInternals = false;
-            return false;
-        }
-
         internal ImmutableArray<string> GetInternalsVisibleToAttributeValues(EntityHandle token)
         {
             List<AttributeInfo> attrInfos = FindTargetAttributes(token, AttributeDescription.InternalsVisibleToAttribute);
@@ -2449,20 +2433,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return _lazyContainsNoPiaLocalTypes == ThreeState.True;
-        }
-
-        internal bool HasNullableContextAttribute(EntityHandle token, out byte value)
-        {
-            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.NullableContextAttribute);
-            Debug.Assert(!info.HasValue || info.SignatureIndex == 0);
-
-            if (!info.HasValue)
-            {
-                value = 0;
-                return false;
-            }
-
-            return TryExtractValueFromAttribute(info.Handle, out value, s_attributeByteValueExtractor);
         }
 
         internal bool HasNullableAttribute(EntityHandle token, out byte defaultTransform, out ImmutableArray<byte> nullableTransforms)

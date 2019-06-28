@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // See https://github.com/dotnet/roslyn/blob/master/docs/features/nullable-metadata.md
         internal bool ConstraintsNeedNullableAttribute()
         {
-            if (!DeclaringCompilation.ShouldEmitNullableAttributes(this))
+            if (!DeclaringCompilation.ShouldEmitNullableAttributes(ContainingSymbol))
             {
                 return false;
             }
@@ -381,15 +381,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var compilation = DeclaringCompilation;
-            if (compilation.ShouldEmitNullableAttributes(this))
+            if (compilation.ShouldEmitNullableAttributes(ContainingSymbol))
             {
-                AddSynthesizedAttribute(
-                    ref attributes,
-                    moduleBuilder.SynthesizeNullableAttributeIfNecessary(GetNullableContextValue(), GetSynthesizedNullableAttributeValue()));
+                byte nullableAttributeValue = GetSynthesizedNullableAttributeValue();
+                if (nullableAttributeValue != NullableAnnotationExtensions.ObliviousAttributeValue)
+                {
+                    NamedTypeSymbol byteType = compilation.GetSpecialType(SpecialType.System_Byte);
+                    Debug.Assert((object)byteType != null);
+
+                    AddSynthesizedAttribute(
+                        ref attributes,
+                        moduleBuilder.SynthesizeNullableAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
+                                                                  ImmutableArray.Create(new TypedConstant(byteType, TypedConstantKind.Primitive,
+                                                                                                          nullableAttributeValue))));
+                }
             }
         }
 
-        internal byte GetSynthesizedNullableAttributeValue()
+        private byte GetSynthesizedNullableAttributeValue()
         {
             if (this.HasReferenceTypeConstraint)
             {
