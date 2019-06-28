@@ -328,19 +328,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private IEnumerable<TextChange> GetSubTextChanges(SourceText originalText, TextChange changeInOriginalText, TextSpan visibleSpanInOriginalText)
         {
-            using (var changes = SharedPools.Default<List<TextChange>>().GetPooledObject())
+            using var changes = SharedPools.Default<List<TextChange>>().GetPooledObject();
+
+            var leftText = originalText.ToString(changeInOriginalText.Span);
+            var rightText = changeInOriginalText.NewText;
+            var offsetInOriginalText = changeInOriginalText.Span.Start;
+
+            if (TryGetSubTextChanges(originalText, visibleSpanInOriginalText, leftText, rightText, offsetInOriginalText, changes.Object))
             {
-                var leftText = originalText.ToString(changeInOriginalText.Span);
-                var rightText = changeInOriginalText.NewText;
-                var offsetInOriginalText = changeInOriginalText.Span.Start;
-
-                if (TryGetSubTextChanges(originalText, visibleSpanInOriginalText, leftText, rightText, offsetInOriginalText, changes.Object))
-                {
-                    return changes.Object.ToList();
-                }
-
-                return GetSubTextChanges(originalText, visibleSpanInOriginalText, leftText, rightText, offsetInOriginalText);
+                return changes.Object.ToList();
             }
+
+            return GetSubTextChanges(originalText, visibleSpanInOriginalText, leftText, rightText, offsetInOriginalText);
         }
 
         private bool TryGetSubTextChanges(
@@ -766,24 +765,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                                         .WithChangedOption(FormattingOptions.TabSize, root.Language, editorOptions.GetTabSize())
                                         .WithChangedOption(FormattingOptions.IndentationSize, root.Language, editorOptions.GetIndentSize());
 
-            using (var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject())
+            using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
+
+            var spans = pooledObject.Object;
+
+            spans.AddRange(this.GetEditorVisibleSpans());
+            using var edit = subjectBuffer.CreateEdit(s_venusEditOptions, reiteratedVersionNumber: null, editTag: null);
+
+            foreach (var spanIndex in visibleSpanIndex)
             {
-                var spans = pooledObject.Object;
+                var rule = GetBaseIndentationRule(root, originalText, spans, spanIndex);
 
-                spans.AddRange(this.GetEditorVisibleSpans());
-                using (var edit = subjectBuffer.CreateEdit(s_venusEditOptions, reiteratedVersionNumber: null, editTag: null))
-                {
-                    foreach (var spanIndex in visibleSpanIndex)
-                    {
-                        var rule = GetBaseIndentationRule(root, originalText, spans, spanIndex);
-
-                        var visibleSpan = spans[spanIndex];
-                        AdjustIndentationForSpan(document, edit, visibleSpan, rule, options);
-                    }
-
-                    edit.Apply();
-                }
+                var visibleSpan = spans[spanIndex];
+                AdjustIndentationForSpan(document, edit, visibleSpan, rule, options);
             }
+
+            edit.Apply();
         }
 
         private void AdjustIndentationForSpan(

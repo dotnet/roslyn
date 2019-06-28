@@ -580,12 +580,12 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                         DtdProcessing = DtdProcessing.Prohibit,
                         XmlResolver = null
                     };
-                    using (var reader = XmlReader.Create(stream, settings))
-                    {
-                        var result = XElement.Load(reader);
-                        await _service.LogInfoAsync("Converting data to XElement completed").ConfigureAwait(false);
-                        return result;
-                    }
+
+                    using var reader = XmlReader.Create(stream, settings);
+
+                    var result = XElement.Load(reader);
+                    await _service.LogInfoAsync("Converting data to XElement completed").ConfigureAwait(false);
+                    return result;
                 }
             }
 
