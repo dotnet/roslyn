@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return false;
             }
 
-            validTypeDeclarations = validTypeDeclarations ?? SpecializedCollections.EmptySet<SyntaxKind>();
+            validTypeDeclarations ??= SpecializedCollections.EmptySet<SyntaxKind>();
 
             // Check many of the simple cases first.
             var leftToken = contextOpt != null
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return false;
             }
 
-            validModifiers = validModifiers ?? SpecializedCollections.EmptySet<SyntaxKind>();
+            validModifiers ??= SpecializedCollections.EmptySet<SyntaxKind>();
 
             if (modifierTokens.IsSubsetOf(validModifiers))
             {
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 ? contextOpt.ContainingTypeDeclaration
                 : syntaxTree.GetContainingTypeDeclaration(position, cancellationToken);
 
-            validTypeDeclarations = validTypeDeclarations ?? SpecializedCollections.EmptySet<SyntaxKind>();
+            validTypeDeclarations ??= SpecializedCollections.EmptySet<SyntaxKind>();
 
             if (typeDecl != null)
             {
@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return false;
             }
 
-            validModifiers = validModifiers ?? SpecializedCollections.EmptySet<SyntaxKind>();
+            validModifiers ??= SpecializedCollections.EmptySet<SyntaxKind>();
 
             if (modifierTokens.IsProperSubsetOf(validModifiers))
             {

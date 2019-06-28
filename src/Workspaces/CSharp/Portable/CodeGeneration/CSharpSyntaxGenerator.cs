@@ -1501,7 +1501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private SyntaxNode WithModifiersInternal(SyntaxNode declaration, DeclarationModifiers modifiers)
         {
-            modifiers = modifiers & GetAllowedModifiers(declaration.Kind());
+            modifiers &= GetAllowedModifiers(declaration.Kind());
             var existingModifiers = this.GetModifiers(declaration);
 
             if (modifiers != existingModifiers)
@@ -1697,51 +1697,51 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         break;
 
                     case SyntaxKind.AbstractKeyword:
-                        modifiers = modifiers | DeclarationModifiers.Abstract;
+                        modifiers |= DeclarationModifiers.Abstract;
                         break;
 
                     case SyntaxKind.NewKeyword:
-                        modifiers = modifiers | DeclarationModifiers.New;
+                        modifiers |= DeclarationModifiers.New;
                         break;
 
                     case SyntaxKind.OverrideKeyword:
-                        modifiers = modifiers | DeclarationModifiers.Override;
+                        modifiers |= DeclarationModifiers.Override;
                         break;
 
                     case SyntaxKind.VirtualKeyword:
-                        modifiers = modifiers | DeclarationModifiers.Virtual;
+                        modifiers |= DeclarationModifiers.Virtual;
                         break;
 
                     case SyntaxKind.StaticKeyword:
-                        modifiers = modifiers | DeclarationModifiers.Static;
+                        modifiers |= DeclarationModifiers.Static;
                         break;
 
                     case SyntaxKind.AsyncKeyword:
-                        modifiers = modifiers | DeclarationModifiers.Async;
+                        modifiers |= DeclarationModifiers.Async;
                         break;
 
                     case SyntaxKind.ConstKeyword:
-                        modifiers = modifiers | DeclarationModifiers.Const;
+                        modifiers |= DeclarationModifiers.Const;
                         break;
 
                     case SyntaxKind.ReadOnlyKeyword:
-                        modifiers = modifiers | DeclarationModifiers.ReadOnly;
+                        modifiers |= DeclarationModifiers.ReadOnly;
                         break;
 
                     case SyntaxKind.SealedKeyword:
-                        modifiers = modifiers | DeclarationModifiers.Sealed;
+                        modifiers |= DeclarationModifiers.Sealed;
                         break;
 
                     case SyntaxKind.UnsafeKeyword:
-                        modifiers = modifiers | DeclarationModifiers.Unsafe;
+                        modifiers |= DeclarationModifiers.Unsafe;
                         break;
 
                     case SyntaxKind.PartialKeyword:
-                        modifiers = modifiers | DeclarationModifiers.Partial;
+                        modifiers |= DeclarationModifiers.Partial;
                         break;
 
                     case SyntaxKind.RefKeyword:
-                        modifiers = modifiers | DeclarationModifiers.Ref;
+                        modifiers |= DeclarationModifiers.Ref;
                         break;
                 }
             }
