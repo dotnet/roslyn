@@ -22,16 +22,14 @@ namespace Microsoft.CodeAnalysis
     /// <remarks>
     /// To log diagnostics in the standardized SARIF v2.1.0 format, use the SarifV2ErrorLogger.
     /// </remarks>
-    internal sealed class SarifV1ErrorLogger : StreamErrorLogger, IDisposable
+    internal sealed class SarifV1ErrorLogger : SarifErrorLoggerBase, IDisposable
     {
         private readonly DiagnosticDescriptorSet _descriptors;
-        private readonly CultureInfo _culture;
 
         public SarifV1ErrorLogger(Stream stream, string toolName, string toolFileVersion, Version toolAssemblyVersion, CultureInfo culture)
-            : base(stream)
+            : base(stream, culture)
         {
             _descriptors = new DiagnosticDescriptorSet();
-            _culture = culture;
 
             _writer.WriteObjectStart(); // root
             _writer.Write("$schema", "http://json.schemastore.org/sarif-1.0.0");
@@ -272,28 +270,6 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 _writer.WriteObjectEnd(); // rules
-            }
-        }
-
-        private static string GetLevel(DiagnosticSeverity severity)
-        {
-            switch (severity)
-            {
-                case DiagnosticSeverity.Info:
-                    return "note";
-
-                case DiagnosticSeverity.Error:
-                    return "error";
-
-                case DiagnosticSeverity.Warning:
-                    return "warning";
-
-                case DiagnosticSeverity.Hidden:
-                default:
-                    // hidden diagnostics are not reported on the command line and therefore not currently given to 
-                    // the error logger. We could represent it with a custom property in the SARIF log if that changes.
-                    Debug.Assert(false);
-                    goto case DiagnosticSeverity.Warning;
             }
         }
 

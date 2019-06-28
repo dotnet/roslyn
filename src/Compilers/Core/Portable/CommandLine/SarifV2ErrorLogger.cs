@@ -9,24 +9,22 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class SarifV2ErrorLogger : StreamErrorLogger, IDisposable
+    internal sealed class SarifV2ErrorLogger : SarifErrorLoggerBase, IDisposable
     {
         private readonly DiagnosticDescriptorSet _descriptors;
 
         private readonly string _toolName;
         private readonly string _toolFileVersion;
         private readonly Version _toolAssemblyVersion;
-        private readonly CultureInfo _culture;
 
         public SarifV2ErrorLogger(Stream stream, string toolName, string toolFileVersion, Version toolAssemblyVersion, CultureInfo culture)
-            : base(stream)
+            : base(stream, culture)
         {
             _descriptors = new DiagnosticDescriptorSet();
 
             _toolName = toolName;
             _toolFileVersion = toolFileVersion;
             _toolAssemblyVersion = toolAssemblyVersion;
-            _culture = culture;
 
             _writer.WriteObjectStart(); // root
             _writer.Write("$schema", "http://json.schemastore.org/sarif-2.1.0");
@@ -43,6 +41,8 @@ namespace Microsoft.CodeAnalysis
             _writer.Write("ruleId", diagnostic.Id);
             int ruleIndex = _descriptors.Add(diagnostic.Descriptor);
             _writer.Write("ruleIndex", ruleIndex);
+
+            _writer.Write("level", GetLevel(diagnostic.Severity));
 
             string message = diagnostic.GetMessage(_culture);
             if (!string.IsNullOrEmpty(message))
