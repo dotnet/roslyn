@@ -5042,6 +5042,7 @@ class C
     <Project Language="C#" CommonReferences="true">
         <Document><![CDATA[
 #nullable enable
+using System.Threading.Tasks;
 class Program
 {
     Task<string?> M()
@@ -5058,6 +5059,7 @@ class Program
             Dim expected =
 <code><![CDATA[
 #nullable enable
+using System.Threading.Tasks;
 class Program
 {
     Task<string?> M()

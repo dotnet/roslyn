@@ -1,15 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports ICSharpCode.Decompiler.CSharp
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
@@ -26,13 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Using workspace = TestWorkspace.Create(definition)
                 Dim finalWorkspace = workspace
                 For Each project In workspace.CurrentSolution.Projects
-                    Dim parseOptions = CType(project.ParseOptions, CSharpParseOptions)
-                    Dim features = New KeyValuePair(Of String, String)() {New KeyValuePair(Of String, String)("run-nullable-analysis", "true")}
-
-                    parseOptions = parseOptions.WithFeatures(parseOptions.Features.Concat(features))
-                    parseOptions = parseOptions.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp8)
-
-                    finalWorkspace.ChangeSolution(finalWorkspace.CurrentSolution.WithProjectParseOptions(project.Id, parseOptions))
+                    finalWorkspace.ChangeSolution(finalWorkspace.CurrentSolution.WithProjectParseOptions(project.Id, CodeAnalysis.CSharp.Test.Utilities.TestOptions.Regular8WithNullableAnalysis))
                 Next
 
                 Await TestAsync(finalWorkspace, expected, options).ConfigureAwait(False)
