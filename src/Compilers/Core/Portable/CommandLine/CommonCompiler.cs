@@ -610,7 +610,6 @@ namespace Microsoft.CodeAnalysis
 
                 if (Arguments.SarifVersion == SarifVersion.V1_0_0)
                 {
-                    // TODO: Make a SarifV1 or V2 ErrorLogger depending on command line.
                     logger = new SarifV1ErrorLogger(errorLog, toolName, compilerVersion, assemblyVersion, Culture);
                 }
                 else

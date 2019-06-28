@@ -9,6 +9,11 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis
 {
+    /// <summary>
+    /// Used for logging compiler diagnostics to a stream in the standardized SARIF
+    /// (Static Analysis Results Interchange Format) v2.1.0 format.
+    /// http://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html
+    /// </summary>
     internal sealed class SarifV2ErrorLogger : SarifErrorLogger, IDisposable
     {
         private readonly DiagnosticDescriptorSet _descriptors;

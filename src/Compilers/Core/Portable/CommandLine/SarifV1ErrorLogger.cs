@@ -12,7 +12,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-
     /// <summary>
     /// Used for logging compiler diagnostics to a stream in the unstandardized SARIF
     /// (Static Analysis Results Interchange Format) v1.0.0 format.
