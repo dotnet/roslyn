@@ -628,4 +628,10 @@
     <value>Warning: Moving using directives may change code meaning.</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="_0_is_not_null_here" xml:space="preserve">
+    <value>'{0}' is not null here.</value>
+  </data>
+  <data name="_0_may_be_null_here" xml:space="preserve">
+    <value>'{0}' may be null here.</value>
+  </data>
 </root>
