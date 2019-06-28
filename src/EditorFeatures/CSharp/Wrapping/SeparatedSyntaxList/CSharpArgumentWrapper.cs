@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping.SeparatedSyntaxList
 
                 startToken = name == null ? listSyntax.GetFirstToken() : name.GetFirstToken();
             }
-            else if (declaration is ObjectCreationExpressionSyntax objectCreation)
+            else if (declaration is ObjectCreationExpressionSyntax)
             {
                 // allow anywhere in `new Foo(...)`
                 startToken = declaration.GetFirstToken();

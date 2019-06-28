@@ -51,8 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var root = editor.OriginalRoot;
-
             // a method can have multiple `return null;` statements, but we should only fix its return type once
             var alreadyHandled = PooledHashSet<TypeSyntax>.GetInstance();
 

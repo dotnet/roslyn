@@ -878,7 +878,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var editorOptions = editorOptionsFactory.GetOptions(DataBuffer);
 
             var additionalIndentation = GetAdditionalIndentation(root, text, span);
-            int useTabs = 0, tabSize = 0;
 
             // Skip over the first line, since it's in "Venus space" anyway.
             var startingLine = text.Lines.GetLineFromPosition(span.Start);
@@ -888,10 +887,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     ContainedLanguageHost.GetLineIndent(
                         line.LineNumber,
                         out var baseIndentationString,
-                        out var parent,
-                        out var indentSize,
-                        out useTabs,
-                        out tabSize));
+                        out _,
+                        out _,
+                        out _,
+                        out _));
 
                 if (!string.IsNullOrEmpty(baseIndentationString))
                 {

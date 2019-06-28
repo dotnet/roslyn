@@ -1490,7 +1490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override DeclarationModifiers GetModifiers(SyntaxNode declaration)
         {
             var modifierTokens = GetModifierTokens(declaration);
-            GetAccessibilityAndModifiers(modifierTokens, out var accessibility, out var modifiers);
+            GetAccessibilityAndModifiers(modifierTokens, out _, out var modifiers);
             return modifiers;
         }
 

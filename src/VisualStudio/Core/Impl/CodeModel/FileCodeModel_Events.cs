@@ -344,7 +344,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return null;
             }
 
-            CodeModelService.GetAttributeArgumentParentAndIndex(codeModelEvent.Node, out var attributeNode, out var ordinal);
+            CodeModelService.GetAttributeArgumentParentAndIndex(codeModelEvent.Node, out _, out var ordinal);
 
             if (codeModelEvent.Type == CodeModelEventType.Remove)
             {
