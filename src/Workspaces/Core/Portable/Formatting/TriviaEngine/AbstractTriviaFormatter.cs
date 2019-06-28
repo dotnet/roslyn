@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         static AbstractTriviaFormatter()
         {
             s_spaceCache = new string[20];
-            for (int i = 0; i < 20; i++)
+            for (var i = 0; i < 20; i++)
             {
                 s_spaceCache[i] = new string(' ', i);
             }
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return true;
             }
 
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
                 if (!IsWhitespace(text[i]) || !IsNewLine(text[i]))
                 {
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             var span = TextSpan.FromBounds(start, end);
 
-            for (int i = span.Start - this.Token1.Span.End; i < span.Length; i++)
+            for (var i = span.Start - this.Token1.Span.End; i < span.Length; i++)
             {
                 if (!char.IsWhiteSpace(this.OriginalString[i]))
                 {
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return IsNullOrWhitespace(this.OriginalString);
             }
 
-            for (int i = 0; i < index; i++)
+            for (var i = 0; i < index; i++)
             {
                 if (!IsWhitespace(this.OriginalString[i]))
                 {
@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // try to find end of line
-            for (int i = changes.Count - 1; i >= 0; i--)
+            for (var i = changes.Count - 1; i >= 0; i--)
             {
                 // insert right after existing end of line trivia
                 if (IsEndOfLine(changes[i]))
@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // can't find any line, put blank line right after any trivia that has lines in them
-            for (int i = changes.Count - 1; i >= 0; i--)
+            for (var i = changes.Count - 1; i >= 0; i--)
             {
                 if (changes[i].ToFullString().ContainsLineBreak())
                 {
@@ -696,7 +696,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             index = -1;
             var insertionPoint = GetInsertionSpan(changes);
 
-            for (int i = 0; i < changes.Count; i++)
+            for (var i = 0; i < changes.Count; i++)
             {
                 var change = changes[i];
                 if (change.Span.Contains(insertionPoint) && IsNullOrWhitespace(change.NewText))
@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // try to find end of line
-            for (int i = this.OriginalString.Length - 1; i >= 0; i--)
+            for (var i = this.OriginalString.Length - 1; i >= 0; i--)
             {
                 if (this.OriginalString[i] == '\n')
                 {
@@ -753,7 +753,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            for (int i = 0; i < delta.Lines; i++)
+            for (var i = 0; i < delta.Lines; i++)
             {
                 changes.Add(CreateEndOfLine());
             }
@@ -782,7 +782,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var sb = StringBuilderPool.Allocate();
 
             var newLine = this.OptionSet.GetOption(FormattingOptions.NewLine, this.Language);
-            for (int i = 0; i < delta.Lines; i++)
+            for (var i = 0; i < delta.Lines; i++)
             {
                 sb.Append(newLine);
             }

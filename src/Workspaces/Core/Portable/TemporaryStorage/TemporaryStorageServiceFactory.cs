@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Host
 
                 private unsafe TextReader CreateTextReaderFromTemporaryStorage(ISupportDirectMemoryAccess accessor, int streamLength, CancellationToken cancellationToken)
                 {
-                    char* src = (char*)accessor.GetPointer();
+                    var src = (char*)accessor.GetPointer();
 
                     // BOM: Unicode, little endian
                     // Skip the BOM when creating the reader

@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.MethodXml
         private void GenerateStatement(StatementSyntax statement)
         {
             var success = false;
-            int mark = GetMark();
+            var mark = GetMark();
 
             switch (statement.Kind())
             {

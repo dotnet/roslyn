@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var numberOfOutParameters = 0;
                 var numberOfRefParameters = 0;
 
-                int outSymbolIndex = -1;
-                int refSymbolIndex = -1;
+                var outSymbolIndex = -1;
+                var refSymbolIndex = -1;
 
                 for (int i = 0; i < variableInfo.Count; i++)
                 {

@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             private static string GetWithoutAttributeSuffix(string text, bool isCaseSensitive)
             {
-                if (!text.TryGetWithoutAttributeSuffix(isCaseSensitive, out string replaceText))
+                if (!text.TryGetWithoutAttributeSuffix(isCaseSensitive, out var replaceText))
                 {
                     replaceText = text;
                 }
@@ -566,8 +566,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             throw new ArgumentException(WorkspacesResources.The_specified_document_is_not_a_version_of_this_document);
                         }
 
-                        SourceText oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        SourceText newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                         if (oldText == newText)
                         {

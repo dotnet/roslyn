@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             var isCaseSensitive = reader.ReadBoolean();
-            int hashFunctionCount = reader.ReadInt32();
+            var hashFunctionCount = reader.ReadInt32();
             var bitArray = ReadBitArray(reader);
             return new BloomFilter(bitArray, hashFunctionCount, isCaseSensitive);
         }

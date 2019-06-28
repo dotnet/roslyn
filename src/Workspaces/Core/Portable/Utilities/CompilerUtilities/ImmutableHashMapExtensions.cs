@@ -30,7 +30,7 @@ namespace Roslyn.Utilities
                 return existingValue;
             }
 
-            TValue newValue = valueFactory(key, factoryArgument);
+            var newValue = valueFactory(key, factoryArgument);
 
             do
             {
