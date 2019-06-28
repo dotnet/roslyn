@@ -240,14 +240,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (test)
                 {
                     case BoundDagNonNullTest d:
-                        return _localRewriter.MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullNotEqual : BinaryOperatorKind.NotEqual);
+                        return _factory.MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullNotEqual : BinaryOperatorKind.NotEqual);
 
                     case BoundDagTypeTest d:
                         // Note that this tests for non-null as a side-effect. We depend on that to sometimes avoid the null check.
                         return _factory.Is(input, d.Type);
 
                     case BoundDagExplicitNullTest d:
-                        return _localRewriter.MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullEqual : BinaryOperatorKind.Equal);
+                        return _factory.MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullEqual : BinaryOperatorKind.Equal);
 
                     case BoundDagValueTest d:
                         Debug.Assert(!input.Type.IsNullableType());

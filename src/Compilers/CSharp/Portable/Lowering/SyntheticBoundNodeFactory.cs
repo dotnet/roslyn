@@ -1429,5 +1429,65 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return arguments;
         }
+
+        internal BoundExpression MakeNullCheck(SyntaxNode syntax, BoundExpression rewrittenExpr, BinaryOperatorKind operatorKind)
+        {
+            Debug.Assert((operatorKind == BinaryOperatorKind.Equal) || (operatorKind == BinaryOperatorKind.NotEqual) ||
+                (operatorKind == BinaryOperatorKind.NullableNullEqual) || (operatorKind == BinaryOperatorKind.NullableNullNotEqual));
+
+            TypeSymbol exprType = rewrittenExpr.Type;
+
+            // Don't even call this method if the expression cannot be nullable.
+            Debug.Assert(
+                (object)exprType == null ||
+                exprType.IsNullableTypeOrTypeParameter() ||
+                !exprType.IsValueType ||
+                exprType.IsPointerType());
+
+            TypeSymbol boolType = SpecialType(CodeAnalysis.SpecialType.System_Boolean);//_compilation.GetSpecialType(SpecialType.System_Boolean);
+
+            // Fold compile-time comparisons.
+            if (rewrittenExpr.ConstantValue != null)
+            {
+                switch (operatorKind)
+                {
+                    case BinaryOperatorKind.Equal:
+                        return this.Literal(ConstantValue.Create(rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
+                        //MakeLiteral(syntax, ConstantValue.Create(rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
+                    case BinaryOperatorKind.NotEqual:
+                        return this.Literal(ConstantValue.Create(!rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
+                        //MakeLiteral(syntax, ConstantValue.Create(!rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
+                }
+            }
+
+            TypeSymbol objectType = SpecialType(CodeAnalysis.SpecialType.System_Object);//_compilation.GetSpecialType(SpecialType.System_Object);
+
+            if ((object)exprType != null)
+            {
+                if (exprType.Kind == SymbolKind.TypeParameter)
+                {
+                    // Box type parameters.
+                    rewrittenExpr = Convert(objectType, rewrittenExpr, Conversion.Boxing);
+                    //rewrittenExpr = MakeConversionNode(syntax, rewrittenExpr, Conversion.Boxing, objectType, @checked: false);
+                }
+                else if (exprType.IsNullableType())
+                {
+                    operatorKind |= BinaryOperatorKind.NullableNull;
+                }
+            }
+            return this.Binary(operatorKind, boolType, rewrittenExpr, this.Null(objectType));
+            //return MakeBinaryOperator(
+            //    syntax,
+            //    operatorKind,
+            //    rewrittenExpr,
+            //    MakeLiteral(syntax, ConstantValue.Null, objectType),
+            //    boolType,
+            //    null);
+        }
+
+        internal BoundExpression MakeNullableHasValue(SyntaxNode syntax, BoundExpression expression)
+        {
+            return BoundCall.Synthesized(syntax, expression, LocalRewriter.UnsafeGetNullableMethod(syntax, expression.Type, CodeAnalysis.SpecialMember.System_Nullable_T_get_HasValue, Compilation, Diagnostics));
+        }
     }
 }

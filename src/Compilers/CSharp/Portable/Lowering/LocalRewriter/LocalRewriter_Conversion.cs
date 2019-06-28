@@ -851,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(syntax, type, operand);
             }
 
-            BoundExpression condition = MakeNullableHasValue(syntax, boundTemp);
+            BoundExpression condition = _factory.MakeNullableHasValue(syntax, boundTemp);
             BoundExpression consequence = new BoundObjectCreationExpression(
                 syntax,
                 UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor),
@@ -1098,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(syntax, boundTemp.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
 
             // temp.HasValue
-            BoundExpression condition = MakeNullableHasValue(syntax, boundTemp);
+            BoundExpression condition = _factory.MakeNullableHasValue(syntax, boundTemp);
 
             // temp.GetValueOrDefault()
             BoundCall callGetValueOrDefault = BoundCall.Synthesized(syntax, boundTemp, getValueOrDefault);

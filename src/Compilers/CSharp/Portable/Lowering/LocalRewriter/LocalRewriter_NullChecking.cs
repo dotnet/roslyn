@@ -9,39 +9,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
-        private BoundStatement RewriteNullChecking(BoundBlock block)
+        private BoundBlock RewriteNullChecking(BoundBlock block)
         {
-            var statementList = ConstructNullCheckedStatementList(_factory.CurrentFunction.Parameters, block.Statements);
+            var statementList = ConstructNullCheckedStatementList(_factory.CurrentFunction.Parameters, block.Statements, _factory);
             if (statementList.IsDefaultOrEmpty)
             {
                 return block;
             }
-            return block.Update(statementList);
+            return _factory.Block(block.Locals, statementList);
         }
 
-        private BoundLambda RewriteNullChecking(BoundLambda lambda)
-        {
-            var statementList = ConstructNullCheckedStatementList(_factory.CurrentFunction.Parameters, lambda.Body.Statements);
-            if (statementList.IsDefaultOrEmpty)
-            {
-                return lambda;
-            }
-            var newBody = _factory.Block(lambda.Body.Locals, statementList);
-            return lambda.Update(lambda.UnboundLambda, lambda.Symbol, newBody, lambda.Diagnostics, lambda.Binder, lambda.Type);
-        }
-
-        private BoundLocalFunctionStatement RewriteNullChecking(BoundLocalFunctionStatement localFunctionStatement)
-        {
-            var statementList = ConstructNullCheckedStatementList(_factory.CurrentFunction.Parameters, localFunctionStatement.Body.Statements);
-            if (statementList.IsDefaultOrEmpty)
-            {
-                return localFunctionStatement;
-            }
-            var newBody = _factory.Block(localFunctionStatement.BlockBody.Locals, statementList);
-            return localFunctionStatement.Update(localFunctionStatement.Symbol, newBody, localFunctionStatement.ExpressionBody);
-        }
-
-        private ImmutableArray<BoundStatement> ConstructNullCheckedStatementList(ImmutableArray<ParameterSymbol> parameters, ImmutableArray<BoundStatement> existingStatements)
+        internal static ImmutableArray<BoundStatement> ConstructNullCheckedStatementList(ImmutableArray<ParameterSymbol> parameters,
+                                                                                         ImmutableArray<BoundStatement> existingStatements,
+                                                                                         SyntheticBoundNodeFactory factory)
         {
             ArrayBuilder<BoundStatement> statementList = null;
             foreach (ParameterSymbol x in parameters)
@@ -55,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
                     statementList ??= ArrayBuilder<BoundStatement>.GetInstance();
-                    var constructedIf = ConstructIfStatementForParameter(param);
+                    var constructedIf = ConstructIfStatementForParameter(param, factory);
                     statementList.Add(constructedIf);
                 }
             }
@@ -69,23 +49,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
-        private BoundStatement ConstructIfStatementForParameter(SourceParameterSymbolBase parameter)
+        private static BoundStatement ConstructIfStatementForParameter(SourceParameterSymbolBase parameter, SyntheticBoundNodeFactory factory)
         {
             BoundExpression paramIsNullCondition;
-            var loweredLeft = _factory.Parameter(parameter);
+            var loweredLeft = factory.Parameter(parameter);
 
             if (loweredLeft.Type.IsNullableType())
             {
-                paramIsNullCondition = _factory.Not(MakeNullableHasValue(loweredLeft.Syntax, loweredLeft));
+                paramIsNullCondition = factory.Not(factory.MakeNullableHasValue(loweredLeft.Syntax, loweredLeft));
             }
             else
             {
-                paramIsNullCondition = MakeNullCheck(loweredLeft.Syntax, loweredLeft, BinaryOperatorKind.Equal);
+                paramIsNullCondition = factory.MakeNullCheck(loweredLeft.Syntax, loweredLeft, BinaryOperatorKind.Equal);
             }
             // PROTOTYPE : Make ArgumentNullException
-            BoundThrowStatement throwArgNullStatement = _factory.Throw(_factory.New(_factory.WellKnownType(WellKnownType.System_Exception)));
+            BoundThrowStatement throwArgNullStatement = factory.Throw(factory.New(factory.WellKnownType(WellKnownType.System_Exception)));
 
-            return _factory.HiddenSequencePoint(_factory.If(paramIsNullCondition, throwArgNullStatement));
+            return factory.HiddenSequencePoint(factory.If(paramIsNullCondition, throwArgNullStatement));
         }
     }
 }
