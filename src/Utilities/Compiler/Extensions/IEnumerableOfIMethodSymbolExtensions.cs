@@ -38,7 +38,7 @@ namespace Analyzer.Utilities.Extensions
         {
             return methods.Where(candidateMethod =>
             {
-                if (selectedOverload.Parameters.Count() + 1 != candidateMethod.Parameters.Count())
+                if (!candidateMethod.Parameters.HasExactly(selectedOverload.Parameters.Count() + 1))
                 {
                     return false;
                 }
