@@ -1201,7 +1201,7 @@ class C
         }
 
         [Fact]
-        public void TestNullCheckedExpressionBodyLambda()
+        public void TestNullCheckedExpressionBodyLocalFunction()
         {
             var source = @"
 class C
@@ -1221,6 +1221,19 @@ class C
     IL_0009:  ldarg.1
     IL_000a:  ret
 }");
+        }
+
+        [Fact]
+        public void TestNullCheckedExpressionAndBlockBodyLambda()
+        {
+            var source = @"
+class C
+{
+    public Func<string, string> M(string s1!) => s2! => s2 + s1;
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.Local(object)", @"
+");
         }
 
         [Fact(Skip = "PROTOTYPE")]
