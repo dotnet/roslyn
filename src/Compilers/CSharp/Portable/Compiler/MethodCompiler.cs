@@ -1123,7 +1123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     hasErrors = hasErrors || (hasBody && loweredBodyOpt.HasErrors) || diagsForCurrentMethod.HasAnyErrors();
                     SetGlobalErrorIfTrue(hasErrors);
-
+                    CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
                     // don't emit if the resulting method would contain initializers with errors
                     if (!hasErrors && (hasBody || includeInitializersInBody))
                     {
@@ -1201,9 +1201,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 boundStatements = boundStatements.Concat(ImmutableArray.Create(loweredBodyOpt));
                             }
+
+                            var factory = new SyntheticBoundNodeFactory(methodSymbol, syntax, compilationState, diagsForCurrentMethod);
+                            boundStatements = LocalRewriter.ConstructNullCheckedStatementList(methodSymbol.Parameters, boundStatements, factory);
                         }
 
-                        CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
 
                         var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
 
@@ -1260,7 +1262,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(compilationState.ModuleBuilderOpt != null);
             stateMachineTypeOpt = null;
-
             if (body.HasErrors)
             {
                 return body;
