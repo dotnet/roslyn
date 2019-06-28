@@ -108,6 +108,7 @@
     <MicrosoftVisualStudioLanguageIntellisenseVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioLanguageIntellisenseVersion>
     <MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>16.0.467</MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>
     <MicrosoftVisualStudioLanguageStandardClassificationVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioLanguageStandardClassificationVersion>
+    <MicrosoftVisualStudioLanguageServerClientVersion>16.1.3121</MicrosoftVisualStudioLanguageServerClientVersion>
     <MicrosoftVisualStudioLanguageServerProtocolVersion>16.2.1078</MicrosoftVisualStudioLanguageServerProtocolVersion>
     <MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>16.2.1078</MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>
     <MicrosoftVisualStudioOLEInteropVersion>7.10.6071</MicrosoftVisualStudioOLEInteropVersion>
