@@ -63,8 +63,8 @@ namespace ResetInteractiveTestsDocument
             List<string> expectedReferences = null,
             List<string> expectedUsings = null)
         {
-            expectedReferences = expectedReferences ?? new List<string>();
-            expectedUsings = expectedUsings ?? new List<string>();
+            expectedReferences ??= new List<string>();
+            expectedUsings ??= new List<string>();
 
             var testHost = new InteractiveWindowTestHost(workspace.ExportProvider);
             var executedSubmissionCalls = new List<string>();

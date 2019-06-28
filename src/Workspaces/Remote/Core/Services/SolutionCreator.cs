@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     if (!oldMap.ContainsKey(kv.Key))
                     {
-                        documentsToAdd = documentsToAdd ?? ImmutableArray.CreateBuilder<DocumentInfo>();
+                        documentsToAdd ??= ImmutableArray.CreateBuilder<DocumentInfo>();
 
                         // we have new document added
                         var documentInfo = await SolutionInfoCreator.CreateDocumentInfoAsync(_assetService, kv.Value.Checksum, _cancellationToken).ConfigureAwait(false);

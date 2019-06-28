@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 lock (_gate)
                 {
-                    _lastToken = _lastToken ?? Listener.BeginAsyncOperation(nameof(SolutionChecksumUpdater));
+                    _lastToken ??= Listener.BeginAsyncOperation(nameof(SolutionChecksumUpdater));
                 }
 
                 _event.Release();

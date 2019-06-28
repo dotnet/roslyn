@@ -592,7 +592,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 if (location.IsInSource)
                 {
-                    compilation = compilation ?? project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None);
+                    compilation ??= project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None);
 
                     if (compilation.ContainsSyntaxTree(location.SourceTree))
                     {
@@ -606,7 +606,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                         }
                         else
                         {
-                            generatedCode = generatedCode ?? Tuple.Create(document.Id, location);
+                            generatedCode ??= Tuple.Create(document.Id, location);
                         }
                     }
                 }
