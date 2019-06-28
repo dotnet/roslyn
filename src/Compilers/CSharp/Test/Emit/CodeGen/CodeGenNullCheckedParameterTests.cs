@@ -1227,13 +1227,50 @@ class C
         public void TestNullCheckedExpressionAndBlockBodyLambda()
         {
             var source = @"
+using System;
 class C
 {
     public Func<string, string> M(string s1!) => s2! => s2 + s1;
 }";
             var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("C.Local(object)", @"
-");
+            compilation.VerifyIL("C.<>c__DisplayClass0_0.<M>b__0(string)", @"
+{
+    // Code size       22 (0x16)
+    .maxstack  2
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.1
+    IL_000a:  ldarg.0
+    IL_000b:  ldfld      ""string C.<>c__DisplayClass0_0.s1""
+    IL_0010:  call       ""string string.Concat(string, string)""
+    IL_0015:  ret
+}");
+            compilation.VerifyIL("C.M(string)", @"
+{
+    // Code size       33 (0x21)
+    .maxstack  3
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+    IL_000e:  dup
+    IL_000f:  ldarg.1
+    IL_0010:  stfld      ""string C.<>c__DisplayClass0_0.s1""
+    IL_0015:  ldftn      ""string C.<>c__DisplayClass0_0.<M>b__0(string)""
+    IL_001b:  newobj     ""System.Func<string, string>..ctor(object, System.IntPtr)""
+    IL_0020:  ret
+}");
+            compilation.VerifyIL("C.<>c__DisplayClass0_0..ctor()", @"
+{
+    // Code size        7 (0x7)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  call       ""object..ctor()""
+    IL_0006:  ret
+}");
         }
 
         [Fact(Skip = "PROTOTYPE")]
