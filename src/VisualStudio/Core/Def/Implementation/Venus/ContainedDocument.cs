@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             IgnoreTrimWhiteSpace = false
         });
 
-        private static ConcurrentDictionary<DocumentId, ContainedDocument> s_containedDocuments = new ConcurrentDictionary<DocumentId, ContainedDocument>();
+        private static readonly ConcurrentDictionary<DocumentId, ContainedDocument> s_containedDocuments = new ConcurrentDictionary<DocumentId, ContainedDocument>();
 
         public static ContainedDocument TryGetContainedDocument(DocumentId id)
         {
