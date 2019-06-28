@@ -264,6 +264,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsVariableDeclarator(SyntaxNode node);
         bool IsDeconstructionAssignment(SyntaxNode node);
         bool IsDeconstructionForEachStatement(SyntaxNode node);
+        bool IsLambdaBody(SyntaxNode node);
 
         /// <summary>
         /// Returns true for nodes that represent the body of a method.

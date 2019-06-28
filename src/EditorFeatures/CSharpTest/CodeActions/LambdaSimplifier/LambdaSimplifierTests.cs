@@ -565,5 +565,50 @@ class Program
     }
 }");
         }
+
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        public async Task TestMissingCaretPositionInside()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        Action a = () => {
+            Console.[||]WriteLine();
+        };
+    }
+}");
+        }
+
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        public async Task TestCaretPosition()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        [|Action a = () => {
+            Console.WriteLine();
+        };|]
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        Action a = Console.WriteLine;
+    }
+}");
+        }
     }
 }

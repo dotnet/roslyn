@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// - Whole node passing <paramref name="predicate"/> is selected.
         /// </para>
         /// <para>
-        /// Attempts extracting (and testing with <paramref name="predicate"/> a Node for each Node it consideres (see above).
+        /// Attempts extracting (and testing with <paramref name="predicate"/> a Node for each Node it considers (see above).
         /// By default extracts initializer expressions from declarations and assignments.
         /// </para>
         /// <para>
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </para>
         /// <para>
         /// The <paramref name="extractNode"/> enables testing with <paramref name="predicate"/> and potentially returning Nodes 
-        /// that are under those that might be selected / considered (as described above). It is a <see cref="Func{SyntaxNode, SyntaxNode}"/> that
+        /// that are under/above those that might be selected / considered (as described above). It is a <see cref="Func{SyntaxNode, SyntaxNode}"/> that
         /// should always return either given Node or a Node somewhere below it that should be tested with <paramref name="predicate"/> and
         /// potentially returned instead of current Node. 
         /// </para>
@@ -68,8 +68,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </summary>
         protected async Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selection, Predicate<SyntaxNode> predicate, Func<SyntaxNode, ISyntaxFactsService, SyntaxNode> extractNode, CancellationToken cancellationToken)
         {
-            // Given selection is trimmed first to enable overselection that spans multiple lines. Since trailing whitespace ends
-            // at newline boundary overselection to e.g. a line after LocalFunctionStatement would cause FindNode to find enclosing
+            // Given selection is trimmed first to enable over-selection that spans multiple lines. Since trailing whitespace ends
+            // at newline boundary over-selection to e.g. a line after LocalFunctionStatement would cause FindNode to find enclosing
             // block's Node. That is because in addition to LocalFunctionStatement the selection would also contain trailing trivia 
             // (whitespace) of following statement.
 
@@ -77,23 +77,23 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var selectionTrimmed = await CodeRefactoringHelpers.GetTrimmedTextSpan(document, selection, cancellationToken).ConfigureAwait(false);
 
-            // Everytime a Node is considered by following algorithm (and tested with predicate) and the predicate fails
+            // Every time a Node is considered by following algorithm (and tested with predicate) and the predicate fails
             // extractNode is called on the node and the result is tested with predicate again. If any of those succeed
             // a respective Node gets returned.
             //
             // That enables us to e.g. return node `b` when Node `var a = b;` is being considered without a complex (and potentially 
-            // lang. & situation dependant) into Children descending code here.  We can't just try extracted Node because we might 
+            // lang. & situation dependent) into Children descending code here.  We can't just try extracted Node because we might 
             // want the whole node `var a = b;`
             //
             // See local function TryGetAcceptedNodeOrExtracted DefaultNodeExtractor for more info.
 
 
             // Handle selections:
-            // - The smallest node whose FullSpan inlcudes the whole (trimmed) selection
+            // - The smallest node whose FullSpan includes the whole (trimmed) selection
             // - Travels upwards through same-sized (FullSpan) nodes, extracting and testing predicate
             // - Handles situations where:
             //  - Token with wanted Node as direct parent is selected (e.g. IdentifierToken for LocalFunctionStatement: `C [|Fun|]() {}`) 
-            //  - Most/the whole wanted Node is seleted (e.g. `C [|Fun() {}|]`
+            //  - Most/the whole wanted Node is selected (e.g. `C [|Fun() {}|]`
             var node = root.FindNode(selectionTrimmed, getInnermostNodeForTie: true);
             SyntaxNode prevNode;
             do
@@ -120,10 +120,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // While having the (even empty) selection inside such token or to left of such Token is already handle 
             // by code above touching it from right `C methodName[||](){}` isn't (the FindNode for that returns Args node).
             // - Secondly it is used for left/right edge climbing. E.g. `[||]C methodName(){}` the touching token's direct 
-            // ancestor is TypeNode for the return type but it is still resonable to expect that the user might want to 
+            // ancestor is TypeNode for the return type but it is still reasonable to expect that the user might want to 
             // be given refactorings for the whole method (as he has caret on the edge of it). Therefore we travel the 
             // Node tree upwards and as long as we're on the left edge of a Node's span we consider such node & potentially 
-            // continue travelling upwards. The situation for right edge (`C methodName(){}[||]`) is analogical.
+            // continue traveling upwards. The situation for right edge (`C methodName(){}[||]`) is analogical.
             // E.g. for right edge `C methodName(){}[||]`: CloseBraceToken -> BlockSyntax -> LocalFunctionStatement -> null (higher 
             // node doesn't end on position anymore)
             if (!selection.IsEmpty)
@@ -215,11 +215,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         /// <summary>
         /// <para>
-        /// Extractor function for <see cref="TryGetSelectedNodeAsync(Document, TextSpan, Predicate{SyntaxNode}, Func{SyntaxNode, ISyntaxFactsService, SyntaxNode}, CancellationToken)"/> methods 
-        /// that retrieves expressions from  declarations and assignments. Otherwise returns unchanged <paramref name="node"/>.
+        /// Extractor function for <see cref="TryGetSelectedNodeAsync(Document, TextSpan, Predicate{SyntaxNode}, Func{SyntaxNode, ISyntaxFactsService, SyntaxNode}, CancellationToken)"/> method 
+        /// that retrieves nodes that should also be considered as refactoring targets given <paramref name="node"/> is considered. 
+        /// Can extract both nodes above and under given <paramref name="node"/>.
         /// </para>
         /// <para>
-        /// The rationale is that when user selects e.g. entire local delaration statement [|var a = b;|] it is reasonable
+        /// E.g. extracts expressions from assignment statement (`a = b;` -> `b`) or lambda node for its body.
+        /// </para>
+        /// <para>
+        /// The rationale is that when user selects e.g. entire local declaration statement [|var a = b;|] it is reasonable
         /// to provide refactoring for `b` node. Similarly for other types of refactorings.
         /// </para>
         /// </summary>
@@ -230,8 +234,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // that were found to be relevant for refactorings that were moved to `TryGetSelectedNodeAsync`.
             // Feel free to extend it / refine current heuristics. 
 
-            // var a = b;
-            // -> b
+            // `var a = b`;
+            // -> `b`
             if (syntaxFacts.IsLocalDeclarationStatement(node))
             {
                 var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(node);
@@ -251,12 +255,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 }
             }
 
-            // a = b;
-            // -> b
+            // `a = b;`
+            // -> `b`
             if (syntaxFacts.IsSimpleAssignmentStatement(node))
             {
                 syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(node, out _, out _, out var rightSide);
                 return rightSide;
+            }
+
+            // a => `b`; -> `a => b;`
+            if (syntaxFacts.IsLambdaBody(node))
+            {
+                return node.Parent;
             }
 
             return node;

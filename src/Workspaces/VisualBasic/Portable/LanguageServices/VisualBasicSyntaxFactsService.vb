@@ -1944,5 +1944,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shadows Function SpansPreprocessorDirective(tokens As IEnumerable(Of SyntaxToken)) As Boolean
             Return MyBase.SpansPreprocessorDirective(tokens)
         End Function
+
+        Public Function IsLambdaBody(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLambdaBody
+            If node.Parent IsNot Nothing And TypeOf node.Parent Is LambdaExpressionSyntax Then
+                Dim lambdaNode = CType(node.Parent, LambdaExpressionSyntax)
+                Dim lambdaBodies = lambdaNode.GetBodies()
+                Return lambdaBodies.Count() = 1 And lambdaBodies.First Is node
+            End If
+            Return False
+        End Function
     End Class
 End Namespace
