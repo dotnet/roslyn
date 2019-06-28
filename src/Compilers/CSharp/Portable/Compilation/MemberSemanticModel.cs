@@ -141,14 +141,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // We hide this property, as EnsureRootBoundForNullabilityIfNecessary can cause
         // the cache to be populated.
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        protected NullableWalker.SnapshotManager SnapshotManager
+        protected NullableWalker.SnapshotManager GetSnapshotManager()
         {
-            get
-            {
-                EnsureRootBoundForNullabilityIfNecessary();
-                return _lazySnapshotManager;
-            }
+            EnsureRootBoundForNullabilityIfNecessary();
+            Debug.Assert(_lazySnapshotManager is object || !Compilation.NullableSemanticAnalysisEnabled);
+            return _lazySnapshotManager;
         }
 
         internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, TypeSyntax type, SpeculativeBindingOption bindingOption, out SemanticModel speculativeModel)
@@ -185,16 +182,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GetSpeculativelyBoundExpressionWithoutNullability(position, expression, bindingOption, out binder, out crefSymbols);
             }
 
-            EnsureRootBoundForNullabilityIfNecessary();
-            Debug.Assert(SnapshotManager is object);
-
             crefSymbols = default;
             position = CheckAndAdjustPosition(position);
             expression = SyntaxFactory.GetStandaloneExpression(expression);
             var bindableNewExpression = GetBindableSyntaxNode(expression);
             binder = GetEnclosingBinder(position);
             var boundRoot = Bind(binder, bindableNewExpression, _ignoredDiagnostics);
-            return (BoundExpression)NullableWalker.AnalyzeAndRewriteSpeculation(position, boundRoot, binder, SnapshotManager, takeNewSnapshots: false, out _);
+            return (BoundExpression)NullableWalker.AnalyzeAndRewriteSpeculation(position, boundRoot, binder, GetSnapshotManager(), takeNewSnapshots: false, out _);
         }
 
         private Binder GetEnclosingBinderInternalWithinRoot(SyntaxNode node, int position)
