@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                     writer.WriteInt32(0);
                 }
 
-                WriteTo(writer, item.DataLocation, cancellationToken);
+                WriteTo(writer, item.DataLocation);
                 WriteTo(writer, item.AdditionalLocations, cancellationToken);
 
                 writer.WriteInt32(item.CustomTags.Count);
@@ -149,12 +149,12 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 foreach (var location in additionalLocations)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    WriteTo(writer, location, cancellationToken);
+                    WriteTo(writer, location);
                 }
             }
         }
 
-        private static void WriteTo(ObjectWriter writer, DiagnosticDataLocation item, CancellationToken cancellationToken)
+        private static void WriteTo(ObjectWriter writer, DiagnosticDataLocation item)
         {
             if (item == null)
             {
