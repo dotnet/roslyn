@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             return diagnostics.Select(d => new RudeEditDiagnosticDescription(
                 d.Kind,
-                d.Span == default(TextSpan) ? null : newSource.Substring(d.Span.Start, d.Span.Length),
+                d.Span == default ? null : newSource.Substring(d.Span.Start, d.Span.Length),
                 d.Arguments,
                 firstLine: includeFirstLines ? GetLineAt(newSource, d.Span.Start) : null));
         }

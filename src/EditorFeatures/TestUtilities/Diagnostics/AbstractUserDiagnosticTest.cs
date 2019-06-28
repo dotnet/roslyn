@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             string projectName = null,
             bool isNewFile = false,
             string existingFilename = null,
-            ImmutableArray<string> newFileFolderContainers = default(ImmutableArray<string>),
+            ImmutableArray<string> newFileFolderContainers = default,
             string fullFilePath = null,
             string newFileName = null,
             string assertClassName = null,

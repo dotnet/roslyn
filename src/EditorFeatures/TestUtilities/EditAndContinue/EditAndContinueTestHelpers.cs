@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 triviaEdits,
                 actualLineEdits,
                 diagnostics,
-                default(CancellationToken));
+                default);
 
             diagnostics.Verify(newSource, expectedDiagnostics);
 

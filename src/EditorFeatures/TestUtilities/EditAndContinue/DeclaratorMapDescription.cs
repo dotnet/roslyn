@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             while (i >= list.Count)
             {
-                list.Add(default(T));
+                list.Add(default);
             }
         }
     }
