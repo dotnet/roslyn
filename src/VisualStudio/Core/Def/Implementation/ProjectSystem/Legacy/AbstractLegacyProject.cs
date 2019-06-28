@@ -207,8 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         protected void RefreshBinOutputPath()
         {
-            var storage = Hierarchy as IVsBuildPropertyStorage;
-            if (storage == null)
+            if (!(Hierarchy is IVsBuildPropertyStorage storage))
             {
                 return;
             }

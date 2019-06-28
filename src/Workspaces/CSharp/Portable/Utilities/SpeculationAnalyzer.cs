@@ -114,9 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 semanticModel = semanticModel.ParentModel;
             }
 
-            var statementNode = nodeToSpeculate as StatementSyntax;
             SemanticModel speculativeModel;
-            if (statementNode != null)
+            if (nodeToSpeculate is StatementSyntax statementNode)
             {
                 semanticModel.TryGetSpeculativeSemanticModel(position, statementNode, out speculativeModel);
                 return speculativeModel;

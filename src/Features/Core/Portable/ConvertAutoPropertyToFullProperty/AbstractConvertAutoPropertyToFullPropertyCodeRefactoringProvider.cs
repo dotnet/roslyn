@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var propertySymbol = semanticModel.GetDeclaredSymbol(property) as IPropertySymbol;
-            if (propertySymbol == null)
+            if (!(semanticModel.GetDeclaredSymbol(property) is IPropertySymbol propertySymbol))
             {
                 return;
             }

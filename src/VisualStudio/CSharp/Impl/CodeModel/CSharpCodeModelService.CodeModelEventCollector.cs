@@ -182,9 +182,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         && CompareExpressions(oldBinaryExpression.Right, newBinaryExpression.Right);
                 }
 
-                if (oldExpression is AssignmentExpressionSyntax)
+                if (oldExpression is AssignmentExpressionSyntax oldAssignmentExpression)
                 {
-                    var oldAssignmentExpression = (AssignmentExpressionSyntax)oldExpression;
                     var newAssignmentExpression = (AssignmentExpressionSyntax)newExpression;
 
                     return CompareExpressions(oldAssignmentExpression.Left, newAssignmentExpression.Left)

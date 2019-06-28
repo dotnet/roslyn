@@ -32,15 +32,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 
         public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options)
         {
-            var interactiveWorkspace = workspace as InteractiveWorkspace;
-            if (interactiveWorkspace == null)
+            using (var interactiveWorkspace = workspace as InteractiveWorkspace)
             {
-                Debug.Fail("InteractiveDocumentNavigationService called with incorrect workspace!");
-                return false;
-            }
+                if (interactiveWorkspace == null)
+                {
+                    Debug.Fail("InteractiveDocumentNavigationService called with incorrect workspace!");
+                    return false;
+                }
 
-            var textView = interactiveWorkspace.Window.TextView;
-            var document = interactiveWorkspace.CurrentSolution.GetDocument(documentId);
+                var textView = interactiveWorkspace.Window.TextView;
+                var document = interactiveWorkspace.CurrentSolution.GetDocument(documentId);
+            }
 
             var textSnapshot = document.GetTextSynchronously(CancellationToken.None).FindCorrespondingEditorTextSnapshot();
             if (textSnapshot == null)

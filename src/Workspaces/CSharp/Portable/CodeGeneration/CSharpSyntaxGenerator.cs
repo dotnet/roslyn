@@ -2201,8 +2201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static TypeSyntax NotVoid(TypeSyntax type)
         {
-            var pd = type as PredefinedTypeSyntax;
-            return pd != null && pd.Keyword.IsKind(SyntaxKind.VoidKeyword) ? null : type;
+            return type is PredefinedTypeSyntax pd && pd.Keyword.IsKind(SyntaxKind.VoidKeyword) ? null : type;
         }
 
         public override SyntaxNode WithType(SyntaxNode declaration, SyntaxNode type)
@@ -2383,8 +2382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InsertSwitchSections(SyntaxNode switchStatement, int index, IEnumerable<SyntaxNode> switchSections)
         {
-            var statement = switchStatement as SwitchStatementSyntax;
-            if (statement == null)
+            if (!(switchStatement is SwitchStatementSyntax statement))
             {
                 return switchStatement;
             }

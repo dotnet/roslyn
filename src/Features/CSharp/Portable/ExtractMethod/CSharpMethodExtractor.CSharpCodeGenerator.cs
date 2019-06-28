@@ -313,8 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 foreach (var statement in statements)
                 {
-                    var declarationStatement = statement as LocalDeclarationStatementSyntax;
-                    if (declarationStatement == null)
+                    if (!(statement is LocalDeclarationStatementSyntax declarationStatement))
                     {
                         // if given statement is not decl statement.
                         yield return statement;

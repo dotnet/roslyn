@@ -1163,9 +1163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override SyntaxNode SetAccess(SyntaxNode node, EnvDTE.vsCMAccess newAccess)
         {
-            var member = node as MemberDeclarationSyntax;
-
-            if (member == null)
+            if (!(node is MemberDeclarationSyntax member))
             {
                 throw Exceptions.ThrowEFail();
             }

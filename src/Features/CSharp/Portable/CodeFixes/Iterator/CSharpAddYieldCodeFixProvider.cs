@@ -91,8 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         {
             methodReturnType = null;
             var symbol = model.GetEnclosingSymbol(node.Span.Start, cancellationToken);
-            var method = symbol as IMethodSymbol;
-            if (method == null || method.ReturnsVoid)
+            if (!(symbol is IMethodSymbol method) || method.ReturnsVoid)
             {
                 return false;
             }
