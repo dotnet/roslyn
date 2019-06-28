@@ -528,9 +528,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     }
                 }
 
-                foreach (var nodeToAdd in nodesToAdd)
+                foreach (var (declarationStatement, node) in nodesToAdd)
                 {
-                    InsertLocalDeclarationStatement(nodeToAdd.declarationStatement, nodeToAdd.node);
+                    InsertLocalDeclarationStatement(declarationStatement, node);
                 }
 
                 if (hasAnyUnusedLocalAssignment)

@@ -415,11 +415,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected override void ApplyDocumentTextChanged(DocumentId documentId, SourceText newText)
         {
-            foreach (var projectIdAndSourceTextContainer in _monikersToProjectIdAndContainer.Values)
+            foreach (var (projectId, textContainer) in _monikersToProjectIdAndContainer.Values)
             {
-                if (projectIdAndSourceTextContainer.projectId == documentId.ProjectId)
+                if (projectId == documentId.ProjectId)
                 {
-                    TextEditApplication.UpdateText(newText, projectIdAndSourceTextContainer.textContainer.GetTextBuffer(), EditOptions.DefaultMinimalChange);
+                    TextEditApplication.UpdateText(newText, textContainer.GetTextBuffer(), EditOptions.DefaultMinimalChange);
                     break;
                 }
             }

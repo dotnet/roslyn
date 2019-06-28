@@ -484,12 +484,12 @@ namespace Microsoft.CodeAnalysis.Execution
             writer.WriteInt32((int)MetadataImageKind.Assembly);
             writer.WriteInt32(pooled.Object.Count);
 
-            foreach (var tuple in pooled.Object)
+            foreach (var (name, offset, size) in pooled.Object)
             {
                 writer.WriteInt32((int)MetadataImageKind.Module);
-                writer.WriteString(tuple.name);
-                writer.WriteInt64(tuple.offset);
-                writer.WriteInt64(tuple.size);
+                writer.WriteString(name);
+                writer.WriteInt64(offset);
+                writer.WriteInt64(size);
             }
 
             return true;
