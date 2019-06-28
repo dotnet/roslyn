@@ -908,7 +908,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             deconstructMethod = deconstruct.ExpressionSymbol as MethodSymbol;
                             if (!hasErrors)
-                                hasErrors = outPlaceholders.IsDefaultOrEmpty || tupleDesignation.Variables.Count != outPlaceholders.Length;
+                                hasErrors = outPlaceholders.IsDefault || tupleDesignation.Variables.Count != outPlaceholders.Length;
 
                             for (int i = 0; i < tupleDesignation.Variables.Count; i++)
                             {
