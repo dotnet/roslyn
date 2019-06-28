@@ -2971,19 +2971,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static SyntaxNode WithBaseList(SyntaxNode declaration, BaseListSyntax baseList)
-        {
-            switch (declaration.Kind())
+            => declaration.Kind() switch
             {
-                case SyntaxKind.ClassDeclaration:
-                    return ((ClassDeclarationSyntax)declaration).WithBaseList(baseList);
-                case SyntaxKind.StructDeclaration:
-                    return ((StructDeclarationSyntax)declaration).WithBaseList(baseList);
-                case SyntaxKind.InterfaceDeclaration:
-                    return ((InterfaceDeclarationSyntax)declaration).WithBaseList(baseList);
-                default:
-                    return declaration;
-            }
-        }
+                SyntaxKind.ClassDeclaration => ((ClassDeclarationSyntax)declaration).WithBaseList(baseList),
+                SyntaxKind.StructDeclaration => ((StructDeclarationSyntax)declaration).WithBaseList(baseList),
+                SyntaxKind.InterfaceDeclaration => ((InterfaceDeclarationSyntax)declaration).WithBaseList(baseList),
+                _ => declaration,
+            };
 
         #endregion
 
@@ -3209,23 +3203,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static IReadOnlyList<SyntaxNode> GetSubDeclarations(SyntaxNode declaration)
-        {
-            switch (declaration.Kind())
+            => declaration.Kind() switch
             {
-                case SyntaxKind.FieldDeclaration:
-                    return ((FieldDeclarationSyntax)declaration).Declaration.Variables;
-                case SyntaxKind.EventFieldDeclaration:
-                    return ((EventFieldDeclarationSyntax)declaration).Declaration.Variables;
-                case SyntaxKind.LocalDeclarationStatement:
-                    return ((LocalDeclarationStatementSyntax)declaration).Declaration.Variables;
-                case SyntaxKind.VariableDeclaration:
-                    return ((VariableDeclarationSyntax)declaration).Variables;
-                case SyntaxKind.AttributeList:
-                    return ((AttributeListSyntax)declaration).Attributes;
-                default:
-                    return SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
-            }
-        }
+                SyntaxKind.FieldDeclaration => ((FieldDeclarationSyntax)declaration).Declaration.Variables,
+                SyntaxKind.EventFieldDeclaration => ((EventFieldDeclarationSyntax)declaration).Declaration.Variables,
+                SyntaxKind.LocalDeclarationStatement => ((LocalDeclarationStatementSyntax)declaration).Declaration.Variables,
+                SyntaxKind.VariableDeclaration => ((VariableDeclarationSyntax)declaration).Variables,
+                SyntaxKind.AttributeList => ((AttributeListSyntax)declaration).Attributes,
+                _ => SpecializedCollections.EmptyReadOnlyList<SyntaxNode>(),
+            };
 
         public override SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode node)
         {

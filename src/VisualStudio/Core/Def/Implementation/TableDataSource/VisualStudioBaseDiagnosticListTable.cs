@@ -40,17 +40,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public static __VSERRORCATEGORY GetErrorCategory(DiagnosticSeverity severity)
         {
             // REVIEW: why is it using old interface for new API?
-            switch (severity)
+            return severity switch
             {
-                case DiagnosticSeverity.Error:
-                    return __VSERRORCATEGORY.EC_ERROR;
-                case DiagnosticSeverity.Warning:
-                    return __VSERRORCATEGORY.EC_WARNING;
-                case DiagnosticSeverity.Info:
-                    return __VSERRORCATEGORY.EC_MESSAGE;
-                default:
-                    return Contract.FailWithReturn<__VSERRORCATEGORY>();
-            }
+                DiagnosticSeverity.Error => __VSERRORCATEGORY.EC_ERROR,
+                DiagnosticSeverity.Warning => __VSERRORCATEGORY.EC_WARNING,
+                DiagnosticSeverity.Info => __VSERRORCATEGORY.EC_MESSAGE,
+                _ => Contract.FailWithReturn<__VSERRORCATEGORY>(),
+            };
         }
 
         public static string GetHelpLink(Workspace workspace, DiagnosticData data)
