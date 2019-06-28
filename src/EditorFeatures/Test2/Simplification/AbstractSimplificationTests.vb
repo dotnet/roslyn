@@ -1,12 +1,15 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports ICSharpCode.Decompiler.CSharp
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
@@ -15,28 +18,48 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
         Protected Async Function TestAsync(definition As XElement, expected As XElement, Optional options As Dictionary(Of OptionKey, Object) = Nothing) As System.Threading.Tasks.Task
             Using workspace = TestWorkspace.Create(definition)
-                Dim hostDocument = workspace.Documents.Single()
-
-                Dim spansToAddSimplifierAnnotation = hostDocument.AnnotatedSpans.Where(Function(kvp) kvp.Key.StartsWith("Simplify", StringComparison.Ordinal))
-
-                Dim explicitSpanToSimplifyAnnotatedSpans = hostDocument.AnnotatedSpans.Where(Function(kvp) Not spansToAddSimplifierAnnotation.Contains(kvp))
-                If explicitSpanToSimplifyAnnotatedSpans.Count <> 1 OrElse explicitSpanToSimplifyAnnotatedSpans.Single().Key <> "SpanToSimplify" Then
-                    For Each span In explicitSpanToSimplifyAnnotatedSpans
-                        If span.Key <> "SpanToSimplify" Then
-                            Assert.True(False, "Encountered unexpected span annotation: " + span.Key)
-                        End If
-                    Next
-                End If
-
-                Dim explicitSpansToSimplifyWithin = If(explicitSpanToSimplifyAnnotatedSpans.Any(),
-                                                        explicitSpanToSimplifyAnnotatedSpans.Single().Value,
-                                                        Nothing)
-
-                Await TestAsync(
-                    workspace, spansToAddSimplifierAnnotation,
-                    explicitSpansToSimplifyWithin, expected, options)
+                Await TestAsync(workspace, expected, options).ConfigureAwait(False)
             End Using
+        End Function
 
+        Protected Async Function TestCSharpWithNullableEnabledAsync(definition As XElement, expected As XElement, Optional options As Dictionary(Of OptionKey, Object) = Nothing) As System.Threading.Tasks.Task
+            Using workspace = TestWorkspace.Create(definition)
+                Dim finalWorkspace = workspace
+                For Each project In workspace.CurrentSolution.Projects
+                    Dim parseOptions = CType(project.ParseOptions, CSharpParseOptions)
+                    Dim features = New KeyValuePair(Of String, String)() {New KeyValuePair(Of String, String)("run-nullable-analysis", "true")}
+
+                    parseOptions = parseOptions.WithFeatures(parseOptions.Features.Concat(features))
+                    parseOptions = parseOptions.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp8)
+
+                    finalWorkspace.ChangeSolution(finalWorkspace.CurrentSolution.WithProjectParseOptions(project.Id, parseOptions))
+                Next
+
+                Await TestAsync(finalWorkspace, expected, options).ConfigureAwait(False)
+            End Using
+        End Function
+
+        Protected Async Function TestAsync(workspace As TestWorkspace, expected As XElement, Optional options As Dictionary(Of OptionKey, Object) = Nothing) As System.Threading.Tasks.Task
+            Dim hostDocument = workspace.Documents.Single()
+
+            Dim spansToAddSimplifierAnnotation = hostDocument.AnnotatedSpans.Where(Function(kvp) kvp.Key.StartsWith("Simplify", StringComparison.Ordinal))
+
+            Dim explicitSpanToSimplifyAnnotatedSpans = hostDocument.AnnotatedSpans.Where(Function(kvp) Not spansToAddSimplifierAnnotation.Contains(kvp))
+            If explicitSpanToSimplifyAnnotatedSpans.Count <> 1 OrElse explicitSpanToSimplifyAnnotatedSpans.Single().Key <> "SpanToSimplify" Then
+                For Each span In explicitSpanToSimplifyAnnotatedSpans
+                    If span.Key <> "SpanToSimplify" Then
+                        Assert.True(False, "Encountered unexpected span annotation: " + span.Key)
+                    End If
+                Next
+            End If
+
+            Dim explicitSpansToSimplifyWithin = If(explicitSpanToSimplifyAnnotatedSpans.Any(),
+                                                    explicitSpanToSimplifyAnnotatedSpans.Single().Value,
+                                                    Nothing)
+
+            Await TestAsync(
+                workspace, spansToAddSimplifierAnnotation,
+                explicitSpansToSimplifyWithin, expected, options)
         End Function
 
         Private Async Function TestAsync(workspace As Workspace,

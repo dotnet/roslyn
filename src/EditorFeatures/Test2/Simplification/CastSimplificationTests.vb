@@ -5035,6 +5035,89 @@ class C
             Await TestAsync(input, expected)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_DoNotSimplifyNullable() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+#nullable enable
+class Program
+{
+    void M()
+    {
+        string? s1 = null;
+        string s2 = {|Simplify:ValueOrDefault<string>|}(s1!, "hello");
+    }
+
+    static T ValueOrDefault<T>(T target, T defaultValue) where T : class? =>
+        target ?? defaultValue;
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+#nullable enable
+class Program
+{
+    void M()
+    {
+        string? s1 = null;
+        string s2 = ValueOrDefault<string>(s1!, "hello");
+    }
+
+    static T ValueOrDefault<T>(T target, T defaultValue) where T : class? =>
+        target ?? defaultValue;
+}
+]]>
+</code>
+
+            Await TestCSharpWithNullableEnabledAsync(input, expected)
+        End Function
+
+        <Fact(Skip:=""), Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_SimplifyNullable() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+#nullable enable
+class Program
+{
+    void M()
+    {
+        string? s1 = null;
+        string? s2 = {|Simplify:M1<string?>|}(s1);
+    }
+
+    static T M1<T>(T t) where T : class? => t;
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+#nullable enable
+class Program
+{
+    void M()
+    {
+        string? s1 = null;
+        string? s2 = M1(s1);
+    }
+
+    static T M1<T>(T t) where T : class? => t;
+}
+]]>
+</code>
+
+            Await TestCSharpWithNullableEnabledAsync(input, expected)
+        End Function
 #End Region
 
 #Region "Visual Basic tests"
