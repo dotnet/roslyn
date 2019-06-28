@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             selectionInfo = AdjustFinalTokensBasedOnContext(selectionInfo, model, cancellationToken);
             selectionInfo = AssignFinalSpan(selectionInfo, text, cancellationToken);
             selectionInfo = ApplySpecialCases(selectionInfo, text, cancellationToken);
-            selectionInfo = CheckErrorCasesAndAppendDescriptions(selectionInfo, root, model);
+            selectionInfo = CheckErrorCasesAndAppendDescriptions(selectionInfo, root);
 
             // there was a fatal error that we couldn't even do negative preview, return error result
             if (selectionInfo.Status.FailedWithNoBestEffortSuggestion())
@@ -278,8 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
         private static SelectionInfo CheckErrorCasesAndAppendDescriptions(
             SelectionInfo selectionInfo,
-            SyntaxNode root,
-            SemanticModel model)
+            SyntaxNode root)
         {
             if (selectionInfo.Status.FailedWithNoBestEffortSuggestion())
             {

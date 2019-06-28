@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Remote
             olds.Object.ExceptWith(newChecksums);
             news.Object.ExceptWith(oldChecksums);
 
-            var oldMap = await GetDocumentMapAsync(project, existingTextDocumentStates, olds.Object).ConfigureAwait(false);
+            var oldMap = await GetDocumentMapAsync(existingTextDocumentStates, olds.Object).ConfigureAwait(false);
             var newMap = await GetDocumentMapAsync(_assetService, news.Object).ConfigureAwait(false);
 
             // added document
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return map;
         }
 
-        private async Task<Dictionary<DocumentId, DocumentStateChecksums>> GetDocumentMapAsync(Project project, IEnumerable<TextDocumentState> states, HashSet<Checksum> documents)
+        private async Task<Dictionary<DocumentId, DocumentStateChecksums>> GetDocumentMapAsync(IEnumerable<TextDocumentState> states, HashSet<Checksum> documents)
         {
             var map = new Dictionary<DocumentId, DocumentStateChecksums>();
 

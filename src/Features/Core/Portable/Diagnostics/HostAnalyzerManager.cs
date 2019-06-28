@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> GetHostDiagnosticDescriptorsPerReference()
         {
-            return CreateDiagnosticDescriptorsPerReference(_lazyHostDiagnosticAnalyzersPerReferenceMap.Value, projectOpt: null);
+            return CreateDiagnosticDescriptorsPerReference(_lazyHostDiagnosticAnalyzersPerReferenceMap.Value);
         }
 
         /// <summary>
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> CreateDiagnosticDescriptorsPerReference(Project project)
         {
-            return CreateDiagnosticDescriptorsPerReference(CreateDiagnosticAnalyzersPerReference(project), project);
+            return CreateDiagnosticDescriptorsPerReference(CreateDiagnosticAnalyzersPerReference(project));
         }
 
         /// <summary>
@@ -279,8 +279,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> CreateDiagnosticDescriptorsPerReference(
-            ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> analyzersMap,
-            Project projectOpt)
+            ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> analyzersMap)
         {
             var builder = ImmutableDictionary.CreateBuilder<object, ImmutableArray<DiagnosticDescriptor>>();
             foreach (var kv in analyzersMap)

@@ -59,14 +59,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             foreach (var diagnostic in diagnostics)
             {
                 var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-                MakeDeclarationNullable(document, editor, node, alreadyHandled);
+                MakeDeclarationNullable(editor, node, alreadyHandled);
             }
 
             alreadyHandled.Free();
             return Task.CompletedTask;
         }
 
-        private static void MakeDeclarationNullable(Document document, SyntaxEditor editor, SyntaxNode node, HashSet<TypeSyntax> alreadyHandled)
+        private static void MakeDeclarationNullable(SyntaxEditor editor, SyntaxNode node, HashSet<TypeSyntax> alreadyHandled)
         {
             var declarationTypeToFix = TryGetDeclarationTypeToFix(node);
             if (declarationTypeToFix != null && alreadyHandled.Add(declarationTypeToFix))

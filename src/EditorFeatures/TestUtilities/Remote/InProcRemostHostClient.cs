@@ -22,7 +22,7 @@ namespace Roslyn.Test.Utilities.Remote
         private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
         private readonly JsonRpc _rpc;
 
-        public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, bool runCacheCleanup, CancellationToken cancellationToken)
+        public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, bool runCacheCleanup)
         {
             var inprocServices = new InProcRemoteServices(runCacheCleanup);
 
