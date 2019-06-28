@@ -182,7 +182,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Note that this is intentionally not conditioned off RunNullableWalker currently. Once we fully enable
         // the nullable analysis semantic model feature and feel confident in it, we only run the analysis if
         // the feature flag is set.
-        internal bool NullableSemanticAnalysisEnabled => Feature("run-nullable-analysis") is "true";
+        internal bool NullableSemanticAnalysisEnabled
+        {
+            get
+            {
+                const string NullableAnalysisFlag = "run-nullable-analysis";
+                if (Feature(NullableAnalysisFlag) is "false")
+                {
+                    return false;
+                }
+
+                return ShouldRunNullableWalker || Feature(NullableAnalysisFlag) is "true";
+            }
+        }
 
         /// <summary>
         /// True when the "peverify-compat" feature flag is set or the language version is below C# 7.2.
@@ -567,37 +579,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _syntaxAndDeclarations.MessageProvider,
                         _syntaxAndDeclarations.IsSubmission,
                         state: null));
-        }
-
-        /// <summary>
-        /// Returns a new compilation with the listed additional features. This method does not reparse syntax trees
-        /// with the new features enabled.
-        /// </summary>
-        internal CSharpCompilation WithAdditionalFeatures(params (string feature, string value)[] additionalFeatures)
-        {
-            var newFeatures = new Dictionary<string, string>();
-            foreach (var (key, value) in _features)
-            {
-                newFeatures[key] = value;
-            }
-
-            foreach (var (key, value) in additionalFeatures)
-            {
-                newFeatures[key] = value;
-            }
-
-            return new CSharpCompilation(
-                this.AssemblyName,
-                this.Options,
-                this.ExternalReferences,
-                this.PreviousSubmission,
-                this.SubmissionReturnType,
-                this.HostObjectType,
-                this.IsSubmission,
-                _referenceManager,
-                reuseReferenceManager: true,
-                _syntaxAndDeclarations,
-                newFeatures);
         }
 
         /// <summary>
