@@ -17,11 +17,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         {
         }
 
-        private CodeVariable GetCodeVariable(params object[] path)
-        {
-            return (CodeVariable)GetCodeElement(path);
-        }
-
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void DeleteField()
