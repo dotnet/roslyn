@@ -127,21 +127,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
 
             private string MapDiagnosticSeverityToText(DiagnosticSeverity severity)
-            {
-                switch (severity)
+                => severity switch
                 {
-                    case DiagnosticSeverity.Hidden:
-                        return SolutionExplorerShim.Hidden;
-                    case DiagnosticSeverity.Info:
-                        return SolutionExplorerShim.Info;
-                    case DiagnosticSeverity.Warning:
-                        return SolutionExplorerShim.Warning;
-                    case DiagnosticSeverity.Error:
-                        return SolutionExplorerShim.Error_;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(severity);
-                }
-            }
+                    DiagnosticSeverity.Hidden => SolutionExplorerShim.Hidden,
+                    DiagnosticSeverity.Info => SolutionExplorerShim.Info,
+                    DiagnosticSeverity.Warning => SolutionExplorerShim.Warning,
+                    DiagnosticSeverity.Error => SolutionExplorerShim.Error_,
+                    _ => throw ExceptionUtilities.UnexpectedValue(severity),
+                };
 
             private string MapReportDiagnosticToText(ReportDiagnostic report)
             {

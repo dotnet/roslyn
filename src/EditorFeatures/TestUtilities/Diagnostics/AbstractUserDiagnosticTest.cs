@@ -129,22 +129,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 return null;
             }
 
-            switch (annotation)
+            return annotation switch
             {
-                case "FixAllInDocument":
-                    return FixAllScope.Document;
-
-                case "FixAllInProject":
-                    return FixAllScope.Project;
-
-                case "FixAllInSolution":
-                    return FixAllScope.Solution;
-
-                case "FixAllInSelection":
-                    return FixAllScope.Custom;
-            }
-
-            throw new InvalidProgramException("Incorrect FixAll annotation in test");
+                "FixAllInDocument" => FixAllScope.Document,
+                "FixAllInProject" => FixAllScope.Project,
+                "FixAllInSolution" => FixAllScope.Solution,
+                "FixAllInSelection" => FixAllScope.Custom,
+                _ => throw new InvalidProgramException("Incorrect FixAll annotation in test"),
+            };
         }
 
         internal async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(

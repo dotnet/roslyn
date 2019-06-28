@@ -2765,19 +2765,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static AccessorListSyntax GetAccessorList(SyntaxNode declaration)
-        {
-            switch (declaration.Kind())
+            => declaration.Kind() switch
             {
-                case SyntaxKind.PropertyDeclaration:
-                    return ((PropertyDeclarationSyntax)declaration).AccessorList;
-                case SyntaxKind.IndexerDeclaration:
-                    return ((IndexerDeclarationSyntax)declaration).AccessorList;
-                case SyntaxKind.EventDeclaration:
-                    return ((EventDeclarationSyntax)declaration).AccessorList;
-                default:
-                    return null;
-            }
-        }
+                SyntaxKind.PropertyDeclaration => ((PropertyDeclarationSyntax)declaration).AccessorList,
+                SyntaxKind.IndexerDeclaration => ((IndexerDeclarationSyntax)declaration).AccessorList,
+                SyntaxKind.EventDeclaration => ((EventDeclarationSyntax)declaration).AccessorList,
+                _ => null,
+            };
 
         private static bool CanHaveAccessors(SyntaxNode declaration)
         {

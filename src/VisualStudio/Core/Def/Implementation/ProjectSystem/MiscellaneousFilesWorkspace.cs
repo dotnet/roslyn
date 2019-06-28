@@ -402,16 +402,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public override bool CanApplyChange(ApplyChangesKind feature)
-        {
-            switch (feature)
-            {
-                case ApplyChangesKind.ChangeDocument:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
+            => feature == ApplyChangesKind.ChangeDocument;
 
         protected override void ApplyDocumentTextChanged(DocumentId documentId, SourceText newText)
         {
