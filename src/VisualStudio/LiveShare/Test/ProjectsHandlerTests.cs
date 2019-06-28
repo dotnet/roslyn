@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
             var (solution, ranges) = CreateTestSolution(string.Empty);
             var expected = solution.Projects.Select(p => CreateLspProject(p)).ToArray();
 
-            var results = await TestHandleAsync<object, CustomProtocol.Project[]>(solution, null);
+            var results = (CustomProtocol.Project[])await TestHandleAsync<object, object[]>(solution, null);
             AssertJsonEquals(expected, results);
         }
 

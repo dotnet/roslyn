@@ -16,9 +16,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     /// TODO - Move to lower layer once the protocol converter is figured out.
     /// </summary>
     [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, RoslynMethods.ProjectsName)]
-    internal class ProjectsHandler : ILspRequestHandler<object, CustomProtocol.Project[], Solution>
+    internal class ProjectsHandler : ILspRequestHandler<object, object[], Solution>
     {
-        public async Task<CustomProtocol.Project[]> HandleAsync(object param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        public async Task<object[]> HandleAsync(object param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
             var projects = new ArrayBuilder<CustomProtocol.Project>();
             var solution = requestContext.Context;
