@@ -1530,12 +1530,12 @@ public class C : A {
             var solution = CreateSolution();
             var pid = ProjectId.CreateNewId();
 
-            Func<VersionStamp> GetVersion = () => solution.GetProject(pid).Version;
-            Func<ImmutableArray<DocumentId>> GetDocumentIds = () => solution.GetProject(pid).DocumentIds.ToImmutableArray();
-            Func<ImmutableArray<SyntaxTree>> GetSyntaxTrees = () =>
-                {
-                    return solution.GetProject(pid).GetCompilationAsync().Result.SyntaxTrees.ToImmutableArray();
-                };
+            VersionStamp GetVersion() => solution.GetProject(pid).Version;
+            ImmutableArray<DocumentId> GetDocumentIds() => solution.GetProject(pid).DocumentIds.ToImmutableArray();
+            ImmutableArray<SyntaxTree> GetSyntaxTrees()
+            {
+                return solution.GetProject(pid).GetCompilationAsync().Result.SyntaxTrees.ToImmutableArray();
+            }
 
             solution = solution.AddProject(pid, "test", "test.dll", LanguageNames.CSharp);
 

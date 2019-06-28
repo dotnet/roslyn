@@ -3915,10 +3915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static bool IsSimpleLambdaParameter(SyntaxNode node)
-        {
-            var p = node as ParameterSyntax;
-            return p != null && p.Type == null && p.Default == null && p.Modifiers.Count == 0;
-        }
+            => node is ParameterSyntax p && p.Type == null && p.Default == null && p.Modifiers.Count == 0;
 
         public override SyntaxNode VoidReturningLambdaExpression(IEnumerable<SyntaxNode> lambdaParameters, SyntaxNode expression)
         {

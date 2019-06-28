@@ -2693,8 +2693,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             Debug.Assert(memberNode is BasePropertyDeclarationSyntax);
 
-            var property = memberNode as BasePropertyDeclarationSyntax;
-            if (property == null)
+            if (!(memberNode is BasePropertyDeclarationSyntax property))
             {
                 throw Exceptions.ThrowEFail();
             }
