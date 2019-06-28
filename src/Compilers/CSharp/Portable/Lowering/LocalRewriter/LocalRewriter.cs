@@ -84,7 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(statement != null);
             Debug.Assert(compilationState != null);
-
             try
             {
                 var factory = new SyntheticBoundNodeFactory(method, statement.Syntax, compilationState, diagnostics);
@@ -102,10 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sawLocalFunctions = localRewriter._sawLocalFunctions;
                 sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
 
-                if (visited is BoundBlock block)
-                {
-                    loweredStatement = localRewriter.RewriteNullChecking(block);
-                }
 
                 if (localRewriter._needsSpilling && !loweredStatement.HasErrors)
                 {
@@ -242,10 +237,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 _factory.CurrentFunction = node.Symbol;
-                var visited = base.VisitLambda(node);
-                if (visited is BoundLambda lambda)
-                    visited = RewriteNullChecking(lambda);
-                return visited;
+                var body = (BoundBlock)Visit(node.Body);
+                body = RewriteNullChecking(body);
+                TypeSymbol type = VisitType(node.Type);
+                return node.Update(node.UnboundLambda, node.Symbol, body,
+                    node.Diagnostics, node.Binder, type);
             }
             finally
             {
@@ -285,11 +281,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _factory.CurrentFunction = localFunction;
                 var visited = base.VisitLocalFunctionStatement(node);
-                if (visited is BoundLocalFunctionStatement localFunctionStatement)
-                {
-                    visited = RewriteNullChecking(localFunctionStatement);
-                }
-                return visited;
+                var body = (BoundBlock)Visit(node.Body);
+                body = (BoundBlock)RewriteNullChecking(body);
+                return node.Update(node.Symbol, body, node.ExpressionBody);
             }
             finally
             {
