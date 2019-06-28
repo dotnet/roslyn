@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     {
         private abstract partial class CSharpCodeGenerator : CodeGenerator<StatementSyntax, ExpressionSyntax, SyntaxNode>
         {
-            private SyntaxToken _methodName;
+            private readonly SyntaxToken _methodName;
 
             public static Task<GeneratedCode> GenerateAsync(
                 InsertionPoint insertionPoint,
