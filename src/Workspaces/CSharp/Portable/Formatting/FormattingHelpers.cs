@@ -157,8 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            var statement = token.Parent as StatementSyntax;
-            if (statement == null ||
+            if (!(token.Parent is StatementSyntax statement) ||
                 statement.GetLastToken() != token)
             {
                 return false;
@@ -184,8 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            var block = token.Parent as BlockSyntax;
-            if (block == null ||
+            if (!(token.Parent is BlockSyntax block) ||
                 block.CloseBraceToken != token)
             {
                 return false;
