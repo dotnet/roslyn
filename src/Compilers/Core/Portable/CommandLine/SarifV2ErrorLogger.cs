@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis
             _writer.WriteArrayStart("results");
         }
 
+        protected override string PrimaryLocationPropertyName => "physicalLocation";
+
         public override void LogDiagnostic(Diagnostic diagnostic)
         {
             _writer.WriteObjectStart(); // result
@@ -52,7 +54,57 @@ namespace Microsoft.CodeAnalysis
                 _writer.WriteObjectEnd();
             }
 
+            WriteLocations(diagnostic.Location, diagnostic.AdditionalLocations);
+
             _writer.WriteObjectEnd(); // result
+        }
+
+        private void WriteLocations(Location location, IReadOnlyList<Location> additionalLocations)
+        {
+            if (HasPath(location))
+            {
+                _writer.WriteArrayStart("locations");
+                _writer.WriteObjectStart(); // location
+                _writer.WriteKey(PrimaryLocationPropertyName);
+
+                WritePhysicalLocation(location);
+
+                _writer.WriteObjectEnd(); // location
+                _writer.WriteArrayEnd(); // locations
+            }
+
+            // See https://github.com/dotnet/roslyn/issues/11228 for discussion around
+            // whether this is the correct treatment of Diagnostic.AdditionalLocations
+            // as SARIF relatedLocations.
+            if (additionalLocations != null &&
+                additionalLocations.Count > 0 &&
+                additionalLocations.Any(l => HasPath(l)))
+            {
+                _writer.WriteArrayStart("relatedLocations");
+
+                foreach (var additionalLocation in additionalLocations)
+                {
+                    if (HasPath(additionalLocation))
+                    {
+                        _writer.WriteObjectStart(); // annotatedCodeLocation
+                        _writer.WriteKey("physicalLocation");
+
+                        WritePhysicalLocation(additionalLocation);
+
+                        _writer.WriteObjectEnd(); // annotatedCodeLocation
+                    }
+                }
+
+                _writer.WriteArrayEnd(); // relatedLocations
+            }
+        }
+
+        protected override void WritePhysicalLocation(Location diagnosticLocation)
+        {
+            _writer.WriteObjectStart(); // physicalLocation
+            _writer.WriteObjectStart("artifactLocation");
+            _writer.WriteObjectEnd(); // artifactLocation
+            _writer.WriteObjectEnd();
         }
 
         public override void Dispose()

@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis
             _culture = culture;
         }
 
+        //
+        protected abstract string PrimaryLocationPropertyName { get; }
+
+        protected abstract void WritePhysicalLocation(Location diagnosticLocation);
+
         public override void Dispose()
         {
             base.Dispose();
@@ -42,6 +47,42 @@ namespace Microsoft.CodeAnalysis
                     Debug.Assert(false);
                     goto case DiagnosticSeverity.Warning;
             }
+        }
+
+        protected static bool HasPath(Location location)
+        {
+            return !string.IsNullOrEmpty(location.GetLineSpan().Path);
+        }
+
+        private static readonly Uri s_fileRoot = new Uri("file:///");
+
+        protected static string GetUri(string path)
+        {
+            Debug.Assert(!string.IsNullOrEmpty(path));
+
+            // Note that in general, these "paths" are opaque strings to be 
+            // interpreted by resolvers (see SyntaxTree.FilePath documentation).
+
+            // Common case: absolute path -> absolute URI
+            if (Uri.TryCreate(path, UriKind.Absolute, out Uri uri))
+            {
+                // We use Uri.AbsoluteUri and not Uri.ToString() because Uri.ToString() 
+                // is unescaped (e.g. spaces remain unreplaced by %20) and therefore 
+                // not well-formed.
+                return uri.AbsoluteUri;
+            }
+
+            // First fallback attempt: attempt to interpret as relative path/URI.
+            // (Perhaps the resolver works that way.)
+            if (Uri.TryCreate(path, UriKind.Relative, out uri))
+            {
+                // There is no AbsoluteUri equivalent for relative URI references and ToString() 
+                // won't escape without this relative -> absolute -> relative trick.
+                return s_fileRoot.MakeRelativeUri(new Uri(s_fileRoot, uri)).ToString();
+            }
+
+            // Last resort: UrlEncode the whole opaque string.
+            return System.Net.WebUtility.UrlEncode(path);
         }
     }
 }

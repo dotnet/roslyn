@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis
     internal sealed class SarifV1ErrorLogger : SarifErrorLoggerBase, IDisposable
     {
         private readonly DiagnosticDescriptorSet _descriptors;
-
         public SarifV1ErrorLogger(Stream stream, string toolName, string toolFileVersion, Version toolAssemblyVersion, CultureInfo culture)
             : base(stream, culture)
         {
@@ -47,6 +46,8 @@ namespace Microsoft.CodeAnalysis
 
             _writer.WriteArrayStart("results");
         }
+
+        protected override string PrimaryLocationPropertyName => "resultFile";
 
         public override void LogDiagnostic(Diagnostic diagnostic)
         {
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis
             {
                 _writer.WriteArrayStart("locations");
                 _writer.WriteObjectStart(); // location
-                _writer.WriteKey("resultFile");
+                _writer.WriteKey(PrimaryLocationPropertyName);
 
                 WritePhysicalLocation(location);
 
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void WritePhysicalLocation(Location location)
+        protected override void WritePhysicalLocation(Location location)
         {
             Debug.Assert(HasPath(location));
 
@@ -139,42 +140,6 @@ namespace Microsoft.CodeAnalysis
             _writer.WriteObjectEnd(); // region
 
             _writer.WriteObjectEnd();
-        }
-
-        private static bool HasPath(Location location)
-        {
-            return !string.IsNullOrEmpty(location.GetLineSpan().Path);
-        }
-
-        private static readonly Uri s_fileRoot = new Uri("file:///");
-
-        private static string GetUri(string path)
-        {
-            Debug.Assert(!string.IsNullOrEmpty(path));
-
-            // Note that in general, these "paths" are opaque strings to be 
-            // interpreted by resolvers (see SyntaxTree.FilePath documentation).
-
-            // Common case: absolute path -> absolute URI
-            if (Uri.TryCreate(path, UriKind.Absolute, out Uri uri))
-            {
-                // We use Uri.AbsoluteUri and not Uri.ToString() because Uri.ToString() 
-                // is unescaped (e.g. spaces remain unreplaced by %20) and therefore 
-                // not well-formed.
-                return uri.AbsoluteUri;
-            }
-
-            // First fallback attempt: attempt to interpret as relative path/URI.
-            // (Perhaps the resolver works that way.)
-            if (Uri.TryCreate(path, UriKind.Relative, out uri))
-            {
-                // There is no AbsoluteUri equivalent for relative URI references and ToString() 
-                // won't escape without this relative -> absolute -> relative trick.
-                return s_fileRoot.MakeRelativeUri(new Uri(s_fileRoot, uri)).ToString();
-            }
-
-            // Last resort: UrlEncode the whole opaque string.
-            return System.Net.WebUtility.UrlEncode(path);
         }
 
         private void WriteProperties(Diagnostic diagnostic)
