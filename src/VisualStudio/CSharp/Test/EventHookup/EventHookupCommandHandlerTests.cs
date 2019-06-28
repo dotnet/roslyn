@@ -25,12 +25,10 @@ class C
         MyEvent +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
-            }
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("C_MyEvent;");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -51,12 +49,10 @@ class D
     }
 }
 ";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("Local_MyEvent;");
-            }
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("Local_MyEvent;");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -82,12 +78,10 @@ class E
     }
 }
 ";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("Cfield_MyEvent;");
-            }
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("Cfield_MyEvent;");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -102,16 +96,15 @@ class C
         x +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertNotShowing();
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertNotShowing();
 
-                // Make sure that sending the tab works correctly. Note the 4 spaces after the +=
-                testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync();
-                var expectedCode = @"
+            // Make sure that sending the tab works correctly. Note the 4 spaces after the +=
+            testState.SendTab();
+            await testState.WaitForAsynchronousOperationsAsync();
+            var expectedCode = @"
 class C
 {
     void Goo()
@@ -121,8 +114,7 @@ class C
     }
 }";
 
-                testState.AssertCodeIs(expectedCode);
-            }
+            testState.AssertCodeIs(expectedCode);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -143,12 +135,10 @@ class C
     }
 }
 ";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent1;");
-            }
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("C_MyEvent1;");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -169,12 +159,10 @@ class C
     }
 }
 ";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent1;");
-            }
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("C_MyEvent1;");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -191,12 +179,10 @@ class C
         MyEvent +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent1;");
-            }
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("C_MyEvent1;");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -213,12 +199,10 @@ class C
     }
 }
 ";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
-            }
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("C_MyEvent;");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -233,16 +217,14 @@ class C
         MyEvent +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("C_MyEvent;");
 
-                testState.SendTypeChar(' ');
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
-            }
+            testState.SendTypeChar(' ');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("C_MyEvent;");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -257,16 +239,14 @@ class C
         MyEvent +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("C_MyEvent;");
 
-                testState.SendTypeChar('d');
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertNotShowing();
-            }
+            testState.SendTypeChar('d');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertNotShowing();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -281,16 +261,14 @@ class C
         MyEvent +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("C_MyEvent;");
 
-                testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertNotShowing();
-            }
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertNotShowing();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -305,24 +283,22 @@ class C
         MyEvent +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("C_MyEvent;");
 
-                testState.SendTypeChar(' ');
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
+            testState.SendTypeChar(' ');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("C_MyEvent;");
 
-                testState.SendLeftKey();
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
+            testState.SendLeftKey();
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("C_MyEvent;");
 
-                testState.SendLeftKey();
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertNotShowing();
-            }
+            testState.SendLeftKey();
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertNotShowing();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -370,13 +346,12 @@ class C
         throw new System.NotImplementedException();
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync();
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            testState.SendTab();
+            await testState.WaitForAsynchronousOperationsAsync();
 
-                var expectedCode = @"
+            var expectedCode = @"
 class C
 {
     event System.Action MyEvent;
@@ -396,8 +371,7 @@ class C
         throw new System.NotImplementedException();
     }
 }";
-                testState.AssertCodeIs(expectedCode);
-            }
+            testState.AssertCodeIs(expectedCode);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -418,13 +392,12 @@ class C
         throw new System.NotImplementedException();
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync();
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            testState.SendTab();
+            await testState.WaitForAsynchronousOperationsAsync();
 
-                var expectedCode = @"
+            var expectedCode = @"
 class C
 {
     event System.Action MyEvent;
@@ -444,8 +417,7 @@ class C
         throw new System.NotImplementedException();
     }
 }";
-                testState.AssertCodeIs(expectedCode);
-            }
+            testState.AssertCodeIs(expectedCode);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -464,13 +436,12 @@ class C
     {
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync();
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            testState.SendTab();
+            await testState.WaitForAsynchronousOperationsAsync();
 
-                var expectedCode = @"
+            var expectedCode = @"
 class C
 {
     event System.Action MyEvent;
@@ -488,8 +459,7 @@ class C
     {
     }
 }";
-                testState.AssertCodeIs(expectedCode);
-            }
+            testState.AssertCodeIs(expectedCode);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -501,13 +471,12 @@ class C
     static event System.Action MyEvent;
     System.Action A = () => MyEvent +$$
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync();
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            testState.SendTab();
+            await testState.WaitForAsynchronousOperationsAsync();
 
-                var expectedCode = @"
+            var expectedCode = @"
 class C
 {
     static event System.Action MyEvent;
@@ -518,8 +487,7 @@ class C
         throw new System.NotImplementedException();
     }
 }";
-                testState.AssertCodeIs(expectedCode);
-            }
+            testState.AssertCodeIs(expectedCode);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -534,13 +502,12 @@ class C
         MyEvent +$$
     };
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync();
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            testState.SendTab();
+            await testState.WaitForAsynchronousOperationsAsync();
 
-                var expectedCode = @"
+            var expectedCode = @"
 class C
 {
     static event System.Action MyEvent;
@@ -554,8 +521,7 @@ class C
         throw new System.NotImplementedException();
     }
 }";
-                testState.AssertCodeIs(expectedCode);
-            }
+            testState.AssertCodeIs(expectedCode);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -569,13 +535,12 @@ class C
     {MyEvent +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync();
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            testState.SendTab();
+            await testState.WaitForAsynchronousOperationsAsync();
 
-                var expectedCode = @"
+            var expectedCode = @"
 class C
 {
     event System.Action MyEvent;
@@ -589,8 +554,7 @@ class C
         throw new System.NotImplementedException();
     }
 }";
-                testState.AssertCodeIs(expectedCode);
-            }
+            testState.AssertCodeIs(expectedCode);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -610,19 +574,18 @@ class C
         throw new System.NotImplementedException();
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+
+            for (int i = 0; i < 20; i++)
             {
-                testState.SendTypeChar('=');
+                testState.SendTypeChar(' ');
+            }
 
-                for (int i = 0; i < 20; i++)
-                {
-                    testState.SendTypeChar(' ');
-                }
+            testState.SendTab();
+            await testState.WaitForAsynchronousOperationsAsync();
 
-                testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync();
-
-                var expectedCode = @"
+            var expectedCode = @"
 class C
 {
     event System.Action MyEvent;
@@ -642,8 +605,7 @@ class C
         throw new System.NotImplementedException();
     }
 }";
-                testState.AssertCodeIs(expectedCode);
-            }
+            testState.AssertCodeIs(expectedCode);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -658,17 +620,15 @@ class C
         MyEvent +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SetEventHookupCheckMutex();
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SetEventHookupCheckMutex();
 
-                testState.SendTypeChar('=');
-                testState.SendTypeChar('z');
+            testState.SendTypeChar('=');
+            testState.SendTypeChar('z');
 
-                testState.ReleaseEventHookupCheckMutex();
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertNotShowing();
-            }
+            testState.ReleaseEventHookupCheckMutex();
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertNotShowing();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -683,19 +643,18 @@ class C
         MyEvent +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SetEventHookupCheckMutex();
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SetEventHookupCheckMutex();
 
-                testState.SendTypeChar('=');
+            testState.SendTypeChar('=');
 
-                // tab releases the mutex
-                testState.SendTab();
+            // tab releases the mutex
+            testState.SendTab();
 
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertNotShowing();
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertNotShowing();
 
-                var expectedCode = @"
+            var expectedCode = @"
 class C
 {
     event System.Action MyEvent;
@@ -710,8 +669,7 @@ class C
     }
 }";
 
-                testState.AssertCodeIs(expectedCode);
-            }
+            testState.AssertCodeIs(expectedCode);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -726,17 +684,15 @@ class C
         MyEvent +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SetEventHookupCheckMutex();
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SetEventHookupCheckMutex();
 
-                testState.SendTypeChar('=');
-                testState.SendLeftKey();
-                testState.ReleaseEventHookupCheckMutex();
+            testState.SendTypeChar('=');
+            testState.SendLeftKey();
+            testState.ReleaseEventHookupCheckMutex();
 
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertNotShowing();
-            }
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertNotShowing();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -759,12 +715,10 @@ public partial class C
         throw new System.NotImplementedException();
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent1;");
-            }
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("C_MyEvent1;");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -783,12 +737,10 @@ class Program : Base
         System.Console.CancelKeyPress +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("Console_CancelKeyPress1;");
-            }
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("Console_CancelKeyPress1;");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -804,12 +756,10 @@ class C
         MyEvent +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent1;");
-            }
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("C_MyEvent1;");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -826,13 +776,12 @@ class C
         MyEvent +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync();
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            testState.SendTab();
+            await testState.WaitForAsynchronousOperationsAsync();
 
-                var expectedCode = @"
+            var expectedCode = @"
 class C
 {
     delegate int D(double d);
@@ -848,8 +797,7 @@ class C
         throw new System.NotImplementedException();
     }
 }";
-                testState.AssertCodeIs(expectedCode);
-            }
+            testState.AssertCodeIs(expectedCode);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -864,13 +812,11 @@ class C
         // +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertNotShowing();
-            }
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            testState.SendTab();
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertNotShowing();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -895,13 +841,12 @@ class TestClass_T1_S1_4 : Scenarios.DelegateTest_Generics_NonGenericClass
     }
 }";
 
-            using (var testState = EventHookupTestState.CreateTestState(markup))
-            {
-                testState.SendTypeChar('=');
-                testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync();
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            testState.SendTab();
+            await testState.WaitForAsynchronousOperationsAsync();
 
-                var expectedCode = @"
+            var expectedCode = @"
 namespace Scenarios
 {
     public class DelegateTest_Generics_NonGenericClass
@@ -923,8 +868,7 @@ class TestClass_T1_S1_4 : Scenarios.DelegateTest_Generics_NonGenericClass
         throw new System.NotImplementedException();
     }
 }";
-                testState.AssertCodeIs(expectedCode);
-            }
+            testState.AssertCodeIs(expectedCode);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -939,13 +883,12 @@ class C
         MyEvent +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup, QualifyMethodAccessWithNotification(NotificationOption.Error)))
-            {
-                testState.SendTypeChar('=');
-                testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync();
+            using var testState = EventHookupTestState.CreateTestState(markup, QualifyMethodAccessWithNotification(NotificationOption.Error));
+            testState.SendTypeChar('=');
+            testState.SendTab();
+            await testState.WaitForAsynchronousOperationsAsync();
 
-                var expectedCode = @"
+            var expectedCode = @"
 class C
 {
     event System.Action MyEvent;
@@ -959,8 +902,7 @@ class C
         throw new System.NotImplementedException();
     }
 }";
-                testState.AssertCodeIs(expectedCode);
-            }
+            testState.AssertCodeIs(expectedCode);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
@@ -978,13 +920,12 @@ class C
         MyEvent +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup, QualifyMethodAccessWithNotification(NotificationOption.Silent)))
-            {
-                testState.SendTypeChar('=');
-                testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync();
+            using var testState = EventHookupTestState.CreateTestState(markup, QualifyMethodAccessWithNotification(NotificationOption.Silent));
+            testState.SendTypeChar('=');
+            testState.SendTab();
+            await testState.WaitForAsynchronousOperationsAsync();
 
-                var expectedCode = @"
+            var expectedCode = @"
 class C
 {
     event System.Action MyEvent;
@@ -998,8 +939,7 @@ class C
         throw new System.NotImplementedException();
     }
 }";
-                testState.AssertCodeIs(expectedCode);
-            }
+            testState.AssertCodeIs(expectedCode);
         }
 
         private IDictionary<OptionKey, object> QualifyMethodAccessWithNotification(NotificationOption notification)
