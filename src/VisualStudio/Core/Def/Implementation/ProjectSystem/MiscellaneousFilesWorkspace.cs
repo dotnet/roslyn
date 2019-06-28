@@ -236,7 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private bool TryUntrackClosingDocument(string moniker)
         {
             _foregroundThreadAffinitization.AssertIsForeground();
-            
+
             var unregisteredRegistration = false;
 
             // Remove our registration changing handler before we call DetachFromDocument. Otherwise, calling DetachFromDocument
