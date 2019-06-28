@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                     var endToken = snapshot.FindToken(endPosition, CancellationToken.None);
                     if (endToken.IsKind(SyntaxKind.CloseBraceToken))
                     {
-                        endPosition = endPosition - (endToken.Span.Length + startToken.Span.Length);
+                        endPosition -= (endToken.Span.Length + startToken.Span.Length);
                     }
                 }
             }
