@@ -224,11 +224,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var implementedVisibleMembers = new List<ISymbol>();
                 var implementedMembers = ArrayBuilder<ISymbol>.GetInstance();
 
-                foreach (var tuple in unimplementedMembers)
+                foreach (var (_, unimplementedInterfaceMembers) in unimplementedMembers)
                 {
-                    var interfaceType = tuple.type;
-                    var unimplementedInterfaceMembers = tuple.members;
-
                     foreach (var unimplementedInterfaceMember in unimplementedInterfaceMembers)
                     {
                         var member = GenerateMember(

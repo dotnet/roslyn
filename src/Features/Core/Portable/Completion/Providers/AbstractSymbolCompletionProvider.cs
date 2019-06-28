@@ -407,12 +407,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var missingSymbols = new Dictionary<ISymbol, List<ProjectId>>(LinkedFilesSymbolEquivalenceComparer.Instance);
 
-            foreach (var linkedContextSymbolList in linkedContextSymbolLists)
+            foreach (var (documentId, syntaxContext, symbols) in linkedContextSymbolLists)
             {
-                var symbolsMissingInLinkedContext = symbolToContext.Keys.Except(linkedContextSymbolList.symbols, LinkedFilesSymbolEquivalenceComparer.Instance);
+                var symbolsMissingInLinkedContext = symbolToContext.Keys.Except(symbols, LinkedFilesSymbolEquivalenceComparer.Instance);
                 foreach (var missingSymbol in symbolsMissingInLinkedContext)
                 {
-                    missingSymbols.GetOrAdd(missingSymbol, m => new List<ProjectId>()).Add(linkedContextSymbolList.documentId.ProjectId);
+                    missingSymbols.GetOrAdd(missingSymbol, m => new List<ProjectId>()).Add(documentId.ProjectId);
                 }
             }
 

@@ -51,8 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             var snapshotSpan = new SnapshotSpan(textSnapshot, textSpan.Start, textSpan.Length);
             var virtualSnapshotSpan = new VirtualSnapshotSpan(snapshotSpan);
 
-            VirtualSnapshotSpan surfaceBufferSpan;
-            if (!textView.TryGetSurfaceBufferSpan(virtualSnapshotSpan, out surfaceBufferSpan))
+            if (!textView.TryGetSurfaceBufferSpan(virtualSnapshotSpan, out var surfaceBufferSpan))
             {
                 return false;
             }

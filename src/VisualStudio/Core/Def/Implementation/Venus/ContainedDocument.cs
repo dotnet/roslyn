@@ -68,8 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return null;
             }
 
-            ContainedDocument document;
-            s_containedDocuments.TryGetValue(id, out document);
+            s_containedDocuments.TryGetValue(id, out var document);
 
             return document;
         }
