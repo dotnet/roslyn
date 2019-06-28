@@ -212,10 +212,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static SourceText ReadFrom(ITextFactoryService textService, ObjectReader reader, Encoding encoding, CancellationToken cancellationToken)
         {
-            using (var textReader = ObjectReaderTextReader.Create(reader))
-            {
-                return textService.CreateText(textReader, encoding, cancellationToken);
-            }
+            using var textReader = ObjectReaderTextReader.Create(reader);
+
+            return textService.CreateText(textReader, encoding, cancellationToken);
         }
 
         private class ObjectReaderTextReader : TextReaderWithLength

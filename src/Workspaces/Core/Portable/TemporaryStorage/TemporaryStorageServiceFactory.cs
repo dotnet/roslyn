@@ -226,12 +226,11 @@ namespace Microsoft.CodeAnalysis.Host
 
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_ReadText, cancellationToken))
                     {
-                        using (var stream = _memoryMappedInfo.CreateReadableStream())
-                        using (var reader = CreateTextReaderFromTemporaryStorage((ISupportDirectMemoryAccess)stream, (int)stream.Length, cancellationToken))
-                        {
-                            // we pass in encoding we got from original source text even if it is null.
-                            return _service._textFactory.CreateText(reader, _encoding, cancellationToken);
-                        }
+                        using var stream = _memoryMappedInfo.CreateReadableStream();
+                        using var reader = CreateTextReaderFromTemporaryStorage((ISupportDirectMemoryAccess)stream, (int)stream.Length, cancellationToken);
+
+                        // we pass in encoding we got from original source text even if it is null.
+                        return _service._textFactory.CreateText(reader, _encoding, cancellationToken);
                     }
                 }
 
@@ -266,13 +265,10 @@ namespace Microsoft.CodeAnalysis.Host
                         _memoryMappedInfo = _service.CreateTemporaryStorage(size);
 
                         // Write the source text out as Unicode. We expect that to be cheap.
-                        using (var stream = _memoryMappedInfo.CreateWritableStream())
-                        {
-                            using (var writer = new StreamWriter(stream, Encoding.Unicode))
-                            {
-                                text.Write(writer, cancellationToken);
-                            }
-                        }
+                        using var stream = _memoryMappedInfo.CreateWritableStream();
+                        using var writer = new StreamWriter(stream, Encoding.Unicode);
+
+                        text.Write(writer, cancellationToken);
                     }
                 }
 
@@ -375,35 +371,34 @@ namespace Microsoft.CodeAnalysis.Host
                     {
                         var size = stream.Length;
                         _memoryMappedInfo = _service.CreateTemporaryStorage(size);
-                        using (var viewStream = _memoryMappedInfo.CreateWritableStream())
+                        using var viewStream = _memoryMappedInfo.CreateWritableStream();
+
+                        var buffer = SharedPools.ByteArray.Allocate();
+                        try
                         {
-                            var buffer = SharedPools.ByteArray.Allocate();
-                            try
+                            while (true)
                             {
-                                while (true)
+                                int count;
+                                if (useAsync)
                                 {
-                                    int count;
-                                    if (useAsync)
-                                    {
-                                        count = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
-                                    }
-                                    else
-                                    {
-                                        count = stream.Read(buffer, 0, buffer.Length);
-                                    }
-
-                                    if (count == 0)
-                                    {
-                                        break;
-                                    }
-
-                                    viewStream.Write(buffer, 0, count);
+                                    count = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
                                 }
+                                else
+                                {
+                                    count = stream.Read(buffer, 0, buffer.Length);
+                                }
+
+                                if (count == 0)
+                                {
+                                    break;
+                                }
+
+                                viewStream.Write(buffer, 0, count);
                             }
-                            finally
-                            {
-                                SharedPools.ByteArray.Free(buffer);
-                            }
+                        }
+                        finally
+                        {
+                            SharedPools.ByteArray.Free(buffer);
                         }
                     }
                 }

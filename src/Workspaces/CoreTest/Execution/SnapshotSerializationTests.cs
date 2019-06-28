@@ -546,11 +546,10 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
 
                 stream.Position = 0;
 
-                using (var objectReader = ObjectReader.TryGetReader(stream))
-                {
-                    var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
-                    Assert.Equal(sourceText.ToString(), newText.ToString());
-                }
+                using var objectReader = ObjectReader.TryGetReader(stream);
+
+                var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                Assert.Equal(sourceText.ToString(), newText.ToString());
             }
 
             // test with wrong encoding that doesn't support serialization
@@ -564,11 +563,10 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
 
                 stream.Position = 0;
 
-                using (var objectReader = ObjectReader.TryGetReader(stream))
-                {
-                    var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
-                    Assert.Equal(sourceText.ToString(), newText.ToString());
-                }
+                using var objectReader = ObjectReader.TryGetReader(stream);
+
+                var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                Assert.Equal(sourceText.ToString(), newText.ToString());
             }
         }
 

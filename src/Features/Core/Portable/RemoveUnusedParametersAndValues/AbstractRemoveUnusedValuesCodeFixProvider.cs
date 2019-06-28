@@ -262,11 +262,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 {
                     var orderedDiagnostics = diagnosticsToFix.OrderBy(d => d.Location.SourceSpan.Start);
                     var containingMemberDeclaration = diagnosticsToFix.Key;
-                    using (var nameGenerator = new UniqueVariableNameGenerator(containingMemberDeclaration, semanticModel, semanticFacts, cancellationToken))
-                    {
-                        await FixAllAsync(diagnosticId, orderedDiagnostics, document, semanticModel, root, containingMemberDeclaration, preference,
-                            removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken).ConfigureAwait(false);
-                    }
+                    using var nameGenerator = new UniqueVariableNameGenerator(containingMemberDeclaration, semanticModel, semanticFacts, cancellationToken);
+
+                    await FixAllAsync(diagnosticId, orderedDiagnostics, document, semanticModel, root, containingMemberDeclaration, preference,
+                        removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Second pass to post process the document.

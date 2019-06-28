@@ -76,15 +76,14 @@ namespace Microsoft.CodeAnalysis.Execution
                     {
                         // we don't have cache, cache it
                         var formatter = new BinaryFormatter();
-                        using (var stream = SerializableBytes.CreateWritableStream())
-                        {
-                            // unfortunately, this is only way to properly clone encoding
-                            formatter.Serialize(stream, encoding);
-                            value = stream.ToArray();
+                        using var stream = SerializableBytes.CreateWritableStream();
 
-                            // add if not already exist. otherwise, noop
-                            s_encodingCache.TryAdd(encoding, value);
-                        }
+                        // unfortunately, this is only way to properly clone encoding
+                        formatter.Serialize(stream, encoding);
+                        value = stream.ToArray();
+
+                        // add if not already exist. otherwise, noop
+                        s_encodingCache.TryAdd(encoding, value);
                     }
 
                     return value;

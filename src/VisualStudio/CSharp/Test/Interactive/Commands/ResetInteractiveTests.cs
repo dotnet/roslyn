@@ -38,22 +38,21 @@ namespace ResetInteractiveTestsDocument
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public async Task TestResetREPLWithProjectContext()
         {
-            using (var workspace = TestWorkspace.Create(WorkspaceXmlStr, exportProvider: InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider()))
-            {
-                var project = workspace.CurrentSolution.Projects.FirstOrDefault(p => p.AssemblyName == "ResetInteractiveTestsAssembly");
-                var document = project.Documents.FirstOrDefault(d => d.FilePath == "ResetInteractiveTestsDocument");
-                var replReferenceCommands = GetProjectReferences(workspace, project).Select(r => CreateReplReferenceCommand(r));
+            using var workspace = TestWorkspace.Create(WorkspaceXmlStr, exportProvider: InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider());
 
-                Assert.True(replReferenceCommands.Any(rc => rc.EndsWith(@"ResetInteractiveTestsAssembly.dll""")));
-                Assert.True(replReferenceCommands.Any(rc => rc.EndsWith(@"ResetInteractiveVisualBasicSubproject.dll""")));
+            var project = workspace.CurrentSolution.Projects.FirstOrDefault(p => p.AssemblyName == "ResetInteractiveTestsAssembly");
+            var document = project.Documents.FirstOrDefault(d => d.FilePath == "ResetInteractiveTestsDocument");
+            var replReferenceCommands = GetProjectReferences(workspace, project).Select(r => CreateReplReferenceCommand(r));
 
-                var expectedReferences = replReferenceCommands.ToList();
-                var expectedUsings = new List<string> { @"using ""System"";", @"using ""ResetInteractiveTestsDocument"";" };
-                await AssertResetInteractiveAsync(workspace, project, buildSucceeds: true, expectedReferences: expectedReferences, expectedUsings: expectedUsings);
+            Assert.True(replReferenceCommands.Any(rc => rc.EndsWith(@"ResetInteractiveTestsAssembly.dll""")));
+            Assert.True(replReferenceCommands.Any(rc => rc.EndsWith(@"ResetInteractiveVisualBasicSubproject.dll""")));
 
-                // Test that no submissions are executed if the build fails.
-                await AssertResetInteractiveAsync(workspace, project, buildSucceeds: false, expectedReferences: new List<string>());
-            }
+            var expectedReferences = replReferenceCommands.ToList();
+            var expectedUsings = new List<string> { @"using ""System"";", @"using ""ResetInteractiveTestsDocument"";" };
+            await AssertResetInteractiveAsync(workspace, project, buildSucceeds: true, expectedReferences: expectedReferences, expectedUsings: expectedUsings);
+
+            // Test that no submissions are executed if the build fails.
+            await AssertResetInteractiveAsync(workspace, project, buildSucceeds: false, expectedReferences: new List<string>());
         }
 
         private async Task AssertResetInteractiveAsync(
