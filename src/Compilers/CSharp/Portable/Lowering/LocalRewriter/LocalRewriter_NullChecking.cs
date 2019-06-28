@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (statementList is null)
             {
-                return ImmutableArray<BoundStatement>.Empty;
+                return existingStatements;
             }
 
             statementList.AddRange(existingStatements);
