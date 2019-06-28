@@ -41,12 +41,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             var doc = this.SemanticDocument;
 
             // go through pipe line and calculate information about the user selection
-            var selectionInfo = GetInitialSelectionInfo(root, text, cancellationToken);
+            var selectionInfo = GetInitialSelectionInfo(root, text);
             selectionInfo = AssignInitialFinalTokens(selectionInfo, root, cancellationToken);
             selectionInfo = AdjustFinalTokensBasedOnContext(selectionInfo, model, cancellationToken);
             selectionInfo = AssignFinalSpan(selectionInfo, text, cancellationToken);
             selectionInfo = ApplySpecialCases(selectionInfo, text, cancellationToken);
-            selectionInfo = CheckErrorCasesAndAppendDescriptions(selectionInfo, root, model, cancellationToken);
+            selectionInfo = CheckErrorCasesAndAppendDescriptions(selectionInfo, root, model);
 
             // there was a fatal error that we couldn't even do negative preview, return error result
             if (selectionInfo.Status.FailedWithNoBestEffortSuggestion())
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                 .With(s => s.LastTokenInFinalSpan = firstValidNode.GetLastToken(includeZeroWidth: true));
         }
 
-        private SelectionInfo GetInitialSelectionInfo(SyntaxNode root, SourceText text, CancellationToken cancellationToken)
+        private SelectionInfo GetInitialSelectionInfo(SyntaxNode root, SourceText text)
         {
             var adjustedSpan = GetAdjustedSpan(text, this.OriginalSpan);
 
@@ -279,8 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         private static SelectionInfo CheckErrorCasesAndAppendDescriptions(
             SelectionInfo selectionInfo,
             SyntaxNode root,
-            SemanticModel model,
-            CancellationToken cancellationToken)
+            SemanticModel model)
         {
             if (selectionInfo.Status.FailedWithNoBestEffortSuggestion())
             {

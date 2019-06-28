@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
 
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var awaitable = GetAwaitableExpression(textSpan, token, model, syntaxFacts, cancellationToken);
+            var awaitable = GetAwaitableExpression(textSpan, token, model, syntaxFacts);
             if (awaitable == null)
             {
                 return;
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
                     c => AddAwaitAsync(document, awaitable, withConfigureAwait: true, c)));
         }
 
-        private TExpressionSyntax GetAwaitableExpression(TextSpan textSpan, SyntaxToken token, SemanticModel model, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
+        private TExpressionSyntax GetAwaitableExpression(TextSpan textSpan, SyntaxToken token, SemanticModel model, ISyntaxFactsService syntaxFacts)
         {
             var invocation = token.GetAncestor<TInvocationExpressionSyntax>();
             if (invocation is null)

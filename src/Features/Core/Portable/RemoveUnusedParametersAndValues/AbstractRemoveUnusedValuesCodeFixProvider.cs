@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             {
                 case IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId:
                     FixAllExpressionValueIsUnusedDiagnostics(diagnostics, semanticModel, root,
-                        preference, nameGenerator, editor, syntaxFacts, cancellationToken);
+                        preference, nameGenerator, editor, syntaxFacts);
                     break;
 
                 case IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId:
@@ -321,8 +321,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             UnusedValuePreference preference,
             UniqueVariableNameGenerator nameGenerator,
             SyntaxEditor editor,
-            ISyntaxFactsService syntaxFacts,
-            CancellationToken cancellationToken)
+            ISyntaxFactsService syntaxFacts)
         {
             // This method applies the code fix for diagnostics reported for expression statement dropping values.
             // We replace each flagged expression statement with an assignment to a discard variable or a new unused local,

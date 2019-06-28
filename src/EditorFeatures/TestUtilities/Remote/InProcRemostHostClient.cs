@@ -27,8 +27,8 @@ namespace Roslyn.Test.Utilities.Remote
             var inprocServices = new InProcRemoteServices(runCacheCleanup);
 
             // Create the RemotableDataJsonRpc before we create the remote host: this call implicitly sets up the remote IExperimentationService so that will be available for later calls
-            var remotableDataRpc = new RemotableDataJsonRpc(workspace, inprocServices.Logger, await inprocServices.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService, cancellationToken).ConfigureAwait(false));
-            var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownRemoteHostServices.RemoteHostService, cancellationToken).ConfigureAwait(false);
+            var remotableDataRpc = new RemotableDataJsonRpc(workspace, inprocServices.Logger, await inprocServices.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService).ConfigureAwait(false));
+            var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownRemoteHostServices.RemoteHostService).ConfigureAwait(false);
 
             var current = CreateClientId(Process.GetCurrentProcess().Id.ToString());
             var instance = new InProcRemoteHostClient(current, workspace, inprocServices, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc), remoteHostStream);
@@ -86,7 +86,7 @@ namespace Roslyn.Test.Utilities.Remote
         {
             // get stream from service hub to communicate service specific information 
             // this is what consumer actually use to communicate information
-            var serviceStream = await _inprocServices.RequestServiceAsync(serviceName, cancellationToken).ConfigureAwait(false);
+            var serviceStream = await _inprocServices.RequestServiceAsync(serviceName).ConfigureAwait(false);
 
             return new JsonRpcConnection(_inprocServices.Logger, callbackTarget, serviceStream, _remotableDataRpc.TryAddReference());
         }
@@ -163,7 +163,7 @@ namespace Roslyn.Test.Utilities.Remote
                 _creatorMap.Add(name, serviceCreator);
             }
 
-            public Task<Stream> RequestServiceAsync(string serviceName, CancellationToken cancellationToken)
+            public Task<Stream> RequestServiceAsync(string serviceName)
             {
                 if (_creatorMap.TryGetValue(serviceName, out var creator))
                 {
