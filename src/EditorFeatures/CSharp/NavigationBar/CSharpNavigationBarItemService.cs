@@ -251,8 +251,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
 
             var declaringNode = reference.GetSyntax();
 
-            int spanStart = declaringNode.SpanStart;
-            int spanEnd = declaringNode.Span.End;
+            var spanStart = declaringNode.SpanStart;
+            var spanEnd = declaringNode.Span.End;
 
             var fieldDeclaration = declaringNode.GetAncestor<FieldDeclarationSyntax>();
             if (fieldDeclaration != null)

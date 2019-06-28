@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 return false;
             }
 
-            for (int i = start; i <= end; i++)
+            for (var i = start; i <= end; i++)
             {
                 if (!char.IsWhiteSpace(snapshot[i]))
                 {
