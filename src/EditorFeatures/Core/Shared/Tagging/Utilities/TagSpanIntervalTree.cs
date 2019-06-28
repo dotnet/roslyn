@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             _textBuffer = textBuffer;
             _spanTrackingMode = trackingMode;
 
-            var nodeValues = values == null
-                ? null
-                : values.Select(ts => new TagNode(ts, trackingMode));
+            var nodeValues = values?.Select(ts => new TagNode(ts, trackingMode));
 
             var introspector = new IntervalIntrospector(textBuffer.CurrentSnapshot);
             _tree = IntervalTree.Create(introspector, nodeValues);
@@ -52,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             List<ITagSpan<TTag>> result = null;
             foreach (var tagNode in intersectingIntervals)
             {
-                result = result ?? new List<ITagSpan<TTag>>();
+                result ??= new List<ITagSpan<TTag>>();
                 result.Add(new TagSpan<TTag>(tagNode.Span.GetSpan(snapshot), tagNode.Tag));
             }
 

@@ -693,7 +693,7 @@ class Program
     }
     static void Helper(uint x) { }
 }
-", matchPriority: SymbolMatchPriority.Keyword);
+");
         }
 
         [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]

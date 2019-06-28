@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 // If at the end of the file, go back one character so stuff works
                 if (position == textLength && position > 0)
                 {
-                    position = position - 1;
+                    position -= 1;
                 }
 
                 // If we're at the EOL position, return the line break's extent

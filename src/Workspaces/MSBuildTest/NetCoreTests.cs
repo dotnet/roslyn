@@ -96,31 +96,29 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             DotNetRestore(@"Project\Project.csproj");
 
-            using (var workspace = CreateMSBuildWorkspace())
-            {
-                var libraryProject = await workspace.OpenProjectAsync(libraryFilePath);
+            using var workspace = CreateMSBuildWorkspace();
+            var libraryProject = await workspace.OpenProjectAsync(libraryFilePath);
 
-                // Assert that there is a single project loaded.
-                Assert.Single(workspace.CurrentSolution.ProjectIds);
+            // Assert that there is a single project loaded.
+            Assert.Single(workspace.CurrentSolution.ProjectIds);
 
-                // Assert that the project does not have any diagnostics in Class1.cs
-                var document = libraryProject.Documents.First(d => d.Name == "Class1.cs");
-                var semanticModel = await document.GetSemanticModelAsync();
-                var diagnostics = semanticModel.GetDiagnostics();
-                Assert.Empty(diagnostics);
+            // Assert that the project does not have any diagnostics in Class1.cs
+            var document = libraryProject.Documents.First(d => d.Name == "Class1.cs");
+            var semanticModel = await document.GetSemanticModelAsync();
+            var diagnostics = semanticModel.GetDiagnostics();
+            Assert.Empty(diagnostics);
 
-                var project = await workspace.OpenProjectAsync(projectFilePath);
+            var project = await workspace.OpenProjectAsync(projectFilePath);
 
-                // Assert that there are only two projects opened.
-                Assert.Equal(2, workspace.CurrentSolution.ProjectIds.Count);
+            // Assert that there are only two projects opened.
+            Assert.Equal(2, workspace.CurrentSolution.ProjectIds.Count);
 
-                // Assert that there is a project reference between Project.csproj and Library.csproj
-                var projectReference = Assert.Single(project.ProjectReferences);
+            // Assert that there is a project reference between Project.csproj and Library.csproj
+            var projectReference = Assert.Single(project.ProjectReferences);
 
-                var projectRefId = projectReference.ProjectId;
-                Assert.Equal(libraryProject.Id, projectRefId);
-                Assert.Equal(libraryProject.FilePath, workspace.CurrentSolution.GetProject(projectRefId).FilePath);
-            }
+            var projectRefId = projectReference.ProjectId;
+            Assert.Equal(libraryProject.Id, projectRefId);
+            Assert.Equal(libraryProject.FilePath, workspace.CurrentSolution.GetProject(projectRefId).FilePath);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DotNetCoreSdk.IsAvailable))]
@@ -162,7 +160,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 AssertSingleProjectReference(library2, library1FilePath);
             }
 
-            void AssertSingleProjectReference(Project project, string projectRefFilePath)
+            static void AssertSingleProjectReference(Project project, string projectRefFilePath)
             {
                 var projectReference = Assert.Single(project.ProjectReferences);
 

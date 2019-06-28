@@ -164,8 +164,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         [ConditionalFact(typeof(x86))]
         public void TestEjectFromImplicitCache()
         {
-            List<Compilation> compilations = new List<Compilation>();
-            for (int i = 0; i < ProjectCacheService.ImplicitCacheSize + 1; i++)
+            var compilations = new List<Compilation>();
+            for (var i = 0; i < ProjectCacheService.ImplicitCacheSize + 1; i++)
             {
                 compilations.Add(CSharpCompilation.Create(i.ToString()));
             }
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             var workspace = new AdhocWorkspace(MockHostServices.Instance, workspaceKind: WorkspaceKind.Host);
             var cache = new ProjectCacheService(workspace, int.MaxValue);
-            for (int i = 0; i < ProjectCacheService.ImplicitCacheSize + 1; i++)
+            for (var i = 0; i < ProjectCacheService.ImplicitCacheSize + 1; i++)
             {
                 cache.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, compilations[i]);
             }
