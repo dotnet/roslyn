@@ -248,8 +248,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 {
                     if (_sources == null)
                     {
-                        _sources = new Dictionary<object, AbstractTableEntriesSource<TItem>>();
-                        _sources.Add(_primary.Key, _primary);
+                        _sources = new Dictionary<object, AbstractTableEntriesSource<TItem>>
+                        {
+                            { _primary.Key, _primary }
+                        };
                         _primary = null;
                     }
                 }

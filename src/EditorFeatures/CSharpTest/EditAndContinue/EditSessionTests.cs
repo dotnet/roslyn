@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             //   Test2.M2: adding a line in front of try-catch.
             //   Test2.F2: moving the entire method 2 lines down.
 
-            LinePositionSpan AddDelta(LinePositionSpan span, int lineDelta)
+            static LinePositionSpan AddDelta(LinePositionSpan span, int lineDelta)
                 => new LinePositionSpan(new LinePosition(span.Start.Line + lineDelta, span.Start.Character), new LinePosition(span.End.Line + lineDelta, span.End.Character));
 
             var newActiveStatementsInChangedDocuments = ImmutableArray.Create(
