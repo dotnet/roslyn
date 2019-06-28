@@ -143,15 +143,12 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public override string EquivalenceKey => _equivalenceKey;
 
             private static string GetDescription(ISymbol throughMember)
-            {
-                switch (throughMember)
+                => throughMember switch
                 {
-                    case IFieldSymbol field: return field.Name;
-                    case IPropertySymbol property: return property.Name;
-                    default:
-                        throw new InvalidOperationException();
-                }
-            }
+                    IFieldSymbol field => field.Name,
+                    IPropertySymbol property => property.Name,
+                    _ => throw new InvalidOperationException(),
+                };
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {

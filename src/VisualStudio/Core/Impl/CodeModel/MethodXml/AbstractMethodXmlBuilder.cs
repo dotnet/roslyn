@@ -136,23 +136,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
         }
 
         private static string GetBinaryOperatorKindText(BinaryOperatorKind kind)
-        {
-            switch (kind)
+            => kind switch
             {
-                case BinaryOperatorKind.Plus:
-                    return "plus";
-                case BinaryOperatorKind.BitwiseOr:
-                    return "bitor";
-                case BinaryOperatorKind.BitwiseAnd:
-                    return "bitand";
-                case BinaryOperatorKind.Concatenate:
-                    return "concatenate";
-                case BinaryOperatorKind.AddDelegate:
-                    return "adddelegate";
-                default:
-                    throw new InvalidOperationException("Invalid BinaryOperatorKind: " + kind.ToString());
-            }
-        }
+                BinaryOperatorKind.Plus => "plus",
+                BinaryOperatorKind.BitwiseOr => "bitor",
+                BinaryOperatorKind.BitwiseAnd => "bitand",
+                BinaryOperatorKind.Concatenate => "concatenate",
+                BinaryOperatorKind.AddDelegate => "adddelegate",
+                _ => throw new InvalidOperationException("Invalid BinaryOperatorKind: " + kind.ToString()),
+            };
 
         private static string GetVariableKindText(VariableKind kind)
             => kind switch

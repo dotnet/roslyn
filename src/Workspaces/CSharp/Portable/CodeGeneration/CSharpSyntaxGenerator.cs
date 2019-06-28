@@ -2761,34 +2761,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             };
 
         private static bool CanHaveAccessors(SyntaxNode declaration)
-        {
-            switch (declaration.Kind())
+            => declaration.Kind() switch
             {
-                case SyntaxKind.PropertyDeclaration:
-                    return ((PropertyDeclarationSyntax)declaration).ExpressionBody == null;
-                case SyntaxKind.IndexerDeclaration:
-                    return ((IndexerDeclarationSyntax)declaration).ExpressionBody == null;
-                case SyntaxKind.EventDeclaration:
-                    return true;
-                default:
-                    return false;
-            }
-        }
+                SyntaxKind.PropertyDeclaration => ((PropertyDeclarationSyntax)declaration).ExpressionBody == null,
+                SyntaxKind.IndexerDeclaration => ((IndexerDeclarationSyntax)declaration).ExpressionBody == null,
+                SyntaxKind.EventDeclaration => true,
+                _ => false,
+            };
 
         private static SyntaxNode WithAccessorList(SyntaxNode declaration, AccessorListSyntax accessorList)
-        {
-            switch (declaration.Kind())
+            => declaration.Kind() switch
             {
-                case SyntaxKind.PropertyDeclaration:
-                    return ((PropertyDeclarationSyntax)declaration).WithAccessorList(accessorList);
-                case SyntaxKind.IndexerDeclaration:
-                    return ((PropertyDeclarationSyntax)declaration).WithAccessorList(accessorList);
-                case SyntaxKind.EventDeclaration:
-                    return ((EventDeclarationSyntax)declaration).WithAccessorList(accessorList);
-                default:
-                    return declaration;
-            }
-        }
+                SyntaxKind.PropertyDeclaration => ((PropertyDeclarationSyntax)declaration).WithAccessorList(accessorList),
+                SyntaxKind.IndexerDeclaration => ((PropertyDeclarationSyntax)declaration).WithAccessorList(accessorList),
+                SyntaxKind.EventDeclaration => ((EventDeclarationSyntax)declaration).WithAccessorList(accessorList),
+                _ => declaration,
+            };
 
         private static AccessorListSyntax AsAccessorList(IEnumerable<SyntaxNode> nodes, SyntaxKind parentKind)
         {
