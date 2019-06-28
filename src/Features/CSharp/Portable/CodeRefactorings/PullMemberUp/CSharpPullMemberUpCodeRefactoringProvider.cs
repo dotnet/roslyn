@@ -32,7 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
         {
             var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
 
-            // Consider MemberDeclaration (types, methods, events, delegates, ...) and VariableDeclarator (pure variables)
+            // Consider:
+            // MemberDeclaration: member that can be declared in type (those are the ones we can pull up) 
+            // VariableDeclaratorSyntax: for fields the MemberDeclaration can actually represent multiple declarations, e.g. `int a = 0, b = 1;`.
+            // ..Since the user might want to select & pull up only one of them (e.g. `int a = 0, [|b = 1|];` we also look for closest VariableDeclaratorSyntax.
             var memberDecl = await refactoringHelperService.TryGetSelectedNodeAsync<MemberDeclarationSyntax>(document, span, cancellationToken).ConfigureAwait(false);
             if (memberDecl != default)
             {
