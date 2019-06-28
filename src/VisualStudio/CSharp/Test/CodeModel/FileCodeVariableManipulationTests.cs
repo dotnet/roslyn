@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void DeleteField()
         {
-            CodeClass c = (CodeClass)GetCodeElement("Goo");
+            var c = (CodeClass)GetCodeElement("Goo");
             c.RemoveMember(c.Members.Item("bar"));
 
             Assert.Equal(@"class Goo
