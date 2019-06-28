@@ -317,5 +317,16 @@ namespace Analyzer.Utilities
         public const string SystemIOFileStream = "System.IO.FileStream";
         public const string SystemIOPath = "System.IO.Path";
         public const string SystemString = "System.String";
+        public const string MicrosoftAspNetCoreMvcFiltersFilterCollection = "Microsoft.AspNetCore.Mvc.Filters.FilterCollection";
+        public const string MicrosoftAspNetCoreMvcController = "Microsoft.AspNetCore.Mvc.Controller";
+        public const string MicrosoftAspNetCoreMvcControllerBase = "Microsoft.AspNetCore.Mvc.ControllerBase";
+        public const string MicrosoftAspNetCoreMvcNonActionAttribute = "Microsoft.AspNetCore.Mvc.NonActionAttribute";
+        public const string MicrosoftAspNetCoreMvcHttpPostAttribute = "Microsoft.AspNetCore.Mvc.HttpPostAttribute";
+        public const string MicrosoftAspNetCoreMvcHttpPutAttribute = "Microsoft.AspNetCore.Mvc.HttpPutAttribute";
+        public const string MicrosoftAspNetCoreMvcHttpDeleteAttribute = "Microsoft.AspNetCore.Mvc.HttpDeleteAttribute";
+        public const string MicrosoftAspNetCoreMvcFiltersIFilterMetadata = "Microsoft.AspNetCore.Mvc.Filters.IFilterMetadata";
+        public const string MicrosoftAspNetCoreAntiforgeryIAntiforgery = "Microsoft.AspNetCore.Antiforgery.IAntiforgery";
+        public const string MicrosoftAspNetCoreMvcFiltersIAsyncAuthorizationFilter = "Microsoft.AspNetCore.Mvc.Filters.IAsyncAuthorizationFilter";
+        public const string MicrosoftAspNetCoreMvcFiltersAuthorizationFilterContext = "Microsoft.AspNetCore.Mvc.Filters.AuthorizationFilterContext";
     }
 }
