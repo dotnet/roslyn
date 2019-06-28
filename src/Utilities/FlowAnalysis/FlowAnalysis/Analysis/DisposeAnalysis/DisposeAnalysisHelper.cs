@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using System;
 using Analyzer.Utilities.PooledObjects;
 using static System.Linq.ImmutableArrayExtensions;
+using static System.Collections.Immutable.ImmutableArrayExtensions;
 
 namespace Analyzer.Utilities
 {

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities.PooledObjects;
 using static System.Linq.ImmutableArrayExtensions;
+using static System.Collections.Immutable.ImmutableArrayExtensions;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
