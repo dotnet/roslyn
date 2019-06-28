@@ -101,7 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sawLocalFunctions = localRewriter._sawLocalFunctions;
                 sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
 
-
                 if (localRewriter._needsSpilling && !loweredStatement.HasErrors)
                 {
                     // Move spill sequences to a top-level statement. This handles "lifting" await and the switch expression.
@@ -283,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var visited = base.VisitLocalFunctionStatement(node);
                 var body = (BoundBlock)Visit(node.Body);
                 body = (BoundBlock)RewriteNullChecking(body);
-                return node.Update(node.Symbol, body, node.ExpressionBody);
+                return node.Update(node.Symbol, body, null);
             }
             finally
             {

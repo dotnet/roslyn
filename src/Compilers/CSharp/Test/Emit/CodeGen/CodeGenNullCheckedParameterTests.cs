@@ -1200,6 +1200,29 @@ class C
 }");
         }
 
+        [Fact]
+        public void TestNullCheckedExpressionBodyLambda()
+        {
+            var source = @"
+class C
+{
+    object Local(object arg!) => arg;
+    public static void Main() { }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.Local(object)", @"
+{
+    // Code size       11 (0xb)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.1
+    IL_000a:  ret
+}");
+        }
+
         [Fact(Skip = "PROTOTYPE")]
         public void TestNullCheckedIterator()
         {
