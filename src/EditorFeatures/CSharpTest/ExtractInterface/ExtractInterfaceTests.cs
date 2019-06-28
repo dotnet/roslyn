@@ -1244,7 +1244,7 @@ class $$TestClass
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public async Task TestExtractInterface_WithCopyright1()
         {
-            var markup = 
+            var markup =
 @"// Copyright
 
 public class $$Goo
@@ -1273,9 +1273,9 @@ public interface IGoo
 }";
 
             await TestExtractInterfaceCommandCSharpAsync(
-                markup, 
-                expectedSuccess: true, 
-                expectedUpdatedOriginalDocumentCode: updatedMarkup, 
+                markup,
+                expectedSuccess: true,
+                expectedUpdatedOriginalDocumentCode: updatedMarkup,
                 expectedInterfaceCode: expectedInterfaceCode);
         }
 
