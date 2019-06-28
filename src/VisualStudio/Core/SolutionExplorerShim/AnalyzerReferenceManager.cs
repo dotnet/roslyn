@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         /// </summary>
         public void ShowDialog()
         {
-            IVsReferenceManager referenceManager = GetReferenceManager();
+            var referenceManager = GetReferenceManager();
             if (referenceManager != null &&
                 _tracker.SelectedHierarchy != null)
             {

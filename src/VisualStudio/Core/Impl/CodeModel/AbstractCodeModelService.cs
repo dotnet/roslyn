@@ -287,7 +287,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return element;
             }
 
-            EnvDTE.vsCMElement elementKind = GetElementKind(typeSymbol);
+            var elementKind = GetElementKind(typeSymbol);
             switch (elementKind)
             {
                 case EnvDTE.vsCMElement.vsCMElementClass:
@@ -333,7 +333,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         protected EnvDTE.CodeFunction CreateInternalCodeAccessorFunction(CodeModelState state, FileCodeModel fileCodeModel, SyntaxNode node)
         {
-            SyntaxNode parentNode = node
+            var parentNode = node
                 .Ancestors()
                 .FirstOrDefault(n => TryGetNodeKey(n) != SyntaxNodeKey.Empty);
 
@@ -403,7 +403,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         protected EnvDTE.CodeParameter CreateInternalCodeParameter(CodeModelState state, FileCodeModel fileCodeModel, SyntaxNode node)
         {
-            SyntaxNode parentNode = node
+            var parentNode = node
                 .Ancestors()
                 .FirstOrDefault(n => TryGetNodeKey(n) != SyntaxNodeKey.Empty);
 
@@ -412,7 +412,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw new InvalidOperationException();
             }
 
-            string name = GetParameterName(node);
+            var name = GetParameterName(node);
 
             var parent = fileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(parentNode);
             var parentObj = ComAggregate.GetManagedObject<AbstractCodeMember>(parent);
@@ -429,7 +429,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         protected EnvDTE80.CodeElement2 CreateInternalCodeInheritsStatement(CodeModelState state, FileCodeModel fileCodeModel, SyntaxNode node)
         {
-            SyntaxNode parentNode = node
+            var parentNode = node
                 .Ancestors()
                 .FirstOrDefault(n => TryGetNodeKey(n) != SyntaxNodeKey.Empty);
 
@@ -448,7 +448,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         protected EnvDTE80.CodeElement2 CreateInternalCodeImplementsStatement(CodeModelState state, FileCodeModel fileCodeModel, SyntaxNode node)
         {
-            SyntaxNode parentNode = node
+            var parentNode = node
                 .Ancestors()
                 .FirstOrDefault(n => TryGetNodeKey(n) != SyntaxNodeKey.Empty);
 

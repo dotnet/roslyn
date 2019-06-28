@@ -310,7 +310,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
             else
             {
-                int testOrdinal = 0;
+                var testOrdinal = 0;
                 foreach (EnvDTE.CodeElement element in elementsToSearch)
                 {
                     if (element.Kind != EnvDTE.vsCMElement.vsCMElementAttribute)
