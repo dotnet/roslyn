@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics;
+using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Debugging;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger;
@@ -15,8 +15,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 {
-    [Export(typeof(IDebuggeeModuleMetadataProvider)), Shared]
-    internal sealed class DebuggeeModuleMetadataProvider : IDebuggeeModuleMetadataProvider
+    [Shared]
+    [Export(typeof(IDebuggeeModuleMetadataProvider))]
+    [Export(typeof(VisualStudioDebuggeeModuleMetadataProvider))]
+    internal sealed class VisualStudioDebuggeeModuleMetadataProvider : IDebuggeeModuleMetadataProvider
     {
         /// <summary>
         /// Concord component. Singleton created on demand during debugging session and discarded as soon as the session ends.
@@ -30,10 +32,10 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             private sealed class DataItem : DkmDataItem
             {
-                private readonly DebuggeeModuleMetadataProvider _provider;
+                private readonly VisualStudioDebuggeeModuleMetadataProvider _provider;
                 private readonly Guid _mvid;
 
-                public DataItem(DebuggeeModuleMetadataProvider provider, Guid mvid)
+                public DataItem(VisualStudioDebuggeeModuleMetadataProvider provider, Guid mvid)
                 {
                     _provider = provider;
                     _mvid = mvid;
@@ -44,20 +46,20 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             DkmCustomMessage IDkmCustomMessageForwardReceiver.SendLower(DkmCustomMessage customMessage)
             {
-                var provider = (DebuggeeModuleMetadataProvider)customMessage.Parameter1;
+                var provider = (VisualStudioDebuggeeModuleMetadataProvider)customMessage.Parameter1;
                 var clrModuleInstance = (DkmClrModuleInstance)customMessage.Parameter2;
 
                 // Note that this call has to be made in a Concord component.
-                // The debugger tracks what the current component is and associates the data item with it.
+                // The debugger tracks what the current Concord component is and associates the data item with it.
                 clrModuleInstance.SetDataItem(DkmDataCreationDisposition.CreateAlways, new DataItem(provider, clrModuleInstance.Mvid));
                 return null;
             }
         }
 
         private readonly DebuggeeModuleInfoCache _baselineMetadata;
+        private readonly object _moduleApplyGuard = new object();
 
-        [ImportingConstructor]
-        public DebuggeeModuleMetadataProvider()
+        public VisualStudioDebuggeeModuleMetadataProvider()
         {
             _baselineMetadata = new DebuggeeModuleInfoCache();
         }
@@ -70,6 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         /// Shall only be called while in debug mode.
         /// Shall only be called on MTA thread.
         /// </summary>
+        /// <returns>Null, if the module with the specified MVID is not found.</returns>
         public DebuggeeModuleInfo TryGetBaselineModuleInfo(Guid mvid)
         {
             Contract.ThrowIfFalse(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA);
@@ -78,15 +81,22 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             {
                 using (DebuggerComponent.ManagedEditAndContinueService())
                 {
-                    var clrModuleInstance = FindClrModuleInstance(m);
+                    var clrModuleInstance = EnumerateClrModuleInstances(m).FirstOrDefault();
                     if (clrModuleInstance == null)
                     {
-                        return default;
+                        return null;
                     }
 
-                    if (!TryGetBaselineModuleInfo(clrModuleInstance, out var metadata, out var symReader))
+                    // The DebuggeeModuleInfo holds on a pointer to module metadata and on a SymReader instance.
+                    // 
+                    // The module metadata lifetime is that of the module instance, so we need to stop using the module
+                    // as soon as the module instance is unloaded. We do so by associating a DataItem with the module 
+                    // instance and removing the metadata from our cache when the DataItem is disposed.
+                    // 
+                    // The SymReader instance is shared across all instancese of the module.
+                    if (!clrModuleInstance.TryGetModuleInfo(out var info))
                     {
-                        return default;
+                        return null;
                     }
 
                     // hook up a callback on module unload (the call blocks until the message is processed):
@@ -98,41 +108,35 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                         Parameter1: this,
                         Parameter2: clrModuleInstance).SendLower();
 
-                    return new DebuggeeModuleInfo(metadata, symReader);
+                    return info;
                 }
             });
         }
 
-        private static bool TryGetBaselineModuleInfo(DkmClrModuleInstance module, out ModuleMetadata metadata, out ISymUnmanagedReader5 symReader)
+        /// <summary>
+        /// Check that EnC is available for all instances of the given module.
+        /// </summary>
+        public bool IsEditAndContinueAvailable(Guid mvid, out int errorCode, out string localizedMessage)
         {
-            Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA);
-
-            IntPtr metadataPtr;
-            uint metadataSize;
-            try
+            using (DebuggerComponent.ManagedEditAndContinueService())
             {
-                metadataPtr = module.GetBaselineMetaDataBytesPtr(out metadataSize);
-            }
-            catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
-            {
-                metadata = null;
-                symReader = null;
-                return false;
+                foreach (var clrModuleInstance in EnumerateClrModuleInstances(mvid))
+                {
+                    var availability = clrModuleInstance.GetEncAvailability(out localizedMessage);
+                    if (availability != DkmEncAvailableStatus.Available)
+                    {
+                        errorCode = (int)availability;
+                        return false;
+                    }
+                }
             }
 
-            symReader = module.GetSymUnmanagedReader() as ISymUnmanagedReader5;
-            if (symReader == null)
-            {
-                metadata = null;
-                symReader = null;
-                return false;
-            }
-
-            metadata = ModuleMetadata.CreateFromMetadata(metadataPtr, (int)metadataSize);
+            errorCode = -1;
+            localizedMessage = null;
             return true;
         }
 
-        private static DkmClrModuleInstance FindClrModuleInstance(Guid mvid)
+        private static IEnumerable<DkmClrModuleInstance> EnumerateClrModuleInstances(Guid? mvid)
         {
             foreach (var process in DkmProcess.GetProcesses())
             {
@@ -144,16 +148,32 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                         {
                             if (moduleInstance.TagValue == DkmModuleInstance.Tag.ClrModuleInstance &&
                                 moduleInstance is DkmClrModuleInstance clrModuleInstance &&
-                                clrModuleInstance.Mvid == mvid)
+                                (!mvid.HasValue || clrModuleInstance.Mvid == mvid.Value))
                             {
-                                return clrModuleInstance;
+                                yield return clrModuleInstance;
                             }
                         }
                     }
                 }
             }
+        }
 
-            return null;
+        public void PrepareModuleForUpdate(Guid mvid)
+        {
+            // fire and forget
+            _ = Task.Run(new Action(() =>
+            {
+                Contract.ThrowIfFalse(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA);
+
+                using (DebuggerComponent.ManagedEditAndContinueService())
+                {
+                    var clrModuleInstance = EnumerateClrModuleInstances(mvid).FirstOrDefault();
+                    if (clrModuleInstance != null)
+                    {
+                        ((ISymUnmanagedEncUpdate)clrModuleInstance.GetSymUnmanagedReader()).InitializeForEnc();
+                    }
+                }
+            }));
         }
     }
 }
