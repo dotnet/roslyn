@@ -106,31 +106,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         private static Solution GetSolution(WorkspaceKind workspaceKind)
-        {
-            switch (workspaceKind)
+            => workspaceKind switch
             {
-                case WorkspaceKind.SingleClass:
-                    return GetSingleProjectSolution(SingleClass);
-                case WorkspaceKind.SingleClassWithSingleMethod:
-                    return GetSingleProjectSolution(SingleClassWithSingleMethod);
-                case WorkspaceKind.SingleClassWithSingleProperty:
-                    return GetSingleProjectSolution(SingleClassWithSingleProperty);
-                case WorkspaceKind.SingleClassWithSingleField:
-                    return GetSingleProjectSolution(SingleClassWithSingleField);
-                case WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod:
-                    return GetMultipleProjectSolution(SingleClassWithSingleMethod, SingleClassWithSingleMethod);
-                case WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleProperty:
-                    return GetMultipleProjectSolution(SingleClassWithSingleProperty, SingleClassWithSingleProperty);
-                case WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleField:
-                    return GetMultipleProjectSolution(SingleClassWithSingleField, SingleClassWithSingleField);
-                case WorkspaceKind.NestedClass:
-                    return GetSingleProjectSolution(NestedClass);
-                case WorkspaceKind.TwoNamespacesWithIdenticalClasses:
-                    return GetSingleProjectSolution(Namespace1, Namespace2);
-                default:
-                    return null;
-            }
-        }
+                WorkspaceKind.SingleClass => GetSingleProjectSolution(SingleClass),
+                WorkspaceKind.SingleClassWithSingleMethod => GetSingleProjectSolution(SingleClassWithSingleMethod),
+                WorkspaceKind.SingleClassWithSingleProperty => GetSingleProjectSolution(SingleClassWithSingleProperty),
+                WorkspaceKind.SingleClassWithSingleField => GetSingleProjectSolution(SingleClassWithSingleField),
+                WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod => GetMultipleProjectSolution(SingleClassWithSingleMethod, SingleClassWithSingleMethod),
+                WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleProperty => GetMultipleProjectSolution(SingleClassWithSingleProperty, SingleClassWithSingleProperty),
+                WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleField => GetMultipleProjectSolution(SingleClassWithSingleField, SingleClassWithSingleField),
+                WorkspaceKind.NestedClass => GetSingleProjectSolution(NestedClass),
+                WorkspaceKind.TwoNamespacesWithIdenticalClasses => GetSingleProjectSolution(Namespace1, Namespace2),
+                _ => null,
+            };
 
         private static Project GetProject(WorkspaceKind workspaceKind)
         {

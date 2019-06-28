@@ -142,19 +142,13 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             private static string GetLogInfo<T>(T key)
-            {
-                switch (key)
+                => key switch
                 {
-                    case SolutionState solutionState:
-                        return solutionState.FilePath;
-                    case ProjectState projectState:
-                        return projectState.FilePath;
-                    case DocumentState documentState:
-                        return documentState.FilePath;
-                }
-
-                return "no detail";
-            }
+                    SolutionState solutionState => solutionState.FilePath,
+                    ProjectState projectState => projectState.FilePath,
+                    DocumentState documentState => documentState.FilePath,
+                    _ => "no detail",
+                };
         }
 
         private struct SolutionChecksumFinder

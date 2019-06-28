@@ -148,23 +148,13 @@ namespace Microsoft.CodeAnalysis
                 long target;
                 try
                 {
-                    switch (origin)
+                    target = origin switch
                     {
-                        case SeekOrigin.Begin:
-                            target = offset;
-                            break;
-
-                        case SeekOrigin.Current:
-                            target = checked(offset + position);
-                            break;
-
-                        case SeekOrigin.End:
-                            target = checked(offset + length);
-                            break;
-
-                        default:
-                            throw new ArgumentOutOfRangeException(nameof(origin));
-                    }
+                        SeekOrigin.Begin => offset,
+                        SeekOrigin.Current => checked(offset + position),
+                        SeekOrigin.End => checked(offset + length),
+                        _ => throw new ArgumentOutOfRangeException(nameof(origin)),
+                    };
                 }
                 catch (OverflowException)
                 {

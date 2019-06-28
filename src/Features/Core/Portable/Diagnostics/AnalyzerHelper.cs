@@ -505,15 +505,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
-            switch (kind)
+            return kind switch
             {
-                case AnalysisKind.Syntax:
-                    return analyzer.SupportsSyntaxDiagnosticAnalysis();
-                case AnalysisKind.Semantic:
-                    return analyzer.SupportsSemanticDiagnosticAnalysis();
-                default:
-                    return Contract.FailWithReturn<bool>("shouldn't reach here");
-            }
+                AnalysisKind.Syntax => analyzer.SupportsSyntaxDiagnosticAnalysis(),
+                AnalysisKind.Semantic => analyzer.SupportsSemanticDiagnosticAnalysis(),
+                _ => Contract.FailWithReturn<bool>("shouldn't reach here"),
+            };
         }
 
         public static async Task<IEnumerable<Diagnostic>> ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
@@ -529,21 +526,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             try
             {
-                Task<ImmutableArray<Diagnostic>> analyzeAsync;
 
-                switch (kind)
+                var analyzeAsync = kind switch
                 {
-                    case AnalysisKind.Syntax:
-                        analyzeAsync = analyzer.AnalyzeSyntaxAsync(document, cancellationToken);
-                        break;
-
-                    case AnalysisKind.Semantic:
-                        analyzeAsync = analyzer.AnalyzeSemanticsAsync(document, cancellationToken);
-                        break;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(kind);
-                }
+                    AnalysisKind.Syntax => analyzer.AnalyzeSyntaxAsync(document, cancellationToken),
+                    AnalysisKind.Semantic => analyzer.AnalyzeSemanticsAsync(document, cancellationToken),
+                    _ => throw ExceptionUtilities.UnexpectedValue(kind),
+                };
 
                 var diagnostics = (await analyzeAsync.ConfigureAwait(false)).NullToEmpty();
                 if (compilationOpt != null)
