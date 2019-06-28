@@ -493,9 +493,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             (symbolOpt.Kind == SymbolKind.Local || symbolOpt.Kind == SymbolKind.Parameter))
                         {
                             interproceduralCallStackForSymbolDeclaration = _getInterproceduralCallStackForOwningSymbol(symbolOpt.ContainingSymbol);
-                            Debug.Assert(!symbolOpt.ContainingSymbol.IsLambdaOrLocalFunction() ||
-                                interproceduralCallStackForSymbolDeclaration != null &&
-                                !interproceduralCallStackForSymbolDeclaration.IsEmpty);
                         }
                         else
                         {

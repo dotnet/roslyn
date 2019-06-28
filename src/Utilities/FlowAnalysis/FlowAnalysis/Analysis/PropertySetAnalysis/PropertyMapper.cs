@@ -39,14 +39,50 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         }
 
         /// <summary>
+        /// Initializes a <see cref="PropertyMapper"/> that maps a property's assigned value's <see cref="ValueContentAbstractValue"/> to a <see cref="PropertySetAbstractValueKind"/>.
+        /// </summary>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="mapFromValueContentAbstractValueCallback">Callback that implements the mapping.</param>
+        /// <param name="propertyIndex">Internal index into the <see cref="PropertySetAbstractValueKind"/> array.</param>
+        /// <remarks>This overload is useful if there are properties that effectively aliases of the same underlying value.</remarks>
+        public PropertyMapper(string propertyName, ValueContentAbstractValueCallback mapFromValueContentAbstractValueCallback, int propertyIndex)
+        {
+            PropertyName = propertyName ?? throw new ArgumentNullException(nameof(propertyName));
+            MapFromValueContentAbstractValue = mapFromValueContentAbstractValueCallback ?? throw new ArgumentNullException(nameof(mapFromValueContentAbstractValueCallback));
+            PropertyIndex = propertyIndex;
+            if (propertyIndex < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(propertyIndex), "propertyIndex must be non-negative");
+            }
+        }
+
+        /// <summary>
         /// Initializes a <see cref="PropertyMapper"/> that maps a property's assigned value's <see cref="NullAbstractValue"/> to a <see cref="PropertySetAbstractValueKind"/>.
         /// </summary>
         /// <param name="propertyName">Name of the property.</param>
-        /// <param name="mapFromNullAbstractValueCallback">Callback that implements the mapping.</param>
-        public PropertyMapper(string propertyName, PointsToAbstractValueCallback mapFromNullAbstractValueCallback)
+        /// <param name="mapFromPointsToAbstractValueCallback">Callback that implements the mapping.</param>
+        public PropertyMapper(string propertyName, PointsToAbstractValueCallback mapFromPointsToAbstractValueCallback)
         {
             PropertyName = propertyName ?? throw new ArgumentNullException(nameof(propertyName));
-            MapFromPointsToAbstractValue = mapFromNullAbstractValueCallback ?? throw new ArgumentNullException(nameof(mapFromNullAbstractValueCallback));
+            MapFromPointsToAbstractValue = mapFromPointsToAbstractValueCallback ?? throw new ArgumentNullException(nameof(mapFromPointsToAbstractValueCallback));
+        }
+
+        /// <summary>
+        /// Initializes a <see cref="PropertyMapper"/> that maps a property's assigned value's <see cref="NullAbstractValue"/> to a <see cref="PropertySetAbstractValueKind"/>.
+        /// </summary>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="mapFromPointsToAbstractValueCallback">Callback that implements the mapping.</param>
+        /// <param name="propertyIndex">Internal index into the <see cref="PropertySetAbstractValueKind"/> array.</param>
+        /// <remarks>This overload is useful if there are properties that effectively aliases of the same underlying value.</remarks>
+        public PropertyMapper(string propertyName, PointsToAbstractValueCallback mapFromPointsToAbstractValueCallback, int propertyIndex)
+        {
+            PropertyName = propertyName ?? throw new ArgumentNullException(nameof(propertyName));
+            MapFromPointsToAbstractValue = mapFromPointsToAbstractValueCallback ?? throw new ArgumentNullException(nameof(mapFromPointsToAbstractValueCallback));
+            PropertyIndex = propertyIndex;
+            if (propertyIndex < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(propertyIndex), "propertyIndex must be non-negative");
+            }
         }
 
         /// <summary>
@@ -60,6 +96,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// Name of the property.
         /// </summary>
         internal string PropertyName { get; }
+
+        internal int PropertyIndex { get; } = -1;
 
         /// <summary>
         /// Callback for mapping from <see cref="ValueContentAbstractValue"/> to a <see cref="PropertySetAbstractValueKind"/>, or null.

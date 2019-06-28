@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
@@ -32,7 +33,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         }
 
         /// <summary>
-        /// Gets hazardous usages of an object based on a set of its properties.
+        /// Analyzers should use <see cref="BatchGetOrComputeHazardousUsages"/> instead.  Gets hazardous usages of an object based on a set of its properties.
         /// </summary>
         /// <param name="cfg">Control flow graph of the code.</param>
         /// <param name="compilation">Compilation containing the code.</param>
@@ -43,8 +44,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="hazardousUsageEvaluators">When and how to evaluate <see cref="PropertySetAbstractValueKind"/>s to for hazardous usages.</param>
         /// <param name="interproceduralAnalysisConfig">Interprocedural dataflow analysis configuration.</param>
         /// <param name="pessimisticAnalysis">Whether to be pessimistic.</param>
-        /// <returns>Dictionary of <see cref="Location"/> and <see cref="IMethodSymbol"/> pairs mapping to the kind of hazardous usage (Flagged or MaybeFlagged).</returns>
-        public static ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> GetOrComputeHazardousUsages(
+        /// <returns>Property set analysis result.</returns>
+        internal static PropertySetAnalysisResult GetOrComputeResult(
             ControlFlowGraph cfg,
             Compilation compilation,
             ISymbol owningSymbol,
@@ -70,7 +71,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 throw new ArgumentNullException(nameof(hazardousUsageEvaluators));
             }
 
-            constructorMapper.Validate(propertyMappers.Count);
+            constructorMapper.Validate(propertyMappers.PropertyValuesCount);
 
             var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
 
@@ -125,9 +126,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 propertyMappers,
                 hazardousUsageEvaluators);
             var result = TryGetOrComputeResultForAnalysisContext(analysisContext);
-            return result?.HazardousUsages ?? ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>.Empty;
+            return result;
         }
 
+        /// <summary>
+        /// Gets hazardous usages of an object based on a set of its properties.
+        /// </summary>
+        /// <param name="compilation">Compilation containing the code.</param>
+        /// <param name="rootOperationsNeedingAnalysis">Root operations of code blocks to analyze.</param>
+        /// <param name="typeToTrackMetadataName">Name of the type to track.</param>
+        /// <param name="constructorMapper">How constructor invocations map to <see cref="PropertySetAbstractValueKind"/>s.</param>
+        /// <param name="propertyMappers">How property assignments map to <see cref="PropertySetAbstractValueKind"/>.</param>
+        /// <param name="hazardousUsageEvaluators">When and how to evaluate <see cref="PropertySetAbstractValueKind"/>s to for hazardous usages.</param>
+        /// <param name="interproceduralAnalysisConfig">Interprocedural dataflow analysis configuration.</param>
+        /// <param name="pessimisticAnalysis">Whether to be pessimistic.</param>
+        /// <returns>Dictionary of <see cref="Location"/> and <see cref="IMethodSymbol"/> pairs mapping to the kind of hazardous usage (Flagged or MaybeFlagged).  The method in the key is null for return/initialization statements.</returns>
+        /// <remarks>Unlike <see cref="GetOrComputeResult"/>, this overload also performs DFA on all descendant local and anonymous functions.</remarks>
         public static PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> BatchGetOrComputeHazardousUsages(
             Compilation compilation,
             IEnumerable<(IOperation Operation, ISymbol ContainingSymbol)> rootOperationsNeedingAnalysis,
@@ -139,23 +153,60 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             bool pessimisticAnalysis = false)
         {
             PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> allResults = null;
-
             foreach ((IOperation Operation, ISymbol ContainingSymbol) in rootOperationsNeedingAnalysis)
             {
-                ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> dfaResult =
-                    PropertySetAnalysis.GetOrComputeHazardousUsages(
-                        Operation.GetEnclosingControlFlowGraph(),
+                ControlFlowGraph enclosingControlFlowGraph = Operation.GetEnclosingControlFlowGraph();
+                PropertySetAnalysisResult enclosingResult = InvokeDfaAndAccumulateResults(
+                    enclosingControlFlowGraph,
+                    ContainingSymbol);
+                if (enclosingResult == null)
+                {
+                    continue;
+                }
+
+                // Also look at local functions and lambdas that weren't visited via interprocedural analysis.
+                foreach (IMethodSymbol localFunctionSymbol in enclosingControlFlowGraph.LocalFunctions)
+                {
+                    if (!enclosingResult.VisitedLocalFunctions.Contains(localFunctionSymbol))
+                    {
+                        InvokeDfaAndAccumulateResults(
+                            enclosingControlFlowGraph.GetLocalFunctionControlFlowGraph(localFunctionSymbol),
+                            localFunctionSymbol);
+                    }
+                }
+
+                foreach (IFlowAnonymousFunctionOperation flowAnonymousFunctionOperation in
+                    enclosingControlFlowGraph.DescendantOperations<IFlowAnonymousFunctionOperation>(
+                        OperationKind.FlowAnonymousFunction))
+                {
+                    if (!enclosingResult.VisitedLambdas.Contains(flowAnonymousFunctionOperation))
+                    {
+                        InvokeDfaAndAccumulateResults(
+                            enclosingControlFlowGraph.GetAnonymousFunctionControlFlowGraph(flowAnonymousFunctionOperation),
+                            flowAnonymousFunctionOperation.Symbol);
+                    }
+                }
+            }
+
+            return allResults;
+
+            // Merges results from single PropertySet DFA invocation into allResults.
+            PropertySetAnalysisResult InvokeDfaAndAccumulateResults(ControlFlowGraph cfg, ISymbol owningSymbol)
+            {
+                PropertySetAnalysisResult propertySetAnalysisResult =
+                    PropertySetAnalysis.GetOrComputeResult(
+                        cfg,
                         compilation,
-                        ContainingSymbol,
+                        owningSymbol,
                         typeToTrackMetadataName,
                         constructorMapper,
                         propertyMappers,
                         hazardousUsageEvaluators,
                         interproceduralAnalysisConfig,
                         pessimisticAnalysis);
-                if (dfaResult.IsEmpty)
+                if (propertySetAnalysisResult == null || propertySetAnalysisResult.HazardousUsages.IsEmpty)
                 {
-                    continue;
+                    return propertySetAnalysisResult;
                 }
 
                 if (allResults == null)
@@ -164,7 +215,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
 
                 foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp
-                    in dfaResult)
+                    in propertySetAnalysisResult.HazardousUsages)
                 {
                     if (allResults.TryGetValue(kvp.Key, out HazardousUsageEvaluationResult existingValue))
                     {
@@ -175,9 +226,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         allResults.Add(kvp.Key, kvp.Value);
                     }
                 }
-            }
 
-            return allResults;
+                return propertySetAnalysisResult;
+            }
         }
 
         /// <summary>
@@ -202,87 +253,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             }
         }
 
-        /// <summary>
-        /// Enumerates literal values to map to a property set abstract value.
-        /// </summary>
-        /// <param name="valueContentAbstractValue">Abstract value containing the literal values to examine.</param>
-        /// <param name="badLiteralValuePredicate">Predicate function to determine if a literal value is bad.</param>
-        /// <returns>Mapped kind.</returns>
-        /// <remarks>
-        /// Null is not handled by this.  Look at the <see cref="PointsToAbstractValue"/> if you need to treat null as bad.
-        /// 
-        /// All literal values are bad => Flagged
-        /// Some but not all literal are bad => MaybeFlagged
-        /// All literal values are known and none are bad => Unflagged
-        /// Otherwise => Unknown
-        /// </remarks>
-        public static PropertySetAbstractValueKind EvaluateLiteralValues(
-            ValueContentAbstractValue valueContentAbstractValue,
-            Func<object, bool> badLiteralValuePredicate)
-        {
-            Debug.Assert(valueContentAbstractValue != null);
-            Debug.Assert(badLiteralValuePredicate != null);
-
-            switch (valueContentAbstractValue.NonLiteralState)
-            {
-                case ValueContainsNonLiteralState.No:
-                    if (valueContentAbstractValue.LiteralValues.IsEmpty)
-                    {
-                        return PropertySetAbstractValueKind.Unflagged;
-                    }
-
-                    bool allValuesBad = true;
-                    bool someValuesBad = false;
-                    foreach (object literalValue in valueContentAbstractValue.LiteralValues)
-                    {
-                        if (badLiteralValuePredicate(literalValue))
-                        {
-                            someValuesBad = true;
-                        }
-                        else
-                        {
-                            allValuesBad = false;
-                        }
-
-                        if (!allValuesBad && someValuesBad)
-                        {
-                            break;
-                        }
-                    }
-
-                    if (allValuesBad)
-                    {
-                        // We know all values are bad, so we can say Flagged.
-                        return PropertySetAbstractValueKind.Flagged;
-                    }
-                    else if (someValuesBad)
-                    {
-                        // We know all values but some values are bad, so we can say MaybeFlagged.
-                        return PropertySetAbstractValueKind.MaybeFlagged;
-                    }
-                    else
-                    {
-                        // We know all values are good, so we can say Unflagged.
-                        return PropertySetAbstractValueKind.Unflagged;
-                    }
-
-                case ValueContainsNonLiteralState.Maybe:
-                    if (valueContentAbstractValue.LiteralValues.Any(badLiteralValuePredicate))
-                    {
-                        // We don't know all values but know some values are bad, so we can say MaybeFlagged.
-                        return PropertySetAbstractValueKind.MaybeFlagged;
-                    }
-                    else
-                    {
-                        // We don't know all values but didn't find any bad value, so we can say who knows.
-                        return PropertySetAbstractValueKind.Unknown;
-                    }
-
-                default:
-                    return PropertySetAbstractValueKind.Unknown;
-            }
-        }
-
         private static PropertySetAnalysisResult TryGetOrComputeResultForAnalysisContext(PropertySetAnalysisContext analysisContext)
         {
             var operationVisitor = new PropertySetDataFlowOperationVisitor(analysisContext);
@@ -294,9 +264,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             PropertySetAnalysisContext analysisContext,
             DataFlowAnalysisResult<PropertySetBlockAnalysisResult, PropertySetAbstractValue> dataFlowAnalysisResult)
         {
+            PropertySetDataFlowOperationVisitor visitor = (PropertySetDataFlowOperationVisitor)this.OperationVisitor;
+            visitor.ProcessExitBlock(dataFlowAnalysisResult.ExitBlockOutput);
             return new PropertySetAnalysisResult(
                 dataFlowAnalysisResult,
-                ((PropertySetDataFlowOperationVisitor)this.OperationVisitor).HazardousUsages);
+                visitor.HazardousUsages,
+                visitor.VisitedLocalFunctions,
+                visitor.VisitedLambdas);
         }
 
         protected override PropertySetBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, PropertySetAnalysisData blockAnalysisData)

@@ -2,8 +2,8 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
-using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
@@ -13,13 +13,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
     internal sealed class PropertySetAnalysisResult : DataFlowAnalysisResult<PropertySetBlockAnalysisResult, PropertySetAbstractValue>
     {
         public PropertySetAnalysisResult(
-            DataFlowAnalysisResult<PropertySetBlockAnalysisResult, PropertySetAbstractValue> parameterValidationAnalysisResult,
-            ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> hazardousUsages)
-            : base(parameterValidationAnalysisResult)
+            DataFlowAnalysisResult<PropertySetBlockAnalysisResult, PropertySetAbstractValue> propertySetAnalysisResult,
+            ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> hazardousUsages,
+            ImmutableHashSet<IMethodSymbol> visitedLocalFunctions,
+            ImmutableHashSet<IFlowAnonymousFunctionOperation> visitedLambdas)
+            : base(propertySetAnalysisResult)
         {
             this.HazardousUsages = hazardousUsages;
+            this.VisitedLocalFunctions = visitedLocalFunctions;
+            this.VisitedLambdas = visitedLambdas;
         }
 
         public ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> HazardousUsages { get; }
+
+        public ImmutableHashSet<IMethodSymbol> VisitedLocalFunctions { get; }
+
+        public ImmutableHashSet<IFlowAnonymousFunctionOperation> VisitedLambdas { get; }
     }
 }
