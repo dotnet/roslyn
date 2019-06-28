@@ -78,13 +78,13 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             // Create full property. If the auto property had an initial value
             // we need to remove it and later add it to the backing field
             var fieldName = await GetFieldNameAsync(document, propertySymbol, cancellationToken).ConfigureAwait(false);
-            var accessorTuple = GetNewAccessors(options, property, fieldName, generator);
+            var (newGetAccessor, newSetAccessor) = GetNewAccessors(options, property, fieldName, generator);
             var fullProperty = generator
                 .WithAccessorDeclarations(
                     GetPropertyWithoutInitializer(property),
-                    accessorTuple.newSetAccessor == null
-                        ? new SyntaxNode[] { accessorTuple.newGetAccessor }
-                        : new SyntaxNode[] { accessorTuple.newGetAccessor, accessorTuple.newSetAccessor })
+                    newSetAccessor == null
+                        ? new SyntaxNode[] { newGetAccessor }
+                        : new SyntaxNode[] { newGetAccessor, newSetAccessor })
                 .WithLeadingTrivia(property.GetLeadingTrivia());
             fullProperty = ConvertPropertyToExpressionBodyIfDesired(options, fullProperty);
             var editor = new SyntaxEditor(root, workspace);
