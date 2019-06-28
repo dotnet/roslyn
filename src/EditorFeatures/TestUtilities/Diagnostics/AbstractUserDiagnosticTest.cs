@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 return (ImmutableArray<Diagnostic>.Empty, ImmutableArray<CodeAction>.Empty, null);
             }
 
-            FixAllScope? scope = GetFixAllScope(annotation);
+            var scope = GetFixAllScope(annotation);
             return await GetDiagnosticAndFixesAsync(
                 diagnostics, fixer, testDriver, document, span, scope, index);
         }
