@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
@@ -4354,6 +4355,90 @@ class Query
 }";
             await TestInRegularAndScriptAsync(source, output, parseOptions: new CSharpParseOptions(CodeAnalysis.CSharp.LanguageVersion.CSharp8));
         }
+
+        #endregion
+
+        #region CaretSelection
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task DeclarationSelection()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    public static void Main(string[] args)
+    {
+        List<int> c = new List<int>{ 1, 2, 3, 4, 5, 6, 7 };
+        var r = [|from i in c select i+1;|]
+    }
+}";
+            string output = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    public static void Main(string[] args)
+    {
+        List<int> c = new List<int>{ 1, 2, 3, 4, 5, 6, 7 };
+        IEnumerable<int> enumerable()
+        {
+            foreach (var i in c)
+            {
+                yield return i + 1;
+            }
+        }
+
+        var r = enumerable();
+    }
+}";
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task LocalAssignmentSelection()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    public static void Main(string[] args)
+    {
+        List<int> c = new List<int>{ 1, 2, 3, 4, 5, 6, 7 };
+        IEnumerable<int> r;
+        [|r = from i in c select i+1;|]
+    }
+}";
+            string output = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    public static void Main(string[] args)
+    {
+        List<int> c = new List<int>{ 1, 2, 3, 4, 5, 6, 7 };
+        IEnumerable<int> r;
+        IEnumerable<int> enumerable()
+        {
+            foreach (var i in c)
+            {
+                yield return i + 1;
+            }
+        }
+
+        r = enumerable();
+    }
+}";
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
 
         #endregion
     }

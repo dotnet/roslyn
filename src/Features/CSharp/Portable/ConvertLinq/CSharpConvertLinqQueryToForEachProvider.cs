@@ -6,10 +6,10 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertLinq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
         /// <summary>
         /// Finds a node for the span and checks that it is either a QueryExpressionSyntax or a QueryExpressionSyntax argument within ArgumentSyntax.
         /// </summary>
-        protected override QueryExpressionSyntax FindNodeToRefactor(SyntaxNode root, TextSpan span)
+        protected override Task<QueryExpressionSyntax> FindNodeToRefactorAsync(Document document, TextSpan selection, CancellationToken cancellationToken)
         {
-            var node = root.FindNode(span);
-            return node as QueryExpressionSyntax ?? (node is ArgumentSyntax argument ? argument.Expression as QueryExpressionSyntax : default);
+            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
+            return refactoringHelperService.TryGetSelectedNodeAsync<QueryExpressionSyntax>(document, selection, cancellationToken);
         }
 
         private sealed class Converter
