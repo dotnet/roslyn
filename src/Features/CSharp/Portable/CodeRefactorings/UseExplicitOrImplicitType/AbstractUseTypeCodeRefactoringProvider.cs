@@ -39,10 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
                 return;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
             var declaration = await GetDeclarationAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             if (declaration == null)
             {
@@ -51,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
 
             Debug.Assert(declaration.IsKind(SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement, SyntaxKind.DeclarationExpression));
 
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var declaredType = FindAnalyzableType(declaration, semanticModel, cancellationToken);
             if (declaredType == null)
             {
@@ -67,6 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
                 return;
             }
 
+            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var typeStyle = AnalyzeTypeName(declaredType, semanticModel, optionSet, cancellationToken);
             if (typeStyle.IsStylePreferred && typeStyle.Severity != ReportDiagnostic.Suppress)
             {
