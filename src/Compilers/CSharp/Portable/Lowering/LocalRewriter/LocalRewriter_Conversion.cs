@@ -729,6 +729,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// If the nullable expression always has a value, returns the value, otherwise null.
+        /// This is normally performed on a lowered expression, however for the purpose of
+        /// tuples and tuple equality operators, we do this on a partially lowered expression in
+        /// which conversions appearing at the top of the expression have not been lowered.
         /// If this method is updated to recognize more complex patterns, callers should be reviewed.
         /// </summary>
         private static BoundExpression NullableAlwaysHasValue(BoundExpression expression)
@@ -736,26 +739,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!expression.Type.IsNullableType())
                 return null;
 
-            return expression switch
+            switch (expression)
             {
                 // Detect the lowered nullable conversion from value type K to type Nullable<K>
-                BoundObjectCreationExpression { Arguments: { Length: 1 } args } => args[0],
+                case BoundObjectCreationExpression { Arguments: { Length: 1 } args }:
+                    return args[0];
 
                 // Detect the unlowered nullable conversion from value type K to type Nullable<K>
                 // This arises in lowering tuple equality operators
-                BoundConversion
+                case BoundConversion
                 { Conversion: { Kind: ConversionKind.ImplicitNullable }, Operand: var convertedArgument }
-                    when convertedArgument.Type.Equals(expression.Type.StrippedType(), TypeCompareKind.AllIgnoreOptions) => convertedArgument,
+                        when convertedArgument.Type.Equals(expression.Type.StrippedType(), TypeCompareKind.AllIgnoreOptions):
+                    return convertedArgument;
 
-                // Detect the unlowered nullable conversion from value type K to type Nullable<K>
-                // This arises in lowering tuple equality operators
-                BoundConversion { Conversion: { Kind: var conversionKind }, Operand: var convertedArgument }
-                    when conversionKind switch { ConversionKind.ImplicitNullable => true, ConversionKind.ExplicitNullable => true, _ => false } &&
-                         convertedArgument.Type.Equals(expression.Type.StrippedType(), TypeCompareKind.AllIgnoreOptions) => convertedArgument,
+                // Detect the unlowered nullable conversion from a tuple type T1 to Nullable<T2> for a tuple type T2.
+                case BoundConversion
+                { Conversion: { Kind: ConversionKind.ImplicitNullable, UnderlyingConversions: var underlying }, Operand: var convertedArgument } conversion
+                        when underlying.Length == 1 && underlying[0].Kind == ConversionKind.ImplicitTuple && !convertedArgument.Type.IsNullableType():
+                    return new BoundConversion(
+                        syntax: expression.Syntax,
+                        operand: convertedArgument,
+                        conversion: underlying[0],
+                        @checked: conversion.Checked,
+                        explicitCastInCode: conversion.ExplicitCastInCode,
+                        conversionGroupOpt: null,
+                        constantValueOpt: null,
+                        type: conversion.Type.StrippedType(),
+                        hasErrors: conversion.HasErrors);
 
                 // No other cases are recognized
-                _ => null,
-            };
+                default:
+                    return null;
+            }
         }
 
         private BoundExpression RewriteNullableConversion(

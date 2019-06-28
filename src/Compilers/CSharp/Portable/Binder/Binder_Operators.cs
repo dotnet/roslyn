@@ -370,8 +370,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBinaryOperator(
                 syntax: node,
                 operatorKind: (hasError ? kind : kind.WithType(BinaryOperatorKind.Dynamic)).WithOverflowChecksIfApplicable(CheckOverflowAtRuntime),
-                left: left,
-                right: right,
+                left: BindToNaturalType(left, diagnostics),
+                right: BindToNaturalType(right, diagnostics),
                 constantValueOpt: ConstantValue.NotAvailable,
                 methodOpt: userDefinedOperator,
                 resultKind: LookupResultKind.Viable,
@@ -766,6 +766,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (left.HasDynamicType() || right.HasDynamicType())
             {
+                left = BindToNaturalType(left, diagnostics);
+                right = BindToNaturalType(right, diagnostics);
                 return BindDynamicBinaryOperator(node, kind, left, right, diagnostics);
             }
 
