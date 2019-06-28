@@ -1512,21 +1512,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             };
 
         private static SyntaxKind GetAccessorSyntaxKind(MethodKind methodKind)
-        {
-            switch (methodKind)
+            => methodKind switch
             {
-                case MethodKind.PropertyGet:
-                    return SyntaxKind.GetAccessorDeclaration;
-                case MethodKind.PropertySet:
-                    return SyntaxKind.SetAccessorDeclaration;
-                case MethodKind.EventAdd:
-                    return SyntaxKind.AddAccessorDeclaration;
-                case MethodKind.EventRemove:
-                    return SyntaxKind.RemoveAccessorDeclaration;
-                default:
-                    throw Exceptions.ThrowEUnexpected();
-            }
-        }
+                MethodKind.PropertyGet => SyntaxKind.GetAccessorDeclaration,
+                MethodKind.PropertySet => SyntaxKind.SetAccessorDeclaration,
+                MethodKind.EventAdd => SyntaxKind.AddAccessorDeclaration,
+                MethodKind.EventRemove => SyntaxKind.RemoveAccessorDeclaration,
+                _ => throw Exceptions.ThrowEUnexpected(),
+            };
 
         public override bool TryGetAccessorNode(SyntaxNode parentNode, MethodKind kind, out SyntaxNode accessorNode)
         {

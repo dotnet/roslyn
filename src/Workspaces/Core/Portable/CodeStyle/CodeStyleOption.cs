@@ -121,26 +121,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var value = parser(valueAttribute.Value);
             var severity = (DiagnosticSeverity)Enum.Parse(typeof(DiagnosticSeverity), severityAttribute.Value);
 
-            NotificationOption notificationOption;
-            switch (severity)
+            return new CodeStyleOption<T>(value, severity switch
             {
-                case DiagnosticSeverity.Hidden:
-                    notificationOption = NotificationOption.Silent;
-                    break;
-                case DiagnosticSeverity.Info:
-                    notificationOption = NotificationOption.Suggestion;
-                    break;
-                case DiagnosticSeverity.Warning:
-                    notificationOption = NotificationOption.Warning;
-                    break;
-                case DiagnosticSeverity.Error:
-                    notificationOption = NotificationOption.Error;
-                    break;
-                default:
-                    throw new ArgumentException(nameof(element));
-            }
-
-            return new CodeStyleOption<T>(value, notificationOption);
+                DiagnosticSeverity.Hidden => NotificationOption.Silent,
+                DiagnosticSeverity.Info => NotificationOption.Suggestion,
+                DiagnosticSeverity.Warning => NotificationOption.Warning,
+                DiagnosticSeverity.Error => NotificationOption.Error,
+                _ => throw new ArgumentException(nameof(element)),
+            });
         }
 
         private static Func<string, T> GetParser(string type)
