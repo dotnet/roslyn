@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
             }
 
             // Parameter types have to be contravariant.
-            for (int i = 0; i < lambdaMethod.Parameters.Length; i++)
+            for (var i = 0; i < lambdaMethod.Parameters.Length; i++)
             {
                 var conversion = document.SemanticModel.Compilation.ClassifyConversion(
                     lambdaMethod.Parameters[i].Type, invocationMethod.Parameters[i].Type);

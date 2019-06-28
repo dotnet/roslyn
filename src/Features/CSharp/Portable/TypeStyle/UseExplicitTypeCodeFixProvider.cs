@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             Debug.Assert(elements.Length == parensDesignation.Variables.Count);
 
             var builder = ArrayBuilder<SyntaxNode>.GetInstance(elements.Length);
-            for (int i = 0; i < elements.Length; i++)
+            for (var i = 0; i < elements.Length; i++)
             {
                 var designation = parensDesignation.Variables[i];
                 var type = elements[i].Type;
