@@ -351,15 +351,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                     _session.UndoManager.CreateConflictResolutionUndoTransaction(_subjectBuffer, () =>
                     {
-                        using (var edit = _subjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, null, s_propagateSpansEditTag))
-                        {
-                            foreach (var change in changes)
-                            {
-                                edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
-                            }
+                        using var edit = _subjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, null, s_propagateSpansEditTag);
 
-                            edit.ApplyAndLogExceptions();
+                        foreach (var change in changes)
+                        {
+                            edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
                         }
+
+                        edit.ApplyAndLogExceptions();
                     });
 
                     // 2. We want to update referenceSpanToLinkedRenameSpanMap where spans were affected by conflict resolution.

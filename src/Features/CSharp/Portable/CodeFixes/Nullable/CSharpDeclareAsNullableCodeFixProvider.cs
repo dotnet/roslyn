@@ -97,28 +97,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 
                 var onYield = node.IsParentKind(SyntaxKind.YieldReturnStatement);
 
-                switch (containingMember)
+                return containingMember switch
                 {
-                    case MethodDeclarationSyntax method:
+                    MethodDeclarationSyntax method =>
                         // string M() { return null; }
                         // async Task<string> M() { return null; }
                         // IEnumerable<string> M() { yield return null; }
-                        return TryGetReturnType(method.ReturnType, method.Modifiers, onYield);
+                        TryGetReturnType(method.ReturnType, method.Modifiers, onYield),
 
-                    case LocalFunctionStatementSyntax localFunction:
+                    LocalFunctionStatementSyntax localFunction =>
                         // string local() { return null; }
                         // async Task<string> local() { return null; }
                         // IEnumerable<string> local() { yield return null; }
-                        return TryGetReturnType(localFunction.ReturnType, localFunction.Modifiers, onYield);
+                        TryGetReturnType(localFunction.ReturnType, localFunction.Modifiers, onYield),
 
-                    case PropertyDeclarationSyntax property:
+                    PropertyDeclarationSyntax property =>
                         // string x { get { return null; } }
                         // IEnumerable<string> Property { get { yield return null; } }
-                        return TryGetReturnType(property.Type, modifiers: default, onYield);
+                        TryGetReturnType(property.Type, modifiers: default, onYield),
 
-                    default:
-                        return null;
-                }
+                    _ => null,
+                };
             }
 
             // string x = null;

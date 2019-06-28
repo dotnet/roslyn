@@ -15,13 +15,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
     {
         private async Task TestAsync(string text, string searchText, params string[] expectedNames)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(text))
-            {
-                var nameResolver = new BreakpointResolver(workspace.CurrentSolution, searchText);
-                var results = await nameResolver.DoAsync(CancellationToken.None);
+            using var workspace = TestWorkspace.CreateCSharp(text);
 
-                Assert.Equal(expectedNames, results.Select(r => r.LocationNameOpt));
-            }
+            var nameResolver = new BreakpointResolver(workspace.CurrentSolution, searchText);
+            var results = await nameResolver.DoAsync(CancellationToken.None);
+
+            Assert.Equal(expectedNames, results.Select(r => r.LocationNameOpt));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]

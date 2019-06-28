@@ -1028,27 +1028,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override EnvDTE.vsCMAccess GetAccess(ISymbol symbol)
-        {
-            switch (symbol.DeclaredAccessibility)
+            => symbol.DeclaredAccessibility switch
             {
-                case Accessibility.Public:
-                    return EnvDTE.vsCMAccess.vsCMAccessPublic;
-                case Accessibility.Private:
-                    return EnvDTE.vsCMAccess.vsCMAccessPrivate;
-                case Accessibility.Internal:
-                    return EnvDTE.vsCMAccess.vsCMAccessProject;
-                case Accessibility.Protected:
-                    return EnvDTE.vsCMAccess.vsCMAccessProtected;
-                case Accessibility.ProtectedOrInternal:
-                    return EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected;
-                case Accessibility.ProtectedAndInternal:
+                Accessibility.Public => EnvDTE.vsCMAccess.vsCMAccessPublic,
+                Accessibility.Private => EnvDTE.vsCMAccess.vsCMAccessPrivate,
+                Accessibility.Internal => EnvDTE.vsCMAccess.vsCMAccessProject,
+                Accessibility.Protected => EnvDTE.vsCMAccess.vsCMAccessProtected,
+                Accessibility.ProtectedOrInternal => EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected,
+                Accessibility.ProtectedAndInternal =>
                     // there is no appropriate mapping for private protected in EnvDTE.vsCMAccess
                     // See https://github.com/dotnet/roslyn/issues/22406
-                    return EnvDTE.vsCMAccess.vsCMAccessProtected;
-                default:
-                    throw Exceptions.ThrowEFail();
-            }
-        }
+                    EnvDTE.vsCMAccess.vsCMAccessProtected,
+                _ => throw Exceptions.ThrowEFail(),
+            };
 
         public override EnvDTE.vsCMAccess GetAccess(SyntaxNode node)
         {

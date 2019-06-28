@@ -98,35 +98,34 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             var exportProvider = exportProviderFactory.CreateExportProvider();
 
-            using (var workspace = TestWorkspace.CreateCSharp(
+            using var workspace = TestWorkspace.CreateCSharp(
                 ActiveStatementsDescription.ClearTags(markedSource),
-                exportProvider: exportProvider))
+                exportProvider: exportProvider);
+
+            var baseSolution = workspace.CurrentSolution;
+            if (adjustSolution != null)
             {
-                var baseSolution = workspace.CurrentSolution;
-                if (adjustSolution != null)
-                {
-                    baseSolution = adjustSolution(baseSolution);
-                }
-
-                var docsIds = from p in baseSolution.Projects
-                              from d in p.DocumentIds
-                              select d;
-
-                var debuggingSession = new DebuggingSession(baseSolution);
-                var activeStatementProvider = new TestActiveStatementProvider(activeStatements);
-
-                var editSession = new EditSession(
-                    baseSolution,
-                    debuggingSession,
-                    activeStatementProvider,
-                    ImmutableDictionary<ProjectId, ProjectReadOnlyReason>.Empty,
-                    nonRemappableRegions ?? ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
-                    stoppedAtException: false);
-
-                return (await editSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false),
-                        await editSession.BaseActiveExceptionRegions.GetValueAsync(CancellationToken.None).ConfigureAwait(false),
-                        docsIds.ToImmutableArray());
+                baseSolution = adjustSolution(baseSolution);
             }
+
+            var docsIds = from p in baseSolution.Projects
+                          from d in p.DocumentIds
+                          select d;
+
+            var debuggingSession = new DebuggingSession(baseSolution);
+            var activeStatementProvider = new TestActiveStatementProvider(activeStatements);
+
+            var editSession = new EditSession(
+                baseSolution,
+                debuggingSession,
+                activeStatementProvider,
+                ImmutableDictionary<ProjectId, ProjectReadOnlyReason>.Empty,
+                nonRemappableRegions ?? ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
+                stoppedAtException: false);
+
+            return (await editSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false),
+                    await editSession.BaseActiveExceptionRegions.GetValueAsync(CancellationToken.None).ConfigureAwait(false),
+                    docsIds.ToImmutableArray());
         }
 
         private static string Delete(string src, string marker)

@@ -346,35 +346,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             SourceText originalText, TextSpan visibleSpanInOriginalText, string leftText, string rightText, int offsetInOriginalText, List<TextChange> changes)
         {
             // these are expensive. but hopefully we don't hit this as much except the boundary cases.
-            using (var leftPool = SharedPools.Default<List<TextSpan>>().GetPooledObject())
-            using (var rightPool = SharedPools.Default<List<TextSpan>>().GetPooledObject())
+            using var leftPool = SharedPools.Default<List<TextSpan>>().GetPooledObject();
+            using var rightPool = SharedPools.Default<List<TextSpan>>().GetPooledObject();
+
+            var spansInLeftText = leftPool.Object;
+            var spansInRightText = rightPool.Object;
+
+            if (TryGetWhitespaceOnlyChanges(leftText, rightText, spansInLeftText, spansInRightText))
             {
-                var spansInLeftText = leftPool.Object;
-                var spansInRightText = rightPool.Object;
-
-                if (TryGetWhitespaceOnlyChanges(leftText, rightText, spansInLeftText, spansInRightText))
+                for (var i = 0; i < spansInLeftText.Count; i++)
                 {
-                    for (var i = 0; i < spansInLeftText.Count; i++)
+                    var spanInLeftText = spansInLeftText[i];
+                    var spanInRightText = spansInRightText[i];
+                    if (spanInLeftText.IsEmpty && spanInRightText.IsEmpty)
                     {
-                        var spanInLeftText = spansInLeftText[i];
-                        var spanInRightText = spansInRightText[i];
-                        if (spanInLeftText.IsEmpty && spanInRightText.IsEmpty)
-                        {
-                            continue;
-                        }
-
-                        var spanInOriginalText = new TextSpan(offsetInOriginalText + spanInLeftText.Start, spanInLeftText.Length);
-                        if (TryGetSubTextChange(originalText, visibleSpanInOriginalText, rightText, spanInOriginalText, spanInRightText, out var textChange))
-                        {
-                            changes.Add(textChange);
-                        }
+                        continue;
                     }
 
-                    return true;
+                    var spanInOriginalText = new TextSpan(offsetInOriginalText + spanInLeftText.Start, spanInLeftText.Length);
+                    if (TryGetSubTextChange(originalText, visibleSpanInOriginalText, rightText, spanInOriginalText, spanInRightText, out var textChange))
+                    {
+                        changes.Add(textChange);
+                    }
                 }
 
-                return false;
+                return true;
             }
+
+            return false;
         }
 
         private IEnumerable<TextChange> GetSubTextChanges(
@@ -705,37 +704,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             IList<TextSpan> visibleSpansInOriginal,
             out IEnumerable<int> affectedVisibleSpansInNew)
         {
-            using (var edit = subjectBuffer.CreateEdit(s_venusEditOptions, reiteratedVersionNumber: null, editTag: null))
+            using var edit = subjectBuffer.CreateEdit(s_venusEditOptions, reiteratedVersionNumber: null, editTag: null);
+
+            var affectedSpans = SharedPools.Default<HashSet<int>>().AllocateAndClear();
+            affectedVisibleSpansInNew = affectedSpans;
+
+            var currentVisibleSpanIndex = 0;
+            foreach (var change in changes)
             {
-                var affectedSpans = SharedPools.Default<HashSet<int>>().AllocateAndClear();
-                affectedVisibleSpansInNew = affectedSpans;
-
-                var currentVisibleSpanIndex = 0;
-                foreach (var change in changes)
+                // Find the next visible span that either overlaps or intersects with 
+                while (currentVisibleSpanIndex < visibleSpansInOriginal.Count &&
+                       visibleSpansInOriginal[currentVisibleSpanIndex].End < change.Span.Start)
                 {
-                    // Find the next visible span that either overlaps or intersects with 
-                    while (currentVisibleSpanIndex < visibleSpansInOriginal.Count &&
-                           visibleSpansInOriginal[currentVisibleSpanIndex].End < change.Span.Start)
-                    {
-                        currentVisibleSpanIndex++;
-                    }
-
-                    // no more place to apply text changes
-                    if (currentVisibleSpanIndex >= visibleSpansInOriginal.Count)
-                    {
-                        break;
-                    }
-
-                    var newText = change.NewText;
-                    var span = change.Span.ToSpan();
-
-                    edit.Replace(span, newText);
-
-                    affectedSpans.Add(currentVisibleSpanIndex);
+                    currentVisibleSpanIndex++;
                 }
 
-                edit.ApplyAndLogExceptions();
+                // no more place to apply text changes
+                if (currentVisibleSpanIndex >= visibleSpansInOriginal.Count)
+                {
+                    break;
+                }
+
+                var newText = change.NewText;
+                var span = change.Span.ToSpan();
+
+                edit.Replace(span, newText);
+
+                affectedSpans.Add(currentVisibleSpanIndex);
             }
+
+            edit.ApplyAndLogExceptions();
         }
 
         private void AdjustIndentation(IProjectionBuffer subjectBuffer, IEnumerable<int> visibleSpanIndex)
@@ -788,29 +786,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
 
-            using (var rulePool = SharedPools.Default<List<AbstractFormattingRule>>().GetPooledObject())
-            using (var spanPool = SharedPools.Default<List<TextSpan>>().GetPooledObject())
+            using var rulePool = SharedPools.Default<List<AbstractFormattingRule>>().GetPooledObject();
+            using var spanPool = SharedPools.Default<List<TextSpan>>().GetPooledObject();
+
+            var venusFormattingRules = rulePool.Object;
+            var visibleSpans = spanPool.Object;
+
+            venusFormattingRules.Add(baseIndentationRule);
+            venusFormattingRules.Add(ContainedDocumentPreserveFormattingRule.Instance);
+
+            var formattingRules = venusFormattingRules.Concat(Formatter.GetDefaultFormattingRules(document));
+
+            var workspace = document.Project.Solution.Workspace;
+            var changes = Formatter.GetFormattedTextChanges(
+                root, new TextSpan[] { CommonFormattingHelpers.GetFormattingSpan(root, visibleSpan) },
+                workspace, options, formattingRules, CancellationToken.None);
+
+            visibleSpans.Add(visibleSpan);
+            var newChanges = FilterTextChanges(document.GetTextSynchronously(CancellationToken.None), visibleSpans, changes.ToReadOnlyCollection()).Where(t => visibleSpan.Contains(t.Span));
+
+            foreach (var change in newChanges)
             {
-                var venusFormattingRules = rulePool.Object;
-                var visibleSpans = spanPool.Object;
-
-                venusFormattingRules.Add(baseIndentationRule);
-                venusFormattingRules.Add(ContainedDocumentPreserveFormattingRule.Instance);
-
-                var formattingRules = venusFormattingRules.Concat(Formatter.GetDefaultFormattingRules(document));
-
-                var workspace = document.Project.Solution.Workspace;
-                var changes = Formatter.GetFormattedTextChanges(
-                    root, new TextSpan[] { CommonFormattingHelpers.GetFormattingSpan(root, visibleSpan) },
-                    workspace, options, formattingRules, CancellationToken.None);
-
-                visibleSpans.Add(visibleSpan);
-                var newChanges = FilterTextChanges(document.GetTextSynchronously(CancellationToken.None), visibleSpans, changes.ToReadOnlyCollection()).Where(t => visibleSpan.Contains(t.Span));
-
-                foreach (var change in newChanges)
-                {
-                    edit.Replace(change.Span.ToSpan(), change.NewText);
-                }
+                edit.Replace(change.Span.ToSpan(), change.NewText);
             }
         }
 
