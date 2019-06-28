@@ -111,6 +111,8 @@ namespace Microsoft.CodeAnalysis
             _writer.Write("uri", GetUri(span.Path));
             _writer.WriteObjectEnd(); // artifactLocation
 
+            WriteRegion(span);
+
             _writer.WriteObjectEnd();
         }
 

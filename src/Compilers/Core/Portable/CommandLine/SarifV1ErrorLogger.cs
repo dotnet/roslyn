@@ -130,14 +130,7 @@ namespace Microsoft.CodeAnalysis
             _writer.WriteObjectStart();
             _writer.Write("uri", GetUri(span.Path));
 
-            // Note that SARIF lines and columns are 1-based, but FileLinePositionSpan is 0-based
-
-            _writer.WriteObjectStart("region");
-            _writer.Write("startLine", span.StartLinePosition.Line + 1);
-            _writer.Write("startColumn", span.StartLinePosition.Character + 1);
-            _writer.Write("endLine", span.EndLinePosition.Line + 1);
-            _writer.Write("endColumn", span.EndLinePosition.Character + 1);
-            _writer.WriteObjectEnd(); // region
+            WriteRegion(span);
 
             _writer.WriteObjectEnd();
         }

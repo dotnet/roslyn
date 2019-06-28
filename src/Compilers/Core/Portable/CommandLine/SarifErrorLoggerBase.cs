@@ -27,6 +27,17 @@ namespace Microsoft.CodeAnalysis
             base.Dispose();
         }
 
+        protected void WriteRegion(FileLinePositionSpan span)
+        {
+            // Note that SARIF lines and columns are 1-based, but FileLinePositionSpan is 0-based
+            _writer.WriteObjectStart("region");
+            _writer.Write("startLine", span.StartLinePosition.Line + 1);
+            _writer.Write("startColumn", span.StartLinePosition.Character + 1);
+            _writer.Write("endLine", span.EndLinePosition.Line + 1);
+            _writer.Write("endColumn", span.EndLinePosition.Character + 1);
+            _writer.WriteObjectEnd(); // region
+        }
+
         protected static string GetLevel(DiagnosticSeverity severity)
         {
             switch (severity)
