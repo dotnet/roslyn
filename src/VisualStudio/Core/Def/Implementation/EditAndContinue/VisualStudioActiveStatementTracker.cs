@@ -14,18 +14,18 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
     [Export(typeof(IManagedActiveStatementTracker)), Shared]
     internal sealed class VisualStudioActiveStatementTracker : IManagedActiveStatementTracker
     {
-        private readonly IEditAndContinueService _editAndContinueService;
+        private readonly IEditAndContinueWorkspaceService _encService;
 
         [ImportingConstructor]
-        public VisualStudioActiveStatementTracker(IEditAndContinueService editAndContinueService)
+        public VisualStudioActiveStatementTracker(VisualStudioWorkspace workspace)
         {
-            _editAndContinueService = editAndContinueService;
+            _encService = workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
         }
 
         public async Task<VsTextSpan?> GetCurrentActiveStatementPositionAsync(Guid moduleId, int methodToken, int methodVersion, int ilOffset, CancellationToken cancellationToken)
-            => (await _editAndContinueService.GetCurrentActiveStatementPositionAsync(new ActiveInstructionId(moduleId, methodToken, methodVersion, ilOffset), cancellationToken).ConfigureAwait(false))?.ToVsTextSpan();
+            => (await _encService.GetCurrentActiveStatementPositionAsync(new ActiveInstructionId(moduleId, methodToken, methodVersion, ilOffset), cancellationToken).ConfigureAwait(false))?.ToVsTextSpan();
 
         public Task<bool?> IsActiveStatementInExceptionRegionAsync(Guid moduleId, int methodToken, int methodVersion, int ilOffset, CancellationToken cancellationToken)
-            => _editAndContinueService.IsActiveStatementInExceptionRegionAsync(new ActiveInstructionId(moduleId, methodToken, methodVersion, ilOffset), cancellationToken);
+            => _encService.IsActiveStatementInExceptionRegionAsync(new ActiveInstructionId(moduleId, methodToken, methodVersion, ilOffset), cancellationToken);
     }
 }

@@ -226,8 +226,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// The path to the output in obj.
         /// </summary>
-        /// <remarks>This is internal for now, as it's only consumed by <see cref="EditAndContinue.VsENCRebuildableProjectImpl"/>
-        /// which directly takes a <see cref="VisualStudioProject"/>.</remarks>
         internal string IntermediateOutputFilePath
         {
             get => _intermediateOutputFilePath;
