@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis
                         _writer.WriteObjectEnd();
                     }
 
-                    //_writer.Write("defaultLevel", GetLevel(descriptor.DefaultSeverity));
+                    WriteDefaultConfiguration(descriptor);
 
                     if (!string.IsNullOrEmpty(descriptor.HelpLinkUri))
                     {
@@ -186,7 +186,6 @@ namespace Microsoft.CodeAnalysis
                         _writer.Write("category", descriptor.Category);
                     }
 
-                    _writer.Write("isEnabledByDefault", descriptor.IsEnabledByDefault);
 
                     if (descriptor.CustomTags.Any())
                     {
@@ -206,6 +205,14 @@ namespace Microsoft.CodeAnalysis
 
                 _writer.WriteArrayEnd(); // rules
             }
+        }
+
+        private void WriteDefaultConfiguration(DiagnosticDescriptor descriptor)
+        {
+            _writer.WriteObjectStart("defaultConfiguration");
+            _writer.Write("level", GetLevel(descriptor.DefaultSeverity));
+            _writer.Write("enabled", descriptor.IsEnabledByDefault);
+            _writer.WriteObjectEnd(); // defaultConfiguration
         }
 
         /// <summary>
