@@ -5118,7 +5118,7 @@ class Program
             Await TestAsync(input, expected, csharpParseOptions:=TestOptions.Regular8WithNullableAnalysis)
         End Function
 
-        <Fact(Skip:=""), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/36884"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyNullableMethodTypeArgument() As Task
             Dim input =
 <Workspace>
