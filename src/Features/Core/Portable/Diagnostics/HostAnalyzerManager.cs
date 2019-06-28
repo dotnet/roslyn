@@ -336,8 +336,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerReference reference,
             ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
-            var fileReference = reference as AnalyzerFileReference;
-            if (fileReference == null)
+            if (!(reference is AnalyzerFileReference fileReference))
             {
                 return;
             }

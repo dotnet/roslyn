@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected override TriviaResolver GetTriviaResolver(SyntaxNode method)
             {
-                var methodDefinition = method as MethodDeclarationSyntax;
-                if (methodDefinition == null)
+                if (!(method is MethodDeclarationSyntax methodDefinition))
                 {
                     return null;
                 }

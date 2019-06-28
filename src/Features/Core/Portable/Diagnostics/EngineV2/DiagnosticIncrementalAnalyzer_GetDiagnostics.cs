@@ -102,8 +102,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
 
-                var argsId = Id as LiveDiagnosticUpdateArgsId;
-                if (argsId == null)
+                if (!(Id is LiveDiagnosticUpdateArgsId argsId))
                 {
                     return ImmutableArray<DiagnosticData>.Empty;
                 }

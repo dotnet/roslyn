@@ -113,8 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return GetItemKey(data);
                 }
 
-                var liveArgsId = args.Id as LiveDiagnosticUpdateArgsId;
-                if (liveArgsId == null)
+                if (!(args.Id is LiveDiagnosticUpdateArgsId liveArgsId))
                 {
                     return GetItemKey(data);
                 }

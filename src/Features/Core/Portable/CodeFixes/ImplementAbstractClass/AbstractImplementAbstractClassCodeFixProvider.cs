@@ -54,8 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.ImplementAbstractClass
             }
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var classSymbol = semanticModel.GetDeclaredSymbol(classNode) as INamedTypeSymbol;
-            if (classSymbol == null)
+            if (!(semanticModel.GetDeclaredSymbol(classNode) is INamedTypeSymbol classSymbol))
             {
                 return;
             }

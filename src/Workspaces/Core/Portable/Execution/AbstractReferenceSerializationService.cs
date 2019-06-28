@@ -470,8 +470,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
             foreach (var storage in storages)
             {
-                var storage2 = storage as ITemporaryStorageWithName;
-                if (storage2 == null)
+                if (!(storage is ITemporaryStorageWithName storage2))
                 {
                     return false;
                 }

@@ -176,14 +176,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 var left = _oldSolution.GetTextDocument(documentId);
                 var right = _newSolution.GetTextDocument(documentId);
 
-                var leftDocument = left as Document;
-                var rightDocument = right as Document;
-
-                if (leftDocument != null)
+                if (left is Document leftDocument)
                 {
                     linkedDocumentIds.AddRange(leftDocument.GetLinkedDocumentIds());
                 }
-                else if (rightDocument != null)
+                else if (right is Document rightDocument)
                 {
                     // Added document.
                     linkedDocumentIds.AddRange(rightDocument.GetLinkedDocumentIds());

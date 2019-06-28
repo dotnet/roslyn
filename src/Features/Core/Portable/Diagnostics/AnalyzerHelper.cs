@@ -133,8 +133,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
         public static ValueTask<OptionSet> GetDocumentOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
-            var workspaceAnalyzerOptions = analyzerOptions as WorkspaceAnalyzerOptions;
-            if (workspaceAnalyzerOptions == null)
+            if (!(analyzerOptions is WorkspaceAnalyzerOptions workspaceAnalyzerOptions))
             {
                 return new ValueTask<OptionSet>(default(OptionSet));
             }
