@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // get Token for current selection (empty) location
             var tokenOnSelection = root.FindToken(selectionTrimmed.Start);
 
-            // Gets a token that is directly to the right of current (empty) selection or that encompases current selection (`[||]tokenITORightOrIn` or `tok[||]enITORightOrIn`)
+            // Gets a token that is directly to the right of current (empty) selection or that encompasses current selection (`[||]tokenITORightOrIn` or `tok[||]enITORightOrIn`)
             var tokenToRightOrIn = tokenOnSelection.Span.Contains(selectionTrimmed.Start)
                 ? tokenOnSelection
                 : default;
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 {
                     // Consider either a Node that is:
                     // - Parent of touched Token (selection can be within) 
-                    // - Ancestor Node of such Token as long as their their span starts on selection (it's still on the edge)
+                    // - Ancestor Node of such Token as long as their span starts on selection (it's still on the edge)
                     var wantedNode = TryGetAcceptedNodeOrExtracted(rightNode, predicate, extractNode, syntaxFacts);
                     if (wantedNode != null)
                     {
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 do
                 {
                     // Consider either a Node that is:
-                    // - Ancestor Node of such Token as long as their their span ends on selection (it's still on the edge)
+                    // - Ancestor Node of such Token as long as their span ends on selection (it's still on the edge)
                     var wantedNode = TryGetAcceptedNodeOrExtracted(leftNode, predicate, extractNode, syntaxFacts);
                     if (wantedNode != null)
                     {
