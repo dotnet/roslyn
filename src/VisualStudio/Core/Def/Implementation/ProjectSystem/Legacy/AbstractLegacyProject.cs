@@ -308,9 +308,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             using (var pooledObject = SharedPools.Default<List<string>>().GetPooledObject())
             {
                 var newFolderNames = pooledObject.Object;
-                ImmutableArray<string> folderNames;
 
-                if (!_folderNameMap.TryGetValue(folderItemID, out folderNames))
+                if (!_folderNameMap.TryGetValue(folderItemID, out var folderNames))
                 {
                     ComputeFolderNames(folderItemID, newFolderNames, Hierarchy);
                     folderNames = newFolderNames.ToImmutableArray();

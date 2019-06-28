@@ -230,18 +230,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
             Solution solution, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            using (var query = SearchQuery.Create(name, ignoreCase))
-            {
-                var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
-                foreach (var projectId in solution.ProjectIds)
-                {
-                    var project = solution.GetProject(projectId);
-                    await AddCompilationDeclarationsWithNormalQueryAsync(
-                        project, query, criteria, result, cancellationToken).ConfigureAwait(false);
-                }
+            using var query = SearchQuery.Create(name, ignoreCase);
 
-                return result.ToImmutableAndFree();
+            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+            foreach (var projectId in solution.ProjectIds)
+            {
+                var project = solution.GetProject(projectId);
+                await AddCompilationDeclarationsWithNormalQueryAsync(
+                    project, query, criteria, result, cancellationToken).ConfigureAwait(false);
             }
+
+            return result.ToImmutableAndFree();
         }
 
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
