@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.EncapsulateField;
 using Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField;
 using Microsoft.CodeAnalysis.Editor.Implementation.Notification;
 using Microsoft.CodeAnalysis.Editor.Shared;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -58,8 +59,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
         public void Encapsulate()
         {
             var args = new EncapsulateFieldCommandArgs(_testDocument.GetTextView(), _testDocument.GetTextBuffer());
-            var commandHandler = new EncapsulateFieldCommandHandler(Workspace.GetService<ITextBufferUndoManagerProvider>(),
-                Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
+            var commandHandler = new EncapsulateFieldCommandHandler(
+                Workspace.GetService<IThreadingContext>(),
+                Workspace.GetService<ITextBufferUndoManagerProvider>(),
+                Workspace.GetService<IAsynchronousOperationListenerProvider>());
             commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create());
         }
 

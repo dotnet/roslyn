@@ -3,6 +3,7 @@
 Imports Microsoft.CodeAnalysis.Editor.Commanding.Commands
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Organizing
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
@@ -958,7 +959,7 @@ End Namespace</element>
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
-                Dim handler = New OrganizeDocumentCommandHandler()
+                Dim handler = New OrganizeDocumentCommandHandler(exportProvider.GetExportedValue(Of IThreadingContext)())
 
                 Dim state = handler.GetCommandState(New SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer))
                 Assert.True(state.IsUnspecified)
