@@ -1055,7 +1055,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
