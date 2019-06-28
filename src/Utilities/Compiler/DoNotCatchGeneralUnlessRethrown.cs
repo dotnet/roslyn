@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using static System.Linq.ImmutableArrayExtensions;
 
 namespace Analyzer.Utilities
 {

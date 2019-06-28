@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
+using static System.Linq.ImmutableArrayExtensions;
 
 namespace Analyzer.Utilities
 {

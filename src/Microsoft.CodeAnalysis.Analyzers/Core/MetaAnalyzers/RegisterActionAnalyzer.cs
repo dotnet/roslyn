@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using static System.Linq.ImmutableArrayExtensions;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {

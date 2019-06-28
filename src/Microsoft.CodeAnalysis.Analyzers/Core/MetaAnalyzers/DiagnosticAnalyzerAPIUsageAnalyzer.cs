@@ -11,6 +11,7 @@ using System.Threading;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Analyzer.Utilities.PooledObjects;
+using static System.Linq.ImmutableArrayExtensions;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
