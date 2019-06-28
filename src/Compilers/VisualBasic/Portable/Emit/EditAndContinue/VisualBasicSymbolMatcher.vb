@@ -195,19 +195,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Public Sub New(sourceContext As EmitContext, otherContext As EmitContext)
                 MyBase.New(sourceContext)
-                Me._otherContext = otherContext
+                _otherContext = otherContext
             End Sub
 
             Protected Overrides Function GetTopLevelTypes() As IEnumerable(Of Cci.INamespaceTypeDefinition)
-                Return Me._otherContext.Module.GetTopLevelTypes(Me._otherContext)
+                Return _otherContext.Module.GetTopLevelTypeDefinitions(_otherContext)
             End Function
 
             Protected Overrides Function GetNestedTypes(def As Cci.ITypeDefinition) As IEnumerable(Of Cci.INestedTypeDefinition)
-                Return def.GetNestedTypes(Me._otherContext)
+                Return def.GetNestedTypes(_otherContext)
             End Function
 
             Protected Overrides Function GetFields(def As Cci.ITypeDefinition) As IEnumerable(Of Cci.IFieldDefinition)
-                Return def.GetFields(Me._otherContext)
+                Return def.GetFields(_otherContext)
             End Function
         End Class
 

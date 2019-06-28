@@ -194,6 +194,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return anonymousTypes;
         }
 
+        public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitions(EmitContext context)
+        {
+            foreach (var typeDef in GetAnonymousTypeDefinitions(context))
+            {
+                yield return typeDef;
+            }
+
+            foreach (var typeDef in GetTopLevelTypeDefinitionsCore(context))
+            {
+                yield return typeDef;
+            }
+        }
+
+        public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelSourceTypeDefinitions(EmitContext context)
+        {
+            return _changes.GetTopLevelSourceTypeDefinitions(context);
+        }
+
         internal override VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method, MethodSymbol topLevelMethod, DiagnosticBag diagnostics)
         {
             return _previousDefinitions.TryCreateVariableSlotAllocator(_previousGeneration, Compilation, method, topLevelMethod, diagnostics);
@@ -218,11 +236,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal SymbolChanges Changes
         {
             get { return _changes; }
-        }
-
-        internal override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context)
-        {
-            return _changes.GetTopLevelTypes(context);
         }
 
         public void OnCreatedIndices(DiagnosticBag diagnostics)

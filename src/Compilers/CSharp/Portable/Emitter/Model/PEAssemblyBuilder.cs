@@ -15,7 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
     internal abstract class PEAssemblyBuilderBase : PEModuleBuilder, Cci.IAssemblyReference
     {
         private readonly SourceAssemblySymbol _sourceAssembly;
+
+        /// <summary>
+        /// Additional types injected by the Expression Evaluator.
+        /// </summary>
         private readonly ImmutableArray<NamedTypeSymbol> _additionalTypes;
+
         private ImmutableArray<Cci.IFileReference> _lazyFiles;
 
         /// <summary>This is a cache of a subset of <seealso cref="_lazyFiles"/>. We don't include manifest resources in ref assemblies</summary>
@@ -57,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             ImmutableArray<NamedTypeSymbol> additionalTypes)
             : base((SourceModuleSymbol)sourceAssembly.Modules[0], emitOptions, outputKind, serializationProperties, manifestResources)
         {
-            Debug.Assert((object)sourceAssembly != null);
+            Debug.Assert(sourceAssembly is object);
 
             _sourceAssembly = sourceAssembly;
             _additionalTypes = additionalTypes.NullToEmpty();
@@ -66,14 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, this);
         }
 
-        public override ISourceAssemblySymbolInternal SourceAssemblyOpt => _sourceAssembly;
+        public sealed override ISourceAssemblySymbolInternal SourceAssemblyOpt
+            => _sourceAssembly;
 
-        internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
-        {
-            return _additionalTypes;
-        }
+        public sealed override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
+            => _additionalTypes;
 
-        internal override ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
+        public sealed override ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
         {
             var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 

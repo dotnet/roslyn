@@ -83,7 +83,6 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract Cci.ITypeReference Translate(ITypeSymbol symbol, SyntaxNode syntaxOpt, DiagnosticBag diagnostics);
         internal abstract Cci.IMethodReference Translate(IMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration);
         internal abstract bool SupportsPrivateImplClass { get; }
-        internal abstract ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes(EmitContext context);
         internal abstract Compilation CommonCompilation { get; }
         internal abstract IModuleSymbol CommonSourceModule { get; }
         internal abstract IAssemblySymbol CommonCorLibrary { get; }
@@ -137,7 +136,46 @@ namespace Microsoft.CodeAnalysis.Emit
         protected abstract void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<Cci.ManagedResource> builder, DiagnosticBag diagnostics);
         public abstract Cci.ITypeReference GetPlatformType(Cci.PlatformType platformType, EmitContext context);
         public abstract bool IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType);
-        public abstract IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context);
+
+        public abstract IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitions(EmitContext context);
+
+        public IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitionsCore(EmitContext context)
+        {
+            foreach (var typeDef in GetAdditionalTopLevelTypeDefinitions(context))
+            {
+                yield return typeDef;
+            }
+
+            foreach (var typeDef in GetEmbeddedTypeDefinitions(context))
+            {
+                yield return typeDef;
+            }
+
+            foreach (var typeDef in GetTopLevelSourceTypeDefinitions(context))
+            {
+                yield return typeDef;
+            }
+        }
+
+        /// <summary>
+        /// Additional top-level types injected by the Expression Evaluators.
+        /// </summary>
+        public abstract IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypeDefinitions(EmitContext context);
+
+        /// <summary>
+        /// Anonymous types defined in the compilation.
+        /// </summary>
+        public abstract IEnumerable<Cci.INamespaceTypeDefinition> GetAnonymousTypeDefinitions(EmitContext context);
+
+        /// <summary>
+        /// Top-level embedded types (e.g. attribute types taht are not present in referenced assemblies).
+        /// </summary>
+        public abstract IEnumerable<Cci.INamespaceTypeDefinition> GetEmbeddedTypeDefinitions(EmitContext context);
+
+        /// <summary>
+        /// Top-level named types defined in source.
+        /// </summary>
+        public abstract IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelSourceTypeDefinitions(EmitContext context);
 
         /// <summary>
         /// A list of the files that constitute the assembly. Empty for netmodule. These are not the source language files that may have been
@@ -480,12 +518,10 @@ namespace Microsoft.CodeAnalysis.Emit
             return _namesOfTopLevelTypes.Contains(fullEmittedName);
         }
 
-        internal abstract IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context);
-
         /// <summary>
         /// Returns all top-level (not nested) types defined in the module. 
         /// </summary>
-        public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context)
+        public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitions(EmitContext context)
         {
             Cci.TypeReferenceIndexer typeReferenceIndexer = null;
             HashSet<string> names;
@@ -510,28 +546,28 @@ namespace Microsoft.CodeAnalysis.Emit
                 // Run this reference indexer on the assembly- and module-level attributes first.
                 // We'll run it on all other types below.
                 // The purpose is to trigger Translate on all types.
-                this.Dispatch(typeReferenceIndexer);
+                Dispatch(typeReferenceIndexer);
             }
 
             AddTopLevelType(names, _rootModuleType);
             VisitTopLevelType(typeReferenceIndexer, _rootModuleType);
             yield return _rootModuleType;
 
-            foreach (var type in this.GetAnonymousTypes(context))
+            foreach (var typeDef in GetAnonymousTypeDefinitions(context))
             {
-                AddTopLevelType(names, type);
-                VisitTopLevelType(typeReferenceIndexer, type);
-                yield return type;
+                AddTopLevelType(names, typeDef);
+                VisitTopLevelType(typeReferenceIndexer, typeDef);
+                yield return typeDef;
             }
 
-            foreach (var type in this.GetTopLevelTypesCore(context))
+            foreach (var typeDef in GetTopLevelTypeDefinitionsCore(context))
             {
-                AddTopLevelType(names, type);
-                VisitTopLevelType(typeReferenceIndexer, type);
-                yield return type;
+                AddTopLevelType(names, typeDef);
+                VisitTopLevelType(typeReferenceIndexer, typeDef);
+                yield return typeDef;
             }
 
-            var privateImpl = this.PrivateImplClass;
+            var privateImpl = PrivateImplClass;
             if (privateImpl != null)
             {
                 AddTopLevelType(names, privateImpl);
@@ -554,6 +590,18 @@ namespace Microsoft.CodeAnalysis.Emit
                 _namesOfTopLevelTypes = names;
             }
         }
+
+        public override IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypeDefinitions(EmitContext context)
+            => GetAdditionalTopLevelTypes(context.Diagnostics);
+
+        public virtual ImmutableArray<TNamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
+            => ImmutableArray<TNamedTypeSymbol>.Empty;
+
+        public override IEnumerable<Cci.INamespaceTypeDefinition> GetEmbeddedTypeDefinitions(EmitContext context)
+            => GetEmbeddedTypes(context.Diagnostics);
+
+        public virtual ImmutableArray<TNamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
+            => ImmutableArray<TNamedTypeSymbol>.Empty;
 
         internal abstract Cci.IAssemblyReference Translate(TAssemblySymbol symbol, DiagnosticBag diagnostics);
         internal abstract Cci.ITypeReference Translate(TTypeSymbol symbol, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);

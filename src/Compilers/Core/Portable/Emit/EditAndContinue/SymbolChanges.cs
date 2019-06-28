@@ -185,14 +185,8 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        public IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context)
+        public IEnumerable<INamespaceTypeDefinition> GetTopLevelSourceTypeDefinitions(EmitContext context)
         {
-            var module = (CommonPEModuleBuilder)context.Module;
-            foreach (var type in module.GetAnonymousTypes(context))
-            {
-                yield return type;
-            }
-
             foreach (var symbol in _changes.Keys)
             {
                 var namespaceTypeDef = (symbol as ITypeDefinition)?.AsNamespaceTypeDefinition(context);

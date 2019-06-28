@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     return null;
                 }
 
-                var topLevelTypes = this.GetTopLevelTypesByName();
+                var topLevelTypes = GetTopLevelTypesByName();
                 Cci.INamespaceTypeDefinition otherDef;
                 topLevelTypes.TryGetValue(def.Name, out otherDef);
                 return otherDef;
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 if (_lazyTopLevelTypes == null)
                 {
                     var typesByName = new Dictionary<string, Cci.INamespaceTypeDefinition>(StringOrdinalComparer.Instance);
-                    foreach (var type in this.GetTopLevelTypes())
+                    foreach (var type in GetTopLevelTypes())
                     {
                         // All generated top-level types are assumed to be in the global namespace.
                         if (string.IsNullOrEmpty(type.NamespaceName))
@@ -169,8 +169,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                             typesByName.Add(type.Name, type);
                         }
                     }
+
                     Interlocked.CompareExchange(ref _lazyTopLevelTypes, typesByName, null);
                 }
+
                 return _lazyTopLevelTypes;
             }
 
@@ -247,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             protected override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypes()
             {
-                return _otherContext.Module.GetTopLevelTypes(_otherContext);
+                return _otherContext.Module.GetTopLevelTypeDefinitions(_otherContext);
             }
 
             protected override IEnumerable<Cci.INestedTypeDefinition> GetNestedTypes(Cci.ITypeDefinition def)

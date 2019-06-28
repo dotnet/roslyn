@@ -237,8 +237,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Friend Overrides Function GetTopLevelTypesCore(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
-            Return _changes.GetTopLevelTypes(context)
+        Public Overrides Iterator Function GetTopLevelTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
+            For Each typeDef In GetAnonymousTypeDefinitions(context)
+                Yield typeDef
+            Next
+
+            For Each typeDef In GetTopLevelTypeDefinitionsCore(context)
+                Yield typeDef
+            Next
+        End Function
+
+        Public Overrides Function GetTopLevelSourceTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
+            Return _changes.GetTopLevelSourceTypeDefinitions(context)
         End Function
 
         Friend Sub OnCreatedIndices(diagnostics As DiagnosticBag) Implements IPEDeltaAssemblyBuilder.OnCreatedIndices
