@@ -77,12 +77,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     undoHistory.Undo(1);
                 }
 
-                using (var undoTransaction = undoHistory.CreateTransaction(EditorFeaturesResources.Start_Rename))
-                {
-                    applyEdit();
-                    undoTransaction.Complete();
-                    UndoManagers[subjectBuffer].ConflictResolutionUndoTransaction = undoTransaction;
-                }
+                using var undoTransaction = undoHistory.CreateTransaction(EditorFeaturesResources.Start_Rename);
+
+                applyEdit();
+                undoTransaction.Complete();
+                UndoManagers[subjectBuffer].ConflictResolutionUndoTransaction = undoTransaction;
             }
 
             public void UndoTemporaryEdits(ITextBuffer subjectBuffer, bool disconnect)

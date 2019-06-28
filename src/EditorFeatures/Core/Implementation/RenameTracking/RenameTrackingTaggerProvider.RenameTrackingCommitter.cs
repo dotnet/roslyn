@@ -227,22 +227,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 // deal with the state machine.
 
                 var undoHistory = _undoHistoryRegistry.RegisterHistory(_stateMachine.Buffer);
-                using (var localUndoTransaction = undoHistory.CreateTransaction(EditorFeaturesResources.Text_Buffer_Change))
+                using var localUndoTransaction = undoHistory.CreateTransaction(EditorFeaturesResources.Text_Buffer_Change);
+
+                var undoPrimitiveBefore = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: true);
+                localUndoTransaction.AddUndo(undoPrimitiveBefore);
+
+                if (!workspace.TryApplyChanges(newSolution))
                 {
-                    var undoPrimitiveBefore = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: true);
-                    localUndoTransaction.AddUndo(undoPrimitiveBefore);
-
-                    if (!workspace.TryApplyChanges(newSolution))
-                    {
-                        Contract.Fail("Rename Tracking could not update solution.");
-                    }
-
-                    // Never resume tracking session on redo
-                    var undoPrimitiveAfter = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: false);
-                    localUndoTransaction.AddUndo(undoPrimitiveAfter);
-
-                    localUndoTransaction.Complete();
+                    Contract.Fail("Rename Tracking could not update solution.");
                 }
+
+                // Never resume tracking session on redo
+                var undoPrimitiveAfter = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: false);
+                localUndoTransaction.AddUndo(undoPrimitiveAfter);
+
+                localUndoTransaction.Complete();
             }
 
             private void UpdateWorkspaceForGlobalIdentifierRename(

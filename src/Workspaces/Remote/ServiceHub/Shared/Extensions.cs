@@ -41,42 +41,41 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             Task task = null;
 
-            using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
-            using (var stream = new ServerDirectStream())
+            using var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            using var stream = new ServerDirectStream();
+
+            try
             {
-                try
-                {
-                    // send request by adding direct stream name to end of arguments
-                    task = rpc.InvokeWithCancellationAsync(targetName, arguments.Concat(stream.Name).ToArray(), cancellationToken);
+                // send request by adding direct stream name to end of arguments
+                task = rpc.InvokeWithCancellationAsync(targetName, arguments.Concat(stream.Name).ToArray(), cancellationToken);
 
-                    // if invoke throws an exception, make sure we raise cancellation.
-                    RaiseCancellationIfInvokeFailed(task, mergedCancellation, cancellationToken);
+                // if invoke throws an exception, make sure we raise cancellation.
+                RaiseCancellationIfInvokeFailed(task, mergedCancellation, cancellationToken);
 
-                    // wait for asset source to respond
-                    await stream.WaitForDirectConnectionAsync(mergedCancellation.Token).ConfigureAwait(false);
+                // wait for asset source to respond
+                await stream.WaitForDirectConnectionAsync(mergedCancellation.Token).ConfigureAwait(false);
 
-                    // run user task with direct stream
-                    await funcWithDirectStreamAsync(stream, mergedCancellation.Token).ConfigureAwait(false);
+                // run user task with direct stream
+                await funcWithDirectStreamAsync(stream, mergedCancellation.Token).ConfigureAwait(false);
 
-                    // wait task to finish
-                    await task.ConfigureAwait(false);
-                }
-                catch (Exception ex) when (ReportUnlessCanceled(ex, mergedCancellation.Token, cancellationToken))
-                {
-                    // important to use cancelationToken here rather than mergedCancellationToken.
-                    // there is a slight delay when merged cancellation token will be notified once cancellation token
-                    // is raised, it can cause one to be in cancelled mode and the other is not. here, one we
-                    // actually care is the cancellation token given in, not the merged cancellation token.
-                    // but we need merged one to cancel operation if InvokeAsync has failed. if it failed without
-                    // cancellation token is raised, then we do want to have watson report
-                    cancellationToken.ThrowIfCancellationRequested();
+                // wait task to finish
+                await task.ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ReportUnlessCanceled(ex, mergedCancellation.Token, cancellationToken))
+            {
+                // important to use cancelationToken here rather than mergedCancellationToken.
+                // there is a slight delay when merged cancellation token will be notified once cancellation token
+                // is raised, it can cause one to be in cancelled mode and the other is not. here, one we
+                // actually care is the cancellation token given in, not the merged cancellation token.
+                // but we need merged one to cancel operation if InvokeAsync has failed. if it failed without
+                // cancellation token is raised, then we do want to have watson report
+                cancellationToken.ThrowIfCancellationRequested();
 
-                    // record reason why task got aborted. use NFW here since we don't want to
-                    // crash VS on explicitly killing OOP.
-                    task.Exception.ReportServiceHubNFW("JsonRpc Invoke Failed");
+                // record reason why task got aborted. use NFW here since we don't want to
+                // crash VS on explicitly killing OOP.
+                task.Exception.ReportServiceHubNFW("JsonRpc Invoke Failed");
 
-                    throw;
-                }
+                throw;
             }
         }
 

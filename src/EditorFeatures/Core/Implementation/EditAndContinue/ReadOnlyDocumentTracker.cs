@@ -69,13 +69,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             }
 
             var textBuffer = GetTextBuffer(_workspace, documentId);
-            using (var readOnlyEdit = textBuffer.CreateReadOnlyRegionEdit())
-            {
-                _readOnlyRegions.Add(documentId, readOnlyEdit.CreateDynamicReadOnlyRegion(Span.FromBounds(0, readOnlyEdit.Snapshot.Length), SpanTrackingMode.EdgeInclusive, EdgeInsertionMode.Deny,
-                    isEdit => IsRegionReadOnly(documentId, isEdit)));
+            using var readOnlyEdit = textBuffer.CreateReadOnlyRegionEdit();
 
-                readOnlyEdit.Apply();
-            }
+            _readOnlyRegions.Add(documentId, readOnlyEdit.CreateDynamicReadOnlyRegion(Span.FromBounds(0, readOnlyEdit.Snapshot.Length), SpanTrackingMode.EdgeInclusive, EdgeInsertionMode.Deny,
+                isEdit => IsRegionReadOnly(documentId, isEdit)));
+
+            readOnlyEdit.Apply();
         }
 
         private bool IsRegionReadOnly(DocumentId documentId, bool isEdit)

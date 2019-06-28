@@ -382,25 +382,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             SourceText originalText, TextSpan visibleSpanInOriginalText, string leftText, string rightText, int offsetInOriginalText)
         {
             // these are expensive. but hopefully we don't hit this as much except the boundary cases.
-            using (var leftPool = SharedPools.Default<List<ValueTuple<int, int>>>().GetPooledObject())
-            using (var rightPool = SharedPools.Default<List<ValueTuple<int, int>>>().GetPooledObject())
+            using var leftPool = SharedPools.Default<List<ValueTuple<int, int>>>().GetPooledObject();
+            using var rightPool = SharedPools.Default<List<ValueTuple<int, int>>>().GetPooledObject();
+
+            var leftReplacementMap = leftPool.Object;
+            var rightReplacementMap = rightPool.Object;
+            GetTextWithReplacements(leftText, rightText, leftReplacementMap, rightReplacementMap, out var leftTextWithReplacement, out var rightTextWithReplacement);
+
+            var diffResult = DiffStrings(leftTextWithReplacement, rightTextWithReplacement);
+
+            foreach (var difference in diffResult)
             {
-                var leftReplacementMap = leftPool.Object;
-                var rightReplacementMap = rightPool.Object;
-                GetTextWithReplacements(leftText, rightText, leftReplacementMap, rightReplacementMap, out var leftTextWithReplacement, out var rightTextWithReplacement);
+                var spanInLeftText = AdjustSpan(diffResult.LeftDecomposition.GetSpanInOriginal(difference.Left), leftReplacementMap);
+                var spanInRightText = AdjustSpan(diffResult.RightDecomposition.GetSpanInOriginal(difference.Right), rightReplacementMap);
 
-                var diffResult = DiffStrings(leftTextWithReplacement, rightTextWithReplacement);
-
-                foreach (var difference in diffResult)
+                var spanInOriginalText = new TextSpan(offsetInOriginalText + spanInLeftText.Start, spanInLeftText.Length);
+                if (TryGetSubTextChange(originalText, visibleSpanInOriginalText, rightText, spanInOriginalText, spanInRightText.ToTextSpan(), out var textChange))
                 {
-                    var spanInLeftText = AdjustSpan(diffResult.LeftDecomposition.GetSpanInOriginal(difference.Left), leftReplacementMap);
-                    var spanInRightText = AdjustSpan(diffResult.RightDecomposition.GetSpanInOriginal(difference.Right), rightReplacementMap);
-
-                    var spanInOriginalText = new TextSpan(offsetInOriginalText + spanInLeftText.Start, spanInLeftText.Length);
-                    if (TryGetSubTextChange(originalText, visibleSpanInOriginalText, rightText, spanInOriginalText, spanInRightText.ToTextSpan(), out var textChange))
-                    {
-                        yield return textChange;
-                    }
+                    yield return textChange;
                 }
             }
         }

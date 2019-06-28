@@ -529,27 +529,26 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 //         minutes ago, then the client will attempt to download the file.
                 //         In the interim period null will be returned from client.ReadFile.
                 var pollingMinutes = (int)TimeSpan.FromDays(1).TotalMinutes;
-                using (var client = _service._remoteControlService.CreateClient(HostId, serverPath, pollingMinutes))
+                using var client = _service._remoteControlService.CreateClient(HostId, serverPath, pollingMinutes);
+
+                await _service.LogInfoAsync("Creating download client completed").ConfigureAwait(false);
+
+                // Poll the client every minute until we get the file.
+                while (true)
                 {
-                    await _service.LogInfoAsync("Creating download client completed").ConfigureAwait(false);
+                    _service._updateCancellationToken.ThrowIfCancellationRequested();
 
-                    // Poll the client every minute until we get the file.
-                    while (true)
+                    var resultOpt = await TryDownloadFileAsync(client).ConfigureAwait(false);
+                    if (resultOpt == null)
                     {
-                        _service._updateCancellationToken.ThrowIfCancellationRequested();
-
-                        var resultOpt = await TryDownloadFileAsync(client).ConfigureAwait(false);
-                        if (resultOpt == null)
-                        {
-                            var delay = _service._delayService.CachePollDelay;
-                            await _service.LogInfoAsync($"File not downloaded. Trying again in {delay}").ConfigureAwait(false);
-                            await Task.Delay(delay, _service._updateCancellationToken).ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            // File was downloaded.  
-                            return resultOpt;
-                        }
+                        var delay = _service._delayService.CachePollDelay;
+                        await _service.LogInfoAsync($"File not downloaded. Trying again in {delay}").ConfigureAwait(false);
+                        await Task.Delay(delay, _service._updateCancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        // File was downloaded.  
+                        return resultOpt;
                     }
                 }
             }
