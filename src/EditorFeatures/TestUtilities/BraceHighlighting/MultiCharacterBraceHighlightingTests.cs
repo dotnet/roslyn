@@ -21,11 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         internal override IBraceMatchingService GetBraceMatchingService(TestWorkspace workspace)
             => new TestBraceMatchingService();
 
-        private ImmutableArray<TextSpan> GetSpans(BraceMatchingResult? result)
-            => result.HasValue
-                ? ImmutableArray.Create(result.Value.LeftSpan, result.Value.RightSpan)
-                : ImmutableArray<TextSpan>.Empty;
-
         private class TestBraceMatchingService : IBraceMatchingService
         {
             public async Task<BraceMatchingResult?> GetMatchingBracesAsync(
