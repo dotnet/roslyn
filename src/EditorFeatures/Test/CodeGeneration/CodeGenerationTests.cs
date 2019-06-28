@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             CodeGenerationOptions codeGenerationOptions = default)
         {
             using var context = await TestContext.CreateAsync(initial, expected);
-            type = type ?? typeof(Action);
+            type ??= typeof(Action);
 
             var parameterSymbols = GetParameterSymbols(parameters, context);
             var typeSymbol = GetTypeSymbol(type)(context.SemanticModel);

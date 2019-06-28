@@ -219,8 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsParenInParenthesizedExpression(this SyntaxToken token)
         {
-            var parenthesizedExpression = token.Parent as ParenthesizedExpressionSyntax;
-            if (parenthesizedExpression == null)
+            if (!(token.Parent is ParenthesizedExpressionSyntax parenthesizedExpression))
             {
                 return false;
             }
@@ -283,8 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsCloseParenInStatement(this SyntaxToken token)
         {
-            var statement = token.Parent as StatementSyntax;
-            if (statement == null)
+            if (!(token.Parent is StatementSyntax statement))
             {
                 return false;
             }
@@ -321,8 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsDotInMemberAccess(this SyntaxToken token)
         {
-            var memberAccess = token.Parent as MemberAccessExpressionSyntax;
-            if (memberAccess == null)
+            if (!(token.Parent is MemberAccessExpressionSyntax memberAccess))
             {
                 return false;
             }
@@ -523,8 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             Contract.ThrowIfNull(node);
 
-            var blockNode = node as BlockSyntax;
-            if (blockNode == null || blockNode.Parent == null)
+            if (!(node is BlockSyntax blockNode) || blockNode.Parent == null)
             {
                 return false;
             }
