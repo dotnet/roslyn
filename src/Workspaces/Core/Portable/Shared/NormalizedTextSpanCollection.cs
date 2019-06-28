@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Shared
 
             var start = -1;
             var end = int.MaxValue;
-            while ((index1 < left.Count) && (index2 < right.Count))
+            while (index1 < left.Count && index2 < right.Count)
             {
                 var span1 = left[index1];
                 var span2 = right[index2];
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Shared
             }
 
             var spans = new OrderedSpanList();
-            for (int index1 = 0, index2 = 0; (index1 < left.Count) && (index2 < right.Count);)
+            for (int index1 = 0, index2 = 0; index1 < left.Count && index2 < right.Count;)
             {
                 var span1 = left[index1];
                 var span2 = right[index2];

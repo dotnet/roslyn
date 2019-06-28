@@ -381,7 +381,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     eventQueue);
 
                 // If modifiers have changed enqueue a element changed (unknown change) node
-                if ((oldField.Kind() != newField.Kind()) ||
+                if (oldField.Kind() != newField.Kind() ||
                     !CompareModifiers(oldField, newField))
                 {
                     EnqueueChangeEvent(newField, newNodeParent, CodeModelEventType.Unknown, eventQueue);
@@ -799,7 +799,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         var oldArrayType = (ArrayTypeSyntax)oldType;
                         var newArrayType = (ArrayTypeSyntax)newType;
 
-                        return (oldArrayType.RankSpecifiers.Count == newArrayType.RankSpecifiers.Count)
+                        return oldArrayType.RankSpecifiers.Count == newArrayType.RankSpecifiers.Count
                             && CompareTypes(oldArrayType.ElementType, newArrayType.ElementType);
 
                     case SyntaxKind.PointerType:
