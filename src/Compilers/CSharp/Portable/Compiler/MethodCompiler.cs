@@ -1203,7 +1203,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             var factory = new SyntheticBoundNodeFactory(methodSymbol, syntax, compilationState, diagsForCurrentMethod);
-                            boundStatements = LocalRewriter.ConstructNullCheckedStatementList(methodSymbol.Parameters, boundStatements, factory);
+                            var boundStatementsWithNullCheck = LocalRewriter.ConstructNullCheckedStatementList(methodSymbol.Parameters, boundStatements, factory);
+                            if (!boundStatementsWithNullCheck.IsEmpty)
+                            {
+                                boundStatements = boundStatementsWithNullCheck;
+                            }
+
                         }
 
 

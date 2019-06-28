@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundBlock RewriteNullChecking(BoundBlock block)
         {
             var statementList = ConstructNullCheckedStatementList(_factory.CurrentFunction.Parameters, block.Statements, _factory);
-            if (statementList.Equals(block.Statements))
+            if (statementList.IsEmpty)
             {
                 return block;
             }
@@ -41,11 +41,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (statementList is null)
             {
-                return existingStatements;
+                return ImmutableArray<BoundStatement>.Empty;
             }
 
             statementList.AddRange(existingStatements);
             return statementList.ToImmutableAndFree();
+
         }
 
         private static BoundStatement ConstructIfStatementForParameter(SourceParameterSymbolBase parameter, SyntheticBoundNodeFactory factory)
