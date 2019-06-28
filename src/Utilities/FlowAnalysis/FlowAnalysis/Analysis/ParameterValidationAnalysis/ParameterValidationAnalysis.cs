@@ -42,12 +42,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                    analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken, defaultMaxInterproceduralMethodCallChain);
             var performCopyAnalysis = analyzerOptions.GetCopyAnalysisOption(rule, defaultValue: false, cancellationToken);
-            var nullCheckValidationMethods = analyzerOptions.GetSymbolNamesOptionValue(
-                EditorConfigOptionNames.NullCheckValidationMethods,
-                rule,
-                compilation,
-                cancellationToken,
-                namePrefixOpt: "M:");
+            var nullCheckValidationMethods = analyzerOptions.GetNullCheckValidationMethodsOption(rule, compilation, cancellationToken);
             return GetOrComputeHazardousParameterUsages(topmostBlock, compilation, owningSymbol,
                 nullCheckValidationMethods, interproceduralAnalysisConfig, performCopyAnalysis, pessimisticAnalysis);
         }

@@ -115,13 +115,34 @@ namespace Analyzer.Utilities
             return analyzerConfigOptions.GetOptionValue(optionName, rule, uint.TryParse, defaultValue);
         }
 
-        public static SymbolNamesOption GetSymbolNamesOptionValue(
+        public static SymbolNamesOption GetNullCheckValidationMethodsOption(
             this AnalyzerOptions options,
-            string optionName,
             DiagnosticDescriptor rule,
             Compilation compilation,
-            CancellationToken cancellationToken,
-            string namePrefixOpt = null)
+            CancellationToken cancellationToken)
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.NullCheckValidationMethods, namePrefixOpt: "M:", rule, compilation, cancellationToken);
+
+        public static SymbolNamesOption GetExcludedSymbolNamesOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.ExcludedSymbolNames, namePrefixOpt: null, rule, compilation, cancellationToken);
+
+        public static SymbolNamesOption GetExcludedTypeNamesWithDerivedTypesOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.ExcludedTypeNamesWithDerivedTypes, namePrefixOpt: "T:", rule, compilation, cancellationToken);
+
+        private static SymbolNamesOption GetSymbolNamesOption(
+            this AnalyzerOptions options,
+            string optionName,
+            string namePrefixOpt,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
         {
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(cancellationToken);
             return analyzerConfigOptions.GetOptionValue(optionName, rule, TryParse, defaultValue: SymbolNamesOption.Empty);

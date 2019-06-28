@@ -157,8 +157,9 @@ namespace Analyzer.Utilities.Extensions
             Compilation compilation,
             CancellationToken cancellationToken)
         {
-            var excludedSymbols = options.GetSymbolNamesOptionValue(EditorConfigOptionNames.ExcludedSymbolNames, rule, compilation, cancellationToken);
-            if (excludedSymbols.IsEmpty)
+            var excludedSymbols = options.GetExcludedSymbolNamesOption(rule, compilation, cancellationToken);
+            var excludedTypeNamesWithDerivedTypes = options.GetExcludedTypeNamesWithDerivedTypesOption(rule, compilation, cancellationToken);
+            if (excludedSymbols.IsEmpty && excludedTypeNamesWithDerivedTypes.IsEmpty)
             {
                 return false;
             }
@@ -168,6 +169,17 @@ namespace Analyzer.Utilities.Extensions
                 if (excludedSymbols.Contains(symbol))
                 {
                     return true;
+                }
+
+                if (symbol is INamedTypeSymbol namedType && !excludedTypeNamesWithDerivedTypes.IsEmpty)
+                {
+                    foreach (var type in namedType.GetBaseTypesAndThis())
+                    {
+                        if (excludedTypeNamesWithDerivedTypes.Contains(type))
+                        {
+                            return true;
+                        }
+                    }
                 }
 
                 symbol = symbol.ContainingSymbol;
