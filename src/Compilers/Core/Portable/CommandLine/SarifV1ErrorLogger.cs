@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
     /// <remarks>
     /// To log diagnostics in the standardized SARIF v2.1.0 format, use the SarifV2ErrorLogger.
     /// </remarks>
-    internal sealed class SarifV1ErrorLogger : SarifErrorLoggerBase, IDisposable
+    internal sealed class SarifV1ErrorLogger : SarifErrorLogger, IDisposable
     {
         private readonly DiagnosticDescriptorSet _descriptors;
         public SarifV1ErrorLogger(Stream stream, string toolName, string toolFileVersion, Version toolAssemblyVersion, CultureInfo culture)

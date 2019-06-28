@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class SarifV2ErrorLogger : SarifErrorLoggerBase, IDisposable
+    internal sealed class SarifV2ErrorLogger : SarifErrorLogger, IDisposable
     {
         private readonly DiagnosticDescriptorSet _descriptors;
 

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// </summary>
         internal int RunInteractive()
         {
-            StreamErrorLogger errorLogger = null;
+            SarifErrorLogger errorLogger = null;
             if (_compiler.Arguments.ErrorLogPath != null)
             {
                 errorLogger = _compiler.GetErrorLogger(_console.Error, CancellationToken.None);

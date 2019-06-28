@@ -4,16 +4,21 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Globalization;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract class SarifErrorLoggerBase : StreamErrorLogger, IDisposable
+    internal abstract class SarifErrorLogger : ErrorLogger, IDisposable
     {
+        protected JsonWriter _writer { get; }
         protected readonly CultureInfo _culture;
 
-        protected SarifErrorLoggerBase(Stream stream, CultureInfo culture)
-            : base(stream)
+        protected SarifErrorLogger(Stream stream, CultureInfo culture)
         {
+            Debug.Assert(stream != null);
+            Debug.Assert(stream.Position == 0);
+
+            _writer = new JsonWriter(new StreamWriter(stream));
             _culture = culture;
         }
 
@@ -22,9 +27,9 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract void WritePhysicalLocation(Location diagnosticLocation);
 
-        public override void Dispose()
+        public virtual void Dispose()
         {
-            base.Dispose();
+            _writer.Dispose();
         }
 
         protected void WriteRegion(FileLinePositionSpan span)
