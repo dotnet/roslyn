@@ -5076,7 +5076,7 @@ class Program
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCSharp_DoNotSimplifyNullableComplexGeneric() As Task
+        Public Async Function TestCSharp_DoNotSimplifyNullableWithBangOperator() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -5087,11 +5087,11 @@ class Program
     void M()
     {
         string? s1 = null;
-        string s2 = {|Simplify:ValueOrDefault<string>|}(s1!, "hello");
+        string s2 = {|Simplify:M1<string>|}(s1!, "hello");
     }
 
-    static T ValueOrDefault<T>(T target, T defaultValue) where T : class? =>
-        target ?? defaultValue;
+    static T M1<T>(T t1, T t2) where T : class? =>
+        t1 ?? t2;
 }
 ]]>
         </Document>
@@ -5106,11 +5106,11 @@ class Program
     void M()
     {
         string? s1 = null;
-        string s2 = ValueOrDefault<string>(s1!, "hello");
+        string s2 = M1<string>(s1!, "hello");
     }
 
-    static T ValueOrDefault<T>(T target, T defaultValue) where T : class? =>
-        target ?? defaultValue;
+    static T M1<T>(T t1, T t2) where T : class? =>
+        t1 ?? t2;
 }
 ]]>
 </code>
