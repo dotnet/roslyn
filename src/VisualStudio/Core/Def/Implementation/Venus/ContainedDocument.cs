@@ -589,7 +589,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var diffService = _differenceSelectorService.GetTextDifferencingService(
                 _workspace.Services.GetLanguageServices(_project.Language).GetService<IContentTypeLanguageService>().GetDefaultContentType());
 
-            diffService = diffService ?? _differenceSelectorService.DefaultTextDifferencingService;
+            diffService ??= _differenceSelectorService.DefaultTextDifferencingService;
             return diffService.DiffStrings(leftTextWithReplacement, rightTextWithReplacement, s_venusEditOptions.DifferenceOptions);
         }
 

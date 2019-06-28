@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Remote
             TraceSource logger,
             IEnumerable<JsonConverter> jsonConverters = null)
         {
-            jsonConverters = jsonConverters ?? SpecializedCollections.EmptyEnumerable<JsonConverter>();
+            jsonConverters ??= SpecializedCollections.EmptyEnumerable<JsonConverter>();
 
             var jsonFormatter = new JsonMessageFormatter();
             jsonFormatter.JsonSerializer.Converters.AddRange(jsonConverters.Concat(AggregateJsonConverter.Instance));
