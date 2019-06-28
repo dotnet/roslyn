@@ -107,8 +107,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var service = new MyDiagnosticAnalyzerService(diagnosticAnalyzer, listener);
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
 
-            bool syntax = false;
-            bool semantic = false;
+            var syntax = false;
+            var semantic = false;
 
             // listen to events
             service.DiagnosticsUpdated += (s, a) =>
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var service = new MyDiagnosticAnalyzerService(new NoNameAnalyzer(), listener, language);
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
 
-            bool syntax = false;
+            var syntax = false;
 
             // listen to events
             service.DiagnosticsUpdated += (s, a) =>

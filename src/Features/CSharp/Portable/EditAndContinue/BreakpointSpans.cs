@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -59,10 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// </remarks>
         public static bool TryGetClosestBreakpointSpan(SyntaxNode root, int position, out TextSpan span)
         {
-            SyntaxNode node = root.FindToken(position).Parent;
+            var node = root.FindToken(position).Parent;
             while (node != null)
             {
-                TextSpan? breakpointSpan = TryCreateSpanForNode(node, position);
+                var breakpointSpan = TryCreateSpanForNode(node, position);
                 if (breakpointSpan.HasValue)
                 {
                     span = breakpointSpan.Value;

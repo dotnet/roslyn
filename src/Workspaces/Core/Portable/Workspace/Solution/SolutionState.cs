@@ -185,13 +185,13 @@ namespace Microsoft.CodeAnalysis
         {
             var branchId = GetBranchId();
 
-            solutionAttributes = solutionAttributes ?? _solutionAttributes;
-            projectIds = projectIds ?? _projectIds;
-            idToProjectStateMap = idToProjectStateMap ?? _projectIdToProjectStateMap;
-            projectIdToTrackerMap = projectIdToTrackerMap ?? _projectIdToTrackerMap;
-            filePathToDocumentIdsMap = filePathToDocumentIdsMap ?? _filePathToDocumentIdsMap;
-            dependencyGraph = dependencyGraph ?? _dependencyGraph;
-            lazyLatestProjectVersion = lazyLatestProjectVersion ?? _lazyLatestProjectVersion;
+            solutionAttributes ??= _solutionAttributes;
+            projectIds ??= _projectIds;
+            idToProjectStateMap ??= _projectIdToProjectStateMap;
+            projectIdToTrackerMap ??= _projectIdToTrackerMap;
+            filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
+            dependencyGraph ??= _dependencyGraph;
+            lazyLatestProjectVersion ??= _lazyLatestProjectVersion;
 
             if (branchId == _branchId &&
                 solutionAttributes == _solutionAttributes &&
@@ -1693,7 +1693,7 @@ namespace Microsoft.CodeAnalysis
             var projectId = newProjectState.Id;
 
             var newStateMap = _projectIdToProjectStateMap.SetItem(projectId, newProjectState);
-            newDependencyGraph = newDependencyGraph ?? _dependencyGraph;
+            newDependencyGraph ??= _dependencyGraph;
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
             // If we have a tracker for this project, then fork it as well (along with the
             // translation action and store it in the tracker map.

@@ -1493,7 +1493,7 @@ namespace BoundTreeGenerator
                             foreach (var field in AllNodeOrNodeListFields(node))
                             {
                                 hadField = true;
-                                WriteNodeVisitCall(field);
+                                WriteNodeVisitCall(field, forceVisit: VisitFieldOnlyInNullabilityRewriter(field));
                             }
 
                             if (hadField)
@@ -1705,7 +1705,13 @@ namespace BoundTreeGenerator
 
         private static bool SkipInVisitor(Field f)
         {
-            return string.Compare(f.SkipInVisitor, "true", true) == 0;
+            return string.Compare(f.SkipInVisitor, "true", true) == 0
+                || VisitFieldOnlyInNullabilityRewriter(f);
+        }
+
+        private static bool VisitFieldOnlyInNullabilityRewriter(Field f)
+        {
+            return string.Compare(f.SkipInVisitor, "ExceptNullabilityRewriter", true) == 0;
         }
 
         private static bool SkipInNullabilityRewriter(Node n)
@@ -1777,12 +1783,12 @@ namespace BoundTreeGenerator
             }
         }
 
-        private void WriteNodeVisitCall(Field field)
+        private void WriteNodeVisitCall(Field field, bool forceVisit = false)
         {
             switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
-                    if (SkipInVisitor(field))
+                    if (SkipInVisitor(field) && !forceVisit)
                     {
                         WriteLine($"{field.Type} {ToCamelCase(field.Name)} = node.{field.Name};");
                     }

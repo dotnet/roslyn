@@ -2289,5 +2289,31 @@ static class C
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 35)
                 );
         }
+
+        [Fact]
+        public void StaticMethodDoesNotRequireInstanceReceiver()
+        {
+            var source = @"
+class C
+{
+    public static int M() => 42;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var method = compilation.GetMember<MethodSymbol>("C.M");
+            Assert.False(method.RequiresInstanceReceiver);
+        }
+
+        [Fact]
+        public void InstanceMethodRequiresInstanceReceiver()
+        {
+            var source = @"
+class C
+{
+    public int M() => 42;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var method = compilation.GetMember<MethodSymbol>("C.M");
+            Assert.True(method.RequiresInstanceReceiver);
+        }
     }
 }

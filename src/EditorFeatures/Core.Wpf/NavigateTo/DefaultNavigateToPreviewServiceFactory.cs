@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
     [ExportWorkspaceServiceFactory(typeof(INavigateToPreviewService), ServiceLayer.Editor), Shared]
     internal sealed class DefaultNavigateToPreviewServiceFactory : IWorkspaceServiceFactory
     {
-        private Lazy<INavigateToPreviewService> _singleton =
+        private readonly Lazy<INavigateToPreviewService> _singleton =
             new Lazy<INavigateToPreviewService>(() => new DefaultNavigateToPreviewService());
 
         [ImportingConstructor]

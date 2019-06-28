@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 SymbolResult<INamespaceOrTypeSymbol> symbolResult)
                 : base(provider, new SearchResult(symbolResult))
             {
-                this.SymbolResult = symbolResult;
+                SymbolResult = symbolResult;
             }
 
             protected abstract ImmutableArray<string> GetTags(Document document);
@@ -37,13 +37,13 @@ namespace Microsoft.CodeAnalysis.AddImport
                     return false;
                 }
 
-                var name1 = this.SymbolResult.DesiredName;
+                var name1 = SymbolResult.DesiredName;
                 var name2 = (obj as SymbolReference)?.SymbolResult.DesiredName;
                 return StringComparer.Ordinal.Equals(name1, name2);
             }
 
             public override int GetHashCode()
-                => Hash.Combine(this.SymbolResult.DesiredName, base.GetHashCode());
+                => Hash.Combine(SymbolResult.DesiredName, base.GetHashCode());
 
             private async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
                 Document document, SyntaxNode contextNode,
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     contextNode, document, cancellationToken).ConfigureAwait(false);
 
                 var updatedDocument = await provider.AddImportAsync(
-                    newContextNode, this.SymbolResult.Symbol, newDocument,
+                    newContextNode, SymbolResult.Symbol, newDocument,
                     placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
 
                 var cleanedDocument = await CodeAction.CleanupDocumentAsync(
@@ -83,18 +83,18 @@ namespace Microsoft.CodeAnalysis.AddImport
                     return null;
                 }
 
-                if (hasExistingImport && !this.ShouldAddWithExistingImport(document))
+                if (hasExistingImport && !ShouldAddWithExistingImport(document))
                 {
                     return null;
                 }
 
-                var isFuzzy = !this.SearchResult.DesiredNameMatchesSourceName(document);
+                var isFuzzy = !SearchResult.DesiredNameMatchesSourceName(document);
                 var tags = GetTags(document);
                 if (isFuzzy)
                 {
                     // The name is going to change.  Make it clear in the description that this is
                     // going to happen.
-                    description = $"{this.SearchResult.DesiredName} - {description}";
+                    description = $"{SearchResult.DesiredName} - {description}";
 
                     // if we were a fuzzy match, and we didn't have any glyph to show, then add the
                     // namespace-glyph to this item. This helps indicate that not only are we fixing

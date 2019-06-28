@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
         public CSharpRemoveUnreachableCodeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId,
+                   option: null,
                    new LocalizableResourceString(nameof(FeaturesResources.Unreachable_code_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    configurable: false)
         {

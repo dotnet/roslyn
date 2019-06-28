@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            for (int i = 0; i < refKinds.Length; i++)
+            for (var i = 0; i < refKinds.Length; i++)
             {
                 // The ref-out distinction is not interesting for SymbolKey because you can't overload
                 // based on the difference.

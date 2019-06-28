@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             var outerLocalFunction = _staticLocalFunction;
-            if (node.Symbol.IsStaticLocalFunction)
+            if (node.Symbol.IsStatic)
             {
                 _staticLocalFunction = node.Symbol;
             }

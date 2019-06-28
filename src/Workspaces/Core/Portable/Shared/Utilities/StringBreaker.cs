@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public static ArrayBuilder<TextSpan> GetParts(string text, bool word)
         {
             var parts = ArrayBuilder<TextSpan>.GetInstance();
-            for (int start = 0; start < text.Length;)
+            for (var start = 0; start < text.Length;)
             {
                 var span = StringBreaker.GenerateSpan(text, start, word);
                 if (span.IsEmpty)
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         public static TextSpan GenerateSpan(string identifier, int wordStart, bool word)
         {
-            int length = identifier.Length;
+            var length = identifier.Length;
             wordStart = SkipPunctuation(identifier, length, wordStart);
             if (wordStart < length)
             {

@@ -1,6 +1,7 @@
 ﻿[$RootKey$\Editors]
 
 [$RootKey$\Editors\{6C33E1AA-1401-4536-AB67-0E21E6E569DA}]
+"DeferUntilIntellisenseIsReady"=dword:00000000
 "Package"="{574FC912-F74F-4B4E-92C3-F695C208A2BB}"
 "DisplayName"="#1012"
 "CommonPhysicalViewAttributes"=dword:00000003
@@ -29,6 +30,7 @@
 "vb"=dword:00000027
 
 [$RootKey$\Editors\{2C015C70-C72C-11D0-88C3-00A0C9110049}]
+"DeferUntilIntellisenseIsReady"=dword:00000000
 "Package"="{574FC912-F74F-4B4E-92C3-F695C208A2BB}"
 "DisplayName"="#1013"
 "CommonPhysicalViewAttributes"=dword:00000002
