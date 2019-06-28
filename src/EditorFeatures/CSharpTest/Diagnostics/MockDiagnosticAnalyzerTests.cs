@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MockDiagnos
         private class MockDiagnosticAnalyzer : DiagnosticAnalyzer
         {
             public const string Id = "MockDiagnostic";
-            private DiagnosticDescriptor _descriptor = new DiagnosticDescriptor(Id, "MockDiagnostic", "MockDiagnostic", "InternalCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            private readonly DiagnosticDescriptor _descriptor = new DiagnosticDescriptor(Id, "MockDiagnostic", "MockDiagnostic", "InternalCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
