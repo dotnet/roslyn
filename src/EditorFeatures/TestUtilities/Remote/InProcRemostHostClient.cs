@@ -165,8 +165,7 @@ namespace Roslyn.Test.Utilities.Remote
 
             public Task<Stream> RequestServiceAsync(string serviceName, CancellationToken cancellationToken)
             {
-                Func<Stream, IServiceProvider, ServiceHubServiceBase> creator;
-                if (_creatorMap.TryGetValue(serviceName, out creator))
+                if (_creatorMap.TryGetValue(serviceName, out var creator))
                 {
                     var tuple = FullDuplexStream.CreateStreams();
                     return Task.FromResult<Stream>(new WrappedStream(creator(tuple.Item1, _serviceProvider), tuple.Item2));
