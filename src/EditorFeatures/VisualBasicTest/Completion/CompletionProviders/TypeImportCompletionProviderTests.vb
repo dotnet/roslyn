@@ -40,7 +40,12 @@ Namespace Foo
     Public Class MyAttribute
         Inherits System.Attribute
     End Class
+
     Public Class MyVBClass
+    End Class
+
+    Public Class MyAttributeWithoutSuffix
+        Inherits System.Attribute
     End Class
 End Namespace</Text>.Value
 
@@ -54,6 +59,7 @@ End Class]]></Text>.Value
 
             Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
             Await VerifyItemExistsAsync(markup, "My", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyAttribute")
+            Await VerifyItemExistsAsync(markup, "MyAttributeWithoutSuffix", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyAttributeWithoutSuffix")
             Await VerifyItemIsAbsentAsync(markup, "MyAttribute", inlineDescription:="Foo")
             Await VerifyItemIsAbsentAsync(markup, "MyVBClass", inlineDescription:="Foo")
         End Function
@@ -67,8 +73,12 @@ Namespace Foo
     Public Class MyAttribute
         Inherits System.Attribute
     End Class
+
     Public Class MyVBClass
     End Class
+
+    Public Class MyAttributeWithoutSuffix
+        Inherits System.Attribute
 End Namespace</Text>.Value
 
             Dim file2 = <Text><![CDATA[
@@ -80,6 +90,7 @@ End Class]]></Text>.Value
 
             Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
             Await VerifyItemExistsAsync(markup, "MyAttribute", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyAttribute")
+            Await VerifyItemExistsAsync(markup, "MyAttributeWithoutSuffix", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyAttributeWithoutSuffix")
             Await VerifyItemExistsAsync(markup, "MyVBClass", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyVBClass")
             Await VerifyItemIsAbsentAsync(markup, "My", inlineDescription:="Foo")
         End Function

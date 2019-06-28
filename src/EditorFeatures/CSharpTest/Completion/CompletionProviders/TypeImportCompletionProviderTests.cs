@@ -915,6 +915,7 @@ namespace Baz
 namespace Foo
 {
     public class MyAttribute : System.Attribute { }
+    public class MyAttributeWithoutSuffix : System.Attribute { }
     public class MyClass { }
 }";
 
@@ -927,6 +928,7 @@ namespace Test
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
 
             await VerifyTypeImportItemExistsAsync(markup, "My", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.MyAttribute");
+            await VerifyTypeImportItemExistsAsync(markup, "MyAttributeWithoutSuffix", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.MyAttributeWithoutSuffix");
             await VerifyTypeImportItemIsAbsentAsync(markup, "MyAttribute", inlineDescription: "Foo");
             await VerifyTypeImportItemIsAbsentAsync(markup, "MyClass", inlineDescription: "Foo");
         }
@@ -971,6 +973,7 @@ namespace Test
 namespace Foo
 {
     public class MyAttribute : System.Attribute { }
+    public class MyAttributeWithoutSuffix : System.Attribute { }
     public class MyClass { }
 }";
 
@@ -985,6 +988,7 @@ namespace Test
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
 
             await VerifyTypeImportItemExistsAsync(markup, "MyAttribute", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.MyAttribute");
+            await VerifyTypeImportItemExistsAsync(markup, "MyAttributeWithoutSuffix", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.MyAttributeWithoutSuffix");
             await VerifyTypeImportItemIsAbsentAsync(markup, "My", inlineDescription: "Foo");
             await VerifyTypeImportItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.MyClass");
         }

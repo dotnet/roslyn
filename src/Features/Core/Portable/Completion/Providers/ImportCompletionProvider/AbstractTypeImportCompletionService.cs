@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         public async Task GetTopLevelTypesAsync(
             Project project,
             SyntaxContext syntaxContext,
-            Action<TypeImportCompletionItemInfo> handleItem,
+            Action<CompletionItem, bool> handleItem,
             CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation)
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             Compilation compilation,
             PortableExecutableReference peReference,
             SyntaxContext syntaxContext,
-            Action<TypeImportCompletionItemInfo> handleItem,
+            Action<CompletionItem, bool> handleItem,
             CancellationToken cancellationToken)
         {
             var key = GetReferenceKey(peReference);
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             IAssemblySymbol assembly,
             Checksum checksum,
             SyntaxContext syntaxContext,
-            Action<TypeImportCompletionItemInfo> handleItem,
+            Action<CompletionItem, bool> handleItem,
             IDictionary<TKey, ReferenceCacheEntry> cache,
             CancellationToken cancellationToken)
         {
@@ -113,22 +113,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 cache[key] = cacheEntry;
             }
 
-            if (!syntaxContext.IsAttributeNameContext)
+            foreach (var itemInfo in cacheEntry.GetItemsForContext(language, GenericTypeSuffix, syntaxContext.IsAttributeNameContext, IsCaseSensitive))
             {
-                foreach (var item in cacheEntry.CommonItems)
-                {
-                    handleItem(item);
-                }
-
-                foreach (var item in cacheEntry.GetGenericItems(language, GenericTypeSuffix))
-                {
-                    handleItem(item);
-                }
-            }
-
-            foreach (var item in cacheEntry.GetAttributeItems(IsCaseSensitive, syntaxContext.IsAttributeNameContext))
-            {
-                handleItem(item);
+                handleItem(itemInfo.Item, itemInfo.IsPublic);
             }
         }
 
@@ -242,6 +229,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 return new TypeOverloadInfo(NonGenericOverload, newBestGenericOverload, newContainsPublicGenericOverload);
             }
         }
+
         private readonly struct ReferenceCacheEntry
         {
             public class Builder
@@ -256,114 +244,137 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     _language = language;
                     _genericTypeSuffix = genericTypeSuffix;
 
-                    _commonItemsBuilder = ArrayBuilder<TypeImportCompletionItemInfo>.GetInstance();
-                    _genericItemsBuilder = ArrayBuilder<TypeImportCompletionItemInfo>.GetInstance();
-                    _attributeWithSuffixItemsBuilder = ArrayBuilder<TypeImportCompletionItemInfo>.GetInstance();
+                    _itemsBuilder = ArrayBuilder<TypeImportCompletionItemInfo>.GetInstance();
                 }
 
-                private ArrayBuilder<TypeImportCompletionItemInfo> _commonItemsBuilder;
-                private ArrayBuilder<TypeImportCompletionItemInfo> _genericItemsBuilder;
-                private ArrayBuilder<TypeImportCompletionItemInfo> _attributeWithSuffixItemsBuilder;
+                private ArrayBuilder<TypeImportCompletionItemInfo> _itemsBuilder;
 
                 public ReferenceCacheEntry ToReferenceCacheEntry()
                 {
                     return new ReferenceCacheEntry(
                         _checksum,
                         _language,
-                        _commonItemsBuilder.ToImmutableAndFree(),
-                        _genericItemsBuilder.ToImmutableAndFree(),
-                        _attributeWithSuffixItemsBuilder.ToImmutableAndFree());
+                        _itemsBuilder.ToImmutableAndFree());
                 }
 
                 public void AddItem(INamedTypeSymbol symbol, string containingNamespace, bool isPublic)
                 {
-                    ArrayBuilder<TypeImportCompletionItemInfo> correspondingBuilder;
+                    var isGeneric = symbol.Arity > 0;
 
-                    // Attribute type can't be generic
-                    if (symbol.Arity > 0)
-                    {
-                        correspondingBuilder = _genericItemsBuilder;
-                    }
-                    else if (IsAttributeWithAttributeSuffix(symbol))
-                    {
-                        correspondingBuilder = _attributeWithSuffixItemsBuilder;
-                    }
-                    else
-                    {
-                        correspondingBuilder = _commonItemsBuilder;
-                    }
+                    // Need to determine if a type is an attribute up front since we want to filter out 
+                    // non-attribute types if in attribute context. We can't do this lazily since we don't hold 
+                    // on to symbols.
+                    //
+                    // Also for attribute types with "Attribute" suffix, we only cache items with their full name 
+                    // (and creating those w/o suffix on ther fly if in attribute context), because we assume it's
+                    // much more common to trigger completion in non-attribute context.
+                    var isAttribute = symbol.IsAttribute();
 
                     var item = TypeImportCompletionItem.Create(symbol, containingNamespace, _genericTypeSuffix);
                     item.IsCached = true;
-                    correspondingBuilder.Add(new TypeImportCompletionItemInfo(item, isPublic));
 
+                    _itemsBuilder.Add(new TypeImportCompletionItemInfo(item, isPublic, isGeneric, isAttribute));
                     return;
-
-                    static bool IsAttributeWithAttributeSuffix(INamedTypeSymbol symbol)
-                    {
-                        // Do the simple textual check first. Then the more expensive symbolic check.
-                        return symbol.Name.HasAttributeSuffix(isCaseSensitive: false) && symbol.IsAttribute();
-                    }
                 }
             }
 
             private ReferenceCacheEntry(
                 Checksum checksum,
                 string language,
-                ImmutableArray<TypeImportCompletionItemInfo> commonItems,
-                ImmutableArray<TypeImportCompletionItemInfo> genericItems,
-                ImmutableArray<TypeImportCompletionItemInfo> attributeItems)
+                ImmutableArray<TypeImportCompletionItemInfo> items)
             {
                 Checksum = checksum;
                 Language = language;
 
-                CommonItems = commonItems;
-                AttributeItems = attributeItems;
-                GenericItems = genericItems;
+                ItemInfos = items;
             }
 
             public string Language { get; }
 
             public Checksum Checksum { get; }
 
-            public ImmutableArray<TypeImportCompletionItemInfo> CommonItems { get; }
+            private ImmutableArray<TypeImportCompletionItemInfo> ItemInfos { get; }
 
-            private ImmutableArray<TypeImportCompletionItemInfo> GenericItems { get; }
-
-            // Attribute types can't be generic
-            private ImmutableArray<TypeImportCompletionItemInfo> AttributeItems { get; }
-
-            public ImmutableArray<TypeImportCompletionItemInfo> GetGenericItems(string language, string genericTypeSuffix)
+            public ImmutableArray<TypeImportCompletionItemInfo> GetItemsForContext(string language, string genericTypeSuffix, bool isAttributeContext, bool isCaseSensitive)
             {
-                if (Language == language)
+                var isSameLanguage = Language == language;
+                if (isSameLanguage && !isAttributeContext)
                 {
-                    return GenericItems;
+                    return ItemInfos;
                 }
 
-                // We don't want to cache this item.
-                return GenericItems.SelectAsArray(itemInfo => itemInfo.WithItem(TypeImportCompletionItem.CreateItemWithGenericDisplaySuffix(itemInfo.Item, genericTypeSuffix)));
-            }
-
-            public ImmutableArray<TypeImportCompletionItemInfo> GetAttributeItems(bool isCaseSensitive, bool isAttributeNameContext)
-            {
-                if (!isAttributeNameContext || AttributeItems.Length == 0)
+                var builder = ArrayBuilder<TypeImportCompletionItemInfo>.GetInstance();
+                foreach (var info in ItemInfos)
                 {
-                    return AttributeItems;
-                }
-
-                return AttributeItems.SelectAsArray(GetAppropriateAttributeItem, isCaseSensitive);
-
-                static TypeImportCompletionItemInfo GetAppropriateAttributeItem(TypeImportCompletionItemInfo itemInfo, bool isCaseSensitive)
-                {
-                    var item = itemInfo.Item;
-                    if (item.DisplayText.TryGetWithoutAttributeSuffix(isCaseSensitive: isCaseSensitive, out var attributeName))
+                    CompletionItem item = info.Item;
+                    if (isAttributeContext)
                     {
-                        // We don't want to cache this item.
-                        return itemInfo.WithItem(TypeImportCompletionItem.CreateAttributeItemWithoutSuffix(item, attributeName));
+                        if (!info.IsAttribute)
+                        {
+                            continue;
+                        }
+
+                        item = GetAppropriateAttributeItem(info.Item, isCaseSensitive);
                     }
 
-                    return itemInfo;
+                    if (!isSameLanguage && info.IsGeneric)
+                    {
+                        // We don't want to cache this item.
+                        item = TypeImportCompletionItem.CreateItemWithGenericDisplaySuffix(item, genericTypeSuffix);
+                    }
+
+                    builder.Add(info.WithItem(item));
                 }
+
+                return builder.ToImmutableAndFree();
+
+                static CompletionItem GetAppropriateAttributeItem(CompletionItem attributeItem, bool isCaseSensitive)
+                {
+                    if (attributeItem.DisplayText.TryGetWithoutAttributeSuffix(isCaseSensitive: isCaseSensitive, out var attributeNameWithoutSuffix))
+                    {
+                        // We don't want to cache this item.
+                        return TypeImportCompletionItem.CreateAttributeItemWithoutSuffix(attributeItem, attributeNameWithoutSuffix);
+                    }
+
+                    return attributeItem;
+                }
+            }
+        }
+
+        private readonly struct TypeImportCompletionItemInfo
+        {
+            private readonly ItemPropertyKind _properties;
+
+            public TypeImportCompletionItemInfo(CompletionItem item, bool isPublic, bool isGeneric, bool isAttribute)
+            {
+                Item = item;
+                _properties = (isPublic ? ItemPropertyKind.IsPublic : 0)
+                            | (isGeneric ? ItemPropertyKind.IsGeneric : 0)
+                            | (isAttribute ? ItemPropertyKind.IsAttribute : 0);
+            }
+
+            public CompletionItem Item { get; }
+
+            public bool IsPublic
+                => (_properties & ItemPropertyKind.IsPublic) != 0;
+
+            public bool IsGeneric
+                => (_properties & ItemPropertyKind.IsGeneric) != 0;
+
+            public bool IsAttribute
+                => (_properties & ItemPropertyKind.IsAttribute) != 0;
+
+            public TypeImportCompletionItemInfo WithItem(CompletionItem item)
+            {
+                return new TypeImportCompletionItemInfo(item, IsPublic, IsGeneric, IsAttribute);
+            }
+
+            [Flags]
+            private enum ItemPropertyKind : byte
+            {
+                IsPublic = 0x1,
+                IsGeneric = 0x2,
+                IsAttribute = 0x4,
             }
         }
     }

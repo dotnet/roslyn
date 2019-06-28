@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         Task GetTopLevelTypesAsync(
             Project project,
             SyntaxContext syntaxContext,
-            Action<TypeImportCompletionItemInfo> handleItem,
+            Action<CompletionItem, bool> handleItem,
             CancellationToken cancellationToken);
 
         void GetTopLevelTypesFromPEReference(
@@ -26,25 +26,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             Compilation compilation,
             PortableExecutableReference peReference,
             SyntaxContext syntaxContext,
-            Action<TypeImportCompletionItemInfo> handleItem,
+            Action<CompletionItem, bool> handleItem,
             CancellationToken cancellationToken);
-    }
-
-    internal readonly struct TypeImportCompletionItemInfo
-    {
-        public TypeImportCompletionItemInfo(CompletionItem item, bool isPublic)
-        {
-            Item = item;
-            IsPublic = isPublic;
-        }
-
-        public CompletionItem Item { get; }
-
-        public bool IsPublic { get; }
-
-        public TypeImportCompletionItemInfo WithItem(CompletionItem item)
-        {
-            return new TypeImportCompletionItemInfo(item, IsPublic);
-        }
     }
 }

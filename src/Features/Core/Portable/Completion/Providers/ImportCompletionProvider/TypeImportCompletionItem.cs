@@ -28,17 +28,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 propertyBuilder.Add(TypeAritySuffixName, GetAritySuffix(typeSymbol.Arity));
             }
 
-            // Hack: add tildes (ASCII: 126) to name and namespace as sort text:
+            // Add tildes (ASCII: 126) to name and namespace as sort text:
             // 1. '~' before type name makes import items show after in-scope items
             // 2. ' ' before namespace makes types with identical type name but from different namespace all show up in the list,
             //    it also makes sure type with shorter name shows first, e.g. 'SomeType` before 'SomeTypeWithLongerName'.  
             var sortTextBuilder = PooledStringBuilder.GetInstance();
             sortTextBuilder.Builder.AppendFormat(SortTextFormat, typeSymbol.Name, containingNamespace);
 
-            // TODO: 
-            // 1. Suffix should be language specific, i.e. `(Of ...)` if triggered from VB.
-            // 2. Sort the import items to be after in-scope symbols in a less hacky way.
-            // 3. Editor support for resolving item text conflicts?
             return CompletionItem.Create(
                  displayText: typeSymbol.Name,
                  filterText: typeSymbol.Name,
@@ -55,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             Debug.Assert(!attributeItem.Properties.ContainsKey(AttributeFullName));
 
+            // Remember the full type name so we can get the symbol when description is displayed.
             var newProperties = attributeItem.Properties.Add(AttributeFullName, attributeItem.DisplayText);
 
             var sortTextBuilder = PooledStringBuilder.GetInstance();

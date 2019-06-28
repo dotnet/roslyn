@@ -128,24 +128,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return;
 
             // Decide which item handler to use based on IVT
-            Action<TypeImportCompletionItemInfo> GetHandler(IAssemblySymbol assembly, IAssemblySymbol referencedAssembly)
+            Action<CompletionItem, bool> GetHandler(IAssemblySymbol assembly, IAssemblySymbol referencedAssembly)
                 => assembly.IsSameAssemblyOrHasFriendAccessTo(referencedAssembly)
-                        ? (Action<TypeImportCompletionItemInfo>)HandlePublicAndInternalItem
+                        ? (Action<CompletionItem, bool>)HandlePublicAndInternalItem
                         : HandlePublicItem;
 
             // Add only public types to completion list
-            void HandlePublicItem(TypeImportCompletionItemInfo itemInfo)
-                => AddItems(itemInfo, isInternalsVisible: false, completionContext, namespacesInScope, telemetryCounter);
+            void HandlePublicItem(CompletionItem item, bool isPublic)
+                => AddItems(item, isPublic, isInternalsVisible: false, completionContext, namespacesInScope, telemetryCounter);
 
             // Add both public and internal types to completion list
-            void HandlePublicAndInternalItem(TypeImportCompletionItemInfo itemInfo)
-                => AddItems(itemInfo, isInternalsVisible: true, completionContext, namespacesInScope, telemetryCounter);
+            void HandlePublicAndInternalItem(CompletionItem item, bool isPublic)
+                => AddItems(item, isPublic, isInternalsVisible: true, completionContext, namespacesInScope, telemetryCounter);
 
-            static void AddItems(TypeImportCompletionItemInfo itemInfo, bool isInternalsVisible, CompletionContext completionContext, HashSet<string> namespacesInScope, TelemetryCounter counter)
+            static void AddItems(CompletionItem item, bool isPublic, bool isInternalsVisible, CompletionContext completionContext, HashSet<string> namespacesInScope, TelemetryCounter counter)
             {
-                if (itemInfo.IsPublic || isInternalsVisible)
+                if (isPublic || isInternalsVisible)
                 {
-                    var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(itemInfo.Item);
+                    var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(item);
                     if (!namespacesInScope.Contains(containingNamespace))
                     {
                         // We can return cached item directly, item's span will be fixed by completion service.
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         // On the other hand, because of this (i.e. mutating the  span of cached item for each run),
                         // the provider can not be used as a service by components that might be run in parallel 
                         // with completion, which would be a race.
-                        completionContext.AddItem(itemInfo.Item);
+                        completionContext.AddItem(item);
                         counter.ItemsCount++; ;
                     }
                 }
