@@ -642,15 +642,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol oldTypeSymbol = Type;
             byte transformFlag;
 
-            // Check SkipNullableTransform first to avoid
-            // applying transforms to simple value types.
-            if (SkipNullableTransform(oldTypeSymbol))
-            {
-                transformFlag = NullableAnnotationExtensions.ObliviousAttributeValue;
-            }
-            else if (transforms.IsDefault)
+            if (transforms.IsDefault)
             {
                 transformFlag = defaultTransformFlag;
+            }
+            else if (SkipNullableTransform(oldTypeSymbol))
+            {
+                transformFlag = NullableAnnotationExtensions.ObliviousAttributeValue;
             }
             else if (position < transforms.Length)
             {
