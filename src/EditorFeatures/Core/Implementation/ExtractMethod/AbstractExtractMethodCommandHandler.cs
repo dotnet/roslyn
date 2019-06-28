@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
         private static ExtractMethodResult TryWithoutMakingValueTypesRef(
             Document document, NormalizedSnapshotSpanCollection spans, ExtractMethodResult result, CancellationToken cancellationToken)
         {
-            OptionSet options = document.Project.Solution.Options;
+            var options = document.Project.Solution.Options;
 
             if (options.GetOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language) || !result.Reasons.IsSingle())
             {

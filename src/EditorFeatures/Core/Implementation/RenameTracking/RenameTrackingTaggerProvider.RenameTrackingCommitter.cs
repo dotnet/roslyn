@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             {
                 AssertIsForeground();
 
-                bool clearTrackingSession = ApplyChangesToWorkspace(cancellationToken);
+                var clearTrackingSession = ApplyChangesToWorkspace(cancellationToken);
 
                 // Clear the state machine so that future updates to the same token work,
                 // and any text changes caused by this update are not interpreted as 

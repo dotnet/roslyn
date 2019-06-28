@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         private bool IsRegionReadOnly(DocumentId documentId, bool isEdit)
         {
             AssertIsForeground();
-            bool isReadOnly = _encService.IsProjectReadOnly(documentId.ProjectId, out var sessionReason, out var projectReason);
+            var isReadOnly = _encService.IsProjectReadOnly(documentId.ProjectId, out var sessionReason, out var projectReason);
 
             if (isEdit && isReadOnly)
             {

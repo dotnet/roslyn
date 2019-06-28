@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Of the items the service returned, pick the one most recently committed
             var bestItem = GetBestCompletionItemBasedOnMRU(chosenItems, recentItems);
             VSCompletionItem uniqueItem = null;
-            int selectedItemIndex = 0;
+            var selectedItemIndex = 0;
 
             // Determine if we should consider this item 'unique' or not.  A unique item
             // will be automatically committed if the user hits the 'invoke completion' 
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return null;
             }
 
-            bool isHardSelection = IsHardSelection(
+            var isHardSelection = IsHardSelection(
                 filterText, initialRoslynTriggerKind, bestOrFirstCompletionItem,
                 completionHelper, filterReason, recentItems, hasSuggestedItemOptions);
 
