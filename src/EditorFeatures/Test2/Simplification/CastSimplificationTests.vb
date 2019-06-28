@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public Class CastSimplificationTests
@@ -5036,7 +5037,7 @@ class C
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCSharp_DoNotSimplifyNullable() As Task
+        Public Async Function TestCSharp_DoNotSimplifyNullableGeneric() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -5071,7 +5072,7 @@ class Program
 ]]>
 </code>
 
-            Await TestCSharpWithNullableEnabledAsync(input, expected)
+            Await TestAsync(input, expected, csharpParseOptions:=TestOptions.Regular8WithNullableAnalysis)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -5114,11 +5115,11 @@ class Program
 ]]>
 </code>
 
-            Await TestCSharpWithNullableEnabledAsync(input, expected)
+            Await TestAsync(input, expected, csharpParseOptions:=TestOptions.Regular8WithNullableAnalysis)
         End Function
 
         <Fact(Skip:=""), Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCSharp_SimplifyNullable() As Task
+        Public Async Function TestCSharp_SimplifyNullableMethodTypeArgument() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -5155,7 +5156,7 @@ class Program
 ]]>
 </code>
 
-            Await TestCSharpWithNullableEnabledAsync(input, expected)
+            Await TestAsync(input, expected, csharpParseOptions:=TestOptions.Regular8WithNullableAnalysis)
         End Function
 #End Region
 

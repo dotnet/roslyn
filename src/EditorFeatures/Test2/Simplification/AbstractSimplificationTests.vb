@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
@@ -13,18 +14,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     <[UseExportProvider]>
     Public MustInherit Class AbstractSimplificationTests
 
-        Protected Async Function TestAsync(definition As XElement, expected As XElement, Optional options As Dictionary(Of OptionKey, Object) = Nothing) As System.Threading.Tasks.Task
-            Using workspace = TestWorkspace.Create(definition)
-                Await TestAsync(workspace, expected, options).ConfigureAwait(False)
-            End Using
-        End Function
-
-        Protected Async Function TestCSharpWithNullableEnabledAsync(definition As XElement, expected As XElement, Optional options As Dictionary(Of OptionKey, Object) = Nothing) As System.Threading.Tasks.Task
+        Protected Async Function TestAsync(definition As XElement, expected As XElement, Optional options As Dictionary(Of OptionKey, Object) = Nothing, Optional csharpParseOptions As CSharpParseOptions = Nothing) As System.Threading.Tasks.Task
             Using workspace = TestWorkspace.Create(definition)
                 Dim finalWorkspace = workspace
-                For Each project In workspace.CurrentSolution.Projects
-                    finalWorkspace.ChangeSolution(finalWorkspace.CurrentSolution.WithProjectParseOptions(project.Id, CodeAnalysis.CSharp.Test.Utilities.TestOptions.Regular8WithNullableAnalysis))
-                Next
+
+                If csharpParseOptions IsNot Nothing Then
+                    For Each project In workspace.CurrentSolution.Projects
+                        finalWorkspace.ChangeSolution(finalWorkspace.CurrentSolution.WithProjectParseOptions(project.Id, csharpParseOptions))
+                    Next
+                End If
 
                 Await TestAsync(finalWorkspace, expected, options).ConfigureAwait(False)
             End Using
