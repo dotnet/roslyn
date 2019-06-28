@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // indent is the spaces/tabs between last new line (if there is one) and end of trivia
             var indent = precedingTrivia.AsString();
-            int lastNewLinePos = indent.LastIndexOf(NewLine, StringComparison.Ordinal);
+            var lastNewLinePos = indent.LastIndexOf(NewLine, StringComparison.Ordinal);
             if (lastNewLinePos != -1)
             {
-                int start = lastNewLinePos + NewLine.Length;
+                var start = lastNewLinePos + NewLine.Length;
                 indent = indent.Substring(start, indent.Length - start);
             }
 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static string ContentBeforeLastNewLine(this IEnumerable<SyntaxTrivia> trivia)
         {
             var leading = trivia.AsString();
-            int lastNewLinePos = leading.LastIndexOf(NewLine, StringComparison.Ordinal);
+            var lastNewLinePos = leading.LastIndexOf(NewLine, StringComparison.Ordinal);
             if (lastNewLinePos == -1)
             {
                 return string.Empty;

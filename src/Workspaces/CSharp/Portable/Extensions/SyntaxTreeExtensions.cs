@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 throw new ArgumentException(CSharpWorkspaceResources.Expected_string_or_char_literal, nameof(token));
             }
 
-            int startLength = 1;
+            var startLength = 1;
             if (token.IsVerbatimStringLiteral())
             {
                 startLength = 2;
@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             genericIdentifier = default;
             lessThanToken = default;
-            int index = 0;
+            var index = 0;
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             if (token.Kind() == SyntaxKind.None)
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            int stack = 0;
+            var stack = 0;
             while (true)
             {
                 switch (token.Kind())

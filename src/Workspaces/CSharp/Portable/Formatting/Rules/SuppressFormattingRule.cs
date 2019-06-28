@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 else
                 {
                     // Add Separate suppression for each Label and for the last label, add the <> 
-                    for (int i = 0; i < switchSection.Labels.Count - 1; ++i)
+                    for (var i = 0; i < switchSection.Labels.Count - 1; ++i)
                     {
                         if (switchSection.Labels[i] != null)
                         {

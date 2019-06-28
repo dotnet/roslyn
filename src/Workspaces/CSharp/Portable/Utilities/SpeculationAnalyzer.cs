@@ -98,8 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public static SemanticModel CreateSpeculativeSemanticModelForNode(SyntaxNode originalNode, SyntaxNode nodeToSpeculate, SemanticModel semanticModel)
         {
-            int position = originalNode.SpanStart;
-            bool isInNamespaceOrTypeContext = SyntaxFacts.IsInNamespaceOrTypeContext(originalNode as ExpressionSyntax);
+            var position = originalNode.SpanStart;
+            var isInNamespaceOrTypeContext = SyntaxFacts.IsInNamespaceOrTypeContext(originalNode as ExpressionSyntax);
             return CreateSpeculativeSemanticModelForNode(nodeToSpeculate, semanticModel, position, isInNamespaceOrTypeContext);
         }
 
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                         Debug.Assert(originalParams.Count == replacedParams.Count);
 
                         paramNames = new List<string>();
-                        for (int i = 0; i < originalParams.Count; i++)
+                        for (var i = 0; i < originalParams.Count; i++)
                         {
                             var originalParam = originalParams[i];
                             var replacedParam = replacedParams[i];
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                     var originalSwitchLabels = originalSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
                     var newSwitchLabels = newSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
-                    for (int i = 0; i < originalSwitchLabels.Length; i++)
+                    for (var i = 0; i < originalSwitchLabels.Length; i++)
                     {
                         if (originalSwitchLabels[i] is CaseSwitchLabelSyntax originalSwitchLabel)
                         {
@@ -715,8 +715,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private bool ReplacementBreaksQueryClause(QueryClauseSyntax originalClause, QueryClauseSyntax newClause)
         {
             // Ensure QueryClauseInfos are compatible.
-            QueryClauseInfo originalClauseInfo = this.OriginalSemanticModel.GetQueryClauseInfo(originalClause, this.CancellationToken);
-            QueryClauseInfo newClauseInfo = this.SpeculativeSemanticModel.GetQueryClauseInfo(newClause, this.CancellationToken);
+            var originalClauseInfo = this.OriginalSemanticModel.GetQueryClauseInfo(originalClause, this.CancellationToken);
+            var newClauseInfo = this.SpeculativeSemanticModel.GetQueryClauseInfo(newClause, this.CancellationToken);
 
             return !SymbolInfosAreCompatible(originalClauseInfo.CastInfo, newClauseInfo.CastInfo) ||
                 !SymbolInfosAreCompatible(originalClauseInfo.OperationInfo, newClauseInfo.OperationInfo);

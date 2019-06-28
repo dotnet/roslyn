@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers modifiers,
             IEnumerable<SyntaxNode> statements)
         {
-            bool hasBody = !modifiers.IsAbstract && (!modifiers.IsPartial || statements != null);
+            var hasBody = !modifiers.IsAbstract && (!modifiers.IsPartial || statements != null);
 
             return SyntaxFactory.MethodDeclaration(
                 attributeLists: default,
@@ -1187,7 +1187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private SyntaxNode InsertNamespaceImportsInternal(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> imports)
         {
-            SyntaxList<UsingDirectiveSyntax> usingsToInsert = this.AsUsingDirectives(imports);
+            var usingsToInsert = this.AsUsingDirectives(imports);
 
             switch (declaration.Kind())
             {
@@ -1604,7 +1604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static SyntaxTokenList AsModifierList(Accessibility accessibility, DeclarationModifiers modifiers)
         {
-            SyntaxTokenList list = SyntaxFactory.TokenList();
+            var list = SyntaxFactory.TokenList();
 
             switch (accessibility)
             {
@@ -3286,7 +3286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private IEnumerable<SyntaxNode> SplitAndInsert(SyntaxNode multiPartDeclaration, int index, IEnumerable<SyntaxNode> newDeclarations)
         {
-            int count = GetDeclarationCount(multiPartDeclaration);
+            var count = GetDeclarationCount(multiPartDeclaration);
             var newNodes = new List<SyntaxNode>();
             newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace));
             newNodes.AddRange(newDeclarations);
@@ -4143,8 +4143,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             IEnumerable<IEnumerable<SyntaxTrivia>> splitIntoLines(SyntaxTriviaList triviaList)
             {
-                int index = 0;
-                for (int i = 0; i < triviaList.Count; i++)
+                var index = 0;
+                for (var i = 0; i < triviaList.Count; i++)
                 {
                     if (triviaList[i].IsEndOfLine())
                     {

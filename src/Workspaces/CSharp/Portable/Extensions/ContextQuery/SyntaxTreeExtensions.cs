@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var validModifiers = SyntaxKindSet.LocalFunctionModifiers;
 
             var modifierTokens = syntaxTree.GetPrecedingModifiers(
-                position, token, out int beforeModifiersPosition);
+                position, token, out var beforeModifiersPosition);
 
             if (modifierTokens.IsSubsetOf(validModifiers))
             {

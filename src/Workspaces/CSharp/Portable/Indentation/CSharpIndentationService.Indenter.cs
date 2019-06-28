@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
                 // find node that starts at the beginning of a line
                 var sourceText = LineToBeIndented.Text;
-                for (int i = (index - 1) / 2; i >= 0; i--)
+                for (var i = (index - 1) / 2; i >= 0; i--)
                 {
                     var node = list[i];
                     var firstToken = node.GetFirstToken(includeZeroWidth: true);
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
                 // find preceding clause that starts on its own.
                 var clauses = queryBody.Clauses;
-                for (int i = clauses.Count - 1; i >= 0; i--)
+                for (var i = clauses.Count - 1; i >= 0; i--)
                 {
                     var clause = clauses[i];
                     if (firstToken.SpanStart <= clause.SpanStart)
