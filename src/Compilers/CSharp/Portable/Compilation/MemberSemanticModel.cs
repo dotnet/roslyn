@@ -27,6 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Dictionary<SyntaxNode, ImmutableArray<BoundNode>> _guardedNodeMap = new Dictionary<SyntaxNode, ImmutableArray<BoundNode>>();
         private Dictionary<SyntaxNode, BoundStatement> _lazyGuardedSynthesizedStatementsMap;
         private NullableWalker.SnapshotManager _lazySnapshotManager;
+        /// <summary>
+        /// Only used when this is a speculative semantic model.
+        /// </summary>
+        private readonly NullableWalker.SnapshotManager _parentSnapshotManagerOpt;
 
         internal readonly Binder RootBinder;
 
@@ -63,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.RootBinder = rootBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
             _containingSemanticModelOpt = containingSemanticModelOpt;
             _parentSemanticModelOpt = parentSemanticModelOpt;
-            _lazySnapshotManager = snapshotManagerOpt;
+            _parentSnapshotManagerOpt = snapshotManagerOpt;
             _speculatedPosition = speculatedPosition;
 
             _operationFactory = new Lazy<CSharpOperationFactory>(() => new CSharpOperationFactory(this));
@@ -135,13 +139,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsInTree(node) ? this : null;
         }
 
-        protected NullableWalker.SnapshotManager SnapshotManager
+        /// <remarks>
+        /// This will cause the bound node cache to be populated if nullable semantic analysis is enabled.
+        /// </remarks>
+        protected NullableWalker.SnapshotManager GetSnapshotManager()
         {
-            get
-            {
-                EnsureRootBoundForNullabilityIfNecessary();
-                return _lazySnapshotManager;
-            }
+            EnsureRootBoundForNullabilityIfNecessary();
+            Debug.Assert(_lazySnapshotManager is object || !Compilation.NullableSemanticAnalysisEnabled);
+            return _lazySnapshotManager;
         }
 
         internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, TypeSyntax type, SpeculativeBindingOption bindingOption, out SemanticModel speculativeModel)
@@ -164,6 +169,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             // crefs can never legally appear within members.
             speculativeModel = null;
             return false;
+        }
+
+        internal override BoundExpression GetSpeculativelyBoundExpression(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, out Binder binder, out ImmutableArray<Symbol> crefSymbols)
+        {
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
+            if (!Compilation.NullableSemanticAnalysisEnabled || bindingOption != SpeculativeBindingOption.BindAsExpression)
+            {
+                return GetSpeculativelyBoundExpressionWithoutNullability(position, expression, bindingOption, out binder, out crefSymbols);
+            }
+
+            crefSymbols = default;
+            position = CheckAndAdjustPosition(position);
+            expression = SyntaxFactory.GetStandaloneExpression(expression);
+            var bindableNewExpression = GetBindableSyntaxNode(expression);
+            binder = GetEnclosingBinder(position);
+            var boundRoot = Bind(binder, bindableNewExpression, _ignoredDiagnostics);
+            return (BoundExpression)NullableWalker.AnalyzeAndRewriteSpeculation(position, boundRoot, binder, GetSnapshotManager(), takeNewSnapshots: false, out _);
         }
 
         private Binder GetEnclosingBinderInternalWithinRoot(SyntaxNode node, int position)
@@ -1431,21 +1457,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     NodeMapBuilder.AddToMap(bound, _guardedNodeMap, syntax);
                 }
 
-                // If we're a speculative model, then we should never be passed a new manager, as we should not be recording
-                // new snapshot info, only using what was given when the model was created. If we're not a speculative model,
-                // then there are 3 possibilities:
-                // 1. Nullable analysis wasn't enabled, and we should never be passed a manager.
-                // 2. Nullable analysis is enabled, but we're not adding info for a root node and we shouldn't be passed
-                //    new snapshots. This can occur when we're asked to bind a standalone node that wasn't in the original
-                //    tree, such as aliases. These nodes do not affect analysis, so we should not be attempting to save
-                //    snapshot information for use in speculative models created off this one.
-                // 3. Nullable analysis is enabled, and we were passed a new manager. If this is the case, we must be adding
-                //    cached nodes for the root syntax node, and the existing snapshot manager must be null.
-                Debug.Assert((IsSpeculativeSemanticModel && manager is null) ||
-                             (!IsSpeculativeSemanticModel &&
-                              (manager is null && (!Compilation.NullableSemanticAnalysisEnabled || syntax != Root)) ||
-                              (manager is object && syntax == Root && Compilation.NullableSemanticAnalysisEnabled && _lazySnapshotManager is null)));
-                if (!IsSpeculativeSemanticModel && manager is object)
+                Debug.Assert((manager is null && (!Compilation.NullableSemanticAnalysisEnabled || syntax != Root)) ||
+                             (manager is object && syntax == Root && Compilation.NullableSemanticAnalysisEnabled && _lazySnapshotManager is null));
+                if (manager is object)
                 {
                     _lazySnapshotManager = manager;
                 }
@@ -1855,10 +1869,10 @@ done:
 #endif
             }
 
-            // If this isn't a speculative model and we have a snapshot manager,
-            // then we've already done all the work necessary and we should avoid
-            // taking an unnecessary read lock.
-            if (!IsSpeculativeSemanticModel && _lazySnapshotManager is object)
+            // If we have a snapshot manager, then we've already done
+            // all the work necessary and we should avoid taking an
+            // unnecessary read lock.
+            if (_lazySnapshotManager is object)
             {
                 return;
             }
@@ -1890,7 +1904,7 @@ done:
             }
             else
             {
-                bindAndRewrite(takeSnapshots: true);
+                bindAndRewrite();
             }
 
             void ensureSpeculativeNodeBound()
@@ -1898,20 +1912,19 @@ done:
                 // Not all speculative models are created with existing snapshots. Attributes,
                 // TypeSyntaxes, and MethodBodies do not depend on existing state in a member,
                 // and so the SnapshotManager can be null in these cases.
-                if (_lazySnapshotManager is null)
+                if (_parentSnapshotManagerOpt is null)
                 {
-                    bindAndRewrite(takeSnapshots: false);
+                    bindAndRewrite();
                     return;
                 }
 
-                var analyzedNullabilitiesBuilder = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>();
-                boundRoot = NullableWalker.AnalyzeAndRewriteSpeculation(_speculatedPosition, boundRoot, binder, _lazySnapshotManager);
-                GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot);
+                boundRoot = NullableWalker.AnalyzeAndRewriteSpeculation(_speculatedPosition, boundRoot, binder, _parentSnapshotManagerOpt, takeNewSnapshots: true, out var newSnapshots);
+                GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, newSnapshots);
             }
 
-            void bindAndRewrite(bool takeSnapshots)
+            void bindAndRewrite()
             {
-                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnostics, takeSnapshots, out var snapshotManager);
+                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnostics, takeSnapshots: true, out var snapshotManager);
 #if DEBUG
                 // Don't actually cache the results if the nullable analysis is not enabled in debug mode.
                 if (!Compilation.NullableSemanticAnalysisEnabled) return;
