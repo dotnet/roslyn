@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
     {
         private readonly IPullMemberUpOptionsService _service;
         private const int None = 0;
-
-        protected abstract bool IsSelectionValid(TextSpan span, SyntaxNode selectedMemberNode);
+        protected abstract Task<SyntaxNode> GetSelectedNodeAsync(Document document, TextSpan span, CancellationToken cancellationToken);
 
         /// <summary>
         /// Test purpose only
@@ -35,15 +34,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             // constructor, operator and finalizer are excluded.
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var selectedMemberNode = await GetMatchedNodeAsync(document, context.Span, cancellationToken).ConfigureAwait(false);
 
+            var selectedMemberNode = await GetSelectedNodeAsync(document, context.Span, cancellationToken).ConfigureAwait(false);
             if (selectedMemberNode == null)
             {
                 return;
             }
 
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var selectedMember = semanticModel.GetDeclaredSymbol(selectedMemberNode);
             if (selectedMember == null || selectedMember.ContainingType == null)
             {
@@ -51,11 +50,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
 
             if (!MemberAndDestinationValidator.IsMemberValid(selectedMember))
-            {
-                return;
-            }
-
-            if (!IsSelectionValid(context.Span, selectedMemberNode))
             {
                 return;
             }
@@ -92,26 +86,5 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             return allDestinations.WhereAsArray(destination => MemberAndDestinationValidator.IsDestinationValid(solution, destination, cancellationToken));
         }
 
-        private async Task<SyntaxNode> GetMatchedNodeAsync(Document document, TextSpan span, CancellationToken cancellationToken)
-        {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (span.IsEmpty)
-            {
-                // root.FindNode() won't return the SyntaxNode contains the identifier in some special cases like the following
-                // void Bar[||]();
-                // int i[||]= 0;
-                // int j[||]=> 100;
-                // int k[||]{set; }
-                // but refactoring should be provided in for those cases
-                var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-                var token = await root.SyntaxTree.GetTouchingWordAsync(span.Start, syntaxFactsService, cancellationToken).ConfigureAwait(false);
-                if (token.RawKind != None)
-                {
-                    return root.FindNode(token.Span);
-                }
-            }
-
-            return root.FindNode(span);
-        }
     }
 }

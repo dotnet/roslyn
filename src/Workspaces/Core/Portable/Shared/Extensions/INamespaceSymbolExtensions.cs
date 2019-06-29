@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var ns = namespaceQueue.Dequeue();
 
                 // Upcast so we call the 'GetMembers' method that returns an ImmutableArray.
-                ImmutableArray<ISymbol> members = ns.GetMembers();
+                var members = ns.GetMembers();
 
                 foreach (var namespaceOrType in members)
                 {

@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
         {
             if (position >= syntaxTree.GetText(cancellationToken).Length)
             {
-                return default(SyntaxToken);
+                return default;
             }
 
             return syntaxTree.GetRoot(cancellationToken).FindTokenOnRightOfPosition(
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
         {
             if (position < 1)
             {
-                return default(SyntaxToken);
+                return default;
             }
 
             return syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(

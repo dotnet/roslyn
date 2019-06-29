@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 if (this.SecondTokenIsFirstTokenOnLine)
                 {
                     var builder = StringBuilderPool.Allocate();
-                    for (int i = 0; i < this.LineBreaks; i++)
+                    for (var i = 0; i < this.LineBreaks; i++)
                     {
                         builder.Append(newLine);
                     }

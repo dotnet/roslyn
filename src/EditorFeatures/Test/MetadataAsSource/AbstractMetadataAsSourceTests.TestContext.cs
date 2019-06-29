@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 bool includeXmlDocComments, string sourceWithSymbolReference,
                 string languageVersion, string metadataLanguageVersion)
             {
-                string languageVersionAttribute = languageVersion is null ? "" : $@" LanguageVersion=""{languageVersion}""";
+                var languageVersionAttribute = languageVersion is null ? "" : $@" LanguageVersion=""{languageVersion}""";
 
                 var xmlString = string.Concat(@"
 <Workspace>
@@ -257,14 +257,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 
             internal Document GetDocument(MetadataAsSourceFile file)
             {
-                using (var reader = new StreamReader(file.FilePath))
-                {
-                    var textBuffer = _textBufferFactoryService.CreateTextBuffer(reader, _textBufferFactoryService.TextContentType);
+                using var reader = new StreamReader(file.FilePath);
+                var textBuffer = _textBufferFactoryService.CreateTextBuffer(reader, _textBufferFactoryService.TextContentType);
 
-                    Assert.True(_metadataAsSourceService.TryAddDocumentToWorkspace(file.FilePath, textBuffer));
+                Assert.True(_metadataAsSourceService.TryAddDocumentToWorkspace(file.FilePath, textBuffer));
 
-                    return textBuffer.AsTextContainer().GetRelatedDocuments().Single();
-                }
+                return textBuffer.AsTextContainer().GetRelatedDocuments().Single();
             }
 
             internal async Task<ISymbol> GetNavigationSymbolAsync()

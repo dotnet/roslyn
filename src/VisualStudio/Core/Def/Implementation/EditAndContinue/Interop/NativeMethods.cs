@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
         public static object GetObjectAndRelease(IntPtr stream)
         {
-            Marshal.ThrowExceptionForHR(CoGetInterfaceAndReleaseStream(stream, ref s_IID_IUnknown, out object pUnk));
+            Marshal.ThrowExceptionForHR(CoGetInterfaceAndReleaseStream(stream, ref s_IID_IUnknown, out var pUnk));
             return pUnk;
         }
     }
