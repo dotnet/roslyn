@@ -236,6 +236,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             var lastVariableUsage = new Dictionary<ILocalSymbol, int>();
             var localVariables = new List<ILocalSymbol> { localVariable };
 
+            // Take all the statements after the trigger variable's declaration.
             var statementsAfterDeclaration = declarationSyntax.Parent.ChildNodesAndTokens()
                 .Select(nodeOrToken => nodeOrToken.AsNode())
                 .OfType<TStatementSyntax>()
@@ -247,26 +248,30 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 var node = statementsAfterDeclaration[statementIndex];
                 if (ContainsReference(node, localVariables, semanticModel, syntaxFactsService, cancellationToken, out var referencedVariable))
                 {
+                    // Update the statement index this variable was last used in.
                     lastVariableUsage[referencedVariable] = statementIndex;
                 }
 
                 if (node is TLocalDeclarationSyntax localDeclarationSyntax)
                 {
+                    // Get all symbols declared in this statement.
                     var operation = semanticModel.GetOperation(localDeclarationSyntax, cancellationToken) as IVariableDeclarationGroupOperation;
-
                     var localSymbols = operation.Declarations
                         .SelectMany(declaration => declaration.Declarators)
                         .Select(declarator => declarator.Symbol);
 
+                    // Set their declaration index.
                     foreach (var localSymbol in localSymbols)
                     {
                         firstVariableUsage[localSymbol] = statementIndex;
                     }
 
+                    // Add the variables to the list of locals.
                     localVariables.AddRange(localSymbols);
                 }
             }
 
+            // If the trigger variable has no other usage, then return null.
             if (!lastVariableUsage.ContainsKey(localVariable))
             {
                 return null;
@@ -274,14 +279,20 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
 
             var lastUsageIndex = lastVariableUsage[localVariable];
 
-            foreach (var localSymbol in localVariables.Skip(1)) // Skip the localVariable
+            // Skip the trigger variable and loop through local variables
+            // in the order that they were declared.
+            foreach (var localSymbol in localVariables.Skip(1))
             {
                 var declarationIndex = firstVariableUsage[localSymbol];
                 if (declarationIndex > lastUsageIndex)
                 {
+                    // If the variable was declared after the last statement to include in
+                    // the using statement, we have gone far enough and other variables should
+                    // also be outside the using statement.
                     break;
                 }
 
+                // If the variable has no other usages, then we can move to the next variable.
                 if (!lastVariableUsage.TryGetValue(localSymbol, out var lastUsage))
                 {
                     continue;
