@@ -1951,6 +1951,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public bool IsLambdaBody(SyntaxNode node) => node.Parent != null && node.Parent is LambdaExpressionSyntax lambdaNode && lambdaNode.Body == node;
+        public bool IsLambdaBody(SyntaxNode node) => node.Parent is LambdaExpressionSyntax lambdaNode && lambdaNode.Body == node;
     }
 }

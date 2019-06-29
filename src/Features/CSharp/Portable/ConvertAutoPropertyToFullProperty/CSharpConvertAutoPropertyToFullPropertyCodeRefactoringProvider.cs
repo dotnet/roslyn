@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                 return propertyDeclaration.WithSemicolonToken(default);
             }
 
-            // if there is a get accessor only, we can move the expression body to the property
+            // if there is a get accessors only, we can move the expression body to the property
             if (propertyDeclaration.AccessorList?.Accessors.Count == 1 &&
                 propertyDeclaration.AccessorList.Accessors[0].Kind() == SyntaxKind.GetAccessorDeclaration)
             {
