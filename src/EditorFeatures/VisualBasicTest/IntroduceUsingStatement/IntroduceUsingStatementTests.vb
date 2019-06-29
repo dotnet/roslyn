@@ -356,5 +356,31 @@ End Class")
     End Sub
 End Class")
         End Function
+
+        <Fact>
+        Public Async Function ExpandsToIncludeSurroundedVariableDeclarations() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System.IO
+
+Class C
+    Sub M()
+        Dim reader = New MemoryStream()[||]
+        Dim buffer = reader.GetBuffer()
+        buffer.Clone()
+        Dim a = 1
+    End Sub
+End Class",
+"Imports System.IO
+
+Class C
+    Sub M()
+        Using reader = New MemoryStream()
+            Dim buffer = reader.GetBuffer()
+            buffer.Clone()
+        End Using
+        Dim a = 1
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

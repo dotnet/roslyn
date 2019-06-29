@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -230,41 +232,87 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             ISyntaxFactsService syntaxFactsService,
             CancellationToken cancellationToken)
         {
-            foreach (var nodeOrToken in declarationSyntax.Parent.ChildNodesAndTokens().Reverse())
+            var firstVariableUsage = new Dictionary<ILocalSymbol, int>();
+            var lastVariableUsage = new Dictionary<ILocalSymbol, int>();
+            var localVariables = new List<ILocalSymbol> { localVariable };
+
+            var statementsAfterDeclaration = declarationSyntax.Parent.ChildNodesAndTokens()
+                .Select(nodeOrToken => nodeOrToken.AsNode())
+                .OfType<TStatementSyntax>()
+                .SkipWhile(node => node != declarationSyntax)
+                .ToArray();
+
+            for (var statementIndex = 0; statementIndex < statementsAfterDeclaration.Length; statementIndex++)
             {
-                var node = (TStatementSyntax)nodeOrToken.AsNode();
-                if (node is null)
+                var node = statementsAfterDeclaration[statementIndex];
+                if (ContainsReference(node, localVariables, semanticModel, syntaxFactsService, cancellationToken, out var referencedVariable))
+                {
+                    lastVariableUsage[referencedVariable] = statementIndex;
+                }
+
+                if (node is TLocalDeclarationSyntax localDeclarationSyntax)
+                {
+                    var operation = semanticModel.GetOperation(localDeclarationSyntax, cancellationToken) as IVariableDeclarationGroupOperation;
+
+                    var localSymbols = operation.Declarations
+                        .SelectMany(declaration => declaration.Declarators)
+                        .Select(declarator => declarator.Symbol);
+
+                    foreach (var localSymbol in localSymbols)
+                    {
+                        firstVariableUsage[localSymbol] = statementIndex;
+                    }
+
+                    localVariables.AddRange(localSymbols);
+                }
+            }
+
+            if (!lastVariableUsage.ContainsKey(localVariable))
+            {
+                return null;
+            }
+
+            var lastUsageIndex = lastVariableUsage[localVariable];
+
+            foreach (var localSymbol in localVariables.Skip(1)) // Skip the localVariable
+            {
+                var declarationIndex = firstVariableUsage[localSymbol];
+                if (declarationIndex > lastUsageIndex)
+                {
+                    break;
+                }
+
+                if (!lastVariableUsage.TryGetValue(localSymbol, out var lastUsage))
                 {
                     continue;
                 }
 
-                if (node == declarationSyntax)
-                {
-                    break; // Ignore the declaration and usages prior to the declaration
-                }
-
-                if (ContainsReference(node, localVariable, semanticModel, syntaxFactsService, cancellationToken))
-                {
-                    return node;
-                }
+                lastUsageIndex = Math.Max(lastUsageIndex, lastUsage);
             }
 
-            return null;
+            return statementsAfterDeclaration[lastUsageIndex];
         }
 
         private static bool ContainsReference(
             SyntaxNode node,
-            ILocalSymbol localVariable,
+            List<ILocalSymbol> localVariables,
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFactsService,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            out ILocalSymbol referencedVariable)
         {
             if (syntaxFactsService.IsIdentifierName(node))
             {
                 var identifierName = syntaxFactsService.GetIdentifierOfSimpleName(node).ValueText;
 
-                return syntaxFactsService.StringComparer.Equals(localVariable.Name, identifierName) &&
-                    localVariable.Equals(semanticModel.GetSymbolInfo(node).Symbol);
+                referencedVariable = localVariables.FirstOrDefault(localVariable
+                    => syntaxFactsService.StringComparer.Equals(localVariable.Name, identifierName) &&
+                        localVariable.Equals(semanticModel.GetSymbolInfo(node).Symbol));
+
+                if (referencedVariable is object)
+                {
+                    return true;
+                }
             }
 
             foreach (var nodeOrToken in node.ChildNodesAndTokens())
@@ -275,12 +323,13 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                     continue;
                 }
 
-                if (ContainsReference(childNode, localVariable, semanticModel, syntaxFactsService, cancellationToken))
+                if (ContainsReference(childNode, localVariables, semanticModel, syntaxFactsService, cancellationToken, out referencedVariable))
                 {
                     return true;
                 }
             }
 
+            referencedVariable = null;
             return false;
         }
 

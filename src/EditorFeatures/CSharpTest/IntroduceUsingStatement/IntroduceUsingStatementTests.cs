@@ -515,5 +515,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
     }
 }");
         }
+
+        [Fact]
+        public async Task ExpandsToIncludeSurroundedVariableDeclarations()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.IO;
+
+class C
+{
+    void M()
+    {
+        var reader = new MemoryStream()[||];
+        var buffer = reader.GetBuffer();
+        buffer.Clone();
+        var a = 1;
+    }
+}",
+@"using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var reader = new MemoryStream())
+        {
+            var buffer = reader.GetBuffer();
+            buffer.Clone();
+        }
+        var a = 1;
+    }
+}");
+        }
     }
 }
