@@ -2653,7 +2653,7 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 var signKind = IsRealSigned
-                    ? (SignUsingBuilder ? EmitStreamSignKind.SignedWithBulider : EmitStreamSignKind.SignedWithFile)
+                    ? (SignUsingBuilder ? EmitStreamSignKind.SignedWithBuilder : EmitStreamSignKind.SignedWithFile)
                     : EmitStreamSignKind.None;
                 emitPeStream = new EmitStream(peStreamProvider, signKind, Options.StrongNameProvider);
                 emitMetadataStream = metadataPEStreamProvider == null
