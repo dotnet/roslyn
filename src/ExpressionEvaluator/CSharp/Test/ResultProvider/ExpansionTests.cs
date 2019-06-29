@@ -743,7 +743,7 @@ unsafe class C
                 string fullName = string.Format("*({0}).p", rootExpr);
                 children = GetChildren(children[0]);
                 Verify(children,
-                    EvalResult(fullName, "0x00000004", "System.IntPtr", fullName, DkmEvaluationResultFlags.None));
+                    EvalResult(fullName, IntPtr.Size == 8 ? "0x0000000000000004" : "0x00000004", "System.IntPtr", fullName, DkmEvaluationResultFlags.None));
             }
         }
 
@@ -783,7 +783,7 @@ unsafe class C
                 string fullName = string.Format("*({0}).p", rootExpr);
                 children = GetChildren(children[0]);
                 Verify(children,
-                    EvalResult(fullName, "0x00000004", "System.UIntPtr", fullName, DkmEvaluationResultFlags.None));
+                    EvalResult(fullName, UIntPtr.Size == 8 ? "0x0000000000000004" : "0x00000004", "System.UIntPtr", fullName, DkmEvaluationResultFlags.None));
             }
         }
 

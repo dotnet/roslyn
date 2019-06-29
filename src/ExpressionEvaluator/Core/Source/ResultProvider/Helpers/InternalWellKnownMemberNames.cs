@@ -7,6 +7,5 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public const string NullableHasValue = "hasValue";
         public const string NullableValue = "value";
         public const string SqlStringValue = "m_value";
-        public const string IntPtrAndUIntPtrStringValue = "m_value";
     }
 }

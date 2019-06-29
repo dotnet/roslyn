@@ -100,10 +100,31 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     ? _nullString
                     : GetValueString(nullableValue, inspectionContext, ObjectDisplayOptions.None, GetValueFlags.IncludeTypeName);
             }
-            else if (lmrType.IsIntPtr() || lmrType.IsUIntPtr())
+            else if (lmrType.IsIntPtr())
             {
-                var fieldValue = value.GetFieldValue(InternalWellKnownMemberNames.IntPtrAndUIntPtrStringValue, inspectionContext);
-                return FormatPrimitive(fieldValue, ObjectDisplayOptions.UseHexadecimalNumbers, inspectionContext);
+                if (IntPtr.Size == 8)
+                {
+                    var intPtr = ((IntPtr)value.HostObjectValue).ToInt64();
+                    return FormatPrimitiveObject(intPtr, ObjectDisplayOptions.UseHexadecimalNumbers);
+                }
+                else
+                {
+                    var intPtr = ((IntPtr)value.HostObjectValue).ToInt32();
+                    return FormatPrimitiveObject(intPtr, ObjectDisplayOptions.UseHexadecimalNumbers);
+                }
+            }
+            else if (lmrType.IsUIntPtr())
+            {
+                if (UIntPtr.Size == 8)
+                {
+                    var uIntPtr = ((UIntPtr)value.HostObjectValue).ToUInt64();
+                    return FormatPrimitiveObject(uIntPtr, ObjectDisplayOptions.UseHexadecimalNumbers);
+                }
+                else
+                {
+                    var uIntPtr = ((UIntPtr)value.HostObjectValue).ToUInt32();
+                    return FormatPrimitiveObject(uIntPtr, ObjectDisplayOptions.UseHexadecimalNumbers);
+                }
             }
             else
             {
