@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
@@ -30,26 +31,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         {
         }
 
-        internal override SyntaxNode GetProperty(SyntaxToken token)
+        internal override async Task<SyntaxNode> GetPropertyAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var containingProperty = token.Parent.FirstAncestorOrSelf<PropertyDeclarationSyntax>();
-            if (containingProperty == null)
-            {
-                return null;
-            }
 
-            if (!(containingProperty.Parent is TypeDeclarationSyntax))
-            {
-                return null;
-            }
+            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
 
-            var start = containingProperty.AttributeLists.Count > 0
-                ? containingProperty.AttributeLists.Last().GetLastToken().GetNextToken().SpanStart
-                : containingProperty.SpanStart;
+            var containingProperty = await refactoringHelperService.TryGetSelectedNodeAsync<PropertyDeclarationSyntax>(document, span, cancellationToken).ConfigureAwait(false);
 
-            // Offer this refactoring anywhere in the signature of the property
-            var position = token.SpanStart;
-            if (position < start || position > containingProperty.Identifier.Span.End)
+            if (!(containingProperty?.Parent is TypeDeclarationSyntax))
             {
                 return null;
             }

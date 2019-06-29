@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
@@ -19,29 +20,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
         Public Sub New()
         End Sub
 
-        Friend Overrides Function GetProperty(token As SyntaxToken) As SyntaxNode
-            Dim containingProperty = token.Parent.FirstAncestorOrSelf(Of PropertyStatementSyntax)
-            If containingProperty Is Nothing Then
-                Return Nothing
-            End If
+        Friend Overrides Async Function GetPropertyAsync(document As Document, span As TextSpan, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+            Dim refactoringHelperService = document.GetLanguageService(Of IRefactoringHelpersService)()
+            Dim containingProperty = Await refactoringHelperService.TryGetSelectedNodeAsync(Of PropertyStatementSyntax)(document, span, cancellationToken).ConfigureAwait(False)
 
             ' see whether property is on right place
-            If TypeOf containingProperty.Parent IsNot TypeBlockSyntax Then
-                Return Nothing
-            End If
-
-            Dim start = If(containingProperty.AttributeLists.Count > 0,
-                containingProperty.AttributeLists.Last().GetLastToken().GetNextToken().SpanStart,
-                containingProperty.SpanStart)
-
-            ' Offer this refactoring anywhere in the signature of the property.
-            Dim position = token.SpanStart
-            If position < start Then
-                Return Nothing
-            End If
-
-            If containingProperty.HasReturnType() AndAlso
-                position > containingProperty.GetReturnType().Span.End Then
+            If TypeOf containingProperty?.Parent IsNot TypeBlockSyntax Then
                 Return Nothing
             End If
 

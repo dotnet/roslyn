@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
     internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider
         : CodeRefactoringProvider
     {
-        internal abstract SyntaxNode GetProperty(SyntaxToken token);
+        internal abstract Task<SyntaxNode> GetPropertyAsync(Document document, TextSpan span, CancellationToken cancellationToken);
         internal abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, CancellationToken cancellationToken);
         internal abstract (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
             DocumentOptionSet options, SyntaxNode property, string fieldName, SyntaxGenerator generator);
@@ -31,9 +32,8 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(context.Span.Start);
 
-            var property = GetProperty(token);
+            var property = await GetPropertyAsync(document, context.Span, cancellationToken).ConfigureAwait(false);
             if (property == null)
             {
                 return;
