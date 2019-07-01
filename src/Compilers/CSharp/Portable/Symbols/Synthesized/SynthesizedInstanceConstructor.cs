@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return TypeWithAnnotations.Create(ContainingAssembly.GetSpecialType(SpecialType.System_Void)); }
         }
 
-        public sealed override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
+        public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {

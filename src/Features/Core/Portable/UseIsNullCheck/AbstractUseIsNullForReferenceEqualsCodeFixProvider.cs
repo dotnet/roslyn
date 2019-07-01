@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 var title = negated ? GetIsNotNullTitle() : GetIsNullTitle();
 
                 context.RegisterCodeFix(
-                    new MyCodeAction(title, c => this.FixAsync(context.Document, diagnostic, c)),
+                    new MyCodeAction(title, c => FixAsync(context.Document, diagnostic, c)),
                     context.Diagnostics);
             }
 

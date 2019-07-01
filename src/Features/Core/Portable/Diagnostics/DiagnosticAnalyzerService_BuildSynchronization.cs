@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {

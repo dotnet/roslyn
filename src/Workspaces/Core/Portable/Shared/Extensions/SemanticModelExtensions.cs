@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (typeInfo.Type != null)
             {
-                return typeInfo.Type.WithNullability(typeInfo.Nullability.FlowState);
+                return typeInfo.GetTypeWithFlowNullability();
             }
 
             var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);

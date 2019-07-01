@@ -320,6 +320,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property HasNotNullConstraint As Boolean Implements ITypeParameterSymbol.HasNotNullConstraint
+            Get
+                Return False
+            End Get
+        End Property
+
         Public MustOverride ReadOnly Property Variance As VarianceKind Implements ITypeParameterSymbol.Variance
 
         ''' <summary>

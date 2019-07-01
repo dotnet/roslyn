@@ -33,10 +33,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             view.LayoutChanged += firstLayout;
 
-            bool IsGreater(double value, double other)
+            static bool IsGreater(double value, double other)
                 => IsNormal(value) && (!IsNormal(other) || value > other);
 
-            bool IsNormal(double value)
+            static bool IsNormal(double value)
                 => !double.IsNaN(value) && !double.IsInfinity(value);
         }
     }

@@ -248,29 +248,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             _sawLocalFunctions = true;
-            CheckRefReadOnlySymbols(node.Symbol);
 
-            var typeParameters = node.Symbol.TypeParameters;
+            var localFunction = node.Symbol;
+            CheckRefReadOnlySymbols(localFunction);
+
+            var typeParameters = localFunction.TypeParameters;
             if (typeParameters.Any(typeParameter => typeParameter.HasUnmanagedTypeConstraint))
             {
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureIsUnmanagedAttributeExists();
             }
 
-            bool constraintsNeedNullableAttribute = typeParameters.Any(
-               typeParameter => ((SourceTypeParameterSymbolBase)typeParameter).ConstraintsNeedNullableAttribute());
-
-            bool returnTypeNeedsNullableAttribute = node.Symbol.ReturnTypeWithAnnotations.NeedsNullableAttribute();
-            bool parametersNeedNullableAttribute = node.Symbol.ParameterTypesWithAnnotations.Any(parameter => parameter.NeedsNullableAttribute());
-
-            if (constraintsNeedNullableAttribute || returnTypeNeedsNullableAttribute || parametersNeedNullableAttribute)
+            if (_factory.CompilationState.Compilation.ShouldEmitNullableAttributes(localFunction))
             {
-                _factory.CompilationState.ModuleBuilderOpt?.EnsureNullableAttributeExists();
+                bool constraintsNeedNullableAttribute = typeParameters.Any(
+                   typeParameter => ((SourceTypeParameterSymbolBase)typeParameter).ConstraintsNeedNullableAttribute());
+
+                bool returnTypeNeedsNullableAttribute = localFunction.ReturnTypeWithAnnotations.NeedsNullableAttribute();
+                bool parametersNeedNullableAttribute = localFunction.ParameterTypesWithAnnotations.Any(parameter => parameter.NeedsNullableAttribute());
+
+                if (constraintsNeedNullableAttribute || returnTypeNeedsNullableAttribute || parametersNeedNullableAttribute)
+                {
+                    _factory.CompilationState.ModuleBuilderOpt?.EnsureNullableAttributeExists();
+                }
             }
 
             var oldContainingSymbol = _factory.CurrentFunction;
             try
             {
-                _factory.CurrentFunction = node.Symbol;
+                _factory.CurrentFunction = localFunction;
                 return base.VisitLocalFunctionStatement(node);
             }
             finally

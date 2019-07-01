@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             var textBuffer = WorkspaceFixture.CurrentDocument.TextBuffer;
 
-            string actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
+            var actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
             var caretPosition = commit.NewPosition != null ? commit.NewPosition.Value : textView.Caret.Position.BufferPosition.Position;
 
             Assert.Equal(actualExpectedCode, actualCodeAfterCommit);
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             customCommitCompletionProvider.Commit(completionItem, textView, textBuffer, textView.TextSnapshot, commitChar);
 
-            string actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
+            var actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
             var caretPosition = textView.Caret.Position.BufferPosition.Position;
 
             Assert.Equal(actualExpectedCode, actualCodeAfterCommit);

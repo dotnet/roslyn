@@ -1479,7 +1479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             CallKind callKind;
 
-            if (method.IsStatic)
+            if (!method.RequiresInstanceReceiver)
             {
                 callKind = CallKind.Call;
             }
@@ -1748,7 +1748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 stack += 1;
             }
 
-            if (!call.Method.IsStatic)
+            if (call.Method.RequiresInstanceReceiver)
             {
                 // The call pops the receiver off the stack.
                 stack -= 1;

@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,7 +14,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using Task = System.Threading.Tasks.Task;
@@ -24,14 +26,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Singleton the subscribes to the running document table and connects/disconnects files to files that are opened.
         /// </summary>
-        public sealed class OpenFileTracker
+        public sealed class OpenFileTracker : IRunningDocumentTableEventListener
         {
             private readonly ForegroundThreadAffinitizedObject _foregroundAffinitization;
 
             private readonly VisualStudioWorkspaceImpl _workspace;
-            private readonly IVsRunningDocumentTable4 _runningDocumentTable;
-            private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
             private readonly IAsynchronousOperationListener _asyncOperationListener;
+
+            private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
 
             #region Fields read/written to from multiple threads to track files that need to be checked
 
@@ -59,11 +61,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly ReferenceCountedDisposableCache<IVsHierarchy, HierarchyEventSink> _hierarchyEventSinkCache = new ReferenceCountedDisposableCache<IVsHierarchy, HierarchyEventSink>();
 
             /// <summary>
-            /// The IVsHierarchies we have subscribed to to watch for any changes to this document cookie. We track this per document cookie, so
+            /// The IVsHierarchies we have subscribed to to watch for any changes to this moniker. We track this per moniker, so
             /// when a document is closed we know what we have to incrementally unsubscribe from rather than having to unsubscribe from everything.
             /// </summary>
-            private readonly MultiDictionary<uint, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>> _watchedHierarchiesForDocumentCookie
-                = new MultiDictionary<uint, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>>();
+            private readonly MultiDictionary<string, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>> _watchedHierarchiesForDocumentMoniker
+                = new MultiDictionary<string, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>>();
 
             #endregion
 
@@ -79,71 +81,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// This cutoff of 10 was chosen arbitrarily and with no evidence whatsoever.</remarks>
             private const int CutoffForCheckingAllRunningDocumentTableDocuments = 10;
 
-            private OpenFileTracker(VisualStudioWorkspaceImpl workspace, IVsRunningDocumentTable4 runningDocumentTable, IComponentModel componentModel)
+            private OpenFileTracker(VisualStudioWorkspaceImpl workspace, IVsRunningDocumentTable runningDocumentTable, IComponentModel componentModel)
             {
                 _workspace = workspace;
                 _foregroundAffinitization = new ForegroundThreadAffinitizedObject(workspace._threadingContext, assertIsForeground: true);
-                _runningDocumentTable = runningDocumentTable;
-                _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
                 _asyncOperationListener = componentModel.GetService<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace);
+                _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(workspace._threadingContext,
+                    componentModel.GetService<IVsEditorAdaptersFactoryService>(), runningDocumentTable, this);
+            }
+
+            void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy hierarchy)
+                => TryOpeningDocumentsForMoniker(moniker, textBuffer, hierarchy);
+
+            void IRunningDocumentTableEventListener.OnCloseDocument(string moniker)
+                => TryClosingDocumentsForMoniker(moniker);
+
+            void IRunningDocumentTableEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
+                => RefreshContextForMoniker(moniker, hierarchy);
+
+            /// <summary>
+            /// When a file is renamed, the old document is removed and a new document is added by the workspace.
+            /// </summary>
+            void IRunningDocumentTableEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer buffer)
+            {
             }
 
             public async static Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, IAsyncServiceProvider asyncServiceProvider)
             {
-                var runningDocumentTable = (IVsRunningDocumentTable4)await asyncServiceProvider.GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
+                var runningDocumentTable = (IVsRunningDocumentTable)await asyncServiceProvider.GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
                 var componentModel = (IComponentModel)await asyncServiceProvider.GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
 
-                var openFileTracker = new OpenFileTracker(workspace, runningDocumentTable, componentModel);
-                openFileTracker.ConnectToRunningDocumentTable();
-
-                return openFileTracker;
+                return new OpenFileTracker(workspace, runningDocumentTable, componentModel);
             }
 
-            private void ConnectToRunningDocumentTable()
+            private void TryOpeningDocumentsForMoniker(string moniker, ITextBuffer textBuffer, IVsHierarchy hierarchy)
             {
                 _foregroundAffinitization.AssertIsForeground();
 
-                // Some methods we need here only exist in IVsRunningDocumentTable and not the IVsRunningDocumentTable4 that we
-                // hold onto as a field
-                var runningDocumentTable = ((IVsRunningDocumentTable)_runningDocumentTable);
-                runningDocumentTable.AdviseRunningDocTableEvents(new RunningDocumentTableEventSink(this), out var docTableEventsCookie);
-            }
-
-            private IEnumerable<uint> GetInitializedRunningDocumentTableCookies()
-            {
-                // Some methods we need here only exist in IVsRunningDocumentTable and not the IVsRunningDocumentTable4 that we
-                // hold onto as a field
-                var runningDocumentTable = ((IVsRunningDocumentTable)_runningDocumentTable);
-                ErrorHandler.ThrowOnFailure(runningDocumentTable.GetRunningDocumentsEnum(out var enumRunningDocuments));
-                uint[] cookies = new uint[16];
-
-                while (ErrorHandler.Succeeded(enumRunningDocuments.Next((uint)cookies.Length, cookies, out var cookiesFetched))
-                       && cookiesFetched > 0)
-                {
-                    for (int cookieIndex = 0; cookieIndex < cookiesFetched; cookieIndex++)
-                    {
-                        var cookie = cookies[cookieIndex];
-
-                        if (_runningDocumentTable.IsDocumentInitialized(cookie))
-                        {
-                            yield return cookie;
-                        }
-                    }
-                }
-            }
-
-            private void TryOpeningDocumentsForNewCookie(uint cookie)
-            {
-                _foregroundAffinitization.AssertIsForeground();
-
-                if (!_runningDocumentTable.IsDocumentInitialized(cookie))
-                {
-                    // We never want to touch documents that haven't been initialized yet, so immediately bail. Any further
-                    // calls to the RDT might accidentally initialize it.
-                    return;
-                }
-
-                var moniker = _runningDocumentTable.GetDocumentMoniker(cookie);
                 _workspace.ApplyChangeToWorkspace(w =>
                 {
                     var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
@@ -165,68 +139,56 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                     else
                     {
-                        activeContextProjectId = GetActiveContextProjectIdAndWatchHierarchies(cookie, documentIds);
+                        activeContextProjectId = GetActiveContextProjectIdAndWatchHierarchies(moniker, documentIds.Select(d => d.ProjectId), hierarchy);
                     }
 
-                    if ((object)_runningDocumentTable.GetDocumentData(cookie) is IVsTextBuffer bufferAdapter)
+                    var textContainer = textBuffer.AsTextContainer();
+
+                    foreach (var documentId in documentIds)
                     {
-                        var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(bufferAdapter);
-
-                        if (textBuffer != null)
+                        if (!w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
                         {
-                            var textContainer = textBuffer.AsTextContainer();
-
-                            foreach (var documentId in documentIds)
+                            var isCurrentContext = documentId.ProjectId == activeContextProjectId;
+                            if (w.CurrentSolution.ContainsDocument(documentId))
                             {
-                                if (!w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
-                                {
-                                    var isCurrentContext = documentId.ProjectId == activeContextProjectId;
-                                    if (w.CurrentSolution.ContainsDocument(documentId))
-                                    {
-                                        w.OnDocumentOpened(documentId, textContainer, isCurrentContext);
-                                    }
-                                    else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
-                                    {
-                                        w.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext);
-                                    }
-                                    else
-                                    {
-                                        Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
-                                        w.OnAnalyzerConfigDocumentOpened(documentId, textContainer, isCurrentContext);
-                                    }
-                                }
+                                w.OnDocumentOpened(documentId, textContainer, isCurrentContext);
+                            }
+                            else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
+                            {
+                                w.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext);
+                            }
+                            else
+                            {
+                                Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
+                                w.OnAnalyzerConfigDocumentOpened(documentId, textContainer, isCurrentContext);
                             }
                         }
                     }
                 });
             }
 
-            private ProjectId GetActiveContextProjectIdAndWatchHierarchies(uint cookie, ImmutableArray<DocumentId> documentIds)
+            private ProjectId GetActiveContextProjectIdAndWatchHierarchies(string moniker, IEnumerable<ProjectId> projectIds, IVsHierarchy hierarchy)
             {
-                Debug.Assert(!documentIds.IsEmpty);
-
                 _foregroundAffinitization.AssertIsForeground();
 
                 // First clear off any existing IVsHierarchies we are watching. Any ones that still matter we will resubscribe to.
                 // We could be fancy and diff, but the cost is probably neglible.
-                UnsubscribeFromWatchedHierarchies(cookie);
-
-                _runningDocumentTable.GetDocumentHierarchyItem(cookie, out var hierarchy, out _);
+                UnsubscribeFromWatchedHierarchies(moniker);
 
                 if (hierarchy == null)
                 {
                     // Any item in the RDT should have a hierarchy associated; in this case we don't so there's absolutely nothing
                     // we can do at this point.
-                    return documentIds.First().ProjectId;
+                    return projectIds.First();
                 }
 
                 void WatchHierarchy(IVsHierarchy hierarchyToWatch)
                 {
-                    _watchedHierarchiesForDocumentCookie.Add(cookie, _hierarchyEventSinkCache.GetOrCreate(hierarchyToWatch, h => new HierarchyEventSink(h, this)));
+                    _watchedHierarchiesForDocumentMoniker.Add(moniker, _hierarchyEventSinkCache.GetOrCreate(hierarchyToWatch, h => new HierarchyEventSink(h, this)));
                 }
 
                 // Take a snapshot of the immutable data structure here to avoid mutation underneath us
-                var projectGuids = _workspace._projectToGuidMap;
+                var projectToHierarchyMap = _workspace._projectToHierarchyMap;
                 var solution = _workspace.CurrentSolution;
 
                 // We now must chase to the actual hierarchy that we know about. First, we'll chase through multiple shared asset projects if
@@ -247,21 +209,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     hierarchy = contextHierarchy;
                 }
 
-                if (!hierarchy.TryGetProjectGuid(out var projectGuid))
-                {
-                    return documentIds.First().ProjectId;
-                }
-
                 // We may have multiple projects with the same hierarchy, but we can use __VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext to distinguish
-                if (ErrorHandler.Succeeded(hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out object contextProjectNameObject)))
+                if (ErrorHandler.Succeeded(hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out var contextProjectNameObject)))
                 {
                     WatchHierarchy(hierarchy);
 
                     if (contextProjectNameObject is string contextProjectName)
                     {
-                        var project = _workspace.GetProjectWithGuidAndName(projectGuid, contextProjectName);
+                        var project = _workspace.GetProjectWithHierarchyAndName(hierarchy, contextProjectName);
 
-                        if (project != null && documentIds.Any(d => d.ProjectId == project.Id))
+                        if (project != null && projectIds.Contains(project.Id))
                         {
                             return project.Id;
                         }
@@ -270,33 +227,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 // At this point, we should hopefully have only one project that maches by hierarchy. If there's multiple, at this point we can't figure anything
                 // out better.
-                var matchingDocumentId = documentIds.FirstOrDefault(d => projectGuids.GetValueOrDefault(d.ProjectId, Guid.Empty) == projectGuid);
-                if (matchingDocumentId != null)
+                var matchingProjectId = projectIds.FirstOrDefault(id => projectToHierarchyMap.GetValueOrDefault(id, null) == hierarchy);
+
+                if (matchingProjectId != null)
                 {
-                    return matchingDocumentId.ProjectId;
+                    return matchingProjectId;
                 }
 
                 // If we had some trouble finding the project, we'll just pick one arbitrarily
-                return documentIds.First().ProjectId;
+                return projectIds.First();
             }
 
-            private void UnsubscribeFromWatchedHierarchies(uint cookie)
+            private void UnsubscribeFromWatchedHierarchies(string moniker)
             {
                 _foregroundAffinitization.AssertIsForeground();
 
-                foreach (var watchedHierarchy in _watchedHierarchiesForDocumentCookie[cookie])
+                foreach (var watchedHierarchy in _watchedHierarchiesForDocumentMoniker[moniker])
                 {
                     watchedHierarchy.Dispose();
                 }
 
-                _watchedHierarchiesForDocumentCookie.Remove(cookie);
+                _watchedHierarchiesForDocumentMoniker.Remove(moniker);
             }
 
-            private void RefreshContextForRunningDocumentTableCookie(uint cookie)
+            private void RefreshContextForMoniker(string moniker, IVsHierarchy hierarchy)
             {
                 _foregroundAffinitization.AssertIsForeground();
 
-                var moniker = _runningDocumentTable.GetDocumentMoniker(cookie);
                 _workspace.ApplyChangeToWorkspace(w =>
                 {
                     var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
@@ -310,7 +267,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         return;
                     }
 
-                    var activeProjectId = GetActiveContextProjectIdAndWatchHierarchies(cookie, documentIds);
+                    var activeProjectId = GetActiveContextProjectIdAndWatchHierarchies(moniker, documentIds.Select(d => d.ProjectId), hierarchy);
                     w.OnDocumentContextUpdated(documentIds.FirstOrDefault(d => d.ProjectId == activeProjectId));
                 });
             }
@@ -321,33 +278,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 // We're going to go through each file that has subscriptions, and update them appropriately.
                 // We have to clone this since we will be modifying it under the covers.
-                foreach (var cookie in _watchedHierarchiesForDocumentCookie.Keys.ToList())
+                foreach (var moniker in _watchedHierarchiesForDocumentMoniker.Keys.ToList())
                 {
-                    foreach (var subscribedHierarchy in _watchedHierarchiesForDocumentCookie[cookie])
+                    foreach (var subscribedHierarchy in _watchedHierarchiesForDocumentMoniker[moniker])
                     {
                         if (subscribedHierarchy.Target.Key == hierarchy)
                         {
-                            RefreshContextForRunningDocumentTableCookie(cookie);
-                            break;
+                            RefreshContextForMoniker(moniker, hierarchy);
                         }
                     }
                 }
             }
 
-            private void TryClosingDocumentsForCookie(uint cookie)
+            private void TryClosingDocumentsForMoniker(string moniker)
             {
                 _foregroundAffinitization.AssertIsForeground();
 
-                if (!_runningDocumentTable.IsDocumentInitialized(cookie))
-                {
-                    // We never want to touch documents that haven't been initialized yet, so immediately bail. Any further
-                    // calls to the RDT might accidentally initialize it.
-                    return;
-                }
+                UnsubscribeFromWatchedHierarchies(moniker);
 
-                UnsubscribeFromWatchedHierarchies(cookie);
-
-                var moniker = _runningDocumentTable.GetDocumentMoniker(cookie);
                 _workspace.ApplyChangeToWorkspace(w =>
                 {
                     var documentIds = w.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
@@ -385,7 +333,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 _foregroundAffinitization.ThisCanBeCalledOnAnyThread();
 
-                bool shouldStartTask = false;
+                var shouldStartTask = false;
 
                 lock (_gate)
                 {
@@ -454,91 +402,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (justEnumerateTheEntireRunningDocumentTable)
                 {
-                    foreach (var cookie in GetInitializedRunningDocumentTableCookies())
+                    var documents = _runningDocumentTableEventTracker.EnumerateDocumentSet();
+                    foreach (var (moniker, textBuffer, hierarchy) in documents)
                     {
-                        TryOpeningDocumentsForNewCookie(cookie);
+                        TryOpeningDocumentsForMoniker(moniker, textBuffer, hierarchy);
                     }
                 }
                 else if (fileNamesToCheckForOpenDocuments != null)
                 {
-                    foreach (var filename in fileNamesToCheckForOpenDocuments)
+                    foreach (var fileName in fileNamesToCheckForOpenDocuments)
                     {
-                        if (_runningDocumentTable.IsMonikerValid(filename))
+                        if (_runningDocumentTableEventTracker.IsFileOpen(fileName) && _runningDocumentTableEventTracker.TryGetBufferFromMoniker(fileName, out var buffer))
                         {
-                            var cookie = _runningDocumentTable.GetDocumentCookie(filename);
-                            TryOpeningDocumentsForNewCookie(cookie);
+                            var hierarchy = _runningDocumentTableEventTracker.GetDocumentHierarchy(fileName);
+                            TryOpeningDocumentsForMoniker(fileName, buffer, hierarchy);
                         }
                     }
-                }
-            }
-
-            private class RunningDocumentTableEventSink : IVsRunningDocTableEvents3
-            {
-                private readonly OpenFileTracker _openFileTracker;
-
-                public RunningDocumentTableEventSink(OpenFileTracker openFileTracker)
-                {
-                    _openFileTracker = openFileTracker;
-                }
-
-                public int OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
-                {
-                    return VSConstants.E_NOTIMPL;
-                }
-
-                public int OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
-                {
-                    if (dwReadLocksRemaining + dwEditLocksRemaining == 0)
-                    {
-                        _openFileTracker.TryClosingDocumentsForCookie(docCookie);
-                    }
-
-                    return VSConstants.S_OK;
-                }
-
-                public int OnAfterSave(uint docCookie)
-                {
-                    return VSConstants.E_NOTIMPL;
-                }
-
-                public int OnAfterAttributeChange(uint docCookie, uint grfAttribs)
-                {
-                    return VSConstants.E_NOTIMPL;
-                }
-
-                public int OnAfterAttributeChangeEx(uint docCookie, uint grfAttribs, IVsHierarchy pHierOld, uint itemidOld, string pszMkDocumentOld, IVsHierarchy pHierNew, uint itemidNew, string pszMkDocumentNew)
-                {
-                    if ((grfAttribs & (uint)__VSRDTATTRIB3.RDTA_DocumentInitialized) != 0)
-                    {
-                        _openFileTracker.TryOpeningDocumentsForNewCookie(docCookie);
-                    }
-
-                    if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_Hierarchy) != 0)
-                    {
-                        _openFileTracker.RefreshContextForRunningDocumentTableCookie(docCookie);
-                    }
-
-                    return VSConstants.S_OK;
-                }
-
-                public int OnBeforeDocumentWindowShow(uint docCookie, int fFirstShow, IVsWindowFrame pFrame)
-                {
-                    if (fFirstShow != 0)
-                    {
-                        _openFileTracker.TryOpeningDocumentsForNewCookie(docCookie);
-                    }
-
-                    return VSConstants.S_OK;
-                }
-
-                public int OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame pFrame)
-                {
-                    return VSConstants.E_NOTIMPL;
-                }
-
-                public int OnBeforeSave(uint docCookie)
-                {
-                    return VSConstants.E_NOTIMPL;
                 }
             }
 

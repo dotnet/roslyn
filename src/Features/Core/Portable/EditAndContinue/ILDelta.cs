@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public ILDelta(byte[] value)
         {
-            this.Value = value;
+            Value = value;
         }
     }
 }

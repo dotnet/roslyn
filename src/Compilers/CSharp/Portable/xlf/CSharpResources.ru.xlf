@@ -68,7 +68,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
-        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'warnings'</source>
+        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
         <target state="needs-review-translation">Недопустимый параметр "{0}" для /nullable. Требуется "disable", "enable", "safeonly", "warnings" или "safeonlywarnings".</target>
         <note />
       </trans-unit>
@@ -290,6 +290,11 @@
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'disable', or 'restore'</source>
         <target state="needs-review-translation">Ожидается "enable", "safeonly", "disable" или "restore"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullableDirectiveTargetExpected">
+        <source>Expected 'warnings', 'annotations', or end of directive</source>
+        <target state="new">Expected 'warnings', 'annotations', or end of directive</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
@@ -802,14 +807,14 @@
         <target state="new">stackalloc in nested expressions</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureNotNullGenericTypeConstraint">
+        <source>notnull generic type constraint</source>
+        <target state="new">notnull generic type constraint</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
         <source>nullable reference types</source>
         <target state="translated">ссылочные типы, допускающие значение NULL</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureObjectGenericTypeConstraint">
-        <source>object generic type constraint</source>
-        <target state="translated">ограничение универсального типа для объекта</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureObsoleteOnPropertyAccessor">
@@ -895,11 +900,6 @@
       <trans-unit id="IDS_NULL">
         <source>&lt;null&gt;</source>
         <target state="translated">&lt;NULL&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_NotNullGenericTypeConstraint">
-        <source>notnull generic type constraint</source>
-        <target state="new">notnull generic type constraint</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_OverrideWithConstraints">
@@ -1332,14 +1332,14 @@
         <target state="translated">Выражение по умолчанию вводит значение NULL для параметра типа.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended">
-        <source>'default' is converted to 'null', not 'default({0})'</source>
-        <target state="translated">"default" преобразуется в "null", а не в "default({0})"</target>
+      <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
+        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
+        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended_Title">
-        <source>'default' is converted to 'null'</source>
-        <target state="translated">"default" преобразуется в "null"</target>
+      <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
+        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
+        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1393,13 +1393,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
-        <source>The annotation for nullable reference types should only be used in code within a '#nullable' context.</source>
-        <target state="translated">Аннотацию для ссылочных типов, допускающих значение NULL, следует использовать в коде только в контексте "#nullable".</target>
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
+        <target state="needs-review-translation">Аннотацию для ссылочных типов, допускающих значение NULL, следует использовать в коде только в контексте "#nullable".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
-        <source>The annotation for nullable reference types should only be used in code within a '#nullable' context.</source>
-        <target state="translated">Аннотацию для ссылочных типов, допускающих значение NULL, следует использовать в коде только в контексте "#nullable".</target>
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
+        <target state="needs-review-translation">Аннотацию для ссылочных типов, допускающих значение NULL, следует использовать в коде только в контексте "#nullable".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
@@ -1563,8 +1563,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation">
-        <source>Nullability of reference types in type of parameter '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="translated">Допустимость значения NULL для ссылочных типов в типе параметра "{0}" не совпадает с явно реализованным членом "{1}".</target>
+        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</source>
+        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
@@ -1613,8 +1613,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation">
-        <source>Nullability of reference types in return type doesn't match implicitly implemented member '{0}'.</source>
-        <target state="translated">Допустимость значения NULL для ссылочных типов в возвращаемом типе не совпадает с явно реализованным членом "{0}".</target>
+        <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
+        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
@@ -1643,13 +1643,23 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation">
-        <source>Nullability of reference types in type doesn't match implicitly implemented member '{0}'.</source>
-        <target state="translated">Допустимость значения NULL для ссылочных типов в типе не совпадает с явно реализованным членом "{0}".</target>
+        <source>Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
+        <target state="new">Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in type doesn't match implicitly implemented member.</source>
         <target state="translated">Допустимость значения NULL для ссылочных типов в типе не совпадает с явно реализованным членом.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
+        <source>Nullability of reference types in type doesn't match overridden member.</source>
+        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
+        <source>Nullability of reference types in type doesn't match overridden member.</source>
+        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
@@ -1690,16 +1700,6 @@
       <trans-unit id="WRN_NullableValueTypeMayBeNull_Title">
         <source>Nullable value type may be null.</source>
         <target state="translated">Тип значения, допускающего NULL, может быть NULL.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_SpecialTypeAsBound">
-        <source>Constraint cannot be special class '{0}'</source>
-        <target state="new">Constraint cannot be special class '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_SpecialTypeAsBound_Title">
-        <source>Constraint cannot be special class</source>
-        <target state="new">Constraint cannot be special class</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">

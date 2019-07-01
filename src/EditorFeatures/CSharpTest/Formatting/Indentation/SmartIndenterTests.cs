@@ -2807,28 +2807,27 @@ class C
 
             foreach (var option in optionsSet)
             {
-                using (var workspace = TestWorkspace.CreateCSharp(markup, parseOptions: option))
+                using var workspace = TestWorkspace.CreateCSharp(markup, parseOptions: option);
+
+                workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
+                var subjectDocument = workspace.Documents.Single();
+
+                var projectedDocument =
+                    workspace.CreateProjectionBufferDocument(HtmlMarkup, workspace.Documents, LanguageNames.CSharp);
+
+                if (workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>() is TestFormattingRuleFactoryServiceFactory.Factory provider)
                 {
-                    workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
-                    var subjectDocument = workspace.Documents.Single();
-
-                    var projectedDocument =
-                        workspace.CreateProjectionBufferDocument(HtmlMarkup, workspace.Documents, LanguageNames.CSharp);
-
-                    if (workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>() is TestFormattingRuleFactoryServiceFactory.Factory provider)
-                    {
-                        provider.BaseIndentation = BaseIndentationOfNugget;
-                        provider.TextSpan = subjectDocument.SelectedSpans.Single();
-                    }
-
-                    var indentationLine = projectedDocument.TextBuffer.CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value);
-                    var point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.TextBuffer, PositionAffinity.Predecessor);
-
-                    TestIndentation(
-                        workspace, point.Value,
-                        expectedIndentation, expectedBlankLineIndentation,
-                        projectedDocument.GetTextView(), subjectDocument);
+                    provider.BaseIndentation = BaseIndentationOfNugget;
+                    provider.TextSpan = subjectDocument.SelectedSpans.Single();
                 }
+
+                var indentationLine = projectedDocument.TextBuffer.CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value);
+                var point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.TextBuffer, PositionAffinity.Predecessor);
+
+                TestIndentation(
+                    workspace, point.Value,
+                    expectedIndentation, expectedBlankLineIndentation,
+                    projectedDocument.GetTextView(), subjectDocument);
             }
         }
 
@@ -2846,13 +2845,12 @@ class C
 
             foreach (var option in optionsSet)
             {
-                using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions: option))
-                {
-                    workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
-                    TestIndentation(
-                        workspace, indentationLine,
-                        expectedIndentation, expectedBlankLineIndentation);
-                }
+                using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: option);
+
+                workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
+                TestIndentation(
+                    workspace, indentationLine,
+                    expectedIndentation, expectedBlankLineIndentation);
             }
         }
 
@@ -2869,15 +2867,14 @@ class C
 
             foreach (var option in optionsSet)
             {
-                using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions: option))
-                {
-                    workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
-                    var wpfTextView = workspace.Documents.First().GetTextView();
-                    var line = wpfTextView.TextBuffer.CurrentSnapshot.GetLineFromPosition(wpfTextView.Caret.Position.BufferPosition).LineNumber;
-                    TestIndentation(
-                        workspace, line,
-                        expectedIndentation, expectedBlankLineIndentation);
-                }
+                using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: option);
+
+                workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
+                var wpfTextView = workspace.Documents.First().GetTextView();
+                var line = wpfTextView.TextBuffer.CurrentSnapshot.GetLineFromPosition(wpfTextView.Caret.Position.BufferPosition).LineNumber;
+                TestIndentation(
+                    workspace, line,
+                    expectedIndentation, expectedBlankLineIndentation);
             }
         }
     }

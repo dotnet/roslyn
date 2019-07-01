@@ -70,8 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(FeaturesResources.Make_readonly_fields_writable, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Make_readonly_fields_writable, createChangedDocument)
             {
             }
         }

@@ -35,13 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private readonly IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> _autoBraceCompletionChars;
         private readonly Dictionary<IContentType, ImmutableHashSet<char>> _autoBraceCompletionCharSet;
 
-        /// <summary>
-        /// The new completion API is not checked by default - null
-        /// false - disabled
-        /// true - enabled
-        /// </summary>
-        private bool? _newCompletionAPIEnabled = null;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AsyncCompletionService(
@@ -70,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             AssertIsForeground();
 
-            if (!UseLegacyCompletion(textView, subjectBuffer))
+            if (!UseLegacyCompletion(_featureServiceFactory, textView, subjectBuffer))
             {
                 controller = null;
                 return false;
@@ -93,41 +86,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return true;
         }
 
-        private bool UseLegacyCompletion(ITextView textView, ITextBuffer subjectBuffer)
+        private bool UseLegacyCompletion(IFeatureServiceFactory featureServiceFactory, ITextView textView, ITextBuffer subjectBuffer)
         {
-            if (!_newCompletionAPIEnabled.HasValue)
-            {
-                int userSetting = 0;
-                const string useAsyncCompletionOptionName = "UseAsyncCompletion";
-                if (textView.Options.GlobalOptions.IsOptionDefined(useAsyncCompletionOptionName, localScopeOnly: false))
-                {
-                    userSetting = textView.Options.GlobalOptions.GetOptionValue<int>(useAsyncCompletionOptionName);
-                }
-
-                // The meaning of the UseAsyncCompletion option definition's values:
-                // -1 - user disabled async completion
-                //  0 - no changes from the user; check the experimentation service for whether to use async completion
-                //  1 - user enabled async completion
-                if (userSetting == 1)
-                {
-                    _newCompletionAPIEnabled = true;
-                }
-                else if (userSetting == -1)
-                {
-                    _newCompletionAPIEnabled = false;
-                }
-                else
-                {
-                    if (Workspace.TryGetWorkspace(subjectBuffer.AsTextContainer(), out var workspace))
-                    {
-                        var experimentationService = workspace.Services.GetService<IExperimentationService>();
-                        _newCompletionAPIEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.CompletionAPI);
-                    }
-                }
-            }
+            var newCompletionEnabled = featureServiceFactory.GetOrCreate(textView).IsEnabled(PredefinedEditorFeatureNames.AsyncCompletion);
 
             // Check whether the feature flag (async completion API) is set or this feature is off.
-            if (_newCompletionAPIEnabled == true || !subjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.CompletionSet))
+            if (newCompletionEnabled || !subjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.CompletionSet))
             {
                 return false;
             }
@@ -185,8 +149,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 _asyncCompletionService = asyncCompletionService;
             }
 
-            internal bool UseLegacyCompletion(ITextView textView, ITextBuffer subjectBuffer)
-                => _asyncCompletionService.UseLegacyCompletion(textView, subjectBuffer);
+            internal bool UseLegacyCompletion(IFeatureServiceFactory featureServiceFactory, ITextView textView, ITextBuffer subjectBuffer)
+                => _asyncCompletionService.UseLegacyCompletion(featureServiceFactory, textView, subjectBuffer);
         }
     }
 }

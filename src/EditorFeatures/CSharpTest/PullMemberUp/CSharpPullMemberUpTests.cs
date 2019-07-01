@@ -2266,5 +2266,104 @@ namespace PushUpTest
         }
 
         #endregion Dialog
+
+        #region Selections and caret position
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestNoRefactoringCaretInArgs()
+        {
+            var input = @"
+namespace PushUpTest
+{
+    public class A
+    {
+        
+    }
+
+    public class B : A
+    {
+        void C([||])
+        {
+
+        }
+    }
+}";
+
+            await TestQuickActionNotProvidedAsync(input);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestRefactoringCaretLoc1()
+        {
+            var testText = @"
+namespace PushUpTest
+{
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [||]void C()
+        {
+        }
+    }
+}";
+            var expected = @"
+namespace PushUpTest
+{
+    public class A
+    {
+        void C()
+        {
+        }
+    }
+
+    public class B : A
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestRefactoringSelection()
+        {
+            var testText = @"
+namespace PushUpTest
+{
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [|void C()
+        {
+        }|]
+    }
+}";
+            var expected = @"
+namespace PushUpTest
+{
+    public class A
+    {
+        void C()
+        {
+        }
+    }
+
+    public class B : A
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        #endregion
     }
 }

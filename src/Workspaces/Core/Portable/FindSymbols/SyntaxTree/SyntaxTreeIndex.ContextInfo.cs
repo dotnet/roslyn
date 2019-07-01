@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsIndexerMemberCref,
                 bool containsDeconstruction,
                 bool containsAwait,
-                bool containsTupleExpressionOrTupleType) :
-                this(predefinedTypes, predefinedOperators,
-                     ConvertToContainingNodeFlag(
+                bool containsTupleExpressionOrTupleType)
+                : this(predefinedTypes, predefinedOperators,
+                       ConvertToContainingNodeFlag(
                          containsForEachStatement,
                          containsLockStatement,
                          containsUsingStatement,

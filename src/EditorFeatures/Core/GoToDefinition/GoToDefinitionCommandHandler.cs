@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         public VSCommanding.CommandState GetCommandState(GoToDefinitionCommandArgs args)
         {
-            var (document, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
+            var (_, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
             return service != null
                 ? VSCommanding.CommandState.Available
                 : VSCommanding.CommandState.Unavailable;

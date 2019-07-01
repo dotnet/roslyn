@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedLocalFunction
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(CSharpFeaturesResources.Remove_unused_function, createChangedDocument, CSharpFeaturesResources.Remove_unused_function)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpFeaturesResources.Remove_unused_function, createChangedDocument, CSharpFeaturesResources.Remove_unused_function)
             {
             }
         }

@@ -696,9 +696,9 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as &apos;_&apos;, &apos;_1&apos;, &apos;_2&apos;, etc. These are treated as special discard symbol names..
         /// </summary>
-        internal static string Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc_These_are_treated_as_special_discard_symbol_names {
+        internal static string Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc {
             get {
-                return ResourceManager.GetString(@"Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc_These_are_treated_as_special_discard_symbol_names", resourceCulture);
+                return ResourceManager.GetString(@"Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc", resourceCulture);
             }
         }
         
@@ -933,6 +933,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Computing_fix_all_occurrences_code_fix {
             get {
                 return ResourceManager.GetString("Computing_fix_all_occurrences_code_fix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configure {0} code style.
+        /// </summary>
+        internal static string Configure_0_code_style {
+            get {
+                return ResourceManager.GetString("Configure_0_code_style", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configure {0} severity.
+        /// </summary>
+        internal static string Configure_0_severity {
+            get {
+                return ResourceManager.GetString("Configure_0_severity", resourceCulture);
             }
         }
         
