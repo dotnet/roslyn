@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _factory.CurrentFunction = node.Symbol;
                 var visited = (BoundLambda)base.VisitLambda(node);
-                if (RewriteNullChecking(visited.Body) is BoundBlock newBody && !(newBody is null))
+                if (RewriteNullChecking(visited.Body) is BoundBlock newBody)
                 {
                     visited = visited.Update(visited.UnboundLambda, visited.Symbol, newBody, visited.Diagnostics, visited.Binder, visited.Type);
                 }
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _factory.CurrentFunction = localFunction;
                 var visited = (BoundLocalFunctionStatement)base.VisitLocalFunctionStatement(node);
-                if (RewriteNullChecking(visited.Body) is BoundBlock newBody && !(newBody is null))
+                if (RewriteNullChecking(visited.Body) is BoundBlock newBody)
                 {
                     visited = visited.Update(localFunction, newBody, null);
                 }
