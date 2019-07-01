@@ -184,27 +184,30 @@ namespace Microsoft.CodeAnalysis
                         _writer.Write("helpUri", descriptor.HelpLinkUri);
                     }
 
-                    _writer.WriteObjectStart("properties");
-
-                    if (!string.IsNullOrEmpty(descriptor.Category))
+                    if (!string.IsNullOrEmpty(descriptor.Category) || descriptor.CustomTags.Any())
                     {
-                        _writer.Write("category", descriptor.Category);
-                    }
+                        _writer.WriteObjectStart("properties");
 
-
-                    if (descriptor.CustomTags.Any())
-                    {
-                        _writer.WriteArrayStart("tags");
-
-                        foreach (string tag in descriptor.CustomTags)
+                        if (!string.IsNullOrEmpty(descriptor.Category))
                         {
-                            _writer.Write(tag);
+                            _writer.Write("category", descriptor.Category);
                         }
 
-                        _writer.WriteArrayEnd(); // tags
+                        if (descriptor.CustomTags.Any())
+                        {
+                            _writer.WriteArrayStart("tags");
+
+                            foreach (string tag in descriptor.CustomTags)
+                            {
+                                _writer.Write(tag);
+                            }
+
+                            _writer.WriteArrayEnd(); // tags
+                        }
+
+                        _writer.WriteObjectEnd(); // properties
                     }
 
-                    _writer.WriteObjectEnd(); // properties
                     _writer.WriteObjectEnd(); // rule
                 }
 
