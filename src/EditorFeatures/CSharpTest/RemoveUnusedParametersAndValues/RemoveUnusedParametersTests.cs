@@ -1305,18 +1305,5 @@ public sealed class C : IDisposable
     public void Dispose() => foo.Result.Fooed -= fooed;
 }", options);
         }
-
-        [WorkItem(36817, "https://github.com/dotnet/roslyn/issues/36817")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
-        public async Task ParameterWithoutName_NoDiagnostic()
-        {
-            await TestDiagnosticMissingAsync(
-@"public class C
-{
-    public void M[|(int )|]
-    {
-    }
-}");
-        }
     }
 }
