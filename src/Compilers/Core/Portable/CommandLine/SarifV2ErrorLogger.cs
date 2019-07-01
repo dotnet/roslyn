@@ -143,6 +143,7 @@ namespace Microsoft.CodeAnalysis
             _writer.Write("fileVersion", _toolFileVersion);
             _writer.Write("version", _toolAssemblyVersion.ToString());
             _writer.Write("semanticVersion", _toolAssemblyVersion.ToString(fieldCount: 3));
+            _writer.Write("language", _culture.Name);
 
             WriteRules();
 
