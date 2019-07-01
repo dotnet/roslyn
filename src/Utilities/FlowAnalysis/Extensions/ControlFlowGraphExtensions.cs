@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Operations;
-using static System.Linq.ImmutableArrayExtensions;
 using static System.Collections.Immutable.ImmutableArrayExtensions;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
