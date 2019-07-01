@@ -1653,8 +1653,6 @@ public readonly struct [|S|]
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
-Imports System.Runtime.CompilerServices
-
 <IsReadOnlyAttribute>
 Public Structure [|S|]
     Public ReadOnly i As Integer
@@ -1685,8 +1683,6 @@ public ref struct [|S|]
 #End Region
 
 Imports System
-Imports System.Runtime.CompilerServices
-
 <IsByRefLikeAttribute> <Obsolete(""Types with embedded references are not supported in this version of your compiler."", True)>
 Public Structure [|S|]
 End Structure");
@@ -1716,8 +1712,6 @@ public readonly ref struct [|S|]
 #End Region
 
 Imports System
-Imports System.Runtime.CompilerServices
-
 <IsByRefLikeAttribute> <IsReadOnlyAttribute> <Obsolete(""Types with embedded references are not supported in this version of your compiler."", True)>
 Public Structure [|S|]
 End Structure");
@@ -1750,8 +1744,6 @@ public struct S
                 expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
-
-Imports System.Runtime.CompilerServices
 
 Public Structure S <IsReadOnlyAttribute>
     Public Sub [|M|]()

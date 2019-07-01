@@ -29,6 +29,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
             Return Nothing
         End Function
 
+        Protected Overrides Function GetContainedNamespace(node As SyntaxNode, model As SemanticModel) As INamespaceSymbol
+            Dim namespaceSyntax = node.AncestorsAndSelf().OfType(Of NamespaceBlockSyntax).FirstOrDefault()
+
+            If namespaceSyntax Is Nothing Then
+                Return Nothing
+            End If
+
+            Return model.GetDeclaredSymbol(namespaceSyntax)
+        End Function
+
         Private Overloads Function GetExplicitNamespaceSymbol(fullName As ExpressionSyntax, namespacePart As ExpressionSyntax, model As SemanticModel) As INamespaceSymbol
             ' name must refer to something that is not a namespace, but be qualified with a namespace.
             Dim Symbol = model.GetSymbolInfo(fullName).Symbol

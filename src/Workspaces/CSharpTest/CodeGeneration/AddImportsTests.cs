@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
     [UseExportProvider]
     public class AddImportsTests
     {
-        private Document GetDocument(string code)
+        private async Task<Document> GetDocument(string code, bool withAnnotations)
         {
             var ws = new AdhocWorkspace();
             var emptyProject = ws.AddProject(
@@ -31,12 +31,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
                     LanguageNames.CSharp,
                     metadataReferences: new[] { TestReferences.NetFx.v4_0_30319.mscorlib }));
 
-            return emptyProject.AddDocument("test.cs", code);
+            var doc = emptyProject.AddDocument("test.cs", code);
+
+            if (withAnnotations)
+            {
+                var root = await doc.GetSyntaxRootAsync();
+                var model = await doc.GetSemanticModelAsync();
+
+                root = root.ReplaceNodes(root.DescendantNodesAndSelf().OfType<TypeSyntax>(),
+                    (o, c) =>
+                    {
+                        var symbol = model.GetSymbolInfo(o).Symbol;
+                        if (symbol != null)
+                            return c.WithAdditionalAnnotations(SymbolAnnotation.Create(symbol), Simplifier.Annotation);
+                        return c;
+                    }
+                    );
+                doc = doc.WithSyntaxRoot(root);
+            }
+            return doc;
         }
 
-        private async Task TestAsync(string initialText, string importsAddedText, string simplifiedText, Func<OptionSet, OptionSet> optionsTransform = null)
+        private async Task TestAddImportsFromSyntaxesAsync(string initialText, string importsAddedText, string simplifiedText, Func<OptionSet, OptionSet> optionsTransform = null)
         {
-            var doc = GetDocument(initialText);
+            var doc = await GetDocument(initialText, withAnnotations: false);
             OptionSet options = await doc.GetOptionsAsync();
             if (optionsTransform != null)
             {
@@ -62,10 +80,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
             }
         }
 
+        private async Task TestAddImportsFromSymbolAnnotationsAsync(string initialText, string importsAddedText, string simplifiedText, Func<OptionSet, OptionSet> optionsTransform = null)
+        {
+            var doc = await GetDocument(initialText, withAnnotations: true);
+            OptionSet options = await doc.GetOptionsAsync();
+            if (optionsTransform != null)
+            {
+                options = optionsTransform(options);
+            }
+
+            var imported = await ImportAdder.AddImportsFromSymbolAnnotationAsync(doc, options);
+
+            if (importsAddedText != null)
+            {
+                var formatted = await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, options);
+                var actualText = (await formatted.GetTextAsync()).ToString();
+                Assert.Equal(importsAddedText, actualText);
+            }
+
+            if (simplifiedText != null)
+            {
+                var reduced = await Simplifier.ReduceAsync(imported, options);
+                var formatted = await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, options);
+
+                var actualText = (await formatted.GetTextAsync()).ToString();
+                Assert.Equal(simplifiedText, actualText);
+            }
+        }
+
+        private async Task TestAllAsync(string initialText, string importsAddedText, string simplifiedText, Func<OptionSet, OptionSet> optionsTransform = null)
+        {
+            await TestAddImportsFromSyntaxesAsync(initialText, importsAddedText, simplifiedText, optionsTransform);
+            await TestAddImportsFromSymbolAnnotationsAsync(initialText, importsAddedText, simplifiedText, optionsTransform);
+        }
+
         [Fact]
         public async Task TestAddImport()
         {
-            await TestAsync(
+            await TestAllAsync(
 @"class C
 {
     public System.Collections.Generic.List<int> F;
@@ -89,7 +141,7 @@ class C
         [Fact]
         public async Task TestAddSystemImportFirst()
         {
-            await TestAsync(
+            await TestAllAsync(
 @"using N;
 
 class C
@@ -117,7 +169,7 @@ class C
         [Fact]
         public async Task TestDontAddSystemImportFirst()
         {
-            await TestAsync(
+            await TestAllAsync(
 @"using N;
 
 class C
@@ -147,7 +199,7 @@ class C
         [Fact]
         public async Task TestAddImportsInOrder()
         {
-            await TestAsync(
+            await TestAllAsync(
 @"using System.Collections;
 using System.Diagnostics;
 
@@ -178,7 +230,7 @@ class C
         [Fact]
         public async Task TestAddMultipleImportsInOrder()
         {
-            await TestAsync(
+            await TestAllAsync(
 @"class C
 {
     public System.Collections.Generic.List<int> F;
@@ -207,7 +259,7 @@ class C
         [Fact]
         public async Task TestImportNotRedundantlyAdded()
         {
-            await TestAsync(
+            await TestAllAsync(
 @"using System.Collections.Generic;
 
 class C
@@ -231,9 +283,9 @@ class C
         }
 
         [Fact]
-        public async Task TestUnusedAddedImportIsRemovedBySimplifier()
+        public async Task TestBuiltInType()
         {
-            await TestAsync(
+            await TestAddImportsFromSyntaxesAsync(
 @"class C
 {
     public System.Int32 F;
@@ -250,12 +302,28 @@ class C
 {
     public int F;
 }");
+
+            await TestAddImportsFromSymbolAnnotationsAsync(
+@"class C
+{
+    public System.Int32 F;
+}",
+
+@"class C
+{
+    public System.Int32 F;
+}",
+
+@"class C
+{
+    public int F;
+}");
         }
 
         [Fact]
         public async Task TestImportNotAddedForNamespaceDeclarations()
         {
-            await TestAsync(
+            await TestAllAsync(
 @"namespace N
 {
 }",
@@ -270,9 +338,9 @@ class C
         }
 
         [Fact]
-        public async Task TestImportAddedAndRemovedForReferencesInsideNamespaceDeclarations()
+        public async Task TestImportNotAddedForReferencesInsideNamespaceDeclarations()
         {
-            await TestAsync(
+            await TestAllAsync(
 @"namespace N
 {
     class C
@@ -281,9 +349,7 @@ class C
     }
 }",
 
-@"using N;
-
-namespace N
+@"namespace N
 {
     class C
     {
@@ -301,9 +367,59 @@ namespace N
         }
 
         [Fact]
-        public async Task TestImportAddedAndRemovedForReferencesMatchingNestedImports()
+        public async Task TestImportNotAddedForReferencesInsideParentOfNamespaceDeclarations()
         {
-            await TestAsync(
+            await TestAllAsync(
+@"namespace N
+{
+    class C
+    {
+    }
+}
+
+namespace N.N1
+{
+    class C1
+    {
+        private N.C c;
+    }
+}",
+
+@"namespace N
+{
+    class C
+    {
+    }
+}
+
+namespace N.N1
+{
+    class C1
+    {
+        private N.C c;
+    }
+}",
+
+@"namespace N
+{
+    class C
+    {
+    }
+}
+
+namespace N.N1
+{
+    class C1
+    {
+        private C c;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestImportNotAddedForReferencesMatchingNestedImports()
+        {
+            await TestAllAsync(
 @"namespace N
 {
     using System.Collections.Generic;
@@ -314,9 +430,7 @@ namespace N
     }
 }",
 
-@"using System.Collections.Generic;
-
-namespace N
+@"namespace N
 {
     using System.Collections.Generic;
 
@@ -343,7 +457,7 @@ namespace N
             // this is not really an artifact of the AddImports feature, it is due
             // to Simplifier not reducing the namespace reference because it would 
             // become ambiguous, thus leaving an unused using directive
-            await TestAsync(
+            await TestAllAsync(
 @"namespace N
 {
     class C
@@ -387,7 +501,7 @@ class C
         [WorkItem(8797, "https://github.com/dotnet/roslyn/issues/8797")]
         public async Task TestBannerTextRemainsAtTopOfDocumentWithoutExistingImports()
         {
-            await TestAsync(
+            await TestAllAsync(
 @"// --------------------------------------------------------------------------------------------------------------------
 // <copyright file=""File.cs"" company=""MyOrgnaization"">
 // Copyright (C) MyOrgnaization 2016
@@ -427,7 +541,7 @@ class C
         [WorkItem(8797, "https://github.com/dotnet/roslyn/issues/8797")]
         public async Task TestBannerTextRemainsAtTopOfDocumentWithExistingImports()
         {
-            await TestAsync(
+            await TestAllAsync(
 @"// --------------------------------------------------------------------------------------------------------------------
 // <copyright file=""File.cs"" company=""MyOrgnaization"">
 // Copyright (C) MyOrgnaization 2016
@@ -471,7 +585,7 @@ class C
         [WorkItem(8797, "https://github.com/dotnet/roslyn/issues/8797")]
         public async Task TestLeadingWhitespaceLinesArePreserved()
         {
-            await TestAsync(
+            await TestAllAsync(
 @"class C
 {
     public System.Collections.Generic.List<int> F;
@@ -489,6 +603,76 @@ class C
 class C
 {
     public List<int> F;
+}");
+        }
+
+        [Fact]
+        public async Task TestImportAddedToNestedImports()
+        {
+            await TestAllAsync(
+@"namespace N
+{
+    using System;
+
+    class C
+    {
+        private System.Collections.Generic.List<int> F;
+    }
+}",
+
+@"namespace N
+{
+    using System;
+    using System.Collections.Generic;
+
+    class C
+    {
+        private System.Collections.Generic.List<int> F;
+    }
+}",
+
+@"namespace N
+{
+    using System;
+    using System.Collections.Generic;
+
+    class C
+    {
+        private List<int> F;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestImportAddedToStartOfDocumentIfNoNestedImports()
+        {
+            await TestAllAsync(
+@"namespace N
+{
+    class C
+    {
+        private System.Collections.Generic.List<int> F;
+    }
+}",
+
+@"using System.Collections.Generic;
+
+namespace N
+{
+    class C
+    {
+        private System.Collections.Generic.List<int> F;
+    }
+}",
+
+@"using System.Collections.Generic;
+
+namespace N
+{
+    class C
+    {
+        private List<int> F;
+    }
 }");
         }
 

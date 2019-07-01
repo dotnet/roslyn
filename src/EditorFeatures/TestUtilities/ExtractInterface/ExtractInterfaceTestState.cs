@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 
         public static ExtractInterfaceTestState Create(string markup, string languageName, CompilationOptions compilationOptions)
         {
-            var exportProvider = ExportProviderFactory.CreateExportProvider();
+            var exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
             var workspace = languageName == LanguageNames.CSharp
                 ? TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider, compilationOptions: compilationOptions as CSharpCompilationOptions)
                 : TestWorkspace.CreateVisualBasic(markup, exportProvider: exportProvider, compilationOptions: compilationOptions);

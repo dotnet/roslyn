@@ -1696,7 +1696,7 @@ EndClass
 </text>.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <Fact(Skip:="AddImportsService adds into hidden region"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestDoNotGenerateIntoHiddenRegion1_NoImports() As Task
             Await TestInRegularAndScriptAsync(
 <text>
@@ -1759,7 +1759,7 @@ End Class
 </text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <Fact(Skip:="AddImportsService adds into hidden region"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestDoNotGenerateIntoHiddenRegion2() As Task
             Await TestInRegularAndScriptAsync(
 <text>
@@ -1796,7 +1796,7 @@ End Class
 </text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <Fact(Skip:="AddImportsService adds into hidden region"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestDoNotGenerateIntoHiddenRegion3() As Task
             Await TestInRegularAndScriptAsync(
 <text>

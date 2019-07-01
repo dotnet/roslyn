@@ -46,12 +46,57 @@ namespace Microsoft.CodeAnalysis.Editing
             var service = document.GetLanguageService<ImportAdderService>();
             if (service != null)
             {
-                return service.AddImportsAsync(document, spans, options, cancellationToken);
+                return service.AddImportsAsync(document, spans, ImportAdderService.Strategy.AddImportsFromSyntaxes, options, cancellationToken);
             }
             else
             {
                 return Task.FromResult(document);
             }
         }
+
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+
+        /// <summary>
+        /// Adds namespace imports / using directives for namespace references found in the document.
+        /// </summary>
+        public static async Task<Document> AddImportsFromSymbolAnnotationAsync(Document document, OptionSet options = null, CancellationToken cancellationToken = default)
+        {
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return await AddImportsFromSymbolAnnotationAsync(document, root.FullSpan, options, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Adds namespace imports / using directives for namespace references found in the document within the span specified.
+        /// </summary>
+        public static Task<Document> AddImportsFromSymbolAnnotationAsync(Document document, TextSpan span, OptionSet options = null, CancellationToken cancellationToken = default)
+        {
+            return AddImportsFromSymbolAnnotationAsync(document, new[] { span }, options, cancellationToken);
+        }
+
+        /// <summary>
+        /// Adds namespace imports / using directives for namespace references found in the document within the sub-trees annotated with the <see cref="SyntaxAnnotation"/>.
+        /// </summary>
+        public static async Task<Document> AddImportsFromSymbolAnnotationAsync(Document document, SyntaxAnnotation annotation, OptionSet options = null, CancellationToken cancellationToken = default)
+        {
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return await AddImportsFromSymbolAnnotationAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(t => t.FullSpan), options, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Adds namespace imports / using directives for namespace references found in the document within the spans specified.
+        /// </summary>
+        public static Task<Document> AddImportsFromSymbolAnnotationAsync(Document document, IEnumerable<TextSpan> spans, OptionSet options = null, CancellationToken cancellationToken = default)
+        {
+            var service = document.GetLanguageService<ImportAdderService>();
+            if (service != null)
+            {
+                return service.AddImportsAsync(document, spans, ImportAdderService.Strategy.AddImportsFromSymbolAnnotations, options, cancellationToken);
+            }
+            else
+            {
+                return Task.FromResult(document);
+            }
+        }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
     }
 }

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -26,6 +28,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
             }
 
             return null;
+        }
+
+        protected override INamespaceSymbol GetContainedNamespace(SyntaxNode node, SemanticModel model)
+        {
+            var namespaceSyntax = node.AncestorsAndSelf().OfType<NamespaceDeclarationSyntax>().FirstOrDefault();
+
+            if (namespaceSyntax is null)
+                return null;
+
+            return model.GetDeclaredSymbol(namespaceSyntax);
         }
 
         private INamespaceSymbol GetExplicitNamespaceSymbol(ExpressionSyntax fullName, ExpressionSyntax namespacePart, SemanticModel model)

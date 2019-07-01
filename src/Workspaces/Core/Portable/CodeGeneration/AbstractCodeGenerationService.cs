@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -87,8 +88,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract SyntaxNode CreatePropertyDeclaration(IPropertySymbol property, CodeGenerationDestination destination, CodeGenerationOptions options);
         public abstract SyntaxNode CreateNamedTypeDeclaration(INamedTypeSymbol namedType, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken);
         public abstract SyntaxNode CreateNamespaceDeclaration(INamespaceSymbol @namespace, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken);
-
-        protected abstract AbstractImportsAdder CreateImportsAdder(Document document);
 
         protected static T Cast<T>(object value)
         {
@@ -198,18 +197,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             if (options.AddImports)
             {
-                newDocument = await AddImportsAsync(
-                    newDocument, options, cancellationToken).ConfigureAwait(false);
+                newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
+                    newDocument,
+                    await newDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false),
+                    cancellationToken).ConfigureAwait(false);
             }
 
-            return newDocument;
-        }
-
-        public async Task<Document> AddImportsAsync(Document document, CodeGenerationOptions options, CancellationToken cancellationToken)
-        {
-            options = options ?? CodeGenerationOptions.Default;
-            var adder = this.CreateImportsAdder(document);
-            var newDocument = await adder.AddAsync(options.PlaceSystemNamespaceFirst, options, cancellationToken).ConfigureAwait(false);
             return newDocument;
         }
 
