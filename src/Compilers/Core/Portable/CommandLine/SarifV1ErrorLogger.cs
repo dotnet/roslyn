@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             WriteLocations(diagnostic.Location, diagnostic.AdditionalLocations);
-            WriteProperties(diagnostic);
+            WriteResultProperties(diagnostic);
 
             _writer.WriteObjectEnd(); // result
         }
@@ -132,41 +132,6 @@ namespace Microsoft.CodeAnalysis
             WriteRegion(span);
 
             _writer.WriteObjectEnd();
-        }
-
-        private void WriteProperties(Diagnostic diagnostic)
-        {
-            // Currently, the following are always inherited from the descriptor and therefore will be
-            // captured as rule metadata and need not be logged here. IsWarningAsError is also omitted
-            // because it can be inferred from level vs. defaultLevel in the log.
-            Debug.Assert(diagnostic.CustomTags.SequenceEqual(diagnostic.Descriptor.CustomTags));
-            Debug.Assert(diagnostic.Category == diagnostic.Descriptor.Category);
-            Debug.Assert(diagnostic.DefaultSeverity == diagnostic.Descriptor.DefaultSeverity);
-            Debug.Assert(diagnostic.IsEnabledByDefault == diagnostic.Descriptor.IsEnabledByDefault);
-
-            if (diagnostic.WarningLevel > 0 || diagnostic.Properties.Count > 0)
-            {
-                _writer.WriteObjectStart("properties");
-
-                if (diagnostic.WarningLevel > 0)
-                {
-                    _writer.Write("warningLevel", diagnostic.WarningLevel);
-                }
-
-                if (diagnostic.Properties.Count > 0)
-                {
-                    _writer.WriteObjectStart("customProperties");
-
-                    foreach (var pair in diagnostic.Properties.OrderBy(x => x.Key, StringComparer.Ordinal))
-                    {
-                        _writer.Write(pair.Key, pair.Value);
-                    }
-
-                    _writer.WriteObjectEnd();
-                }
-
-                _writer.WriteObjectEnd(); // properties
-            }
         }
 
         private void WriteRules()

@@ -170,6 +170,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
       ""results"": [
         {
           ""ruleId"": ""TST001-001"",
+          ""ruleIndex"": 0,
           ""level"": ""warning"",
           ""properties"": {
             ""warningLevel"": 1
@@ -177,6 +178,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         },
         {
           ""ruleId"": ""TST001"",
+          ""ruleIndex"": 1,
           ""level"": ""warning"",
           ""properties"": {
             ""warningLevel"": 1
@@ -184,7 +186,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         },
         {
           ""ruleId"": ""TST001"",
-          ""ruleKey"": ""TST001-002"",
+          ""ruleIndex"": 2,
           ""level"": ""warning"",
           ""properties"": {
             ""warningLevel"": 1
@@ -192,7 +194,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         },
         {
           ""ruleId"": ""TST001"",
-          ""ruleKey"": ""TST001-003"",
+          ""ruleIndex"": 3,
           ""level"": ""warning"",
           ""properties"": {
             ""warningLevel"": 1
@@ -200,6 +202,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         },
         {
           ""ruleId"": ""TST002"",
+          ""ruleIndex"": 4,
           ""level"": ""warning"",
           ""properties"": {
             ""warningLevel"": 1
@@ -207,6 +210,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         },
         {
           ""ruleId"": ""TST002"",
+          ""ruleIndex"": 4,
           ""level"": ""warning"",
           ""properties"": {
             ""warningLevel"": 1
@@ -214,8 +218,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         },
         {
           ""ruleId"": ""TST002"",
+          ""ruleIndex"": 4,
           ""level"": ""warning"",
-          ""message"": ""messageFormat"",
+          ""message"": {
+            ""text"": ""messageFormat""
+          },
           ""properties"": {
             ""warningLevel"": 1
           }

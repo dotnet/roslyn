@@ -61,6 +61,8 @@ namespace Microsoft.CodeAnalysis
 
             WriteLocations(diagnostic.Location, diagnostic.AdditionalLocations);
 
+            WriteResultProperties(diagnostic);
+
             _writer.WriteObjectEnd(); // result
         }
 

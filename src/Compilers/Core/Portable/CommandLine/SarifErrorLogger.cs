@@ -2,8 +2,9 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Globalization;
+using System.IO;
+using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -70,6 +71,41 @@ namespace Microsoft.CodeAnalysis
                     // the error logger. We could represent it with a custom property in the SARIF log if that changes.
                     Debug.Assert(false);
                     goto case DiagnosticSeverity.Warning;
+            }
+        }
+
+        protected void WriteResultProperties(Diagnostic diagnostic)
+        {
+            // Currently, the following are always inherited from the descriptor and therefore will be
+            // captured as rule metadata and need not be logged here. IsWarningAsError is also omitted
+            // because it can be inferred from level vs. defaultLevel in the log.
+            Debug.Assert(diagnostic.CustomTags.SequenceEqual(diagnostic.Descriptor.CustomTags));
+            Debug.Assert(diagnostic.Category == diagnostic.Descriptor.Category);
+            Debug.Assert(diagnostic.DefaultSeverity == diagnostic.Descriptor.DefaultSeverity);
+            Debug.Assert(diagnostic.IsEnabledByDefault == diagnostic.Descriptor.IsEnabledByDefault);
+
+            if (diagnostic.WarningLevel > 0 || diagnostic.Properties.Count > 0)
+            {
+                _writer.WriteObjectStart("properties");
+
+                if (diagnostic.WarningLevel > 0)
+                {
+                    _writer.Write("warningLevel", diagnostic.WarningLevel);
+                }
+
+                if (diagnostic.Properties.Count > 0)
+                {
+                    _writer.WriteObjectStart("customProperties");
+
+                    foreach (var pair in diagnostic.Properties.OrderBy(x => x.Key, StringComparer.Ordinal))
+                    {
+                        _writer.Write(pair.Key, pair.Value);
+                    }
+
+                    _writer.WriteObjectEnd();
+                }
+
+                _writer.WriteObjectEnd(); // properties
             }
         }
 
