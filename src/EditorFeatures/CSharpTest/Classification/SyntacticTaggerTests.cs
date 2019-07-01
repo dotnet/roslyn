@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 var expectedLength = subjectBuffer.CurrentSnapshot.Length;
                 int? actualVersionNumber = null;
                 int? actualLength = null;
-                List<string> callstacks = new List<string>();
+                var callstacks = new List<string>();
                 tagComputer.TagsChanged += (s, e) =>
                 {
                     actualVersionNumber = e.Span.Snapshot.Version.VersionNumber;

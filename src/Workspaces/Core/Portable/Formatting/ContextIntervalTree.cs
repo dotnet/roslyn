@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return result;
             }
 
-            int end = start + length;
+            var end = start + length;
 
             // * our interval tree is a binary tree that is ordered by a start position.
             //

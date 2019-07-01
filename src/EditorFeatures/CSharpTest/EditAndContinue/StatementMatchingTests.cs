@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void KnownMatches()
         {
-            string src1 = @"
+            var src1 = @"
 Console.WriteLine(1)/*1*/;
 Console.WriteLine(1)/*2*/;
 ";
 
-            string src2 = @"
+            var src2 = @"
 Console.WriteLine(1)/*3*/;
 Console.WriteLine(1)/*4*/;
 ";
@@ -64,11 +64,11 @@ Console.WriteLine(1)/*4*/;
         [Fact]
         public void KnownMatches_Root()
         {
-            string src1 = @"
+            var src1 = @"
 Console.WriteLine(1);
 ";
 
-            string src2 = @"
+            var src2 = @"
 Console.WriteLine(2);
 ";
 

@@ -146,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             // one rank, then one is at least twice as popular as the next.  Two 
             // ranks would be four times as popular.  Three ranks = 8 times,  etc. 
             // etc.  We keep packages that within 1 rank of the best package we find.
-            int? bestRank = packagesUsedInOtherProjects.LastOrDefault()?.Rank;
+            var bestRank = packagesUsedInOtherProjects.LastOrDefault()?.Rank;
             foreach (var packageWithType in packagesNotUsedInOtherProjects)
             {
                 var rank = packageWithType.Rank;

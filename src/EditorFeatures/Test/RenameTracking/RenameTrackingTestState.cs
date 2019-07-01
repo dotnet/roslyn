@@ -112,14 +112,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             if (languageName == LanguageNames.CSharp)
             {
                 _codeFixProvider = new CSharpRenameTrackingCodeFixProvider(
-                    Workspace.ExportProvider.GetExport<Host.IWaitIndicator>().Value,
                     _historyRegistry,
                     SpecializedCollections.SingletonEnumerable(_mockRefactorNotifyService));
             }
             else if (languageName == LanguageNames.VisualBasic)
             {
                 _codeFixProvider = new VisualBasicRenameTrackingCodeFixProvider(
-                    Workspace.ExportProvider.GetExport<Host.IWaitIndicator>().Value,
                     _historyRegistry,
                     SpecializedCollections.SingletonEnumerable(_mockRefactorNotifyService));
             }

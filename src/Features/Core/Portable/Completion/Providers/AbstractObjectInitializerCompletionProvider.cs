@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             IEnumerable<ISymbol> members = semanticModel.LookupSymbols(position, initializedType.WithoutNullability());
             members = members.Where(m => IsInitializable(m, enclosing) &&
                                          m.CanBeReferencedByName &&
-                                         IsLegalFieldOrProperty(m, enclosing) &&
+                                         IsLegalFieldOrProperty(m) &&
                                          !m.IsImplicitlyDeclared);
 
             // Filter out those members that have already been typed
@@ -80,10 +80,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken);
 
-        private bool IsLegalFieldOrProperty(ISymbol symbol, ISymbol within)
+        private bool IsLegalFieldOrProperty(ISymbol symbol)
         {
             return symbol.IsWriteableFieldOrProperty()
-                || CanSupportObjectInitializer(symbol, within);
+                || CanSupportObjectInitializer(symbol);
         }
 
         private static readonly CompletionItemRules s_rules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 member.IsAccessibleWithin(containingType);
         }
 
-        private static bool CanSupportObjectInitializer(ISymbol symbol, ISymbol within)
+        private static bool CanSupportObjectInitializer(ISymbol symbol)
         {
             Debug.Assert(!symbol.IsWriteableFieldOrProperty(), "Assertion failed - expected writable field/property check before calling this method.");
 

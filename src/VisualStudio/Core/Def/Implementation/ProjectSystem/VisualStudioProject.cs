@@ -1320,7 +1320,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
                 else
                 {
-                    for (int i = 0; i < _documentsAddedInBatch.Count; i++)
+                    for (var i = 0; i < _documentsAddedInBatch.Count; i++)
                     {
                         if (_documentsAddedInBatch[i].Id == documentId)
                         {
@@ -1377,7 +1377,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                     else
                     {
-                        for (int i = 0; i < _documentsAddedInBatch.Count; i++)
+                        for (var i = 0; i < _documentsAddedInBatch.Count; i++)
                         {
                             if (_documentsAddedInBatch[i].Id == documentId)
                             {

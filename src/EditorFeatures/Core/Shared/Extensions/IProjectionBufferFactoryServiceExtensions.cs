@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                     spans.Select(s => s.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeExclusive)));
             }
 
-            contentType = contentType ?? factoryService.ProjectionContentType;
+            contentType ??= factoryService.ProjectionContentType;
             var projectionBuffer = factoryService.CreateProjectionBuffer(
                 projectionEditResolver: null,
                 sourceSpans: Array.Empty<object>(),

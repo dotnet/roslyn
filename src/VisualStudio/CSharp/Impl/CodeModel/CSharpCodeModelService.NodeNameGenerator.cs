@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                             AppendTypeName(builder, arrayType.ElementType);
 
                             var specifiers = arrayType.RankSpecifiers;
-                            for (int i = 0; i < specifiers.Count; i++)
+                            for (var i = 0; i < specifiers.Count; i++)
                             {
                                 builder.Append('[');
 

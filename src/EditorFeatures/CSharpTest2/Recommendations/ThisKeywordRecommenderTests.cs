@@ -1068,7 +1068,7 @@ class Program
     }
     void Helper(Program x) { }
 }
-", matchPriority: SymbolMatchPriority.Keyword);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
