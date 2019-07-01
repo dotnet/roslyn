@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
         {
             var args = new EncapsulateFieldCommandArgs(_testDocument.GetTextView(), _testDocument.GetTextBuffer());
             var commandHandler = new EncapsulateFieldCommandHandler(
-                Workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                Workspace.GetService<IThreadingContext>(),
                 Workspace.GetService<ITextBufferUndoManagerProvider>(),
-                Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
+                Workspace.GetService<IAsynchronousOperationListenerProvider>());
             commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create());
         }
 

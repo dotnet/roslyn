@@ -296,7 +296,7 @@ class C{i}
 
                 var textView = workspace.Documents.Single().GetTextView();
 
-                var handler = new CSharpChangeSignatureCommandHandler(exportProvider.GetExportedValue<IThreadingContext>());
+                var handler = new CSharpChangeSignatureCommandHandler(workspace.GetService<IThreadingContext>());
 
                 var state = handler.GetCommandState(new RemoveParametersCommandArgs(textView, textView.TextBuffer));
                 Assert.True(state.IsUnspecified);

@@ -216,9 +216,9 @@ class Program
                 var textView = workspace.Documents.Single().GetTextView();
 
                 var handler = new EncapsulateFieldCommandHandler(
-                    exportProvider.GetExportedValue<IThreadingContext>(),
+                    workspace.GetService<IThreadingContext>(),
                     workspace.GetService<ITextBufferUndoManagerProvider>(),
-                    workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
+                    workspace.GetService<IAsynchronousOperationListenerProvider>());
 
                 var state = handler.GetCommandState(new EncapsulateFieldCommandArgs(textView, textView.TextBuffer));
                 Assert.True(state.IsUnspecified);

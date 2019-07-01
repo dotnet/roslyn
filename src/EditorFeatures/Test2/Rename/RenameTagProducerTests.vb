@@ -567,7 +567,7 @@ class C
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
                 Dim commandHandler As New RenameCommandHandler(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext)(),
+                    workspace.GetService(Of IThreadingContext)(),
                     workspace.GetService(Of InlineRenameService))
 
                 Dim session = StartSession(workspace)
@@ -1075,7 +1075,7 @@ End Class
                 Dim view = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
                 Dim commandHandler As New RenameCommandHandler(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext)(),
+                    workspace.GetService(Of IThreadingContext)(),
                     workspace.GetService(Of InlineRenameService))
 
                 Dim textViewService = New TextBufferAssociatedViewService()
@@ -1159,7 +1159,7 @@ End Class
                 Dim view = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
                 Dim commandHandler As New RenameCommandHandler(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext)(),
+                    workspace.GetService(Of IThreadingContext)(),
                     workspace.GetService(Of InlineRenameService))
 
                 Dim textViewService = New TextBufferAssociatedViewService()

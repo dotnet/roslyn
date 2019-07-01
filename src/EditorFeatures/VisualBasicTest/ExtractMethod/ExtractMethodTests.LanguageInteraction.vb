@@ -3386,7 +3386,7 @@ End Namespace"
                     Dim textView = workspace.Documents.Single().GetTextView()
 
                     Dim handler = New ExtractMethodCommandHandler(
-                        workspace.ExportProvider.GetExportedValue(Of IThreadingContext)(),
+                        workspace.GetService(Of IThreadingContext)(),
                         workspace.GetService(Of ITextBufferUndoManagerProvider)(),
                         workspace.GetService(Of IInlineRenameService)())
 

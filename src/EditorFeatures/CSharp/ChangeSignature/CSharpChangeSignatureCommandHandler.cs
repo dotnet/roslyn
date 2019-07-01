@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.ChangeSignature
     internal class CSharpChangeSignatureCommandHandler : AbstractChangeSignatureCommandHandler
     {
         [ImportingConstructor]
-        public CSharpChangeSignatureCommandHandler(IThreadingContext threadingContext) :
-            base(threadingContext)
+        public CSharpChangeSignatureCommandHandler(IThreadingContext threadingContext)
+            : base(threadingContext)
         {
         }
     }

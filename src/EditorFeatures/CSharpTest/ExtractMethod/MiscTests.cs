@@ -143,9 +143,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                 callBackService.NotificationCallback = (t, m, s) => called = true;
 
                 var handler = new ExtractMethodCommandHandler(
-                    workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                    workspace.ExportProvider.GetExportedValue<ITextBufferUndoManagerProvider>(),
-                    workspace.ExportProvider.GetExportedValue<IInlineRenameService>());
+                    workspace.GetService<IThreadingContext>(),
+                    workspace.GetService<ITextBufferUndoManagerProvider>(),
+                    workspace.GetService<IInlineRenameService>());
 
                 handler.ExecuteCommand(new ExtractMethodCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create());
 

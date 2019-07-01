@@ -155,9 +155,9 @@ End Class
                 Dim textView = workspace.Documents.Single().GetTextView()
 
                 Dim handler = New EncapsulateFieldCommandHandler(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
+                    workspace.GetService(Of IThreadingContext),
                     workspace.GetService(Of ITextBufferUndoManagerProvider),
-                    workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)())
+                    workspace.GetService(Of IAsynchronousOperationListenerProvider)())
 
                 Dim state = handler.GetCommandState(New EncapsulateFieldCommandArgs(textView, textView.TextBuffer))
                 Assert.True(state.IsUnspecified)

@@ -10372,7 +10372,7 @@ namespace ClassLibrary9
                 var textView = workspace.Documents.Single().GetTextView();
 
                 var handler = new ExtractMethodCommandHandler(
-                    exportProvider.GetExportedValue<IThreadingContext>(),
+                    workspace.GetService<IThreadingContext>(),
                     workspace.GetService<ITextBufferUndoManagerProvider>(),
                     workspace.GetService<IInlineRenameService>());
 
