@@ -1028,7 +1028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Append('<');
                 builder.Append(typeParameterList.Parameters[0].Identifier.ValueText);
-                for (int i = 1; i < typeParameterList.Parameters.Count; i++)
+                for (var i = 1; i < typeParameterList.Parameters.Count; i++)
                 {
                     builder.Append(", ");
                     builder.Append(typeParameterList.Parameters[i].Identifier.ValueText);
@@ -1123,7 +1123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(root.SyntaxTree == node.SyntaxTree);
 
-            int currentId = 0;
+            var currentId = 0;
             Contract.ThrowIfFalse(TryGetMethodLevelMember(root, (n, i) => n == node, ref currentId, out var currentNode));
 
             Contract.ThrowIfFalse(currentId >= 0);
@@ -1133,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SyntaxNode GetMethodLevelMember(SyntaxNode root, int memberId)
         {
-            int currentId = 0;
+            var currentId = 0;
             if (!TryGetMethodLevelMember(root, (n, i) => i == memberId, ref currentId, out var currentNode))
             {
                 return null;

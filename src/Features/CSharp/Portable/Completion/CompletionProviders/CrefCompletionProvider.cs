@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                     builder.Append(symbol.IsIndexer() ? '[' : '(');
 
-                    for (int i = 0; i < parameters.Length; i++)
+                    for (var i = 0; i < parameters.Length; i++)
                     {
                         if (i > 0)
                         {

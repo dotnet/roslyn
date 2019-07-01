@@ -8,8 +8,8 @@ namespace Microsoft.CodeAnalysis.Remote
     // root level service for all Roslyn services
     internal partial class CodeAnalysisService : ServiceHubServiceBase
     {
-        public CodeAnalysisService(Stream stream, IServiceProvider serviceProvider) :
-            base(serviceProvider, stream)
+        public CodeAnalysisService(Stream stream, IServiceProvider serviceProvider)
+            : base(serviceProvider, stream)
         {
             StartService();
         }

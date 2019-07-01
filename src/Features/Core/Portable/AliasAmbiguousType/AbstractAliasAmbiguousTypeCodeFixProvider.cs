@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
 
         private class MyCodeAction : DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument, equivalenceKey: title)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument, equivalenceKey: title)
             {
             }
         }

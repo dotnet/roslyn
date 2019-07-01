@@ -1345,7 +1345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // = { Goo() }
                     var equalsValueClause = (EqualsValueClauseSyntax)initializerExpression.Parent;
-                    IEnumerable<ITypeSymbol> types = InferTypeInEqualsValueClause(equalsValueClause).Select(t => t.InferredType);
+                    var types = InferTypeInEqualsValueClause(equalsValueClause).Select(t => t.InferredType);
 
                     if (types.Any(t => t is IArrayTypeSymbol))
                     {
@@ -1356,7 +1356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // new int[] { Goo() } 
                     var arrayCreation = (ArrayCreationExpressionSyntax)initializerExpression.Parent;
-                    IEnumerable<ITypeSymbol> types = GetTypes(arrayCreation).Select(t => t.InferredType);
+                    var types = GetTypes(arrayCreation).Select(t => t.InferredType);
 
                     if (types.Any(t => t is IArrayTypeSymbol))
                     {
@@ -1369,7 +1369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var objectCreation = (ObjectCreationExpressionSyntax)initializerExpression.Parent;
 
-                    IEnumerable<ITypeSymbol> types = GetTypes(objectCreation).Select(t => t.InferredType);
+                    var types = GetTypes(objectCreation).Select(t => t.InferredType);
                     if (types.Any(t => t is INamedTypeSymbol))
                     {
                         return types.OfType<INamedTypeSymbol>().SelectMany(t =>
@@ -1391,7 +1391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     var assignExpression = (AssignmentExpressionSyntax)initializerExpression.Parent;
-                    IEnumerable<ITypeSymbol> types = GetTypes(assignExpression.Left).Select(t => t.InferredType);
+                    var types = GetTypes(assignExpression.Left).Select(t => t.InferredType);
 
                     if (types.Any(t => t is INamedTypeSymbol))
                     {

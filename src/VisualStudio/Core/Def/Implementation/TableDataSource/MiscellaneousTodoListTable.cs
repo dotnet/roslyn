@@ -14,15 +14,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         internal const string IdentifierString = nameof(MiscellaneousTodoListTable);
 
         [ImportingConstructor]
-        public MiscellaneousTodoListTable(MiscellaneousFilesWorkspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider) :
-            base(workspace, todoListProvider, IdentifierString, provider)
+        public MiscellaneousTodoListTable(MiscellaneousFilesWorkspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider)
+            : base(workspace, todoListProvider, IdentifierString, provider)
         {
             ConnectWorkspaceEvents();
         }
 
         // only for test
-        public MiscellaneousTodoListTable(Microsoft.CodeAnalysis.Workspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider) :
-            base(workspace, todoListProvider, IdentifierString, provider)
+        public MiscellaneousTodoListTable(Microsoft.CodeAnalysis.Workspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider)
+            : base(workspace, todoListProvider, IdentifierString, provider)
         {
         }
     }

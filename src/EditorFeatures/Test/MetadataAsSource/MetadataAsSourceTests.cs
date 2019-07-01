@@ -2065,18 +2065,17 @@ T> where T : notnull
     public TestType();
 }}";
 
-            using (var context = TestContext.Create(
+            using var context = TestContext.Create(
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
                 languageVersion: "CSharp8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
-                metadataLanguageVersion: "CSharp8"))
-            {
-                var navigationSymbol = await context.GetNavigationSymbolAsync();
-                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-                context.VerifyResult(metadataAsSourceFile, expected);
-            }
+                metadataLanguageVersion: "CSharp8");
+
+            var navigationSymbol = await context.GetNavigationSymbolAsync();
+            var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+            context.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -2111,18 +2110,17 @@ public class TestType
     public void [|M|]<T>() where T : notnull;
 }}";
 
-            using (var context = TestContext.Create(
+            using var context = TestContext.Create(
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
                 languageVersion: "CSharp8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
-                metadataLanguageVersion: "CSharp8"))
-            {
-                var navigationSymbol = await context.GetNavigationSymbolAsync();
-                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-                context.VerifyResult(metadataAsSourceFile, expected);
-            }
+                metadataLanguageVersion: "CSharp8");
+
+            var navigationSymbol = await context.GetNavigationSymbolAsync();
+            var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+            context.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -2146,18 +2144,17 @@ using System.Runtime.CompilerServices;
 public delegate void [|D|]<[NullableAttribute(1)]
 T>() where T : notnull;";
 
-            using (var context = TestContext.Create(
+            using var context = TestContext.Create(
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
                 languageVersion: "CSharp8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
-                metadataLanguageVersion: "CSharp8"))
-            {
-                var navigationSymbol = await context.GetNavigationSymbolAsync();
-                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-                context.VerifyResult(metadataAsSourceFile, expected);
-            }
+                metadataLanguageVersion: "CSharp8");
+
+            var navigationSymbol = await context.GetNavigationSymbolAsync();
+            var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+            context.VerifyResult(metadataAsSourceFile, expected);
         }
     }
 }

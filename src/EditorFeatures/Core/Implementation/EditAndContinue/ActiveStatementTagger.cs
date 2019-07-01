@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             var snapshot = spans.First().Snapshot;
 
-            foreach (ActiveStatementTextSpan asSpan in service.GetSpans(snapshot.AsText()))
+            foreach (var asSpan in service.GetSpans(snapshot.AsText()))
             {
                 if (asSpan.IsLeaf)
                 {

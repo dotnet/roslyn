@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
             if ((name.IsUnmanaged || name.IsNotNull) && name.Parent.IsKind(SyntaxKind.TypeConstraint))
             {
-                string nameToCheck = name.IsUnmanaged ? "unmanaged" : "notnull";
+                var nameToCheck = name.IsUnmanaged ? "unmanaged" : "notnull";
                 var alias = semanticModel.GetAliasInfo(name, cancellationToken);
                 if (alias == null || alias.Name != nameToCheck)
                 {

@@ -334,15 +334,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var result = new Dictionary<ISymbol, SyntaxContext>(LinkedFilesSymbolEquivalenceComparer.Instance);
 
             // We don't care about assembly identity when creating the union.
-            foreach (var linkedContextSymbolList in linkedContextSymbolLists)
+            foreach (var (documentId, syntaxContext, symbols) in linkedContextSymbolLists)
             {
                 // We need to use the SemanticModel any particular symbol came from in order to generate its description correctly.
                 // Therefore, when we add a symbol to set of union symbols, add a mapping from it to its SyntaxContext.
-                foreach (var symbol in linkedContextSymbolList.symbols.GroupBy(s => new { s.Name, s.Kind }).Select(g => g.First()))
+                foreach (var symbol in symbols.GroupBy(s => new { s.Name, s.Kind }).Select(g => g.First()))
                 {
                     if (!result.ContainsKey(symbol))
                     {
-                        result.Add(symbol, linkedContextSymbolList.syntaxContext);
+                        result.Add(symbol, syntaxContext);
                     }
                 }
             }
@@ -407,12 +407,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var missingSymbols = new Dictionary<ISymbol, List<ProjectId>>(LinkedFilesSymbolEquivalenceComparer.Instance);
 
-            foreach (var linkedContextSymbolList in linkedContextSymbolLists)
+            foreach (var (documentId, syntaxContext, symbols) in linkedContextSymbolLists)
             {
-                var symbolsMissingInLinkedContext = symbolToContext.Keys.Except(linkedContextSymbolList.symbols, LinkedFilesSymbolEquivalenceComparer.Instance);
+                var symbolsMissingInLinkedContext = symbolToContext.Keys.Except(symbols, LinkedFilesSymbolEquivalenceComparer.Instance);
                 foreach (var missingSymbol in symbolsMissingInLinkedContext)
                 {
-                    missingSymbols.GetOrAdd(missingSymbol, m => new List<ProjectId>()).Add(linkedContextSymbolList.documentId.ProjectId);
+                    missingSymbols.GetOrAdd(missingSymbol, m => new List<ProjectId>()).Add(documentId.ProjectId);
                 }
             }
 

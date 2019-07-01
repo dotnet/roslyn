@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
     internal static class RazorLanguageServiceClientFactory
     {
-        public static async Task<RazorLanguageServiceClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<RazorLanguageServiceClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken = default)
         {
             var clientFactory = workspace.Services.GetRequiredService<IRemoteHostClientService>();
             var client = await clientFactory.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);

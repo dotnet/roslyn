@@ -290,9 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return destinationMember;
             }
 
-            int currentParamsCount = currentParameterList.Parameters.Count;
-            bool seenOptional = currentParamsCount > 0 && currentParameterList.Parameters[currentParamsCount - 1].Default != null;
-            bool isFirstParam = currentParamsCount == 0;
+            var currentParamsCount = currentParameterList.Parameters.Count;
+            var seenOptional = currentParamsCount > 0 && currentParameterList.Parameters[currentParamsCount - 1].Default != null;
+            var isFirstParam = currentParamsCount == 0;
 
             var parameterNodesAndTokens = currentParameterList.Parameters.GetWithSeparators().ToList();
             foreach (var parameter in parameters)
