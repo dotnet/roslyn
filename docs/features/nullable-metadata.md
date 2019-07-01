@@ -19,14 +19,14 @@ namespace System.Runtime.CompilerServices
         AllowMultiple = false)]
     public sealed class NullableAttribute : Attribute
     {
-        public readonly byte[] Flags;
+        public readonly byte[] NullableFlags;
         public NullableAttribute(byte flag)
         {
-            Flags = new byte[] { flag };
+            NullableFlags = new byte[] { flag };
         }
         public NullableAttribute(byte[] flags)
         {
-            Flags = flags;
+            NullableFlags = flags;
         }
     }
 }
