@@ -189,7 +189,6 @@ namespace Microsoft.CodeAnalysis
 
         System_Collections_IList,
         System_Collections_ICollection,
-        System_Collections_Generic_IEqualityComparer_T,
         System_Collections_Generic_EqualityComparer_T,
         System_Collections_Generic_List_T,
         System_Collections_Generic_IDictionary_KV,
@@ -253,10 +252,10 @@ namespace Microsoft.CodeAnalysis
         System_ValueTuple_T2,
         System_ValueTuple_T3,
         System_ValueTuple_T4,
+        System_ValueTuple_T5,
 
         ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
 
-        System_ValueTuple_T5,
         System_ValueTuple_T6,
         System_ValueTuple_T7,
         System_ValueTuple_TRest,
@@ -304,6 +303,7 @@ namespace Microsoft.CodeAnalysis
 
         System_InvalidOperationException,
         System_Runtime_CompilerServices_SwitchExpressionException,
+        System_Collections_Generic_IEqualityComparer_T,
 
         NextAvailable,
 
@@ -490,7 +490,6 @@ namespace Microsoft.CodeAnalysis
 
             "System.Collections.IList",
             "System.Collections.ICollection",
-            "System.Collections.Generic.IEqualityComparer`1",
             "System.Collections.Generic.EqualityComparer`1",
             "System.Collections.Generic.List`1",
             "System.Collections.Generic.IDictionary`2",
@@ -553,10 +552,10 @@ namespace Microsoft.CodeAnalysis
             "System.ValueTuple`2",
             "System.ValueTuple`3",
             "System.ValueTuple`4",
+            "System.ValueTuple`5",
 
             "", // extension marker
 
-            "System.ValueTuple`5",
             "System.ValueTuple`6",
             "System.ValueTuple`7",
             "System.ValueTuple`8",
@@ -604,7 +603,8 @@ namespace Microsoft.CodeAnalysis
             "System.Threading.CancellationTokenSource",
 
             "System.InvalidOperationException",
-            "System.Runtime.CompilerServices.SwitchExpressionException"
+            "System.Runtime.CompilerServices.SwitchExpressionException",
+            "System.Collections.Generic.IEqualityComparer`1",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

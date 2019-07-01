@@ -2885,7 +2885,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(constructedMethod != null, "the original definition is present but the constructed method isn't present");
 
-
                 // FindImplementationForInterfaceMember doesn't check if this method is itself the interface method we're looking for
                 if (constructedMethod.Equals(method))
                 {
