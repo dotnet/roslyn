@@ -1,14 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using ICSharpCode.Decompiler.IL;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
-using System;
-using System.Collections.Immutable;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -1271,25 +1263,6 @@ class C
     IL_0001:  call       ""object..ctor()""
     IL_0006:  ret
 }");
-        }
-
-        [Fact(Skip = "PROTOTYPE")]
-        public void TestNullCheckedIterator()
-        {
-            var source = @"
-class C
-{
-    public static void Main()
-    {
-        string[] values = {""hello"", ""world""};
-        foreach (var val in values)
-        {
-            Console.WriteLine(val);
-        }
-    }
-}";
-            var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("C.Main()", @"");
         }
     }
 }
