@@ -237,7 +237,6 @@ class C
         [Fact]
         public void NullCheckedMethodValidationWithOptionalNullParameter()
         {
-            // PROTOTYPE : Make it an error for the default parameter to be set to null with a null-checked value.
             var source = @"
 class C
 {
@@ -245,6 +244,13 @@ class C
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
+
+            // Warning attached in emit diagnostics.
+            comp.VerifyEmitDiagnostics(
+                    // (4,19): error CS8719: Parameter 'string' is null-checked but is null by default.
+                    //     void M(string name! = null) { }
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("string").WithLocation(4, 19));
+
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
             Assert.True(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
         }

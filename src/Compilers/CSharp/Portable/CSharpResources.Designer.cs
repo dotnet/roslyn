@@ -7630,6 +7630,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parameter &apos;{0}&apos; is a non-nullable value type and cannot be null-checked..
+        /// </summary>
+        internal static string ERR_NonNullableValueTypeIsNullChecked {
+            get {
+                return ResourceManager.GetString("ERR_NonNullableValueTypeIsNullChecked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A void or int returning entry point cannot be async.
         /// </summary>
         internal static string ERR_NonTaskMainCantBeAsync {
@@ -15697,6 +15706,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_NullAsNonNullable_Title {
             get {
                 return ResourceManager.GetString("WRN_NullAsNonNullable_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter &apos;{0}&apos; is null-checked but is null by default..
+        /// </summary>
+        internal static string WRN_NullCheckedHasDefaultNull {
+            get {
+                return ResourceManager.GetString("WRN_NullCheckedHasDefaultNull", resourceCulture);
             }
         }
         

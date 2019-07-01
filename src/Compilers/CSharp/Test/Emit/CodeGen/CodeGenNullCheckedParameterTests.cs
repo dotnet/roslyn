@@ -27,7 +27,7 @@ public class C
       .maxstack  1
      ~IL_0000:  ldarg.1
       IL_0001:  brtrue.s   IL_0009
-      IL_0003:  newobj     ""System.Exception..ctor()""
+      IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
       IL_0008:  throw
      -IL_0009:  ret
 }", sequencePoints: "C.M");
@@ -39,7 +39,7 @@ public class C
       .maxstack  1
      ~IL_0000:  ldarg.1
       IL_0001:  brtrue.s   IL_0009
-      IL_0003:  newobj     ""System.Exception..ctor()""
+      IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
       IL_0008:  throw
      -IL_0009:  nop
      -IL_000a:  ret
@@ -66,7 +66,7 @@ public class C
   .maxstack  1
  ~IL_0000:  ldarg.2
   IL_0001:  brtrue.s   IL_0009
-  IL_0003:  newobj     ""System.Exception..ctor()""
+  IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
   IL_0008:  throw
  -IL_0009:  ret
 }", sequencePoints: "C.M");
@@ -78,7 +78,7 @@ public class C
       .maxstack  1
      ~IL_0000:  ldarg.2
       IL_0001:  brtrue.s   IL_0009
-      IL_0003:  newobj     ""System.Exception..ctor()""
+      IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
       IL_0008:  throw
      -IL_0009:  nop
      -IL_000a:  ret
@@ -88,7 +88,6 @@ public class C
         [Fact]
         public void TestNullCheckedParamWithOptionalNullParameter()
         {
-            // PROTOTYPE : Should give warning that the default value is null on a null-checked parameter.
             var source = @"
 class C
 {
@@ -97,30 +96,10 @@ class C
 }";
 
             // Release
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe);
-            compilation.VerifyIL("C.M", @"
-{
-    // Code size       10 (0xa)
-    .maxstack  1
-   ~IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
-    IL_0008:  throw
-   -IL_0009:  ret
-}", sequencePoints: "C.M");
-            // Debug
-            compilation = CompileAndVerify(source, options: TestOptions.DebugExe);
-            compilation.VerifyIL("C.M", @"
- {
-    // Code size       11 (0xb)
-    .maxstack  1
-   ~IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
-    IL_0008:  throw
-   -IL_0009:  nop
-   -IL_000a:  ret
-}", sequencePoints: "C.M");
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                    // (5,19): error CS8719: Parameter 'string' is null-checked but is null by default.
+                    //     void M(string name! = null) { }
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("string").WithLocation(5, 19));
         }
 
         [Fact]
@@ -141,7 +120,7 @@ class C
   .maxstack  1
  ~IL_0000:  ldarg.1
   IL_0001:  brtrue.s   IL_0009
-  IL_0003:  newobj     ""System.Exception..ctor()""
+  IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
   IL_0008:  throw
  -IL_0009:  ret
 }", sequencePoints: "C.M");
@@ -153,7 +132,7 @@ class C
     .maxstack  1
     ~IL_0000:  ldarg.1
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     -IL_0009:  nop
     -IL_000a:  ret
@@ -181,7 +160,7 @@ class Box
     .maxstack  1
    ~IL_0000:  ldarg.0
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
    -IL_0009:  ldc.i4.2
     IL_000a:  ret
@@ -195,7 +174,7 @@ class Box
     .locals init (int V_0)
    ~IL_0000:  ldarg.0
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
    -IL_0009:  nop
    -IL_000a:  ldc.i4.2
@@ -254,7 +233,6 @@ class C
         [Fact]
         public void TestManyNullCheckedArgs()
         {
-            // Add error or warning that non-nullable value types can't be null-checked.
             var source = @"
 class C
 {
@@ -262,31 +240,10 @@ class C
     public static void Main() { }
 }";
 
-            // Release
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe);
-            compilation.VerifyIL("C.M(int, string)", @"
-{
-      // Code size       10 (0xa)
-      .maxstack  1
-     ~IL_0000:  ldarg.2
-      IL_0001:  brtrue.s   IL_0009
-      IL_0003:  newobj     ""System.Exception..ctor()""
-      IL_0008:  throw
-     -IL_0009:  ret
-}", sequencePoints: "C.M");
-            // Debug
-            compilation = CompileAndVerify(source, options: TestOptions.DebugExe);
-            compilation.VerifyIL("C.M(int, string)", @"
- {
-      // Code size       11 (0xb)
-      .maxstack  1
-     ~IL_0000:  ldarg.2
-      IL_0001:  brtrue.s   IL_0009
-      IL_0003:  newobj     ""System.Exception..ctor()""
-      IL_0008:  throw
-     -IL_0009:  nop
-     -IL_000a:  ret
-}", sequencePoints: "C.M");
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                    // (4,23): error CS8718: Parameter 'int' is a non-nullable value type and therefore cannot be null-checked.
+                    //     public void M(int x!, string y!) { }
+                    Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "x").WithArguments("int").WithLocation(4, 23));
         }
 
         [Fact]
@@ -307,7 +264,7 @@ class C
   .maxstack  1
  ~IL_0000:  ldarg.1
   IL_0001:  brtrue.s   IL_0009
-  IL_0003:  newobj     ""System.Exception..ctor()""
+  IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
   IL_0008:  throw
  -IL_0009:  ldnull
   IL_000a:  ret
@@ -321,7 +278,7 @@ class C
    .maxstack  1
   ~IL_0000:  ldarg.1
    IL_0001:  brtrue.s   IL_0009
-   IL_0003:  newobj     ""System.Exception..ctor()""
+   IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
    IL_0008:  throw
   -IL_0009:  ldnull
    IL_000a:  ret
@@ -361,7 +318,7 @@ class C
     .maxstack  3
     ~IL_0000:  ldarg.1
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     -IL_0009:  ldarg.0
     IL_000a:  ldfld      ""object[] C.items""
@@ -379,7 +336,7 @@ class C
       .maxstack  3
      ~IL_0000:  ldarg.1
       IL_0001:  brtrue.s   IL_0009
-      IL_0003:  newobj     ""System.Exception..ctor()""
+      IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
       IL_0008:  throw
      -IL_0009:  nop
      -IL_000a:  ldarg.0
@@ -408,7 +365,7 @@ class C
     .maxstack  1
     ~IL_0000:  ldarg.1
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     -IL_0009:  ret
 }", sequencePoints: "C.set_Item");
@@ -421,7 +378,7 @@ class C
     .maxstack  1
     ~IL_0000:  ldarg.1
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     -IL_0009:  nop
     -IL_000a:  ret
@@ -447,7 +404,7 @@ class C
     IL_0000:  ldarga.s   V_0
     IL_0002:  call       ""bool int?.HasValue.get""
     IL_0007:  brtrue.s   IL_000f
-    IL_0009:  newobj     ""System.Exception..ctor()""
+    IL_0009:  newobj     ""System.ArgumentNullException..ctor()""
     IL_000e:  throw
     IL_000f:  ret
 }");
@@ -474,7 +431,7 @@ class B1<T> : A<T> where T : class
       IL_0000:  ldarg.1
       IL_0001:  box        ""U""
       IL_0006:  brtrue.s   IL_000e
-      IL_0008:  newobj     ""System.Exception..ctor()""
+      IL_0008:  newobj     ""System.ArgumentNullException..ctor()""
       IL_000d:  throw
       IL_000e:  ret
 }");
@@ -485,7 +442,7 @@ class B1<T> : A<T> where T : class
     IL_0000:  ldarg.1
     IL_0001:  box        ""U""
     IL_0006:  brtrue.s   IL_000e
-    IL_0008:  newobj     ""System.Exception..ctor()""
+    IL_0008:  newobj     ""System.ArgumentNullException..ctor()""
     IL_000d:  throw
     IL_000e:  ret
 }");
@@ -494,7 +451,6 @@ class B1<T> : A<T> where T : class
         [Fact]
         public void TestNullCheckedSubstitution2()
         {
-            // PROTOTYPE : Should be error or warning here.
             var source = @"
 class A<T>
 {
@@ -504,13 +460,11 @@ class B2<T> : A<T> where T : struct
 {
     internal override void M<U>(U u!) { }
 }";
-            var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("B2<T>.M<U>(U)", @"
-{
-    // Code size        1 (0x1)
-    .maxstack  0
-    IL_0000:  ret
-}");
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                    // (8,35): error CS8718: Parameter 'U' is a non-nullable value type and therefore cannot be null-checked.
+                    //     internal override void M<U>(U u!) { }
+                    Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "u").WithArguments("U").WithLocation(8, 35));
         }
 
         [Fact]
@@ -533,7 +487,7 @@ class B3<T> : A<T?> where T : struct
     IL_0000:  ldarg.1
     IL_0001:  box        ""U""
     IL_0006:  brtrue.s   IL_000e
-    IL_0008:  newobj     ""System.Exception..ctor()""
+    IL_0008:  newobj     ""System.ArgumentNullException..ctor()""
     IL_000d:  throw
     IL_000e:  ret
 }");
@@ -542,7 +496,6 @@ class B3<T> : A<T?> where T : struct
         [Fact]
         public void TestNullCheckedSubstitution4()
         {
-            // PROTOTYPE : Should be error or warning here.
             var source = @"
 class A<T>
 {
@@ -552,13 +505,10 @@ class B4 : A<int>
 {
     internal override void M<U>(U u!) { }
 }";
-            var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("B4.M<U>(U)", @"
-{
-    // Code size        1 (0x1)
-    .maxstack  0
-    IL_0000:  ret
-}");
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                    // (8,35): error CS8718: Parameter 'U' is a non-nullable value type and therefore cannot be null-checked.
+                    //     internal override void M<U>(U u!) { }
+                    Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "u").WithArguments("U").WithLocation(8, 35));
         }
 
         [Fact]
@@ -581,7 +531,7 @@ class B5 : A<object>
     IL_0000:  ldarg.1
     IL_0001:  box        ""U""
     IL_0006:  brtrue.s   IL_000e
-    IL_0008:  newobj     ""System.Exception..ctor()""
+    IL_0008:  newobj     ""System.ArgumentNullException..ctor()""
     IL_000d:  throw
     IL_000e:  ret
 }");
@@ -655,7 +605,7 @@ class Program
 }";
             CompileAndVerify(source, expectedOutput: @"
 ok
-System.Exception");
+System.ArgumentNullException");
         }
 
         [Fact]
@@ -694,7 +644,7 @@ class Program
 }";
             CompileAndVerify(source, expectedOutput: @"
 ok
-System.Exception");
+System.ArgumentNullException");
         }
 
         [Fact]
@@ -733,7 +683,7 @@ class Program
 }";
             CompileAndVerify(source, expectedOutput: @"
 ok
-System.Exception");
+System.ArgumentNullException");
         }
 
         [Fact]
@@ -772,7 +722,73 @@ class Program
 }";
             CompileAndVerify(source, expectedOutput: @"
 ok
-System.Exception");
+System.ArgumentNullException");
+        }
+
+        [Fact]
+        public void NotNullCheckedLambdaParameter()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        Func<string, string> func1 = x => x;
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.<>c.<M>b__0_0(string)", @"
+{
+      // Code size        2 (0x2)
+      .maxstack  1
+      IL_0000:  ldarg.1
+      IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void NotNullCheckedLambdaParameter()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        Func<string, string> func1 = x => x;
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.<>c.<M>b__0_0(string)", @"
+{
+      // Code size        2 (0x2)
+      .maxstack  1
+      IL_0000:  ldarg.1
+      IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void NotNullCheckedLambdaParameter()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        Func<string, string> func1 = x => x;
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.<>c.<M>b__0_0(string)", @"
+{
+      // Code size        2 (0x2)
+      .maxstack  1
+      IL_0000:  ldarg.1
+      IL_0001:  ret
+}");
         }
 
         [Fact]
@@ -794,7 +810,7 @@ class C
     .maxstack  1
     IL_0000:  ldarg.1
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     IL_0009:  ldarg.1
     IL_000a:  ret
@@ -820,7 +836,7 @@ class C
     .maxstack  1
     IL_0000:  ldarg.1
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     IL_0009:  ldarg.1
     IL_000a:  ret
@@ -846,11 +862,11 @@ class C
     .maxstack  1
     IL_0000:  ldarg.1
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     IL_0009:  ldarg.2
     IL_000a:  brtrue.s   IL_0012
-    IL_000c:  newobj     ""System.Exception..ctor()""
+    IL_000c:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0011:  throw
     IL_0012:  ldarg.1
     IL_0013:  ret
@@ -860,7 +876,6 @@ class C
         [Fact]
         public void NoGeneratedNullCheckIfNonNullableTest()
         {
-            // PROTOTYPE: Should be warning or error here.
             var source = @"
 using System;
 class C
@@ -870,14 +885,11 @@ class C
         Func<int, int> func1 = x! => x;
     }
 }";
-            var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("C.<>c.<M>b__0_0(int)", @"
-{
-    // Code size        2 (0x2)
-    .maxstack  1
-    IL_0000:  ldarg.1
-    IL_0001:  ret
-}");
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics(
+                    // (7,32): error CS8718: Parameter 'int' is a non-nullable value type and therefore cannot be null-checked.
+                    //         Func<int, int> func1 = x! => x;
+                    Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "x").WithArguments("int").WithLocation(7, 32));
         }
 
         [Fact]
@@ -899,7 +911,7 @@ class C
     .maxstack  1
     IL_0000:  ldarg.1
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     IL_0009:  ldnull
     IL_000a:  ret
@@ -925,7 +937,7 @@ class C
     .maxstack  1
     IL_0000:  ldarg.1
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     IL_0009:  ldarg.1
     IL_000a:  ret
@@ -952,7 +964,7 @@ class C
     .maxstack  1
     IL_0000:  ldarg.0
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     IL_0009:  ret
 }");
@@ -978,7 +990,7 @@ class C
     .maxstack  1
     IL_0000:  ldarg.0
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     IL_0009:  ret
 }");
@@ -1004,11 +1016,11 @@ class C
     .maxstack  1
     IL_0000:  ldarg.0
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     IL_0009:  ldarg.1
     IL_000a:  brtrue.s   IL_0012
-    IL_000c:  newobj     ""System.Exception..ctor()""
+    IL_000c:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0011:  throw
     IL_0012:  ret
 }");
@@ -1034,7 +1046,7 @@ class C
     .maxstack  1
     IL_0000:  ldarg.0
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     IL_0009:  ret
 }");
@@ -1074,7 +1086,7 @@ class C
     .maxstack  1
     IL_0000:  ldarg.1
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     IL_0009:  ldstr      ""hello""
     IL_000e:  call       ""void C.<M>g__InnerM|0_0(string)""
@@ -1097,7 +1109,7 @@ class C
     .maxstack  1
     IL_0000:  ldarg.1
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     IL_0009:  ldarg.0
     IL_000a:  call       ""object..ctor()""
@@ -1124,7 +1136,7 @@ class C : B
     .maxstack  2
     IL_0000:  ldarg.1
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     IL_0009:  ldarg.0
     IL_000a:  ldarg.1
@@ -1157,7 +1169,7 @@ class C
     .maxstack  1
     IL_0000:  ldarg.1
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     IL_0009:  ldarg.0
     IL_000a:  call       ""C..ctor()""
@@ -1181,7 +1193,7 @@ class C
     .maxstack  2
     IL_0000:  ldarg.1
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     IL_0009:  ldarg.0
     IL_000a:  ldc.i4.5
@@ -1208,7 +1220,7 @@ class C
     .maxstack  1
     IL_0000:  ldarg.1
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     IL_0009:  ldarg.1
     IL_000a:  ret
@@ -1231,7 +1243,7 @@ class C
     .maxstack  2
     IL_0000:  ldarg.1
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     IL_0009:  ldarg.1
     IL_000a:  ldarg.0
@@ -1245,7 +1257,7 @@ class C
     .maxstack  3
     IL_0000:  ldarg.1
     IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     IL_0009:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
     IL_000e:  dup
@@ -1262,6 +1274,77 @@ class C
     IL_0000:  ldarg.0
     IL_0001:  call       ""object..ctor()""
     IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCheckedIterator()
+        {
+            var source = @"
+using System.Collections.Generic;
+class Iterators
+{
+    IEnumerable<char> GetChars(string s!)
+    {
+        foreach (var c in s)
+        {
+            yield return c;
+        }
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("Iterators.GetChars(string)", @"
+{
+    // Code size       24 (0x18)
+    .maxstack  3
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldc.i4.s   -2
+    IL_000b:  newobj     ""Iterators.<GetChars>d__0..ctor(int)""
+    IL_0010:  dup
+    IL_0011:  ldarg.1
+    IL_0012:  stfld      ""string Iterators.<GetChars>d__0.<>3__s""
+    IL_0017:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCheckedIteratorInLocalFunction()
+        {
+            var source = @"
+using System.Collections.Generic;
+class Iterators
+{
+    void Use()
+    {
+        IEnumerable<char> e = GetChars(""hello"");
+        IEnumerable<char> GetChars(string s!)
+        {
+            foreach (var c in s)
+            {
+                yield return c;
+            }
+        }
+    }
+
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("Iterators.<Use>g__GetChars|0_0(string)", @"
+{
+    // Code size       24 (0x18)
+    .maxstack  3
+    IL_0000:  ldarg.0
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldc.i4.s   -2
+    IL_000b:  newobj     ""Iterators.<<Use>g__GetChars|0_0>d..ctor(int)""
+    IL_0010:  dup
+    IL_0011:  ldarg.0
+    IL_0012:  stfld      ""string Iterators.<<Use>g__GetChars|0_0>d.<>3__s""
+    IL_0017:  ret
 }");
         }
     }

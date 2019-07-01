@@ -5922,4 +5922,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_MustNullCheckInImplementation" xml:space="preserve">
     <value>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</value>
   </data>
+  <data name="ERR_NonNullableValueTypeIsNullChecked" xml:space="preserve">
+    <value>Parameter '{0}' is a non-nullable value type and cannot be null-checked.</value>
+  </data>
+  <data name="WRN_NullCheckedHasDefaultNull" xml:space="preserve">
+    <value>Parameter '{0}' is null-checked but is null by default.</value>
+  </data>
 </root>

@@ -1203,10 +1203,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             var factory = new SyntheticBoundNodeFactory(methodSymbol, syntax, compilationState, diagsForCurrentMethod);
-                            var boundStatementsWithNullCheck = LocalRewriter.ConstructNullCheckedStatementList(methodSymbol.Parameters, boundStatements, factory);
-                            if (!boundStatementsWithNullCheck.IsDefault)
+                            if (!methodSymbol.IsIterator)
                             {
-                                boundStatements = boundStatementsWithNullCheck;
+                                var boundStatementsWithNullCheck = LocalRewriter.ConstructNullCheckedStatementList(methodSymbol.Parameters, boundStatements, factory);
+
+                                if (!boundStatementsWithNullCheck.IsDefault)
+                                {
+                                    boundStatements = boundStatementsWithNullCheck;
+                                }
+                                hasErrors = boundStatementsWithNullCheck.HasErrors() || diagsForCurrentMethod.HasAnyErrors();
+                                SetGlobalErrorIfTrue(hasErrors);
+                                if (hasErrors)
+                                {
+                                    _diagnostics.AddRange(diagsForCurrentMethod);
+                                    return;
+                                }
                             }
                         }
 

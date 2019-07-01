@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-using System;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -24,15 +22,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                          SyntheticBoundNodeFactory factory)
         {
             ArrayBuilder<BoundStatement> statementList = null;
-            foreach (ParameterSymbol x in parameters)
+            foreach (ParameterSymbol param in parameters)
             {
-                if (x is SourceParameterSymbolBase param
-                    && param.IsNullChecked)
+                if (GetParameterIsNullChecked(param))
                 {
                     if (param.Type.IsValueType && !param.Type.IsNullableTypeOrTypeParameter())
                     {
-                        // PROTOTYPE : Warning or Error, see CodeGenNullCheckedParameterTests.TestNullCheckedSubstitution2
+                        factory.Diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, param.Locations.FirstOrNone(), new object[] { param });
                         continue;
+                    }
+                    if (param.ExplicitDefaultConstantValue?.IsNull ?? false)
+                    {
+                        factory.Diagnostics.Add(ErrorCode.WRN_NullCheckedHasDefaultNull, param.Locations.FirstOrNone(), new object[] { param });
                     }
                     statementList ??= ArrayBuilder<BoundStatement>.GetInstance();
                     var constructedIf = ConstructIfStatementForParameter(param, factory);
@@ -49,7 +50,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
-        private static BoundStatement ConstructIfStatementForParameter(SourceParameterSymbolBase parameter, SyntheticBoundNodeFactory factory)
+        private static bool GetParameterIsNullChecked(ParameterSymbol x)
+        {
+            if (x is SourceParameterSymbolBase param && param.IsNullChecked)
+                return true;
+
+            else if (x is SynthesizedParameterSymbolBase synthedParam && synthedParam.IsNullChecked)
+                return true;
+
+            return false;
+        }
+
+        private static BoundStatement ConstructIfStatementForParameter(ParameterSymbol parameter, SyntheticBoundNodeFactory factory)
         {
             BoundExpression paramIsNullCondition;
             var loweredLeft = factory.Parameter(parameter);
@@ -63,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 paramIsNullCondition = factory.MakeNullCheck(loweredLeft.Syntax, loweredLeft, BinaryOperatorKind.Equal);
             }
             // PROTOTYPE : Make ArgumentNullException
-            BoundThrowStatement throwArgNullStatement = factory.Throw(factory.New(factory.WellKnownType(WellKnownType.System_Exception)));
+            BoundThrowStatement throwArgNullStatement = factory.Throw(factory.New(factory.WellKnownType(WellKnownType.System_ArgumentNullException)));
 
             return factory.HiddenSequencePoint(factory.If(paramIsNullCondition, throwArgNullStatement));
         }

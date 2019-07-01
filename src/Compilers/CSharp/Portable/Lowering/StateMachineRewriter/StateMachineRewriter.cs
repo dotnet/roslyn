@@ -298,9 +298,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bodyBuilder.Add(GenerateStateMachineCreation(stateMachineVariable, frameType));
-            return F.Block(
+            ImmutableArray<BoundStatement> newBody;
+            newBody = LocalRewriter.ConstructNullCheckedStatementList(method.Parameters, bodyBuilder.ToImmutableAndFree(), F);
+            var result = F.Block(
                 ImmutableArray.Create(stateMachineVariable),
-                bodyBuilder.ToImmutableAndFree());
+                newBody.IsDefault ? bodyBuilder.ToImmutableAndFree() : newBody);
+
+            return result;
         }
 
         protected SynthesizedImplementationMethod OpenMethodImplementation(

@@ -1726,6 +1726,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_NeedSpaceBetweenExclamationAndEquals = 8716,
         ERR_MustNullCheckInImplementation = 8717,
+        ERR_NonNullableValueTypeIsNullChecked = 8718,
+        WRN_NullCheckedHasDefaultNull = 8719,
         #endregion diagnostics introduced for C# 8.0
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
