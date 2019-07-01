@@ -745,7 +745,7 @@ namespace BoundTreeGenerator
 
         private IEnumerable<Field> AllTypeFields(TreeType node)
         {
-            return AllFields(node).Where(field => typeIsTypeSymbol(field));
+            return AllFields(node).Where(field => TypeIsTypeSymbol(field));
         }
 
         private NullHandling FieldNullHandling(TreeType node, string fieldName)
@@ -1016,12 +1016,12 @@ namespace BoundTreeGenerator
 
             string wasUpdatedCheck(Field field)
             {
-                var format = typeIsTypeSymbol(field) ? "!TypeSymbol.Equals({0}, this.{1}, TypeCompareKind.ConsiderEverything)" : "{0} != this.{1}";
+                var format = TypeIsTypeSymbol(field) ? "!TypeSymbol.Equals({0}, this.{1}, TypeCompareKind.ConsiderEverything)" : "{0} != this.{1}";
                 return string.Format(format, ToCamelCase(field.Name), field.Name);
             }
         }
 
-        private static bool typeIsTypeSymbol(Field field) => field.Type.TrimEnd('?') == "TypeSymbol";
+        private static bool TypeIsTypeSymbol(Field field) => field.Type.TrimEnd('?') == "TypeSymbol";
 
         private string StripBound(string name)
         {
@@ -1360,7 +1360,7 @@ namespace BoundTreeGenerator
                             if (hadField)
                             {
                                 Write("return node.Update");
-                                ParenList(AllSpecifiableFields(node), field => IsDerivedOrListOfDerived("BoundNode", field.Type) || typeIsTypeSymbol(field) ? ToCamelCase(field.Name) : string.Format("node.{0}", field.Name));
+                                ParenList(AllSpecifiableFields(node), field => IsDerivedOrListOfDerived("BoundNode", field.Type) || TypeIsTypeSymbol(field) ? ToCamelCase(field.Name) : string.Format("node.{0}", field.Name));
                                 WriteLine(";");
                             }
                             else
