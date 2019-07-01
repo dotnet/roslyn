@@ -1,25 +1,48 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
-using static Microsoft.CodeAnalysis.DiagnosticExtensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
     [Trait(Traits.Feature, Traits.Features.SarifErrorLogging)]
-    public class SarifV1ErrorLoggerTests : CommandLineTestBase
+    public class SarifV2ErrorLoggerTests : CommandLineTestBase
     {
+        private const string ExpectedHeader =
+@"{
+  ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
+  ""version"": ""2.1.0"",
+  ""runs"": [
+    {
+";
+        private static string GetExpectedToolHeader(CommonCompiler compiler)
+        {
+            var expectedToolName = compiler.GetToolName();
+            var expectedVersion = compiler.GetAssemblyVersion();
+            var expectedSemanticVersion = compiler.GetAssemblyVersion().ToString(fieldCount: 3);
+            var expectedFileVersion = compiler.GetCompilerVersion();
+            var expectedLanguage = compiler.GetCultureName();
+
+            return
+@"      ],
+      ""tool"": {{
+        ""driver"": {{
+          ""name"": ""{expectedToolName}"",
+          ""fileVersion"": ""{expectedFileVersion}"",
+          ""
+        }}
+      }}
+";
+        }
+
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void NoDiagnostics()
         {
@@ -36,7 +59,7 @@ class C
             var errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
-            var cmd = CreateCSharpCompiler(new[] { "/nologo", hello, $"/errorlog:{errorLogFile}" });
+            var cmd = CreateCSharpCompiler(new[] { "/nologo", hello, $"/errorlog:{errorLogFile}", "/sarifversion:2" });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
             var exitCode = cmd.Run(outWriter);
@@ -46,7 +69,7 @@ class C
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
 
-            var expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd);
+            var expectedHeader = GetExpectedErrorLogHeader();
             var expectedIssues = @"
       ""results"": [
       ]
@@ -73,7 +96,7 @@ public class C
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, new[] {
-                "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" });
+                "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}", "/sarifversion:2" });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
             var exitCode = cmd.Run(outWriter);
@@ -85,7 +108,7 @@ public class C
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
 
-            var expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd);
+            var expectedHeader = GetExpectedErrorLogHeader();
             var expectedIssues = string.Format(@"
       ""results"": [
         {{
@@ -169,7 +192,7 @@ public class C
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, new[] {
-                "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" });
+                "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}", "/sarifversion:2" });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
             var exitCode = cmd.Run(outWriter);
@@ -182,7 +205,7 @@ public class C
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
 
-            var expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd);
+            var expectedHeader = GetExpectedErrorLogHeader();
             var expectedIssues = string.Format(@"
       ""results"": [
         {{
@@ -267,7 +290,7 @@ public class C
             var outputFilePath = Path.Combine(outputDir.Path, "test.dll");
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, new[] {
-                "/nologo", "/t:library", $"/out:{outputFilePath}", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" },
+                "/nologo", "/t:library", $"/out:{outputFilePath}", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}", "/sarifversion:2" },
                analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -281,7 +304,7 @@ public class C
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
 
-            var expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd);
+            var expectedHeader = GetExpectedErrorLogHeader();
             var expectedIssues = AnalyzerForErrorLogTest.GetExpectedErrorLogResultsText(cmd.Compilation);
             var expectedText = expectedHeader + expectedIssues;
             Assert.Equal(expectedText, actualOutput);
@@ -289,6 +312,11 @@ public class C
             CleanupAllGeneratedFiles(sourceFile);
             CleanupAllGeneratedFiles(outputFilePath);
             CleanupAllGeneratedFiles(errorLogFile);
+        }
+
+        private static string GetExpectedErrorLogHeader()
+        {
+            return "";
         }
     }
 }
