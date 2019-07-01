@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var statementList = ConstructNullCheckedStatementList(_factory.CurrentFunction.Parameters, block.Statements, _factory);
             if (statementList.IsEmpty)
             {
-                return block;
+                return null;
             }
             return _factory.Block(block.Locals, statementList);
         }

@@ -236,11 +236,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 _factory.CurrentFunction = node.Symbol;
-                var body = (BoundBlock)Visit(node.Body);
-                body = RewriteNullChecking(body);
-                TypeSymbol type = VisitType(node.Type);
-                return node.Update(node.UnboundLambda, node.Symbol, body,
-                    node.Diagnostics, node.Binder, type);
+                var visited = (BoundLambda)base.VisitLambda(node);
+                if (RewriteNullChecking(visited.Body) is BoundBlock newBody && !(newBody is null))
+                {
+                    visited = visited.Update(visited.UnboundLambda, visited.Symbol, newBody, visited.Diagnostics, visited.Binder, visited.Type);
+                }
+                return visited;
             }
             finally
             {
@@ -279,10 +280,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 _factory.CurrentFunction = localFunction;
-                var visited = base.VisitLocalFunctionStatement(node);
-                var body = (BoundBlock)Visit(node.Body);
-                body = (BoundBlock)RewriteNullChecking(body);
-                return node.Update(node.Symbol, body, null);
+                var visited = (BoundLocalFunctionStatement)base.VisitLocalFunctionStatement(node);
+                if (RewriteNullChecking(visited.Body) is BoundBlock newBody && !(newBody is null))
+                {
+                    visited = visited.Update(localFunction, newBody, null);
+                }
+                return visited;
             }
             finally
             {
