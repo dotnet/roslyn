@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     var mappedName = GetTypeName(usingDecl.Name);
                     if (mappedName != null)
                     {
-                        aliasMap = aliasMap ?? AllocateAliasMap();
+                        aliasMap ??= AllocateAliasMap();
 
                         // If we have:  using X = Goo, then we store a mapping from X -> Goo
                         // here.  That way if we see a class that inherits from X we also state

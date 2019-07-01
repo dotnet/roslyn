@@ -1641,7 +1641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UnboxPossibleNull = 8605,
         WRN_NullReferenceIterationVariable = 8606,
         WRN_DisallowNullAttributeForbidsMaybeNullAssignment = 8607,
-        // available 8608
+        WRN_NullabilityMismatchInTypeOnOverride = 8608,
         WRN_NullabilityMismatchInReturnTypeOnOverride = 8609,
         WRN_NullabilityMismatchInParameterTypeOnOverride = 8610,
         WRN_NullabilityMismatchInParameterTypeOnPartial = 8611,
@@ -1703,6 +1703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_OverrideValConstraintNotSatisfied = 8666,
 
         WRN_NullabilityMismatchInConstraintsOnPartialImplementation = 8667,
+        ERR_NullableDirectiveTargetExpected = 8668,
 
         ERR_MultipleAnalyzerConfigsInSameDir = 8700,
 

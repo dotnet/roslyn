@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
 
                 Assert.Equal(todoLists.Length, expectedLists.Count);
 
-                for (int i = 0; i < todoLists.Length; i++)
+                for (var i = 0; i < todoLists.Length; i++)
                 {
                     var todo = todoLists[i];
                     var span = expectedLists[i];

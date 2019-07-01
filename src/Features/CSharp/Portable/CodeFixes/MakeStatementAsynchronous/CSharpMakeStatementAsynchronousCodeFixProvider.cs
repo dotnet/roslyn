@@ -113,10 +113,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeStatementAsynchronous
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(CSharpFeaturesResources.Add_await,
-                     createChangedDocument,
-                     CSharpFeaturesResources.Add_await)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpFeaturesResources.Add_await,
+                       createChangedDocument,
+                       CSharpFeaturesResources.Add_await)
             {
             }
         }

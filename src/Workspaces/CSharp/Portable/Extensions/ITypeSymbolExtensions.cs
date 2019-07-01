@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-                IEnumerable<UsingDirectiveSyntax> applicableUsings = GetApplicableUsings(position, root as CompilationUnitSyntax);
+                var applicableUsings = GetApplicableUsings(position, root as CompilationUnitSyntax);
                 foreach (var applicableUsing in applicableUsings)
                 {
                     var alias = semanticModel.GetOriginalSemanticModel().GetDeclaredSymbol(applicableUsing, cancellationToken);

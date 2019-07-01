@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal struct TokenSemanticInfo
     {
         public static readonly TokenSemanticInfo Empty = new TokenSemanticInfo(
-            null, null, ImmutableArray<ISymbol>.Empty, null, null, default(TextSpan));
+            null, null, ImmutableArray<ISymbol>.Empty, null, null, default);
 
         public readonly ISymbol DeclaredSymbol;
         public readonly IAliasSymbol AliasSymbol;

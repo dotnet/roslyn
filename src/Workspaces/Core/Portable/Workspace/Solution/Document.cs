@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis
         private WeakReference<SemanticModel> _model;
         private Task<SyntaxTree> _syntaxTreeResultTask;
 
-        internal Document(Project project, DocumentState state) :
-            base(project, state, TextDocumentKind.Document)
+        internal Document(Project project, DocumentState state)
+            : base(project, state, TextDocumentKind.Document)
         {
         }
 
@@ -470,13 +470,13 @@ namespace Microsoft.CodeAnalysis
             //       snapshot model. once that is fixed, we can remove this workaround - https://github.com/dotnet/roslyn/issues/19284
             if (_cachedOptions == null)
             {
-                InitializeCachedOptions(solutionOptions, cancellationToken);
+                InitializeCachedOptions(solutionOptions);
             }
 
             return _cachedOptions.GetValueAsync(cancellationToken);
         }
 
-        private void InitializeCachedOptions(OptionSet solutionOptions, CancellationToken cancellationToken)
+        private void InitializeCachedOptions(OptionSet solutionOptions)
         {
             var newAsyncLazy = new AsyncLazy<DocumentOptionSet>(async c =>
             {

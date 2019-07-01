@@ -99,14 +99,16 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        private static async Task<TextSpan> GetExpandedNodeSpan(
-            Document document,
-            SyntaxNode node,
-            CancellationToken cancellationToken)
+        private static Task<TextSpan> GetExpandedNodeSpan(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            return GetExpandedTextSpan(document, node.Span, cancellationToken);
+        }
+
+        private static async Task<TextSpan> GetExpandedTextSpan(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            var nodeStartLine = sourceText.Lines.GetLineFromPosition(node.SpanStart);
+            var nodeStartLine = sourceText.Lines.GetLineFromPosition(span.Start);
 
             // Enable vertical selections that catch the previous line break and perhaps some whitespace.
             if (nodeStartLine.LineNumber != 0)
@@ -114,10 +116,10 @@ namespace Microsoft.CodeAnalysis
                 nodeStartLine = sourceText.Lines[nodeStartLine.LineNumber - 1];
             }
 
-            var nodeEndLine = sourceText.Lines.GetLineFromPosition(node.Span.End);
+            var nodeEndLine = sourceText.Lines.GetLineFromPosition(span.End);
 
-            var start = node.SpanStart;
-            var end = node.Span.End;
+            var start = span.Start;
+            var end = span.End;
 
             while (start > nodeStartLine.Start && char.IsWhiteSpace(sourceText[start - 1]))
             {
@@ -127,6 +129,37 @@ namespace Microsoft.CodeAnalysis
             while (end < nodeEndLine.End && char.IsWhiteSpace(sourceText[end]))
             {
                 end++;
+            }
+
+            return TextSpan.FromBounds(start, end);
+        }
+
+        /// <summary>
+        /// Trims leading and trailing whitespace from <paramref name="span"/>.
+        /// </summary>
+        /// <remarks>
+        /// Returns unchanged <paramref name="span"/> in case <see cref="TextSpan.IsEmpty"/>.
+        /// Returns empty Span with original <see cref="TextSpan.Start"/> in case it contains only whitespace.
+        /// </remarks>
+        public static async Task<TextSpan> GetTrimmedTextSpan(Document document, TextSpan span, CancellationToken cancellationToken)
+        {
+            if (span.IsEmpty)
+            {
+                return span;
+            }
+
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var start = span.Start;
+            var end = span.End;
+
+            while (start < end && char.IsWhiteSpace(sourceText[end - 1]))
+            {
+                end--;
+            }
+
+            while (start < end && char.IsWhiteSpace(sourceText[start]))
+            {
+                start++;
             }
 
             return TextSpan.FromBounds(start, end);

@@ -559,10 +559,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             GetProjectData(projectId, out var hierarchy, out var project);
 
-            string filePath = GetAnalyzerPath(analyzerReference);
+            var filePath = GetAnalyzerPath(analyzerReference);
             if (filePath != null)
             {
-                VSProject3 vsProject = (VSProject3)project.Object;
+                var vsProject = (VSProject3)project.Object;
                 vsProject.AnalyzerReferences.Add(filePath);
             }
         }
@@ -581,10 +581,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             GetProjectData(projectId, out var hierarchy, out var project);
 
-            string filePath = GetAnalyzerPath(analyzerReference);
+            var filePath = GetAnalyzerPath(analyzerReference);
             if (filePath != null)
             {
-                VSProject3 vsProject = (VSProject3)project.Object;
+                var vsProject = (VSProject3)project.Object;
                 vsProject.AnalyzerReferences.Remove(filePath);
             }
         }
@@ -614,10 +614,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             GetProjectData(projectId, out var hierarchy, out var project);
 
-            string filePath = GetMetadataPath(metadataReference);
+            var filePath = GetMetadataPath(metadataReference);
             if (filePath != null)
             {
-                VSProject vsProject = (VSProject)project.Object;
+                var vsProject = (VSProject)project.Object;
                 vsProject.References.Add(filePath);
 
                 var undoManager = TryGetUndoManager();
@@ -640,10 +640,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             GetProjectData(projectId, out var hierarchy, out var project);
 
-            string filePath = GetMetadataPath(metadataReference);
+            var filePath = GetMetadataPath(metadataReference);
             if (filePath != null)
             {
-                VSProject vsProject = (VSProject)project.Object;
+                var vsProject = (VSProject)project.Object;
                 foreach (Reference reference in vsProject.References)
                 {
                     if (StringComparer.OrdinalIgnoreCase.Equals(reference.Path, filePath))
@@ -1298,7 +1298,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // current hierarchy as the active context of that shared hierarchy. This is kept as a loop that we do multiple times in the case that you
                     // have multiple pointers. This used to be the case for multitargeting projects, but that was now handled by setting the active context property
                     // above. Some project systems out there might still be supporting it, so we'll support it too.
-                    while (SharedProjectUtilities.TryGetItemInSharedAssetsProject(hierarchy, itemId, out var sharedHierarchy, out uint sharedItemId) &&
+                    while (SharedProjectUtilities.TryGetItemInSharedAssetsProject(hierarchy, itemId, out var sharedHierarchy, out var sharedItemId) &&
                            hierarchy != sharedHierarchy)
                     {
                         // Ensure the shared context is set correctly
@@ -1346,7 +1346,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var fileNames = documents.Select(GetFilePath).ToArray();
 
             // TODO: meditate about the flags we can pass to this and decide what is most appropriate for Roslyn
-            int result = queryEdit.QueryEditFiles(
+            var result = queryEdit.QueryEditFiles(
                 rgfQueryEdit: 0,
                 cFiles: fileNames.Length,
                 rgpszMkDocuments: fileNames,
@@ -1386,8 +1386,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // First we have to see if either project disallows the reference being added.
             const int ContextFlags = (int)__VSQUERYFLAVORREFERENCESCONTEXT.VSQUERYFLAVORREFERENCESCONTEXT_RefreshReference;
 
-            uint canAddProjectReference = (uint)__VSREFERENCEQUERYRESULT.REFERENCE_UNKNOWN;
-            uint canBeReferenced = (uint)__VSREFERENCEQUERYRESULT.REFERENCE_UNKNOWN;
+            var canAddProjectReference = (uint)__VSREFERENCEQUERYRESULT.REFERENCE_UNKNOWN;
+            var canBeReferenced = (uint)__VSREFERENCEQUERYRESULT.REFERENCE_UNKNOWN;
 
             if (referencingHierarchy is IVsProjectFlavorReferences3 referencingProjectFlavor3)
             {

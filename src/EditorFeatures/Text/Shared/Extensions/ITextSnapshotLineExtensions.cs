@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
 
             var text = line.GetText();
 
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
                 if (!char.IsWhiteSpace(text[i]))
                 {
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
 
             var text = line.GetText();
 
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
                 if (!char.IsWhiteSpace(text[i]))
                 {
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
                 endIndex = text.Length;
             }
 
-            for (int i = startIndex; i < endIndex; i++)
+            for (var i = startIndex; i < endIndex; i++)
             {
                 if (!char.IsWhiteSpace(text[i]))
                 {
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
             }
 
             var snapshot = line.Snapshot;
-            for (int lineNumber = line.LineNumber - 1; lineNumber >= 0; lineNumber--)
+            for (var lineNumber = line.LineNumber - 1; lineNumber >= 0; lineNumber--)
             {
                 var currentLine = snapshot.GetLineFromLineNumber(lineNumber);
                 if (!predicate(currentLine))
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
                 return false;
             }
 
-            for (int i = 0; i < value.Length; i++)
+            for (var i = 0; i < value.Length; i++)
             {
                 var snapshotIndex = index + i;
                 var actualCharacter = snapshot[snapshotIndex];

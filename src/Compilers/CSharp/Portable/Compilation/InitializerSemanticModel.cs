@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                      SyntaxTreeSemanticModel containingSemanticModelOpt = null,
                                      SyntaxTreeSemanticModel parentSemanticModelOpt = null,
                                      int speculatedPosition = 0) :
-            base(syntax, symbol, rootBinder, containingSemanticModelOpt, parentSemanticModelOpt, speculatedPosition)
+            base(syntax, symbol, rootBinder, containingSemanticModelOpt, parentSemanticModelOpt, snapshotManagerOpt: null, speculatedPosition)
         {
             Debug.Assert(!(syntax is ConstructorInitializerSyntax));
         }
@@ -258,9 +258,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        protected override BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, out NullableWalker.SnapshotManager snapshotManager)
+        protected override BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots, out NullableWalker.SnapshotManager snapshotManager)
         {
-            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots: true, out snapshotManager);
+            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots, out snapshotManager);
         }
     }
 }

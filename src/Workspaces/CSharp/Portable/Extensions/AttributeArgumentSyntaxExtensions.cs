@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             this AttributeArgumentSyntax argument,
             SemanticModel semanticModel,
             bool allowParams = false,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             // if argument is a named argument it can't map to a parameter.
             if (argument.NameEquals != null)
@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return null;
             }
 
-            var argumentList = argument.Parent as AttributeArgumentListSyntax;
-            if (argumentList == null)
+            if (!(argument.Parent is AttributeArgumentListSyntax argumentList))
             {
                 return null;
             }

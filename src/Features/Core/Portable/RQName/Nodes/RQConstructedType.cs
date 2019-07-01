@@ -14,15 +14,15 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 
         public RQConstructedType(RQUnconstructedType definingType, IList<RQType> typeArguments)
         {
-            this.DefiningType = definingType;
-            this.TypeArguments = new ReadOnlyCollection<RQType>(typeArguments);
+            DefiningType = definingType;
+            TypeArguments = new ReadOnlyCollection<RQType>(typeArguments);
         }
 
         public override SimpleTreeNode ToSimpleTree()
         {
-            var typeArgumentNodes = this.TypeArguments.Select(node => node.ToSimpleTree()).ToList();
+            var typeArgumentNodes = TypeArguments.Select(node => node.ToSimpleTree()).ToList();
             var typeParamsNode = new SimpleGroupNode(RQNameStrings.TypeParams, typeArgumentNodes);
-            return new SimpleGroupNode(RQNameStrings.AggType, this.DefiningType.ToSimpleTree(), typeParamsNode);
+            return new SimpleGroupNode(RQNameStrings.AggType, DefiningType.ToSimpleTree(), typeParamsNode);
         }
     }
 }

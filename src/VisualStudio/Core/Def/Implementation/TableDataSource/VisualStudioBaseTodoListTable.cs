@@ -33,8 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private readonly TableDataSource _source;
 
-        protected VisualStudioBaseTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, string identifier, ITableManagerProvider provider) :
-            base(workspace, provider, StandardTables.TasksTable)
+        protected VisualStudioBaseTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, string identifier, ITableManagerProvider provider)
+            : base(workspace, provider, StandardTables.TasksTable)
         {
             _source = new TableDataSource(workspace, todoListProvider, identifier);
             AddInitialTableSource(workspace.CurrentSolution, _source);
@@ -73,8 +73,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private readonly string _identifier;
             private readonly ITodoListProvider _todoListProvider;
 
-            public TableDataSource(Workspace workspace, ITodoListProvider todoListProvider, string identifier) :
-                base(workspace)
+            public TableDataSource(Workspace workspace, ITodoListProvider todoListProvider, string identifier)
+                : base(workspace)
             {
                 _workspace = workspace;
                 _identifier = identifier;

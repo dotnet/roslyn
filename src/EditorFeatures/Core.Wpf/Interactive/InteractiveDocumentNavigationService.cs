@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 
         public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options)
         {
-            var interactiveWorkspace = workspace as InteractiveWorkspace;
-            if (interactiveWorkspace == null)
+            if (!(workspace is InteractiveWorkspace interactiveWorkspace))
             {
                 Debug.Fail("InteractiveDocumentNavigationService called with incorrect workspace!");
                 return false;
@@ -51,8 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             var snapshotSpan = new SnapshotSpan(textSnapshot, textSpan.Start, textSpan.Length);
             var virtualSnapshotSpan = new VirtualSnapshotSpan(snapshotSpan);
 
-            VirtualSnapshotSpan surfaceBufferSpan;
-            if (!textView.TryGetSurfaceBufferSpan(virtualSnapshotSpan, out surfaceBufferSpan))
+            if (!textView.TryGetSurfaceBufferSpan(virtualSnapshotSpan, out var surfaceBufferSpan))
             {
                 return false;
             }
