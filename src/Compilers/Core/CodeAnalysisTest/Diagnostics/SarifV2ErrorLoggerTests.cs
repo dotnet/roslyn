@@ -317,7 +317,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
           ""ruleId"": ""TST002"",
           ""ruleIndex"": 4,
           ""level"": ""warning"",
-          ""message"": ""messageFormat"",
+          ""message"": {
+            ""text"": ""messageFormat""
+          },
           ""properties"": {
             ""warningLevel"": 1
           }
@@ -366,86 +368,100 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
           ""fileVersion"": ""1.2.3.4"",
           ""version"": ""1.2.3.4"",
           ""semanticVersion"": ""1.2.3"",
+          ""language"": ""en-US"",
           ""rules"": [
             {
-            ""id"": ""TST001"",
-            ""shortDescription"": {
-              ""text"": _TST001_""
+              ""id"": ""TST001-001"",
+              ""shortDescription"": {
+                ""text"": ""_TST001-001_""
+              },
+              ""defaultConfiguration"": {
+                ""level"": ""warning"",
+                ""enabled"": true
+              }
             },
-            ""defaultConfiguration"": {
-              ""level"": ""warning"",
-              ""enabled"": true
+            {
+              ""id"": ""TST001"",
+              ""shortDescription"": {
+                ""text"": ""_TST001_""
+              },
+              ""defaultConfiguration"": {
+                ""level"": ""warning"",
+                ""enabled"": true
+              }
+            },
+            {
+              ""id"": ""TST001"",
+              ""shortDescription"": {
+                ""text"": ""_TST001-002_""
+              },
+              ""defaultConfiguration"": {
+                ""level"": ""warning"",
+                ""enabled"": true
+              }
+            },
+            {
+              ""id"": ""TST001"",
+              ""shortDescription"": {
+                ""text"": ""_TST001-003_""
+              },
+              ""defaultConfiguration"": {
+                ""level"": ""warning"",
+                ""enabled"": true
+              }
+            },
+            {
+              ""id"": ""TST002"",
+              ""defaultConfiguration"": {
+                ""level"": ""warning"",
+                ""enabled"": true
+              }
+            },
+            {
+              ""id"": ""TST002"",
+              ""shortDescription"": {
+                ""text"": ""title_001""
+              },
+              ""defaultConfiguration"": {
+                ""level"": ""warning"",
+                ""enabled"": true
+              }
+            },
+            {
+              ""id"": ""TST002"",
+              ""defaultConfiguration"": {
+                ""level"": ""warning"",
+                ""enabled"": true
+              },
+              ""properties"": {
+                ""category"": ""category_002""
+              }
+            },
+            {
+              ""id"": ""TST002"",
+              ""defaultConfiguration"": {
+                ""level"": ""error"",
+                ""enabled"": true
+              }
+            },
+            {
+              ""id"": ""TST002"",
+              ""defaultConfiguration"": {
+                ""level"": ""warning"",
+                ""enabled"": false
+              }
+            },
+            {
+              ""id"": ""TST002"",
+              ""fullDescription"": {
+                ""text"": ""description_005""
+              },
+              ""defaultConfiguration"": {
+                ""level"": ""warning"",
+                ""enabled"": true
+              }
             }
-          }
-        },
-        ""TST001-001"": {
-          ""id"": ""TST001-001"",
-          ""shortDescription"": ""_TST001-001_"",
-          ""defaultLevel"": ""warning"",
-          ""properties"": {
-            ""isEnabledByDefault"": true
-          }
-        },
-        ""TST001-002"": {
-          ""id"": ""TST001"",
-          ""shortDescription"": ""_TST001-002_"",
-          ""defaultLevel"": ""warning"",
-          ""properties"": {
-            ""isEnabledByDefault"": true
-          }
-        },
-        ""TST001-003"": {
-          ""id"": ""TST001"",
-          ""shortDescription"": ""_TST001-003_"",
-          ""defaultLevel"": ""warning"",
-          ""properties"": {
-            ""isEnabledByDefault"": true
-          }
-        },
-        ""TST002"": {
-          ""id"": ""TST002"",
-          ""defaultLevel"": ""warning"",
-          ""properties"": {
-            ""isEnabledByDefault"": true
-          }
-        },
-        ""TST002-001"": {
-          ""id"": ""TST002"",
-          ""shortDescription"": ""title_001"",
-          ""defaultLevel"": ""warning"",
-          ""properties"": {
-            ""isEnabledByDefault"": true
-          }
-        },
-        ""TST002-002"": {
-          ""id"": ""TST002"",
-          ""defaultLevel"": ""warning"",
-          ""properties"": {
-            ""category"": ""category_002"",
-            ""isEnabledByDefault"": true
-          }
-        },
-        ""TST002-003"": {
-          ""id"": ""TST002"",
-          ""defaultLevel"": ""error"",
-          ""properties"": {
-            ""isEnabledByDefault"": true
-          }
-        },
-        ""TST002-004"": {
-          ""id"": ""TST002"",
-          ""defaultLevel"": ""warning"",
-          ""properties"": {
-            ""isEnabledByDefault"": false
-          }
-        },
-        ""TST002-005"": {
-          ""id"": ""TST002"",
-          ""fullDescription"": ""description_005"",
-          ""defaultLevel"": ""warning"",
-          ""properties"": {
-            ""isEnabledByDefault"": true
-          }
+          ]
         }
       }
     }
