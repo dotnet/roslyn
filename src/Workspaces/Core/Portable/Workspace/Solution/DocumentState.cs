@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis
 
             var syntaxTreeFactory = _languageServices.GetService<ISyntaxTreeFactoryService>();
 
-            var result = CreateRecoverableTextAndTree(newRoot, newTextVersion, newTreeVersion, encoding, this.Attributes, _options, syntaxTreeFactory, mode, this.solutionServices);
+            var result = CreateRecoverableTextAndTree(newRoot, newTextVersion, newTreeVersion, encoding, this.Attributes, _options, syntaxTreeFactory, mode);
 
             return new DocumentState(
                 this.LanguageServices,
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis
         // use static method so we don't capture references to this
         private static Tuple<ValueSource<TextAndVersion>, TreeAndVersion> CreateRecoverableTextAndTree(
             SyntaxNode newRoot, VersionStamp textVersion, VersionStamp treeVersion, Encoding encoding,
-            DocumentInfo.DocumentAttributes attributes, ParseOptions options, ISyntaxTreeFactoryService factory, PreservationMode mode, SolutionServices solutionServices)
+            DocumentInfo.DocumentAttributes attributes, ParseOptions options, ISyntaxTreeFactoryService factory, PreservationMode mode)
         {
             string filePath = attributes.FilePath;
             SyntaxTree tree = null;
