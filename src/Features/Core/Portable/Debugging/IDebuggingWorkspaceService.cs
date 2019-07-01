@@ -8,8 +8,6 @@ namespace Microsoft.CodeAnalysis.Debugging
 {
     internal interface IDebuggingWorkspaceService : IWorkspaceService
     {
-        IEditAndContinueService EditAndContinueServiceOpt { get; }
-
         event EventHandler<DebuggingStateChangedEventArgs> BeforeDebuggingStateChanged;
 
         void OnBeforeDebuggingStateChanged(DebuggingState before, DebuggingState after);

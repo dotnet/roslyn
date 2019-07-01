@@ -5475,8 +5475,12 @@ class C
             Public AutomationTextString As String = "Hello from IntelliCode: Length"
 
             Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
-                context.AddItem(CompletionItem.Create(displayText:="★ Length", filterText:="Length"))
+                Dim intelliCodeItem = CompletionItem.Create(displayText:="★ Length", filterText:="Length")
+                intelliCodeItem.AutomationText = AutomationTextString
+                context.AddItem(intelliCodeItem)
+
                 context.AddItem(CompletionItem.Create(displayText:="★ Normalize", filterText:="Normalize"))
+                context.AddItem(CompletionItem.Create(displayText:="Normalize", filterText:="Normalize"))
                 context.AddItem(CompletionItem.Create(displayText:="Length", filterText:="Length"))
                 context.AddItem(CompletionItem.Create(displayText:="ToString()", filterText:="ToString"))
                 context.AddItem(CompletionItem.Create(displayText:="First()", filterText:="First"))
