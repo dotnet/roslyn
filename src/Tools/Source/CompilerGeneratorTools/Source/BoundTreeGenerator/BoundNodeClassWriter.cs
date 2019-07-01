@@ -660,14 +660,14 @@ namespace BoundTreeGenerator
                             if (isROArray)
                                 WriteLine("Debug.Assert(!{0}.IsDefault, \"Field '{0}' cannot be null (use Null=\\\"allow\\\" in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
                             else
-                                WriteLine("Debug.Assert({0} is object, \"Field '{0}' cannot be null (use Null=\\\"allow\\\" in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
+                                WriteLine("Debug.Assert({0} is object, \"Field '{0}' cannot be null (make the type nullable in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
                             break;
 
                         case TargetLanguage.VB:
                             if (isROArray)
                                 WriteLine("Debug.Assert(Not ({0}.IsDefault), \"Field '{0}' cannot be null (use Null=\"\"allow\"\" in BoundNodes.xml to remove this check)\")", ToCamelCase(field.Name));
                             else
-                                WriteLine("Debug.Assert({0} IsNot Nothing, \"Field '{0}' cannot be null (use Null=\"\"allow\"\" in BoundNodes.xml to remove this check)\")", ToCamelCase(field.Name));
+                                WriteLine("Debug.Assert({0} IsNot Nothing, \"Field '{0}' cannot be null (make the type nullable in BoundNodes.xml to remove this check)\")", ToCamelCase(field.Name));
                             break;
                     }
                 }
@@ -745,7 +745,7 @@ namespace BoundTreeGenerator
 
         private IEnumerable<Field> AllTypeFields(TreeType node)
         {
-            return AllFields(node).Where(field => field.Type.TrimEnd('?') == "TypeSymbol");
+            return AllFields(node).Where(field => typeIsTypeSymbol(field));
         }
 
         private NullHandling FieldNullHandling(TreeType node, string fieldName)
@@ -771,7 +771,7 @@ namespace BoundTreeGenerator
                 }
             }
 
-            if (f.Type.EndsWith("?"))
+            if (f.Type.EndsWith('?'))
             {
                 return NullHandling.Allow;
             }
@@ -807,6 +807,13 @@ namespace BoundTreeGenerator
                     }
                     else if (field.Override)
                     {
+                        // We emit a suppression here because the bound nodes use a pattern which is safe, but can't be tracked.
+
+                        // The point of overriding a property is to change its nullability, usually
+                        // from nullable to non-nullable. The base is annotated as nullable,
+                        // but since the base property is always set via the base call in the
+                        // constructor, as long as the parameter to the current class's constructor is not
+                        // nullable, the base property is always non-null.
                         WriteLine($"public new {field.Type} {field.Name} => base.{field.Name}!;");
                     }
                     else
@@ -1009,10 +1016,12 @@ namespace BoundTreeGenerator
 
             string wasUpdatedCheck(Field field)
             {
-                var format = field.Type.StartsWith("TypeSymbol") ? "!TypeSymbol.Equals({0}, this.{1}, TypeCompareKind.ConsiderEverything)" : "{0} != this.{1}";
+                var format = typeIsTypeSymbol(field) ? "!TypeSymbol.Equals({0}, this.{1}, TypeCompareKind.ConsiderEverything)" : "{0} != this.{1}";
                 return string.Format(format, ToCamelCase(field.Name), field.Name);
             }
         }
+
+        private static bool typeIsTypeSymbol(Field field) => field.Type.TrimEnd('?') == "TypeSymbol";
 
         private string StripBound(string name)
         {
@@ -1351,7 +1360,7 @@ namespace BoundTreeGenerator
                             if (hadField)
                             {
                                 Write("return node.Update");
-                                ParenList(AllSpecifiableFields(node), field => IsDerivedOrListOfDerived("BoundNode", field.Type) || field.Type.TrimEnd('?') == "TypeSymbol" ? ToCamelCase(field.Name) : string.Format("node.{0}", field.Name));
+                                ParenList(AllSpecifiableFields(node), field => IsDerivedOrListOfDerived("BoundNode", field.Type) || typeIsTypeSymbol(field) ? ToCamelCase(field.Name) : string.Format("node.{0}", field.Name));
                                 WriteLine(";");
                             }
                             else
