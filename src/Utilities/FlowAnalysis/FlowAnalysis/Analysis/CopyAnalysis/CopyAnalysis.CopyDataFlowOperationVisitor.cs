@@ -11,7 +11,6 @@ using Analyzer.Utilities.PooledObjects.Extensions;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
-using static System.Collections.Immutable.ImmutableArrayExtensions;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {

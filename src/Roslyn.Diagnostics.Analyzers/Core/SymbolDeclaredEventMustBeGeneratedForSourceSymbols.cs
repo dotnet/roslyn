@@ -9,7 +9,6 @@ using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using static System.Collections.Immutable.ImmutableArrayExtensions;
 
 namespace Roslyn.Diagnostics.Analyzers
 {

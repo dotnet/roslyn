@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using static System.Collections.Immutable.ImmutableArrayExtensions;
 
 namespace Analyzer.Utilities.Extensions
 {

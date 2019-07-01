@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Diagnostics.Analyzers;
-using static System.Collections.Immutable.ImmutableArrayExtensions;
 
 namespace Roslyn.Diagnostics.CSharp.Analyzers
 {

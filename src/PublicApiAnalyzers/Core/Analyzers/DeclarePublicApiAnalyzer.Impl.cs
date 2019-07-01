@@ -11,7 +11,6 @@ using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
-using static System.Collections.Immutable.ImmutableArrayExtensions;
 
 namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 {

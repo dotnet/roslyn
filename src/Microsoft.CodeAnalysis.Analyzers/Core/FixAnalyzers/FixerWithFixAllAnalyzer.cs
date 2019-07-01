@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using static System.Collections.Immutable.ImmutableArrayExtensions;
 
 namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 {

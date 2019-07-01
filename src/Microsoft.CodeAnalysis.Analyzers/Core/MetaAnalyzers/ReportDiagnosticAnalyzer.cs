@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
-using static System.Collections.Immutable.ImmutableArrayExtensions;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {

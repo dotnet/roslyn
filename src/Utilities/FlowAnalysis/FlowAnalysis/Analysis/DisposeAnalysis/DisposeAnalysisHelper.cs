@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System;
 using Analyzer.Utilities.PooledObjects;
-using static System.Collections.Immutable.ImmutableArrayExtensions;
 
 namespace Analyzer.Utilities
 {

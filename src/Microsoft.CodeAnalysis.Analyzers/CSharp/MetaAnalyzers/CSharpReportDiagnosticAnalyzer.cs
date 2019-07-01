@@ -6,7 +6,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using static System.Collections.Immutable.ImmutableArrayExtensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
 {

@@ -7,7 +7,6 @@ using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers;
-using static System.Collections.Immutable.ImmutableArrayExtensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 {
