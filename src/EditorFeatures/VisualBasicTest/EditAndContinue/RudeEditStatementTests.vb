@@ -5602,7 +5602,7 @@ End Class"
 
             ' TODO (bug 1212) should report no error
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION, "Group Join", "method"))
+                Diagnostic(RudeEditKind.ComplexQueryExpression, "Group Join", "method"))
         End Sub
 
         <Fact, WorkItem(1312, "https://github.com/dotnet/roslyn/issues/1312")>
