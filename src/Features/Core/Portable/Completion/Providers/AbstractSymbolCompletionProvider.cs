@@ -55,7 +55,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return _isTargetTypeCompletionFilterExperimentEnabled == true;
         }
 
-        private bool ShouldIncludeInTargetTypedCompletionList(ISymbol symbol, ImmutableArray<ITypeSymbol> inferredTypes, SemanticModel semanticModel, int position)
+        private bool ShouldIncludeInTargetTypedCompletionList(
+            ISymbol symbol,
+            ImmutableArray<ITypeSymbol> inferredTypes,
+            SemanticModel semanticModel,
+            int position,
+            Dictionary<ITypeSymbol, bool> typeConvertibilityCache)
         {
             // When searching for identifiers of type C, exclude the symbol for the `C` type itself.
             if (symbol.Kind == SymbolKind.NamedType)
@@ -80,20 +85,27 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            var type = symbol.GetMemberType() ?? symbol.GetSymbolType();
+            var type = (symbol.GetMemberType() ?? symbol.GetSymbolType()).WithoutNullability();
             if (type == null)
             {
                 return false;
+            }
+
+            if (typeConvertibilityCache.TryGetValue(type, out var isConvertible))
+            {
+                return isConvertible;
             }
 
             foreach (var inferredType in inferredTypes)
             {
                 if (semanticModel.Compilation.ClassifyCommonConversion(type.WithoutNullability(), inferredType.WithoutNullability()).IsImplicit)
                 {
+                    typeConvertibilityCache[type] = true;
                     return true;
                 }
             }
 
+            typeConvertibilityCache[type] = false;
             return false;
         }
 
@@ -115,6 +127,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                                select g;
 
             var itemListBuilder = ImmutableArray.CreateBuilder<CompletionItem>();
+            var typeConvertibilityCache = new Dictionary<ITypeSymbol, bool>();
 
             foreach (var symbolGroup in symbolGroups)
             {
@@ -128,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     foreach (var symbol in symbolGroup)
                     {
                         var syntaxContext = contextLookup(symbol);
-                        if (ShouldIncludeInTargetTypedCompletionList(symbol, inferredTypes, syntaxContext.SemanticModel, syntaxContext.Position))
+                        if (ShouldIncludeInTargetTypedCompletionList(symbol, inferredTypes, syntaxContext.SemanticModel, syntaxContext.Position, typeConvertibilityCache))
                         {
                             item = item.AddTag(WellKnownTags.TargetTypeMatch);
                             break;
