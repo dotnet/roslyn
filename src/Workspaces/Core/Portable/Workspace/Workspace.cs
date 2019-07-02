@@ -694,7 +694,7 @@ namespace Microsoft.CodeAnalysis
                 var newSolution = oldSolution.WithDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
                 newSolution = this.SetCurrentSolution(newSolution);
 
-                var newDocument = newSolution.GetDocument(documentId);
+                var newDocument = newSolution.GetDocument(documentId)!;
                 this.OnDocumentTextChanged(newDocument);
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
@@ -750,7 +750,7 @@ namespace Microsoft.CodeAnalysis
                 var oldSolution = this.CurrentSolution;
 
                 var newSolution = oldSolution;
-                var oldAttributes = oldSolution.GetDocument(documentId).State.Attributes;
+                var oldAttributes = oldSolution.GetDocument(documentId)!.State.Attributes;
 
                 if (oldAttributes.Name != newInfo.Name)
                 {
@@ -880,6 +880,7 @@ namespace Microsoft.CodeAnalysis
                         foreach (var updatedDocumentId in updatedDocumentIds)
                         {
                             var newDocument = newSolution.GetDocument(updatedDocumentId);
+                            Contract.ThrowIfNull(newDocument);
                             OnDocumentTextChanged(newDocument);
                         }
                     }
@@ -908,7 +909,7 @@ namespace Microsoft.CodeAnalysis
                 var oldSolution = this.CurrentSolution;
                 var newSolution = this.SetCurrentSolution(oldSolution.WithDocumentSourceCodeKind(documentId, sourceCodeKind));
 
-                var newDocument = newSolution.GetDocument(documentId);
+                var newDocument = newSolution.GetDocument(documentId)!;
                 this.OnDocumentTextChanged(newDocument);
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
@@ -1035,7 +1036,7 @@ namespace Microsoft.CodeAnalysis
             // now fix each project if necessary
             foreach (var pid in solution.ProjectIds)
             {
-                var project = solution.GetProject(pid);
+                var project = solution.GetProject(pid)!;
 
                 // convert metadata references to project references if the metadata reference matches some project's output assembly.
                 foreach (var meta in project.MetadataReferences)
@@ -1788,7 +1789,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void CheckProjectHasProjectReference(ProjectId fromProjectId, ProjectReference projectReference)
         {
-            if (!this.CurrentSolution.GetProject(fromProjectId).ProjectReferences.Contains(projectReference))
+            if (!this.CurrentSolution.GetProject(fromProjectId)!.ProjectReferences.Contains(projectReference))
             {
                 throw new ArgumentException(string.Format(
                     WorkspacesResources._0_is_not_referenced,
@@ -1801,7 +1802,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void CheckProjectDoesNotHaveProjectReference(ProjectId fromProjectId, ProjectReference projectReference)
         {
-            if (this.CurrentSolution.GetProject(fromProjectId).ProjectReferences.Contains(projectReference))
+            if (this.CurrentSolution.GetProject(fromProjectId)!.ProjectReferences.Contains(projectReference))
             {
                 throw new ArgumentException(string.Format(
                     WorkspacesResources._0_is_already_referenced,
@@ -1828,7 +1829,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void CheckProjectHasMetadataReference(ProjectId projectId, MetadataReference metadataReference)
         {
-            if (!this.CurrentSolution.GetProject(projectId).MetadataReferences.Contains(metadataReference))
+            if (!this.CurrentSolution.GetProject(projectId)!.MetadataReferences.Contains(metadataReference))
             {
                 throw new ArgumentException(WorkspacesResources.Metadata_is_not_referenced);
             }
@@ -1839,7 +1840,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void CheckProjectDoesNotHaveMetadataReference(ProjectId projectId, MetadataReference metadataReference)
         {
-            if (this.CurrentSolution.GetProject(projectId).MetadataReferences.Contains(metadataReference))
+            if (this.CurrentSolution.GetProject(projectId)!.MetadataReferences.Contains(metadataReference))
             {
                 throw new ArgumentException(WorkspacesResources.Metadata_is_already_referenced);
             }
@@ -1850,7 +1851,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void CheckProjectHasAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
         {
-            if (!this.CurrentSolution.GetProject(projectId).AnalyzerReferences.Contains(analyzerReference))
+            if (!this.CurrentSolution.GetProject(projectId)!.AnalyzerReferences.Contains(analyzerReference))
             {
                 throw new ArgumentException(string.Format(WorkspacesResources._0_is_not_present, analyzerReference));
             }
@@ -1861,7 +1862,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void CheckProjectDoesNotHaveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
         {
-            if (this.CurrentSolution.GetProject(projectId).AnalyzerReferences.Contains(analyzerReference))
+            if (this.CurrentSolution.GetProject(projectId)!.AnalyzerReferences.Contains(analyzerReference))
             {
                 throw new ArgumentException(string.Format(WorkspacesResources._0_is_already_present, analyzerReference));
             }
