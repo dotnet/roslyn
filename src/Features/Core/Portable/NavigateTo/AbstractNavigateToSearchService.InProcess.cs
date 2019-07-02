@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal abstract partial class AbstractNavigateToSearchService
     {
-        private static ConditionalWeakTable<Project, Tuple<string, ImmutableArray<SearchResult>>> s_lastProjectSearchCache =
+        private static readonly ConditionalWeakTable<Project, Tuple<string, ImmutableArray<SearchResult>>> s_lastProjectSearchCache =
             new ConditionalWeakTable<Project, Tuple<string, ImmutableArray<SearchResult>>>();
 
         public static Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInCurrentProcessAsync(
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
 
             // Would like to use CWT.AddOrUpdate. But that is not available on the 
-            // version of .Net that we're using.  So we need to take lock as we're
+            // version of .NET that we're using.  So we need to take lock as we're
             // making multiple mutations.
             lock (s_lastProjectSearchCache)
             {

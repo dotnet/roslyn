@@ -17,13 +17,22 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
 {
     [ExportCodeFixProvider(StringConstants.XamlLanguageName, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryImports), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddMissingReference)]
-#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal class RemoveUnnecessaryUsingsCodeFixProvider : CodeFixProvider
-#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
+        [ImportingConstructor]
+        public RemoveUnnecessaryUsingsCodeFixProvider()
+        {
+        }
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
             get { return ImmutableArray.Create(XamlDiagnosticIds.UnnecessaryNamespacesId); }
+        }
+
+        public override FixAllProvider GetFixAllProvider()
+        {
+            // Fix All is not supported by this code fix, because the action already applies to one document at a time
+            return null;
         }
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -44,8 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(Resources.RemoveUnnecessaryNamespaces, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(Resources.RemoveUnnecessaryNamespaces, createChangedDocument)
             {
             }
         }

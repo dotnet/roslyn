@@ -122,13 +122,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     await Task.Delay(retry_delayInMS, cancellationToken).ConfigureAwait(false);
                 }
 
-                // crash right away to get better dump. otherwise, we will get dump from async exception
-                // which most likely lost all valuable data
-                FatalError.ReportUnlessCanceled(lastException);
-                GC.KeepAlive(lastException);
+                RemoteHostCrashInfoBar.ShowInfoBar(workspace, lastException);
 
-                // unreachable
-                throw ExceptionUtilities.Unreachable;
+                // raise soft crash exception rather than doing hard crash.
+                // we had enough feedback from users not to crash VS on servicehub failure
+                throw new SoftCrashException("RequestServiceAsync Failed", lastException, cancellationToken);
             }
 
             #region code related to make diagnosis easier later

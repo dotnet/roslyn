@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../EditorFeaturesWpfResources.resx">
     <body>
+      <trans-unit id="Configure_or_Suppress_issues">
+        <source>Configure or Suppress issues</source>
+        <target state="new">Configure or Suppress issues</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Downloading_index_failed">
         <source>Downloading index failed</source>
         <target state="translated">Il download dell'indice non è riuscito</target>
@@ -19,47 +24,47 @@
       </trans-unit>
       <trans-unit id="Regex_Comment">
         <source>Regex - Comment</source>
-        <target state="new">Regex - Comment</target>
+        <target state="translated">Regex - Commento</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_Character_Class">
         <source>Regex - Character Class</source>
-        <target state="new">Regex - Character Class</target>
+        <target state="translated">Regex - Classe di caratteri</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_Alternation">
         <source>Regex - Alternation</source>
-        <target state="new">Regex - Alternation</target>
+        <target state="translated">Regex - Alternanza</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_Anchor">
         <source>Regex - Anchor</source>
-        <target state="new">Regex - Anchor</target>
+        <target state="translated">Regex - Ancoraggio</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_Quantifier">
         <source>Regex - Quantifier</source>
-        <target state="new">Regex - Quantifier</target>
+        <target state="translated">Regex - Quantificatore</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_SelfEscapedCharacter">
         <source>Regex - Self Escaped Character</source>
-        <target state="new">Regex - Self Escaped Character</target>
+        <target state="translated">Regex - Carattere di escape automatico</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_Grouping">
         <source>Regex - Grouping</source>
-        <target state="new">Regex - Grouping</target>
+        <target state="translated">Regex - Raggruppamento</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_Text">
         <source>Regex - Text</source>
-        <target state="new">Regex - Text</target>
+        <target state="translated">Regex - Testo</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_OtherEscape">
         <source>Regex - Other Escape</source>
-        <target state="new">Regex - Other Escape</target>
+        <target state="translated">Regex - Altro carattere di escape</target>
         <note />
       </trans-unit>
     </body>

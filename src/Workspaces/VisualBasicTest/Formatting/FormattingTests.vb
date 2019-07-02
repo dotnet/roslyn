@@ -2291,7 +2291,7 @@ Module Module1
         Dim mmm = Sub(ByRef x As String, _
                                 y As Integer)
                       Console.WriteLine(x &amp; y)
-                  End Sub, kkk = Sub(y, _
+                  End Sub, zzz = Sub(y, _
                                             x)
                                      mmm(y, _
                                        x)
@@ -2309,7 +2309,7 @@ Module Module1
         Dim mmm = Sub(ByRef x As String, _
                                 y As Integer)
                       Console.WriteLine(x &amp; y)
-                  End Sub, kkk = Sub(y, _
+                  End Sub, zzz = Sub(y, _
                                             x)
                                      mmm(y, _
                                        x)
@@ -2333,7 +2333,7 @@ Module Module1
         Dim mmm = Sub(ByRef x As String, _
                                 y As Integer)
                       Console.WriteLine(x &amp; y)
-                  End Sub, kkk = Sub(y, _
+                  End Sub, zzz = Sub(y, _
 x)
                                      mmm(y, _
                                        x)
@@ -2352,7 +2352,7 @@ Module Module1
         Dim mmm = Sub(ByRef x As String, _
                                 y As Integer)
                       Console.WriteLine(x &amp; y)
-                  End Sub, kkk = Sub(y, _
+                  End Sub, zzz = Sub(y, _
 x)
                                      mmm(y, _
                                        x)

@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportOptionProvider, Shared]
     internal class PersistentStorageOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public PersistentStorageOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } =
             ImmutableArray.Create<IOption>(PersistentStorageOptions.Enabled);
     }

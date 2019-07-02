@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var expression = GetTrailingScriptExpression(lastStatement);
                     if (expression != null &&
                         (object)expression.Type != null &&
-                        expression.Type.SpecialType != SpecialType.System_Void)
+                        !expression.Type.IsVoidType())
                     {
                         trailingExpression = expression;
                         continue;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasSubmissionResultType && (trailingExpression != null))
             {
-                Debug.Assert(submissionResultType.SpecialType != SpecialType.System_Void);
+                Debug.Assert(!submissionResultType.IsVoidType());
 
                 // Note: The trailing expression was already converted to the submission result type in Binder.BindGlobalStatement.
                 boundStatements.Add(new BoundReturnStatement(lastStatement.Syntax, RefKind.None, trailingExpression));
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             fieldInit.Field,
                             constantValueOpt: null),
                         fieldInit.Value,
-                        fieldInit.Field.Type.TypeSymbol)
+                        fieldInit.Field.Type)
                     { WasCompilerGenerated = true })
                 { WasCompilerGenerated = !fieldInit.Locals.IsEmpty || fieldInit.WasCompilerGenerated };
 

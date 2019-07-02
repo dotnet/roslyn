@@ -10,7 +10,6 @@ namespace Microsoft.CodeAnalysis
 
         System_Array__get_Length,
         System_Array__Empty,
-        System_Array__Copy,
 
         System_Convert__ToBooleanDecimal,
         System_Convert__ToBooleanInt32,
@@ -68,6 +67,8 @@ namespace Microsoft.CodeAnalysis
         System_Reflection_Missing__Value,
 
         System_IEquatable_T__Equals,
+
+        System_Collections_Generic_IEqualityComparer_T__Equals,
 
         System_Collections_Generic_EqualityComparer_T__Equals,
         System_Collections_Generic_EqualityComparer_T__GetHashCode,
@@ -145,6 +146,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RuntimeHelpers__GetObjectValueObject,
         System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle,
         System_Runtime_CompilerServices_RuntimeHelpers__get_OffsetToStringData,
+        System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
 
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Capture,
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Throw,
@@ -414,13 +416,14 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames,
 
         System_String__Format_IFormatProvider,
-        System_String__Substring,
 
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
 
         System_Runtime_CompilerServices_NullableAttribute__ctorByte,
         System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
+        System_Runtime_CompilerServices_NullableContextAttribute__ctor,
+        System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor,
         System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor,
         System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
         System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
@@ -447,14 +450,13 @@ namespace Microsoft.CodeAnalysis
         System_Math__TruncateDouble,
 
         System_Index__ctor,
-        System_Index__FromEnd,
-        System_Index__Value,
-        System_Range__Start,
-        System_Range__End,
-        System_Range__Create,
-        System_Range__ToEnd,
-        System_Range__FromStart,
-        System_Range__All,
+        System_Index__GetOffset,
+        System_Range__ctor,
+        System_Range__StartAt,
+        System_Range__EndAt,
+        System_Range__get_All,
+        System_Range__get_Start,
+        System_Range__get_End,
 
         System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
 
@@ -492,6 +494,11 @@ namespace Microsoft.CodeAnalysis
         System_InvalidOperationException__ctor,
         System_Runtime_CompilerServices_SwitchExpressionException__ctor,
         System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
+
+        System_Threading_CancellationToken__Equals,
+        System_Threading_CancellationTokenSource__CreateLinkedTokenSource,
+        System_Threading_CancellationTokenSource__Token,
+        System_Threading_CancellationTokenSource__Dispose,
 
         Count
 

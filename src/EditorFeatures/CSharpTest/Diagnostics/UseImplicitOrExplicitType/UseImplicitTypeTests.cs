@@ -32,34 +32,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
 
         // specify all options explicitly to override defaults.
         public IDictionary<OptionKey, object> ImplicitTypeEverywhere() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
 
         private IDictionary<OptionKey, object> ImplicitTypeWhereApparent() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
 
         private IDictionary<OptionKey, object> ImplicitTypeWhereApparentAndForIntrinsics() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
 
         public IDictionary<OptionKey, object> ImplicitTypeButKeepIntrinsics() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo));
 
         private IDictionary<OptionKey, object> ImplicitTypeEnforcements() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithWarning),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithError),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithWarning),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithError),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
 
         private IDictionary<OptionKey, object> ImplicitTypeSilentEnforcement() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithSilent));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent));
 
         private static IDictionary<OptionKey, object> Options(OptionKey option, object value)
             => new Dictionary<OptionKey, object> { { option, value } };
@@ -1768,7 +1768,7 @@ class C
             await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent()));
         }
 
-        private static string trivial2uple =
+        private static readonly string trivial2uple =
                     @"
 namespace System
 {

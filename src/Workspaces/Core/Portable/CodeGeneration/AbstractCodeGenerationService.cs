@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IEnumerable<ISymbol> members,
             CancellationToken cancellationToken)
         {
-            options = options ?? CodeGenerationOptions.Default;
+            options ??= CodeGenerationOptions.Default;
 
             var (destinationDeclaration, availableIndices) =
                 await this.FindMostRelevantDeclarationAsync(solution, destination, options, cancellationToken).ConfigureAwait(false);
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public async Task<Document> AddImportsAsync(Document document, CodeGenerationOptions options, CancellationToken cancellationToken)
         {
-            options = options ?? CodeGenerationOptions.Default;
+            options ??= CodeGenerationOptions.Default;
             var adder = this.CreateImportsAdder(document);
             var newDocument = await adder.AddAsync(options.PlaceSystemNamespaceFirst, options, cancellationToken).ConfigureAwait(false);
             return newDocument;
@@ -228,8 +228,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
 
             // Filter out the members that are implicitly declared.  They're implicit, hence we do
-            // not want an explicit declaration.
-            var filteredMembers = membersList.Where(m => !m.IsImplicitlyDeclared);
+            // not want an explicit declaration. The only exception are fields generated from implicit tuple fields.
+            var filteredMembers = membersList.Where(m => !m.IsImplicitlyDeclared || m.IsTupleField());
 
             return options.AutoInsertionLocation
                 ? AddMembersToAppropiateLocationInDestination(destination, filteredMembers, availableIndices, options, cancellationToken)

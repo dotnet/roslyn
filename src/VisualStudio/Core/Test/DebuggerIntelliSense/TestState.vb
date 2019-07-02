@@ -28,6 +28,7 @@ Imports Microsoft.VisualStudio.Text.Editor.Commanding
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.TextManager
+Imports Microsoft.VisualStudio.Utilities
 Imports CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem
 Imports IAsyncCompletionService = Microsoft.CodeAnalysis.Editor.IAsyncCompletionService
 
@@ -37,9 +38,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Inherits AbstractCommandHandlerTestState
 
         Friend ReadOnly AsyncCompletionService As IAsyncCompletionService
-        Friend ReadOnly SignatureHelpCommandHandler As SignatureHelpCommandHandler
+        Friend ReadOnly SignatureHelpCommandHandler As SignatureHelpBeforeCompletionCommandHandler
         Friend ReadOnly CompletionCommandHandler As CompletionCommandHandler
-        Friend ReadOnly IntelliSenseCommandHandler As IntelliSenseCommandHandler
 
         Private _context As AbstractDebuggerIntelliSenseContext
         Private ReadOnly SessionTestState As IIntelliSenseTestState
@@ -80,9 +80,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
             Me.CompletionCommandHandler = Workspace.GetService(Of CompletionCommandHandler)
 
-            Me.SignatureHelpCommandHandler = Workspace.GetService(Of SignatureHelpCommandHandler)
+            Me.SignatureHelpCommandHandler = Workspace.GetService(Of SignatureHelpBeforeCompletionCommandHandler)
 
-            Me.IntelliSenseCommandHandler = Workspace.GetService(Of IntelliSenseCommandHandler)
+            Dim featureServiceFactory = GetExportedValue(Of IFeatureServiceFactory)()
+            featureServiceFactory.GlobalFeatureService.Disable(PredefinedEditorFeatureNames.AsyncCompletion, EmptyFeatureController.Instance)
 
             Dim spanDocument = Workspace.Documents.First(Function(x) x.SelectedSpans.Any())
             Dim statementSpan = spanDocument.SelectedSpans.First()
@@ -165,22 +166,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 CreateLazyProviders(extraCompletionProviders, LanguageNames.CSharp, roles:=Nothing),
                 isImmediateWindow)
         End Function
-
-#Region "IntelliSense Operations"
-
-        Public Overloads Sub SendEscape()
-            MyBase.SendEscape(Sub(a, n, c) IntelliSenseCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
-        End Sub
-
-        Public Overloads Sub SendDownKey()
-            MyBase.SendDownKey(Sub(a, n, c) IntelliSenseCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
-        End Sub
-
-        Public Overloads Sub SendUpKey()
-            MyBase.SendUpKey(Sub(a, n, c) IntelliSenseCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
-        End Sub
-
-#End Region
 
 #Region "Completion Operations"
         Public Overloads Sub SendTab()

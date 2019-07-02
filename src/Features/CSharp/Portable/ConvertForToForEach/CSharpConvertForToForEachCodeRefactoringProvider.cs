@@ -4,8 +4,6 @@ using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertForToForEach;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
@@ -23,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
             TypeSyntax,
             VariableDeclaratorSyntax>
     {
+        [ImportingConstructor]
+        public CSharpConvertForToForEachCodeRefactoringProvider()
+        {
+        }
+
         protected override string GetTitle()
             => CSharpFeaturesResources.Convert_to_foreach;
 
@@ -131,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
             SyntaxToken foreachIdentifier, ExpressionSyntax collectionExpression,
             ITypeSymbol iterationVariableType, OptionSet optionSet)
         {
-            typeNode = typeNode ?? iterationVariableType.GenerateTypeSyntax();
+            typeNode ??= iterationVariableType.GenerateTypeSyntax();
 
             return SyntaxFactory.ForEachStatement(
                 SyntaxFactory.Token(SyntaxKind.ForEachKeyword).WithTriviaFrom(forStatement.ForKeyword),

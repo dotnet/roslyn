@@ -581,10 +581,8 @@ class Derived : Base
                 Namespace("System"),
                 Class("Base"),
                 Class("My"),
-                Method("My"),
                 Class("Derived"),
                 Class("My"),
-                Method("My"),
                 Class("Attribute"),
                 Class("Base"));
         }
@@ -1125,7 +1123,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task BindingTypeNames()
         {
-            string code = @"using System;
+            var code = @"using System;
 using Str = System.String;
 class C
 {
@@ -1156,6 +1154,37 @@ class C
                 Namespace("System"),
                 Class("String"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task Constructors()
+        {
+            await TestAsync(
+@"struct S
+{
+    public int i;
+
+    public S(int i)
+    {
+        this.i = i;
+    }
+}
+
+class C
+{
+    public C()
+    {
+        var s = new S(1);
+        var c = new C();
+    }
+}",
+                Field("i"),
+                Parameter("i"),
+                Keyword("var"),
+                Struct("S"),
+                Keyword("var"),
+                Class("C"));
+        }
+
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TypesOfClassMembers()
@@ -2262,6 +2291,34 @@ struct Type<T>
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NameOfLocalMethod()
+        {
+            await TestAsync(
+@"class C
+{
+    void goo()
+    {
+        var x = nameof(M);
+
+        void M()
+        {
+        }
+
+        void M(int a)
+        {
+        }
+
+        void M(string s)
+        {
+        }
+    }
+}",
+                Keyword("var"),
+                Keyword("nameof"),
+                Method("M"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task MethodCalledNameOfInScope()
         {
             await TestAsync(
@@ -2314,7 +2371,7 @@ struct Type<T>
                         }
 
                         var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-                        await waiter.CreateWaitTask();
+                        await waiter.CreateExpeditedWaitTask();
                     }
                 }
             }
@@ -2341,7 +2398,7 @@ struct Type<T>
                 using (var disposable = (IDisposable)tagger)
                 {
                     var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-                    await waiter.CreateWaitTask();
+                    await waiter.CreateExpeditedWaitTask();
 
                     var tags = tagger.GetTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection());
                     var allTags = tagger.GetAllTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection(), CancellationToken.None);
@@ -2408,7 +2465,7 @@ class MyClass
     public MyClass(int x)
     {
     }
-}", Method("MyClass"));
+}", Class("MyClass"));
         }
 
         [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
@@ -2426,7 +2483,7 @@ class MyClass
     }
 }",
     Class("MyClass"),
-    Method("MyClass"));
+    Class("MyClass"));
         }
 
         [WorkItem(13174, "https://github.com/dotnet/roslyn/issues/13174")]
@@ -3382,6 +3439,190 @@ class True
                 Class("True"),
                 Class("True"),
                 Class("True"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCatchDeclarationVariable()
+        {
+            await TestInMethodAsync(@"
+try
+{
+}
+catch (Exception ex)
+{
+    throw ex;
+}",
+                Local("ex"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_InsideMethod()
+        {
+            // Asserts no Keyword("notnull") because it is an identifier.
+            await TestInMethodAsync(@"
+var notnull = 0;
+notnull++;",
+                Keyword("var"),
+                Local("notnull"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Type_Keyword()
+        {
+            await TestAsync(
+                "class X<T> where T : notnull { }",
+                TypeParameter("T"),
+                Keyword("notnull"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Type_ExistingInterface()
+        {
+            await TestAsync(@"
+interface notnull {}
+class X<T> where T : notnull { }",
+                TypeParameter("T"),
+                Interface("notnull"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Type_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface notnull {}
+}
+class X<T> where T : notnull { }",
+                Namespace("OtherScope"),
+                TypeParameter("T"),
+                Keyword("notnull"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Method_Keyword()
+        {
+            await TestAsync(@"
+class X
+{
+    void M<T>() where T : notnull { }
+}",
+                TypeParameter("T"),
+                Keyword("notnull"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Method_ExistingInterface()
+        {
+            await TestAsync(@"
+interface notnull {}
+class X
+{
+    void M<T>() where T : notnull { }
+}",
+                TypeParameter("T"),
+                Interface("notnull"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Method_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface notnull {}
+}
+class X
+{
+    void M<T>() where T : notnull { }
+}",
+                Namespace("OtherScope"),
+                TypeParameter("T"),
+                Keyword("notnull"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Delegate_Keyword()
+        {
+            await TestAsync(
+                "delegate void D<T>() where T : notnull;",
+                TypeParameter("T"),
+                Keyword("notnull"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Delegate_ExistingInterface()
+        {
+            await TestAsync(@"
+interface notnull {}
+delegate void D<T>() where T : notnull;",
+                TypeParameter("T"),
+                Interface("notnull"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Delegate_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface notnull {}
+}
+delegate void D<T>() where T : notnull;",
+                Namespace("OtherScope"),
+                TypeParameter("T"),
+                Keyword("notnull"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_LocalFunction_Keyword()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        void M<T>() where T : notnull { }
+    }
+}",
+                TypeParameter("T"),
+                Keyword("notnull"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_LocalFunction_ExistingInterface()
+        {
+            await TestAsync(@"
+interface notnull {}
+class X
+{
+    void N()
+    {
+        void M<T>() where T : notnull { }
+    }
+}",
+                TypeParameter("T"),
+                Interface("notnull"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_LocalFunction_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface notnull {}
+}
+class X
+{
+    void N()
+    {
+        void M<T>() where T : notnull { }
+    }
+}",
+                Namespace("OtherScope"),
+                TypeParameter("T"),
+                Keyword("notnull"));
         }
     }
 }

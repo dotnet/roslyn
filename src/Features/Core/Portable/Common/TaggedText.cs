@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A piece of text with a descriptive tag.
     /// </summary>
-    public struct TaggedText
+    public readonly struct TaggedText
     {
         /// <summary>
         /// A descriptive tag from <see cref="TextTags"/>.

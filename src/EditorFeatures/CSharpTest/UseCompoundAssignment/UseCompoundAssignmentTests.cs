@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
@@ -248,6 +249,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
     }
 }",
     new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)));
+        }
+
+        [Fact]
+        [WorkItem(36467, "https://github.com/dotnet/roslyn/issues/36467")]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestNotSuggestedWhenRightHandIsThrowExpression()
+        {
+            await TestMissingAsync(
+@"using System;
+public class C
+{
+    void M(int? a)
+    {
+        a [||]= a ?? throw new Exception();
+    }
+}",
+    new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
@@ -739,6 +757,26 @@ public class C
     {
         b = (a += 10);
     }
+}");
+        }
+
+        [WorkItem(33382, "https://github.com/dotnet/roslyn/issues/33382")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestNotOnObjectInitializer()
+        {
+            await TestMissingAsync(
+@"
+struct InsertionPoint
+{
+	int level;
+	
+	InsertionPoint Up()
+	{
+		return new InsertionPoint
+        {
+			level [||]= level - 1,
+		};
+	}
 }");
         }
     }

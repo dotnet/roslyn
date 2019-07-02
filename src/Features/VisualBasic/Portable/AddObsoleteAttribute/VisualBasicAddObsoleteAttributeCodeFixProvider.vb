@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddObsoleteAttribute
                 "BC40008"  ' 'C' is obsolete.
             )
 
+        <ImportingConstructor>
         Public Sub New()
             MyBase.New(VisualBasicSyntaxFactsService.Instance, VBFeaturesResources.Add_Obsolete)
         End Sub

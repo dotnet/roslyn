@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsByRefLikeAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsUnmanagedAttribute;
-        private SynthesizedEmbeddedAttributeSymbol _lazyNullableAttribute;
+        private SynthesizedEmbeddedNullableAttributeSymbol _lazyNullableAttribute;
+        private SynthesizedEmbeddedNullableContextAttributeSymbol _lazyNullableContextAttribute;
+        private SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol _lazyNullablePublicOnlyAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -76,30 +78,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
             CreateEmbeddedAttributesIfNeeded(diagnostics);
-            if ((object)_lazyEmbeddedAttribute != null)
-            {
-                builder.Add(_lazyEmbeddedAttribute);
-            }
 
-            if ((object)_lazyIsReadOnlyAttribute != null)
-            {
-                builder.Add(_lazyIsReadOnlyAttribute);
-            }
-
-            if ((object)_lazyIsUnmanagedAttribute != null)
-            {
-                builder.Add(_lazyIsUnmanagedAttribute);
-            }
-
-            if ((object)_lazyIsByRefLikeAttribute != null)
-            {
-                builder.Add(_lazyIsByRefLikeAttribute);
-            }
-
-            if ((object)_lazyNullableAttribute != null)
-            {
-                builder.Add(_lazyNullableAttribute);
-            }
+            builder.AddIfNotNull(_lazyEmbeddedAttribute);
+            builder.AddIfNotNull(_lazyIsReadOnlyAttribute);
+            builder.AddIfNotNull(_lazyIsUnmanagedAttribute);
+            builder.AddIfNotNull(_lazyIsByRefLikeAttribute);
+            builder.AddIfNotNull(_lazyNullableAttribute);
+            builder.AddIfNotNull(_lazyNullableContextAttribute);
+            builder.AddIfNotNull(_lazyNullablePublicOnlyAttribute);
 
             return builder.ToImmutableAndFree();
         }
@@ -211,6 +197,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.SynthesizeNullableAttribute(member, arguments);
         }
 
+        internal override SynthesizedAttributeData SynthesizeNullableContextAttribute(ImmutableArray<TypedConstant> arguments)
+        {
+            if ((object)_lazyNullableContextAttribute != null)
+            {
+                return new SynthesizedAttributeData(
+                    _lazyNullableContextAttribute.Constructors[0],
+                    arguments,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.SynthesizeNullableContextAttribute(arguments);
+        }
+
+        internal override SynthesizedAttributeData SynthesizeNullablePublicOnlyAttribute(ImmutableArray<TypedConstant> arguments)
+        {
+            if ((object)_lazyNullablePublicOnlyAttribute != null)
+            {
+                return new SynthesizedAttributeData(
+                    _lazyNullablePublicOnlyAttribute.Constructors[0],
+                    arguments,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.SynthesizeNullablePublicOnlyAttribute(arguments);
+        }
+
         protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
         {
             if ((object)_lazyIsReadOnlyAttribute != null)
@@ -252,95 +264,119 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private void CreateEmbeddedAttributesIfNeeded(DiagnosticBag diagnostics)
         {
-            if (this.NeedsGeneratedIsReadOnlyAttribute)
-            {
-                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
+            EmbeddableAttributes needsAttributes = GetNeedsGeneratedAttributes();
 
+            if (needsAttributes == 0)
+            {
+                return;
+            }
+
+            CreateEmbeddedAttributeIfNeeded(
+                ref _lazyEmbeddedAttribute,
+                diagnostics,
+                AttributeDescription.CodeAnalysisEmbeddedAttribute);
+
+            if ((needsAttributes & EmbeddableAttributes.IsReadOnlyAttribute) != 0)
+            {
                 CreateEmbeddedAttributeIfNeeded(
                     ref _lazyIsReadOnlyAttribute,
                     diagnostics,
                     AttributeDescription.IsReadOnlyAttribute);
             }
 
-            if (this.NeedsGeneratedIsByRefLikeAttribute)
+            if ((needsAttributes & EmbeddableAttributes.IsByRefLikeAttribute) != 0)
             {
-                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
-
                 CreateEmbeddedAttributeIfNeeded(
                     ref _lazyIsByRefLikeAttribute,
                     diagnostics,
                     AttributeDescription.IsByRefLikeAttribute);
             }
 
-            if (this.NeedsGeneratedIsUnmanagedAttribute)
+            if ((needsAttributes & EmbeddableAttributes.IsUnmanagedAttribute) != 0)
             {
-                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
-
                 CreateEmbeddedAttributeIfNeeded(
                     ref _lazyIsUnmanagedAttribute,
                     diagnostics,
                     AttributeDescription.IsUnmanagedAttribute);
             }
 
-            if (this.NeedsGeneratedNullableAttribute)
+            if ((needsAttributes & EmbeddableAttributes.NullableAttribute) != 0)
             {
-                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
-
-                CreateEmbeddedAttributeIfNeeded(
+                CreateEmbeddedNullableAttributeIfNeeded(
                     ref _lazyNullableAttribute,
-                    diagnostics,
-                    AttributeDescription.NullableAttribute,
-                    GetNullableAttributeConstructors);
+                    diagnostics);
             }
-        }
 
-        private void CreateEmbeddedAttributeItselfIfNeeded(DiagnosticBag diagnostics)
-        {
-            CreateEmbeddedAttributeIfNeeded(
-                ref _lazyEmbeddedAttribute,
-                diagnostics,
-                AttributeDescription.CodeAnalysisEmbeddedAttribute);
+            if ((needsAttributes & EmbeddableAttributes.NullableContextAttribute) != 0)
+            {
+                CreateEmbeddedNullableContextAttributeIfNeeded(
+                    ref _lazyNullableContextAttribute,
+                    diagnostics);
+            }
+
+            if ((needsAttributes & EmbeddableAttributes.NullablePublicOnlyAttribute) != 0)
+            {
+                CreateEmbeddedNullablePublicOnlyAttributeIfNeeded(
+                    ref _lazyNullablePublicOnlyAttribute,
+                    diagnostics);
+            }
         }
 
         private void CreateEmbeddedAttributeIfNeeded(
             ref SynthesizedEmbeddedAttributeSymbol symbol,
             DiagnosticBag diagnostics,
-            AttributeDescription description,
-            Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getConstructors = null)
+            AttributeDescription description)
         {
-            if ((object)symbol == null)
+            if (symbol is null)
             {
-                var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
-                var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
-                Debug.Assert((object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
-
-                if (!(userDefinedAttribute is MissingMetadataTypeSymbol))
-                {
-                    diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
-                }
-
-                symbol = new SynthesizedEmbeddedAttributeSymbol(description, _sourceAssembly.DeclaringCompilation, getConstructors, diagnostics);
+                AddDiagnosticsForExistingAttribute(description, diagnostics);
+                symbol = new SynthesizedEmbeddedAttributeSymbol(description, _sourceAssembly.DeclaringCompilation, diagnostics);
             }
         }
 
-        private static ImmutableArray<MethodSymbol> GetNullableAttributeConstructors(
-            CSharpCompilation compilation,
-            NamedTypeSymbol containingType,
+        private void CreateEmbeddedNullableAttributeIfNeeded(
+            ref SynthesizedEmbeddedNullableAttributeSymbol symbol,
             DiagnosticBag diagnostics)
         {
-            var byteType = TypeSymbolWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Byte));
-            Binder.ReportUseSiteDiagnostics(byteType.TypeSymbol, diagnostics, Location.None);
-            var byteArray = TypeSymbolWithAnnotations.Create(
-                ArrayTypeSymbol.CreateSZArray(
-                    byteType.TypeSymbol.ContainingAssembly,
-                    byteType));
-            return ImmutableArray.Create<MethodSymbol>(
-                new SynthesizedEmbeddedAttributeConstructorSymbol(
-                    containingType,
-                    m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, byteType, 0, RefKind.None))),
-                new SynthesizedEmbeddedAttributeConstructorSymbol(
-                    containingType,
-                    m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, byteArray, 0, RefKind.None))));
+            if (symbol is null)
+            {
+                AddDiagnosticsForExistingAttribute(AttributeDescription.NullableAttribute, diagnostics);
+                symbol = new SynthesizedEmbeddedNullableAttributeSymbol(_sourceAssembly.DeclaringCompilation, diagnostics);
+            }
+        }
+
+        private void CreateEmbeddedNullableContextAttributeIfNeeded(
+            ref SynthesizedEmbeddedNullableContextAttributeSymbol symbol,
+            DiagnosticBag diagnostics)
+        {
+            if (symbol is null)
+            {
+                AddDiagnosticsForExistingAttribute(AttributeDescription.NullableContextAttribute, diagnostics);
+                symbol = new SynthesizedEmbeddedNullableContextAttributeSymbol(_sourceAssembly.DeclaringCompilation, diagnostics);
+            }
+        }
+
+        private void CreateEmbeddedNullablePublicOnlyAttributeIfNeeded(
+            ref SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol symbol,
+            DiagnosticBag diagnostics)
+        {
+            if (symbol is null)
+            {
+                AddDiagnosticsForExistingAttribute(AttributeDescription.NullablePublicOnlyAttribute, diagnostics);
+                symbol = new SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol(_sourceAssembly.DeclaringCompilation, diagnostics);
+            }
+        }
+
+        private void AddDiagnosticsForExistingAttribute(AttributeDescription description, DiagnosticBag diagnostics)
+        {
+            var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
+            var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
+            Debug.Assert((object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
+
+            if (!(userDefinedAttribute is MissingMetadataTypeSymbol))
+            {
+                diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
+            }
         }
     }
 

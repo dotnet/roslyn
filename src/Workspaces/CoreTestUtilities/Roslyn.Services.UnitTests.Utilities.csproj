@@ -31,6 +31,7 @@
     <Reference Include="WindowsBase" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
+    <PackageReference Include="System.Buffers" Version="$(SystemBuffersVersion)" />
     <PackageReference Include="xunit.assert" Version="$(xunitassertVersion)" />
     <PackageReference Include="xunit.extensibility.core" Version="$(xunitextensibilitycoreVersion)" />
     <PackageReference Include="xunit.extensibility.execution" Version="$(xunitextensibilityexecutionVersion)" />
@@ -45,13 +46,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\**\*.*" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Resources\**\*.*" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Resources\Issue29122\" />
     <Compile Include="..\..\VisualStudio\Core\Def\Implementation\ProjectSystem\VisualStudioMefHostServices.cs" Link="MEF\VisualStudioMefHostServices.cs" />
   </ItemGroup>
 </Project>

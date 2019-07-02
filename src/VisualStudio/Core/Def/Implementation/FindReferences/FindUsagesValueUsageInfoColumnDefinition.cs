@@ -9,7 +9,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -27,15 +26,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private static readonly ConcurrentDictionary<string, ImmutableArray<string>> s_displayValueToConstituentValuesMap
             = new ConcurrentDictionary<string, ImmutableArray<string>>();
 
-        public const string ColumnName = nameof(ValueUsageInfo);
+        public const string ColumnName = nameof(SymbolUsageInfo);
 
-        // Allow filtering of the column by each ValueUsageInfo kind.
-        private static readonly ImmutableArray<string> s_defaultFilters = Enum.GetValues(typeof(ValueUsageInfo))
-                                                                .Cast<ValueUsageInfo>()
-                                                                .Where(value => value.IsSingleBitSet())
-                                                                .Select(v => v.ToLocalizableString())
-                                                                .ToImmutableArray();
-        public override IEnumerable<string> FilterPresets => s_defaultFilters;
+        [ImportingConstructor]
+        public FindUsagesValueUsageInfoColumnDefinition()
+        {
+        }
+
+        // Allow filtering of the column by each allowed SymbolUsageInfo kind.
+        public override IEnumerable<string> FilterPresets => SymbolUsageInfo.LocalizableStringsForAllAllowedValues;
         public override bool IsFilterable => true;
 
         public override string Name => ColumnName;

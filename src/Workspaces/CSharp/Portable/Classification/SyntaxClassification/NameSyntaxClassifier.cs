@@ -68,7 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            if (symbolInfo.CandidateReason == CandidateReason.Ambiguous)
+            if (symbolInfo.CandidateReason == CandidateReason.Ambiguous ||
+                symbolInfo.CandidateReason == CandidateReason.MemberGroup)
             {
                 return TryClassifyAmbiguousSymbol(name, symbolInfo, semanticModel, result, cancellationToken);
             }
@@ -169,14 +170,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 }
             }
 
-            if (name.IsUnmanaged && name.Parent.IsKind(SyntaxKind.TypeConstraint))
+            if ((name.IsUnmanaged || name.IsNotNull) && name.Parent.IsKind(SyntaxKind.TypeConstraint))
             {
+                var nameToCheck = name.IsUnmanaged ? "unmanaged" : "notnull";
                 var alias = semanticModel.GetAliasInfo(name, cancellationToken);
-                if (alias == null || alias.Name != "unmanaged")
+                if (alias == null || alias.Name != nameToCheck)
                 {
-                    if (!IsSymbolWithName(symbol, "unmanaged"))
+                    if (!IsSymbolWithName(symbol, nameToCheck))
                     {
-                        // We bound to a symbol.  If we bound to a symbol called "unmanaged" then we want to
+                        // We bound to a symbol.  If we bound to a symbol called "unmanaged"/"notnull" then we want to
                         // classify this appropriately as a type.  Otherwise, we want to classify this as
                         // a keyword.
                         classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
@@ -257,6 +259,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
         private static string GetClassificationForMethod(IMethodSymbol methodSymbol)
         {
+            // Classify constructors by their containing type. We do not need to worry about
+            // destructors because their declaration is handled by syntactic classification
+            // and they cannot be invoked, so their is no usage to semantically classify.
+            if (methodSymbol.MethodKind == MethodKind.Constructor)
+            {
+                return methodSymbol.ContainingType?.GetClassification() ?? ClassificationTypeNames.MethodName;
+            }
+
             // Note: We only classify an extension method if it is in reduced form.
             // If an extension method is called as a static method invocation (e.g. Enumerable.Select(...)),
             // it is classified as an ordinary method.

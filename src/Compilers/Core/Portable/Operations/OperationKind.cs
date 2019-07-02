@@ -227,8 +227,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>Indicates an <see cref="IRangeOperation"/>.</summary>
         Range = 0x63,
-        /// <summary>Indicates an <see cref="IFromEndIndexOperation"/>.</summary>
-        FromEndIndex = 0x64,
+        // Unused, FromEndIndex will be a unary operator: https://github.com/dotnet/roslyn/pull/32918
+        //FromEndIndex = 0x64,
         /// <summary>Indicates an <see cref="IReDimOperation"/>.</summary>
         ReDim = 0x65,
         /// <summary>Indicates an <see cref="IReDimClauseOperation"/>.</summary>
@@ -241,6 +241,8 @@ namespace Microsoft.CodeAnalysis
         SwitchExpression = 0x69,
         /// <summary>Indicates an <see cref="ISwitchExpressionArmOperation"/>.</summary>
         SwitchExpressionArm = 0x6a,
+        /// <summary>Indicates an <see cref="IPropertySubpatternOperation"/></summary>
+        PropertySubpattern = 0x6b,
 
         // /// <summary>Indicates an <see cref="IFixedOperation"/>.</summary>
         // https://github.com/dotnet/roslyn/issues/21281

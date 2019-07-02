@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Options
         /// <see cref="Workspace"/> this is connected to.  i.e. instead of synchronously just passing
         /// along the underlying events, these will be enqueued onto the workspace's eventing queue.
         /// </summary>
-        // Internal for testing purposes.
         internal class OptionService : IWorkspaceOptionService
         {
             private readonly IGlobalOptionService _globalOptionService;
@@ -126,6 +125,11 @@ namespace Microsoft.CodeAnalysis.Options
 
             public void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider)
             {
+                if (documentOptionsProvider == null)
+                {
+                    throw new ArgumentNullException(nameof(documentOptionsProvider));
+                }
+
                 lock (_gate)
                 {
                     _documentOptionsProviders = _documentOptionsProviders.Add(documentOptionsProvider);
@@ -187,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                     foreach (var documentOptionSource in _documentOptions)
                     {
-                        if (documentOptionSource.TryGetDocumentOption(optionKey, _underlyingOptions, out value))
+                        if (documentOptionSource.TryGetDocumentOption(optionKey, out value))
                         {
                             // Cache and return
                             return ImmutableInterlocked.GetOrAdd(ref _values, optionKey, value);

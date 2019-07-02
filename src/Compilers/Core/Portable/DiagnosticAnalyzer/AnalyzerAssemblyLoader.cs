@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    identity = identity ?? GetOrAddAssemblyIdentity(fullPath);
+                    identity ??= GetOrAddAssemblyIdentity(fullPath);
                     if (identity != null && _loadedAssembliesByIdentity.TryGetValue(identity, out existingAssembly))
                     {
                         loadedAssembly = existingAssembly;

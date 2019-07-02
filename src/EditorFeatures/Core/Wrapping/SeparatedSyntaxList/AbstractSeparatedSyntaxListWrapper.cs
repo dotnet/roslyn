@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 {
+    using Microsoft.CodeAnalysis.Indentation;
+
     /// <summary>
     /// Base type for all wrappers that involve wrapping a comma-separated list of items.
     /// </summary>
@@ -30,7 +32,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
         protected abstract string Wrap_every_item { get; }
 
-        protected abstract IBlankLineIndentationService GetIndentationService();
+        protected AbstractSeparatedSyntaxListWrapper(IIndentationService indentationService)
+            : base(indentationService)
+        {
+        }
 
         protected abstract TListSyntax TryGetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);

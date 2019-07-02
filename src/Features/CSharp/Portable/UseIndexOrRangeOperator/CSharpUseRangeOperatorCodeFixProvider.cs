@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUseRangeOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpUseRangeOperatorCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.UseRangeOperatorDiagnosticId);
 

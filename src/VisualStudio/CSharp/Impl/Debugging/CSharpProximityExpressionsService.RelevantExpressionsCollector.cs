@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
                     case SyntaxKind.TupleExpression:
                         {
                             var t = (TupleExpressionSyntax)component;
-                            foreach (ArgumentSyntax a in t.Arguments)
+                            foreach (var a in t.Arguments)
                             {
                                 AddVariableExpressions(a.Expression, expressions);
                             }
@@ -162,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
                     case SyntaxKind.ParenthesizedVariableDesignation:
                         {
                             var t = (ParenthesizedVariableDesignationSyntax)component;
-                            foreach (VariableDesignationSyntax v in t.Variables) AddVariableExpressions(v, expressions);
+                            foreach (var v in t.Variables) AddVariableExpressions(v, expressions);
                             break;
                         }
                     case SyntaxKind.SingleVariableDesignation:

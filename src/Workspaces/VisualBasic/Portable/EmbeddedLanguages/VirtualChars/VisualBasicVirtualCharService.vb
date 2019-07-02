@@ -1,9 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports System.Composition
-Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
@@ -13,11 +12,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
 
         Public Shared ReadOnly Instance As IVirtualCharService = New VisualBasicVirtualCharService()
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function IsStringLiteralToken(token As SyntaxToken) As Boolean
             Return token.Kind() = SyntaxKind.StringLiteralToken
         End Function
 
-        Protected Overrides Function TryConvertToVirtualCharsWorker(token As SyntaxToken) As ImmutableArray(Of VirtualChar)
+        Protected Overrides Function TryConvertToVirtualCharsWorker(token As SyntaxToken) As VirtualCharSequence
             Debug.Assert(Not token.ContainsDiagnostics)
 
             If token.Kind() = SyntaxKind.StringLiteralToken Then

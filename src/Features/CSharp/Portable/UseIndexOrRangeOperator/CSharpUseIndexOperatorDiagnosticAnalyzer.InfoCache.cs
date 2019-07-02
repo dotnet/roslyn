@@ -5,7 +5,6 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
-    using System;
     using Microsoft.CodeAnalysis.Shared.Extensions;
     using static Helpers;
 

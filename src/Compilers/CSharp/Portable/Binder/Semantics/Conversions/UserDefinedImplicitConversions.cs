@@ -252,8 +252,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    TypeSymbol convertsFrom = op.ParameterTypes[0].TypeSymbol;
-                    TypeSymbol convertsTo = op.ReturnType.TypeSymbol;
+                    TypeSymbol convertsFrom = op.GetParameterType(0);
+                    TypeSymbol convertsTo = op.ReturnType;
                     Conversion fromConversion = EncompassingImplicitConversion(sourceExpression, source, convertsFrom, ref useSiteDiagnostics);
                     Conversion toConversion = allowAnyTarget ? Conversion.Identity :
                         EncompassingImplicitConversion(null, convertsTo, target, ref useSiteDiagnostics);
@@ -362,12 +362,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static int LiftingCount(UserDefinedConversionAnalysis conv)
         {
             int count = 0;
-            if (!TypeSymbol.Equals(conv.FromType, conv.Operator.ParameterTypes[0].TypeSymbol, TypeCompareKind.ConsiderEverything2))
+            if (!TypeSymbol.Equals(conv.FromType, conv.Operator.GetParameterType(0), TypeCompareKind.ConsiderEverything2))
             {
                 count += 1;
             }
 
-            if (!TypeSymbol.Equals(conv.ToType, conv.Operator.ReturnType.TypeSymbol, TypeCompareKind.ConsiderEverything2))
+            if (!TypeSymbol.Equals(conv.ToType, conv.Operator.ReturnType, TypeCompareKind.ConsiderEverything2))
             {
                 count += 1;
             }

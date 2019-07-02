@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
 {
@@ -1731,7 +1732,7 @@ namespace PushUpTest
 
     public class TestClass : Base
     {
-        public void TestMeth[||]od()
+        public override void TestMeth[||]od()
         {
             System.Console.WriteLine(""Hello World"");
         }
@@ -1766,7 +1767,6 @@ namespace PushUpTest
 
     public abstract class TestClass : Base
     {
-        public abstract void TestMethod();
     }
 }";
             await TestWithPullMemberDialogAsync(testText, expected, new (string, bool)[] { ("TestMethod", true) }, index: 0);
@@ -2151,6 +2151,219 @@ namespace PushUpTest
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
+        [WorkItem(34268, "https://github.com/dotnet/roslyn/issues/34268")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestPullPropertyToAbstractClassViaDialogWithMakeAbstractOption()
+        {
+            var testText = @"
+abstract class B
+{
+}
+
+class D : B
+{
+    int [||]X => 7;
+}";
+            var expected = @"
+abstract class B
+{
+    private abstract int X { get; }
+}
+
+class D : B
+{
+    override int X => 7;
+}";
+            await TestWithPullMemberDialogAsync(testText, expected, selection: new[] { ("X", true) }, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullEventUpToAbstractClassViaDialogWithMakeAbstractOption()
+        {
+            var testText = @"
+using System;
+namespace PushUpTest
+{
+    public class Base2
+    {
+    }
+
+    public class Testclass2 : Base2
+    {
+        private event EventHandler Event1, Eve[||]nt3, Event4;
+    }
+}";
+            var expected = @"
+using System;
+namespace PushUpTest
+{
+    public abstract class Base2
+    {
+        private abstract event EventHandler Event3;
+    }
+
+    public class Testclass2 : Base2
+    {
+        private event EventHandler Event1, Eve[||]nt3, Event4;
+    }
+}";
+            await TestWithPullMemberDialogAsync(testText, expected, selection: new[] { ("Event3", true) }, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestPullEventWithAddAndRemoveMethodToClassViaDialogWithMakeAbstractOption()
+        {
+            var testText = @"
+using System;
+namespace PushUpTest
+{
+    public class BaseClass
+    {
+    }
+
+    public class TestClass : BaseClass
+    {
+        public event EventHandler Eve[||]nt1
+        {
+            add
+            {
+                System.Console.Writeline(""This is add"");
+            }
+            remove
+            {
+                System.Console.Writeline(""This is remove"");
+            }
+        }
+    }
+}";
+
+            var expected = @"
+using System;
+namespace PushUpTest
+{
+    public abstract class BaseClass
+    {
+        public abstract event EventHandler Event1;
+    }
+
+    public class TestClass : BaseClass
+    {
+        public override event EventHandler Event1
+        {
+            add
+            {
+                System.Console.Writeline(""This is add"");
+            }
+            remove
+            {
+                System.Console.Writeline(""This is remove"");
+            }
+        }
+    }
+}";
+
+            await TestWithPullMemberDialogAsync(testText, expected, new (string, bool)[] { ("Event1", true) }, index: 1);
+        }
+
         #endregion Dialog
+
+        #region Selections and caret position
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestNoRefactoringCaretInArgs()
+        {
+            var input = @"
+namespace PushUpTest
+{
+    public class A
+    {
+        
+    }
+
+    public class B : A
+    {
+        void C([||])
+        {
+
+        }
+    }
+}";
+
+            await TestQuickActionNotProvidedAsync(input);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestRefactoringCaretLoc1()
+        {
+            var testText = @"
+namespace PushUpTest
+{
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [||]void C()
+        {
+        }
+    }
+}";
+            var expected = @"
+namespace PushUpTest
+{
+    public class A
+    {
+        void C()
+        {
+        }
+    }
+
+    public class B : A
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestRefactoringSelection()
+        {
+            var testText = @"
+namespace PushUpTest
+{
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [|void C()
+        {
+        }|]
+    }
+}";
+            var expected = @"
+namespace PushUpTest
+{
+    public class A
+    {
+        void C()
+        {
+        }
+    }
+
+    public class B : A
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        #endregion
     }
 }

@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
     {
         public CSharpUseDefaultLiteralDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseDefaultLiteralDiagnosticId,
+                   CSharpCodeStyleOptions.PreferSimpleDefaultExpression,
+                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(FeaturesResources.Simplify_default_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.default_expression_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -21,9 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.DefaultExpression);

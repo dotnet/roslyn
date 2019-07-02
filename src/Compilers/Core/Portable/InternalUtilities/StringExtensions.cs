@@ -71,7 +71,7 @@ namespace Roslyn.Utilities
             bool trimLeadingTypePrefix,
             Func<char, char> convert)
         {
-            // Special case the common .net pattern of "IGoo" as a type name.  In this case we
+            // Special case the common .NET pattern of "IGoo" as a type name.  In this case we
             // want to generate "goo" as the parameter name.  
             if (!string.IsNullOrEmpty(shortName))
             {
@@ -270,6 +270,18 @@ namespace Roslyn.Utilities
             int x = 0;
             while (x < string1.Length && x < string2.Length &&
                    char.ToUpper(string1[x]) == char.ToUpper(string2[x]))
+            {
+                x++;
+            }
+
+            return x;
+        }
+
+        public static int GetCaseSensitivePrefixLength(this string string1, string string2)
+        {
+            int x = 0;
+            while (x < string1.Length && x < string2.Length &&
+                   string1[x] == string2[x])
             {
                 x++;
             }

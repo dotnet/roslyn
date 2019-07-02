@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Execution
         /// </summary>
         private sealed class NullRemotableData : RemotableData
         {
-            public NullRemotableData() :
-                base(Checksum.Null, WellKnownSynchronizationKind.Null)
+            public NullRemotableData()
+                : base(Checksum.Null, WellKnownSynchronizationKind.Null)
             {
                 // null object has null kind and null checksum. 
                 // this null object is known to checksum framework and transportation framework to handle null case

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         private delegate TExpressionSyntax GetWriteValue(ReferenceReplacer replacer, SyntaxNode parent);
 
-        private struct ReferenceReplacer
+        private readonly struct ReferenceReplacer
         {
             private readonly AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TCrefSyntax, TStatementSyntax> _service;
             private readonly SemanticModel _semanticModel;
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     return (TExpressionSyntax)writeValue;
                 };
 
-            private static GetWriteValue getWriteValueForCompoundAssignment =
+            private static readonly GetWriteValue getWriteValueForCompoundAssignment =
                 (replacer, parent) =>
                 {
                     // We're being read from and written to from a compound assignment 
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                         parent, readExpression);
                 };
 
-            private static Func<SyntaxNode, SyntaxGenerator, ReplaceParentArgs, SyntaxNode> replaceParentCallback =
+            private static readonly Func<SyntaxNode, SyntaxGenerator, ReplaceParentArgs, SyntaxNode> replaceParentCallback =
                 (parent, generator, args) =>
                 {
                     var replacer = args.Replacer;
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 return token;
             }
 
-            private struct ReplaceParentArgs
+            private readonly struct ReplaceParentArgs
             {
                 public readonly ReferenceReplacer Replacer;
                 public readonly GetWriteValue GetWriteValue;

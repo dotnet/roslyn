@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -17,8 +18,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         private ExtractInterfaceDialog_OutOfProc ExtractInterfaceDialog => VisualStudio.ExtractInterfaceDialog;
 
-        public BasicExtractInterfaceDialog(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicExtractInterfaceDialog))
+        public BasicExtractInterfaceDialog(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(BasicExtractInterfaceDialog))
         {
         }
 

@@ -57,6 +57,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 var deserializationConstructorCheck = new DeserializationConstructorCheck(context.Compilation);
                 context.RegisterSymbolStartAction(symbolStartContext =>
                 {
+                    if (HasSyntaxErrors((INamedTypeSymbol)symbolStartContext.Symbol, symbolStartContext.CancellationToken))
+                    {
+                        // Bail out on syntax errors.
+                        return;
+                    }
+
                     // Create a new SymbolStartAnalyzer instance for every named type symbol
                     // to ensure there is no shared state (such as identified unused parameters within the type),
                     // as that would lead to duplicate diagnostics being reported from symbol end action callbacks
@@ -64,6 +70,23 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     var symbolAnalyzer = new SymbolStartAnalyzer(analyzer, eventsArgType, attributeSetForMethodsToIgnore, deserializationConstructorCheck);
                     symbolAnalyzer.OnSymbolStart(symbolStartContext);
                 }, SymbolKind.NamedType);
+
+                return;
+
+                // Local functions
+                static bool HasSyntaxErrors(INamedTypeSymbol namedTypeSymbol, CancellationToken cancellationToken)
+                {
+                    foreach (var syntaxRef in namedTypeSymbol.DeclaringSyntaxReferences)
+                    {
+                        var syntax = syntaxRef.GetSyntax(cancellationToken);
+                        if (syntax.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
             }
 
             private void OnSymbolStart(SymbolStartAnalysisContext context)
@@ -190,6 +213,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     method.IsAbstract ||
                     method.IsVirtual ||
                     method.IsOverride ||
+                    method.PartialImplementationPart != null ||
                     !method.ExplicitOrImplicitInterfaceImplementations().IsEmpty ||
                     method.IsAccessor() ||
                     method.IsAnonymousFunction() ||
@@ -229,9 +253,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 // without disabling the diagnostic completely.
                 // We ignore parameter names that start with an underscore and are optionally followed by an integer,
                 // such as '_', '_1', '_2', etc.
-                if (parameter.Name.StartsWith("_") &&
-                    (parameter.Name.Length == 1 ||
-                     uint.TryParse(parameter.Name.Substring(1), out _)))
+                if (IsSymbolWithSpecialDiscardName(parameter))
                 {
                     return false;
                 }

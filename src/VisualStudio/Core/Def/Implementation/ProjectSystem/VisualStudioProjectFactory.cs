@@ -66,25 +66,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         compilationOptions: creationInfo.CompilationOptions,
                         parseOptions: creationInfo.ParseOptions);
 
-                // HACK: update this since we're still on the UI thread. Note we can only update this if we don't have projects -- the workspace
-                // only lets us really do this with OnSolutionAdded for now.
-                string solutionPathToSetWithOnSolutionAdded = null;
-                var solution = (IVsSolution)Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution));
-                if (solution != null && ErrorHandler.Succeeded(solution.GetSolutionInfo(out _, out var solutionFilePath, out _)))
+                // If we don't have any projects and this is our first project being added, then we'll create a new SolutionId
+                if (w.CurrentSolution.ProjectIds.Count == 0)
                 {
-                    if (w.CurrentSolution.FilePath != solutionFilePath && w.CurrentSolution.ProjectIds.Count == 0)
+                    // Fetch the current solution path. Since we're on the UI thread right now, we can do that.
+                    string solutionFilePath = null;
+                    var solution = (IVsSolution)Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution));
+                    if (solution != null)
                     {
-                        solutionPathToSetWithOnSolutionAdded = solutionFilePath;
+                        if (ErrorHandler.Failed(solution.GetSolutionInfo(out _, out solutionFilePath, out _)))
+                        {
+                            // Paranoia: if the call failed, we definitely don't want to use any stuff that was set
+                            solutionFilePath = null;
+                        }
                     }
-                }
 
-                if (solutionPathToSetWithOnSolutionAdded != null)
-                {
                     w.OnSolutionAdded(
                         SolutionInfo.Create(
-                            SolutionId.CreateNewId(solutionPathToSetWithOnSolutionAdded),
+                            SolutionId.CreateNewId(solutionFilePath),
                             VersionStamp.Create(),
-                            solutionPathToSetWithOnSolutionAdded,
+                            solutionFilePath,
                             projects: new[] { projectInfo }));
 
                     // set working folder for the persistent service

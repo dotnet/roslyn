@@ -1,0 +1,5 @@
+<Project>
+  <Target Name="CheckBootstrapState" AfterTargets="CoreCompile">
+    <ValidateBootstrap TasksAssemblyFullPath="$(RoslynTasksAssembly)" />
+  </Target>
+</Project>

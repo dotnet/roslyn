@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -13,9 +12,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    // TODO: (tomat) translated 1:1 from VB, might need adjustments
-    // TODO: (tomat) can we share more with VB?
-
     public partial class CSharpCompilation
     {
         internal readonly WellKnownMembersSignatureComparer WellKnownMemberSignatureComparer;
@@ -32,62 +28,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private Symbol[] _lazyWellKnownTypeMembers;
 
-        private bool _needsGeneratedIsReadOnlyAttribute_Value;
-        private bool _needsGeneratedIsByRefLikeAttribute_Value;
-        private bool _needsGeneratedIsUnmanagedAttribute_Value;
-        private bool _needsGeneratedNullableAttribute_Value;
-
+        private int _needsGeneratedAttributes;
         private bool _needsGeneratedAttributes_IsFrozen;
 
         /// <summary>
-        /// Returns a value indicating whether this compilation has a member that needs IsReadOnlyAttribute to be generated during emit phase.
-        /// The value is set during binding the symbols that need that attribute, and is frozen on first trial to get it.
+        /// Returns a value indicating which embedded attributes should be generated during emit phase.
+        /// The value is set during binding the symbols that need those attributes, and is frozen on first trial to get it.
         /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
         /// </summary>
-        internal bool NeedsGeneratedIsReadOnlyAttribute
+        internal EmbeddableAttributes GetNeedsGeneratedAttributes()
         {
-            get
-            {
-                _needsGeneratedAttributes_IsFrozen = true;
-                return _needsGeneratedIsReadOnlyAttribute_Value;
-            }
+            _needsGeneratedAttributes_IsFrozen = true;
+            return (EmbeddableAttributes)_needsGeneratedAttributes;
         }
 
-        /// <summary>
-        /// Returns a value indicating whether this compilation has a member that needs IsIsByRefLikeAttribute to be generated during emit phase.
-        /// The value is set during binding the symbols that need that attribute, and is frozen on first trial to get it.
-        /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
-        /// </summary>
-        internal bool NeedsGeneratedIsByRefLikeAttribute
+        internal void SetNeedsGeneratedAttributes(EmbeddableAttributes attributes)
         {
-            get
-            {
-                _needsGeneratedAttributes_IsFrozen = true;
-                return _needsGeneratedIsByRefLikeAttribute_Value;
-            }
-        }
-
-        internal bool NeedsGeneratedNullableAttribute
-        {
-            get
-            {
-                _needsGeneratedAttributes_IsFrozen = true;
-                return _needsGeneratedNullableAttribute_Value;
-            }
-        }
-
-        /// <summary>
-        /// Returns a value indicating whether this compilation has a member that needs IsUnmanagedAttribute to be generated during emit phase.
-        /// The value is set during binding the symbols that need that attribute, and is frozen on first trial to get it.
-        /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
-        /// </summary>
-        internal bool NeedsGeneratedIsUnmanagedAttribute
-        {
-            get
-            {
-                _needsGeneratedAttributes_IsFrozen = true;
-                return _needsGeneratedIsUnmanagedAttribute_Value;
-            }
+            Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
+            ThreadSafeFlagOperations.Set(ref _needsGeneratedAttributes, (int)attributes);
         }
 
         /// <summary>
@@ -490,90 +448,97 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor);
         }
 
-        internal void EnsureIsReadOnlyAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
+        private void EnsureEmbeddableAttributeExists(EmbeddableAttributes attribute, DiagnosticBag diagnostics, Location location, bool modifyCompilation)
         {
             Debug.Assert(!modifyCompilation || !_needsGeneratedAttributes_IsFrozen);
 
-            var isNeeded = CheckIfIsReadOnlyAttributeShouldBeEmbedded(diagnostics, location);
-
-            if (isNeeded && modifyCompilation)
+            if (CheckIfAttributeShouldBeEmbedded(attribute, diagnostics, location) && modifyCompilation)
             {
-                _needsGeneratedIsReadOnlyAttribute_Value = true;
+                SetNeedsGeneratedAttributes(attribute);
             }
+        }
+
+        internal void EnsureIsReadOnlyAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsReadOnlyAttribute, diagnostics, location, modifyCompilation);
         }
 
         internal void EnsureIsByRefLikeAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
         {
-            Debug.Assert(!modifyCompilation || !_needsGeneratedAttributes_IsFrozen);
-
-            var isNeeded = CheckIfIsByRefLikeAttributeShouldBeEmbedded(diagnostics, location);
-
-            if (isNeeded && modifyCompilation)
-            {
-                _needsGeneratedIsByRefLikeAttribute_Value = true;
-            }
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsByRefLikeAttribute, diagnostics, location, modifyCompilation);
         }
 
-        internal void EnsureIsUnmanagedAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilationForIsUnmanaged)
+        internal void EnsureIsUnmanagedAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
         {
-            Debug.Assert(!modifyCompilationForIsUnmanaged || !_needsGeneratedAttributes_IsFrozen);
-
-            var isNeeded = CheckIfIsUnmanagedAttributeShouldBeEmbedded(diagnostics, location);
-
-            if (isNeeded && modifyCompilationForIsUnmanaged)
-            {
-                _needsGeneratedIsUnmanagedAttribute_Value = true;
-            }
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsUnmanagedAttribute, diagnostics, location, modifyCompilation);
         }
 
         internal void EnsureNullableAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
         {
-            Debug.Assert(!modifyCompilation || !_needsGeneratedAttributes_IsFrozen);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableAttribute, diagnostics, location, modifyCompilation);
+        }
 
-            var isNeeded = CheckIfNullableAttributeShouldBeEmbedded(diagnostics, location);
+        internal void EnsureNullableContextAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableContextAttribute, diagnostics, location, modifyCompilation);
+        }
 
-            if (isNeeded && modifyCompilation)
+        internal void EnsureNullablePublicOnlyAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullablePublicOnlyAttribute, diagnostics, location, modifyCompilation);
+        }
+
+        internal bool CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes attribute, DiagnosticBag diagnosticsOpt, Location locationOpt)
+        {
+            switch (attribute)
             {
-                _needsGeneratedNullableAttribute_Value = true;
+                case EmbeddableAttributes.IsReadOnlyAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
+
+                case EmbeddableAttributes.IsByRefLikeAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor);
+
+                case EmbeddableAttributes.IsUnmanagedAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor);
+
+                case EmbeddableAttributes.NullableAttribute:
+                    // Note: if the type exists, we'll check both constructors, regardless of which one(s) we'll eventually need
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_NullableAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
+                        WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags);
+
+                case EmbeddableAttributes.NullableContextAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_NullableContextAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor);
+
+                case EmbeddableAttributes.NullablePublicOnlyAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_NullablePublicOnlyAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(attribute);
             }
-        }
-
-        internal bool CheckIfIsReadOnlyAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt)
-        {
-            return CheckIfAttributeShouldBeEmbedded(
-                diagnosticsOpt,
-                locationOpt,
-                WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
-                WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
-        }
-
-        internal bool CheckIfIsByRefLikeAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt)
-        {
-            return CheckIfAttributeShouldBeEmbedded(
-                diagnosticsOpt,
-                locationOpt,
-                WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
-                WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor);
-        }
-
-        internal bool CheckIfIsUnmanagedAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt)
-        {
-            return CheckIfAttributeShouldBeEmbedded(
-                diagnosticsOpt,
-                locationOpt,
-                WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
-                WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor);
-        }
-
-        internal bool CheckIfNullableAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt)
-        {
-            // Note: if the type exists, we'll check both constructors, regardless of which one(s) we'll eventually need
-            return CheckIfAttributeShouldBeEmbedded(
-                diagnosticsOpt,
-                locationOpt,
-                WellKnownType.System_Runtime_CompilerServices_NullableAttribute,
-                WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
-                WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags);
         }
 
         private bool CheckIfAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt, WellKnownType attributeType, WellKnownMember attributeCtor, WellKnownMember? secondAttributeCtor = null)
@@ -699,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol booleanType = GetSpecialType(SpecialType.System_Boolean);
                 Debug.Assert((object)booleanType != null);
                 var transformFlags = DynamicTransformsEncoder.Encode(type, refKindOpt, customModifiersCount, booleanType);
-                var boolArray = ArrayTypeSymbol.CreateSZArray(booleanType.ContainingAssembly, TypeSymbolWithAnnotations.Create(booleanType));
+                var boolArray = ArrayTypeSymbol.CreateSZArray(booleanType.ContainingAssembly, TypeWithAnnotations.Create(booleanType));
                 var arguments = ImmutableArray.Create<TypedConstant>(new TypedConstant(boolArray, transformFlags));
                 return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags, arguments);
             }
@@ -716,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(!names.IsDefault, "should not need the attribute when no tuple names");
 
-            var stringArray = ArrayTypeSymbol.CreateSZArray(stringType.ContainingAssembly, TypeSymbolWithAnnotations.Create(stringType));
+            var stringArray = ArrayTypeSymbol.CreateSZArray(stringType.ContainingAssembly, TypeWithAnnotations.Create(stringType));
             var args = ImmutableArray.Create(new TypedConstant(stringArray, names));
             return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, args);
         }
@@ -770,7 +735,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // A possible optimization could be to emit an empty attribute
                         // if all the names are missing, but that has to be true
                         // recursively.
-                        namesBuilder.AddMany(null, type.TupleElementTypes.Length);
+                        namesBuilder.AddMany(null, type.TupleElementTypesWithAnnotations.Length);
                     }
                     else
                     {
@@ -847,7 +812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case TypeKind.Array:
                         if (addCustomModifierFlags)
                         {
-                            HandleCustomModifiers(((ArrayTypeSymbol)type).ElementType.CustomModifiers.Length, transformFlagsBuilder);
+                            HandleCustomModifiers(((ArrayTypeSymbol)type).ElementTypeWithAnnotations.CustomModifiers.Length, transformFlagsBuilder);
                         }
 
                         transformFlagsBuilder.Add(false);
@@ -856,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case TypeKind.Pointer:
                         if (addCustomModifierFlags)
                         {
-                            HandleCustomModifiers(((PointerTypeSymbol)type).PointedAtType.CustomModifiers.Length, transformFlagsBuilder);
+                            HandleCustomModifiers(((PointerTypeSymbol)type).PointedAtTypeWithAnnotations.CustomModifiers.Length, transformFlagsBuilder);
                         }
 
                         transformFlagsBuilder.Add(false);
@@ -914,17 +879,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return null;
                 }
-                return array.ElementType.TypeSymbol;
+                return array.ElementType;
             }
 
             protected override TypeSymbol GetFieldType(FieldSymbol field)
             {
-                return field.Type.TypeSymbol;
+                return field.Type;
             }
 
             protected override TypeSymbol GetPropertyType(PropertySymbol property)
             {
-                return property.Type.TypeSymbol;
+                return property.Type;
             }
 
             protected override TypeSymbol GetGenericTypeArgument(TypeSymbol type, int argumentIndex)
@@ -942,7 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return null;
                 }
-                return named.TypeArgumentsNoUseSiteDiagnostics[argumentIndex].TypeSymbol;
+                return named.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[argumentIndex].Type;
             }
 
             protected override TypeSymbol GetGenericTypeDefinition(TypeSymbol type)
@@ -975,17 +940,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override TypeSymbol GetParamType(ParameterSymbol parameter)
             {
-                return parameter.Type.TypeSymbol;
+                return parameter.Type;
             }
 
             protected override TypeSymbol GetPointedToType(TypeSymbol type)
             {
-                return type.Kind == SymbolKind.PointerType ? ((PointerTypeSymbol)type).PointedAtType.TypeSymbol : null;
+                return type.Kind == SymbolKind.PointerType ? ((PointerTypeSymbol)type).PointedAtType : null;
             }
 
             protected override TypeSymbol GetReturnType(MethodSymbol method)
             {
-                return method.ReturnType.TypeSymbol;
+                return method.ReturnType;
             }
 
             protected override TypeSymbol GetSZArrayElementType(TypeSymbol type)
@@ -999,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return null;
                 }
-                return array.ElementType.TypeSymbol;
+                return array.ElementType;
             }
 
             protected override bool IsByRefParam(ParameterSymbol parameter)

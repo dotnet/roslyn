@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var state = this.ReadState();
 
-                ValueSource<Compilation> baseCompilationSource = state.Compilation;
+                var baseCompilationSource = state.Compilation;
                 var baseCompilation = baseCompilationSource.GetValue(cancellationToken);
                 if (baseCompilation != null)
                 {
@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     // if HasAllInformation is false, then this project is always not completed.
-                    bool hasSuccessfullyLoaded = this.ProjectState.HasAllInformation;
+                    var hasSuccessfullyLoaded = this.ProjectState.HasAllInformation;
 
                     var newReferences = new List<MetadataReference>();
                     var metadataReferenceToProjectId = new Dictionary<MetadataReference, ProjectId>();

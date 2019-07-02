@@ -130,14 +130,16 @@ namespace Microsoft.CodeAnalysis.SQLite
                     {
                         try
                         {
-                            connection.RunInTransaction(() =>
-                            {
-                                foreach (var value in stringsToAdd)
+                            connection.RunInTransaction(
+                                state =>
                                 {
-                                    var id = InsertStringIntoDatabase_MustRunInTransaction(connection, value);
-                                    idToString.Object.Add(id, value);
-                                }
-                            });
+                                    foreach (var value in state.stringsToAdd)
+                                    {
+                                        var id = InsertStringIntoDatabase_MustRunInTransaction(state.connection, value);
+                                        state.idToString.Object.Add(id, value);
+                                    }
+                                },
+                                (stringsToAdd, connection, idToString));
                         }
                         catch (SqlException ex) when (ex.Result == Result.CONSTRAINT)
                         {

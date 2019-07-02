@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string FeaturesAttributeName = "Features";
         private const string DocumentationModeAttributeName = "DocumentationMode";
         private const string DocumentElementName = "Document";
+        private const string AdditionalDocumentElementName = "AdditionalDocument";
+        private const string AnalyzerConfigDocumentElementName = "AnalyzerConfigDocument";
         private const string AnalyzerElementName = "Analyzer";
         private const string AssemblyNameAttributeName = "AssemblyName";
         private const string CommonReferencesAttributeName = "CommonReferences";
@@ -60,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string AliasAttributeName = "Alias";
         private const string ProjectNameAttribute = "Name";
         private const string CheckOverflowAttributeName = "CheckOverflow";
+        private const string AllowUnsafeAttributeName = "AllowUnsafe";
         private const string OutputKindName = "OutputKind";
 
         /// <summary>
@@ -180,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var index = 0;
             var extension = "";
 
-            for (int i = 0; i < files.Length; i++)
+            for (var i = 0; i < files.Length; i++)
             {
                 if (language == LanguageNames.CSharp)
                 {

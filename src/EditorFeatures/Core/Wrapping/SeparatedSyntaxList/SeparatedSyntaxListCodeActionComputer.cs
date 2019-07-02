@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
             private readonly TListSyntax _listSyntax;
             private readonly SeparatedSyntaxList<TListItemSyntax> _listItems;
 
-            private readonly IBlankLineIndentationService _indentationService;
-
             /// <summary>
             /// The indentation string necessary to indent an item in a list such that the start of
             /// that item will exact start at the end of the open-token for the containing list. i.e.
@@ -58,8 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 _listSyntax = listSyntax;
                 _listItems = listItems;
 
-                _indentationService = service.GetIndentationService();
-
                 var generator = SyntaxGenerator.GetGenerator(this.OriginalDocument);
 
                 _afterOpenTokenIndentationTrivia = generator.Whitespace(GetAfterOpenTokenIdentation());
@@ -90,24 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 // indented.
                 var openToken = _listSyntax.GetFirstToken();
 
-                var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(openToken.Span.End, 0), NewLine));
-                newSourceText = newSourceText.WithChanges(
-                    new TextChange(TextSpan.FromBounds(openToken.Span.End + NewLine.Length, newSourceText.Length), ""));
-                var newDocument = OriginalDocument.WithText(newSourceText);
-
-                var originalLineNumber = newSourceText.Lines.GetLineFromPosition(openToken.Span.Start).LineNumber;
-                var desiredIndentation = _indentationService.GetBlankLineIndentation(
-                    newDocument, originalLineNumber + 1,
-                    FormattingOptions.IndentStyle.Smart,
-                    CancellationToken);
-
-                var baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.BasePosition);
-                var baseOffsetInLine = desiredIndentation.BasePosition - baseLine.Start;
-
-                var indent = baseOffsetInLine + desiredIndentation.Offset;
-
-                var indentString = indent.CreateIndentationString(UseTabs, TabSize);
-                return indentString;
+                return GetSmartIndentationAfter(openToken);
             }
 
             private SyntaxTrivia GetIndentationTrivia(WrappingStyle wrappingStyle)
@@ -329,16 +308,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
             }
 
             private string GetNestedCodeActionTitle(WrappingStyle wrappingStyle)
-            {
-                switch (wrappingStyle)
+                => wrappingStyle switch
                 {
-                    case WrappingStyle.WrapFirst_IndentRest: return Wrapper.Indent_all_items;
-                    case WrappingStyle.UnwrapFirst_AlignRest: return Wrapper.Align_wrapped_items;
-                    case WrappingStyle.UnwrapFirst_IndentRest: return Wrapper.Indent_wrapped_items;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(wrappingStyle);
-                }
-            }
+                    WrappingStyle.WrapFirst_IndentRest => Wrapper.Indent_all_items,
+                    WrappingStyle.UnwrapFirst_AlignRest => Wrapper.Align_wrapped_items,
+                    WrappingStyle.UnwrapFirst_IndentRest => Wrapper.Indent_wrapped_items,
+                    _ => throw ExceptionUtilities.UnexpectedValue(wrappingStyle),
+                };
 
             private ImmutableArray<Edit> GetWrapEachEdits(
                 WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia)

@@ -16,7 +16,12 @@ namespace Microsoft.CodeAnalysis.SQLite
     /// </summary>
     internal partial class SQLitePersistentStorage : AbstractPersistentStorage
     {
-        private const string Version = "1";
+        // Version history.
+        // 1. Initial use of sqlite as the persistence layer.  Simple key->value storage tables.
+        // 2. Updated to store checksums.  Tables now key->(checksum,value).  Allows for reading
+        //    and validating checksums without the overhead of reading the full 'value' into
+        //    memory.
+        private const string Version = "2";
 
         /// <summary>
         /// Inside the DB we have a table dedicated to storing strings that also provides a unique 
@@ -49,16 +54,16 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// The format of the table is:
         /// 
         ///  SolutionData
-        ///  -----------------------------------------------
-        ///  | DataId (primary key, varchar) | Data (blob) |
-        ///  -----------------------------------------------
+        ///  -------------------------------------------------------------------
+        ///  | DataId (primary key, varchar) | | Checksum (blob) | Data (blob) |
+        ///  -------------------------------------------------------------------
         /// </summary>
         private const string SolutionDataTableName = "SolutionData" + Version;
 
         /// <summary>
         /// Inside the DB we have a table for data that we want associated with a <see cref="Project"/>.
         /// The data is keyed off of an integral value produced by combining the ID of the Project and
-        /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(Project, string, CancellationToken)"/>.
+        /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(Project, string, Checksum, CancellationToken)"/>.
         /// 
         /// This gives a very efficient integral key, and means that the we only have to store a 
         /// single mapping from stream name to ID in the string table.
@@ -66,16 +71,16 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// The format of the table is:
         /// 
         ///  ProjectData
-        ///  -----------------------------------------------
-        ///  | DataId (primary key, integer) | Data (blob) |
-        ///  -----------------------------------------------
+        ///  -------------------------------------------------------------------
+        ///  | DataId (primary key, integer) | | Checksum (blob) | Data (blob) |
+        ///  -------------------------------------------------------------------
         /// </summary>
         private const string ProjectDataTableName = "ProjectData" + Version;
 
         /// <summary>
         /// Inside the DB we have a table for data that we want associated with a <see cref="Document"/>.
         /// The data is keyed off of an integral value produced by combining the ID of the Document and
-        /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(Document, string, CancellationToken)"/>.
+        /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(Document, string, Checksum, CancellationToken)"/>.
         /// 
         /// This gives a very efficient integral key, and means that the we only have to store a 
         /// single mapping from stream name to ID in the string table.
@@ -83,13 +88,14 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// The format of the table is:
         /// 
         ///  DocumentData
-        ///  ----------------------------------------------
-        ///  | DataId (primary key, integer) | Data (blob) |
-        ///  ----------------------------------------------
+        ///  -------------------------------------------------------------------
+        ///  | DataId (primary key, integer) | | Checksum (blob) | Data (blob) |
+        ///  -------------------------------------------------------------------
         /// </summary>
         private const string DocumentDataTableName = "DocumentData" + Version;
 
         private const string DataIdColumnName = "DataId";
+        private const string ChecksumColumnName = "Checksum";
         private const string DataColumnName = "Data";
 
         private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
@@ -105,6 +111,12 @@ namespace Microsoft.CodeAnalysis.SQLite
         private readonly SolutionAccessor _solutionAccessor;
         private readonly ProjectAccessor _projectAccessor;
         private readonly DocumentAccessor _documentAccessor;
+
+        // cached query strings
+
+        private readonly string _select_star_from_0;
+        private readonly string _insert_into_0_1_values;
+        private readonly string _select_star_from_0_where_1_limit_one;
 
         // We pool connections to the DB so that we don't have to take the hit of 
         // reconnecting.  The connections also cache the prepared statements used
@@ -127,6 +139,10 @@ namespace Microsoft.CodeAnalysis.SQLite
             _solutionAccessor = new SolutionAccessor(this);
             _projectAccessor = new ProjectAccessor(this);
             _documentAccessor = new DocumentAccessor(this);
+
+            _select_star_from_0 = $@"select * from ""{StringInfoTableName}""";
+            _insert_into_0_1_values = $@"insert into ""{StringInfoTableName}""(""{DataColumnName}"") values (?)";
+            _select_star_from_0_where_1_limit_one = $@"select * from ""{StringInfoTableName}"" where (""{DataColumnName}"" = ?) limit 1";
         }
 
         private SqlConnection GetConnection()
@@ -141,7 +157,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             // Otherwise create a new connection.
-            return SqlConnection.Create(_faultInjectorOpt, this.DatabaseFile);
+            return SqlConnection.Create(_faultInjectorOpt, DatabaseFile);
         }
 
         private void ReleaseConnection(SqlConnection connection)
@@ -248,16 +264,19 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
                 connection.ExecuteCommand(
 $@"create table if not exists ""{SolutionDataTableName}"" (
     ""{DataIdColumnName}"" varchar primary key not null,
+    ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
 
                 connection.ExecuteCommand(
 $@"create table if not exists ""{ProjectDataTableName}"" (
     ""{DataIdColumnName}"" integer primary key not null,
+    ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
 
                 connection.ExecuteCommand(
 $@"create table if not exists ""{DocumentDataTableName}"" (
     ""{DataIdColumnName}"" integer primary key not null,
+    ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
 
                 // Also get the known set of string-to-id mappings we already have in the DB.

@@ -10,31 +10,36 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal partial class InlineRenameSession : ForegroundThreadAffinitizedObject, IInlineRenameSession
+    internal partial class InlineRenameSession : ForegroundThreadAffinitizedObject, IInlineRenameSession, IFeatureController
     {
         private readonly Workspace _workspace;
         private readonly InlineRenameService _renameService;
         private readonly IWaitIndicator _waitIndicator;
         private readonly ITextBufferAssociatedViewService _textBufferAssociatedViewService;
         private readonly ITextBufferFactoryService _textBufferFactoryService;
+        private readonly IFeatureService _featureService;
+        private readonly IFeatureDisableToken _completionDisabledToken;
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
         private readonly IDebuggingWorkspaceService _debuggingWorkspaceService;
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -47,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private bool _isApplyingEdit;
         private string _replacementText;
         private OptionSet _optionSet;
-        private Dictionary<ITextBuffer, OpenTextBufferManager> _openTextBuffers = new Dictionary<ITextBuffer, OpenTextBufferManager>();
+        private readonly Dictionary<ITextBuffer, OpenTextBufferManager> _openTextBuffers = new Dictionary<ITextBuffer, OpenTextBufferManager>();
 
         /// <summary>
         /// If non-null, the current text of the replacement. Linked spans added will automatically be updated with this
@@ -65,6 +70,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 ReplacementTextChanged?.Invoke(this, EventArgs.Empty);
             }
         }
+
+        /// <summary>
+        /// Information about whether a file rename should be allowed as part
+        /// of the rename operation, as determined by the language
+        /// </summary>
+        public InlineRenameFileRenameInfo FileRenameInfo { get; }
 
         /// <summary>
         /// The task which computes the main rename locations against the original workspace
@@ -100,6 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IWaitIndicator waitIndicator,
             ITextBufferAssociatedViewService textBufferAssociatedViewService,
             ITextBufferFactoryService textBufferFactoryService,
+            IFeatureServiceFactory featureServiceFactory,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             IAsynchronousOperationListener asyncListener)
             : base(threadingContext, assertIsForeground: true)
@@ -122,6 +134,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textBufferAssociatedViewService = textBufferAssociatedViewService;
             _textBufferAssociatedViewService.SubjectBuffersConnected += OnSubjectBuffersConnected;
 
+            // Disable completion when an inline rename session starts
+            _featureService = featureServiceFactory.GlobalFeatureService;
+            _completionDisabledToken = _featureService.Disable(PredefinedEditorFeatureNames.Completion, this);
+
             _renameService = renameService;
             _waitIndicator = waitIndicator;
             _refactorNotifyServices = refactorNotifyServices;
@@ -140,6 +156,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             _debuggingWorkspaceService = workspace.Services.GetService<IDebuggingWorkspaceService>();
             _debuggingWorkspaceService.BeforeDebuggingStateChanged += OnBeforeDebuggingStateChanged;
+
+            var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
+
+            if (experimentationService.IsExperimentEnabled(WellKnownExperimentNames.RoslynInlineRenameFile)
+                && _renameInfo is IInlineRenameInfoWithFileRename renameInfoWithFileRename)
+            {
+                FileRenameInfo = renameInfoWithFileRename.GetFileRenameInfo();
+            }
+            else
+            {
+                FileRenameInfo = InlineRenameFileRenameInfo.NotAllowed;
+            }
 
             InitializeOpenBuffers(triggerSpan);
         }
@@ -175,10 +203,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             using (Logger.LogBlock(FunctionId.Rename_CreateOpenTextBufferManagerForAllOpenDocs, CancellationToken.None))
             {
-                HashSet<ITextBuffer> openBuffers = new HashSet<ITextBuffer>();
+                var openBuffers = new HashSet<ITextBuffer>();
                 foreach (var d in _workspace.GetOpenDocumentIds())
                 {
                     var document = _baseSolution.GetDocument(d);
+                    if (document == null)
+                    {
+                        continue;
+                    }
+
                     Contract.ThrowIfFalse(document.TryGetText(out var text));
                     Contract.ThrowIfNull(text);
 
@@ -195,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 foreach (var buffer in openBuffers)
                 {
-                    TryPopulateOpenTextBufferManagerForBuffer(buffer, buffer.AsTextContainer().GetRelatedDocuments());
+                    TryPopulateOpenTextBufferManagerForBuffer(buffer);
                 }
             }
 
@@ -217,26 +250,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             RenameTrackingDismisser.DismissRenameTracking(_workspace, _workspace.GetOpenDocumentIds());
         }
 
-        private bool TryPopulateOpenTextBufferManagerForBuffer(ITextBuffer buffer, IEnumerable<Document> documents)
+        private bool TryPopulateOpenTextBufferManagerForBuffer(ITextBuffer buffer)
         {
             AssertIsForeground();
             VerifyNotDismissed();
 
             if (_workspace.Kind == WorkspaceKind.Interactive)
             {
-                Debug.Assert(documents.Count() == 1); // No linked files.
-                Debug.Assert(buffer.IsReadOnly(0) == buffer.IsReadOnly(Span.FromBounds(0, buffer.CurrentSnapshot.Length))); // All or nothing.
+                Debug.Assert(buffer.GetRelatedDocuments().Count() == 1);
+                Debug.Assert(buffer.IsReadOnly(0) == buffer.IsReadOnly(VisualStudio.Text.Span.FromBounds(0, buffer.CurrentSnapshot.Length))); // All or nothing.
                 if (buffer.IsReadOnly(0))
                 {
                     return false;
                 }
             }
 
-            var documentSupportsFeatureService = _workspace.Services.GetService<IDocumentSupportsFeatureService>();
-
-            if (!_openTextBuffers.ContainsKey(buffer) && documents.All(d => documentSupportsFeatureService.SupportsRename(d)))
+            if (!_openTextBuffers.ContainsKey(buffer) && buffer.SupportsRename())
             {
-                _openTextBuffers[buffer] = new OpenTextBufferManager(this, buffer, _workspace, documents, _textBufferFactoryService);
+                _openTextBuffers[buffer] = new OpenTextBufferManager(this, buffer, _workspace, _textBufferFactoryService);
                 return true;
             }
 
@@ -250,8 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 if (buffer.GetWorkspace() == _workspace)
                 {
-                    var documents = buffer.AsTextContainer().GetRelatedDocuments();
-                    if (TryPopulateOpenTextBufferManagerForBuffer(buffer, documents))
+                    if (TryPopulateOpenTextBufferManagerForBuffer(buffer))
                     {
                         _openTextBuffers[buffer].ConnectToView(e.TextView);
                     }
@@ -325,6 +355,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _dismissed = true;
             _workspace.WorkspaceChanged -= OnWorkspaceChanged;
             _textBufferAssociatedViewService.SubjectBuffersConnected -= OnSubjectBuffersConnected;
+
+            // Reenable completion now that the inline rename session is done
+            _completionDisabledToken.Dispose();
 
             foreach (var textBuffer in _openTextBuffers.Keys)
             {
@@ -656,7 +689,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _conflictResolutionTask.Wait(waitContext.CancellationToken);
                 waitContext.AllowCancel = false;
 
-                Solution newSolution = _conflictResolutionTask.Result.NewSolution;
+                var newSolution = _conflictResolutionTask.Result.NewSolution;
                 if (previewChanges)
                 {
                     var previewService = _workspace.Services.GetService<IPreviewDialogService>();
@@ -718,6 +751,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     // the trees for them.  If we don't support syntax, then just use the text of
                     // the document.
                     var newDocument = newSolution.GetDocument(id);
+
                     if (newDocument.SupportsSyntaxTree)
                     {
                         var root = newDocument.GetSyntaxRootSynchronously(waitContext.CancellationToken);
@@ -728,11 +762,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         var newText = newDocument.GetTextAsync(waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
                         finalSolution = finalSolution.WithDocumentText(id, newText);
                     }
+
+                    // Make sure to include any document rename as well
+                    finalSolution = finalSolution.WithDocumentName(id, newDocument.Name);
                 }
 
                 if (_workspace.TryApplyChanges(finalSolution))
                 {
-                    if (!_renameInfo.TryOnAfterGlobalSymbolRenamed(_workspace, changedDocumentIDs, this.ReplacementText))
+                    // Since rename can apply file changes as well, and those file 
+                    // changes can generate new document ids, include added documents
+                    // as well as changed documents. This also ensures that any document
+                    // that was removed is not included
+                    var finalChanges = _workspace.CurrentSolution.GetChanges(_baseSolution);
+
+                    var finalChangedIds = finalChanges
+                            .GetProjectChanges()
+                            .SelectMany(c => c.GetChangedDocuments().Concat(c.GetAddedDocuments()))
+                            .ToList();
+
+                    if (!_renameInfo.TryOnAfterGlobalSymbolRenamed(_workspace, finalChangedIds, this.ReplacementText))
                     {
                         var notificationService = _workspace.Services.GetService<INotificationService>();
                         notificationService.SendNotification(

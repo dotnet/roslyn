@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     var fieldSymbol = GetDeclaredFieldSymbol(variableDecl.Variables.First());
                                     if ((object)fieldSymbol != null)
                                     {
-                                        result = fieldSymbol.Type.TypeSymbol;
+                                        result = fieldSymbol.Type;
                                     }
                                 }
                             }
@@ -716,6 +716,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             speculativeModel = null;
             return false;
+        }
+
+        internal override BoundExpression GetSpeculativelyBoundExpression(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, out Binder binder, out ImmutableArray<Symbol> crefSymbols)
+        {
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
+            // If the given position is in a member that we can get a semantic model for, we want to defer to that implementation
+            // of GetSpeculativelyBoundExpression so it can take nullability into account.
+            if (bindingOption == SpeculativeBindingOption.BindAsExpression)
+            {
+                position = CheckAndAdjustPosition(position);
+                var model = GetMemberModel(position);
+                if (model is object)
+                {
+                    return model.GetSpeculativelyBoundExpression(position, expression, bindingOption, out binder, out crefSymbols);
+                }
+            }
+
+            return GetSpeculativelyBoundExpressionWithoutNullability(position, expression, bindingOption, out binder, out crefSymbols);
         }
 
         private MemberSemanticModel GetMemberModel(int position)
@@ -1144,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             AliasSymbol aliasOpt;
             DiagnosticBag discarded = DiagnosticBag.GetInstance();
-            var attributeType = (NamedTypeSymbol)enclosingBinder.BindType(attribute.Name, discarded, out aliasOpt).TypeSymbol;
+            var attributeType = (NamedTypeSymbol)enclosingBinder.BindType(attribute.Name, discarded, out aliasOpt).Type;
             discarded.Free();
 
             return AttributeSemanticModel.Create(

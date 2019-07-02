@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// This contains the (symbol, property) pairs within a property subpattern.
         /// </summary>
-        ImmutableArray<(ISymbol, IPatternOperation)> PropertySubpatterns { get; }
+        ImmutableArray<IPropertySubpatternOperation> PropertySubpatterns { get; }
 
         /// <summary>
         /// Symbol declared by the pattern.

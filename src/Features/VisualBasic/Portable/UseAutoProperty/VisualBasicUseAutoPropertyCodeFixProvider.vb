@@ -13,11 +13,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
     Friend Class VisualBasicUseAutoPropertyCodeFixProvider
         Inherits AbstractUseAutoPropertyCodeFixProvider(Of TypeBlockSyntax, PropertyBlockSyntax, ModifiedIdentifierSyntax, ConstructorBlockSyntax, ExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetNodeToRemove(identifier As ModifiedIdentifierSyntax) As SyntaxNode
             Return Utilities.GetNodeToRemove(identifier)
         End Function
 
-        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of IFormattingRule)
+        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of AbstractFormattingRule)
             Return Nothing
         End Function
 

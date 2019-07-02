@@ -110,6 +110,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool RequiresInstanceReceiver
+        {
+            get
+            {
+                return UnderlyingMethod.RequiresInstanceReceiver;
+            }
+        }
+
         public override bool IsVirtual
         {
             get
@@ -297,6 +305,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => UnderlyingMethod.ReturnTypeFlowAnalysisAnnotations;
+
         internal override bool ReturnValueIsMarshalledExplicitly
         {
             get
@@ -320,5 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return UnderlyingMethod.GenerateDebugInfo;
             }
         }
+
+        internal override bool IsDeclaredReadOnly => UnderlyingMethod.IsDeclaredReadOnly;
     }
 }

@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static IEnumerable<TaggedText> GetDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
         {
-            string documentation = GetDocumentation(symbol, cancellationToken);
+            var documentation = GetDocumentation(symbol, cancellationToken);
 
             return documentation != null
                 ? formatter.Format(documentation, semanticModel, position, CrefFormat)
@@ -260,7 +260,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var spacePart = new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " ");
             var parts = new List<SymbolDisplayPart>();
 
-            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, $"\r\n{WorkspacesResources.Usage_colon}\r\n  "));
+            parts.AddLineBreak();
+            parts.AddText(WorkspacesResources.Usage_colon);
+            parts.AddLineBreak();
+            parts.AddText("  ");
 
             var returnType = symbol.InferAwaitableReturnType(semanticModel, position);
             returnType = returnType != null && returnType.SpecialType != SpecialType.System_Void ? returnType : null;

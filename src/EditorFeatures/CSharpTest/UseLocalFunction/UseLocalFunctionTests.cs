@@ -3,6 +3,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UseLocalFunction;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
@@ -17,7 +18,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseLocalFunction
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseLocalFunctionDiagnosticAnalyzer(), new CSharpUseLocalFunctionCodeFixProvider());
 
-        private static ParseOptions CSharp72ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
+        private static readonly ParseOptions CSharp72ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
+        private static readonly ParseOptions CSharp8ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestMissingBeforeCSharp7()
@@ -3550,6 +3552,142 @@ class C
     {
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestMakeStaticIfNoCaptures()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, int> [||]fibonacci = v =>
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        static int fibonacci(int v)
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        }
+    }
+}", parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestDoNotMakeStaticIfCaptures()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, int> [||]fibonacci = v =>
+        {
+            M();
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int fibonacci(int v)
+        {
+            M();
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        }
+    }
+}", parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithAsyncLambdaExpression_MakeStatic()
+        {
+            await TestInRegularAndScriptAsync(
+ @"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        Func<Task> [||]f = async () => await Task.Yield();
+    }
+}",
+ @"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        static async Task f() => await Task.Yield();
+    }
+}", parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithNullableParameterAndReturn()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<string?, string?> [||]f = s => s;
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        static string? f(string? s) => s;
+    }
+}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
         }
     }
 }

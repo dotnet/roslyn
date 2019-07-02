@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
 
         private Solution CreateSolutionFromReferenceMap(string projectReferences)
         {
-            Solution solution = CreateSolution();
+            var solution = CreateSolution();
 
             var references = new Dictionary<string, IEnumerable<string>>();
 
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
                     throw new ArgumentException("Invalid project definition: " + projectDefinition);
                 }
 
-                string projectName = projectDefinitionParts[0];
+                var projectName = projectDefinitionParts[0];
                 if (referencedProjectNames != null)
                 {
                     references.Add(projectName, referencedProjectNames);
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
 
         private static Solution AddProject(Solution solution, string projectName)
         {
-            ProjectId projectId = ProjectId.CreateNewId(debugName: projectName);
+            var projectId = ProjectId.CreateNewId(debugName: projectName);
             return solution.AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), projectName, projectName, LanguageNames.CSharp, projectName));
         }
 

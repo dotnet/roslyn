@@ -2,11 +2,26 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pl" original="../CodeAnalysisResources.resx">
     <body>
+      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
+        <source>A language name cannot be specified for this option.</source>
+        <target state="new">A language name cannot be specified for this option.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_language_name_must_be_specified_for_this_option">
+        <source>A language name must be specified for this option.</source>
+        <target state="new">A language name must be specified for this option.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
         <target state="translated">Analizator „{0}” zgłosił następujący wyjątek:
 „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticSuppressionReported">
+        <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
+        <target state="new">Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
@@ -16,12 +31,17 @@
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleBadWithin">
         <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
-        <target state="new">Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</target>
+        <target state="translated">Parametr „{0}” musi być interfejsem „INamedTypeSymbol” lub „IAssemblySymbol”.</target>
         <note />
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
-        <target state="new">Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</target>
+        <target state="translated">Parametr „{0}” musi być symbolem z tej kompilacji lub przywoływanym zestawem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
+        <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
+        <target state="new">Non-reported diagnostic with ID '{0}' cannot be suppressed.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
@@ -36,7 +56,7 @@
       </trans-unit>
       <trans-unit id="OperationMustNotBeControlFlowGraphPart">
         <source>The provided operation must not be part of a Control Flow Graph.</source>
-        <target state="new">The provided operation must not be part of a Control Flow Graph.</target>
+        <target state="translated">Podana operacja nie może być częścią grafu przepływu sterowania.</target>
         <note />
       </trans-unit>
       <trans-unit id="OutputKindNotSupported">
@@ -61,7 +81,27 @@
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
-        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</target>
+        <target state="translated">Analizator „{0}” zawiera deskryptor null we właściwości „SupportedDiagnostics”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedSuppressionsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</source>
+        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorMessage">
+        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</source>
+        <target state="new">Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorTitle">
+        <source>Programmatic suppression of an analyzer diagnostic</source>
+        <target state="new">Programmatic suppression of an analyzer diagnostic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionIdCantBeNullOrWhitespace">
+        <source>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
+        <target state="new">A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -192,6 +232,11 @@
       <trans-unit id="GetMetadataMustReturnInstance">
         <source>{0}.GetMetadata() must return an instance of {1}.</source>
         <target state="translated">Metoda {0}.GetMetadata() musi zwrócić wystąpienie {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedSuppressionReported">
+        <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
+        <target state="new">Reported suppression with ID '{0}' is not supported by the suppressor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
@@ -341,12 +386,12 @@
       </trans-unit>
       <trans-unit id="StartMustNotBeNegative">
         <source>'start' must not be negative</source>
-        <target state="translated">Element „start” nie może być wartością ujemną</target>
+        <target state="translated">'Element „start” nie może być wartością ujemną</target>
         <note />
       </trans-unit>
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'</source>
-        <target state="translated">Element „end” nie może mieć mniejszej wartości niż element „start”</target>
+        <target state="translated">'Element „end” nie może mieć mniejszej wartości niż element „start”</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidContentType">
@@ -381,17 +426,17 @@
       </trans-unit>
       <trans-unit id="StreamMustSupportRead">
         <source>Stream must be readable.</source>
-        <target state="translated">Strumień musi być możliwy do odczytu.</target>
+        <target state="translated">Strumień musi być możliwy do odczytania.</target>
         <note />
       </trans-unit>
       <trans-unit id="StreamMustSupportWrite">
         <source>Stream must be writable.</source>
-        <target state="translated">Strumień musi być możliwy do zapisu.</target>
+        <target state="translated">Strumień musi być zapisywalny.</target>
         <note />
       </trans-unit>
       <trans-unit id="PdbStreamUnexpectedWhenEmbedding">
         <source>PDB stream should not be given when embedding PDB into the PE stream.</source>
-        <target state="translated">Nie należy podawać strumienia PDB podczas osadzania pliku PDB w strumieniu PE.</target>
+        <target state="translated">Nie należy podawać strumienia PDB podczas wbudowywania pliku PDB w strumieniu PE.</target>
         <note />
       </trans-unit>
       <trans-unit id="PdbStreamUnexpectedWhenEmittingMetadataOnly">
@@ -456,7 +501,7 @@
       </trans-unit>
       <trans-unit id="CoffResourceMissingSection">
         <source>Win32 resources, assumed to be in COFF object format, are missing one or both of sections '.rsrc$01' and '.rsrc$02'</source>
-        <target state="translated">Zasoby Win32, w przypadku których zakłada się, że format obiektu to COFF, nie zawierają sekcji „rsrc$01” lub „rsrc$02” albo obu tych sekcji.</target>
+        <target state="translated">Zasoby Win32, w przypadku których zakłada się, że format obiektu to COFF, nie zawierają jednej sekcji „rsrc$01” lub „rsrc$02” albo obu tych sekcji.</target>
         <note />
       </trans-unit>
       <trans-unit id="IconStreamUnexpectedFormat">
@@ -467,6 +512,16 @@
       <trans-unit id="InvalidCultureName">
         <source>Invalid culture name: '{0}'</source>
         <target state="translated">Nieprawidłowa nazwa kultury: „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
+        <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
+        <target state="new">The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
+        <source>Invalid severity in analyzer config file.</source>
+        <target state="new">Invalid severity in analyzer config file.</target>
         <note />
       </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
@@ -533,7 +588,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="translated">Zmiany nie mogą się nakładać.</target>
+        <target state="translated">Zmiany muszą być uporządkowane i nie mogą nakładać się na siebie.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
@@ -678,7 +733,7 @@
       </trans-unit>
       <trans-unit id="KeepAliveWithoutShared">
         <source>'/keepalive' option is only valid with '/shared' option.</source>
-        <target state="translated">Opcja „/keepalive” jest prawidłowa tylko z opcją „/shared”.</target>
+        <target state="translated">'Opcja „/keepalive” jest prawidłowa tylko z opcją „/shared”.</target>
         <note />
       </trans-unit>
       <trans-unit id="MismatchedVersion">
@@ -693,7 +748,7 @@
       </trans-unit>
       <trans-unit id="AnalyzerTotalExecutionTime">
         <source>Total analyzer execution time: {0} seconds.</source>
-        <target state="translated">Łączny czas wykonywania analizatora: {0} s</target>
+        <target state="translated">Łączny czas wykonywania analizatora: {0} sek.</target>
         <note />
       </trans-unit>
       <trans-unit id="MultithreadedAnalyzerExecutionNote">
@@ -790,7 +845,7 @@
       </trans-unit>
       <trans-unit id="TuplesNeedAtLeastTwoElements">
         <source>Tuples must have at least two elements.</source>
-        <target state="translated">Krotka musi zawierać co najmniej dwa elementy.</target>
+        <target state="translated">Krotki muszą zawierać co najmniej dwa elementy.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilationReferencesAssembliesWithDifferentAutoGeneratedVersion">
@@ -830,7 +885,7 @@
       </trans-unit>
       <trans-unit id="ElementIsExpected">
         <source>element is expected</source>
-        <target state="translated">oczekiwano elementu</target>
+        <target state="translated">element jest oczekiwany</target>
         <note />
       </trans-unit>
       <trans-unit id="SeparatorIsExpected">

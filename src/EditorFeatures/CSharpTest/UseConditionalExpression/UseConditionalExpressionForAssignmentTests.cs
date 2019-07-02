@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
 
         private static readonly Dictionary<OptionKey, object> s_preferImplicitTypeAlways = new Dictionary<OptionKey, object>
         {
-            { CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithSilentEnforcement },
-            { CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithSilentEnforcement },
-            { CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithSilentEnforcement },
+            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSilentEnforcement },
+            { CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement },
+            { CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement },
         };
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
@@ -495,7 +495,7 @@ class C
         var i = true ? 0 : 1;
     }
 }", options: new Dictionary<OptionKey, object> {
-    {  CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithSilentEnforcement }
+    {  CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement }
 });
         }
 
@@ -527,7 +527,7 @@ class C
         int i = true ? 0 : 1;
     }
 }", options: new Dictionary<OptionKey, object> {
-    {  CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithSilentEnforcement }
+    {  CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSilentEnforcement }
 });
         }
 
@@ -559,7 +559,7 @@ class C
         int i = true ? 0 : 1;
     }
 }", options: new Dictionary<OptionKey, object> {
-    {  CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithSilentEnforcement }
+    {  CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement }
 });
         }
 

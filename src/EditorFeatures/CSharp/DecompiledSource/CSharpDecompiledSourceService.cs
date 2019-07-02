@@ -38,13 +38,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             this.provider = provider;
         }
 
-        public async Task<Document> AddSourceToAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
+        public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken)
         {
             // Get the name of the type the symbol is in
             var containingOrThis = symbol.GetContainingTypeOrThis();
             var fullName = GetFullReflectionName(containingOrThis);
-
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             string assemblyLocation = null;
             var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(ReferenceAssemblyAttribute)
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 
             if (assemblyLocation == null)
             {
-                var reference = compilation.GetMetadataReference(symbol.ContainingAssembly);
+                var reference = symbolCompilation.GetMetadataReference(symbol.ContainingAssembly);
                 assemblyLocation = (reference as PortableExecutableReference)?.FilePath;
                 if (assemblyLocation == null)
                 {
@@ -72,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             }
 
             // Decompile
-            document = PerformDecompilation(document, fullName, compilation, assemblyLocation);
+            document = PerformDecompilation(document, fullName, symbolCompilation, assemblyLocation);
 
             document = await AddAssemblyInfoRegionAsync(document, symbol, cancellationToken).ConfigureAwait(false);
 
@@ -110,9 +108,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 
         private async Task<Document> AddAssemblyInfoRegionAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
-            string assemblyInfo = MetadataAsSourceHelpers.GetAssemblyInfo(symbol.ContainingAssembly);
+            var assemblyInfo = MetadataAsSourceHelpers.GetAssemblyInfo(symbol.ContainingAssembly);
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            string assemblyPath = MetadataAsSourceHelpers.GetAssemblyDisplay(compilation, symbol.ContainingAssembly);
+            var assemblyPath = MetadataAsSourceHelpers.GetAssemblyDisplay(compilation, symbol.ContainingAssembly);
 
             var regionTrivia = SyntaxFactory.RegionDirectiveTrivia(true)
                 .WithTrailingTrivia(new[] { SyntaxFactory.Space, SyntaxFactory.PreprocessingMessage(assemblyInfo) });

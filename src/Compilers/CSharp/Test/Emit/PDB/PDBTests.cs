@@ -7135,9 +7135,9 @@ class C
       <customDebugInfo>
         <forward declaringType=""C+&lt;&gt;c"" methodName=""&lt;F&gt;b__0_0"" parameterNames=""i"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x23"" endOffset=""0xd1"" />
+          <slot startOffset=""0x27"" endOffset=""0xd5"" />
           <slot />
-          <slot startOffset=""0x7b"" endOffset=""0xb2"" />
+          <slot startOffset=""0x7f"" endOffset=""0xb6"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""temp"" />
@@ -7146,19 +7146,19 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x23"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x24"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""35"" document=""1"" />
-        <entry offset=""0x3b"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""16"" document=""1"" />
-        <entry offset=""0x3c"" startLine=""8"" startColumn=""27"" endLine=""8"" endColumn=""43"" document=""1"" />
-        <entry offset=""0x79"" hidden=""true"" document=""1"" />
-        <entry offset=""0x7b"" startLine=""8"" startColumn=""18"" endLine=""8"" endColumn=""23"" document=""1"" />
-        <entry offset=""0x8c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x8d"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""28"" document=""1"" />
-        <entry offset=""0xa9"" hidden=""true"" document=""1"" />
-        <entry offset=""0xb1"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
-        <entry offset=""0xb2"" startLine=""8"" startColumn=""24"" endLine=""8"" endColumn=""26"" document=""1"" />
-        <entry offset=""0xcd"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
-        <entry offset=""0xd1"" hidden=""true"" document=""1"" />
+        <entry offset=""0x27"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x28"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x3f"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""16"" document=""1"" />
+        <entry offset=""0x40"" startLine=""8"" startColumn=""27"" endLine=""8"" endColumn=""43"" document=""1"" />
+        <entry offset=""0x7d"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7f"" startLine=""8"" startColumn=""18"" endLine=""8"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x90"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x91"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""28"" document=""1"" />
+        <entry offset=""0xad"" hidden=""true"" document=""1"" />
+        <entry offset=""0xb5"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xb6"" startLine=""8"" startColumn=""24"" endLine=""8"" endColumn=""26"" document=""1"" />
+        <entry offset=""0xd1"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xd5"" hidden=""true"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>

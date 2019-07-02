@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseExplicitType
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseExplicitType), Shared]
     internal class UseExplicitTypeCodeRefactoringProvider : AbstractUseTypeCodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public UseExplicitTypeCodeRefactoringProvider()
+        {
+        }
+
         protected override string Title
             => CSharpFeaturesResources.Use_explicit_type;
 

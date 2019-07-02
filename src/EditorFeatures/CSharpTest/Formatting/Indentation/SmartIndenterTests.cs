@@ -2618,7 +2618,7 @@ class Program
                 expectedIndentation: 8);
         }
 
-        [WpfFact(Skip = "PROTOTYPE(patterns2): need to implement indentation for recursive patterns"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void PatternPropertyIndentFirst()
         {
             var code = @"
@@ -2661,7 +2661,7 @@ class C
                 expectedIndentation: 12);
         }
 
-        [WpfFact(Skip = "PROTOTYPE(patterns2): need to implement indentation for recursive patterns"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void PatternPropertyIndentNestedFirst()
         {
             var code = @"
@@ -2711,6 +2711,95 @@ class C
                 expectedIndentation: 16);
         }
 
+        [WpfFact]
+        [WorkItem(33253, "https://github.com/dotnet/roslyn/issues/33253")]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void EnterAfterFluentSequences_1()
+        {
+            var code = @"public class Test
+{
+    public void Test()
+    {
+        new List<DateTime>()
+            .Where(d => d.Kind == DateTimeKind.Local ||
+                        d.Kind == DateTimeKind.Utc)
+
+            .ToArray();
+    }
+}";
+
+            AssertSmartIndent(
+                code: code,
+                indentationLine: 7,
+                expectedIndentation: 12);
+        }
+
+        [WpfFact]
+        [WorkItem(33253, "https://github.com/dotnet/roslyn/issues/33253")]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void EnterAfterFluentSequences_2()
+        {
+            var code = @"public class Test
+{
+    public void Test()
+    {
+        new List<DateTime>()
+                .Where(d => d.Kind == DateTimeKind.Local ||
+                            d.Kind == DateTimeKind.Utc)
+
+                .ToArray();
+    }
+}";
+
+            AssertSmartIndent(
+                code: code,
+                indentationLine: 7,
+                expectedIndentation: 16);
+        }
+
+        [WpfFact]
+        [WorkItem(33253, "https://github.com/dotnet/roslyn/issues/33253")]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void EnterAfterFluentSequences_3()
+        {
+            var code = @"public class Test
+{
+    public void Test()
+    {
+        new List<DateTime>().Where(d => d.Kind == DateTimeKind.Local ||
+                                        d.Kind == DateTimeKind.Utc)
+
+                            .ToArray();
+    }
+}";
+
+            AssertSmartIndent(
+                code: code,
+                indentationLine: 6,
+                expectedIndentation: 12);
+        }
+
+        [WpfFact]
+        [WorkItem(33253, "https://github.com/dotnet/roslyn/issues/33253")]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void EnterAfterFluentSequences_4()
+        {
+            var code = @"public class Test
+{
+    public void Test()
+    {
+        new List<DateTime>().Where(d => d.Kind == DateTimeKind.Local || d.Kind == DateTimeKind.Utc)
+
+            .ToArray();
+    }
+}";
+
+            AssertSmartIndent(
+                code: code,
+                indentationLine: 5,
+                expectedIndentation: 12);
+        }
+
         private void AssertSmartIndentInProjection(
             string markup, int expectedIndentation,
             int? expectedBlankLineIndentation = null,
@@ -2723,28 +2812,27 @@ class C
 
             foreach (var option in optionsSet)
             {
-                using (var workspace = TestWorkspace.CreateCSharp(markup, parseOptions: option))
+                using var workspace = TestWorkspace.CreateCSharp(markup, parseOptions: option);
+
+                workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
+                var subjectDocument = workspace.Documents.Single();
+
+                var projectedDocument =
+                    workspace.CreateProjectionBufferDocument(HtmlMarkup, workspace.Documents, LanguageNames.CSharp);
+
+                if (workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>() is TestFormattingRuleFactoryServiceFactory.Factory provider)
                 {
-                    workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
-                    var subjectDocument = workspace.Documents.Single();
-
-                    var projectedDocument =
-                        workspace.CreateProjectionBufferDocument(HtmlMarkup, workspace.Documents, LanguageNames.CSharp);
-
-                    if (workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>() is TestFormattingRuleFactoryServiceFactory.Factory provider)
-                    {
-                        provider.BaseIndentation = BaseIndentationOfNugget;
-                        provider.TextSpan = subjectDocument.SelectedSpans.Single();
-                    }
-
-                    var indentationLine = projectedDocument.TextBuffer.CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value);
-                    var point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.TextBuffer, PositionAffinity.Predecessor);
-
-                    TestIndentation(
-                        workspace, point.Value,
-                        expectedIndentation, expectedBlankLineIndentation,
-                        projectedDocument.GetTextView(), subjectDocument);
+                    provider.BaseIndentation = BaseIndentationOfNugget;
+                    provider.TextSpan = subjectDocument.SelectedSpans.Single();
                 }
+
+                var indentationLine = projectedDocument.TextBuffer.CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value);
+                var point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.TextBuffer, PositionAffinity.Predecessor);
+
+                TestIndentation(
+                    workspace, point.Value,
+                    expectedIndentation, expectedBlankLineIndentation,
+                    projectedDocument.GetTextView(), subjectDocument);
             }
         }
 
@@ -2762,13 +2850,12 @@ class C
 
             foreach (var option in optionsSet)
             {
-                using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions: option))
-                {
-                    workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
-                    TestIndentation(
-                        workspace, indentationLine,
-                        expectedIndentation, expectedBlankLineIndentation);
-                }
+                using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: option);
+
+                workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
+                TestIndentation(
+                    workspace, indentationLine,
+                    expectedIndentation, expectedBlankLineIndentation);
             }
         }
 
@@ -2785,15 +2872,14 @@ class C
 
             foreach (var option in optionsSet)
             {
-                using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions: option))
-                {
-                    workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
-                    var wpfTextView = workspace.Documents.First().GetTextView();
-                    var line = wpfTextView.TextBuffer.CurrentSnapshot.GetLineFromPosition(wpfTextView.Caret.Position.BufferPosition).LineNumber;
-                    TestIndentation(
-                        workspace, line,
-                        expectedIndentation, expectedBlankLineIndentation);
-                }
+                using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: option);
+
+                workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
+                var wpfTextView = workspace.Documents.First().GetTextView();
+                var line = wpfTextView.TextBuffer.CurrentSnapshot.GetLineFromPosition(wpfTextView.Caret.Position.BufferPosition).LineNumber;
+                TestIndentation(
+                    workspace, line,
+                    expectedIndentation, expectedBlankLineIndentation);
             }
         }
     }

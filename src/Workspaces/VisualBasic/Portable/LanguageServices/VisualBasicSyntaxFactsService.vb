@@ -20,6 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class VisualBasicSyntaxFactsServiceFactory
         Implements ILanguageServiceFactory
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
             Return VisualBasicSyntaxFactsService.Instance
         End Function
@@ -272,6 +276,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsStatement
             Return TypeOf node Is StatementSyntax
+        End Function
+
+        Public Function IsExecutableStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExecutableStatement
+            Return TypeOf node Is ExecutableStatementSyntax
         End Function
 
         Public Function IsParameter(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsParameter
@@ -615,6 +623,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxFacts.IsInNamespaceOrTypeContext(node)
         End Function
 
+        Public Function IsBaseTypeList(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsBaseTypeList
+            Return TryCast(node, InheritsOrImplementsStatementSyntax) IsNot Nothing
+        End Function
+
         Public Function IsInStaticContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInStaticContext
             Return node.IsInStaticContext()
         End Function
@@ -635,6 +647,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function IsSimpleArgument(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSimpleArgument
             Dim argument = TryCast(node, ArgumentSyntax)
             Return argument IsNot Nothing AndAlso Not argument.IsNamed AndAlso Not argument.IsOmitted
+        End Function
+
+        Public Function IsTypeArgumentList(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTypeArgumentList
+            Return node.IsKind(SyntaxKind.TypeArgumentList)
+        End Function
+
+        Public Function IsTypeConstraint(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTypeConstraint
+            Return node.IsKind(SyntaxKind.TypeConstraint)
         End Function
 
         Public Function IsInConstantContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInConstantContext
@@ -659,10 +679,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GetExpressionOfParenthesizedExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfParenthesizedExpression
             Return DirectCast(node, ParenthesizedExpressionSyntax).Expression
-        End Function
-
-        Public Function IsIfStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsIfStatement
-            Return (node.Kind() = SyntaxKind.IfStatement)
         End Function
 
         Public Function IsAttribute(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAttribute
@@ -972,6 +988,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GetMembersOfTypeDeclaration(typeDeclaration As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetMembersOfTypeDeclaration
             Return DirectCast(typeDeclaration, TypeBlockSyntax).Members
+        End Function
+
+        Public Function GetMembersOfNamespaceDeclaration(namespaceDeclaration As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetMembersOfNamespaceDeclaration
+            Return DirectCast(namespaceDeclaration, NamespaceBlockSyntax).Members
         End Function
 
         Public Function IsTopLevelNodeWithMembers(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTopLevelNodeWithMembers
@@ -1300,6 +1320,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                       TryCast(node, MemberAccessExpressionSyntax)?.Name)
         End Function
 
+        Public Function IsLeftSideOfExplicitInterfaceSpecifier(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfExplicitInterfaceSpecifier
+            Return IsLeftSideOfDot(node) AndAlso TryCast(node.Parent.Parent, ImplementsClauseSyntax) IsNot Nothing
+        End Function
+
         Public Function IsLeftSideOfAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfAssignment
             Return TryCast(node, ExpressionSyntax).IsLeftSideOfAnyAssignStatement
         End Function
@@ -1454,6 +1478,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.ConstructorBlock,
                      SyntaxKind.OperatorStatement,
                      SyntaxKind.OperatorBlock
+                    Return True
+            End Select
+
+            Return False
+        End Function
+
+        ' TypeDeclaration  ::=
+        '    ModuleDeclaration  |
+        '    NonModuleDeclaration
+        ' NonModuleDeclaration  ::=
+        '    EnumDeclaration  |
+        '    StructureDeclaration  |
+        '    InterfaceDeclaration  |
+        '    ClassDeclaration  |
+        '    DelegateDeclaration
+        Public Function IsTypeDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTypeDeclaration
+            Select Case node.Kind()
+                Case SyntaxKind.EnumBlock,
+                     SyntaxKind.StructureBlock,
+                     SyntaxKind.InterfaceBlock,
+                     SyntaxKind.ClassBlock,
+                     SyntaxKind.ModuleBlock,
+                     SyntaxKind.DelegateSubStatement,
+                     SyntaxKind.DelegateFunctionStatement
                     Return True
             End Select
 
@@ -1747,8 +1795,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Public Function GetSelectedMembers(root As SyntaxNode, textSpan As TextSpan) As ImmutableArray(Of SyntaxNode) Implements ISyntaxFactsService.GetSelectedMembers
-            Return ImmutableArray(Of SyntaxNode).CastUp(root.GetMembersInSpan(textSpan))
+        Public Function GetSelectedFieldsAndProperties(root As SyntaxNode, textSpan As TextSpan, allowPartialSelection As Boolean) As ImmutableArray(Of SyntaxNode) Implements ISyntaxFactsService.GetSelectedFieldsAndProperties
+            Return ImmutableArray(Of SyntaxNode).CastUp(root.GetSelectedFieldsAndPropertiesInSpan(textSpan, allowPartialSelection))
         End Function
 
         Private Function ISyntaxFactsService_GetFileBanner(root As SyntaxNode) As ImmutableArray(Of SyntaxTrivia) Implements ISyntaxFactsService.GetFileBanner
@@ -1824,6 +1872,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, EqualsValueSyntax).Value
         End Function
 
+        Public Function IsScopeBlock(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsScopeBlock
+            ' VB has no equivalent of curly braces.
+            Return False
+        End Function
+
         Public Function IsExecutableBlock(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExecutableBlock
             Return node.IsExecutableBlock()
         End Function
@@ -1834,6 +1887,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function FindInnermostCommonExecutableBlock(nodes As IEnumerable(Of SyntaxNode)) As SyntaxNode Implements ISyntaxFactsService.FindInnermostCommonExecutableBlock
             Return nodes.FindInnermostCommonExecutableBlock()
+        End Function
+
+        Public Function IsStatementContainer(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsStatementContainer
+            Return IsExecutableBlock(node)
+        End Function
+
+        Public Function GetStatementContainerStatements(node As SyntaxNode) As IReadOnlyList(Of SyntaxNode) Implements ISyntaxFactsService.GetStatementContainerStatements
+            Return GetExecutableBlockStatements(node)
         End Function
 
         Private Function ISyntaxFactsService_GetLeadingBlankLines(node As SyntaxNode) As ImmutableArray(Of SyntaxTrivia) Implements ISyntaxFactsService.GetLeadingBlankLines
@@ -1876,8 +1937,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Public Function SpansPreprocessorDirective(nodes As IEnumerable(Of SyntaxNode)) As Boolean Implements ISyntaxFactsService.SpansPreprocessorDirective
-            Return nodes.SpansPreprocessorDirective()
+        Public Shadows Function SpansPreprocessorDirective(nodes As IEnumerable(Of SyntaxNode)) As Boolean Implements ISyntaxFactsService.SpansPreprocessorDirective
+            Return MyBase.SpansPreprocessorDirective(nodes)
+        End Function
+
+        Public Shadows Function SpansPreprocessorDirective(tokens As IEnumerable(Of SyntaxToken)) As Boolean
+            Return MyBase.SpansPreprocessorDirective(tokens)
         End Function
     End Class
 End Namespace

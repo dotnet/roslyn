@@ -6,7 +6,6 @@
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.UnitTests</AssemblyName>
     <TargetFramework>net472</TargetFramework>
     <VBRuntime>Default</VBRuntime>
-    <RoslynProjectType>UnitTest</RoslynProjectType>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="File References">

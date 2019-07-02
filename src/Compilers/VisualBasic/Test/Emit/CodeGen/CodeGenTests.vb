@@ -276,7 +276,8 @@ End Module
         End Sub
 
         <WorkItem(578074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578074")>
-        <Fact()>
+        <WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/32576")>
         Public Sub PreserveZeroDigitsInDecimal()
             CompileAndVerify(
 <compilation>
@@ -621,7 +622,10 @@ expectedOutput:=<![CDATA[
         ''' Breaking change: native compiler considers
         ''' digits &lt; 1e-49 when rounding.
         ''' </summary>
-        <Fact, WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494"), WorkItem(568520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568520")>
+        <WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494")>
+        <WorkItem(568520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568520")>
+        <WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/32576")>
         Public Sub DecimalLiteral_BreakingChange()
 
             CompileAndVerify(
@@ -5258,8 +5262,9 @@ End Class
 ]]>)
         End Sub
 
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(529849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529849")>
-        <Fact>
         Public Sub ArrayWithTypeCharsWithStaticLocals()
             CompileAndVerify(
 <compilation>
@@ -13816,7 +13821,9 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_1()
             Dim c = CompileAndVerify(
 <compilation>
@@ -13860,7 +13867,9 @@ End Class
 ]]>)
         End Sub
 
-        <Fact, WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_2()
             Dim c = CompileAndVerify(
 <compilation>

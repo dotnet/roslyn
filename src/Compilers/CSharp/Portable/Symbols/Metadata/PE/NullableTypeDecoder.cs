@@ -13,21 +13,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// returns the type transformed to have IsNullable set to true or false
         /// (but not null) for each reference type in the type.
         /// </summary>
-        internal static TypeSymbolWithAnnotations TransformType(
-            TypeSymbolWithAnnotations metadataType,
+        internal static TypeWithAnnotations TransformType(
+            TypeWithAnnotations metadataType,
             EntityHandle targetSymbolToken,
-            PEModuleSymbol containingModule)
+            PEModuleSymbol containingModule,
+            Symbol accessSymbol,
+            Symbol nullableContext)
         {
-            Debug.Assert(!metadataType.IsNull);
+            Debug.Assert(metadataType.HasType);
+            Debug.Assert(accessSymbol.IsDefinition);
+            Debug.Assert((object)accessSymbol.ContainingModule == containingModule);
+#if DEBUG
+            // Ensure we could check accessibility at this point if we had to in ShouldDecodeNullableAttributes().
+            // That is, ensure the accessibility of the symbol (and containing symbols) is available.
+            _ = AccessCheck.IsEffectivelyPublicOrInternal(accessSymbol, out _);
+#endif
 
             byte defaultTransformFlag;
             ImmutableArray<byte> nullableTransformFlags;
-            containingModule.Module.HasNullableAttribute(targetSymbolToken, out defaultTransformFlag, out nullableTransformFlags);
+            if (!containingModule.Module.HasNullableAttribute(targetSymbolToken, out defaultTransformFlag, out nullableTransformFlags))
+            {
+                byte? value = nullableContext.GetNullableContextValue();
+                if (value == null)
+                {
+                    return metadataType;
+                }
+                defaultTransformFlag = value.GetValueOrDefault();
+            }
+
+            if (!containingModule.ShouldDecodeNullableAttributes(accessSymbol))
+            {
+                return metadataType;
+            }
 
             return TransformType(metadataType, defaultTransformFlag, nullableTransformFlags);
         }
 
-        internal static TypeSymbolWithAnnotations TransformType(TypeSymbolWithAnnotations metadataType, byte defaultTransformFlag, ImmutableArray<byte> nullableTransformFlags)
+        internal static TypeWithAnnotations TransformType(TypeWithAnnotations metadataType, byte defaultTransformFlag, ImmutableArray<byte> nullableTransformFlags)
         {
             if (nullableTransformFlags.IsDefault && defaultTransformFlag == 0)
             {
@@ -35,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             int position = 0;
-            TypeSymbolWithAnnotations result;
+            TypeWithAnnotations result;
             if (metadataType.ApplyNullableTransforms(defaultTransformFlag, nullableTransformFlags, ref position, out result) &&
                 (nullableTransformFlags.IsDefault || position == nullableTransformFlags.Length))
             {
@@ -47,15 +69,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         // https://github.com/dotnet/roslyn/issues/29821 external annotations should be removed or fully designed/productized
-        internal static TypeSymbolWithAnnotations TransformType(
-            TypeSymbolWithAnnotations metadataType,
+        internal static TypeWithAnnotations TransformType(
+            TypeWithAnnotations metadataType,
             EntityHandle targetSymbolToken,
             PEModuleSymbol containingModule,
+            Symbol accessSymbol,
+            Symbol nullableContext,
             ImmutableArray<byte> extraAnnotations)
         {
             if (extraAnnotations.IsDefault)
             {
-                return NullableTypeDecoder.TransformType(metadataType, targetSymbolToken, containingModule);
+                return NullableTypeDecoder.TransformType(metadataType, targetSymbolToken, containingModule, accessSymbol, nullableContext);
             }
             else
             {

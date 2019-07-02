@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -33,6 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected int nextVariableSlot = 1;
 
+        private readonly int _maxSlotDepth;
+
         /// <summary>
         /// A cache for remember which structs are empty.
         /// </summary>
@@ -43,9 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol member,
             BoundNode node,
             EmptyStructTypeCache emptyStructs,
-            bool trackUnassignments)
+            bool trackUnassignments,
+            int maxSlotDepth = 0)
             : base(compilation, member, node, nonMonotonicTransferFunction: trackUnassignments)
         {
+            _maxSlotDepth = maxSlotDepth;
             _emptyStructTypeCache = emptyStructs;
         }
 
@@ -88,10 +91,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (_variableSlot.TryGetValue(new VariableIdentifier(symbol, containingSlot), out slot)) ? slot : -1;
         }
 
+        protected virtual bool IsEmptyStructType(TypeSymbol type)
+        {
+            return _emptyStructTypeCache.IsEmptyStructType(type);
+        }
+
         /// <summary>
         /// Force a variable to have a slot.  Returns -1 if the variable has an empty struct type.
         /// </summary>
-        protected int GetOrCreateSlot(Symbol symbol, int containingSlot = 0)
+        protected int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false)
         {
             if (symbol.Kind == SymbolKind.RangeVariable) return -1;
 
@@ -103,8 +111,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Since analysis may proceed in multiple passes, it is possible the slot is already assigned.
             if (!_variableSlot.TryGetValue(identifier, out slot))
             {
-                var variableType = VariableType(symbol).TypeSymbol;
-                if (_emptyStructTypeCache.IsEmptyStructType(variableType))
+                var variableType = symbol.GetTypeOrReturnType().Type;
+                if (!forceSlotEvenIfEmpty && IsEmptyStructType(variableType))
+                {
+                    return -1;
+                }
+
+                if (_maxSlotDepth > 0 && GetSlotDepth(containingSlot) >= _maxSlotDepth)
                 {
                     return -1;
                 }
@@ -130,6 +143,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return slot;
+        }
+
+        private int GetSlotDepth(int slot)
+        {
+            int depth = 0;
+            while (slot > 0)
+            {
+                depth++;
+                slot = variableBySlot[slot].ContainingSlot;
+            }
+            return depth;
         }
 
         protected abstract void Normalize(ref TLocalState state);
@@ -174,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    containingType = restField.Type.TypeSymbol.TupleUnderlyingTypeOrSelf();
+                    containingType = restField.Type.TupleUnderlyingTypeOrSelf();
                 }
             }
 
@@ -217,8 +241,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     if (TryGetReceiverAndMember(node, out BoundExpression receiver, out Symbol member))
                     {
-                        int containingSlot = MakeSlot(receiver);
-                        return (containingSlot == -1) ? -1 : GetOrCreateSlot(member, containingSlot);
+                        Debug.Assert((receiver is null) != member.RequiresInstanceReceiver());
+                        return MakeMemberSlot(receiver, member);
                     }
                     break;
                 case BoundKind.AssignmentOperator:
@@ -227,26 +251,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return -1;
         }
 
-        protected static TypeSymbolWithAnnotations VariableType(Symbol s)
+        protected int MakeMemberSlot(BoundExpression receiverOpt, Symbol member)
         {
-            switch (s.Kind)
+            int containingSlot = -1;
+            if (member.RequiresInstanceReceiver())
             {
-                case SymbolKind.Local:
-                    return ((LocalSymbol)s).Type;
-                case SymbolKind.Field:
-                    return ((FieldSymbol)s).Type;
-                case SymbolKind.Parameter:
-                    return ((ParameterSymbol)s).Type;
-                case SymbolKind.Method:
-                    Debug.Assert(((MethodSymbol)s).MethodKind == MethodKind.LocalFunction);
-                    return default;
-                case SymbolKind.Property:
-                    return ((PropertySymbol)s).Type;
-                case SymbolKind.Event:
-                    return ((EventSymbol)s).Type;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(s.Kind);
+                if (receiverOpt is null)
+                {
+                    return -1;
+                }
+                containingSlot = MakeSlot(receiverOpt);
+                if (containingSlot < 0)
+                {
+                    return -1;
+                }
             }
+            return GetOrCreateSlot(member, containingSlot);
         }
     }
 }

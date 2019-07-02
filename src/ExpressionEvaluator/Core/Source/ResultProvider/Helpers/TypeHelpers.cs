@@ -272,6 +272,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return type.IsMscorlibType("System.Collections", "IEnumerable");
         }
 
+        internal static bool IsIntPtr(this Type type)
+            => type.IsMscorlibType("System", "IntPtr");
+
+        internal static bool IsUIntPtr(this Type type)
+            => type.IsMscorlibType("System", "UIntPtr");
+
         internal static bool IsIEnumerableOfT(this Type type)
         {
             return type.IsMscorlibType("System.Collections.Generic", "IEnumerable`1");
@@ -516,7 +522,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     result = new Dictionary<string, DkmClrDebuggerBrowsableAttributeState>();
                 }
-                result.Add(browsableAttribute.TargetMember, browsableAttribute.State);
+
+                // There can be multiple same attributes for derived classes.
+                // Debugger provides attributes starting from derived classes and then up to base ones.
+                // We should use derived attributes if there is more than one instance.
+                if (!result.ContainsKey(browsableAttribute.TargetMember))
+                {
+                    result.Add(browsableAttribute.TargetMember, browsableAttribute.State);
+                }
             }
             return result;
         }

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override TypeSymbol GetCurrentReturnType(out RefKind refKind)
         {
             refKind = lambdaSymbol.RefKind;
-            return lambdaSymbol.ReturnType.TypeSymbol;
+            return lambdaSymbol.ReturnType;
         }
 
         internal override Symbol ContainingMemberOrLambda
@@ -71,13 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // NOTE: Specifically not overriding IsIndirectlyInIterator.
 
-        internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        internal override TypeWithAnnotations GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
             if (node != null)
             {
                 diagnostics.Add(ErrorCode.ERR_YieldInAnonMeth, node.YieldKeyword.GetLocation());
             }
-            return CreateErrorType();
+            return TypeWithAnnotations.Create(CreateErrorType());
         }
 
         internal override void LookupSymbolsInSingleBinder(

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
 {
     internal class EncapsulateFieldTestState : IDisposable
     {
-        private TestHostDocument _testDocument;
+        private readonly TestHostDocument _testDocument;
         public TestWorkspace Workspace { get; }
         public Document TargetDocument { get; }
         public string NotificationMessage { get; private set; }
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
                 TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
                     typeof(CSharpEncapsulateFieldService),
                     typeof(EditorNotificationServiceFactory),
-                    typeof(DefaultDocumentSupportsFeatureService)));
+                    typeof(DefaultTextBufferSupportsFeatureService)));
 
         public EncapsulateFieldTestState(TestWorkspace workspace)
         {

@@ -55,15 +55,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _runtimeDirectories = GetRuntimeDirectories();
 
             XmlMemberIndexService = (IVsXMLMemberIndexService)serviceProvider.GetService(typeof(SVsXMLMemberIndexService));
+            Assumes.Present(XmlMemberIndexService);
+
             SmartOpenScopeServiceOpt = (IVsSmartOpenScope)serviceProvider.GetService(typeof(SVsSmartOpenScope));
+            Assumes.Present(SmartOpenScopeServiceOpt);
 
             FileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
-            _temporaryStorageService = temporaryStorageService;
+            Assumes.Present(FileChangeService);
 
-            Debug.Assert(XmlMemberIndexService != null);
-            Debug.Assert(SmartOpenScopeServiceOpt != null);
-            Debug.Assert(FileChangeService != null);
-            Debug.Assert(temporaryStorageService != null);
+            _temporaryStorageService = temporaryStorageService;
+            Assumes.Present(_temporaryStorageService);
         }
 
         internal IEnumerable<ITemporaryStreamStorage> GetStorages(string fullPath, DateTime snapshotTimestamp)
@@ -81,9 +82,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return null;
         }
 
-        public PortableExecutableReference CreateMetadataReference(string filePath, MetadataReferenceProperties properties)
+        public PortableExecutableReference CreateMetadataReferenceSnapshot(string filePath, MetadataReferenceProperties properties)
         {
-            return new VisualStudioPortableExecutableReference(this, properties, filePath, fileChangeTrackerOpt: null);
+            return new VisualStudioMetadataReference.Snapshot(this, properties, filePath, fileChangeTrackerOpt: null);
         }
 
         public void ClearCache()
@@ -320,7 +321,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var moduleBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();
 
             string assemblyDir = null;
-            foreach (string moduleName in manifestModule.GetModuleNames())
+            foreach (var moduleName in manifestModule.GetModuleNames())
             {
                 if (moduleBuilder.Count == 0)
                 {

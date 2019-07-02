@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             ExpressionStatementSyntax,
             VariableDeclaratorSyntax>
     {
+        [ImportingConstructor]
+        public CSharpUseObjectInitializerCodeFixProvider()
+        {
+        }
+
         protected override StatementSyntax GetNewStatement(
             StatementSyntax statement, ObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
@@ -41,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
         {
             var nodesAndTokens = new List<SyntaxNodeOrToken>();
-            for (int i = 0; i < matches.Length; i++)
+            for (var i = 0; i < matches.Length; i++)
             {
                 var match = matches[i];
                 var expressionStatement = match.Statement;

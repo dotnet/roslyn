@@ -46,7 +46,7 @@ namespace Roslyn.Utilities
             int lastSeparator = s.Length;
             while (lastSeparator > 0 && IsDirectorySeparator(s[lastSeparator - 1]))
             {
-                lastSeparator = lastSeparator - 1;
+                lastSeparator -= 1;
             }
 
             if (lastSeparator != s.Length)
@@ -117,8 +117,7 @@ namespace Roslyn.Utilities
             return GetDirectoryName(path, IsUnixLikePlatform);
         }
 
-        // Exposed for testing purposes only.
-        internal static string GetDirectoryName(string path, bool isUnixLike)
+        private static string GetDirectoryName(string path, bool isUnixLike)
         {
             if (path != null)
             {
@@ -721,6 +720,13 @@ namespace Roslyn.Utilities
             }
         }
 
+        /// <summary>
+        /// If the current environment uses the '\' directory separator, replaces all uses of '\'
+        /// in the given string with '/'. Otherwise, returns the string.
+        /// </summary>
+        public static string NormalizeWithForwardSlash(string p)
+            => DirectorySeparatorChar == '/' ? p : p.Replace(DirectorySeparatorChar, '/');
+
         public static readonly IEqualityComparer<string> Comparer = new PathComparer();
 
         private class PathComparer : IEqualityComparer<string>
@@ -744,6 +750,12 @@ namespace Roslyn.Utilities
             {
                 return PathHashCode(s);
             }
+        }
+
+        internal static class TestAccessor
+        {
+            internal static string GetDirectoryName(string path, bool isUnixLike)
+                => PathUtilities.GetDirectoryName(path, isUnixLike);
         }
     }
 }

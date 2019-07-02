@@ -5,14 +5,15 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpInteractive : AbstractInteractiveWindowTest
     {
-        public CSharpInteractive(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public CSharpInteractive(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
         }
 
@@ -94,10 +95,10 @@ w.Content = g;");
             VisualStudio.InteractiveWindow.SubmitText("b = null; w.Close(); w = null;");
         }
 
-        [WpfFact]
+        // This test is flaky when legacy completion is enabled
+        [ConditionalWpfFact(typeof(AsyncCompletionCondition))]
         public void TypingHelpDirectiveWorks()
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(true);
             VisualStudio.InteractiveWindow.ShowWindow(waitForPrompt: true);
 
             // Directly type #help, rather than sending it through VisualStudio.InteractiveWindow.SubmitText. We want to actually test

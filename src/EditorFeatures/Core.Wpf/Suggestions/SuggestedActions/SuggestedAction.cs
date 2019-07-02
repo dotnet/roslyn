@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
@@ -32,6 +33,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         protected readonly object Provider;
         internal readonly CodeAction CodeAction;
+
+        private bool _isApplied;
 
         private ICodeActionEditHandlerService EditHandler => SourceProvider.EditHandler;
 
@@ -96,9 +99,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // later in this call chain, do not await them.
                 SourceProvider.WaitIndicator.Wait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true, action: waitContext =>
                 {
-                    using (var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, waitContext.CancellationToken))
+                    using (var combinedCancellationToken = cancellationToken.CombineWith(waitContext.CancellationToken))
                     {
-                        InnerInvoke(waitContext.ProgressTracker, linkedSource.Token);
+                        InnerInvoke(waitContext.ProgressTracker, combinedCancellationToken.Token);
                         foreach (var actionCallback in SourceProvider.ActionCallbacks)
                         {
                             actionCallback.Value.OnSuggestedActionExecuted(this);
@@ -162,9 +165,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
                 {
                     // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
-                    EditHandler.ApplyAsync(Workspace, getFromDocument(),
+                    var applicationTask = EditHandler.ApplyAsync(Workspace, getFromDocument(),
                         operations.ToImmutableArray(), CodeAction.Title,
-                        progressTracker, cancellationToken).Wait(cancellationToken);
+                        progressTracker, cancellationToken);
+                    applicationTask.Wait(cancellationToken);
+                    _isApplied = applicationTask.Result;
                 }
             }
         }
@@ -179,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 map[FixAllLogger.FixAllScope] = fixSome.FixAllState.Scope.ToString();
             }
 
-            if (TryGetTelemetryId(out Guid telemetryId))
+            if (TryGetTelemetryId(out var telemetryId))
             {
                 // Lightbulb correlation info
                 map["TelemetryId"] = telemetryId.ToString();
@@ -307,5 +312,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         #endregion
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly SuggestedAction _suggestedAction;
+
+            public TestAccessor(SuggestedAction suggestedAction)
+                => _suggestedAction = suggestedAction;
+
+            public ref bool IsApplied => ref _suggestedAction._isApplied;
+        }
     }
 }

@@ -122,28 +122,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameters;
         }
 
-        internal static void EnsureIsReadOnlyAttributeExists(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, bool modifyCompilation)
+        internal static void EnsureIsReadOnlyAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, bool modifyCompilation)
         {
+            // These parameters might not come from a compilation (example: lambdas evaluated in EE).
+            // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
+            if (compilation == null)
+            {
+                return;
+            }
+
             foreach (var parameter in parameters)
             {
                 if (parameter.RefKind == RefKind.In)
                 {
-                    // These parameters might not come from a compilation (example: lambdas evaluated in EE).
-                    // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
-                    parameter.DeclaringCompilation?.EnsureIsReadOnlyAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilation);
+                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilation);
                 }
             }
         }
 
-        internal static void EnsureNullableAttributeExists(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, bool modifyCompilation)
+        internal static void EnsureNullableAttributeExists(CSharpCompilation compilation, Symbol container, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, bool modifyCompilation)
         {
-            foreach (var parameter in parameters)
+            // These parameters might not come from a compilation (example: lambdas evaluated in EE).
+            // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
+            if (compilation == null)
             {
-                if (parameter.Type.NeedsNullableAttribute())
+                return;
+            }
+
+            if (parameters.Length > 0 && compilation.ShouldEmitNullableAttributes(container))
+            {
+                foreach (var parameter in parameters)
                 {
-                    // These parameters might not come from a compilation (example: lambdas evaluated in EE).
-                    // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
-                    parameter.DeclaringCompilation?.EnsureNullableAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilation);
+                    if (parameter.TypeWithAnnotations.NeedsNullableAttribute())
+                    {
+                        compilation.EnsureNullableAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilation);
+                    }
                 }
             }
         }
@@ -311,15 +324,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS1670: params is not valid in this context
                 diagnostics.Add(ErrorCode.ERR_IllegalParams, paramsKeyword.GetLocation());
             }
-            else if (parameter.IsParams && !parameter.Type.IsSZArray())
+            else if (parameter.IsParams && !parameter.TypeWithAnnotations.IsSZArray())
             {
                 // error CS0225: The params parameter must be a single dimensional array
                 diagnostics.Add(ErrorCode.ERR_ParamsMustBeArray, paramsKeyword.GetLocation());
             }
-            else if (parameter.Type.IsStatic && !parameter.ContainingSymbol.ContainingType.IsInterfaceType())
+            else if (parameter.TypeWithAnnotations.IsStatic && !parameter.ContainingSymbol.ContainingType.IsInterfaceType())
             {
                 // error CS0721: '{0}': static types cannot be used as parameters
-                diagnostics.Add(ErrorCode.ERR_ParameterIsStaticClass, owner.Locations[0], parameter.Type.TypeSymbol);
+                diagnostics.Add(ErrorCode.ERR_ParameterIsStaticClass, owner.Locations[0], parameter.Type);
             }
             else if (firstDefault != -1 && parameterIndex > firstDefault && !isDefault && !parameter.IsParams)
             {
@@ -328,10 +341,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_DefaultValueBeforeRequiredValue, loc);
             }
             else if (parameter.RefKind != RefKind.None &&
-                parameter.Type.IsRestrictedType(ignoreSpanLikeTypes: true))
+                parameter.TypeWithAnnotations.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
                 // CS1601: Cannot make reference to variable of type 'System.TypedReference'
-                diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, parameterSyntax.Location, parameter.Type.TypeSymbol);
+                diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, parameterSyntax.Location, parameter.Type);
             }
         }
 
@@ -362,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // stick it in the parameter because we want to be able to analyze it for
             // IntelliSense purposes.
 
-            TypeSymbol parameterType = parameter.Type.TypeSymbol;
+            TypeSymbol parameterType = parameter.Type;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             Conversion conversion = binder.Conversions.ClassifyImplicitConversionFromExpression(defaultExpression, parameterType, ref useSiteDiagnostics);
             diagnostics.Add(defaultExpression.Syntax, useSiteDiagnostics);

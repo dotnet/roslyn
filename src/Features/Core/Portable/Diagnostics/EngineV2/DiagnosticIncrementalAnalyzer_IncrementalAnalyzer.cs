@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private void RaiseDocumentDiagnosticsIfNeeded(
             Document document, StateSet stateSet, AnalysisKind kind, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems)
         {
-            RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, oldItems, newItems, Owner.RaiseDiagnosticsUpdated);
+            RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, oldItems, newItems, Owner.RaiseDiagnosticsUpdated, forceUpdate: false);
         }
 
         private void RaiseDocumentDiagnosticsIfNeeded(
@@ -371,18 +371,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             DiagnosticAnalysisResult oldResult, DiagnosticAnalysisResult newResult,
             Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
+            // if our old result is from build and we don't have actual data, don't try micro-optimize and always refresh diagnostics.
+            // most of time, we don't actually load or hold the old data in memory from persistent storage due to perf reasons.
+            //
+            // we need this special behavior for errors from build since unlike live errors, we don't know whether errors
+            // from build is for syntax, semantic or others. due to that, we blindly mark them as semantic errors (most common type of errors from build)
+            //
+            // that can sometime cause issues. for example, if the error turns out to be syntax error (live) then we at the end fail to de-dup.
+            // but since this optimization saves us a lot of refresh between live errors analysis we want to disable this only in this condition.
+            var forceUpdate = oldResult.FromBuild && oldResult.IsAggregatedForm;
+
             var oldItems = GetResult(oldResult, kind, document.Id);
             var newItems = GetResult(newResult, kind, document.Id);
 
-            RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, oldItems, newItems, raiseEvents);
+            RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, oldItems, newItems, raiseEvents, forceUpdate);
         }
 
         private void RaiseDocumentDiagnosticsIfNeeded(
             Document document, StateSet stateSet, AnalysisKind kind,
             ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems,
-            Action<DiagnosticsUpdatedArgs> raiseEvents)
+            Action<DiagnosticsUpdatedArgs> raiseEvents,
+            bool forceUpdate)
         {
-            if (oldItems.IsEmpty && newItems.IsEmpty)
+            if (!forceUpdate && oldItems.IsEmpty && newItems.IsEmpty)
             {
                 // there is nothing to update
                 return;
@@ -467,33 +478,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                using (var pooledObject = SharedPools.Default<Dictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>>().GetPooledObject())
+                using var pooledObject = SharedPools.Default<Dictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>>().GetPooledObject();
+
+                var containsData = false;
+                foreach (var analyzer in analyzerDriverOpt.Analyzers)
                 {
-                    var containsData = false;
-                    foreach (var analyzer in analyzerDriverOpt.Analyzers)
+                    var telemetryInfo = await analyzerDriverOpt.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
+                    if (!containsData && telemetryInfo.ExecutionTime.Ticks > 0)
                     {
-                        var telemetryInfo = await analyzerDriverOpt.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
-                        if (!containsData && telemetryInfo.ExecutionTime.Ticks > 0)
-                        {
-                            // this is unfortunate tweak due to how GetAnalyzerTelemetryInfoAsync works when analyzers are asked
-                            // one by one rather than in bulk.
-                            containsData = true;
-                        }
-
-                        pooledObject.Object.Add(analyzer, telemetryInfo);
+                        // this is unfortunate tweak due to how GetAnalyzerTelemetryInfoAsync works when analyzers are asked
+                        // one by one rather than in bulk.
+                        containsData = true;
                     }
 
-                    if (!containsData)
-                    {
-                        // looks like there is no new data from driver. skip reporting.
-                        return;
-                    }
-
-                    await client.TryRunCodeAnalysisRemoteAsync(
-                        nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
-                        new object[] { pooledObject.Object.ToAnalyzerPerformanceInfo(Owner), /* unit count */ 1 },
-                        cancellationToken).ConfigureAwait(false);
+                    pooledObject.Object.Add(analyzer, telemetryInfo);
                 }
+
+                if (!containsData)
+                {
+                    // looks like there is no new data from driver. skip reporting.
+                    return;
+                }
+
+                await client.TryRunCodeAnalysisRemoteAsync(
+                    nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
+                    new object[] { pooledObject.Object.ToAnalyzerPerformanceInfo(Owner), /* unit count */ 1 },
+                    cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex))
             {

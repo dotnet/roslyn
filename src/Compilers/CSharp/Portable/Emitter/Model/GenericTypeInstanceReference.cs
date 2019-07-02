@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             Debug.Assert(underlyingNamedType.IsDefinition);
             // Definition doesn't have custom modifiers on type arguments
-            Debug.Assert(!underlyingNamedType.TypeArgumentsNoUseSiteDiagnostics.Any(a => a.CustomModifiers.Any()));
+            Debug.Assert(!underlyingNamedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Any(a => a.CustomModifiers.Any()));
         }
 
         public sealed override void Dispatch(Cci.MetadataVisitor visitor)
@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
             var builder = ArrayBuilder<Cci.ITypeReference>.GetInstance();
-            foreach (TypeSymbolWithAnnotations type in UnderlyingNamedType.TypeArgumentsNoUseSiteDiagnostics)
+            foreach (TypeWithAnnotations type in UnderlyingNamedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
             {
-                builder.Add(moduleBeingBuilt.Translate(type.TypeSymbol, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics));
+                builder.Add(moduleBeingBuilt.Translate(type.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics));
             }
 
             return builder.ToImmutableAndFree();

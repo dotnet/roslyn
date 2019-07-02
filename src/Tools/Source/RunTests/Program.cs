@@ -20,6 +20,11 @@ namespace RunTests
 {
     internal sealed partial class Program
     {
+        private static readonly ImmutableHashSet<string> PrimaryProcessNames = ImmutableHashSet.Create(
+            StringComparer.OrdinalIgnoreCase,
+            "devenv",
+            "xunit.console.x86");
+
         internal const int ExitSuccess = 0;
         internal const int ExitFailure = 1;
 
@@ -156,7 +161,7 @@ namespace RunTests
 
         private static void WriteLogFile(Options options)
         {
-            var logFilePath = Path.Combine(options.OutputDirectory, "runtests.log");
+            var logFilePath = Path.Combine(options.LogFilesOutputDirectory, "runtests.log");
             try
             {
                 using (var writer = new StreamWriter(logFilePath, append: false))
@@ -202,7 +207,7 @@ namespace RunTests
                     // backup is to test for the dump file being present.
                     if (File.Exists(dumpFilePath))
                     {
-                        ConsoleUtil.WriteLine("succeeded");
+                        ConsoleUtil.WriteLine($"succeeded ({new FileInfo(dumpFilePath).Length} bytes)");
                     }
                     else
                     {
@@ -223,10 +228,12 @@ namespace RunTests
             var procDumpInfo = GetProcDumpInfo(options);
             if (procDumpInfo != null)
             {
-                var dumpDir = procDumpInfo.Value.DumpDirectory;
                 var counter = 0;
                 foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))
                 {
+                    var dumpDir = PrimaryProcessNames.Contains(proc.ProcessName)
+                        ? procDumpInfo.Value.DumpDirectory
+                        : procDumpInfo.Value.SecondaryDumpDirectory;
                     var dumpFilePath = Path.Combine(dumpDir, $"{proc.ProcessName}-{counter}.dmp");
                     await DumpProcess(proc, procDumpInfo.Value.ProcDumpFilePath, dumpFilePath);
                     counter++;
@@ -244,7 +251,7 @@ namespace RunTests
         {
             if (!string.IsNullOrEmpty(options.ProcDumpDirectory))
             {
-                return new ProcDumpInfo(Path.Combine(options.ProcDumpDirectory, "procdump.exe"), options.OutputDirectory);
+                return new ProcDumpInfo(Path.Combine(options.ProcDumpDirectory, "procdump.exe"), options.LogFilesOutputDirectory, options.LogFilesSecondaryOutputDirectory);
             }
 
             return null;
@@ -352,7 +359,7 @@ namespace RunTests
             var testExecutionOptions = new TestExecutionOptions(
                 xunitPath: options.XunitPath,
                 procDumpInfo: options.UseProcDump ? GetProcDumpInfo(options) : null,
-                outputDirectory: options.OutputDirectory,
+                outputDirectory: options.TestResultXmlOutputDirectory,
                 trait: options.Trait,
                 noTrait: options.NoTrait,
                 useHtml: options.UseHtml,

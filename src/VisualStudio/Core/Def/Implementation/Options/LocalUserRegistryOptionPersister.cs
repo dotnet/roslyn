@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// Serializes options marked with <see cref="LocalUserProfileStorageLocation"/> to the local hive-specific registry.
     /// </summary>
     [Export(typeof(IOptionPersister))]
-    internal sealed class LocalUserRegistryOptionPersister : ForegroundThreadAffinitizedObject, IOptionPersister
+    internal sealed class LocalUserRegistryOptionPersister : IOptionPersister
     {
         /// <summary>
         /// An object to gate access to <see cref="_registryKey"/>.
@@ -28,9 +28,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LocalUserRegistryOptionPersister(IThreadingContext threadingContext, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
-            : base(threadingContext, assertIsForeground: true) // The VSRegistry.RegistryRoot call requires being on the UI thread or else it will marshal and risk deadlock
+        public LocalUserRegistryOptionPersister([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
+            // Starting in Dev16, the ILocalRegistry service behind this call is free-threaded, and since the service is offered by msenv.dll can be requested
+            // without any marshalling (explicit or otherwise) to the UI thread.
             this._registryKey = VSRegistry.RegistryRoot(serviceProvider, __VsLocalRegistryType.RegType_UserSettings, writable: true);
         }
 
@@ -86,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                                 {
                                     // Due to a previous bug we were accidentally serializing longs as strings.
                                     // Gracefully convert those back.
-                                    var suceeded = long.TryParse(stringValue, out long longValue);
+                                    var suceeded = long.TryParse(stringValue, out var longValue);
                                     value = longValue;
                                     return suceeded;
                                 }
@@ -105,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                                 {
                                     // Due to a previous bug we were accidentally serializing ints as strings. 
                                     // Gracefully convert those back.
-                                    var suceeded = int.TryParse(stringValue, out int intValue);
+                                    var suceeded = int.TryParse(stringValue, out var intValue);
                                     value = intValue;
                                     return suceeded;
                                 }

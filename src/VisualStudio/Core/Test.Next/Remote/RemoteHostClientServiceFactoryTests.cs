@@ -136,10 +136,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // wait for listener
             var workspaceListener = listenerProvider.GetWaiter(FeatureAttribute.Workspace);
-            await workspaceListener.CreateWaitTask();
+            await workspaceListener.CreateExpeditedWaitTask();
 
             var listener = listenerProvider.GetWaiter(FeatureAttribute.RemoteHostClient);
-            await listener.CreateWaitTask();
+            await listener.CreateExpeditedWaitTask();
 
             // checksum should already exist
             Assert.True(workspace.CurrentSolution.State.TryGetStateChecksums(out var checksums));
@@ -188,7 +188,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var session = await client.TryCreateKeepAliveSessionAsync("Test", CancellationToken.None);
 
             // mimic unfortunate call that happens to be in the middle of communication.
-            var task = session.TryInvokeAsync("TestMethodAsync", SpecializedCollections.EmptyReadOnlyList<object>(), CancellationToken.None);
+            var task = session.TryInvokeAsync("TestMethodAsync", arguments: null, CancellationToken.None);
 
             // make client to go away
             service.Disable();
@@ -254,12 +254,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private class TestService : ServiceHubServiceBase
         {
-            public TestService(Stream stream, IServiceProvider serviceProvider) :
-                base(serviceProvider, stream)
+            public TestService(Stream stream, IServiceProvider serviceProvider)
+                : base(serviceProvider, stream)
             {
                 Event = new ManualResetEvent(false);
 
-                Rpc.StartListening();
+                StartService();
             }
 
             public readonly ManualResetEvent Event;
@@ -287,13 +287,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private class MockLogAndProgressService : ISymbolSearchLogService, ISymbolSearchProgressService
         {
-            public Task LogExceptionAsync(string exception, string text) => Task.CompletedTask;
-            public Task LogInfoAsync(string text) => Task.CompletedTask;
+            public Task LogExceptionAsync(string exception, string text, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task LogInfoAsync(string text, CancellationToken cancellationToken) => Task.CompletedTask;
 
-            public Task OnDownloadFullDatabaseStartedAsync(string title) => Task.CompletedTask;
-            public Task OnDownloadFullDatabaseSucceededAsync() => Task.CompletedTask;
-            public Task OnDownloadFullDatabaseCanceledAsync() => Task.CompletedTask;
-            public Task OnDownloadFullDatabaseFailedAsync(string message) => Task.CompletedTask;
+            public Task OnDownloadFullDatabaseStartedAsync(string title, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task OnDownloadFullDatabaseSucceededAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task OnDownloadFullDatabaseCanceledAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task OnDownloadFullDatabaseFailedAsync(string message, CancellationToken cancellationToken) => Task.CompletedTask;
         }
     }
 }

@@ -248,6 +248,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     case WorkspaceChangeKind.AdditionalDocumentRemoved:
                     case WorkspaceChangeKind.AdditionalDocumentChanged:
                     case WorkspaceChangeKind.AdditionalDocumentReloaded:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                         ProcessDocumentEvent(args, asyncToken);
                         break;
                     default:
@@ -288,7 +292,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     case WorkspaceChangeKind.AdditionalDocumentRemoved:
                     case WorkspaceChangeKind.AdditionalDocumentChanged:
                     case WorkspaceChangeKind.AdditionalDocumentReloaded:
-                        // If an additional file has changed we need to reanalyze the entire project.
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
+                        // If an additional file or .editorconfig has changed we need to reanalyze the entire project.
                         EnqueueEvent(e.NewSolution, e.ProjectId, InvocationReasons.AdditionalDocumentChanged, asyncToken);
                         break;
 
@@ -600,7 +608,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
-        private struct ReanalyzeScope
+        private readonly struct ReanalyzeScope
         {
             private readonly SolutionId _solutionId;
             private readonly ISet<object> _projectOrDocumentIds;
@@ -613,8 +621,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             public ReanalyzeScope(IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null)
             {
-                projectIds = projectIds ?? SpecializedCollections.EmptyEnumerable<ProjectId>();
-                documentIds = documentIds ?? SpecializedCollections.EmptyEnumerable<DocumentId>();
+                projectIds ??= SpecializedCollections.EmptyEnumerable<ProjectId>();
+                documentIds ??= SpecializedCollections.EmptyEnumerable<DocumentId>();
 
                 _solutionId = null;
                 _projectOrDocumentIds = new HashSet<object>(projectIds);

@@ -217,6 +217,11 @@ public class MyAttribute : Attribute { public MyAttribute(int[] values) { } }",
 public class MyAttribute : Attribute { public int Value {get; set;} }",
 @"[MyAttribute(Value = 123)]")),
 @"[global::MyAttribute(Value = 123)]");
+
+            var attributes = Generator.GetAttributes(Generator.AddAttributes(
+                Generator.NamespaceDeclaration("n"),
+                Generator.Attribute("Attr")));
+            Assert.True(attributes.Count == 1);
         }
 
         private AttributeData GetAttributeData(string decl, string use)
@@ -1875,7 +1880,7 @@ public class C
             var cls = cu.Members[0];
             var summary = cls.DescendantNodes(descendIntoTrivia: true).OfType<XmlElementSyntax>().First();
 
-            var summary2 = summary.WithContent(default(SyntaxList<XmlNodeSyntax>));
+            var summary2 = summary.WithContent(default);
 
             var newCu = Generator.ReplaceNode(cu, summary, summary2);
 
@@ -2150,6 +2155,68 @@ public class C
             Assert.Equal(DeclarationModifiers.None, Generator.GetModifiers(Generator.WithModifiers(Generator.LocalDeclarationStatement(Generator.IdentifierName("t"), "loc"), DeclarationModifiers.Abstract)));
             Assert.Equal(DeclarationModifiers.None, Generator.GetModifiers(Generator.WithModifiers(Generator.Attribute("a"), DeclarationModifiers.Abstract)));
             Assert.Equal(DeclarationModifiers.None, Generator.GetModifiers(Generator.WithModifiers(SyntaxFactory.TypeParameter("tp"), DeclarationModifiers.Abstract)));
+        }
+
+        [Fact]
+        public void TestWithModifiers_AllowedModifiers()
+        {
+            var allModifiers = new DeclarationModifiers(true, true, true, true, true, true, true, true, true, true, true, true, true);
+
+            Assert.Equal(
+                DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Unsafe,
+                Generator.GetModifiers(Generator.WithModifiers(Generator.ClassDeclaration("c"), allModifiers)));
+
+            Assert.Equal(
+                DeclarationModifiers.New | DeclarationModifiers.Partial | DeclarationModifiers.Unsafe | DeclarationModifiers.ReadOnly,
+                Generator.GetModifiers(Generator.WithModifiers(Generator.StructDeclaration("s"), allModifiers)));
+
+            Assert.Equal(
+                DeclarationModifiers.New | DeclarationModifiers.Partial | DeclarationModifiers.Unsafe,
+                Generator.GetModifiers(Generator.WithModifiers(Generator.InterfaceDeclaration("i"), allModifiers)));
+
+            Assert.Equal(
+                DeclarationModifiers.New | DeclarationModifiers.Unsafe,
+                Generator.GetModifiers(Generator.WithModifiers(Generator.DelegateDeclaration("d"), allModifiers)));
+
+            Assert.Equal(
+                DeclarationModifiers.New,
+                Generator.GetModifiers(Generator.WithModifiers(Generator.EnumDeclaration("e"), allModifiers)));
+
+            Assert.Equal(
+                DeclarationModifiers.Const | DeclarationModifiers.New | DeclarationModifiers.ReadOnly | DeclarationModifiers.Static | DeclarationModifiers.Unsafe,
+                Generator.GetModifiers(Generator.WithModifiers(Generator.FieldDeclaration("f", Generator.IdentifierName("t")), allModifiers)));
+
+            Assert.Equal(
+                DeclarationModifiers.Static | DeclarationModifiers.Unsafe,
+                Generator.GetModifiers(Generator.WithModifiers(Generator.ConstructorDeclaration("c"), allModifiers)));
+
+            Assert.Equal(
+                DeclarationModifiers.Unsafe,
+                Generator.GetModifiers(Generator.WithModifiers(SyntaxFactory.DestructorDeclaration("c"), allModifiers)));
+
+            Assert.Equal(
+                DeclarationModifiers.Abstract | DeclarationModifiers.Async | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe,
+                Generator.GetModifiers(Generator.WithModifiers(Generator.MethodDeclaration("m"), allModifiers)));
+
+            Assert.Equal(
+                DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe,
+                Generator.GetModifiers(Generator.WithModifiers(Generator.PropertyDeclaration("p", Generator.IdentifierName("t")), allModifiers)));
+
+            Assert.Equal(
+                DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe,
+                Generator.GetModifiers(Generator.WithModifiers(Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("i") }, Generator.IdentifierName("t")), allModifiers)));
+
+            Assert.Equal(
+                DeclarationModifiers.New | DeclarationModifiers.Static | DeclarationModifiers.Unsafe,
+                Generator.GetModifiers(Generator.WithModifiers(Generator.EventDeclaration("ef", Generator.IdentifierName("t")), allModifiers)));
+
+            Assert.Equal(
+                DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe,
+                Generator.GetModifiers(Generator.WithModifiers(Generator.CustomEventDeclaration("ep", Generator.IdentifierName("t")), allModifiers)));
+
+            Assert.Equal(
+                DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual,
+                Generator.GetModifiers(Generator.WithModifiers(SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration), allModifiers)));
         }
 
         [Fact]

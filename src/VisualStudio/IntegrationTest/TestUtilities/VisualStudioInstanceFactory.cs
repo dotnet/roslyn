@@ -11,6 +11,7 @@ using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.Setup.Configuration;
+using Microsoft.Win32;
 using RunTests;
 using Process = System.Diagnostics.Process;
 
@@ -35,20 +36,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         private static bool _firstLaunch = true;
 
-        static VisualStudioInstanceFactory()
-        {
-            var majorVsProductVersion = VsProductVersion.Split('.')[0];
-
-            if (int.Parse(majorVsProductVersion) < 15)
-            {
-                throw new PlatformNotSupportedException("The Visual Studio Integration Test Framework is only supported on Visual Studio 15.0 and later.");
-            }
-        }
-
         public VisualStudioInstanceFactory()
         {
             AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolveHandler;
             AppDomain.CurrentDomain.FirstChanceException += FirstChanceExceptionHandler;
+
+            var majorVsProductVersion = VsProductVersion.Split('.')[0];
+            if (int.Parse(majorVsProductVersion) < 16)
+            {
+                throw new PlatformNotSupportedException("The Visual Studio Integration Test Framework is only supported on Visual Studio 16.0 and later.");
+            }
         }
 
         private static void FirstChanceExceptionHandler(object sender, FirstChanceExceptionEventArgs eventArgs)
@@ -67,8 +64,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 var assemblyDirectory = GetAssemblyDirectory();
                 var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
                 var logDir = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots");
-                var baseFileName = $"{testName}-{eventArgs.Exception.GetType().Name}-{DateTime.Now:HH.mm.ss}";
-                ScreenshotService.TakeScreenshot(Path.Combine(logDir, $"{baseFileName}.png"));
+                var baseFileName = $"{DateTime.UtcNow:HH.mm.ss}-{testName}-{eventArgs.Exception.GetType().Name}";
+
+                var maxLength = logDir.Length + 1 + baseFileName.Length + ".Watson.log".Length + 1;
+                const int MaxPath = 260;
+                if (maxLength > MaxPath)
+                {
+                    testName = testName.Substring(0, testName.Length - (maxLength - MaxPath));
+                    baseFileName = $"{DateTime.UtcNow:HH.mm.ss}-{testName}-{eventArgs.Exception.GetType().Name}";
+                }
+
+                Directory.CreateDirectory(logDir);
 
                 var exception = eventArgs.Exception;
                 File.WriteAllText(
@@ -77,6 +83,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 EventLogCollector.TryWriteDotNetEntriesToFile(Path.Combine(logDir, $"{baseFileName}.DotNet.log"));
                 EventLogCollector.TryWriteWatsonEntriesToFile(Path.Combine(logDir, $"{baseFileName}.Watson.log"));
+
+                ScreenshotService.TakeScreenshot(Path.Combine(logDir, $"{baseFileName}.png"));
             }
             finally
             {
@@ -163,7 +171,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 supportedPackageIds = ImmutableHashSet.CreateRange(instance.GetPackages().Select((supportedPackage) => supportedPackage.GetId()));
                 installationPath = instance.GetInstallationPath();
 
-                hostProcess = StartNewVisualStudioProcess(installationPath);
+                var instanceVersion = instance.GetInstallationVersion();
+                var majorVersion = int.Parse(instanceVersion.Substring(0, instanceVersion.IndexOf('.')));
+                hostProcess = StartNewVisualStudioProcess(installationPath, majorVersion);
 
                 var procDumpInfo = ProcDumpInfo.ReadFromEnvironment();
                 if (procDumpInfo != null)
@@ -248,8 +258,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 var isMatch = true;
                 {
-                    isMatch &= instance.GetInstallationVersion().StartsWith(VsProductVersion);
-
                     if (haveVsInstallDir)
                     {
                         var installationPath = instance.GetInstallationPath();
@@ -257,19 +265,25 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                         installationPath = installationPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                         isMatch &= installationPath.Equals(vsInstallDir, StringComparison.OrdinalIgnoreCase);
                     }
+                    else
+                    {
+                        isMatch &= instance.GetInstallationVersion().StartsWith(VsProductVersion);
+                    }
                 }
                 return isMatch;
             });
 
-            var instanceFoundWithInvalidState = false;
+            var messages = new List<string>();
 
             foreach (ISetupInstance2 instance in instances)
             {
-                var packages = instance.GetPackages()
-                                       .Where((package) => requiredPackageIds.Contains(package.GetId()));
+                var instancePackagesIds = instance.GetPackages().Select(p => p.GetId()).ToHashSet();
+                var missingPackageIds = requiredPackageIds.Where(p => !instancePackagesIds.Contains(p)).ToList();
 
-                if (packages.Count() != requiredPackageIds.Count())
+                if (missingPackageIds.Count > 0)
                 {
+                    messages.Add($"An instance of {instance.GetDisplayName()} at {instance.GetInstallationPath()} was found but was missing these packages: " +
+                        string.Join(", ", missingPackageIds));
                     continue;
                 }
 
@@ -277,31 +291,55 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 var state = instance.GetState();
 
-                if ((state & minimumRequiredState) == minimumRequiredState)
+                if ((state & minimumRequiredState) != minimumRequiredState)
                 {
-                    return instance;
+                    messages.Add($"An instance of {instance.GetDisplayName()} at {instance.GetInstallationPath()} matched the specified requirements but had an invalid state. (State: {state})");
+                    continue;
                 }
 
-                Debug.WriteLine($"An instance matching the specified requirements but had an invalid state. (State: {state})");
-                instanceFoundWithInvalidState = true;
+                return instance;
             }
 
-            throw new Exception(instanceFoundWithInvalidState ?
-                                "An instance matching the specified requirements was found but it was in an invalid state." :
-                                "There were no instances of Visual Studio found that match the specified requirements.");
+            throw new Exception(string.Join(Environment.NewLine, messages));
         }
 
-        private static Process StartNewVisualStudioProcess(string installationPath)
+        private static Process StartNewVisualStudioProcess(string installationPath, int majorVersion)
         {
             var vsExeFile = Path.Combine(installationPath, @"Common7\IDE\devenv.exe");
+            var vsRegEditExeFile = Path.Combine(installationPath, @"Common7\IDE\VsRegEdit.exe");
 
             if (_firstLaunch)
             {
+                if (majorVersion == 16)
+                {
+                    // Make sure the start window doesn't show on launch
+                    Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU General OnEnvironmentStartup dword 10").WaitForExit();
+                }
+
                 // BUG: Currently building with /p:DeployExtension=true does not always cause the MEF cache to recompose...
                 //      So, run clearcache and updateconfiguration to workaround https://devdiv.visualstudio.com/DevDiv/_workitems?id=385351.
                 Process.Start(vsExeFile, $"/clearcache {VsLaunchArgs}").WaitForExit();
                 Process.Start(vsExeFile, $"/updateconfiguration {VsLaunchArgs}").WaitForExit();
                 Process.Start(vsExeFile, $"/resetsettings General.vssettings /command \"File.Exit\" {VsLaunchArgs}").WaitForExit();
+
+                // Disable roaming settings to avoid interference from the online user profile
+                Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\" RoamingEnabled string \"1*System.Boolean*False\"").WaitForExit();
+
+                // Disable background download UI to avoid toasts
+                Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Setup\\BackgroundDownload\" Value dword 0").WaitForExit();
+
+                // Remove legacy experiment setting for controlling async completion to ensure it does not interfere.
+                // We no longer set this value, but it could be in place from an earlier test run on the same machine.
+                var disabledFlights = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\ABExp\LocalTest", "DisabledFlights", Array.Empty<string>()) as string[] ?? Array.Empty<string>();
+                if (disabledFlights.Any(flight => string.Equals(flight, "completionapi", StringComparison.OrdinalIgnoreCase)))
+                {
+                    disabledFlights = disabledFlights.Where(flight => !string.Equals(flight, "completionapi", StringComparison.OrdinalIgnoreCase)).ToArray();
+                    Registry.SetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\ABExp\LocalTest", "DisabledFlights", disabledFlights, RegistryValueKind.MultiString);
+                }
+
+                // Disable text editor error reporting because it pops up a dialog. We want to either fail fast in our
+                // custom handler or fail silently and continue testing.
+                Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"Text Editor\" \"Report Exceptions\" dword 0").WaitForExit();
 
                 _firstLaunch = false;
             }

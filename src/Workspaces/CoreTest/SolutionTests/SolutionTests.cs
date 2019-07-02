@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.UnitTests.TestFiles;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -335,10 +334,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private Solution CreateSolutionWithProjectDependencyChain(int projectCount)
         {
-            Solution solution = this.CreateNotKeptAliveSolution();
+            var solution = this.CreateNotKeptAliveSolution();
             projectCount = 5;
             var projectIds = Enumerable.Range(0, projectCount).Select(i => ProjectId.CreateNewId()).ToArray();
-            for (int i = 0; i < projectCount; i++)
+            for (var i = 0; i < projectCount; i++)
             {
                 solution = solution.AddProject(projectIds[i], i.ToString(), i.ToString(), LanguageNames.CSharp);
                 if (i >= 1)
@@ -354,33 +353,32 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public async Task TestProjectDependencyLoadingAsync()
         {
-            int projectCount = 3;
+            var projectCount = 3;
             var solution = CreateSolutionWithProjectDependencyChain(projectCount);
-            ProjectId[] projectIds = solution.ProjectIds.ToArray();
+            var projectIds = solution.ProjectIds.ToArray();
 
-            var compilation0 = await solution.GetProject(projectIds[0]).GetCompilationAsync(CancellationToken.None);
-            var compilation2 = await solution.GetProject(projectIds[2]).GetCompilationAsync(CancellationToken.None);
+            await solution.GetProject(projectIds[0]).GetCompilationAsync(CancellationToken.None);
+            await solution.GetProject(projectIds[2]).GetCompilationAsync(CancellationToken.None);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public async Task TestAddMetadataReferencesAsync()
         {
-            var csharpReference = MetadataReference.CreateFromImage(Resources.Dlls.CSharpProject);
+            var mefReference = TestReferences.NetFx.v4_0_30319.System_Core;
             var solution = CreateSolution();
             var project1 = ProjectId.CreateNewId();
             solution = solution.AddProject(project1, "goo", "goo.dll", LanguageNames.CSharp);
             solution = solution.AddMetadataReference(project1, s_mscorlib);
 
-            // For CSharp Reference
-            solution = solution.AddMetadataReference(project1, csharpReference);
-            var assemblyReference = (IAssemblySymbol)solution.GetProject(project1).GetCompilationAsync().Result.GetAssemblyOrModuleSymbol(csharpReference);
+            solution = solution.AddMetadataReference(project1, mefReference);
+            var assemblyReference = (IAssemblySymbol)solution.GetProject(project1).GetCompilationAsync().Result.GetAssemblyOrModuleSymbol(mefReference);
             var namespacesAndTypes = assemblyReference.GlobalNamespace.GetAllNamespacesAndTypes(CancellationToken.None);
             var foundSymbol = from symbol in namespacesAndTypes
-                              where symbol.Name.Equals("CSharpClass")
+                              where symbol.Name.Equals("Enumerable")
                               select symbol;
             Assert.Equal(1, foundSymbol.Count());
-            solution = solution.RemoveMetadataReference(project1, csharpReference);
-            assemblyReference = (IAssemblySymbol)solution.GetProject(project1).GetCompilationAsync().Result.GetAssemblyOrModuleSymbol(csharpReference);
+            solution = solution.RemoveMetadataReference(project1, mefReference);
+            assemblyReference = (IAssemblySymbol)solution.GetProject(project1).GetCompilationAsync().Result.GetAssemblyOrModuleSymbol(mefReference);
             Assert.Null(assemblyReference);
 
             await ValidateSolutionAndCompilationsAsync(solution);
@@ -1200,11 +1198,19 @@ End Class";
         [ExportLanguageService(typeof(ITestLanguageService), LanguageNames.CSharp, ServiceLayer.Default), Shared]
         private class TestLanguageServiceA : ITestLanguageService
         {
+            [ImportingConstructor]
+            public TestLanguageServiceA()
+            {
+            }
         }
 
         [ExportLanguageService(typeof(ITestLanguageService), LanguageNames.CSharp, "Quasimodo"), Shared]
         private class TestLanguageServiceB : ITestLanguageService
         {
+            [ImportingConstructor]
+            public TestLanguageServiceB()
+            {
+            }
         }
 
         [Fact]
@@ -1219,8 +1225,8 @@ End Class";
                 diagnostic = args.Diagnostic;
             };
 
-            ProjectId pid = ProjectId.CreateNewId();
-            DocumentId did = DocumentId.CreateNewId(pid);
+            var pid = ProjectId.CreateNewId();
+            var did = DocumentId.CreateNewId(pid);
 
             solution = solution.AddProject(pid, "goo", "goo", LanguageNames.CSharp)
                                .AddDocument(did, "x", new FileTextLoader(@"C:\doesnotexist.cs", Encoding.UTF8));
@@ -1250,8 +1256,8 @@ End Class";
                 diagnostic = args.Diagnostic;
             };
 
-            ProjectId pid = ProjectId.CreateNewId();
-            DocumentId did = DocumentId.CreateNewId(pid);
+            var pid = ProjectId.CreateNewId();
+            var did = DocumentId.CreateNewId(pid);
 
             solution = solution.AddProject(pid, "goo", "goo", LanguageNames.CSharp)
                                .AddDocument(did, "x", new FileTextLoader(@"C:\doesnotexist.cs", Encoding.UTF8));
@@ -1269,7 +1275,7 @@ End Class";
 
         private bool WaitFor(Func<bool> condition, TimeSpan timeout)
         {
-            DateTime start = DateTime.UtcNow;
+            var start = DateTime.UtcNow;
 
             while ((DateTime.UtcNow - start) < timeout && !condition())
             {
@@ -1453,43 +1459,41 @@ public class C : A {
             var workspace = new AdhocWorkspace(MefHostServices.Create(TestHost.Assemblies), ServiceLayer.Host);
             workspace.Options = workspace.Options.WithChangedOption(FileTextLoaderOptions.FileLengthThreshold, maxLength);
 
-            using (var root = new TempRoot())
+            using var root = new TempRoot();
+            var file = root.CreateFile(prefix: "massiveFile", extension: ".cs").WriteAllText("hello");
+
+            var loader = new FileTextLoader(file.Path, Encoding.UTF8);
+            var textLength = FileUtilities.GetFileLength(file.Path);
+
+            var expected = string.Format(WorkspacesResources.File_0_size_of_1_exceeds_maximum_allowed_size_of_2, file.Path, textLength, maxLength);
+            var exceptionThrown = false;
+
+            try
             {
-                var file = root.CreateFile(prefix: "massiveFile", extension: ".cs").WriteAllText("hello");
-
-                var loader = new FileTextLoader(file.Path, Encoding.UTF8);
-                var textLength = FileUtilities.GetFileLength(file.Path);
-
-                var expected = string.Format(WorkspacesResources.File_0_size_of_1_exceeds_maximum_allowed_size_of_2, file.Path, textLength, maxLength);
-                var exceptionThrown = false;
-
-                try
-                {
-                    // test async one
-                    var unused = await loader.LoadTextAndVersionAsync(workspace, DocumentId.CreateNewId(ProjectId.CreateNewId()), CancellationToken.None);
-                }
-                catch (InvalidDataException ex)
-                {
-                    exceptionThrown = true;
-                    Assert.Equal(expected, ex.Message);
-                }
-
-                Assert.True(exceptionThrown);
-
-                exceptionThrown = false;
-                try
-                {
-                    // test sync one
-                    var unused = loader.LoadTextAndVersionSynchronously(workspace, DocumentId.CreateNewId(ProjectId.CreateNewId()), CancellationToken.None);
-                }
-                catch (InvalidDataException ex)
-                {
-                    exceptionThrown = true;
-                    Assert.Equal(expected, ex.Message);
-                }
-
-                Assert.True(exceptionThrown);
+                // test async one
+                var unused = await loader.LoadTextAndVersionAsync(workspace, DocumentId.CreateNewId(ProjectId.CreateNewId()), CancellationToken.None);
             }
+            catch (InvalidDataException ex)
+            {
+                exceptionThrown = true;
+                Assert.Equal(expected, ex.Message);
+            }
+
+            Assert.True(exceptionThrown);
+
+            exceptionThrown = false;
+            try
+            {
+                // test sync one
+                var unused = loader.LoadTextAndVersionSynchronously(workspace, DocumentId.CreateNewId(ProjectId.CreateNewId()), CancellationToken.None);
+            }
+            catch (InvalidDataException ex)
+            {
+                exceptionThrown = true;
+                Assert.Equal(expected, ex.Message);
+            }
+
+            Assert.True(exceptionThrown);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -1502,7 +1506,7 @@ public class C : A {
             var factory = dummyProject.LanguageServices.SyntaxTreeFactory;
 
             // create the origin tree
-            var strongTree = factory.ParseSyntaxTree("dummy", dummyProject.ParseOptions, SourceText.From("// emtpy"), CancellationToken.None);
+            var strongTree = factory.ParseSyntaxTree("dummy", dummyProject.ParseOptions, SourceText.From("// emtpy"), treeDiagnosticReportingOptionsOpt: null, CancellationToken.None);
 
             // create recoverable tree off the original tree
             var recoverableTree = factory.CreateRecoverableTree(
@@ -1526,12 +1530,12 @@ public class C : A {
             var solution = CreateSolution();
             var pid = ProjectId.CreateNewId();
 
-            Func<VersionStamp> GetVersion = () => solution.GetProject(pid).Version;
-            Func<ImmutableArray<DocumentId>> GetDocumentIds = () => solution.GetProject(pid).DocumentIds.ToImmutableArray();
-            Func<ImmutableArray<SyntaxTree>> GetSyntaxTrees = () =>
-                {
-                    return solution.GetProject(pid).GetCompilationAsync().Result.SyntaxTrees.ToImmutableArray();
-                };
+            VersionStamp GetVersion() => solution.GetProject(pid).Version;
+            ImmutableArray<DocumentId> GetDocumentIds() => solution.GetProject(pid).DocumentIds.ToImmutableArray();
+            ImmutableArray<SyntaxTree> GetSyntaxTrees()
+            {
+                return solution.GetProject(pid).GetCompilationAsync().Result.SyntaxTrees.ToImmutableArray();
+            }
 
             solution = solution.AddProject(pid, "test", "test.dll", LanguageNames.CSharp);
 
@@ -1624,6 +1628,134 @@ public class C : A {
             Assert.Throws<ArgumentNullException>(() => solution = solution.WithProjectDocumentsOrder(pid, null));
             Assert.Throws<InvalidOperationException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange(new[] { did5, did3, did2, did1 })));
             Assert.Throws<ArgumentException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange(new[] { did3, did2, did1 })));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task TestAddingEditorConfigFileWithDiagnosticSeverity()
+        {
+            var solution = CreateSolution();
+            var projectId = ProjectId.CreateNewId();
+            var sourceDocumentId = DocumentId.CreateNewId(projectId);
+
+            solution = solution.AddProject(projectId, "Test", "Test.dll", LanguageNames.CSharp);
+            solution = solution.AddDocument(sourceDocumentId, "Test.cs", "// Hello, world!", filePath: @"Z:\Test.cs");
+
+            var originalSyntaxTree = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
+            var originalCompilation = await solution.GetProject(projectId).GetCompilationAsync();
+
+            var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
+            solution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(
+                DocumentInfo.Create(
+                    editorConfigDocumentId,
+                    ".editorconfig",
+                    filePath: @"Z:\.editorconfig",
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("[*.cs]\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))));
+
+            var newSyntaxTree = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
+            var newCompilation = await solution.GetProject(projectId).GetCompilationAsync();
+
+            Assert.NotSame(originalSyntaxTree, newSyntaxTree);
+            Assert.NotSame(originalCompilation, newCompilation);
+
+            Assert.True(newCompilation.ContainsSyntaxTree(newSyntaxTree));
+
+            Assert.Single(newSyntaxTree.DiagnosticOptions);
+            Assert.Equal(ReportDiagnostic.Error, newSyntaxTree.DiagnosticOptions["CA1234"]);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task TestAddingAndRemovingEditorConfigFileWithDiagnosticSeverity()
+        {
+            var solution = CreateSolution();
+            var projectId = ProjectId.CreateNewId();
+            var sourceDocumentId = DocumentId.CreateNewId(projectId);
+
+            solution = solution.AddProject(projectId, "Test", "Test.dll", LanguageNames.CSharp);
+            solution = solution.AddDocument(sourceDocumentId, "Test.cs", "// Hello, world!", filePath: @"Z:\Test.cs");
+
+            var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
+            solution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(
+                DocumentInfo.Create(
+                    editorConfigDocumentId,
+                    ".editorconfig",
+                    filePath: @"Z:\.editorconfig",
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("[*.cs]\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))));
+
+            var syntaxTreeAfterAddingEditorConfig = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
+
+            Assert.Single(syntaxTreeAfterAddingEditorConfig.DiagnosticOptions);
+            Assert.Equal(ReportDiagnostic.Error, syntaxTreeAfterAddingEditorConfig.DiagnosticOptions["CA1234"]);
+
+            solution = solution.RemoveAnalyzerConfigDocument(editorConfigDocumentId);
+
+            var syntaxTreeAfterRemovingEditorConfig = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
+
+            Assert.Empty(syntaxTreeAfterRemovingEditorConfig.DiagnosticOptions);
+
+            var finalCompilation = await solution.GetProject(projectId).GetCompilationAsync();
+
+            Assert.True(finalCompilation.ContainsSyntaxTree(syntaxTreeAfterRemovingEditorConfig));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task TestChangingAnEditorConfigFile()
+        {
+            var solution = CreateSolution();
+            var projectId = ProjectId.CreateNewId();
+            var sourceDocumentId = DocumentId.CreateNewId(projectId);
+
+            solution = solution.AddProject(projectId, "Test", "Test.dll", LanguageNames.CSharp);
+            solution = solution.AddDocument(sourceDocumentId, "Test.cs", "// Hello, world!", filePath: @"Z:\Test.cs");
+
+            var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
+            solution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(
+                DocumentInfo.Create(
+                    editorConfigDocumentId,
+                    ".editorconfig",
+                    filePath: @"Z:\.editorconfig",
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("[*.cs]\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))));
+
+            var syntaxTreeBeforeEditorConfigChange = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
+
+            Assert.Single(syntaxTreeBeforeEditorConfigChange.DiagnosticOptions);
+            Assert.Equal(ReportDiagnostic.Error, syntaxTreeBeforeEditorConfigChange.DiagnosticOptions["CA1234"]);
+
+            solution = solution.WithAnalyzerConfigDocumentTextLoader(
+                editorConfigDocumentId,
+                TextLoader.From(TextAndVersion.Create(SourceText.From("[*.cs]\r\n\r\ndotnet_diagnostic.CA6789.severity = error"), VersionStamp.Default)),
+                PreservationMode.PreserveValue);
+
+            var syntaxTreeAfterEditorConfigChange = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
+
+            Assert.Single(syntaxTreeAfterEditorConfigChange.DiagnosticOptions);
+            Assert.Equal(ReportDiagnostic.Error, syntaxTreeAfterEditorConfigChange.DiagnosticOptions["CA6789"]);
+
+            var finalCompilation = await solution.GetProject(projectId).GetCompilationAsync();
+
+            Assert.True(finalCompilation.ContainsSyntaxTree(syntaxTreeAfterEditorConfigChange));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void AddingAndRemovingProjectsUpdatesFilePathMap()
+        {
+            var solution = CreateSolution();
+            var projectId = ProjectId.CreateNewId();
+            var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
+
+            const string editorConfigFilePath = @"Z:\.editorconfig";
+
+            var projectInfo =
+                ProjectInfo.Create(projectId, VersionStamp.Default, "Test", "Test", LanguageNames.CSharp)
+                    .WithAnalyzerConfigDocuments(new[] { DocumentInfo.Create(editorConfigDocumentId, ".editorconfig", filePath: editorConfigFilePath) });
+
+
+            solution = solution.AddProject(projectInfo);
+
+            Assert.Equal(editorConfigDocumentId, Assert.Single(solution.GetDocumentIdsWithFilePath(editorConfigFilePath)));
+
+            solution = solution.RemoveProject(projectId);
+
+            Assert.Empty(solution.GetDocumentIdsWithFilePath(editorConfigFilePath));
         }
 
         private static void GetMultipleProjects(

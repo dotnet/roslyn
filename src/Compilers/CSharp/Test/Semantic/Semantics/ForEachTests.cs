@@ -1196,7 +1196,7 @@ class C
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
             Assert.Equal("System.Collections.IEnumerable", info.CollectionType.ToTestDisplayString()); //NB: differs from expression type
-            Assert.Equal(SpecialType.System_Int32, info.ElementType.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, info.ElementTypeWithAnnotations.SpecialType);
             Assert.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Object System.Collections.IEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
@@ -1228,7 +1228,7 @@ class C
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
             Assert.Equal(SpecialType.System_String, info.CollectionType.SpecialType);
-            Assert.Equal(SpecialType.System_Char, info.ElementType.SpecialType);
+            Assert.Equal(SpecialType.System_Char, info.ElementTypeWithAnnotations.SpecialType);
             Assert.Equal("System.CharEnumerator System.String.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Char System.CharEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.CharEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
@@ -1271,7 +1271,7 @@ class Enumerator
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
             Assert.Equal("Enumerable", info.CollectionType.ToTestDisplayString());
-            Assert.Equal(SpecialType.System_Int32, info.ElementType.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, info.ElementTypeWithAnnotations.SpecialType);
             Assert.Equal("Enumerator Enumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 Enumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean Enumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
@@ -1314,7 +1314,7 @@ struct Enumerator
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
             Assert.Equal("Enumerable", info.CollectionType.ToTestDisplayString());
-            Assert.Equal(SpecialType.System_Int32, info.ElementType.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, info.ElementTypeWithAnnotations.SpecialType);
             Assert.Equal("Enumerator Enumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 Enumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean Enumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
@@ -1346,7 +1346,7 @@ class C
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
             Assert.Equal("System.Collections.IEnumerable", info.CollectionType.ToTestDisplayString());
-            Assert.Equal(SpecialType.System_Object, info.ElementType.SpecialType);
+            Assert.Equal(SpecialType.System_Object, info.ElementTypeWithAnnotations.SpecialType);
             Assert.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Object System.Collections.IEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
@@ -1385,7 +1385,7 @@ class Enumerable : System.Collections.Generic.IEnumerable<int>
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
             Assert.Equal("System.Collections.Generic.IEnumerable<System.Int32>", info.CollectionType.ToTestDisplayString()); //NB: differs from expression type
-            Assert.Equal(SpecialType.System_Int32, info.ElementType.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, info.ElementTypeWithAnnotations.SpecialType);
             Assert.Equal("System.Collections.Generic.IEnumerator<System.Int32> System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 System.Collections.Generic.IEnumerator<System.Int32>.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString()); //NB: not on generic interface
@@ -1426,7 +1426,7 @@ class Enumerable : System.Collections.Generic.IEnumerable<Enumerable.Hidden>
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
             Assert.Equal("System.Collections.IEnumerable", info.CollectionType.ToTestDisplayString()); //NB: fall back on non-generic, since generic is inaccessible
-            Assert.Equal(SpecialType.System_Object, info.ElementType.SpecialType);
+            Assert.Equal(SpecialType.System_Object, info.ElementTypeWithAnnotations.SpecialType);
             Assert.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Object System.Collections.IEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
@@ -1464,7 +1464,7 @@ class Enumerable : System.Collections.IEnumerable
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
             Assert.Equal("System.Collections.IEnumerable", info.CollectionType.ToTestDisplayString()); //NB: differs from expression type
-            Assert.Equal(SpecialType.System_Object, info.ElementType.SpecialType);
+            Assert.Equal(SpecialType.System_Object, info.ElementTypeWithAnnotations.SpecialType);
             Assert.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Object System.Collections.IEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
@@ -1496,7 +1496,7 @@ class C
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
             Assert.Equal("System.Collections.IEnumerable", info.CollectionType.ToTestDisplayString()); //NB: differs from expression type
-            Assert.Equal(SpecialType.System_Int32, info.ElementType.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, info.ElementTypeWithAnnotations.SpecialType);
             Assert.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Object System.Collections.IEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
@@ -1526,7 +1526,7 @@ class C
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
             Assert.Equal(SpecialType.System_String, info.CollectionType.SpecialType);
-            Assert.Equal(SpecialType.System_Char, info.ElementType.SpecialType);
+            Assert.Equal(SpecialType.System_Char, info.ElementTypeWithAnnotations.SpecialType);
             Assert.Equal("System.CharEnumerator System.String.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Char System.CharEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.CharEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
@@ -1611,7 +1611,7 @@ class C
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
             Assert.Equal("System.Collections.IEnumerable", info.CollectionType.ToTestDisplayString()); //NB: differs from expression type
-            Assert.Equal("C.var", info.ElementType.ToTestDisplayString());
+            Assert.Equal("C.var", info.ElementTypeWithAnnotations.ToTestDisplayString());
             Assert.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Object System.Collections.IEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
@@ -1621,7 +1621,7 @@ class C
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
-            Assert.Equal("C.var", boundNode.IterationVariables.Single().Type.ToTestDisplayString());
+            Assert.Equal("C.var", boundNode.IterationVariables.Single().TypeWithAnnotations.ToTestDisplayString());
         }
 
         [Fact]
@@ -1641,7 +1641,7 @@ class C
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
             Assert.Equal(SpecialType.System_Collections_IEnumerable, info.CollectionType.SpecialType);
-            Assert.Equal(SpecialType.System_Object, info.ElementType.SpecialType);
+            Assert.Equal(SpecialType.System_Object, info.ElementTypeWithAnnotations.SpecialType);
             Assert.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Object System.Collections.IEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
@@ -1713,7 +1713,7 @@ public class Enumerable<T>
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
             Assert.Equal("Enumerable<T>", info.CollectionType.ToTestDisplayString());
-            Assert.Equal(SpecialType.System_Object, info.ElementType.SpecialType);
+            Assert.Equal(SpecialType.System_Object, info.ElementTypeWithAnnotations.SpecialType);
             Assert.Equal("T Enumerable<T>.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Object System.Collections.IEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
@@ -1796,7 +1796,7 @@ interface MyEnumerator
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
             Assert.Equal("Enumerable<T>", info.CollectionType.ToTestDisplayString());
-            Assert.Equal(SpecialType.System_Object, info.ElementType.SpecialType);
+            Assert.Equal(SpecialType.System_Object, info.ElementTypeWithAnnotations.SpecialType);
             Assert.Equal("T Enumerable<T>.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Object MyEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean MyEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
@@ -1842,7 +1842,7 @@ struct Enumerator
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
             Assert.Equal("Enumerable", info.CollectionType.ToTestDisplayString());
-            Assert.Equal(SpecialType.System_Int32, info.ElementType.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, info.ElementTypeWithAnnotations.SpecialType);
             Assert.Equal("Enumerator Enumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 Enumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean Enumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
@@ -1872,7 +1872,7 @@ public class Test
   }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text,
+            var boundNode = GetBoundForEachStatement(text, TestOptions.Regular,
                 // (6,13): error CS1525: Invalid expression term 'int'
                 //     foreach(int; i < 5; i++)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 13),
@@ -2283,11 +2283,23 @@ class C
     }
 }
 ";
-            var comp = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
-            comp.VerifyDiagnostics(
-                // (28,55): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+            var expected = new[]
+            {
+                // (28,55): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(28, 55)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(28, 55)
+            };
+            var comp = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateEmptyCompilation(text, parseOptions: TestOptions.RegularDefault, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateEmptyCompilation(text, parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(
+                // (28,55): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(28, 55)
                 );
         }
 
@@ -3041,7 +3053,7 @@ namespace System.Collections
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
             Assert.Equal(SpecialType.System_String, info.CollectionType.SpecialType);
-            Assert.Equal(SpecialType.System_Char, info.ElementType.SpecialType);
+            Assert.Equal(SpecialType.System_Char, info.ElementTypeWithAnnotations.SpecialType);
             Assert.Equal("System.CharEnumerator System.String.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Char System.CharEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.CharEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
@@ -3088,9 +3100,43 @@ ref struct DisposableEnumerator
             Assert.Equal("void DisposableEnumerator.Dispose()", enumeratorInfo.DisposeMethod.ToTestDisplayString());
         }
 
-        private static BoundForEachStatement GetBoundForEachStatement(string text, params DiagnosticDescription[] diagnostics)
+        [Fact]
+        public void TestPatternDisposeRefStruct_7_3()
         {
-            var tree = Parse(text);
+            var text = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var x in new Enumerable1())
+        {
+            System.Console.WriteLine(x);
+        }
+    }
+}
+
+class Enumerable1
+{
+    public DisposableEnumerator GetEnumerator() { return new DisposableEnumerator(); }
+}
+
+ref struct DisposableEnumerator
+{
+    int x;
+    public int Current { get { return x; } }
+    public bool MoveNext() { return ++x < 4; }
+    public void Dispose() {  }
+}";
+
+            var boundNode = GetBoundForEachStatement(text, TestOptions.Regular7_3);
+            var enumeratorInfo = boundNode.EnumeratorInfoOpt;
+
+            Assert.Null(enumeratorInfo.DisposeMethod);
+        }
+
+        private static BoundForEachStatement GetBoundForEachStatement(string text, CSharpParseOptions options = null, params DiagnosticDescription[] diagnostics)
+        {
+            var tree = Parse(text, options: options);
             var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
 
             comp.VerifyDiagnostics(diagnostics);
@@ -3138,7 +3184,7 @@ ref struct DisposableEnumerator
                     Assert.Null(statementInfo.DisposeMethod);
                 }
 
-                Assert.Equal(enumeratorInfo.ElementType.TypeSymbol, statementInfo.ElementType);
+                Assert.Equal(enumeratorInfo.ElementType, statementInfo.ElementType);
                 Assert.Equal(boundNode.ElementConversion, statementInfo.ElementConversion);
                 Assert.Equal(enumeratorInfo.CurrentConversion, statementInfo.CurrentConversion);
             }

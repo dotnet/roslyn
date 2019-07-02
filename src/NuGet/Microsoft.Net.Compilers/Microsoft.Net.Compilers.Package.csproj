@@ -2,7 +2,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <RoslynProjectType>Custom</RoslynProjectType>
 
     <IsPackable>true</IsPackable>
     <NuspecPackageId>Microsoft.Net.Compilers</NuspecPackageId>
@@ -26,23 +25,15 @@
     <ProjectReference Include="..\..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" PrivateAssets="All"/>
   </ItemGroup>
 
-  <Target Name="_GetFilesToPackage" DependsOnTargets="InitializeCompilerArtifacts">
+  <Target Name="_GetFilesToPackage" DependsOnTargets="InitializeDesktopCompilerArtifacts">
     <ItemGroup>
-      <_File Include="@(CompilerArtifact)" TargetDir="tools"/>
-     
+      <_File Include="@(DesktopCompilerArtifact)" TargetDir="tools"/>
+      <_File Include="@(DesktopCompilerResourceArtifact)" TargetDir="tools"/>
       <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" TargetDir="build" />
-     
-      <!-- Satellite assemblies -->
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.resources.dll" TargetDir="tools" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.CSharp.resources.dll" TargetDir="tools" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Scripting\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.Scripting.resources.dll" TargetDir="tools" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Scripting\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.CSharp.Scripting.resources.dll" TargetDir="tools" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.VisualBasic.resources.dll" TargetDir="tools" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\**\Microsoft.Build.Tasks.CodeAnalysis.resources.dll" TargetDir="tools" />
 
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
     </ItemGroup>
   </Target>
 
-  <Import Project="CompilerArtifacts.targets"/>
+  <Import Project="..\Microsoft.Net.Compilers.Toolset\DesktopCompilerArtifacts.targets"/>
 </Project>

@@ -14,6 +14,8 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
+using RoslynCompletionTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
+using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -145,11 +147,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             {
                 var selectedItem = modelOpt.SelectedItemOpt;
 
-                // set viewSpan = null if the selectedItem is not from the completion list
-                // All items from the completion list have .Document set to current document 
-                // in CompletionService.GetCompletionsAndSetItemDocumentAsync
+                // set viewSpan = null if the selectedItem is not from the completion list.
                 // https://github.com/dotnet/roslyn/issues/23891
-                var viewSpan = selectedItem == null || selectedItem.Document == null
+                var viewSpan = selectedItem == null || modelOpt.TriggerDocument == null
                     ? (ViewTextSpan?)null
                     : modelOpt.GetViewBufferSpan(selectedItem.Span);
 
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                               .CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
                 sessionOpt.PresenterSession.PresentItems(
-                    triggerSpan, modelOpt.FilteredItems, selectedItem,
+                    modelOpt.TriggerSnapshot, triggerSpan, modelOpt.FilteredItems, selectedItem,
                     modelOpt.SuggestionModeItem, modelOpt.UseSuggestionMode,
                     modelOpt.IsSoftSelection, modelOpt.CompletionItemFilters, modelOpt.FilterText);
             }
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private bool StartNewModelComputation(
             CompletionService completionService,
-            CompletionTrigger trigger)
+            RoslynCompletionTrigger trigger)
         {
             AssertIsForeground();
             Contract.ThrowIfTrue(sessionOpt != null);
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 : workspace.Options;
         }
 
-        private void CommitItem(CompletionItem item)
+        private void CommitItem(RoslynCompletionItem item)
         {
             AssertIsForeground();
 
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         public void MakeMostRecentItem(string item)
         {
-            bool updated = false;
+            var updated = false;
 
             while (!updated)
             {

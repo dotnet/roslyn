@@ -43,13 +43,13 @@ static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceBef
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceBetweenEmptyMethodDeclarationParentheses.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets.get -> Microsoft.CodeAnalysis.Options.Option<bool>
+static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceWithinCastParentheses.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceWithinExpressionParentheses.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceWithinMethodCallParentheses.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceWithinMethodDeclarationParenthesis.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceWithinOtherParentheses.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceWithinSquareBrackets.get -> Microsoft.CodeAnalysis.Options.Option<bool>
-static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpacingAfterMethodDeclarationName.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpacingAroundBinaryOperator.get -> Microsoft.CodeAnalysis.Options.Option<Microsoft.CodeAnalysis.CSharp.Formatting.BinaryOperatorSpacingOptions>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine.get -> Microsoft.CodeAnalysis.Options.Option<bool>

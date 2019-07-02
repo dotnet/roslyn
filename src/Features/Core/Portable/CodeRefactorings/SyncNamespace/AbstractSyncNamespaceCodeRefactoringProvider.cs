@@ -22,6 +22,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             var textSpan = context.Span;
             var cancellationToken = context.CancellationToken;
 
+            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles ||
+                document.IsGeneratedCode(cancellationToken))
+            {
+                return;
+            }
+
             var state = await State.CreateAsync(this, document, textSpan, cancellationToken).ConfigureAwait(false);
             if (state == null)
             {
@@ -90,8 +96,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
         private class ChangeNamespaceCodeAction : SolutionChangeAction
         {
-            public ChangeNamespaceCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution) :
-                base(title, createChangedSolution)
+            public ChangeNamespaceCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+                : base(title, createChangedSolution)
             {
             }
         }

@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExplicitTypeForConst
     {
         private const string CS0822 = nameof(CS0822); // Implicitly-typed variables cannot be constant
 
+        [ImportingConstructor]
+        public UseExplicitTypeForConstCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(CS0822);
 
         public override FixAllProvider GetFixAllProvider()
@@ -59,9 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExplicitTypeForConst
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(CSharpFeaturesResources.Use_explicit_type_instead_of_var,
-                     createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpFeaturesResources.Use_explicit_type_instead_of_var,
+                       createChangedDocument)
             {
             }
         }

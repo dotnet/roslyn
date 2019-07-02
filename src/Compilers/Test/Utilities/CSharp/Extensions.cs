@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public static string[] GetFieldNamesAndTypes(this ModuleSymbol module, string qualifiedTypeName)
         {
             var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember(qualifiedTypeName);
-            return type.GetMembers().OfType<FieldSymbol>().Select(f => f.Name + ": " + f.Type).ToArray();
+            return type.GetMembers().OfType<FieldSymbol>().Select(f => f.Name + ": " + f.TypeWithAnnotations).ToArray();
         }
 
         public static IEnumerable<CSharpAttributeData> GetAttributes(this Symbol @this, NamedTypeSymbol c)
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     return false;
                 }
                 var arySym = (ArrayTypeSymbol)typeSym;
-                if (!IsEqual(arySym.ElementType.TypeSymbol, expType.GetElementType()))
+                if (!IsEqual(arySym.ElementType, expType.GetElementType()))
                 {
                     return false;
                 }
@@ -458,13 +458,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Contains(accessor, propertyOrEvent.ContainingType.GetMembers(accessor.Name));
 
-            var propertyOrEventType = propertyOrEvent.GetTypeOrReturnType().TypeSymbol;
+            var propertyOrEventType = propertyOrEvent.GetTypeOrReturnType().Type;
             switch (accessor.MethodKind)
             {
                 case MethodKind.EventAdd:
                 case MethodKind.EventRemove:
                     Assert.Equal(SpecialType.System_Void, accessor.ReturnType.SpecialType);
-                    Assert.Equal(propertyOrEventType, accessor.Parameters.Single().Type.TypeSymbol);
+                    Assert.Equal(propertyOrEventType, accessor.Parameters.Single().Type);
                     break;
                 case MethodKind.PropertyGet:
                 case MethodKind.PropertySet:
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     else
                     {
-                        Assert.Equal(propertyOrEventType, accessor.ReturnType.TypeSymbol);
+                        Assert.Equal(propertyOrEventType, accessor.ReturnType);
                     }
 
                     var propertyParameters = property.Parameters;
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         var propertyParam = propertyParameters[i];
                         var accessorParam = accessorParameters[i];
-                        Assert.Equal(propertyParam.Type.TypeSymbol, accessorParam.Type.TypeSymbol);
+                        Assert.Equal(propertyParam.Type, accessorParam.Type);
                         Assert.Equal(propertyParam.RefKind, accessorParam.RefKind);
                         Assert.Equal(propertyParam.Name, accessorParam.Name);
                     }
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     if (isSetter)
                     {
                         var valueParameter = accessorParameters[propertyParameters.Length];
-                        Assert.Equal(propertyOrEventType, valueParameter.Type.TypeSymbol);
+                        Assert.Equal(propertyOrEventType, valueParameter.Type);
                         Assert.Equal(RefKind.None, valueParameter.RefKind);
                         Assert.Equal(ParameterSymbol.ValueParameterName, valueParameter.Name);
                     }
@@ -572,7 +572,7 @@ internal static class Extensions
 
     public static ImmutableArray<TypeSymbol> TypeArguments(this NamedTypeSymbol symbol)
     {
-        return TypeMap.AsTypeSymbols(symbol.TypeArgumentsNoUseSiteDiagnostics);
+        return TypeMap.AsTypeSymbols(symbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
     }
 
     public static ImmutableArray<TypeSymbol> ConstraintTypes(this TypeParameterSymbol symbol)

@@ -3740,7 +3740,7 @@ class C
         }
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/33108"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task DontParenthesizeInterpolatedStringWithNoInterpolation()
         {
             await TestInRegularAndScriptAsync(
@@ -3784,7 +3784,7 @@ class C
         }
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/33108"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task DontParenthesizeInterpolatedStringWithInterpolation()
         {
             await TestInRegularAndScriptAsync(
@@ -4686,6 +4686,25 @@ class C
         var x2 = (X)(0, (0, 0));
     }
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(35645, "https://github.com/dotnet/roslyn/issues/35645")]
+        public async Task UsingDeclaration()
+        {
+            var code = @"
+using System;
+class C : IDisposable
+{
+    public void M()
+    {
+        using var [||]c = new C();
+        c.ToString();
+    }
+    public void Dispose() { }
+}";
+
+            await TestMissingInRegularAndScriptAsync(code, new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
     }
 }

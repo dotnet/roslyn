@@ -912,8 +912,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void Using1()
         {
-            string src1 = @"using (a) { using (b) { Goo(); } }";
-            string src2 = @"using (a) { using (c) { using (b) { Goo(); } } }";
+            var src1 = @"using (a) { using (b) { Goo(); } }";
+            var src2 = @"using (a) { using (c) { using (b) { Goo(); } } }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -926,8 +926,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void Using_DeleteHeader()
         {
-            string src1 = @"using (a) { Goo(); }";
-            string src2 = @"{ Goo(); }";
+            var src1 = @"using (a) { Goo(); }";
+            var src2 = @"{ Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -939,8 +939,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void Using_InsertHeader()
         {
-            string src1 = @"{ Goo(); }";
-            string src2 = @"using (a) { Goo(); }";
+            var src1 = @"{ Goo(); }";
+            var src2 = @"using (a) { Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -956,8 +956,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void Lock1()
         {
-            string src1 = @"lock (a) { lock (b) { Goo(); } }";
-            string src2 = @"lock (a) { lock (c) { lock (b) { Goo(); } } }";
+            var src1 = @"lock (a) { lock (b) { Goo(); } }";
+            var src2 = @"lock (a) { lock (c) { lock (b) { Goo(); } } }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -970,8 +970,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void Lock_DeleteHeader()
         {
-            string src1 = @"lock (a) { Goo(); }";
-            string src2 = @"{ Goo(); }";
+            var src1 = @"lock (a) { Goo(); }";
+            var src2 = @"{ Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -983,8 +983,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void Lock_InsertHeader()
         {
-            string src1 = @"{ Goo(); }";
-            string src2 = @"lock (a) { Goo(); }";
+            var src1 = @"{ Goo(); }";
+            var src2 = @"lock (a) { Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1000,8 +1000,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void ForEach1()
         {
-            string src1 = @"foreach (var a in e) { foreach (var b in f) { Goo(); } }";
-            string src2 = @"foreach (var a in e) { foreach (var c in g) { foreach (var b in f) { Goo(); } } }";
+            var src1 = @"foreach (var a in e) { foreach (var b in f) { Goo(); } }";
+            var src2 = @"foreach (var a in e) { foreach (var c in g) { foreach (var b in f) { Goo(); } } }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1027,8 +1027,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void ForEach_Swap1()
         {
-            string src1 = @"foreach (var a in e) { foreach (var b in f) { Goo(); } }";
-            string src2 = @"foreach (var b in f) { foreach (var a in e) { Goo(); } }";
+            var src1 = @"foreach (var a in e) { foreach (var b in f) { Goo(); } }";
+            var src2 = @"foreach (var b in f) { foreach (var a in e) { Goo(); } }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1054,8 +1054,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void Foreach_DeleteHeader()
         {
-            string src1 = @"foreach (var a in b) { Goo(); }";
-            string src2 = @"{ Goo(); }";
+            var src1 = @"foreach (var a in b) { Goo(); }";
+            var src2 = @"{ Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1067,8 +1067,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void Foreach_InsertHeader()
         {
-            string src1 = @"{ Goo(); }";
-            string src2 = @"foreach (var a in b) { Goo(); }";
+            var src1 = @"{ Goo(); }";
+            var src2 = @"foreach (var a in b) { Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1212,8 +1212,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For1()
         {
-            string src1 = @"for (int a = 0; a < 10; a++) { for (int a = 0; a < 20; a++) { Goo(); } }";
-            string src2 = @"for (int a = 0; a < 10; a++) { for (int b = 0; b < 10; b++) { for (int a = 0; a < 20; a++) { Goo(); } } }";
+            var src1 = @"for (int a = 0; a < 10; a++) { for (int a = 0; a < 20; a++) { Goo(); } }";
+            var src2 = @"for (int a = 0; a < 10; a++) { for (int b = 0; b < 10; b++) { for (int a = 0; a < 20; a++) { Goo(); } } }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1230,8 +1230,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_DeleteHeader()
         {
-            string src1 = @"for (int i = 10, j = 0; i > j; i--, j++) { Goo(); }";
-            string src2 = @"{ Goo(); }";
+            var src1 = @"for (int i = 10, j = 0; i > j; i--, j++) { Goo(); }";
+            var src2 = @"{ Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1249,8 +1249,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_InsertHeader()
         {
-            string src1 = @"{ Goo(); }";
-            string src2 = @"for (int i = 10, j = 0; i > j; i--, j++) { Goo(); }";
+            var src1 = @"{ Goo(); }";
+            var src2 = @"for (int i = 10, j = 0; i > j; i--, j++) { Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1268,8 +1268,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_DeclaratorsToInitializers()
         {
-            string src1 = @"for (var i = 10; i < 10; i++) { }";
-            string src2 = @"for (i = 10; i < 10; i++) { }";
+            var src1 = @"for (var i = 10; i < 10; i++) { }";
+            var src2 = @"for (i = 10; i < 10; i++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1282,8 +1282,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_InitializersToDeclarators()
         {
-            string src1 = @"for (i = 10, j = 0; i < 10; i++) { }";
-            string src2 = @"for (var i = 10, j = 0; i < 10; i++) { }";
+            var src1 = @"for (i = 10, j = 0; i < 10; i++) { }";
+            var src2 = @"for (var i = 10, j = 0; i < 10; i++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1298,8 +1298,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Declarations_Reorder()
         {
-            string src1 = @"for (var i = 10, j = 0; i > j; i++, j++) { }";
-            string src2 = @"for (var j = 0, i = 10; i > j; i++, j++) { }";
+            var src1 = @"for (var i = 10, j = 0; i > j; i++, j++) { }";
+            var src2 = @"for (var j = 0, i = 10; i > j; i++, j++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1309,8 +1309,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Declarations_Insert()
         {
-            string src1 = @"for (var i = 0, j = 1; i > j; i++, j++) { }";
-            string src2 = @"for (var i = 0, j = 1, k = 2; i > j; i++, j++) { }";
+            var src1 = @"for (var i = 0, j = 1; i > j; i++, j++) { }";
+            var src2 = @"for (var i = 0, j = 1, k = 2; i > j; i++, j++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1322,8 +1322,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Declarations_Delete()
         {
-            string src1 = @"for (var i = 0, j = 1, k = 2; i > j; i++, j++) { }";
-            string src2 = @"for (var i = 0, j = 1; i > j; i++, j++) { }";
+            var src1 = @"for (var i = 0, j = 1, k = 2; i > j; i++, j++) { }";
+            var src2 = @"for (var i = 0, j = 1; i > j; i++, j++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1335,8 +1335,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Initializers_Reorder()
         {
-            string src1 = @"for (i = 10, j = 0; i > j; i++, j++) { }";
-            string src2 = @"for (j = 0, i = 10; i > j; i++, j++) { }";
+            var src1 = @"for (i = 10, j = 0; i > j; i++, j++) { }";
+            var src2 = @"for (j = 0, i = 10; i > j; i++, j++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1346,8 +1346,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Initializers_Insert()
         {
-            string src1 = @"for (i = 10; i < 10; i++) { }";
-            string src2 = @"for (i = 10, j = 0; i < 10; i++) { }";
+            var src1 = @"for (i = 10; i < 10; i++) { }";
+            var src2 = @"for (i = 10, j = 0; i < 10; i++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1357,8 +1357,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Initializers_Delete()
         {
-            string src1 = @"for (i = 10, j = 0; i < 10; i++) { }";
-            string src2 = @"for (i = 10; i < 10; i++) { }";
+            var src1 = @"for (i = 10, j = 0; i < 10; i++) { }";
+            var src2 = @"for (i = 10; i < 10; i++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1368,8 +1368,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Initializers_Update()
         {
-            string src1 = @"for (i = 1; i < 10; i++) { }";
-            string src2 = @"for (i = 2; i < 10; i++) { }";
+            var src1 = @"for (i = 1; i < 10; i++) { }";
+            var src2 = @"for (i = 2; i < 10; i++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1379,8 +1379,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Initializers_Update_Lambda()
         {
-            string src1 = @"for (int i = 10, j = F(() => 1); i > j; i++) { }";
-            string src2 = @"for (int i = 10, j = F(() => 2); i > j; i++) { }";
+            var src1 = @"for (int i = 10, j = F(() => 1); i > j; i++) { }";
+            var src2 = @"for (int i = 10, j = F(() => 2); i > j; i++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1390,8 +1390,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Condition_Update()
         {
-            string src1 = @"for (int i = 0; i < 10; i++) { }";
-            string src2 = @"for (int i = 0; i < 20; i++) { }";
+            var src1 = @"for (int i = 0; i < 10; i++) { }";
+            var src2 = @"for (int i = 0; i < 20; i++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1401,8 +1401,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Condition_Lambda()
         {
-            string src1 = @"for (int i = 0; F(() => 1); i++) { }";
-            string src2 = @"for (int i = 0; F(() => 2); i++) { }";
+            var src1 = @"for (int i = 0; F(() => 1); i++) { }";
+            var src2 = @"for (int i = 0; F(() => 2); i++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1412,8 +1412,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Incrementors_Reorder()
         {
-            string src1 = @"for (int i = 10, j = 0; i > j; i--, j++) { }";
-            string src2 = @"for (int i = 10, j = 0; i > j; j++, i--) { }";
+            var src1 = @"for (int i = 10, j = 0; i > j; i--, j++) { }";
+            var src2 = @"for (int i = 10, j = 0; i > j; j++, i--) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1423,8 +1423,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Incrementors_Insert()
         {
-            string src1 = @"for (int i = 10, j = 0; i > j; i--) { }";
-            string src2 = @"for (int i = 10, j = 0; i > j; j++, i--) { }";
+            var src1 = @"for (int i = 10, j = 0; i > j; i--) { }";
+            var src2 = @"for (int i = 10, j = 0; i > j; j++, i--) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1434,8 +1434,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Incrementors_Delete()
         {
-            string src1 = @"for (int i = 10, j = 0; i > j; j++, i--) { }";
-            string src2 = @"for (int i = 10, j = 0; i > j; j++) { }";
+            var src1 = @"for (int i = 10, j = 0; i > j; j++, i--) { }";
+            var src2 = @"for (int i = 10, j = 0; i > j; j++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1445,8 +1445,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Incrementors_Update()
         {
-            string src1 = @"for (int i = 10, j = 0; i > j; j++) { }";
-            string src2 = @"for (int i = 10, j = 0; i > j; i++) { }";
+            var src1 = @"for (int i = 10, j = 0; i > j; j++) { }";
+            var src2 = @"for (int i = 10, j = 0; i > j; i++) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1456,8 +1456,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_Incrementors_Update_Lambda()
         {
-            string src1 = @"for (int i = 10, j = 0; i > j; F(() => 1)) { }";
-            string src2 = @"for (int i = 10, j = 0; i > j; F(() => 2)) { }";
+            var src1 = @"for (int i = 10, j = 0; i > j; F(() => 1)) { }";
+            var src2 = @"for (int i = 10, j = 0; i > j; F(() => 2)) { }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1471,8 +1471,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void While1()
         {
-            string src1 = @"while (a) { while (b) { Goo(); } }";
-            string src2 = @"while (a) { while (c) { while (b) { Goo(); } } }";
+            var src1 = @"while (a) { while (b) { Goo(); } }";
+            var src2 = @"while (a) { while (c) { while (b) { Goo(); } } }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1485,8 +1485,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void While_DeleteHeader()
         {
-            string src1 = @"while (a) { Goo(); }";
-            string src2 = @"{ Goo(); }";
+            var src1 = @"while (a) { Goo(); }";
+            var src2 = @"{ Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1498,8 +1498,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void While_InsertHeader()
         {
-            string src1 = @"{ Goo(); }";
-            string src2 = @"while (a) { Goo(); }";
+            var src1 = @"{ Goo(); }";
+            var src2 = @"while (a) { Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1515,8 +1515,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void Do1()
         {
-            string src1 = @"do { do { Goo(); } while (b); } while (a);";
-            string src2 = @"do { do { do { Goo(); } while(b); } while(c); } while(a);";
+            var src1 = @"do { do { Goo(); } while (b); } while (a);";
+            var src2 = @"do { do { do { Goo(); } while(b); } while(c); } while(a);";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1529,8 +1529,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void Do_DeleteHeader()
         {
-            string src1 = @"do { Goo(); } while (a);";
-            string src2 = @"{ Goo(); }";
+            var src1 = @"do { Goo(); } while (a);";
+            var src2 = @"{ Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1542,8 +1542,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void Do_InsertHeader()
         {
-            string src1 = @"{ Goo(); }";
-            string src2 = @"do { Goo(); } while (a);";
+            var src1 = @"{ Goo(); }";
+            var src2 = @"do { Goo(); } while (a);";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1597,8 +1597,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void If1()
         {
-            string src1 = @"if (a) if (b) Goo();";
-            string src2 = @"if (a) if (c) if (b) Goo();";
+            var src1 = @"if (a) if (b) Goo();";
+            var src2 = @"if (a) if (c) if (b) Goo();";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1610,8 +1610,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void If_DeleteHeader()
         {
-            string src1 = @"if (a) { Goo(); }";
-            string src2 = @"{ Goo(); }";
+            var src1 = @"if (a) { Goo(); }";
+            var src2 = @"{ Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1623,8 +1623,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void If_InsertHeader()
         {
-            string src1 = @"{ Goo(); }";
-            string src2 = @"if (a) { Goo(); }";
+            var src1 = @"{ Goo(); }";
+            var src2 = @"if (a) { Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1636,8 +1636,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void Else_DeleteHeader()
         {
-            string src1 = @"if (a) { Goo(/*1*/); } else { Goo(/*2*/); }";
-            string src2 = @"if (a) { Goo(/*1*/); } { Goo(/*2*/); }";
+            var src1 = @"if (a) { Goo(/*1*/); } else { Goo(/*2*/); }";
+            var src2 = @"if (a) { Goo(/*1*/); } { Goo(/*2*/); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1649,8 +1649,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void Else_InsertHeader()
         {
-            string src1 = @"if (a) { Goo(/*1*/); } { Goo(/*2*/); }";
-            string src2 = @"if (a) { Goo(/*1*/); } else { Goo(/*2*/); }";
+            var src1 = @"if (a) { Goo(/*1*/); } { Goo(/*2*/); }";
+            var src2 = @"if (a) { Goo(/*1*/); } else { Goo(/*2*/); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1662,8 +1662,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void ElseIf_DeleteHeader()
         {
-            string src1 = @"if (a) { Goo(/*1*/); } else if (b) { Goo(/*2*/); }";
-            string src2 = @"if (a) { Goo(/*1*/); } { Goo(/*2*/); }";
+            var src1 = @"if (a) { Goo(/*1*/); } else if (b) { Goo(/*2*/); }";
+            var src2 = @"if (a) { Goo(/*1*/); } { Goo(/*2*/); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1676,8 +1676,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void ElseIf_InsertHeader()
         {
-            string src1 = @"if (a) { Goo(/*1*/); } { Goo(/*2*/); }";
-            string src2 = @"if (a) { Goo(/*1*/); } else if (b) { Goo(/*2*/); }";
+            var src1 = @"if (a) { Goo(/*1*/); } { Goo(/*2*/); }";
+            var src2 = @"if (a) { Goo(/*1*/); } else if (b) { Goo(/*2*/); }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1690,8 +1690,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void IfElseElseIf_InsertHeader()
         {
-            string src1 = @"{ /*1*/ } { /*2*/ } { /*3*/ }";
-            string src2 = @"if (a) { /*1*/ } else if (b) { /*2*/ } else { /*3*/ }";
+            var src1 = @"{ /*1*/ } { /*2*/ } { /*3*/ }";
+            var src2 = @"if (a) { /*1*/ } else if (b) { /*2*/ } else { /*3*/ }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -1708,8 +1708,8 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void IfElseElseIf_DeleteHeader()
         {
-            string src1 = @"if (a) { /*1*/ } else if (b) { /*2*/ } else { /*3*/ }";
-            string src2 = @"{ /*1*/ } { /*2*/ } { /*3*/ }";
+            var src1 = @"if (a) { /*1*/ } else if (b) { /*2*/ } else { /*3*/ }";
+            var src2 = @"{ /*1*/ } { /*2*/ } { /*3*/ }";
 
             var edits = GetMethodEdits(src1, src2);
 
@@ -4630,7 +4630,7 @@ class C
         [Fact]
         public void Lambdas_RenameCapturedLocal()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Diagnostics;
 
@@ -4642,7 +4642,7 @@ class Program
         Func<int> f = () => x;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Diagnostics;
 
@@ -4664,7 +4664,7 @@ class Program
         [Fact]
         public void Lambdas_RenameCapturedParameter()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Diagnostics;
 
@@ -4675,7 +4675,7 @@ class Program
         Func<int> f = () => x;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Diagnostics;
 
@@ -6634,7 +6634,7 @@ class C
         [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_RenameCapturedLocal()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Diagnostics;
 
@@ -6646,7 +6646,7 @@ class Program
         int f() => x;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Diagnostics;
 
@@ -6668,7 +6668,7 @@ class Program
         [Fact]
         public void LocalFunctions_RenameCapturedParameter()
         {
-            string src1 = @"
+            var src1 = @"
         using System;
         using System.Diagnostics;
 
@@ -6679,7 +6679,7 @@ class Program
                 int f() => x;
             }
         }";
-            string src2 = @"
+            var src2 = @"
         using System;
         using System.Diagnostics;
 
@@ -7586,7 +7586,7 @@ class C
         [Fact]
         public void Queries_CapturedTransparentIdentifiers_FromClause1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Linq;
 
@@ -7608,7 +7608,7 @@ class C
 		             select a;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Linq;
 
@@ -7638,7 +7638,7 @@ class C
         [Fact]
         public void Queries_CapturedTransparentIdentifiers_LetClause1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Linq;
 
@@ -7656,7 +7656,7 @@ class C
 		             select a + b;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Linq;
 
@@ -7682,7 +7682,7 @@ class C
         [Fact]
         public void Queries_CapturedTransparentIdentifiers_JoinClause1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Linq;
 
@@ -7700,7 +7700,7 @@ class C
                      select Z(() => g.First());
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Linq;
 
@@ -7726,7 +7726,7 @@ class C
         [Fact]
         public void Queries_CeaseCapturingTransparentIdentifiers1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Linq;
 
@@ -7745,7 +7745,7 @@ class C
 		             select a;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Linq;
 
@@ -7774,7 +7774,7 @@ class C
         [Fact]
         public void Queries_CapturingTransparentIdentifiers1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Linq;
 
@@ -7793,7 +7793,7 @@ class C
 		             select a;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Linq;
 
@@ -8734,7 +8734,7 @@ class C
         [Fact]
         public void SemanticError_AwaitInPropertyAccessor()
         {
-            string src1 = @"
+            var src1 = @"
 using System.Threading.Tasks;
 
 class C
@@ -8749,7 +8749,7 @@ class C
    }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System.Threading.Tasks;
 
 class C

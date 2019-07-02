@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis
         private WeakReference<SemanticModel> _model;
         private Task<SyntaxTree> _syntaxTreeResultTask;
 
-        internal Document(Project project, DocumentState state) :
-            base(project, state)
+        internal Document(Project project, DocumentState state)
+            : base(project, state, TextDocumentKind.Document)
         {
         }
 
@@ -41,10 +41,13 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// True if the info of the document change (name, folders, file path; not the content)
         /// </summary>
-        internal bool HasInfoChanged(Document otherDocument)
+        internal override bool HasInfoChanged(TextDocument otherTextDocument)
         {
-            return DocumentState.Attributes != otherDocument.DocumentState.Attributes
-                || DocumentState.SourceCodeKind != otherDocument.SourceCodeKind;
+            var otherDocument = otherTextDocument as Document ??
+                throw new ArgumentException($"{nameof(otherTextDocument)} isn't a regular document.", nameof(otherTextDocument));
+
+            return base.HasInfoChanged(otherDocument) ||
+                   DocumentState.SourceCodeKind != otherDocument.SourceCodeKind;
         }
 
         internal bool HasTextChanged(Document otherDocument)
@@ -467,13 +470,13 @@ namespace Microsoft.CodeAnalysis
             //       snapshot model. once that is fixed, we can remove this workaround - https://github.com/dotnet/roslyn/issues/19284
             if (_cachedOptions == null)
             {
-                InitializeCachedOptions(solutionOptions, cancellationToken);
+                InitializeCachedOptions(solutionOptions);
             }
 
             return _cachedOptions.GetValueAsync(cancellationToken);
         }
 
-        private void InitializeCachedOptions(OptionSet solutionOptions, CancellationToken cancellationToken)
+        private void InitializeCachedOptions(OptionSet solutionOptions)
         {
             var newAsyncLazy = new AsyncLazy<DocumentOptionSet>(async c =>
             {
@@ -483,6 +486,11 @@ namespace Microsoft.CodeAnalysis
             }, cacheResult: true);
 
             Interlocked.CompareExchange(ref _cachedOptions, newAsyncLazy, comparand: null);
+        }
+
+        internal Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsAsync(CancellationToken cancellationToken)
+        {
+            return DocumentState.GetAnalyzerOptionsAsync(Project.FilePath, cancellationToken);
         }
     }
 }

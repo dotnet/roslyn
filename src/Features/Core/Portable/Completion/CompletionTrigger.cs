@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Completion
     /// <summary>
     /// The action that triggered completion to start.
     /// </summary>
-    public struct CompletionTrigger
+    public readonly struct CompletionTrigger
     {
         /// <summary>
         /// The reason that completion was started.
@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.Completion
         internal CompletionTrigger(CompletionTriggerKind kind, char character = (char)0)
             : this()
         {
-            this.Kind = kind;
-            this.Character = character;
+            Kind = kind;
+            Character = character;
         }
 
         /// <summary>

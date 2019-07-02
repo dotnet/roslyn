@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             Document document, string className,
             ImmutableArray<IPropertySymbol> properties, CancellationToken cancellationToken)
         {
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Next, see if any of the properties ended up using any type parameters from the
             // containing method/named-type.  If so, we'll need to generate a generic type so we can
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             var namedTypeWithoutMembers = CreateNamedType(className, capturedTypeParameters, members: default);
 
             var generator = SyntaxGenerator.GetGenerator(document);
-            var constructor = CreateConstructor(compilation, className, properties, generator);
+            var constructor = CreateConstructor(semanticModel, className, properties, generator);
 
             // Generate Equals/GetHashCode.  Only readonly properties are suitable for these
             // methods.  We can defer to our existing language service for this so that we
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             // in the type.  Instead, we just want to generate auto-props. So we effectively clone
             // the property, just throwing aways anything we don't need for that purpose.
             // 
-            // We also want to follow general .net naming.  So that means converting to pascal
+            // We also want to follow general .NET naming.  So that means converting to pascal
             // case from camel-case.
 
             var getMethod = prop.GetMethod != null ? CreateAccessorSymbol(prop, MethodKind.PropertyGet) : null;
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                    name: "", typeParameters: default, parameters: default, methodKind: kind);
 
         private static IMethodSymbol CreateConstructor(
-            Compilation compilation, string className,
+            SemanticModel semanticModel, string className,
             ImmutableArray<IPropertySymbol> properties, SyntaxGenerator generator)
         {
             // For every property, create a corresponding parameter, as well as an assignment
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             });
 
             var assignmentStatements = generator.CreateAssignmentStatements(
-                compilation, parameters, parameterToPropMap, ImmutableDictionary<string, string>.Empty,
+                semanticModel, parameters, parameterToPropMap, ImmutableDictionary<string, string>.Empty,
                 addNullChecks: false, preferThrowExpression: false);
 
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(

@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
         [UserVisible(true)]
         private class BraceMatchingFormatDefinition : ClassificationFormatDefinition
         {
-            private BraceMatchingFormatDefinition()
+            [ImportingConstructor]
+            public BraceMatchingFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.Brace_Matching;
                 this.BackgroundColor = Color.FromRgb(0xDB, 0xE0, 0xCC);

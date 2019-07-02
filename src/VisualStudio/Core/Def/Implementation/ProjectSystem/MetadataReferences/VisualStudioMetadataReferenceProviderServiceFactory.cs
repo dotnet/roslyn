@@ -12,6 +12,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     [ExportWorkspaceServiceFactory(typeof(IMetadataService), ServiceLayer.Host), Shared]
     internal sealed class VsMetadataServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public VsMetadataServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new Service(workspaceServices);
@@ -32,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
             {
-                return _manager.Value.CreateMetadataReference(resolvedPath, properties);
+                return _manager.Value.CreateMetadataReferenceSnapshot(resolvedPath, properties);
             }
         }
     }

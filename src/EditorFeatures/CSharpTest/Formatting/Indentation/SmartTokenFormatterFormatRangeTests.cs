@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Indentation;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
@@ -3452,7 +3453,7 @@ class Program{
             }
         }
 
-        private static Tuple<OptionSet, IEnumerable<IFormattingRule>> GetService(
+        private static Tuple<OptionSet, IEnumerable<AbstractFormattingRule>> GetService(
             TestWorkspace workspace)
         {
             var options = workspace.Options;
@@ -3493,7 +3494,7 @@ class Program{
                 }
 
                 Assert.Equal(tokenKind, endToken.Kind());
-                var formatter = new SmartTokenFormatter(tuple.Item1, tuple.Item2, root);
+                var formatter = new CSharpSmartTokenFormatter(tuple.Item1, tuple.Item2, root);
 
                 var tokenRange = FormattingRangeHelper.FindAppropriateRange(endToken);
                 if (tokenRange == null)

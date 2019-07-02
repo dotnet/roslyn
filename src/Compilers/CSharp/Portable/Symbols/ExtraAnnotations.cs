@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 { "System.Boolean System.String.IsNullOrEmpty(System.String)", Array(default, NotNullWhenFalse) },
                 { "System.Boolean System.String.IsNullOrWhiteSpace(System.String)", Array(default, NotNullWhenFalse) },
-                { "System.Boolean System.String.Contains(System.String)", Array(default, EnsuresNotNull) },
+                { "System.Boolean System.String.Contains(System.String)", Array(default, NotNull) },
                 { "System.Void System.Diagnostics.Debug.Assert(System.Boolean)", Array(default, AssertsTrue) },
                 { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String)", Array(default, AssertsTrue, default) },
                 { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String, System.String)", Array(default, AssertsTrue, default, default) },
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var pooledBuilder = PooledStringBuilder.GetInstance();
 
             StringBuilder builder = pooledBuilder.Builder;
-            Add(method.ReturnType.TypeSymbol, builder);
+            Add(method.ReturnType, builder);
             builder.Append(' ');
 
             Add(containingType, builder);
@@ -100,10 +100,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builder.Append(method.Name);
             builder.Append('(');
 
-            var parameterTypes = method.ParameterTypes;
+            var parameterTypes = method.ParameterTypesWithAnnotations;
             for (int i = 0; i < parameterTypes.Length; i++)
             {
-                Add(parameterTypes[i].TypeSymbol, builder);
+                Add(parameterTypes[i].Type, builder);
                 if (i < parameterTypes.Length - 1)
                 {
                     builder.Append(", ");
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static ImmutableArray<byte> Nullable(bool isNullable)
         {
-            return ImmutableArray.Create((byte)(isNullable ? NullableAnnotation.Annotated : NullableAnnotation.NotAnnotated));
+            return ImmutableArray.Create(isNullable ? NullableAnnotationExtensions.AnnotatedAttributeValue : NullableAnnotationExtensions.NotAnnotatedAttributeValue);
         }
 
         internal static ImmutableArray<ImmutableArray<byte>> GetExtraAnnotations(string key)

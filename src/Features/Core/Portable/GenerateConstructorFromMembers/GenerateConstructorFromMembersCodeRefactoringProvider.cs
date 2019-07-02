@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
         private readonly IPickMembersService _pickMembersService_forTesting;
 
+        [ImportingConstructor]
         public GenerateConstructorFromMembersCodeRefactoringProvider() : this(null)
         {
         }
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 return;
             }
 
-            var actions = await this.GenerateConstructorFromMembersAsync(
+            var actions = await GenerateConstructorFromMembersAsync(
                 document, textSpan, addNullChecks: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
 
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_GenerateConstructorFromMembers, cancellationToken))
             {
-                var info = await GetSelectedMemberInfoAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+                var info = await GetSelectedMemberInfoAsync(document, textSpan, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
                 if (info != null)
                 {
                     var state = State.TryGenerate(this, document, textSpan, info.ContainingType, info.SelectedMembers, cancellationToken);

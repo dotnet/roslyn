@@ -1080,6 +1080,22 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
+        internal bool HasMaybeNullWhenOrNotNullWhenAttribute(EntityHandle token, AttributeDescription description, out bool when)
+        {
+            Debug.Assert(description.Namespace == "System.Diagnostics.CodeAnalysis");
+            Debug.Assert(description.Name == "MaybeNullWhenAttribute" || description.Name == "NotNullWhenAttribute");
+
+            AttributeInfo info = FindTargetAttribute(token, description);
+            if (info.HasValue &&
+                // MaybeNullWhen(bool), NotNullWhen(bool)
+                info.SignatureIndex == 0)
+            {
+                return TryExtractValueFromAttribute(info.Handle, out when, s_attributeBooleanValueExtractor);
+            }
+            when = false;
+            return false;
+        }
+
         internal CustomAttributeHandle GetAttributeUsageAttributeHandle(EntityHandle token)
         {
             AttributeInfo info = FindTargetAttribute(token, AttributeDescription.AttributeUsageAttribute);
@@ -1145,6 +1161,22 @@ namespace Microsoft.CodeAnalysis
             }
 
             defaultValue = null;
+            return false;
+        }
+
+        internal bool HasNullablePublicOnlyAttribute(EntityHandle token, out bool includesInternals)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.NullablePublicOnlyAttribute);
+            if (info.HasValue)
+            {
+                Debug.Assert(info.SignatureIndex == 0);
+                if (TryExtractValueFromAttribute(info.Handle, out bool value, s_attributeBooleanValueExtractor))
+                {
+                    includesInternals = value;
+                    return true;
+                }
+            }
+            includesInternals = false;
             return false;
         }
 
@@ -2417,6 +2449,20 @@ namespace Microsoft.CodeAnalysis
             }
 
             return _lazyContainsNoPiaLocalTypes == ThreeState.True;
+        }
+
+        internal bool HasNullableContextAttribute(EntityHandle token, out byte value)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.NullableContextAttribute);
+            Debug.Assert(!info.HasValue || info.SignatureIndex == 0);
+
+            if (!info.HasValue)
+            {
+                value = 0;
+                return false;
+            }
+
+            return TryExtractValueFromAttribute(info.Handle, out value, s_attributeByteValueExtractor);
         }
 
         internal bool HasNullableAttribute(EntityHandle token, out byte defaultTransform, out ImmutableArray<byte> nullableTransforms)

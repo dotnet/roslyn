@@ -7,6 +7,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping
 {
+    using Microsoft.CodeAnalysis.Indentation;
+
     /// <summary>
     /// Common implementation of all <see cref="ISyntaxWrapper"/>.  This type takes care of a lot of common logic for
     /// all of them, including:
@@ -21,6 +23,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
     /// </summary>
     internal abstract partial class AbstractSyntaxWrapper : ISyntaxWrapper
     {
+        protected IIndentationService IndentationService { get; }
+
+        protected AbstractSyntaxWrapper(IIndentationService indentationService)
+        {
+            this.IndentationService = indentationService;
+        }
+
         public abstract Task<ICodeActionComputer> TryCreateComputerAsync(Document document, int position, SyntaxNode node, CancellationToken cancellationToken);
 
         protected static async Task<bool> ContainsUnformattableContentAsync(

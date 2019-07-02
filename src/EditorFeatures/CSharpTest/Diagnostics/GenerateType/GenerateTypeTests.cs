@@ -444,6 +444,27 @@ index: 2);
 index: 2);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateClassFromNullableFieldDeclarationIntoSameType()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+class Class
+{
+    [|Goo?|] f;
+}",
+@"#nullable enable
+class Class
+{
+    Goo? f;
+
+    private class Goo
+    {
+    }
+}",
+index: 2);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromFieldDeclarationIntoGlobalNamespace()
         {
@@ -1386,6 +1407,78 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateWithNullableParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        string? s = null;
+        new [|T|](s);
+    }
+}",
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        string? s = null;
+        new [|T|](s);
+    }
+}
+
+internal class T
+{
+    private string? s;
+
+    public T(string? s)
+    {
+        this.s = s;
+    }
+}",
+parseOptions: TestOptions.Regular8WithNullableAnalysis,
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateWithNullableParameterThatIsNotNull()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        string? s = ""asdf"";
+        new [|T|](s);
+    }
+}",
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        string? s = ""asdf"";
+        new [|T|](s);
+    }
+}
+
+internal class T
+{
+    private string s;
+
+    public T(string s)
+    {
+        this.s = s;
+    }
+}",
+parseOptions: TestOptions.Regular8WithNullableAnalysis,
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithNamedParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -1571,7 +1664,7 @@ internal class T
 {
     public T(out DateTime d)
     {
-        d = default(DateTime);
+        d = default;
     }
 }",
 index: 1);
@@ -1720,7 +1813,7 @@ parseOptions: TestOptions.Regular7);
     {
         public T(out X d)
         {
-            d = default(X);
+            d = default;
         }
     }
 }",
@@ -2105,6 +2198,41 @@ class Base
     protected Base(out int o)
     {
     }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateWithDelegatingConstructorAssigningToNullableField()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        Base? b = new [|T|]();
+    }
+}
+
+class Base
+{
+}",
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        Base? b = new [|T|]();
+    }
+}
+
+internal class T : Base
+{
+}
+
+class Base
+{
 }",
 index: 1);
         }

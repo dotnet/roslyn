@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
 
             // wait for all events to raised
-            await listener.CreateWaitTask().ConfigureAwait(false);
+            await listener.CreateExpeditedWaitTask().ConfigureAwait(false);
         }
 
         [Fact]
@@ -107,8 +107,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var service = new MyDiagnosticAnalyzerService(diagnosticAnalyzer, listener);
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
 
-            bool syntax = false;
-            bool semantic = false;
+            var syntax = false;
+            var semantic = false;
 
             // listen to events
             service.DiagnosticsUpdated += (s, a) =>
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
 
             // wait for all events to raised
-            await listener.CreateWaitTask().ConfigureAwait(false);
+            await listener.CreateExpeditedWaitTask().ConfigureAwait(false);
 
             // two should have been called.
             Assert.Equal(expectedSyntax, syntax);
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
 
             // wait for all events to raised
-            await listener.CreateWaitTask().ConfigureAwait(false);
+            await listener.CreateExpeditedWaitTask().ConfigureAwait(false);
         }
 
         [Fact]
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var service = new MyDiagnosticAnalyzerService(new NoNameAnalyzer(), listener, language);
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
 
-            bool syntax = false;
+            var syntax = false;
 
             // listen to events
             service.DiagnosticsUpdated += (s, a) =>
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                             Location.Create(document.FilePath, TextSpan.FromBounds(0, 0), new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 0)))).ToDiagnosticData(project))));
 
             // wait for all events to raised
-            await listener.CreateWaitTask().ConfigureAwait(false);
+            await listener.CreateExpeditedWaitTask().ConfigureAwait(false);
 
             // two should have been called.
             Assert.True(syntax);
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
             await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
 
-            await listener.CreateWaitTask();
+            await listener.CreateExpeditedWaitTask();
 
             Assert.True(called);
         }

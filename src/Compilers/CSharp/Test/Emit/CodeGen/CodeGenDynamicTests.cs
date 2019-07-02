@@ -600,7 +600,7 @@ public class C
                     Assert.False(field.IsReadOnly);
 
                     Assert.Equal("System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, object, int, int, int>>",
-                        field.Type.ToDisplayString());
+                        field.TypeWithAnnotations.ToDisplayString());
 
                     Assert.Equal(0, field.GetAttributes().Length);
 

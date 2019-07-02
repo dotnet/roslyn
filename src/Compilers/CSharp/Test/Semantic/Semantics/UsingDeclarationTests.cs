@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
@@ -660,11 +661,18 @@ class C
     }
 }
 ";
-            CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-                // (7,9): error CS8370: Feature 'using declarations' is not available in C# 7.3. Please use language version 8.0 or greater.
+            var expected = new[]
+            {
+                // (7,9): error CS8652: The feature 'using declarations' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         using IDisposable x = null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "using").WithArguments("using declarations", "8.0").WithLocation(7, 9)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "using").WithArguments("using declarations").WithLocation(7, 9)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularDefault).VerifyDiagnostics(expected);
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]
@@ -688,14 +696,20 @@ namespace System
     }
 }";
             // https://github.com/dotnet/roslyn/issues/32318 Diagnostics should be tuned. There should only be a parsing error for `using declarations` feature.
-            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-                // (8,9): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
+            var expected = new[]
+            {
+                // (8,9): error CS8652: The feature 'async streams' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         await using IAsyncDisposable x = null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(8, 9),
-                // (8,15): error CS8370: Feature 'using declarations' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("async streams").WithLocation(8, 9),
+                // (8,15): error CS8652: The feature 'using declarations' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         await using IAsyncDisposable x = null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "using").WithArguments("using declarations", "8.0").WithLocation(8, 15)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "using").WithArguments("using declarations").WithLocation(8, 15)
+            };
+
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularDefault).VerifyDiagnostics(expected);
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
+
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]
@@ -754,6 +768,30 @@ class C4
                 // (40,15): warning CS0612: 'S3.Dispose()' is obsolete
                 //         using S3 S3 = new S3();
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "using S3 S3 = new S3();").WithArguments("S3.Dispose()").WithLocation(40, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(36413, "https://github.com/dotnet/roslyn/issues/36413")]
+        public void UsingDeclarationsWithInvalidModifiers()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        using public readonly var x = (IDisposable)null;
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (7,15): error CS0106: The modifier 'public' is not valid for this item
+                //         using public readonly var x = (IDisposable)null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(7, 15),
+                // (7,22): error CS0106: The modifier 'readonly' is not valid for this item
+                //         using public readonly var x = (IDisposable)null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(7, 22)
                 );
         }
     }

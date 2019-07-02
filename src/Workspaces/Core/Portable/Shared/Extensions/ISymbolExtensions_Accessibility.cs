@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     Debug.Assert(current.IsDefinition);
 
-                    if (current.InheritsFromOrEqualsIgnoringConstruction(originalContainingType))
+                    if (current.InheritsFromOrImplementsOrEqualsIgnoringConstruction(originalContainingType))
                     {
                         // NOTE(cyrusn): We're continually walking up the 'throughType's inheritance
                         // chain.  We could compute it up front and cache it in a set.  However, i
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         // slower to create and check inside the set versus just walking the
                         // inheritance chain.
                         if (originalThroughTypeOpt == null ||
-                            originalThroughTypeOpt.InheritsFromOrEqualsIgnoringConstruction(current))
+                            originalThroughTypeOpt.InheritsFromOrImplementsOrEqualsIgnoringConstruction(current))
                         {
                             return true;
                         }

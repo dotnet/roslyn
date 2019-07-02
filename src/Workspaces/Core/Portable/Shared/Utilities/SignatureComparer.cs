@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return false;
             }
 
-            for (int i = 0; i < parameters1.Count; ++i)
+            for (var i = 0; i < parameters1.Count; ++i)
             {
                 if (!_symbolEquivalenceComparer.ParameterEquivalenceComparer.Equals(parameters1[i], parameters2[i], compareParameterName, isCaseSensitive))
                 {

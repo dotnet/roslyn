@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         public ExportSignatureHelpProviderAttribute(string name, string language)
             : base(typeof(ISignatureHelpProvider))
         {
-            this.Name = name ?? throw new ArgumentNullException(nameof(name));
-            this.Language = language ?? throw new ArgumentNullException(nameof(language));
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Language = language ?? throw new ArgumentNullException(nameof(language));
         }
     }
 }

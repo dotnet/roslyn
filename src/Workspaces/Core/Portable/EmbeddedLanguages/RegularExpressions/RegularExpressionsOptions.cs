@@ -29,11 +29,23 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 nameof(HighlightRelatedRegexComponentsUnderCursor),
                 defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightRelatedRegexComponentsUnderCursor"));
+
+        public static PerLanguageOption<bool> ProvideRegexCompletions =
+            new PerLanguageOption<bool>(
+                nameof(RegularExpressionsOptions),
+                nameof(ProvideRegexCompletions),
+                defaultValue: true,
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ProvideRegexCompletions"));
     }
 
     [ExportOptionProvider, Shared]
     internal class RegularExpressionsOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public RegularExpressionsOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             RegularExpressionsOptions.ColorizeRegexPatterns,
             RegularExpressionsOptions.ReportInvalidRegexPatterns,

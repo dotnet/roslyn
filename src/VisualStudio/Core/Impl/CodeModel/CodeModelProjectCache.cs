@@ -36,11 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _codeModelInstanceFactory = codeModelInstanceFactory;
         }
 
-        private bool IsZombied
-        {
-            get { return _zombied; }
-        }
-
         /// <summary>
         /// Look for an existing instance of FileCodeModel in our cache.
         /// Return null if there is no active FCM for "fileName".
@@ -83,9 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var cacheEntry = GetCacheEntry(filePath);
 
-            return cacheEntry != null
-                ? cacheEntry.Value.ComHandle
-                : null;
+            return cacheEntry?.ComHandle;
         }
 
         public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string filePath, object parent)
@@ -138,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public EnvDTE.CodeModel GetOrCreateRootCodeModel(EnvDTE.Project parent)
         {
-            if (this.IsZombied)
+            if (_zombied)
             {
                 Debug.Fail("Cannot access root code model after code model was shutdown!");
                 throw Exceptions.ThrowEUnexpected();
@@ -185,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 instance.Object.Shutdown();
             }
 
-            _zombied = false;
+            _zombied = true;
         }
 
         public void OnSourceFileRemoved(string fileName)
