@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (!Helpers.TryGetInitialTriggerLocation(session, out var triggerLocation))
             {
                 // Need the trigger snapshot to calculate the span when the commit changes to be applied.
-                // They should always be availalbe from VS. Just to be defensive, if it's not found here, Roslyn should not make a commit.
+                // They should always be available from VS. Just to be defensive, if it's not found here, Roslyn should not make a commit.
                 return CommitResultUnhandled;
             }
 
