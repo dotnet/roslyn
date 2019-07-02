@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 var startToken = section.Statements.First().GetFirstToken(includeZeroWidth: true);
                 var endToken = section.Statements.Last().GetLastToken(includeZeroWidth: true);
 
-                for (int i = 0; i < list.Count; i++)
+                for (var i = 0; i < list.Count; i++)
                 {
                     var operation = list[i];
                     if (operation.StartToken == startToken && operation.EndToken == endToken)

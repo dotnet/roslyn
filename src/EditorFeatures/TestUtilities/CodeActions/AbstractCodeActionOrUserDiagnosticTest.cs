@@ -663,7 +663,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestParameters parameters,
             params string[] outputs)
         {
-            for (int index = 0; index < outputs.Length; index++)
+            for (var index = 0; index < outputs.Length; index++)
             {
                 var output = outputs[index];
                 await TestInRegularAndScript1Async(input, output, index, parameters: parameters);

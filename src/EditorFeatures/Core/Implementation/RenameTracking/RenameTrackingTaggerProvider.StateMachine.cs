@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     // There's an existing session. Continue that session if the current change is
                     // contained inside the tracking span.
 
-                    SnapshotSpan trackingSpanInNewSnapshot = this.TrackingSession.TrackingSpan.GetSpan(e.After);
+                    var trackingSpanInNewSnapshot = this.TrackingSession.TrackingSpan.GetSpan(e.After);
                     if (trackingSpanInNewSnapshot.Contains(change.NewSpan))
                     {
                         // Continuing an existing tracking session. If there may have been a tag
@@ -166,8 +166,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     return;
                 }
 
-                int leftSidePosition = change.OldPosition;
-                int rightSidePosition = change.OldPosition + change.OldText.Length;
+                var leftSidePosition = change.OldPosition;
+                var rightSidePosition = change.OldPosition + change.OldText.Length;
 
                 while (leftSidePosition > 0 && IsTrackableCharacter(syntaxFactsService, beforeText[leftSidePosition - 1]))
                 {
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                     if (CanInvokeRename(out var trackingSession, waitForResult: true, cancellationToken: cancellationToken))
                     {
-                        SnapshotSpan snapshotSpan = trackingSession.TrackingSpan.GetSpan(Buffer.CurrentSnapshot);
+                        var snapshotSpan = trackingSession.TrackingSpan.GetSpan(Buffer.CurrentSnapshot);
                         var textSpan = snapshotSpan.Span.ToTextSpan();
 
                         var builder = ImmutableDictionary.CreateBuilder<string, string>();

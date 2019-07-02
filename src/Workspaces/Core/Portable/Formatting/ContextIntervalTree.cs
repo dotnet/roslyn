@@ -84,93 +84,92 @@ namespace Microsoft.CodeAnalysis.Formatting
             //    contains the given "span"
             // 4. move up the spin until it finds one that contains the "span" which should be smallest span that contains the given "span"
             // 5. if it is going up from right side, it make sure to check left side of tree first.
-            using (var pooledObject = SharedPools.Default<Stack<Node>>().GetPooledObject())
+            using var pooledObject = SharedPools.Default<Stack<Node>>().GetPooledObject();
+
+            var spineNodes = pooledObject.Object;
+
+            spineNodes.Push(root);
+            while (spineNodes.Count > 0)
             {
-                var spineNodes = pooledObject.Object;
+                var currentNode = spineNodes.Peek();
 
-                spineNodes.Push(root);
-                while (spineNodes.Count > 0)
+                // only goes to right if right tree contains given span
+                if (Introspector.GetStart(currentNode.Value) <= start)
                 {
-                    var currentNode = spineNodes.Peek();
-
-                    // only goes to right if right tree contains given span
-                    if (Introspector.GetStart(currentNode.Value) <= start)
+                    var right = currentNode.Right;
+                    if (right != null && end < MaxEndValue(right))
                     {
-                        var right = currentNode.Right;
-                        if (right != null && end < MaxEndValue(right))
-                        {
-                            spineNodes.Push(right);
-                            continue;
-                        }
-                    }
-
-                    // right side, sub tree doesn't contain the given span, put current node on
-                    // stack, and move down to left sub tree
-                    var left = currentNode.Left;
-                    if (left != null && end <= MaxEndValue(left))
-                    {
-                        spineNodes.Push(left);
+                        spineNodes.Push(right);
                         continue;
-                    }
-
-                    // we reached the point, where we can't go down anymore.
-                    // now, go back up to find best answer
-                    while (spineNodes.Count > 0)
-                    {
-                        currentNode = spineNodes.Pop();
-
-                        // check whether current node meets condition
-                        if (predicate(currentNode.Value, start, length))
-                        {
-                            // hold onto best answer
-                            if (EqualityComparer<T>.Default.Equals(result, default) ||
-                                (Introspector.GetStart(result) <= Introspector.GetStart(currentNode.Value) &&
-                                 Introspector.GetLength(currentNode.Value) < Introspector.GetLength(result)))
-                            {
-                                result = currentNode.Value;
-                            }
-                        }
-
-                        // there is no parent, result we currently have is the best answer
-                        if (spineNodes.Count == 0)
-                        {
-                            return result;
-                        }
-
-                        var parentNode = spineNodes.Peek();
-
-                        // if we are under left side of parent node
-                        if (parentNode.Left == currentNode)
-                        {
-                            // go one level up again
-                            continue;
-                        }
-
-                        // okay, we are under right side of parent node
-                        if (parentNode.Right == currentNode)
-                        {
-                            // try left side of parent node if it can have better answer
-                            if (parentNode.Left != null && end <= MaxEndValue(parentNode.Left))
-                            {
-                                // right side tree doesn't have any answer or if the right side has
-                                // an answer but left side can have better answer then try left side
-                                if (EqualityComparer<T>.Default.Equals(result, default) ||
-                                    Introspector.GetStart(parentNode.Value) == Introspector.GetStart(currentNode.Value))
-                                {
-                                    // put left as new root, and break out inner loop
-                                    spineNodes.Push(parentNode.Left);
-                                    break;
-                                }
-                            }
-
-                            // no left side, go one more level up
-                            continue;
-                        }
                     }
                 }
 
-                return result;
+                // right side, sub tree doesn't contain the given span, put current node on
+                // stack, and move down to left sub tree
+                var left = currentNode.Left;
+                if (left != null && end <= MaxEndValue(left))
+                {
+                    spineNodes.Push(left);
+                    continue;
+                }
+
+                // we reached the point, where we can't go down anymore.
+                // now, go back up to find best answer
+                while (spineNodes.Count > 0)
+                {
+                    currentNode = spineNodes.Pop();
+
+                    // check whether current node meets condition
+                    if (predicate(currentNode.Value, start, length))
+                    {
+                        // hold onto best answer
+                        if (EqualityComparer<T>.Default.Equals(result, default) ||
+                            (Introspector.GetStart(result) <= Introspector.GetStart(currentNode.Value) &&
+                             Introspector.GetLength(currentNode.Value) < Introspector.GetLength(result)))
+                        {
+                            result = currentNode.Value;
+                        }
+                    }
+
+                    // there is no parent, result we currently have is the best answer
+                    if (spineNodes.Count == 0)
+                    {
+                        return result;
+                    }
+
+                    var parentNode = spineNodes.Peek();
+
+                    // if we are under left side of parent node
+                    if (parentNode.Left == currentNode)
+                    {
+                        // go one level up again
+                        continue;
+                    }
+
+                    // okay, we are under right side of parent node
+                    if (parentNode.Right == currentNode)
+                    {
+                        // try left side of parent node if it can have better answer
+                        if (parentNode.Left != null && end <= MaxEndValue(parentNode.Left))
+                        {
+                            // right side tree doesn't have any answer or if the right side has
+                            // an answer but left side can have better answer then try left side
+                            if (EqualityComparer<T>.Default.Equals(result, default) ||
+                                Introspector.GetStart(parentNode.Value) == Introspector.GetStart(currentNode.Value))
+                            {
+                                // put left as new root, and break out inner loop
+                                spineNodes.Push(parentNode.Left);
+                                break;
+                            }
+                        }
+
+                        // no left side, go one more level up
+                        continue;
+                    }
+                }
             }
+
+            return result;
         }
 
 #if DEBUG

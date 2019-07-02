@@ -15,24 +15,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
     {
         private async Task TestAsync(string text, string searchText, params string[] expectedNames)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(text))
-            {
-                var nameResolver = new BreakpointResolver(workspace.CurrentSolution, searchText);
-                var results = await nameResolver.DoAsync(CancellationToken.None);
+            using var workspace = TestWorkspace.CreateCSharp(text);
 
-                Assert.Equal(expectedNames, results.Select(r => r.LocationNameOpt));
-            }
+            var nameResolver = new BreakpointResolver(workspace.CurrentSolution, searchText);
+            var results = await nameResolver.DoAsync(CancellationToken.None);
+
+            Assert.Equal(expectedNames, results.Select(r => r.LocationNameOpt));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task TestCSharpLanguageDebugInfoCreateNameResolver()
         {
-            using (var workspace = TestWorkspace.CreateCSharp(" "))
-            {
-                var debugInfo = new CSharpBreakpointResolutionService();
-                var results = await debugInfo.ResolveBreakpointsAsync(workspace.CurrentSolution, "goo", CancellationToken.None);
-                Assert.Equal(0, results.Count());
-            }
+            using var workspace = TestWorkspace.CreateCSharp(" ");
+
+            var debugInfo = new CSharpBreakpointResolutionService();
+            var results = await debugInfo.ResolveBreakpointsAsync(workspace.CurrentSolution, "goo", CancellationToken.None);
+            Assert.Equal(0, results.Count());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]

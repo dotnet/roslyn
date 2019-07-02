@@ -58,8 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             IMetadataAsSourceFileService fileTrackingMetadataAsSourceService,
             SaveEventsService saveEventsService,
             VisualStudioWorkspace visualStudioWorkspace,
-            SVsServiceProvider serviceProvider) :
-            base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
+            SVsServiceProvider serviceProvider)
+            : base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
         {
             _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: true);
 
@@ -236,7 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private bool TryUntrackClosingDocument(string moniker)
         {
             _foregroundThreadAffinitization.AssertIsForeground();
-            
+
             var unregisteredRegistration = false;
 
             // Remove our registration changing handler before we call DetachFromDocument. Otherwise, calling DetachFromDocument
@@ -402,24 +402,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public override bool CanApplyChange(ApplyChangesKind feature)
-        {
-            switch (feature)
-            {
-                case ApplyChangesKind.ChangeDocument:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
+            => feature == ApplyChangesKind.ChangeDocument;
 
         protected override void ApplyDocumentTextChanged(DocumentId documentId, SourceText newText)
         {
-            foreach (var projectIdAndSourceTextContainer in _monikersToProjectIdAndContainer.Values)
+            foreach (var (projectId, textContainer) in _monikersToProjectIdAndContainer.Values)
             {
-                if (projectIdAndSourceTextContainer.projectId == documentId.ProjectId)
+                if (projectId == documentId.ProjectId)
                 {
-                    TextEditApplication.UpdateText(newText, projectIdAndSourceTextContainer.textContainer.GetTextBuffer(), EditOptions.DefaultMinimalChange);
+                    TextEditApplication.UpdateText(newText, textContainer.GetTextBuffer(), EditOptions.DefaultMinimalChange);
                     break;
                 }
             }

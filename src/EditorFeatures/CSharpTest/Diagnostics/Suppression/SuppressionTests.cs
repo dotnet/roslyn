@@ -512,7 +512,7 @@ class Class
             {
                 private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
                 {
-                    private DiagnosticDescriptor _descriptor =
+                    private readonly DiagnosticDescriptor _descriptor =
                         new DiagnosticDescriptor("ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
                     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -577,7 +577,7 @@ class Class
 
                 private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
                 {
-                    private DiagnosticDescriptor _descriptor =
+                    private readonly DiagnosticDescriptor _descriptor =
                         new DiagnosticDescriptor("@~DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
                     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -1557,7 +1557,7 @@ class Class { }
             {
                 private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
                 {
-                    private DiagnosticDescriptor _descriptor =
+                    private readonly DiagnosticDescriptor _descriptor =
                         new DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
                     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics

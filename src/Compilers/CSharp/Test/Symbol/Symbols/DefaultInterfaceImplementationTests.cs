@@ -44502,7 +44502,7 @@ class Test1 : I2
             ValidateMethodReAbstraction_01(source1, source2);
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void MethodReAbstraction_03()
         {
@@ -44583,7 +44583,7 @@ class Test1 : I2
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void MethodReAbstraction_04()
         {
@@ -44718,7 +44718,7 @@ class Test1 : I3
             ValidateMethodReAbstraction_05(source1, source2);
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void MethodReAbstraction_07()
         {
@@ -44800,7 +44800,7 @@ class Test1 : I3
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void MethodReAbstraction_08()
         {
@@ -45040,7 +45040,7 @@ class Test1 : I4
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void MethodReAbstraction_13()
         {
@@ -45716,7 +45716,7 @@ class Test1 : I2
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_003()
         {
@@ -45819,7 +45819,7 @@ Test1.set_P1
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_004()
         {
@@ -45974,7 +45974,7 @@ class Test1 : I3
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_007()
         {
@@ -46079,7 +46079,7 @@ I3.set_P1
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_008()
         {
@@ -46363,7 +46363,7 @@ class Test1 : I4
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_013()
         {
@@ -47858,7 +47858,7 @@ class Test1 : I2
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_039()
         {
@@ -47898,7 +47898,7 @@ class Test1 : I2
             ValidatePropertyReAbstraction_003(source1, source2, "Test1.get_P1");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_040()
         {
@@ -48000,7 +48000,7 @@ class Test1 : I3
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_043()
         {
@@ -48043,7 +48043,7 @@ class Test1 : I3
             ValidatePropertyReAbstraction_007(source1, source2, "I3.get_P1");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_044()
         {
@@ -48224,7 +48224,7 @@ class Test1 : I4
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_049()
         {
@@ -48591,7 +48591,7 @@ class Test1 : I2
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_061()
         {
@@ -48630,7 +48630,7 @@ class Test1 : I2
             ValidatePropertyReAbstraction_003(source1, source2, "Test1.set_P1");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_062()
         {
@@ -48731,7 +48731,7 @@ class Test1 : I3
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_065()
         {
@@ -48773,7 +48773,7 @@ class Test1 : I3
             ValidatePropertyReAbstraction_007(source1, source2, "I3.set_P1");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_066()
         {
@@ -48953,7 +48953,7 @@ class Test1 : I4
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void PropertyReAbstraction_071()
         {
@@ -49747,7 +49747,7 @@ class Test1 : I2
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void EventReAbstraction_003()
         {
@@ -49843,7 +49843,7 @@ Test1.remove_P1
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void EventReAbstraction_004()
         {
@@ -49991,7 +49991,7 @@ class Test1 : I3
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void EventReAbstraction_007()
         {
@@ -50089,7 +50089,7 @@ I3.remove_P1
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void EventReAbstraction_008()
         {
@@ -50348,7 +50348,7 @@ class Test1 : I4
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void EventReAbstraction_013()
         {
@@ -51404,7 +51404,7 @@ class Test1 : I2
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_003()
         {
@@ -51450,7 +51450,7 @@ Test1.set_P1
 ");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_004()
         {
@@ -51558,7 +51558,7 @@ class Test1 : I3
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_007()
         {
@@ -51607,7 +51607,7 @@ I3.set_P1
 ");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_008()
         {
@@ -51814,7 +51814,7 @@ class Test1 : I4
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_013()
         {
@@ -52385,7 +52385,7 @@ class Test1 : I2
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_039()
         {
@@ -52425,7 +52425,7 @@ class Test1 : I2
             ValidatePropertyReAbstraction_003(source1, source2, "Test1.get_P1");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_040()
         {
@@ -52527,7 +52527,7 @@ class Test1 : I3
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_043()
         {
@@ -52570,7 +52570,7 @@ class Test1 : I3
             ValidatePropertyReAbstraction_007(source1, source2, "I3.get_P1");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_044()
         {
@@ -52771,7 +52771,7 @@ class Test1 : I4
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_049()
         {
@@ -53144,7 +53144,7 @@ class Test1 : I2
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_061()
         {
@@ -53183,7 +53183,7 @@ class Test1 : I2
             ValidatePropertyReAbstraction_003(source1, source2, "Test1.set_P1");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_062()
         {
@@ -53284,7 +53284,7 @@ class Test1 : I3
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_065()
         {
@@ -53326,7 +53326,7 @@ class Test1 : I3
             ValidatePropertyReAbstraction_007(source1, source2, "I3.set_P1");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_066()
         {
@@ -53526,7 +53526,7 @@ class Test1 : I4
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
         public void IndexerReAbstraction_071()
         {

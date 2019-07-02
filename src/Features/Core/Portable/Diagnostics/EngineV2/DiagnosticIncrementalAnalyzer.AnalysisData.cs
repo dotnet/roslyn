@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 OldItems = default;
             }
 
-            public DocumentAnalysisData(VersionStamp version, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems) :
-                this(version, newItems)
+            public DocumentAnalysisData(VersionStamp version, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems)
+                : this(version, newItems)
             {
                 OldItems = oldItems;
             }
@@ -95,8 +95,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 ProjectId projectId,
                 VersionStamp version,
                 ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> oldResult,
-                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> newResult) :
-                this(projectId, version, newResult)
+                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> newResult)
+                : this(projectId, version, newResult)
             {
                 OldResult = oldResult;
             }

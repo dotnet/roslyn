@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
             }
 
             // Parameter types have to be contravariant.
-            for (int i = 0; i < lambdaMethod.Parameters.Length; i++)
+            for (var i = 0; i < lambdaMethod.Parameters.Length; i++)
             {
                 var conversion = document.SemanticModel.Compilation.ClassifyConversion(
                     lambdaMethod.Parameters[i].Type, invocationMethod.Parameters[i].Type);
@@ -284,8 +284,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
             {
             }
         }

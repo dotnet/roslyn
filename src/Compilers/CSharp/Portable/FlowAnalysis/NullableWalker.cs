@@ -204,9 +204,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             get => _visitResult.RValueType;
         }
 
-        private void SetResultType(BoundExpression expression, TypeWithState type)
+        private void SetResultType(BoundExpression expression, TypeWithState type, bool updateAnalyzedNullability = true)
         {
-            SetResult(expression, resultType: type, lvalueType: type.ToTypeWithAnnotations());
+            SetResult(expression, resultType: type, lvalueType: type.ToTypeWithAnnotations(), updateAnalyzedNullability: updateAnalyzedNullability);
         }
 
         /// <summary>
@@ -2168,8 +2168,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (operandComparedToNull != null)
                 {
-                    operandComparedToNull = SkipReferenceConversions(operandComparedToNull);
-
                     // Set all nested conditional slots. For example in a?.b?.c we'll set a, b, and c.
                     bool nonNullCase = op != BinaryOperatorKind.Equal; // true represents WhenTrue
                     splitAndLearnFromNonNullTest(operandComparedToNull, whenTrue: nonNullCase);
@@ -2817,8 +2815,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
             }
 
-            method = VisitArguments(node, node.Arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt,
-                node.Expanded, node.InvokedAsExtensionMethod, method).method;
+            ImmutableArray<VisitArgumentResult> results;
+            (method, results) = VisitArguments(node, node.Arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt,
+                node.Expanded, node.InvokedAsExtensionMethod, method);
+
+            LearnFromEqualsMethod(method, node, receiverType, results);
 
             if (method.MethodKind == MethodKind.LocalFunction)
             {
@@ -2827,6 +2828,104 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             SetResult(node, GetReturnTypeWithState(method), method.ReturnTypeWithAnnotations);
+        }
+
+        private void LearnFromEqualsMethod(MethodSymbol method, BoundCall node, TypeWithState receiverType, ImmutableArray<VisitArgumentResult> results)
+        {
+            // easy out
+            var parameterCount = method.ParameterCount;
+            if ((parameterCount != 1 && parameterCount != 2)
+                || method.MethodKind != MethodKind.Ordinary
+                || method.ReturnType.SpecialType != SpecialType.System_Boolean
+                || (method.Name != SpecialMembers.GetDescriptor(SpecialMember.System_Object__Equals).Name
+                    && method.Name != SpecialMembers.GetDescriptor(SpecialMember.System_Object__ReferenceEquals).Name))
+            {
+                return;
+            }
+
+            var arguments = node.Arguments;
+
+            var isStaticEqualsMethod = method.Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__EqualsObjectObject))
+                    || method.Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__ReferenceEquals));
+            if (isStaticEqualsMethod ||
+                isWellKnownEqualityMethodOrImplementation(compilation, method, WellKnownMember.System_Collections_Generic_IEqualityComparer_T__Equals))
+            {
+                Debug.Assert(arguments.Length == 2);
+                learnFromEqualsMethodArguments(arguments[0], results[0].RValueType, arguments[1], results[1].RValueType);
+                return;
+            }
+
+            var isObjectEqualsMethodOrOverride = method.GetLeastOverriddenMethod(accessingTypeOpt: null)
+                .Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__Equals));
+            if (isObjectEqualsMethodOrOverride ||
+                isWellKnownEqualityMethodOrImplementation(compilation, method, WellKnownMember.System_IEquatable_T__Equals))
+            {
+                Debug.Assert(arguments.Length == 1);
+                learnFromEqualsMethodArguments(node.ReceiverOpt, receiverType, arguments[0], results[0].RValueType);
+                return;
+            }
+
+            static bool isWellKnownEqualityMethodOrImplementation(CSharpCompilation compilation, MethodSymbol method, WellKnownMember wellKnownMember)
+            {
+                var wellKnownMethod = compilation.GetWellKnownTypeMember(wellKnownMember);
+                if (wellKnownMethod is null)
+                {
+                    return false;
+                }
+
+                var wellKnownType = wellKnownMethod.ContainingType;
+                var parameterType = method.Parameters[0].TypeWithAnnotations;
+                var constructedType = wellKnownType.Construct(ImmutableArray.Create(parameterType));
+
+                Symbol constructedMethod = null;
+                foreach (var member in constructedType.GetMembers(WellKnownMemberNames.ObjectEquals))
+                {
+                    if (member.OriginalDefinition.Equals(wellKnownMethod))
+                    {
+                        constructedMethod = member;
+                        break;
+                    }
+                }
+
+                Debug.Assert(constructedMethod != null, "the original definition is present but the constructed method isn't present");
+
+                // FindImplementationForInterfaceMember doesn't check if this method is itself the interface method we're looking for
+                if (constructedMethod.Equals(method))
+                {
+                    return true;
+                }
+
+                var implementationMethod = method.ContainingType.FindImplementationForInterfaceMember(constructedMethod);
+                return method.Equals(implementationMethod);
+            }
+
+            void learnFromEqualsMethodArguments(BoundExpression left, TypeWithState leftType, BoundExpression right, TypeWithState rightType)
+            {
+                // comparing anything to a null literal gives maybe-null when true and not-null when false
+                // comparing a maybe-null to a not-null gives us not-null when true, nothing learned when false
+                if (left.ConstantValue?.IsNull == true)
+                {
+                    Split();
+                    LearnFromNullTest(right, ref StateWhenTrue);
+                    LearnFromNonNullTest(right, ref StateWhenFalse);
+                }
+                else if (right.ConstantValue?.IsNull == true)
+                {
+                    Split();
+                    LearnFromNullTest(left, ref StateWhenTrue);
+                    LearnFromNonNullTest(left, ref StateWhenFalse);
+                }
+                else if (leftType.MayBeNull && rightType.IsNotNull)
+                {
+                    Split();
+                    LearnFromNonNullTest(left, ref StateWhenTrue);
+                }
+                else if (rightType.MayBeNull && leftType.IsNotNull)
+                {
+                    Split();
+                    LearnFromNonNullTest(right, ref StateWhenTrue);
+                }
+            }
         }
 
         private TypeWithState VisitCallReceiver(BoundCall node)
@@ -3188,7 +3287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // If the parameter has annotations, we perform an additional check for nullable value types
                         CheckDisallowedNullAssignment(stateAfterConversion, parameterAnnotations, argumentNoConversion.Syntax.Location);
-                        SetResultType(argumentNoConversion, stateAfterConversion);
+                        SetResultType(argumentNoConversion, stateAfterConversion, updateAnalyzedNullability: false);
                     }
                     break;
                 case RefKind.Ref:
