@@ -1,10 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
+using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
@@ -20,10 +24,25 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <summary>
         /// Operation visitor to flow the location validation values across a given statement in a basic block.
         /// </summary>
-        private sealed class PropertySetDataFlowOperationVisitor :
+        private sealed partial class PropertySetDataFlowOperationVisitor :
             AbstractLocationDataFlowOperationVisitor<PropertySetAnalysisData, PropertySetAnalysisContext, PropertySetAnalysisResult, PropertySetAbstractValue>
         {
+            /// <summary>
+            /// Keeps track of hazardous usages detected.
+            /// </summary>
             private readonly ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>.Builder _hazardousUsageBuilder;
+
+            private readonly ImmutableHashSet<IMethodSymbol>.Builder _visitedLocalFunctions;
+
+            private readonly ImmutableHashSet<IFlowAnonymousFunctionOperation>.Builder _visitedLambdas;
+
+            /// <summary>
+            /// When looking for initialization hazardous usages, track the assignment operations for fields and properties for the tracked type.
+            /// </summary>
+            /// <remarks>
+            /// Mapping of AnalysisEntity (for a field or property of the tracked type) to AbstractLocation(s) to IAssignmentOperation(s)
+            /// </remarks>
+            private PooledDictionary<AnalysisEntity, TrackedAssignmentData> TrackedFieldPropertyAssignmentsOpt;
 
             /// <summary>
             /// The type containing the property set we're tracking.
@@ -35,21 +54,51 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             {
                 Debug.Assert(analysisContext.PointsToAnalysisResultOpt != null);
 
-                _hazardousUsageBuilder = ImmutableDictionary.CreateBuilder<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>();
+                this._hazardousUsageBuilder = ImmutableDictionary.CreateBuilder<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>();
+
+                this._visitedLocalFunctions = ImmutableHashSet.CreateBuilder<IMethodSymbol>();
+
+                this._visitedLambdas = ImmutableHashSet.CreateBuilder<IFlowAnonymousFunctionOperation>();
 
                 this.WellKnownTypeProvider.TryGetTypeByMetadataName(analysisContext.TypeToTrackMetadataName, out this.TrackedTypeSymbol);
+                Debug.Assert(this.TrackedTypeSymbol != null);
+
+                if (this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetInitializationHazardousUsageEvaluator(out _))
+                {
+                    this.TrackedFieldPropertyAssignmentsOpt = PooledDictionary<AnalysisEntity, TrackedAssignmentData>.GetInstance();
+                }
             }
 
             public override int GetHashCode()
             {
-                return HashUtilities.Combine(_hazardousUsageBuilder.GetHashCode(), base.GetHashCode());
+                return HashUtilities.Combine(
+                    this._hazardousUsageBuilder.GetHashCode(),
+                    this._visitedLocalFunctions.GetHashCode(),
+                    this._visitedLambdas.GetHashCode(),
+                    base.GetHashCode());
             }
 
             public ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> HazardousUsages
             {
                 get
                 {
-                    return _hazardousUsageBuilder.ToImmutable();
+                    return this._hazardousUsageBuilder.ToImmutable();
+                }
+            }
+
+            public ImmutableHashSet<IMethodSymbol> VisitedLocalFunctions
+            {
+                get
+                {
+                    return this._visitedLocalFunctions.ToImmutable();
+                }
+            }
+
+            public ImmutableHashSet<IFlowAnonymousFunctionOperation> VisitedLambdas
+            {
+                get
+                {
+                    return this._visitedLambdas.ToImmutable();
                 }
             }
 
@@ -173,6 +222,72 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             protected override PropertySetAbstractValue VisitAssignmentOperation(IAssignmentOperation operation, object argument)
             {
                 PropertySetAbstractValue baseValue = base.VisitAssignmentOperation(operation, argument);
+
+                // If we need to evaluate hazardous usages on initializations, track assignments of properties and fields, so
+                // at the end of the CFG we can figure out which assignment operations to flag.
+                if (this.TrackedFieldPropertyAssignmentsOpt != null
+                    && this.TrackedTypeSymbol.Equals(operation.Target.Type)
+                    && (operation.Target.Kind == OperationKind.PropertyReference
+                        || operation.Target.Kind == OperationKind.FieldReference
+                        || operation.Target.Kind == OperationKind.FlowCaptureReference))
+                {
+                    AnalysisEntity targetAnalysisEntity = null;
+                    if (operation.Target.Kind == OperationKind.FlowCaptureReference)
+                    {
+                        PointsToAbstractValue lValuePointsToAbstractValue = this.GetPointsToAbstractValue(operation.Target);
+                        if (lValuePointsToAbstractValue.LValueCapturedOperations.Count == 1)
+                        {
+                            IOperation lValueOperation = lValuePointsToAbstractValue.LValueCapturedOperations.First();
+                            if (lValueOperation.Kind == OperationKind.FieldReference
+                                || lValueOperation.Kind == OperationKind.PropertyReference)
+                            {
+                                this.AnalysisEntityFactory.TryCreate(lValueOperation, out targetAnalysisEntity);
+                            }
+                        }
+                        else
+                        {
+                            Debug.Fail("Can LValues FlowCaptureReferences have more than one operation?");
+                        }
+                    }
+                    else
+                    {
+                        this.AnalysisEntityFactory.TryCreate(operation.Target, out targetAnalysisEntity);
+                    }
+
+                    if (targetAnalysisEntity != null)
+                    {
+                        PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(operation.Value);
+                        if (!this.TrackedFieldPropertyAssignmentsOpt.TryGetValue(
+                                targetAnalysisEntity,
+                                out TrackedAssignmentData trackedAssignmentData))
+                        {
+                            trackedAssignmentData = new TrackedAssignmentData();
+                            this.TrackedFieldPropertyAssignmentsOpt.Add(targetAnalysisEntity, trackedAssignmentData);
+                        }
+
+                        if (pointsToAbstractValue.Kind == PointsToAbstractValueKind.KnownLocations)
+                        {
+                            foreach (AbstractLocation abstractLocation in pointsToAbstractValue.Locations)
+                            {
+                                trackedAssignmentData.TrackAssignmentWithAbstractLocation(operation, abstractLocation);
+                            }
+                        }
+                        else if (pointsToAbstractValue.Kind == PointsToAbstractValueKind.Unknown
+                            || pointsToAbstractValue.Kind == PointsToAbstractValueKind.UnknownNotNull)
+                        {
+                            trackedAssignmentData.TrackAssignmentWithUnknownLocation(operation);
+                        }
+                        else if (pointsToAbstractValue.NullState == NullAbstractValue.Null)
+                        {
+                            // Do nothing.
+                        }
+                        else
+                        {
+                            Debug.Fail($"Unhandled PointsToAbstractValue: Kind = {pointsToAbstractValue.Kind}, NullState = {pointsToAbstractValue.NullState}");
+                        }
+                    }
+                }
+
                 if (operation.Target is IPropertyReferenceOperation propertyReferenceOperation
                     && Equals(propertyReferenceOperation.Instance?.Type, this.TrackedTypeSymbol)
                     && this.DataFlowAnalysisContext.PropertyMappers.TryGetPropertyMapper(
@@ -224,6 +339,128 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 return baseValue;
             }
 
+            /// <summary>
+            /// Processes PropertySetAbstractValues at the end of the ControlFlowGraph.
+            /// </summary>
+            /// <param name="exitBlockOutput">Exit block output.</param>
+            /// <remarks>When evaluating hazardous usages on initializations.
+            /// class Class
+            /// {
+            ///     public static readonly Settings InsecureSettings = new Settings { AllowAnyoneAdminAccess = true };
+            /// }
+            /// </remarks>
+            internal void ProcessExitBlock(PropertySetBlockAnalysisResult exitBlockOutput)
+            {
+                if (this.TrackedFieldPropertyAssignmentsOpt == null)
+                {
+                    return;
+                }
+
+                try
+                {
+                    this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetInitializationHazardousUsageEvaluator(
+                        out HazardousUsageEvaluator initializationHazardousUsageEvaluator);
+                    Debug.Assert(initializationHazardousUsageEvaluator != null);
+
+                    foreach (KeyValuePair<AnalysisEntity, TrackedAssignmentData> kvp
+                        in this.TrackedFieldPropertyAssignmentsOpt)
+                    {
+                        if (!this.DataFlowAnalysisContext.PointsToAnalysisResultOpt.ExitBlockOutput.Data.TryGetValue(
+                                kvp.Key, out PointsToAbstractValue pointsToAbstractValue))
+                        {
+                            continue;
+                        }
+
+                        if (pointsToAbstractValue.Kind == PointsToAbstractValueKind.KnownLocations)
+                        {
+                            if (kvp.Value.AbstractLocationsToAssignments != null)
+                            {
+                                foreach (AbstractLocation abstractLocation in pointsToAbstractValue.Locations)
+                                {
+                                    if (!kvp.Value.AbstractLocationsToAssignments.TryGetValue(
+                                            abstractLocation,
+                                            out PooledHashSet<IAssignmentOperation> assignments))
+                                    {
+                                        Debug.Fail("Expected to have tracked assignment operations for a given location");
+                                        continue;
+                                    }
+
+                                    if (abstractLocation.IsNull)
+                                    {
+                                        continue;
+                                    }
+
+                                    if (!exitBlockOutput.Data.TryGetValue(
+                                            abstractLocation,
+                                            out PropertySetAbstractValue propertySetAbstractValue))
+                                    {
+                                        propertySetAbstractValue = PropertySetAbstractValue.Unknown;
+                                    }
+
+                                    HazardousUsageEvaluationResult result =
+                                        initializationHazardousUsageEvaluator.ValueEvaluator(propertySetAbstractValue);
+                                    if (result != HazardousUsageEvaluationResult.Unflagged)
+                                    {
+                                        foreach (IAssignmentOperation assignmentOperation in assignments)
+                                        {
+                                            this.MergeHazardousUsageResult(
+                                                assignmentOperation.Syntax,
+                                                methodSymbol: null,    // No method invocation; just evaluating initialization value.
+                                                result);
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                Debug.Fail("Expected to have tracked assignment operations with locations");
+                            }
+                        }
+                        else if (pointsToAbstractValue.Kind == PointsToAbstractValueKind.Unknown
+                            || pointsToAbstractValue.Kind == PointsToAbstractValueKind.UnknownNotNull)
+                        {
+                            if (kvp.Value.AssignmentsWithUnknownLocation != null)
+                            {
+                                HazardousUsageEvaluationResult result =
+                                    initializationHazardousUsageEvaluator.ValueEvaluator(PropertySetAbstractValue.Unknown);
+                                if (result != HazardousUsageEvaluationResult.Unflagged)
+                                {
+                                    foreach (IAssignmentOperation assignmentOperation in kvp.Value.AssignmentsWithUnknownLocation)
+                                    {
+                                        this.MergeHazardousUsageResult(
+                                            assignmentOperation.Syntax,
+                                            methodSymbol: null,    // No method invocation; just evaluating initialization value.
+                                            result);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                Debug.Fail("Expected to have tracked assignment operations with unknown PointsTo");
+                            }
+                        }
+                        else if (pointsToAbstractValue.NullState == NullAbstractValue.Null)
+                        {
+                            // Do nothing.
+                        }
+                        else
+                        {
+                            Debug.Fail($"Unhandled PointsToAbstractValue: Kind = {pointsToAbstractValue.Kind}, NullState = {pointsToAbstractValue.NullState}");
+                        }
+                    }
+                }
+                finally
+                {
+                    foreach (TrackedAssignmentData trackedAssignmentData in this.TrackedFieldPropertyAssignmentsOpt.Values)
+                    {
+                        trackedAssignmentData.Free();
+                    }
+
+                    this.TrackedFieldPropertyAssignmentsOpt.Free();
+                    this.TrackedFieldPropertyAssignmentsOpt = null;
+                }
+            }
+
             public override PropertySetAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IMethodSymbol method, IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments, bool invokedAsDelegate, IOperation originalOperation, PropertySetAbstractValue defaultValue)
             {
                 PropertySetAbstractValue baseValue = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
@@ -235,28 +472,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(method.MetadataName, out var hazardousUsageEvaluator))
                     || TryFindNonTrackedTypeHazardousUsageEvaluator(out hazardousUsageEvaluator, out propertySetInstance))
                 {
-                    PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(propertySetInstance);
-                    HazardousUsageEvaluationResult result = HazardousUsageEvaluationResult.Unflagged;
-                    foreach (AbstractLocation location in pointsToAbstractValue.Locations)
-                    {
-                        PropertySetAbstractValue locationAbstractValue = this.GetAbstractValue(location);
-
-                        HazardousUsageEvaluationResult evaluationResult = hazardousUsageEvaluator.Evaluator(method, locationAbstractValue);
-                        result = MergeHazardousUsageEvaluationResult(result, evaluationResult);
-                    }
-
-                    if (result != HazardousUsageEvaluationResult.Unflagged)
-                    {
-                        (Location, IMethodSymbol) key = (originalOperation.Syntax.GetLocation(), method);
-                        if (this._hazardousUsageBuilder.TryGetValue(key, out HazardousUsageEvaluationResult existingResult))
-                        {
-                            this._hazardousUsageBuilder[key] = MergeHazardousUsageEvaluationResult(result, existingResult);
-                        }
-                        else
-                        {
-                            this._hazardousUsageBuilder.Add(key, result);
-                        }
-                    }
+                    this.EvaluatePotentialHazardousUsage(
+                        originalOperation.Syntax,
+                        method,
+                        propertySetInstance,
+                        (PropertySetAbstractValue abstractValue) => hazardousUsageEvaluator.InvocationEvaluator(method, abstractValue));
                 }
                 else
                 {
@@ -297,9 +517,54 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
             }
 
+            /// <summary>
+            /// Evaluates an operation for potentially being a hazardous usage.
+            /// </summary>
+            /// <param name="operationSyntax">SyntaxNode of operation that's being evaluated.</param>
+            /// <param name="methodSymbol">Method symbol of the invocation operation that's being evaluated, or null if not an invocation operation.</param>
+            /// <param name="propertySetInstance">IOperation of the tracked type containing the properties to be evaluated.</param>
+            /// <param name="evaluationFunction">Function to evaluate a PropertySetAbstractValue to a HazardousUsageEvaluationResult.</param>
+            /// <param name="locationToAbstractValueMapping">Optional function to map AbstractLocations to PropertySetAbstractValues.  If null, uses this.CurrentAnalysisData.</param>
+            private void EvaluatePotentialHazardousUsage(SyntaxNode operationSyntax, IMethodSymbol methodSymbol, IOperation propertySetInstance, Func<PropertySetAbstractValue, HazardousUsageEvaluationResult> evaluationFunction, Func<AbstractLocation, PropertySetAbstractValue> locationToAbstractValueMapping = null)
+            {
+                if (locationToAbstractValueMapping == null)
+                {
+                    locationToAbstractValueMapping = this.GetAbstractValue;
+                }
+
+                PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(propertySetInstance);
+                HazardousUsageEvaluationResult result = HazardousUsageEvaluationResult.Unflagged;
+                foreach (AbstractLocation location in pointsToAbstractValue.Locations)
+                {
+                    PropertySetAbstractValue locationAbstractValue = locationToAbstractValueMapping(location);
+
+                    HazardousUsageEvaluationResult evaluationResult = evaluationFunction(locationAbstractValue);
+                    result = MergeHazardousUsageEvaluationResult(result, evaluationResult);
+                }
+
+                this.MergeHazardousUsageResult(operationSyntax, methodSymbol, result);
+            }
+
+            private void MergeHazardousUsageResult(SyntaxNode operationSyntax, IMethodSymbol methodSymbol, HazardousUsageEvaluationResult result)
+            {
+                if (result != HazardousUsageEvaluationResult.Unflagged)
+                {
+                    (Location, IMethodSymbol) key = (operationSyntax.GetLocation(), methodSymbol);
+                    if (this._hazardousUsageBuilder.TryGetValue(key, out HazardousUsageEvaluationResult existingResult))
+                    {
+                        this._hazardousUsageBuilder[key] = MergeHazardousUsageEvaluationResult(result, existingResult);
+                    }
+                    else
+                    {
+                        this._hazardousUsageBuilder.Add(key, result);
+                    }
+                }
+            }
+
             public override PropertySetAbstractValue VisitInvocation_LocalFunction(IMethodSymbol localFunction, ImmutableArray<IArgumentOperation> visitedArguments, IOperation originalOperation, PropertySetAbstractValue defaultValue)
             {
                 PropertySetAbstractValue baseValue = base.VisitInvocation_LocalFunction(localFunction, visitedArguments, originalOperation, defaultValue);
+                this._visitedLocalFunctions.Add(localFunction);
                 this.MergeInterproceduralResults(originalOperation);
                 return baseValue;
             }
@@ -307,14 +572,31 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             public override PropertySetAbstractValue VisitInvocation_Lambda(IFlowAnonymousFunctionOperation lambda, ImmutableArray<IArgumentOperation> visitedArguments, IOperation originalOperation, PropertySetAbstractValue defaultValue)
             {
                 PropertySetAbstractValue baseValue = base.VisitInvocation_Lambda(lambda, visitedArguments, originalOperation, defaultValue);
+                this._visitedLambdas.Add(lambda);
                 this.MergeInterproceduralResults(originalOperation);
                 return baseValue;
             }
 
+            protected override void ProcessReturnValue(IOperation returnValue)
+            {
+                base.ProcessReturnValue(returnValue);
+
+                if (returnValue != null
+                    && this.TrackedTypeSymbol.Equals(returnValue.Type)
+                    && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetReturnHazardousUsageEvaluator(
+                        out HazardousUsageEvaluator hazardousUsageEvaluator))
+                {
+                    this.EvaluatePotentialHazardousUsage(
+                        returnValue.Syntax,
+                        null,
+                        returnValue,
+                        (PropertySetAbstractValue abstractValue) => hazardousUsageEvaluator.ValueEvaluator(abstractValue));
+                }
+            }
+
             private void MergeInterproceduralResults(IOperation originalOperation)
             {
-                if (!this.TryGetInterproceduralAnalysisResult(originalOperation, out PropertySetAnalysisResult subResult)
-                    || subResult.HazardousUsages.IsEmpty)
+                if (!this.TryGetInterproceduralAnalysisResult(originalOperation, out PropertySetAnalysisResult subResult))
                 {
                     return;
                 }
@@ -329,6 +611,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     {
                         this._hazardousUsageBuilder.Add(kvp.Key, kvp.Value);
                     }
+                }
+
+                foreach (IMethodSymbol localFunctionSymbol in subResult.VisitedLocalFunctions)
+                {
+                    this._visitedLocalFunctions.Add(localFunctionSymbol);
+                }
+
+                foreach (IFlowAnonymousFunctionOperation lambdaOperation in subResult.VisitedLambdas)
+                {
+                    this._visitedLambdas.Add(lambdaOperation);
                 }
             }
         }

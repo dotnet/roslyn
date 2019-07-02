@@ -433,6 +433,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 return value;
             }
 
+            public override ParameterValidationAbstractValue VisitIsType(IIsTypeOperation operation, object argument)
+            {
+                var value = base.VisitIsType(operation, argument);
+
+                // Mark a location as validated on paths where user has performed an IsType check, for example 'x is object'.
+                // See comments in VisitBinaryOperatorCore override above for further details.
+                if (FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue)
+                {
+                    MarkValidatedLocations(operation.ValueOperand);
+                }
+
+                return value;
+            }
+
             #endregion
         }
     }
