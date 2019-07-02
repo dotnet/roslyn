@@ -53,6 +53,7 @@
     <!-- The reference does not flow from Microsoft.VisualStudio.LanguageServices since it's private in that project -->
     <PackageReference Include="Microsoft.VisualStudio.VsInteractiveWindow" Version="$(MicrosoftVisualStudioVsInteractiveWindowVersion)" />
     <PackageReference Include="VSLangProj80" Version="$(VSLangProj80Version)" />
+    <PackageReference Include="Microsoft.ServiceHub.Client" Version="$(MicrosoftServiceHubClientVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" Version="$(MicrosoftVisualStudioLanguageServerClientVersion)" />
   </ItemGroup>
   <ItemGroup>

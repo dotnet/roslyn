@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Remote
         protected readonly int InstanceId;
 
         protected readonly TraceSource Logger;
+
         protected readonly AssetStorage AssetStorage;
 
         [Obsolete("don't use RPC directly but use it through StartService and InvokeAsync", error: true)]
