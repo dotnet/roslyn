@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
                 var updatedNodeList = new List<XmlNodeSyntax>();
                 var structuredContent = structuredTrivia.Content.ToList();
-                for (int i = 0; i < structuredContent.Count; i++)
+                for (var i = 0; i < structuredContent.Count; i++)
                 {
                     var content = structuredContent[i];
                     if (!content.IsKind(SyntaxKind.XmlElement))
@@ -627,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         private static List<SyntaxToken> GetSeparators<T>(SeparatedSyntaxList<T> arguments, int numSeparatorsToSkip = 0) where T : SyntaxNode
         {
             var separators = new List<SyntaxToken>();
-            for (int i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
+            for (var i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
             {
                 separators.Add(arguments.GetSeparator(i));
             }

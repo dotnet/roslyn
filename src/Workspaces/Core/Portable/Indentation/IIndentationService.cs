@@ -41,12 +41,13 @@ namespace Microsoft.CodeAnalysis.Indentation
     internal interface IIndentationService : ILanguageService
     {
         /// <summary>
-        /// Determines the desired indentation of a given line.  May return <see langword="null"/> if the
-        /// <paramref name="document"/> does not want any sort of automatic indentation.  May also return
-        /// <see langword="null"/> if the line in question is not blank and thus indentation should
-        /// be deferred to the formatting command handler to handle.
+        /// Determines the desired indentation of a given line.  This is conceptually what indentation
+        /// would be provided if 'enter' was pressed in the middle of a line.  It will determine what
+        /// position the remainder of the line should start at.  This may differ from
+        /// <see cref="GetBlankLineIndentation"/> if the language thinks the indentation should be
+        /// different if the line is completely blank, or if it contains text after the caret.
         /// </summary>
-        IndentationResult? GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken);
+        IndentationResult GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken);
 
         /// <summary>
         /// Determines indentation for a blank line (i.e. after hitting enter at the end of a line,

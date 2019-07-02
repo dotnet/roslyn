@@ -152,6 +152,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal abstract CSharpTypeInfo GetTypeInfoWorker(CSharpSyntaxNode node, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Binds the provided expression in the given context.
+        /// </summary>
+        /// <param name="position">The position to bind at.</param>
+        /// <param name="expression">The expression to bind</param>
+        /// <param name="bindingOption">How to speculatively bind the given expression. If this is <see cref="SpeculativeBindingOption.BindAsTypeOrNamespace"/>
+        /// then the provided expression should be a <see cref="TypeSyntax"/>.</param>
+        /// <param name="binder">The binder that was used to bind the given syntax.</param>
+        /// <param name="crefSymbols">The symbols used in a cref. If this is not default, then the return is null.</param>
+        /// <returns>The expression that was bound. If <paramref name="crefSymbols"/> is not default, this is null.</returns>
+        internal abstract BoundExpression GetSpeculativelyBoundExpression(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, out Binder binder, out ImmutableArray<Symbol> crefSymbols);
+
+        /// <summary>
         /// Gets a list of method or indexed property symbols for a syntax node. This is overridden by various specializations of SemanticModel.
         /// It can assume that CheckSyntaxNode and CanGetSemanticInfo have already been called, as well as that named
         /// argument nodes have been handled.
@@ -261,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Keep in sync with Binder.BindCrefParameterOrReturnType.
         /// </remarks>
-        private BoundExpression GetSpeculativelyBoundExpression(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, out Binder binder, out ImmutableArray<Symbol> crefSymbols)
+        protected BoundExpression GetSpeculativelyBoundExpressionWithoutNullability(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, out Binder binder, out ImmutableArray<Symbol> crefSymbols)
         {
             if (expression == null)
             {

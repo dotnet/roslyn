@@ -39,6 +39,12 @@ If the analysis determines that a null check always (or never) passes, a hidden 
 A number of null checks affect the flow state when tested for:
 - comparisons to `null`: `x == null` and `x != null`
 - `is` operator: `x is null`, `x is K` (where `K` is a constant), `x is string`, `x is string s`
+- calls to well-known equality methods, including:
+  - `static bool object.Equals(object, object)`
+  - `static bool object.ReferenceEquals(object, object)`
+  - `bool object.Equals(object)` and overrides
+  - `bool IEquatable<T>(T)` and implementations
+  - `bool IEqualityComparer<T>(T, T)` and implementations
 
 Invocation of methods annotated with the following attributes will also affect flow analysis:
 - simple pre-conditions: `[AllowNull]` and `[DisallowNull]`

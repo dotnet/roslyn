@@ -177,9 +177,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private static (T item, bool gray) GetMatchingItem<T>(IEnumerable<T> items, SnapshotPoint point, INavigationBarItemService itemsService, CancellationToken cancellationToken) where T : NavigationBarItem
         {
             T exactItem = null;
-            int exactItemStart = 0;
+            var exactItemStart = 0;
             T nextItem = null;
-            int nextItemStart = int.MaxValue;
+            var nextItemStart = int.MaxValue;
 
             foreach (var item in items)
             {

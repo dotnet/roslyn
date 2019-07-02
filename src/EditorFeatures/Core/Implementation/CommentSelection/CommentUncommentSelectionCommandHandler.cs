@@ -120,11 +120,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
                 if (operation == Operation.Uncomment)
                 {
-                    using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
-                    {
-                        Format(service, subjectBuffer.CurrentSnapshot, trackingSpans, CancellationToken.None);
-                        transaction.Complete();
-                    }
+                    using var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
+
+                    Format(service, subjectBuffer.CurrentSnapshot, trackingSpans, CancellationToken.None);
+                    transaction.Complete();
                 }
 
                 if (trackingSpans.Any())

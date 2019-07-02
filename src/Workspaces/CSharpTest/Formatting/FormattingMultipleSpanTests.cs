@@ -163,14 +163,13 @@ class A { }";
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task EmptySpan()
         {
-            using (var workspace = new AdhocWorkspace())
-            {
-                var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
-                var document = project.AddDocument("Document", SourceText.From(""));
+            using var workspace = new AdhocWorkspace();
 
-                var syntaxTree = await document.GetSyntaxTreeAsync();
-                var result = Formatter.Format(await syntaxTree.GetRootAsync(), TextSpan.FromBounds(0, 0), workspace, cancellationToken: CancellationToken.None);
-            }
+            var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
+            var document = project.AddDocument("Document", SourceText.From(""));
+
+            var syntaxTree = await document.GetSyntaxTreeAsync();
+            var result = Formatter.Format(await syntaxTree.GetRootAsync(), TextSpan.FromBounds(0, 0), workspace, cancellationToken: CancellationToken.None);
         }
 
         private Task AssertFormatAsync(string content, string expected, Dictionary<OptionKey, object> changedOptionSet = null)

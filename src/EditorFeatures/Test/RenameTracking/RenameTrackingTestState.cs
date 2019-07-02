@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 
         public async Task<IList<Diagnostic>> GetDocumentDiagnosticsAsync(Document document = null)
         {
-            document = document ?? this.Workspace.CurrentSolution.GetDocument(_hostDocument.Id);
+            document ??= this.Workspace.CurrentSolution.GetDocument(_hostDocument.Id);
             var analyzer = new RenameTrackingDiagnosticAnalyzer();
             return (await DiagnosticProviderTestUtilities.GetDocumentDiagnosticsAsync(analyzer, document,
                 (await document.GetSyntaxRootAsync()).FullSpan)).ToList();

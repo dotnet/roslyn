@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         protected abstract class NotMovableVariableSymbol : VariableSymbol
         {
-            public NotMovableVariableSymbol(Compilation compilation, ITypeSymbol type) :
-                base(compilation, type)
+            public NotMovableVariableSymbol(Compilation compilation, ITypeSymbol type)
+                : base(compilation, type)
             {
             }
 
@@ -103,8 +103,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             private readonly IParameterSymbol _parameterSymbol;
 
-            public ParameterVariableSymbol(Compilation compilation, IParameterSymbol parameterSymbol, ITypeSymbol type) :
-                base(compilation, type)
+            public ParameterVariableSymbol(Compilation compilation, IParameterSymbol parameterSymbol, ITypeSymbol type)
+                : base(compilation, type)
             {
                 Contract.ThrowIfNull(parameterSymbol);
                 _parameterSymbol = parameterSymbol;
@@ -182,8 +182,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private readonly ILocalSymbol _localSymbol;
             private readonly HashSet<int> _nonNoisySet;
 
-            public LocalVariableSymbol(Compilation compilation, ILocalSymbol localSymbol, ITypeSymbol type, HashSet<int> nonNoisySet) :
-                base(compilation, type)
+            public LocalVariableSymbol(Compilation compilation, ILocalSymbol localSymbol, ITypeSymbol type, HashSet<int> nonNoisySet)
+                : base(compilation, type)
             {
                 Contract.ThrowIfNull(localSymbol);
                 Contract.ThrowIfNull(nonNoisySet);
@@ -299,8 +299,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             private readonly IRangeVariableSymbol _symbol;
 
-            public QueryVariableSymbol(Compilation compilation, IRangeVariableSymbol symbol, ITypeSymbol type) :
-                base(compilation, type)
+            public QueryVariableSymbol(Compilation compilation, IRangeVariableSymbol symbol, ITypeSymbol type)
+                : base(compilation, type)
             {
                 Contract.ThrowIfNull(symbol);
                 _symbol = symbol;
