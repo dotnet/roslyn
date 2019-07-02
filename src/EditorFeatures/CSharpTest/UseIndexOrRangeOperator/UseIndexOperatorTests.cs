@@ -63,6 +63,7 @@ class C
         {
             await TestAsync(
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string s)
@@ -71,6 +72,7 @@ class C
     }
 }",
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string s)
@@ -85,6 +87,7 @@ class C
         {
             await TestAsync(
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string s)
@@ -93,6 +96,7 @@ class C
     }
 }",
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string s)
@@ -109,6 +113,7 @@ class C
 @"
 using System.Linq;
 
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string[] ss)
@@ -119,6 +124,7 @@ class C
 @"
 using System.Linq;
 
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string[] ss)
@@ -329,10 +335,25 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        public async Task TestMissingWithNoSystemIndex()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void Goo(string[] s)
+    {
+        var v = s[[||]s.Length - 1];
+    }
+}", new TestParameters(parseOptions: s_parseOptions));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
         public async Task TestArray()
         {
             await TestAsync(
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string[] s)
@@ -341,6 +362,7 @@ class C
     }
 }",
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string[] s)
@@ -355,6 +377,7 @@ class C
         {
             await TestAsync(
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string s)
@@ -364,6 +387,7 @@ class C
     }
 }",
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string s)
@@ -379,6 +403,7 @@ class C
         {
             await TestAsync(
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string s)
@@ -388,6 +413,7 @@ class C
     }
 }",
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string s)
@@ -403,6 +429,7 @@ class C
         {
             await TestAsync(
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string[] s)
@@ -411,6 +438,7 @@ class C
     }
 }",
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string[] s)
@@ -425,6 +453,7 @@ class C
         {
             await TestAsync(
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string[] s)
@@ -433,6 +462,7 @@ class C
     }
 }",
 @"
+namespace System { public struct Index { } }
 class C
 {
     void Goo(string[] s)
