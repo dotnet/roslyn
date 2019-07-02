@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         }
 
         private static async Task<LSP.Command[]> RunCodeActionsAsync(Solution solution, LSP.Location caret, LSP.ClientCapabilities clientCapabilities = null)
-            => await GetLanguageServer(solution).GetCodeActionsAsync(solution, CreateCodeActionParams(caret), clientCapabilities, CancellationToken.None);
+            => (LSP.Command[])await GetLanguageServer(solution).GetCodeActionsAsync(solution, CreateCodeActionParams(caret), clientCapabilities, CancellationToken.None);
 
         private static LSP.ClientCapabilities CreateClientCapabilitiesWithExperimentalValue(string experimentalProperty, JToken value)
             => new LSP.ClientCapabilities()
