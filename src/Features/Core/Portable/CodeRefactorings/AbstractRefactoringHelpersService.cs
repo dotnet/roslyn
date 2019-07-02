@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// of tokens gracefully.
         /// </para>
         /// </summary>
-        protected async Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selection, Predicate<SyntaxNode> predicate, Func<SyntaxNode, ISyntaxFactsService, SyntaxNode> extractNode, CancellationToken cancellationToken)
+        protected async Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selection, Predicate<SyntaxNode> predicate, Func<SyntaxNode, ISyntaxFactsService, bool, SyntaxNode> extractNode, CancellationToken cancellationToken)
         {
             // Given selection is trimmed first to enable over-selection that spans multiple lines. Since trailing whitespace ends
             // at newline boundary over-selection to e.g. a line after LocalFunctionStatement would cause FindNode to find enclosing
@@ -85,6 +85,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // lang. & situation dependent) into Children descending code here.  We can't just try extracted Node because we might 
             // want the whole node `var a = b;`
             //
+            // While we want to do most extractions for both selections and just caret location (empty selection), extractions based 
+            // on type's header node (caret is anywhere in a header of wanted type e.g. `in[||]t A { get; set; }) are limited to 
+            // empty selections. Otherwise `[|int|] A { get; set; }) would trigger all refactorings for Property Decl.
+            //
             // See local function TryGetAcceptedNodeOrExtracted DefaultNodeExtractor for more info.
 
 
@@ -98,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             SyntaxNode prevNode;
             do
             {
-                var wantedNode = TryGetAcceptedNodeOrExtracted(node, predicate, extractNode, syntaxFacts);
+                var wantedNode = TryGetAcceptedNodeOrExtracted(node, predicate, extractNode, syntaxFacts, extractParentsOfHeader: false);
                 if (wantedNode != null)
                 {
                     return wantedNode;
@@ -114,6 +118,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // Consider touching only for empty selections. Otherwise `[|C|] methodName(){}` would be considered as 
             // touching the Method's Node (through the left edge, see below) which is something the user probably 
             // didn't want since they specifically selected only the return type.
+            //
+            // Whether we have selection of location has to be checked against original selection because selecting just
+            // whitespace could collapse selectionTrimmed into and empty Location. But we don't want `[|   |]token`
+            // registering as `   [||]token`.
             //
             // What the selection is touching is used in two ways. 
             // - Firstly, it is used to handle situation where it touches a Token whose direct ancestor is wanted Node.
@@ -131,23 +139,24 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 return null;
             }
 
-            // get Token for current selection (empty) location
-            var tokenOnSelection = root.FindToken(selectionTrimmed.Start);
+            // get Token for current location
+            var location = selectionTrimmed.Start;
+            var tokenOnLocation = root.FindToken(location);
 
-            // Gets a token that is directly to the right of current (empty) selection or that encompasses current selection (`[||]tokenITORightOrIn` or `tok[||]enITORightOrIn`)
-            var tokenToRightOrIn = tokenOnSelection.Span.Contains(selectionTrimmed.Start)
-                ? tokenOnSelection
+            // Gets a token that is directly to the right of current location or that encompasses current location (`[||]tokenITORightOrIn` or `tok[||]enITORightOrIn`)
+            var tokenToRightOrIn = tokenOnLocation.Span.Contains(location)
+                ? tokenOnLocation
                 : default;
 
             if (tokenToRightOrIn != default)
             {
-                var rightNode = tokenOnSelection.Parent;
+                var rightNode = tokenOnLocation.Parent;
                 do
                 {
                     // Consider either a Node that is:
-                    // - Parent of touched Token (selection can be within) 
-                    // - Ancestor Node of such Token as long as their span starts on selection (it's still on the edge)
-                    var wantedNode = TryGetAcceptedNodeOrExtracted(rightNode, predicate, extractNode, syntaxFacts);
+                    // - Parent of touched Token (location can be within) 
+                    // - Ancestor Node of such Token as long as their span starts on location (it's still on the edge)
+                    var wantedNode = TryGetAcceptedNodeOrExtracted(rightNode, predicate, extractNode, syntaxFacts, extractParentsOfHeader: true);
                     if (wantedNode != null)
                     {
                         return wantedNode;
@@ -155,22 +164,22 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
                     rightNode = rightNode?.Parent;
                 }
-                while (rightNode != null && rightNode.Span.Start == selection.Start);
+                while (rightNode != null && rightNode.Span.Start == location);
             }
 
-            // if the selection is inside tokenToRightOrIn -> no Token can be to Left (tokenToRightOrIn is also left from selection, e.g: `tok[||]enITORightOrIn`)
-            if (tokenToRightOrIn != default && tokenToRightOrIn.Span.Start != selectionTrimmed.Start)
+            // if the location is inside tokenToRightOrIn -> no Token can be to Left (tokenToRightOrIn is also left from location, e.g: `tok[||]enITORightOrIn`)
+            if (tokenToRightOrIn != default && tokenToRightOrIn.Span.Start != location)
             {
                 return null;
             }
 
-            // Token to left: a token whose span ends on current (empty) selection
-            var tokenPreSelection = (tokenOnSelection.Span.End == selectionTrimmed.Start)
-                ? tokenOnSelection
-                : tokenOnSelection.GetPreviousToken();
+            // Token to left: a token whose span ends on current location
+            var tokenPreLocation = (tokenOnLocation.Span.End == location)
+                ? tokenOnLocation
+                : tokenOnLocation.GetPreviousToken();
 
-            var tokenToLeft = (tokenPreSelection.Span.End == selectionTrimmed.Start)
-                ? tokenPreSelection
+            var tokenToLeft = (tokenPreLocation.Span.End == location)
+                ? tokenPreLocation
                 : default;
 
             if (tokenToLeft != default)
@@ -179,8 +188,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 do
                 {
                     // Consider either a Node that is:
-                    // - Ancestor Node of such Token as long as their span ends on selection (it's still on the edge)
-                    var wantedNode = TryGetAcceptedNodeOrExtracted(leftNode, predicate, extractNode, syntaxFacts);
+                    // - Ancestor Node of such Token as long as their span ends on location (it's still on the edge)
+                    var wantedNode = TryGetAcceptedNodeOrExtracted(leftNode, predicate, extractNode, syntaxFacts, extractParentsOfHeader: true);
                     if (wantedNode != null)
                     {
                         return wantedNode;
@@ -188,13 +197,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
                     leftNode = leftNode?.Parent;
                 }
-                while (leftNode != null && leftNode.Span.End == selection.Start);
+                while (leftNode != null && leftNode.Span.End == location);
             }
 
             // nothing found -> return null
             return null;
 
-            static SyntaxNode TryGetAcceptedNodeOrExtracted(SyntaxNode node, Predicate<SyntaxNode> predicate, Func<SyntaxNode, ISyntaxFactsService, SyntaxNode> extractNode, ISyntaxFactsService syntaxFacts)
+            static SyntaxNode TryGetAcceptedNodeOrExtracted(SyntaxNode node, Predicate<SyntaxNode> predicate, Func<SyntaxNode, ISyntaxFactsService, bool, SyntaxNode> extractNode, ISyntaxFactsService syntaxFacts, bool extractParentsOfHeader)
             {
                 if (node == null)
                 {
@@ -206,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     return node;
                 }
 
-                var extractedNode = extractNode(node, syntaxFacts);
+                var extractedNode = extractNode(node, syntaxFacts, extractParentsOfHeader);
                 return (extractedNode != null && predicate(extractedNode))
                     ? extractedNode
                     : null;
@@ -215,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         /// <summary>
         /// <para>
-        /// Extractor function for <see cref="TryGetSelectedNodeAsync(Document, TextSpan, Predicate{SyntaxNode}, Func{SyntaxNode, ISyntaxFactsService, SyntaxNode}, CancellationToken)"/> method 
+        /// Extractor function for <see cref="TryGetSelectedNodeAsync(Document, TextSpan, Predicate{SyntaxNode}, Func{SyntaxNode, ISyntaxFactsService, bool, SyntaxNode}, CancellationToken)"/> method 
         /// that retrieves nodes that should also be considered as refactoring targets given <paramref name="node"/> is considered. 
         /// Can extract both nodes above and under given <paramref name="node"/>.
         /// </para>
@@ -227,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// to provide refactoring for `b` node. Similarly for other types of refactorings.
         /// </para>
         /// </summary>
-        protected virtual SyntaxNode DefaultNodeExtractor(SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        protected virtual SyntaxNode DefaultNodeExtractor(SyntaxNode node, ISyntaxFactsService syntaxFacts, bool extractParentsOfHeader)
         {
             // REMARKS: 
             // The set of currently attempted extractions is in no way exhaustive and covers only cases
@@ -263,10 +272,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 return rightSide;
             }
 
-            // a => `b`; -> `a => b;`
-            if (syntaxFacts.IsLambdaBody(node))
+            if (extractParentsOfHeader)
             {
-                return node.Parent;
+                // Header: [TestAttribute] `public int a` { get; set; }
+                if (syntaxFacts.IsPartOfPropertyDeclarationHeader(node))
+                {
+                    return syntaxFacts.GetContainingPropertyDeclaration(node);
+                }
             }
 
             return node;

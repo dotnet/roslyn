@@ -1951,6 +1951,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public bool IsLambdaBody(SyntaxNode node) => node.Parent is LambdaExpressionSyntax lambdaNode && lambdaNode.Body == node;
+        public bool IsPartOfPropertyDeclarationHeader(SyntaxNode node)
+        {
+            var propertyDeclaration = node.GetAncestor<PropertyDeclarationSyntax>();
+            if (propertyDeclaration == null)
+            {
+                return false;
+            }
+
+            var start = propertyDeclaration.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart ??
+                        propertyDeclaration.SpanStart;
+            var end = propertyDeclaration.Identifier.FullSpan.End;
+
+            return node.Span.Start >= start && node.Span.End <= end;
+        }
+
+        public SyntaxNode GetContainingPropertyDeclaration(SyntaxNode node) => node.GetAncestor<PropertyDeclarationSyntax>();
     }
 }

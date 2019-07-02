@@ -264,7 +264,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsVariableDeclarator(SyntaxNode node);
         bool IsDeconstructionAssignment(SyntaxNode node);
         bool IsDeconstructionForEachStatement(SyntaxNode node);
-        bool IsLambdaBody(SyntaxNode node);
 
         /// <summary>
         /// Returns true for nodes that represent the body of a method.
@@ -297,8 +296,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsQueryKeyword(SyntaxToken token);
         bool IsThrowExpression(SyntaxNode node);
         bool IsElementAccessExpression(SyntaxNode node);
+        bool IsPartOfPropertyDeclarationHeader(SyntaxNode node);
         bool IsIndexerMemberCRef(SyntaxNode node);
-
+        SyntaxNode GetContainingPropertyDeclaration(SyntaxNode node);
         bool IsIdentifierStartCharacter(char c);
         bool IsIdentifierPartCharacter(char c);
         bool IsIdentifierEscapeCharacter(char c);

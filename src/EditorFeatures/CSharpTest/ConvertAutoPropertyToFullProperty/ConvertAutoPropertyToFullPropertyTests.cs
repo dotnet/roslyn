@@ -865,10 +865,28 @@ class TestClass
             var text = @"
 class TestClass
 {
-    public int[||] Goo { get; set; }
+    public in[||]t Goo { get; set; }
 }
 ";
-            await TestMissingAsync(text);
+            var expected = @"
+class TestClass
+{
+    private int goo;
+
+    public int Goo
+    {
+        get
+        {
+            return goo;
+        }
+        set
+        {
+            goo = value;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
@@ -879,6 +897,36 @@ class TestClass
 class TestClass
 {
     [|public int Goo { get; set; }|]
+}
+";
+            var expected = @"
+class TestClass
+{
+    private int goo;
+
+    public int Goo
+    {
+        get
+        {
+            return goo;
+        }
+        set
+        {
+            goo = value;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task SelectionName()
+        {
+            var text = @"
+class TestClass
+{
+    public int [|Goo|] { get; set; }
 }
 ";
             var expected = @"

@@ -1945,13 +1945,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return MyBase.SpansPreprocessorDirective(tokens)
         End Function
 
-        Public Function IsLambdaBody(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLambdaBody
-            If node.Parent IsNot Nothing And TypeOf node.Parent Is LambdaExpressionSyntax Then
-                Dim lambdaNode = CType(node.Parent, LambdaExpressionSyntax)
-                Dim lambdaBodies = lambdaNode.GetStatements()
-                Return lambdaBodies.Count() = 1 And lambdaBodies.First Is node
+        Public Function IsPartOfPropertyDeclarationHeader(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsPartOfPropertyDeclarationHeader
+            Dim propertyDeclaration = node.GetAncestor(Of PropertyStatementSyntax)()
+
+            If propertyDeclaration Is Nothing Then
+                Return False
             End If
-            Return False
+
+            Dim start = If(propertyDeclaration.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart, propertyDeclaration.SpanStart)
+            Dim [end] = If(propertyDeclaration.AsClause?.FullSpan.[End], propertyDeclaration.Identifier.FullSpan.End)
+            Return node.Span.Start >= start AndAlso node.Span.[End] <= [end]
+        End Function
+
+        Public Function GetContainingPropertyDeclaration(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetContainingPropertyDeclaration
+            Return node.GetAncestor(Of PropertyStatementSyntax)
         End Function
     End Class
 End Namespace
