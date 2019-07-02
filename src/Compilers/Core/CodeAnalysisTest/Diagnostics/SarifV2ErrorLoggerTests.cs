@@ -112,7 +112,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             }
           ]
         }
-      }
+      },
+      ""columnKind"": ""utf16CodeUnits""
     }
   ]
 }";
@@ -458,7 +459,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             }
           ]
         }
-      }
+      },
+      ""columnKind"": ""utf16CodeUnits""
     }
   ]
 }";

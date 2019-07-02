@@ -60,7 +60,8 @@ class C
           ""semanticVersion"": ""{3}"",
           ""language"": ""{4}""
         }}
-      }}
+      }},
+      ""columnKind"": ""utf16CodeUnits""
     }}
   ]
 }}";
@@ -180,7 +181,8 @@ public class C
             }}
           ]
         }}
-      }}
+      }},
+      ""columnKind"": ""utf16CodeUnits""
     }}
   ]
 }}";
@@ -313,7 +315,8 @@ public class C
             }}
           ]
         }}
-      }}
+      }},
+      ""columnKind"": ""utf16CodeUnits""
     }}
   ]
 }}";

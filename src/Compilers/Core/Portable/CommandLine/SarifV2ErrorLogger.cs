@@ -129,6 +129,8 @@ namespace Microsoft.CodeAnalysis
 
             WriteTool();
 
+            _writer.Write("columnKind", "utf16CodeUnits");
+
             _writer.WriteObjectEnd(); // run
             _writer.WriteArrayEnd();  // runs
             _writer.WriteObjectEnd(); // root
