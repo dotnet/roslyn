@@ -6,31 +6,18 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertAutoPropertyToFullPropertyCodeRefactoringProvider)), [Shared]>
     Friend Class VisualBasicConvertAutoPropertyToFullPropertyCodeRefactoringProvider
-        Inherits AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider
+        Inherits AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider(Of PropertyStatementSyntax, TypeBlockSyntax)
 
         Private Const Underscore As String = "_"
 
         <ImportingConstructor>
         Public Sub New()
         End Sub
-
-        Friend Overrides Async Function GetPropertyAsync(document As Document, span As TextSpan, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
-            Dim refactoringHelperService = document.GetLanguageService(Of IRefactoringHelpersService)()
-            Dim containingProperty = Await refactoringHelperService.TryGetSelectedNodeAsync(Of PropertyStatementSyntax)(document, span, cancellationToken).ConfigureAwait(False)
-
-            ' see whether property is on right place
-            If TypeOf containingProperty?.Parent IsNot TypeBlockSyntax Then
-                Return Nothing
-            End If
-
-            Return containingProperty
-        End Function
 
         ''' <summary>
         ''' In VB, auto properties have an implicit backing field that is named using the property 

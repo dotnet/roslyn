@@ -1,4 +1,5 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -10,15 +11,17 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 {
-    internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider
+    internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider<TPropertyDeclarationNode, TTypeDeclarationNode>
         : CodeRefactoringProvider
+        where TPropertyDeclarationNode : SyntaxNode
+        where TTypeDeclarationNode : SyntaxNode
     {
-        internal abstract Task<SyntaxNode> GetPropertyAsync(Document document, TextSpan span, CancellationToken cancellationToken);
         internal abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, CancellationToken cancellationToken);
         internal abstract (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
             DocumentOptionSet options, SyntaxNode property, string fieldName, SyntaxGenerator generator);
@@ -62,6 +65,19 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             var fields = propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>();
             var field = fields.FirstOrDefault(f => propertySymbol.Equals(f.AssociatedSymbol));
             return field != null;
+        }
+
+        private async Task<SyntaxNode> GetPropertyAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        {
+            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
+
+            var containingProperty = await refactoringHelperService.TryGetSelectedNodeAsync<TPropertyDeclarationNode>(document, span, cancellationToken).ConfigureAwait(false);
+            if (!(containingProperty?.Parent is TTypeDeclarationNode))
+            {
+                return null;
+            }
+
+            return containingProperty;
         }
 
         private async Task<Document> ExpandToFullPropertyAsync(

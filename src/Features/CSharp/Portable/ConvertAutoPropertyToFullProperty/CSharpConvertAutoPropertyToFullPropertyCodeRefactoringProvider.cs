@@ -24,26 +24,11 @@ using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpe
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider)), Shared]
-    internal class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider : AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider
+    internal class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider : AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider<PropertyDeclarationSyntax, TypeDeclarationSyntax>
     {
         [ImportingConstructor]
         public CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider()
         {
-        }
-
-        internal override async Task<SyntaxNode> GetPropertyAsync(Document document, TextSpan span, CancellationToken cancellationToken)
-        {
-
-            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-
-            var containingProperty = await refactoringHelperService.TryGetSelectedNodeAsync<PropertyDeclarationSyntax>(document, span, cancellationToken).ConfigureAwait(false);
-
-            if (!(containingProperty?.Parent is TypeDeclarationSyntax))
-            {
-                return null;
-            }
-
-            return containingProperty;
         }
 
         internal override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, CancellationToken cancellationToken)
