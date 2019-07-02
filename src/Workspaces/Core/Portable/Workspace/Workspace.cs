@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Call this method when the workspace is disposed.
         ///
-        /// Override this method to do addition work when the workspace is disposed.
+        /// Override this method to do additional work when the workspace is disposed.
         /// Call this method at the end of your method.
         /// </summary>
         protected virtual void Dispose(bool finalize)
