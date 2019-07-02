@@ -16,28 +16,30 @@ namespace Microsoft.CodeAnalysis.Emit
 {
     internal abstract class DefinitionMap
     {
-        protected struct MappedMethod
+        protected readonly struct MappedMethod
         {
-            public MappedMethod(IMethodSymbolInternal previousMethodOpt, Func<SyntaxNode, SyntaxNode> syntaxMap)
-            {
-                this.PreviousMethod = previousMethodOpt;
-                this.SyntaxMap = syntaxMap;
-            }
-
             public readonly IMethodSymbolInternal PreviousMethod;
             public readonly Func<SyntaxNode, SyntaxNode> SyntaxMap;
+
+            public MappedMethod(IMethodSymbolInternal previousMethodOpt, Func<SyntaxNode, SyntaxNode> syntaxMap)
+            {
+                PreviousMethod = previousMethodOpt;
+                SyntaxMap = syntaxMap;
+            }
         }
 
-        protected readonly PEModule module;
         protected readonly IReadOnlyDictionary<IMethodSymbol, MappedMethod> mappedMethods;
+        protected readonly SymbolMatcher mapToMetadata;
+        protected readonly SymbolMatcher mapToPrevious;
 
-        protected DefinitionMap(PEModule module, IEnumerable<SemanticEdit> edits)
+        protected DefinitionMap(IEnumerable<SemanticEdit> edits, SymbolMatcher mapToMetadata, SymbolMatcher mapToPrevious)
         {
-            Debug.Assert(module != null);
             Debug.Assert(edits != null);
+            Debug.Assert(mapToMetadata != null);
 
-            this.module = module;
             this.mappedMethods = GetMappedMethods(edits);
+            this.mapToMetadata = mapToMetadata;
+            this.mapToPrevious = mapToPrevious ?? mapToMetadata;
         }
 
         private static IReadOnlyDictionary<IMethodSymbol, MappedMethod> GetMappedMethods(IEnumerable<SemanticEdit> edits)
@@ -75,7 +77,11 @@ namespace Microsoft.CodeAnalysis.Emit
             return mappedMethods;
         }
 
-        internal abstract Cci.IDefinition MapDefinition(Cci.IDefinition definition);
+        internal Cci.IDefinition MapDefinition(Cci.IDefinition definition)
+        {
+            return mapToPrevious.MapDefinition(definition) ??
+                   (mapToMetadata != mapToPrevious ? mapToMetadata.MapDefinition(definition) : null);
+        }
 
         internal bool DefinitionExists(Cci.IDefinition definition)
         {
@@ -88,28 +94,6 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract bool TryGetMethodHandle(Cci.IMethodDefinition def, out MethodDefinitionHandle handle);
         internal abstract bool TryGetPropertyHandle(Cci.IPropertyDefinition def, out PropertyDefinitionHandle handle);
         internal abstract CommonMessageProvider MessageProvider { get; }
-    }
-
-    internal abstract class DefinitionMap<TSymbolMatcher> : DefinitionMap
-        where TSymbolMatcher : SymbolMatcher
-    {
-        protected readonly TSymbolMatcher mapToMetadata;
-        protected readonly TSymbolMatcher mapToPrevious;
-
-        protected DefinitionMap(PEModule module, IEnumerable<SemanticEdit> edits, TSymbolMatcher mapToMetadata, TSymbolMatcher mapToPrevious)
-            : base(module, edits)
-        {
-            Debug.Assert(mapToMetadata != null);
-
-            this.mapToMetadata = mapToMetadata;
-            this.mapToPrevious = mapToPrevious ?? mapToMetadata;
-        }
-
-        internal sealed override Cci.IDefinition MapDefinition(Cci.IDefinition definition)
-        {
-            return this.mapToPrevious.MapDefinition(definition) ??
-                   (this.mapToMetadata != this.mapToPrevious ? this.mapToMetadata.MapDefinition(definition) : null);
-        }
 
         private bool TryGetMethodHandle(EmitBaseline baseline, Cci.IMethodDefinition def, out MethodDefinitionHandle handle)
         {
@@ -182,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Emit
             int hoistedLocalSlotCount = 0;
             int awaiterSlotCount = 0;
             string stateMachineTypeNameOpt = null;
-            TSymbolMatcher symbolMap;
+            SymbolMatcher symbolMap;
 
             int methodIndex = MetadataTokens.GetRowNumber(previousHandle);
             DebugId methodId;

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -97,6 +98,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
             return result;
         }
+
+        internal abstract bool TryGetAnonymousTypeName(IAnonymousTypeTemplateSymbolInternal template, out string name, out int index);
 
         /// <summary>
         /// Merges synthesized members generated during lowering of the current compilation with aggregate synthesized members 

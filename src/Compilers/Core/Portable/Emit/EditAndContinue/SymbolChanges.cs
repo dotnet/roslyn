@@ -10,8 +10,17 @@ namespace Microsoft.CodeAnalysis.Emit
 {
     internal sealed class SymbolChanges
     {
+        /// <summary>
+        /// Maps definitions being emitted to the corresponding definitions defined in the previous generation (metadata or source).
+        /// </summary>
         private readonly DefinitionMap _definitionMap;
+
+        /// <summary>
+        /// Contains all symbols explicitly updated/added to the source and 
+        /// their containing types and namespaces. 
+        /// </summary>
         private readonly IReadOnlyDictionary<ISymbol, SymbolChange> _changes;
+
         private readonly Func<ISymbol, bool> _isAddedSymbol;
 
         public SymbolChanges(DefinitionMap definitionMap, IEnumerable<SemanticEdit> edits, Func<ISymbol, bool> isAddedSymbol)
@@ -146,8 +155,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private SymbolChange GetChange(ISymbol symbol)
         {
-            SymbolChange change;
-            if (_changes.TryGetValue(symbol, out change))
+            if (_changes.TryGetValue(symbol, out var change))
             {
                 return change;
             }
@@ -159,20 +167,20 @@ namespace Microsoft.CodeAnalysis.Emit
                 return SymbolChange.None;
             }
 
-            change = this.GetChange(container);
-            switch (change)
+            var containerChange = GetChange(container);
+            switch (containerChange)
             {
                 case SymbolChange.Added:
+                    // If container is added then all its members have been added.
                     return SymbolChange.Added;
 
                 case SymbolChange.None:
+                    // If container has no changes then none of its members have any changes.
                     return SymbolChange.None;
 
                 case SymbolChange.Updated:
                 case SymbolChange.ContainsChanges:
-                    var definition = symbol as IDefinition;
-
-                    if (definition != null && !_definitionMap.DefinitionExists(definition))
+                    if (symbol is IDefinition definition && !_definitionMap.DefinitionExists(definition))
                     {
                         // If the definition did not exist in the previous generation, it was added.
                         return SymbolChange.Added;
@@ -181,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     return SymbolChange.None;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(change);
+                    throw ExceptionUtilities.UnexpectedValue(containerChange);
             }
         }
 
@@ -249,14 +257,14 @@ namespace Microsoft.CodeAnalysis.Emit
                     }
                 }
 
-                AddContainingTypes(changes, member);
+                AddContainingTypesAndNamespaces(changes, member);
                 changes.Add(member, change);
             }
 
             return changes;
         }
 
-        private static void AddContainingTypes(Dictionary<ISymbol, SymbolChange> changes, ISymbol symbol)
+        private static void AddContainingTypesAndNamespaces(Dictionary<ISymbol, SymbolChange> changes, ISymbol symbol)
         {
             while (true)
             {
@@ -308,6 +316,7 @@ namespace Microsoft.CodeAnalysis.Emit
                         }
                     }
                     break;
+
                 case SymbolKind.Method:
                     {
                         var associated = ((IMethodSymbol)symbol).AssociatedSymbol;

@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -50,8 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public override Cci.IDefinition MapDefinition(Cci.IDefinition definition)
         {
-            var symbol = definition as Symbol;
-            if ((object)symbol != null)
+            if (definition is Symbol symbol)
             {
                 return (Cci.IDefinition)_symbols.Visit(symbol);
             }
@@ -61,8 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public override Cci.ITypeReference MapReference(Cci.ITypeReference reference)
         {
-            var symbol = reference as Symbol;
-            if ((object)symbol != null)
+            if (reference is Symbol symbol)
             {
                 return (Cci.ITypeReference)_symbols.Visit(symbol);
             }
@@ -70,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return null;
         }
 
-        internal bool TryGetAnonymousTypeName(NamedTypeSymbol template, out string name, out int index)
+        internal override bool TryGetAnonymousTypeName(IAnonymousTypeTemplateSymbolInternal template, out string name, out int index)
         {
             return _symbols.TryGetAnonymousTypeName(template, out name, out index);
         }
@@ -297,15 +296,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 _otherTypeMembers = new ConcurrentDictionary<NamedTypeSymbol, IReadOnlyDictionary<string, ImmutableArray<Cci.ITypeDefinitionMember>>>();
             }
 
-            internal bool TryGetAnonymousTypeName(NamedTypeSymbol type, out string name, out int index)
+            internal bool TryGetAnonymousTypeName(IAnonymousTypeTemplateSymbolInternal type, out string name, out int index)
             {
-                AnonymousTypeValue otherType;
-                if (this.TryFindAnonymousType(type, out otherType))
+                if (TryFindAnonymousType(type, out var otherType))
                 {
                     name = otherType.Name;
                     index = otherType.UniqueIndex;
                     return true;
                 }
+
                 name = null;
                 index = -1;
                 return false;
@@ -329,11 +328,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public override Symbol VisitArrayType(ArrayTypeSymbol symbol)
             {
                 var otherElementType = (TypeSymbol)this.Visit(symbol.ElementType);
-                if ((object)otherElementType == null)
+                if (otherElementType is null)
                 {
                     // For a newly added type, there is no match in the previous generation, so it could be null.
                     return null;
                 }
+
                 var otherModifiers = VisitCustomModifiers(symbol.ElementTypeWithAnnotations.CustomModifiers);
 
                 if (symbol.IsSZArray)
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public override Symbol VisitModule(ModuleSymbol module)
             {
                 var otherAssembly = (AssemblySymbol)Visit(module.ContainingAssembly);
-                if ((object)otherAssembly == null)
+                if (otherAssembly is null)
                 {
                     return null;
                 }
@@ -460,8 +460,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     var typeArguments = sourceType.GetAllTypeArguments(ref useSiteDiagnostics);
 
-                    var otherDef = (NamedTypeSymbol)this.Visit(originalDef);
-                    if ((object)otherDef == null)
+                    var otherDef = (NamedTypeSymbol)Visit(originalDef);
+                    if (otherDef is null)
                     {
                         return null;
                     }
@@ -470,18 +470,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     bool translationFailed = false;
 
                     var otherTypeArguments = typeArguments.SelectAsArray((t, v) =>
-                                                                            {
-                                                                                var newType = (TypeSymbol)v.Visit(t.Type);
+                    {
+                        var newType = (TypeSymbol)v.Visit(t.Type);
 
-                                                                                if ((object)newType == null)
-                                                                                {
-                                                                                    // For a newly added type, there is no match in the previous generation, so it could be null.
-                                                                                    translationFailed = true;
-                                                                                    newType = t.Type;
-                                                                                }
+                        if (newType is null)
+                        {
+                            // For a newly added type, there is no match in the previous generation, so it could be null.
+                            translationFailed = true;
+                            newType = t.Type;
+                        }
 
-                                                                                return t.WithTypeAndModifiers(newType, v.VisitCustomModifiers(t.CustomModifiers));
-                                                                            }, this);
+                        return t.WithTypeAndModifiers(newType, v.VisitCustomModifiers(t.CustomModifiers));
+                    }, this);
 
                     if (translationFailed)
                     {
@@ -495,8 +495,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 }
                 else if (sourceType.IsTupleType)
                 {
-                    var otherDef = (NamedTypeSymbol)this.Visit(sourceType.TupleUnderlyingType);
-                    if ((object)otherDef == null || !otherDef.IsTupleOrCompatibleWithTupleOfCardinality(sourceType.TupleElementTypesWithAnnotations.Length))
+                    var otherDef = (NamedTypeSymbol)Visit(sourceType.TupleUnderlyingType);
+                    if (otherDef is null || !otherDef.IsTupleOrCompatibleWithTupleOfCardinality(sourceType.TupleElementTypesWithAnnotations.Length))
                     {
                         return null;
                     }
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 var otherContainer = this.Visit(sourceType.ContainingSymbol);
                 // Containing type will be missing from other assembly
                 // if the type was added in the (newer) source assembly.
-                if ((object)otherContainer == null)
+                if (otherContainer is null)
                 {
                     return null;
                 }
@@ -517,21 +517,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 switch (otherContainer.Kind)
                 {
                     case SymbolKind.Namespace:
-                        if (AnonymousTypeManager.IsAnonymousTypeTemplate(sourceType))
+                        if (sourceType is IAnonymousTypeTemplateSymbolInternal template)
                         {
                             Debug.Assert((object)otherContainer == (object)_otherAssembly.GlobalNamespace);
-                            AnonymousTypeValue value;
-                            this.TryFindAnonymousType(sourceType, out value);
+                            TryFindAnonymousType(template, out var value);
                             return (NamedTypeSymbol)value.Type;
                         }
-                        else if (sourceType.IsAnonymousType)
+
+                        if (sourceType.IsAnonymousType)
                         {
-                            return this.Visit(AnonymousTypeManager.TranslateAnonymousTypeSymbol(sourceType));
+                            return Visit(AnonymousTypeManager.TranslateAnonymousTypeSymbol(sourceType));
                         }
-                        else
-                        {
-                            return FindMatchingNamespaceMember((NamespaceSymbol)otherContainer, sourceType, AreNamedTypesEqual);
-                        }
+
+                        return FindMatchingNamespaceMember((NamespaceSymbol)otherContainer, sourceType, AreNamedTypesEqual);
 
                     case SymbolKind.NamedType:
                         return FindMatchingNamedTypeMember((NamedTypeSymbol)otherContainer, sourceType, AreNamedTypesEqual);
@@ -549,8 +547,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitPointerType(PointerTypeSymbol symbol)
             {
-                var otherPointedAtType = (TypeSymbol)this.Visit(symbol.PointedAtType);
-                if ((object)otherPointedAtType == null)
+                var otherPointedAtType = (TypeSymbol)Visit(symbol.PointedAtType);
+                if (otherPointedAtType is null)
                 {
                     // For a newly added type, there is no match in the previous generation, so it could be null.
                     return null;
@@ -606,13 +604,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     CSharpCustomModifier.CreateRequired(type);
             }
 
-            internal bool TryFindAnonymousType(NamedTypeSymbol type, out AnonymousTypeValue otherType)
+            internal bool TryFindAnonymousType(IAnonymousTypeTemplateSymbolInternal type, out AnonymousTypeValue otherType)
             {
                 Debug.Assert((object)type.ContainingSymbol == (object)_sourceAssembly.GlobalNamespace);
-                Debug.Assert(AnonymousTypeManager.IsAnonymousTypeTemplate(type));
 
-                var key = AnonymousTypeManager.GetAnonymousTypeKey(type);
-                return _anonymousTypeMap.TryGetValue(key, out otherType);
+                return _anonymousTypeMap.TryGetValue(type.GetAnonymousTypeKey(), out otherType);
             }
 
             private static T FindMatchingNamespaceMember<T>(NamespaceSymbol otherNamespace, T sourceMember, Func<T, T, bool> predicate)
@@ -640,10 +636,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             private Symbol VisitNamedTypeMember<T>(T member, Func<T, T, bool> predicate)
                 where T : Symbol
             {
-                var otherType = (NamedTypeSymbol)this.Visit(member.ContainingType);
+                var otherType = (NamedTypeSymbol)Visit(member.ContainingType);
                 // Containing type may be null for synthesized
                 // types such as iterators.
-                if ((object)otherType == null)
+                if (otherType is null)
                 {
                     return null;
                 }

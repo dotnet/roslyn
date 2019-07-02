@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// exposed by the compiler.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal abstract partial class Symbol : ISymbol, IFormattable
+    internal abstract partial class Symbol : ISymbol, ISymbolInternal, IFormattable
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version of Symbol.
@@ -190,6 +191,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (object)sourceModuleSymbol == null ? null : sourceModuleSymbol.DeclaringCompilation;
             }
         }
+
+        Compilation ISymbolInternal.DeclaringCompilation
+            => DeclaringCompilation;
 
         /// <summary>
         /// Returns the module containing this symbol. If this symbol is shared across multiple

@@ -6,6 +6,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -39,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Sub
 
         Public Overrides Function MapDefinition(def As Cci.IDefinition) As Cci.IDefinition
-            Dim symbol As symbol = TryCast(def, symbol)
+            Dim symbol As Symbol = TryCast(def, Symbol)
             If symbol IsNot Nothing Then
                 Return DirectCast(Me._symbols.Visit(symbol), Cci.IDefinition)
             End If
@@ -47,15 +48,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Public Overrides Function MapReference(reference As Cci.ITypeReference) As Cci.ITypeReference
-            Dim symbol As symbol = TryCast(reference, symbol)
+            Dim symbol As Symbol = TryCast(reference, Symbol)
             If symbol IsNot Nothing Then
                 Return DirectCast(Me._symbols.Visit(symbol), Cci.ITypeReference)
             End If
             Return Nothing
         End Function
 
-        Friend Function TryGetAnonymousTypeName(template As NamedTypeSymbol, <Out()> ByRef name As String, <Out()> ByRef index As Integer) As Boolean
-            Return Me._symbols.TryGetAnonymousTypeName(template, name, index)
+        Friend Overrides Function TryGetAnonymousTypeName(template As IAnonymousTypeTemplateSymbolInternal, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
+            Return _symbols.TryGetAnonymousTypeName(template, name, index)
         End Function
 
         Private MustInherit Class MatchDefs
@@ -243,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 _typeMembers = New ConcurrentDictionary(Of NamedTypeSymbol, IReadOnlyDictionary(Of String, ImmutableArray(Of Cci.ITypeDefinitionMember)))()
             End Sub
 
-            Friend Function TryGetAnonymousTypeName(type As NamedTypeSymbol, <Out()> ByRef name As String, <Out()> ByRef index As Integer) As Boolean
+            Friend Function TryGetAnonymousTypeName(type As IAnonymousTypeTemplateSymbolInternal, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
                 Dim otherType As AnonymousTypeValue = Nothing
                 If TryFindAnonymousType(type, otherType) Then
                     name = otherType.Name
@@ -418,10 +419,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Dim kind As SymbolKind = otherContainer.Kind
                 Select Case kind
                     Case SymbolKind.Namespace
-                        If AnonymousTypeManager.IsAnonymousTypeTemplate(type) Then
+                        Dim template = TryCast(type, IAnonymousTypeTemplateSymbolInternal)
+                        If template IsNot Nothing Then
                             Debug.Assert(otherContainer Is _otherAssembly.GlobalNamespace)
                             Dim value As AnonymousTypeValue = Nothing
-                            TryFindAnonymousType(type, value)
+                            TryFindAnonymousType(template, value)
                             Return DirectCast(value.Type, NamedTypeSymbol)
                         ElseIf type.IsAnonymousType Then
                             Return Me.Visit(AnonymousTypeManager.TranslateAnonymousTypeSymbol(type))
@@ -483,12 +485,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     VisualBasicCustomModifier.CreateRequired(type))
             End Function
 
-            Friend Function TryFindAnonymousType(type As NamedTypeSymbol, <Out()> ByRef otherType As AnonymousTypeValue) As Boolean
+            Friend Function TryFindAnonymousType(type As IAnonymousTypeTemplateSymbolInternal, <Out> ByRef otherType As AnonymousTypeValue) As Boolean
                 Debug.Assert(type.ContainingSymbol Is _sourceAssembly.GlobalNamespace)
-                Debug.Assert(AnonymousTypeManager.IsAnonymousTypeTemplate(type))
 
-                Dim key = AnonymousTypeManager.GetAnonymousTypeKey(type)
-                Return _anonymousTypeMap.TryGetValue(key, otherType)
+                Return _anonymousTypeMap.TryGetValue(type.GetAnonymousTypeKey(), otherType)
             End Function
 
             Private Shared Function FindMatchingNamespaceMember(Of T As Symbol)(otherNamespace As NamespaceSymbol, sourceMember As T, predicate As Func(Of T, T, Boolean)) As T
