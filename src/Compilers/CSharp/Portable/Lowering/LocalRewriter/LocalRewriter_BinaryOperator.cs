@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BinaryOperatorKind.NullableNullEqual:
                     case BinaryOperatorKind.NullableNullNotEqual:
-                        return RewriteNullableNullEquality(syntax, operatorKind, loweredLeft, loweredRight, type);
+                        return _factory.RewriteNullableNullEquality(syntax, operatorKind, loweredLeft, loweredRight, type);
 
                     case BinaryOperatorKind.ObjectAndStringConcatenation:
                     case BinaryOperatorKind.StringAndObjectConcatenation:
@@ -1753,78 +1753,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
-        }
-
-        private BoundExpression RewriteNullableNullEquality(
-            SyntaxNode syntax,
-            BinaryOperatorKind kind,
-            BoundExpression loweredLeft,
-            BoundExpression loweredRight,
-            TypeSymbol returnType)
-        {
-            // This handles the case where we have a nullable user-defined struct type compared against null, eg:
-            //
-            // struct S {} ... S? s = whatever; if (s != null)
-            //
-            // If S does not define an overloaded != operator then this is lowered to s.HasValue.
-            //
-            // If the type already has a user-defined or built-in operator then comparing to null is
-            // treated as a lifted equality operator.
-
-            Debug.Assert(loweredLeft != null);
-            Debug.Assert(loweredRight != null);
-            Debug.Assert((object)returnType != null);
-            Debug.Assert(returnType.SpecialType == SpecialType.System_Boolean);
-            Debug.Assert(loweredLeft.IsLiteralNull() != loweredRight.IsLiteralNull());
-
-            BoundExpression nullable = loweredRight.IsLiteralNull() ? loweredLeft : loweredRight;
-
-            // If the other side is known to always be null then we can simply generate true or false, as appropriate.
-
-            if (NullableNeverHasValue(nullable))
-            {
-                return MakeLiteral(syntax, ConstantValue.Create(kind == BinaryOperatorKind.NullableNullEqual), returnType);
-            }
-
-            BoundExpression nonNullValue = NullableAlwaysHasValue(nullable);
-            if (nonNullValue != null)
-            {
-                // We have something like "if (new int?(M()) != null)". We can optimize this to
-                // evaluate M() for its side effects and then result in true or false, as appropriate.
-
-                // TODO: If the expression has no side effects then it can be optimized away here as well.
-
-                return new BoundSequence(
-                    syntax: syntax,
-                    locals: ImmutableArray<LocalSymbol>.Empty,
-                    sideEffects: ImmutableArray.Create<BoundExpression>(nonNullValue),
-                    value: MakeBooleanConstant(syntax, kind == BinaryOperatorKind.NullableNullNotEqual),
-                    type: returnType);
-            }
-
-            // arr?.Length == null
-            var conditionalAccess = nullable as BoundLoweredConditionalAccess;
-            if (conditionalAccess != null &&
-                (conditionalAccess.WhenNullOpt == null || conditionalAccess.WhenNullOpt.IsDefaultValue()))
-            {
-                BoundExpression whenNotNull = RewriteNullableNullEquality(
-                    syntax,
-                    kind,
-                    conditionalAccess.WhenNotNull,
-                    loweredLeft.IsLiteralNull() ? loweredLeft : loweredRight,
-                    returnType);
-
-                var whenNull = kind == BinaryOperatorKind.NullableNullEqual ? MakeBooleanConstant(syntax, true) : null;
-
-                return conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.HasValueMethodOpt, whenNotNull, whenNull, conditionalAccess.Id, whenNotNull.Type);
-            }
-
-            BoundExpression call = _factory.MakeNullableHasValue(syntax, nullable);
-            BoundExpression result = kind == BinaryOperatorKind.NullableNullNotEqual ?
-                call :
-                new BoundUnaryOperator(syntax, UnaryOperatorKind.BoolLogicalNegation, call, ConstantValue.NotAvailable, null, LookupResultKind.Viable, returnType);
-
-            return result;
         }
 
         private BoundExpression RewriteStringEquality(BoundBinaryOperator oldNode, SyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type, SpecialMember member)
