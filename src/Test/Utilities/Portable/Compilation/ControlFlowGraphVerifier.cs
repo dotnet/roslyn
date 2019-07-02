@@ -1812,6 +1812,7 @@ endRegion:
                 case OperationKind.Range:
                 case OperationKind.RecursivePattern:
                 case OperationKind.DiscardPattern:
+                case OperationKind.PropertySubpattern:
                     return true;
             }
 

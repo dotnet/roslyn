@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 result.Add(Convert(parameter, semanticModel, position, documentationCommentFormatter, cancellationToken));
             }
 
-            for (int i = 0; i < namedParameters.Count; i++)
+            for (var i = 0; i < namedParameters.Count; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 

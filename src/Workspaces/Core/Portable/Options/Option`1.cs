@@ -67,18 +67,13 @@ namespace Microsoft.CodeAnalysis.Options
                 throw new ArgumentNullException(nameof(feature));
             }
 
-            if (group == null)
-            {
-                throw new ArgumentNullException(nameof(group));
-            }
-
             if (string.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentException(nameof(name));
             }
 
             this.Feature = feature;
-            this.Group = group;
+            this.Group = group ?? throw new ArgumentNullException(nameof(group));
             this.Name = name;
             this.DefaultValue = defaultValue;
             this.StorageLocations = storageLocations.ToImmutableArray();

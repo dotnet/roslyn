@@ -8,7 +8,7 @@
 "ExcludeDefTextEditor"=dword:00000001
 "EditorTrustLevel"=dword:00000002
 "LinkedEditorGuid"="{2C015C70-C72C-11D0-88C3-00A0C9110049}"
-@="Microsoft Visual Basic Editor with Encoding"
+@="Visual Basic Editor with Encoding"
 
 [$RootKey$\Editors\{6C33E1AA-1401-4536-AB67-0E21E6E569DA}\LogicalViews]
 "{7651a700-06e5-11d1-8ebd-00a0c90f26ea}"=""
@@ -36,7 +36,7 @@
 "CommonPhysicalViewAttributes"=dword:00000002
 "ExcludeDefTextEditor"=dword:00000001
 "EditorTrustLevel"=dword:00000002
-@="Microsoft Visual Basic Editor"
+@="Visual Basic Editor"
 
 [$RootKey$\Editors\{2C015C70-C72C-11D0-88C3-00A0C9110049}\LogicalViews]
 "{7651a700-06e5-11d1-8ebd-00a0c90f26ea}"=""

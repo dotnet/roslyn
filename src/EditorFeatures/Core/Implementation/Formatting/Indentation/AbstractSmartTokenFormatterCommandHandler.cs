@@ -209,8 +209,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
 
         private int GetOffsetFromIndentation(int indentation, IEditorOptions option)
         {
-            int numberOfTabs = 0;
-            int numberOfSpaces = Math.Max(0, indentation);
+            var numberOfTabs = 0;
+            var numberOfSpaces = Math.Max(0, indentation);
 
             if (!option.IsConvertTabsToSpacesEnabled())
             {

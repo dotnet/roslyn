@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             Workspace workspace, CodeGenerationOptions options,
             ParseOptions parseOptions)
         {
-            options = options ?? CodeGenerationOptions.Default;
+            options ??= CodeGenerationOptions.Default;
 
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<MethodDeclarationSyntax>(method, options);
             if (reusableSyntax != null)
