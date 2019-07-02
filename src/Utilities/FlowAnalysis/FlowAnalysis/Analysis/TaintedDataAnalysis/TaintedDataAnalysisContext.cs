@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
     using InterproceduralTaintedDataAnalysisData = InterproceduralAnalysisData<TaintedDataAnalysisData, TaintedDataAnalysisContext, TaintedDataAbstractValue>;
+    using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
 
     internal sealed class TaintedDataAnalysisContext : AbstractDataFlowAnalysisContext<TaintedDataAnalysisData, TaintedDataAnalysisContext, TaintedDataAnalysisResult, TaintedDataAbstractValue>
     {
@@ -26,6 +27,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             PointsToAnalysisResult pointsToAnalysisResult,
+            ValueContentAnalysisResult valueContentAnalysisResultOpt,
             Func<TaintedDataAnalysisContext, TaintedDataAnalysisResult> tryGetOrComputeAnalysisResult,
             ControlFlowGraph parentControlFlowGraph,
             InterproceduralTaintedDataAnalysisData interproceduralAnalysisDataOpt,
@@ -43,7 +45,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                   exceptionPathsAnalysis: false,
                   copyAnalysisResultOpt: null,
                   pointsToAnalysisResult,
-                  valueContentAnalysisResultOpt: null,
+                  valueContentAnalysisResultOpt: valueContentAnalysisResultOpt,
                   tryGetOrComputeAnalysisResult,
                   parentControlFlowGraph,
                   interproceduralAnalysisDataOpt,
@@ -64,6 +66,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             PointsToAnalysisResult pointsToAnalysisResult,
+            ValueContentAnalysisResult valueContentAnalysisResultOpt,
             Func<TaintedDataAnalysisContext, TaintedDataAnalysisResult> tryGetOrComputeAnalysisResult,
             TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
             TaintedDataSymbolMap<SanitizerInfo> taintedSanitizerInfos,
@@ -79,6 +82,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 interproceduralAnalysisConfig,
                 pessimisticAnalysis,
                 pointsToAnalysisResult,
+                valueContentAnalysisResultOpt,
                 tryGetOrComputeAnalysisResult,
                 parentControlFlowGraph: null,
                 interproceduralAnalysisDataOpt: null,
@@ -107,6 +111,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 this.InterproceduralAnalysisConfiguration,
                 this.PessimisticAnalysis,
                 pointsToAnalysisResultOpt,
+                valueContentAnalysisResultOpt,
                 this.TryGetOrComputeAnalysisResult,
                 this.ControlFlowGraph,
                 interproceduralAnalysisData,

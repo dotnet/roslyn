@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Analyzer.Utilities.PooledObjects;
+using static Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SourceInfo;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -19,19 +20,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             var builder = PooledHashSet<SourceInfo>.GetInstance();
 
-            builder.AddSourceInfo(
+            builder.AddSourceInfoWithArgumentChecks(
                 WellKnownTypeNames.SystemConvert,
                 isInterface: false,
                 taintedProperties: null,
-                taintedMethods: new[] {
-                    "FromBase64String",
+                taintedMethods: new (string, (string, ArgumentCheck)[])[] {
+                    ("FromBase64String",
+                        new (string, ArgumentCheck)[] {
+                            ("s", (ImmutableHashSet<object> potentialArgumentValues) => !potentialArgumentValues.IsEmpty),
+                        }),
                 });
             builder.AddSourceInfo(
                 WellKnownTypeNames.SystemByte,
                 isInterface: false,
                 taintedProperties: null,
                 taintedMethods: null,
-                taintArray: true);
+                taintConstantArray: true);
 
             SourceInfos = builder.ToImmutableAndFree();
         }

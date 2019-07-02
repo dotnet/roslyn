@@ -14,16 +14,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Constructs.
         /// </summary>
         /// <param name="fullTypeName">Full type name of the...type (namespace + type).</param>
-        /// 
         /// <param name="taintedProperties">Properties that generate tainted data.</param>
         /// <param name="taintedMethods">Methods that generate tainted data.</param>
-        public SourceInfo(string fullTypeName, bool isInterface, ImmutableHashSet<string> taintedProperties, ImmutableHashSet<string> taintedMethods, bool taintArray)
+        /// <param name="taintConstantArray"></param>
+        public SourceInfo(string fullTypeName, bool isInterface, ImmutableHashSet<string> taintedProperties, ImmutableDictionary<string, ImmutableDictionary<string, ArgumentCheck>> taintedMethods, bool taintConstantArray)
         {
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
             IsInterface = isInterface;
             TaintedProperties = taintedProperties ?? throw new ArgumentNullException(nameof(taintedProperties));
             TaintedMethods = taintedMethods ?? throw new ArgumentNullException(nameof(taintedMethods));
-            TaintArray = taintArray;
+            TaintConstantArray = taintConstantArray;
         }
 
         /// <summary>
@@ -41,19 +41,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public ImmutableHashSet<string> TaintedProperties { get; }
 
+        public delegate bool ArgumentCheck(ImmutableHashSet<object> argumentValue);
+
         /// <summary>
         /// Methods that generate tainted data.
         /// </summary>
-        public ImmutableHashSet<string> TaintedMethods { get; }
+        public ImmutableDictionary<string, ImmutableDictionary<string, ArgumentCheck>> TaintedMethods { get; }
 
         /// <summary>
-        /// Indicates array of this type generates tainted data.
+        /// Indicates arrays initialized with constant values of this type generates tainted data.
         /// </summary>
-        public bool TaintArray { get; }
+        public bool TaintConstantArray { get; }
 
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(this.TaintArray.GetHashCode(),
+            return HashUtilities.Combine(this.TaintConstantArray.GetHashCode(),
                 HashUtilities.Combine(this.TaintedProperties,
                 HashUtilities.Combine(this.TaintedMethods,
                 HashUtilities.Combine(this.IsInterface.GetHashCode(),
@@ -72,7 +74,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && this.IsInterface == other.IsInterface
                 && this.TaintedProperties == other.TaintedProperties
                 && this.TaintedMethods == other.TaintedMethods
-                && this.TaintArray == other.TaintArray;
+                && this.TaintConstantArray == other.TaintConstantArray;
         }
     }
 }

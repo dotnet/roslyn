@@ -4,9 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using Analyzer.Utilities.PooledObjects;
-using Microsoft.CodeAnalysis;
+using static Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SourceInfo;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -63,7 +62,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             bool isInterface,
             string[] taintedProperties,
             string[] taintedMethods,
-            bool taintArray = false)
+            bool taintConstantArray = false)
         {
             SourceInfo metadata = new SourceInfo(
                 fullTypeName,
@@ -71,9 +70,39 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 taintedProperties: taintedProperties?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty,
                 taintedMethods:
-                    taintedMethods?.ToImmutableHashSet(StringComparer.Ordinal)
+                    taintedMethods
+                        ?.Select(o => new KeyValuePair<string, ImmutableDictionary<string, ArgumentCheck>>(o, ImmutableDictionary<string, ArgumentCheck>.Empty))
+                        ?.ToImmutableDictionary(StringComparer.Ordinal)
+                    ?? ImmutableDictionary<string, ImmutableDictionary<string, ArgumentCheck>>.Empty,
+                taintConstantArray: taintConstantArray);
+            builder.Add(metadata);
+        }
+
+        // Just to make hardcoding SourceInfos more convenient.
+        public static void AddSourceInfoWithArgumentChecks(
+        this PooledHashSet<SourceInfo> builder,
+        string fullTypeName,
+        bool isInterface,
+        string[] taintedProperties,
+        IEnumerable<(string Method, (string parameterName, ArgumentCheck argumentCheck)[] ParameterNameAndConditionChecks)> taintedMethods,
+        bool taintConstantArray = false)
+        {
+            SourceInfo metadata = new SourceInfo(
+                fullTypeName,
+                isInterface: isInterface,
+                taintedProperties: taintedProperties?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty,
-                taintArray: taintArray);
+                taintedMethods:
+                    taintedMethods
+                            ?.Select(o => new KeyValuePair<string, ImmutableDictionary<string, ArgumentCheck>>(
+                                o.Method,
+                                o.ParameterNameAndConditionChecks
+                                    ?.Select(o => new KeyValuePair<string, ArgumentCheck>(o.parameterName, o.argumentCheck))
+                                    ?.ToImmutableDictionary(StringComparer.Ordinal)
+                                    ?? ImmutableDictionary<string, ArgumentCheck>.Empty))
+                            ?.ToImmutableDictionary(StringComparer.Ordinal)
+                            ?? ImmutableDictionary<string, ImmutableDictionary<string, ArgumentCheck>>.Empty,
+                taintConstantArray: taintConstantArray);
             builder.Add(metadata);
         }
 

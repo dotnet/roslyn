@@ -6,9 +6,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
+    using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
+
     internal partial class TaintedDataAnalysis : ForwardDataFlowAnalysis<TaintedDataAnalysisData, TaintedDataAnalysisContext, TaintedDataAnalysisResult, TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>
     {
         private static readonly TaintedDataAnalysisDomain TaintedDataAnalysisDomainInstance = new TaintedDataAnalysisDomain(CoreTaintedDataAnalysisDataDomain.Instance);
@@ -58,6 +61,20 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 return null;
             }
 
+            ValueContentAnalysisResult valueContentAnalysisResultOpt = ValueContentAnalysis.TryGetOrComputeResult(
+                    cfg,
+                    containingMethod,
+                    wellKnownTypeProvider,
+                    interproceduralAnalysisConfig,
+                    out var copyAnalysisResult,
+                    out pointsToAnalysisResult,
+                    pessimisticAnalysis: true,
+                    performCopyAnalysis: false);
+            if (valueContentAnalysisResultOpt == null)
+            {
+                return null;
+            }
+
             TaintedDataAnalysisContext analysisContext = TaintedDataAnalysisContext.Create(
                 TaintedDataAbstractValueDomain.Default,
                 wellKnownTypeProvider,
@@ -66,6 +83,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 interproceduralAnalysisConfig,
                 pessimisticAnalysis: false,
                 pointsToAnalysisResult: pointsToAnalysisResult,
+                valueContentAnalysisResultOpt: valueContentAnalysisResultOpt,
                 tryGetOrComputeAnalysisResult: TryGetOrComputeResultForAnalysisContext,
                 taintedSourceInfos: taintedSourceInfos,
                 taintedSanitizerInfos: taintedSanitizerInfos,

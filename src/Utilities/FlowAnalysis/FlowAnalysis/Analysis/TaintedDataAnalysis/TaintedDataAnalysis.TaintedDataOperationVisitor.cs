@@ -224,11 +224,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ProcessTaintedDataEnteringInvocationOrCreation(method, taintedArguments, originalOperation);
                 }
 
+                IEnumerable<(string, ImmutableHashSet<object>)> literalValueOfArguments = (originalOperation as IInvocationOperation).Arguments.Select(o => (o.Parameter.Name, GetValueContentAbstractValue(o.Value).LiteralValues));
                 if (this.IsSanitizingMethod(method))
                 {
                     return TaintedDataAbstractValue.NotTainted;
                 }
-                else if (this.DataFlowAnalysisContext.SourceInfos.IsSourceMethod(method))
+                else if (this.DataFlowAnalysisContext.SourceInfos.IsSourceMethod(method, literalValueOfArguments))
                 {
                     return TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
                 }
@@ -313,9 +314,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 }
 
                 if (this.DataFlowAnalysisContext.SourceInfos.IsSourceArray(operation.Parent.Type as IArrayTypeSymbol)
-                    && operation.ElementValues.All(s => s.ConstantValue.HasValue))
+                    && operation.ElementValues.All(s => GetValueContentAbstractValue(s).IsLiteralState))
                 {
-                    var taintedDataAbstractValue = TaintedDataAbstractValue.CreateTainted(operation.Parent.Type, operation.Syntax, this.OwningSymbol);
+                    TaintedDataAbstractValue taintedDataAbstractValue = TaintedDataAbstractValue.CreateTainted(operation.Parent.Type, operation.Syntax, this.OwningSymbol);
                     result = result == null ? taintedDataAbstractValue : TaintedDataAbstractValue.MergeTainted(result, taintedDataAbstractValue);
                 }
 
