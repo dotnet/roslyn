@@ -2368,6 +2368,50 @@ namespace PushUpTest
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestRefactoringSelectionWithAttributes1()
+        {
+            var testText = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [Test]
+        [|void C()
+        {
+        }|]
+    }
+}";
+            var expected = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    public class A
+    {
+        [Test]
+        void C()
+        {
+        }
+    }
+
+    public class B : A
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestRefactoringSelectionWithAttributes2()
         {
             var testText = @"
@@ -2386,6 +2430,51 @@ namespace PushUpTest
         void C()
         {
         }|]
+    }
+}";
+            var expected = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    public class A
+    {
+        [Test]
+        void C()
+        {
+        }
+    }
+
+    public class B : A
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestRefactoringSelectionWithAttributes3()
+        {
+            var testText = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [Test][|
+        void C()
+        {
+        }
+        |]
     }
 }";
             var expected = @"
