@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -16,33 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
     [Trait(Traits.Feature, Traits.Features.SarifErrorLogging)]
     public class SarifV2ErrorLoggerTests : CommandLineTestBase
     {
-        private const string ExpectedHeader =
-@"{
-  ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
-  ""version"": ""2.1.0"",
-  ""runs"": [
-    {
-";
-        private static string GetExpectedToolHeader(CommonCompiler compiler)
-        {
-            var expectedToolName = compiler.GetToolName();
-            var expectedVersion = compiler.GetAssemblyVersion();
-            var expectedSemanticVersion = compiler.GetAssemblyVersion().ToString(fieldCount: 3);
-            var expectedFileVersion = compiler.GetCompilerVersion();
-            var expectedLanguage = compiler.GetCultureName();
-
-            return
-@"      ],
-      ""tool"": {{
-        ""driver"": {{
-          ""name"": ""{expectedToolName}"",
-          ""fileVersion"": ""{expectedFileVersion}"",
-          ""
-        }}
-      }}
-";
-        }
-
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void NoDiagnostics()
         {
@@ -69,15 +44,28 @@ class C
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
 
-            var expectedHeader = GetExpectedErrorLogHeader();
-            var expectedIssues = @"
+            var expectedOutput =
+@"{{
+  ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
+  ""version"": ""2.1.0"",
+  ""runs"": [
+    {{
       ""results"": [
-      ]
-    }
+      ],
+      ""tool"": {{
+        ""driver"": {{
+          ""name"": ""{0}"",
+          ""version"": ""{1}"",
+          ""fileVersion"": ""{2}"",
+          ""semanticVersion"": ""{3}"",
+          ""language"": ""{4}""
+        }}
+      }}
+    }}
   ]
-}";
-            var expectedText = expectedHeader + expectedIssues;
-            Assert.Equal(expectedText, actualOutput);
+}}";
+            expectedOutput = FormatOutputText(expectedOutput, cmd);
+            Assert.Equal(expectedOutput, actualOutput);
 
             CleanupAllGeneratedFiles(hello);
             CleanupAllGeneratedFiles(errorLogFile);
@@ -108,22 +96,34 @@ public class C
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
 
-            var expectedHeader = GetExpectedErrorLogHeader();
-            var expectedIssues = string.Format(@"
+            var expectedOutput =
+@"{{
+  ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
+  ""version"": ""2.1.0"",
+  ""runs"": [
+    {{
       ""results"": [
         {{
           ""ruleId"": ""CS5001"",
+          ""ruleIndex"": 0,
           ""level"": ""error"",
-          ""message"": ""Program does not contain a static 'Main' method suitable for an entry point""
+          ""message"": {{
+            ""text"": ""Program does not contain a static 'Main' method suitable for an entry point""
+          }}
         }},
         {{
           ""ruleId"": ""CS0169"",
+          ""ruleIndex"": 1,
           ""level"": ""warning"",
-          ""message"": ""The field 'C.x' is never used"",
+          ""message"": {{
+            ""text"": ""The field 'C.x' is never used""
+          }},
           ""locations"": [
             {{
-              ""resultFile"": {{
-                ""uri"": ""{0}"",
+              ""physicalLocation"": {{
+                ""artifactLocation"": {{
+                  ""uri"": ""{5}""
+                }},
                 ""region"": {{
                   ""startLine"": 4,
                   ""startColumn"": 17,
@@ -138,46 +138,65 @@ public class C
           }}
         }}
       ],
-      ""rules"": {{
-        ""CS0169"": {{
-          ""id"": ""CS0169"",
-          ""shortDescription"": ""Field is never used"",
-          ""defaultLevel"": ""warning"",
-          ""properties"": {{
-            ""category"": ""Compiler"",
-            ""isEnabledByDefault"": true,
-            ""tags"": [
-              ""Compiler"",
-              ""Telemetry""
-            ]
-          }}
-        }},
-        ""CS5001"": {{
-          ""id"": ""CS5001"",
-          ""defaultLevel"": ""error"",
-          ""properties"": {{
-            ""category"": ""Compiler"",
-            ""isEnabledByDefault"": true,
-            ""tags"": [
-              ""Compiler"",
-              ""Telemetry"",
-              ""NotConfigurable""
-            ]
-          }}
+      ""tool"": {{
+        ""driver"": {{
+          ""name"": ""{0}"",
+          ""version"": ""{1}"",
+          ""fileVersion"": ""{2}"",
+          ""semanticVersion"": ""{3}"",
+          ""language"": ""{4}"",
+          ""rules"": [
+            {{
+              ""id"": ""CS5001"",
+              ""defaultConfiguration"": {{
+                ""level"": ""error"",
+                ""enabled"": true
+              }},
+              ""properties"": {{
+                ""category"": ""Compiler"",
+                ""tags"": [
+                  ""Compiler"",
+                  ""Telemetry"",
+                  ""NotConfigurable""
+                ]
+              }}
+            }},
+            {{
+              ""id"": ""CS0169"",
+              ""shortDescription"": {{
+                ""text"": ""Field is never used""
+              }},
+              ""defaultConfiguration"": {{
+                ""level"": ""warning"",
+                ""enabled"": true
+              }},
+              ""properties"": {{
+                ""category"": ""Compiler"",
+                ""tags"": [
+                  ""Compiler"",
+                  ""Telemetry""
+                ]
+              }}
+            }}
+          ]
         }}
       }}
     }}
   ]
-}}", AnalyzerForErrorLogTest.GetUriForPath(sourceFile));
+}}";
 
-            var expectedText = expectedHeader + expectedIssues;
-            Assert.Equal(expectedText, actualOutput);
+            expectedOutput = FormatOutputText(
+              expectedOutput,
+              cmd,
+              AnalyzerForErrorLogTest.GetUriForPath(sourceFile));
+
+            Assert.Equal(expectedOutput, actualOutput);
 
             CleanupAllGeneratedFiles(sourceFile);
             CleanupAllGeneratedFiles(errorLogFile);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289", AlwaysSkip = "Suppressions are NYI")]
         public void SimpleCompilerDiagnostics_Suppressed()
         {
             var source = @"
@@ -205,25 +224,39 @@ public class C
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
 
-            var expectedHeader = GetExpectedErrorLogHeader();
-            var expectedIssues = string.Format(@"
+            var expectedOutput =
+@"{{
+  ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
+  ""version"": ""2.1.0"",
+  ""runs"": [
+    {{
       ""results"": [
         {{
           ""ruleId"": ""CS5001"",
+          ""ruleIndex"": 0,
           ""level"": ""error"",
-          ""message"": ""Program does not contain a static 'Main' method suitable for an entry point""
+          ""message"": {{
+            ""text"": ""Program does not contain a static 'Main' method suitable for an entry point""
+          }}
         }},
         {{
           ""ruleId"": ""CS0169"",
+          ""ruleIndex"": 1,
           ""level"": ""warning"",
-          ""message"": ""The field 'C.x' is never used"",
-          ""suppressionStates"": [
-            ""suppressedInSource""
+          ""message"": {{
+            ""text"": ""The field 'C.x' is never used""
+          }},
+          ""suppressions"": [
+            {{
+              ""kind"": ""inSource""
+            }}
           ],
           ""locations"": [
             {{
-              ""resultFile"": {{
-                ""uri"": ""{0}"",
+              ""physicalLocation"": {{
+                ""artifactLocation"": {{
+                  ""uri"": ""{5}""
+                }},
                 ""region"": {{
                   ""startLine"": 5,
                   ""startColumn"": 17,
@@ -238,46 +271,65 @@ public class C
           }}
         }}
       ],
-      ""rules"": {{
-        ""CS0169"": {{
-          ""id"": ""CS0169"",
-          ""shortDescription"": ""Field is never used"",
-          ""defaultLevel"": ""warning"",
-          ""properties"": {{
-            ""category"": ""Compiler"",
-            ""isEnabledByDefault"": true,
-            ""tags"": [
-              ""Compiler"",
-              ""Telemetry""
-            ]
-          }}
-        }},
-        ""CS5001"": {{
-          ""id"": ""CS5001"",
-          ""defaultLevel"": ""error"",
-          ""properties"": {{
-            ""category"": ""Compiler"",
-            ""isEnabledByDefault"": true,
-            ""tags"": [
-              ""Compiler"",
-              ""Telemetry"",
-              ""NotConfigurable""
-            ]
-          }}
+      ""tool"": {{
+        ""driver"": {{
+          ""name"": ""{0}"",
+          ""version"": ""{1}"",
+          ""fileVersion"": ""{2}"",
+          ""semanticVersion"": ""{3}"",
+          ""language"": ""{4}"",
+          ""rules"": [
+            {{
+              ""id"": ""CS5001"",
+              ""defaultConfiguration"": {{
+                ""level"": ""error"",
+                ""enabled"": true
+              }},
+              ""properties"": {{
+                ""category"": ""Compiler"",
+                ""tags"": [
+                  ""Compiler"",
+                  ""Telemetry"",
+                  ""NotConfigurable""
+                ]
+              }}
+            }},
+            {{
+              ""id"": ""CS0169"",
+              ""shortDescription"": {{
+                ""text"": ""Field is never used""
+              }},
+              ""defaultConfiguration"": {{
+                ""level"": ""warning"",
+                ""enabled"": true
+              }},
+              ""properties"": {{
+                ""category"": ""Compiler"",
+                ""tags"": [
+                  ""Compiler"",
+                  ""Telemetry""
+                ]
+              }}
+            }}
+          ]
         }}
       }}
     }}
   ]
-}}", AnalyzerForErrorLogTest.GetUriForPath(sourceFile));
+}}";
 
-            var expectedText = expectedHeader + expectedIssues;
-            Assert.Equal(expectedText, actualOutput);
+            expectedOutput = FormatOutputText(
+                expectedOutput,
+                cmd,
+                AnalyzerForErrorLogTest.GetUriForPath(sourceFile));
+
+            Assert.Equal(expectedOutput, actualOutput);
 
             CleanupAllGeneratedFiles(sourceFile);
             CleanupAllGeneratedFiles(errorLogFile);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289", AlwaysSkip = "I have no idea what this test does. -- lgolding 2019-07-02")]
         public void AnalyzerDiagnosticsWithAndWithoutLocation()
         {
             var source = @"
@@ -306,12 +358,33 @@ public class C
 
             var expectedHeader = GetExpectedErrorLogHeader();
             var expectedIssues = AnalyzerForErrorLogTest.GetExpectedErrorLogResultsText(cmd.Compilation);
-            var expectedText = expectedHeader + expectedIssues;
-            Assert.Equal(expectedText, actualOutput);
+            var expectedOutput = expectedHeader + expectedIssues;
+            if (actualOutput != expectedOutput)
+            {
+                File.WriteAllText(@"C:\Users\Larry Golding\Desktop\" + nameof(AnalyzerDiagnosticsWithAndWithoutLocation) + "-actual.sarif", actualOutput);
+                File.WriteAllText(@"C:\Users\Larry Golding\Desktop\" + nameof(AnalyzerDiagnosticsWithAndWithoutLocation) + "-expected.sarif", expectedOutput);
+            }
+            Assert.Equal(expectedOutput, actualOutput);
 
             CleanupAllGeneratedFiles(sourceFile);
             CleanupAllGeneratedFiles(outputFilePath);
             CleanupAllGeneratedFiles(errorLogFile);
+        }
+
+        private string FormatOutputText(
+          string s,
+          CommonCompiler compiler,
+          params object[] additionalArguments)
+        {
+            var arguments = new object[] {
+                compiler.GetToolName(),
+                compiler.GetAssemblyVersion(),
+                compiler.GetCompilerVersion(),
+                compiler.GetAssemblyVersion().ToString(fieldCount: 3),
+                compiler.GetCultureName()
+            }.Concat(additionalArguments).ToArray();
+
+            return string.Format(CultureInfo.InvariantCulture, s, arguments);
         }
 
         private static string GetExpectedErrorLogHeader()

@@ -95,8 +95,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
       ""tool"": {
         ""driver"": {
           ""name"": ""toolName"",
-          ""fileVersion"": ""1.2.3.4"",
           ""version"": ""1.2.3.4"",
+          ""fileVersion"": ""1.2.3.4"",
           ""semanticVersion"": ""1.2.3"",
           ""language"": ""fr-CA"",
           ""rules"": [
@@ -117,11 +117,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
   ]
 }";
             string actual = Encoding.UTF8.GetString(stream.ToArray());
-            if (actual != expected)
-            {
-                File.WriteAllText(@"C:\Users\Larry Golding\Desktop\" + nameof(AdditionalLocationsAsRelatedLocations) + "-actual.sarif", actual);
-                File.WriteAllText(@"C:\Users\Larry Golding\Desktop\" + nameof(AdditionalLocationsAsRelatedLocations) + "-expected.sarif", expected);
-            }
             Assert.Equal(expected, actual);
         }
 
@@ -365,8 +360,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
       ""tool"": {
         ""driver"": {
           ""name"": ""toolName"",
-          ""fileVersion"": ""1.2.3.4"",
           ""version"": ""1.2.3.4"",
+          ""fileVersion"": ""1.2.3.4"",
           ""semanticVersion"": ""1.2.3"",
           ""language"": ""en-US"",
           ""rules"": [
@@ -468,11 +463,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
   ]
 }";
             string actual = Encoding.UTF8.GetString(stream.ToArray());
-            if (actual != expected)
-            {
-                File.WriteAllText(@"C:\Users\Larry Golding\Desktop\" + nameof(DescriptorIdCollision) + "-actual.sarif", actual);
-                File.WriteAllText(@"C:\Users\Larry Golding\Desktop\" + nameof(DescriptorIdCollision) + "-expected.sarif", expected);
-            }
             Assert.Equal(expected, actual);
         }
     }

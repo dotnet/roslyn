@@ -140,8 +140,8 @@ namespace Microsoft.CodeAnalysis
             _writer.WriteObjectStart("tool");
             _writer.WriteObjectStart("driver");
             _writer.Write("name", _toolName);
-            _writer.Write("fileVersion", _toolFileVersion);
             _writer.Write("version", _toolAssemblyVersion.ToString());
+            _writer.Write("fileVersion", _toolFileVersion);
             _writer.Write("semanticVersion", _toolAssemblyVersion.ToString(fieldCount: 3));
             _writer.Write("language", _culture.Name);
 
