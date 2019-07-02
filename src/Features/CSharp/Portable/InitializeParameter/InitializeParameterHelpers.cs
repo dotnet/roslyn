@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -18,6 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             => node is BaseMethodDeclarationSyntax
             || node is LocalFunctionStatementSyntax
             || node is AnonymousFunctionExpressionSyntax;
+
+        public static IReadOnlyList<SyntaxNode> GetParameters(SyntaxNode node)
+        {
+            return ((BaseMethodDeclarationSyntax)node).ParameterList.Parameters;
+        }
 
         public static SyntaxNode GetBody(SyntaxNode functionDeclaration)
         {

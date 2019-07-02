@@ -43,5 +43,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         Protected Overrides Function GetBody(functionDeclaration As SyntaxNode) As SyntaxNode
             Return InitializeParameterHelpers.GetBody(functionDeclaration)
         End Function
+
+        Protected Overrides Function GetParameterNodeAtIndex(position As Integer, functionDeclaration As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
     End Class
 End Namespace

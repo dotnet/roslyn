@@ -45,7 +45,7 @@ class C
 {
     public C(string s)
     {
-        if (s is null)
+        if (s is null) //  make a design pro if to have one if or many/
         {
             throw new ArgumentNullException(nameof(s));
         }
@@ -62,7 +62,7 @@ using System;
 
 class C
 {
-    public C([||]string s)
+    public C([||]string a)
     {
     }
 }",
@@ -71,11 +71,11 @@ using System;
 
 class C
 {
-    public C(string s)
+    public C(string a)
     {
-        if (s == null)
+        if (a == null)
         {
-            throw new ArgumentNullException(nameof(s));
+            throw new ArgumentNullException(nameof(a));
         }
     }
 }", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
@@ -301,6 +301,75 @@ class C
     {
         _s = s ?? throw new ArgumentNullException(nameof(s));
     }
+}");
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMultiNullableParameters()
+        {
+            await TestInRegularAndScript1Async(
+
+@"
+using System;
+
+class C
+{
+    public C([||]string a, string b, string c)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(string a, string b, string c)
+    {
+        if (a is null)
+        {
+            throw new ArgumentNullException(nameof(a));
+        }
+        if (b is null)
+        {
+            throw new ArgumentNullException(nameof(a));
+        }
+        if (c is null)
+        {
+            throw new ArgumentNullException(nameof(a));
+        }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMultiNullableAndNonNullable()
+        {
+            await TestInRegularAndScript1Async(
+
+@"
+using System;
+
+class C
+{
+    public C([||]string a, bool b, string c)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(string a, bool b, string c)
+    {
+        if (a == null)
+        {
+            throw new ArgumentNullException(nameof(a));
+        }
+        if (b == null)
+        {
+            throw new ArgumentNullException(nameof(a));
+        }
 }");
         }
 

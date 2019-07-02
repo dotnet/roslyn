@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.InitializeParameter;
+using System.Collections.Generic;
+
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
@@ -37,6 +40,16 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination);
 
+        protected override IEnumerable<SyntaxNode> GetParameterList(SyntaxNode parameterNode)
+        {
+            var node = parameterNode?.Parent as ParameterListSyntax;
+            if (node == null)
+            {
+                return null;
+            }
+            return node.Parameters;
+        }
+
         protected override bool CanOffer(SyntaxNode body)
         {
             if (InitializeParameterHelpers.IsExpressionBody(body))
@@ -48,6 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             }
 
             return true;
+        }
+        protected override SyntaxNode GetParameterNodeAtIndex(int ordinal, SyntaxNode functionDecleration)
+        {
+            var listOfParameters = InitializeParameterHelpers.GetParameters(functionDecleration);
+            return ordinal > listOfParameters.Count && listOfParameters[ordinal] != null ? null : listOfParameters[ordinal];
         }
     }
 }
