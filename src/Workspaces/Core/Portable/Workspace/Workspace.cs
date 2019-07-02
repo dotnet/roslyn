@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,11 +30,11 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract partial class Workspace : IDisposable
     {
-        private readonly string _workspaceKind;
+        private readonly string? _workspaceKind;
         private readonly HostWorkspaceServices _services;
         private readonly BranchId _primaryBranchId;
 
-        private readonly IWorkspaceOptionService _workspaceOptionService;
+        private readonly IWorkspaceOptionService? _workspaceOptionService;
 
         // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
         private readonly SemaphoreSlim _serializationLock = new SemaphoreSlim(initialCount: 1);
@@ -50,14 +52,14 @@ namespace Microsoft.CodeAnalysis
 
         internal bool TestHookPartialSolutionsDisabled { get; set; }
 
-        private Action<string> _testMessageLogger;
+        private Action<string>? _testMessageLogger;
 
         /// <summary>
         /// Constructs a new workspace instance.
         /// </summary>
         /// <param name="host">The <see cref="HostServices"/> this workspace uses</param>
         /// <param name="workspaceKind">A string that can be used to identify the kind of workspace. Usually this matches the name of the class.</param>
-        protected Workspace(HostServices host, string workspaceKind)
+        protected Workspace(HostServices host, string? workspaceKind)
         {
             _primaryBranchId = BranchId.GetNextId();
             _workspaceKind = workspaceKind;
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis
         /// Sets an internal logger that will receive some messages.
         /// </summary>
         /// <param name="writeLineMessageLogger">An action called to write a single line to the log.</param>
-        internal void SetTestLogger(Action<string> writeLineMessageLogger)
+        internal void SetTestLogger(Action<string>? writeLineMessageLogger)
         {
             _testMessageLogger = writeLineMessageLogger;
         }
@@ -108,7 +110,8 @@ namespace Microsoft.CodeAnalysis
         /// This is generally <see cref="WorkspaceKind.Host"/> if originating from the host environment, but may be
         /// any other name used for a specific kind of workspace.
         /// </summary>
-        public string Kind => _workspaceKind;
+        // TODO (https://github.com/dotnet/roslyn/issues/37110): decide if Kind should be non-null
+        public string? Kind => _workspaceKind;
 
         /// <summary>
         /// Create a new empty solution instance associated with this workspace.
@@ -152,6 +155,11 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         protected Solution SetCurrentSolution(Solution solution)
         {
+            if (solution is null)
+            {
+                throw new ArgumentNullException(nameof(solution));
+            }
+
             var currentSolution = Volatile.Read(ref _latestSolution);
             if (solution == currentSolution)
             {
@@ -461,7 +469,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Call this method when a project's output file path is changed in the host environment.
         /// </summary>
-        protected internal void OnOutputFilePathChanged(ProjectId projectId, string outputFilePath)
+        protected internal void OnOutputFilePathChanged(ProjectId projectId, string? outputFilePath)
         {
             this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectOutputFilePath(projectId, outputFilePath));
         }
@@ -469,7 +477,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Call this method when a project's output ref file path is changed in the host environment.
         /// </summary>
-        protected internal void OnOutputRefFilePathChanged(ProjectId projectId, string outputFilePath)
+        protected internal void OnOutputRefFilePathChanged(ProjectId projectId, string? outputFilePath)
         {
             this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectOutputRefFilePath(projectId, outputFilePath));
         }
@@ -477,7 +485,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Call this method when a project's name is changed in the host environment.
         /// </summary>
-        protected internal void OnProjectNameChanged(ProjectId projectId, string name, string filePath)
+        // TODO (https://github.com/dotnet/roslyn/issues/37124): decide if we want to allow "name" to be nullable.
+        // As of this writing you can pass null, but rather than updating the project to null it seems it does nothing.
+        // I'm leaving this marked as "non-null" so as not to say we actually support that behavior. The underlying
+        // requirement is ProjectInfo.ProjectAttributes holds a non-null name, so you can't get a null into this even if you tried.
+        protected internal void OnProjectNameChanged(ProjectId projectId, string name, string? filePath)
         {
             this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectName(projectId, name).WithProjectFilePath(projectId, filePath));
         }
@@ -485,7 +497,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Call this method when a project's default namespace is changed in the host environment.
         /// </summary>
-        internal void OnDefaultNamespaceChanged(ProjectId projectId, string defaultNamespace)
+        internal void OnDefaultNamespaceChanged(ProjectId projectId, string? defaultNamespace)
         {
             this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectDefaultNamespace(projectId, defaultNamespace));
         }
