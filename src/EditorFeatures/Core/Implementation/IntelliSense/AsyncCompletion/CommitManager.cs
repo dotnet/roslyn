@@ -148,9 +148,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 AsyncCompletionLogger.LogCommitWithTypeImportCompletionEnabled();
 
-                if (roslynItem.ProviderName == "TypeImportCompletionProvider")
+                if (roslynItem.IsCached)
                 {
-                    AsyncCompletionLogger.LogCommitTypeImportCompletionItem();
+                    AsyncCompletionLogger.LogCommitOfTypeImportCompletionItem();
                 }
             }
 
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             // Commit with completion service assumes that null is provided is case of invoke. VS provides '\0' in the case.
-            char? commitChar = typeChar == '\0' ? null : (char?)typeChar;
+            var commitChar = typeChar == '\0' ? null : (char?)typeChar;
             var commitBehavior = Commit(
                 triggerDocument, completionService, session.TextView, subjectBuffer,
                 roslynItem, completionListSpan, commitChar, triggerSnapshot, serviceRules,

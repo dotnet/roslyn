@@ -1,17 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -261,26 +257,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         }
 
         private IndentationResult GetIndentationFromCommaSeparatedList(Indenter indenter, SyntaxToken token)
-        {
-            var node = token.Parent;
-            switch (node)
+            => token.Parent switch
             {
-                case BaseArgumentListSyntax argument:
-                    return GetIndentationFromCommaSeparatedList(indenter, argument.Arguments, token);
-                case BaseParameterListSyntax parameter:
-                    return GetIndentationFromCommaSeparatedList(indenter, parameter.Parameters, token);
-                case TypeArgumentListSyntax typeArgument:
-                    return GetIndentationFromCommaSeparatedList(indenter, typeArgument.Arguments, token);
-                case TypeParameterListSyntax typeParameter:
-                    return GetIndentationFromCommaSeparatedList(indenter, typeParameter.Parameters, token);
-                case EnumDeclarationSyntax enumDeclaration:
-                    return GetIndentationFromCommaSeparatedList(indenter, enumDeclaration.Members, token);
-                case InitializerExpressionSyntax initializerSyntax:
-                    return GetIndentationFromCommaSeparatedList(indenter, initializerSyntax.Expressions, token);
-            }
-
-            return GetDefaultIndentationFromToken(indenter, token);
-        }
+                BaseArgumentListSyntax argument => GetIndentationFromCommaSeparatedList(indenter, argument.Arguments, token),
+                BaseParameterListSyntax parameter => GetIndentationFromCommaSeparatedList(indenter, parameter.Parameters, token),
+                TypeArgumentListSyntax typeArgument => GetIndentationFromCommaSeparatedList(indenter, typeArgument.Arguments, token),
+                TypeParameterListSyntax typeParameter => GetIndentationFromCommaSeparatedList(indenter, typeParameter.Parameters, token),
+                EnumDeclarationSyntax enumDeclaration => GetIndentationFromCommaSeparatedList(indenter, enumDeclaration.Members, token),
+                InitializerExpressionSyntax initializerSyntax => GetIndentationFromCommaSeparatedList(indenter, initializerSyntax.Expressions, token),
+                _ => GetDefaultIndentationFromToken(indenter, token),
+            };
 
         private IndentationResult GetIndentationFromCommaSeparatedList<T>(
             Indenter indenter, SeparatedSyntaxList<T> list, SyntaxToken token) where T : SyntaxNode
@@ -293,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
             // find node that starts at the beginning of a line
             var sourceText = indenter.LineToBeIndented.Text;
-            for (int i = (index - 1) / 2; i >= 0; i--)
+            for (var i = (index - 1) / 2; i >= 0; i--)
             {
                 var node = list[i];
                 var firstToken = node.GetFirstToken(includeZeroWidth: true);
@@ -350,15 +336,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             }
 
             // find query body that has a token that is a first token on the line
-            var queryBody = queryExpressionClause.Parent as QueryBodySyntax;
-            if (queryBody == null)
+            if (!(queryExpressionClause.Parent is QueryBodySyntax queryBody))
             {
                 return indenter.GetIndentationOfToken(firstToken);
             }
 
             // find preceding clause that starts on its own.
             var clauses = queryBody.Clauses;
-            for (int i = clauses.Count - 1; i >= 0; i--)
+            for (var i = clauses.Count - 1; i >= 0; i--)
             {
                 var clause = clauses[i];
                 if (firstToken.SpanStart <= clause.SpanStart)

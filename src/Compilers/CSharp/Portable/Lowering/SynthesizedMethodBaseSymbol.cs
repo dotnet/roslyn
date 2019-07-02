@@ -139,6 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.TypeMap.SubstituteType(this.BaseMethod.OriginalDefinition.ReturnTypeWithAnnotations); }
         }
 
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => BaseMethod.ReturnTypeFlowAnalysisAnnotations;
+
         public sealed override bool IsVararg
         {
             get { return this.BaseMethod.IsVararg; }

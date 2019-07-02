@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureAltInterpolatedVerbatimStrings = MessageBase + 12745,
         IDS_FeatureCoalesceAssignmentExpression = MessageBase + 12746,
         IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator = MessageBase + 12747,
-        IDS_FeatureObjectGenericTypeConstraint = MessageBase + 12748,
+        IDS_FeatureNotNullGenericTypeConstraint = MessageBase + 12748,
         IDS_FeatureIndexOperator = MessageBase + 12749,
         IDS_FeatureRangeOperator = MessageBase + 12750,
         IDS_FeatureAsyncStreams = MessageBase + 12751,
@@ -275,7 +275,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator:
                 case MessageID.IDS_FeatureNullableReferenceTypes: // syntax and semantic check
                 case MessageID.IDS_FeaturePragmaWarningEnable:
-                case MessageID.IDS_FeatureObjectGenericTypeConstraint:   // semantic check
                 case MessageID.IDS_FeatureIndexOperator: // semantic check
                 case MessageID.IDS_FeatureRangeOperator: // semantic check
                 case MessageID.IDS_FeatureAsyncStreams:
@@ -289,6 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_DefaultInterfaceImplementation: // semantic check
                 case MessageID.IDS_OverrideWithConstraints: // semantic check
                 case MessageID.IDS_FeatureNestedStackalloc: // semantic check
+                case MessageID.IDS_FeatureNotNullGenericTypeConstraint:// semantic check
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.

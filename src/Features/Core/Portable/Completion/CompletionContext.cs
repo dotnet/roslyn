@@ -82,13 +82,13 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            this.Provider = provider ?? throw new ArgumentNullException(nameof(provider));
-            this.Document = document ?? throw new ArgumentNullException(nameof(document));
-            this.Position = position;
-            this.CompletionListSpan = defaultSpan;
-            this.Trigger = trigger;
-            this.Options = options ?? throw new ArgumentException(nameof(options));
-            this.CancellationToken = cancellationToken;
+            Provider = provider ?? throw new ArgumentNullException(nameof(provider));
+            Document = document ?? throw new ArgumentNullException(nameof(document));
+            Position = position;
+            CompletionListSpan = defaultSpan;
+            Trigger = trigger;
+            Options = options ?? throw new ArgumentException(nameof(options));
+            CancellationToken = cancellationToken;
             _items = new List<CompletionItem>();
         }
 
@@ -149,9 +149,9 @@ namespace Microsoft.CodeAnalysis.Completion
         private CompletionItem FixItem(CompletionItem item)
         {
             // remember provider so we can find it again later
-            item.ProviderName = this.Provider.Name;
+            item.ProviderName = Provider.Name;
 
-            item.Span = this.CompletionListSpan;
+            item.Span = CompletionListSpan;
 
             return item;
         }

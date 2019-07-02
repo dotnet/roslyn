@@ -98,8 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
 
             private bool IsFirstBlockStatement()
             {
-                var parentBlockOpt = _parentStatement.Parent as BlockSyntax;
-                return parentBlockOpt != null && parentBlockOpt.Statements.FirstOrDefault() == _parentStatement;
+                return _parentStatement.Parent is BlockSyntax parentBlockOpt && parentBlockOpt.Statements.FirstOrDefault() == _parentStatement;
             }
 
             private void AddCurrentDeclaration()

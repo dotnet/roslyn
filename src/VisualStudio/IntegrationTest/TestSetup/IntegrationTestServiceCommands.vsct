@@ -43,6 +43,15 @@
           <LocCanonicalName>IntegrationTestService.Stop</LocCanonicalName>
         </Strings>
       </Button>
+      <Button guid="guidTestWindowCmdSet" id="cmdidDisableAsyncCompletion" priority="0x0030" type="Button">
+        <Parent guid="guidTestWindowCmdSet" id="grpidIntegrationTestService" />
+        <Strings>
+          <ButtonText>Disable Async Completion</ButtonText>
+          <CommandName>IntegrationTestService.DisableAsyncCompletion</CommandName>
+          <CanonicalName>IntegrationTestService.DisableAsyncCompletion</CanonicalName>
+          <LocCanonicalName>IntegrationTestService.DisableAsyncCompletion</LocCanonicalName>
+        </Strings>
+      </Button>
     </Buttons>
   </Commands>
 
@@ -59,6 +68,7 @@
 
       <IDSymbol name="cmdidIntegrationTestServiceStart" value="0x5201" />
       <IDSymbol name="cmdidIntegrationTestServiceStop" value="0x5202" />
+      <IDSymbol name="cmdidDisableAsyncCompletion" value="0x5203" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

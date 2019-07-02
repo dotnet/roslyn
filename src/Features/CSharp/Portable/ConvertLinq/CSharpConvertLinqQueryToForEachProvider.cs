@@ -6,10 +6,10 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertLinq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
         /// <summary>
         /// Finds a node for the span and checks that it is either a QueryExpressionSyntax or a QueryExpressionSyntax argument within ArgumentSyntax.
         /// </summary>
-        protected override QueryExpressionSyntax FindNodeToRefactor(SyntaxNode root, TextSpan span)
+        protected override Task<QueryExpressionSyntax> FindNodeToRefactorAsync(Document document, TextSpan selection, CancellationToken cancellationToken)
         {
-            var node = root.FindNode(span);
-            return node as QueryExpressionSyntax ?? (node is ArgumentSyntax argument ? argument.Expression as QueryExpressionSyntax : default);
+            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
+            return refactoringHelperService.TryGetSelectedNodeAsync<QueryExpressionSyntax>(document, selection, cancellationToken);
         }
 
         private sealed class Converter
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
 
                 // Bail out if there is no chance to convert it even with a local function.
                 if (!CanTryConvertToLocalFunction() ||
-                    !TryCreateStackFromQueryExpression(out QueryExpressionProcessingInfo queryExpressionProcessingInfo))
+                    !TryCreateStackFromQueryExpression(out var queryExpressionProcessingInfo))
                 {
                     documentUpdateInfo = default;
                     return false;
@@ -128,12 +128,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         ExpressionSyntax expression1;
                         if (isLastClause && hasExtraDeclarations && !IsLocalOrParameterSymbol(_source.FromClause.Expression))
                         {
-                            string expressionName = _semanticFacts.GenerateNameForExpression(
+                            var expressionName = _semanticFacts.GenerateNameForExpression(
                                 _semanticModel,
                                 fromClause.Expression,
                                 capitalize: false,
                                 _cancellationToken);
-                            SyntaxToken variable = GetFreeSymbolNameAndMarkUsed(expressionName);
+                            var variable = GetFreeSymbolNameAndMarkUsed(expressionName);
                             extraStatementToAddAbove = CreateLocalDeclarationStatement(variable, fromClause.Expression, generateTypeFromExpression: false);
                             expression1 = SyntaxFactory.IdentifierName(variable);
                         }
@@ -171,12 +171,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                                 // var xx = XX();
                                 // var yy = YY();
                                 // Do not add for ZZ()
-                                string expressionName = _semanticFacts.GenerateNameForExpression(
+                                var expressionName = _semanticFacts.GenerateNameForExpression(
                                     _semanticModel,
                                     joinClause.InExpression,
                                     capitalize: false,
                                     _cancellationToken);
-                                SyntaxToken variable = GetFreeSymbolNameAndMarkUsed(expressionName);
+                                var variable = GetFreeSymbolNameAndMarkUsed(expressionName);
                                 extraStatementToAddAbove = CreateLocalDeclarationStatement(variable, joinClause.InExpression, generateTypeFromExpression: false);
 
                                 // Replace YY() with yy declared above.
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             private bool TryConvertInternal(QueryExpressionProcessingInfo queryExpressionProcessingInfo, out DocumentUpdateInfo documentUpdateInfo)
             {
                 // (from a in b select a); 
-                SyntaxNode parent = _source.WalkUpParentheses().Parent;
+                var parent = _source.WalkUpParentheses().Parent;
 
                 switch (parent.Kind())
                 {
@@ -566,16 +566,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     }
                 }
 
-                StatementSyntax internalNodeMethod(ExpressionSyntax expression)
+                static StatementSyntax internalNodeMethod(ExpressionSyntax expression)
                     => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, expression);
 
                 var statements = GenerateStatements(internalNodeMethod, queryExpressionProcessingInfo);
-                string localFunctionNamePrefix = _semanticFacts.GenerateNameForExpression(
+                var localFunctionNamePrefix = _semanticFacts.GenerateNameForExpression(
                     _semanticModel,
                     _source,
                     capitalize: false,
                     _cancellationToken);
-                SyntaxToken localFunctionToken = GetFreeSymbolNameAndMarkUsed(localFunctionNamePrefix);
+                var localFunctionToken = GetFreeSymbolNameAndMarkUsed(localFunctionNamePrefix);
                 var localFunctionDeclaration = SyntaxFactory.LocalFunctionStatement(
                     modifiers: default,
                     returnType: returnedType.GenerateTypeSyntax().WithAdditionalAnnotations(Simplifier.Annotation),
@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     expressionBody: null);
 
                 var localFunctionInvocation = SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(localFunctionToken)).WithAdditionalAnnotations(Simplifier.Annotation);
-                StatementSyntax newParentExpressionStatement = parentStatement.ReplaceNode(_source.WalkUpParentheses(), localFunctionInvocation.WithAdditionalAnnotations(Simplifier.Annotation));
+                var newParentExpressionStatement = parentStatement.ReplaceNode(_source.WalkUpParentheses(), localFunctionInvocation.WithAdditionalAnnotations(Simplifier.Annotation));
                 documentUpdateInfo = new DocumentUpdateInfo(parentStatement, new[] { localFunctionDeclaration, newParentExpressionStatement });
                 return true;
             }
@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 }
 
                 // Process all other clauses
-                List<StatementSyntax> statements = new List<StatementSyntax>();
+                var statements = new List<StatementSyntax>();
                 while (stack.Any())
                 {
                     statement = ProcessClause(
@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         statement,
                         isLastClause: !stack.Any(),
                         hasExtraDeclarations: statements.Any(),
-                        out StatementSyntax extraStatement);
+                        out var extraStatement);
                     if (extraStatement != null)
                     {
                         statements.Add(extraStatement);

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                     trailing: SyntaxFactory.TriviaList(SyntaxFactory.ElasticSpace));
 
                 var secondToken = SyntaxFactory.Token(
-                    default(SyntaxTriviaList),
+                    default,
                     _token.Kind(),
                     text: QuoteCharacter + suffix,
                     valueText: "",

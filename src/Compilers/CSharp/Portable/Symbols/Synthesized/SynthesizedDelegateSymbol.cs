@@ -227,6 +227,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return TypeWithAnnotations.Create(_returnType); }
             }
 
+            public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
             public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
             {
                 get { return ImmutableArray<TypeWithAnnotations>.Empty; }

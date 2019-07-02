@@ -71,41 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool SpansPreprocessorDirective(this IEnumerable<SyntaxToken> tokens)
-        {
-            // we want to check all leading trivia of all tokens (except the 
-            // first one), and all trailing trivia of all tokens (except the
-            // last one).
-
-            var first = true;
-            var previousToken = default(SyntaxToken);
-
-            foreach (var token in tokens)
-            {
-                if (first)
-                {
-                    first = false;
-                }
-                else
-                {
-                    // check the leading trivia of this token, and the trailing trivia
-                    // of the previous token.
-                    if (SpansPreprocessorDirective(token.LeadingTrivia) ||
-                        SpansPreprocessorDirective(previousToken.TrailingTrivia))
-                    {
-                        return true;
-                    }
-                }
-
-                previousToken = token;
-            }
-
-            return false;
-        }
-
-        private static bool SpansPreprocessorDirective(SyntaxTriviaList list)
-        {
-            return list.Any(t => t.GetStructure() is DirectiveTriviaSyntax);
-        }
+            => CSharpSyntaxFactsService.Instance.SpansPreprocessorDirective(tokens);
 
         /// <summary>
         /// Retrieves all trivia after this token, including it's trailing trivia and
@@ -158,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var token = genericIdentifier.GetNextToken(includeSkipped: true);
             Contract.ThrowIfFalse(token.Kind() == SyntaxKind.LessThanToken);
 
-            int stack = 0;
+            var stack = 0;
 
             do
             {

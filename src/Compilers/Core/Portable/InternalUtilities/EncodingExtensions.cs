@@ -19,8 +19,7 @@ namespace Roslyn.Utilities
             Debug.Assert(stream.CanSeek);
             long length = stream.Length;
 
-            int maxCharCount;
-            if (encoding.TryGetMaxCharCount(length, out maxCharCount))
+            if (encoding.TryGetMaxCharCount(length, out int maxCharCount))
             {
                 return maxCharCount;
             }

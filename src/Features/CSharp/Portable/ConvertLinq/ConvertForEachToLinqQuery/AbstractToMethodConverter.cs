@@ -143,10 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                 editor.RemoveNode(ForEachInfo.ForEachStatement);
             }
 
-            SyntaxTrivia[] GetTriviaFromVariableDeclarator(VariableDeclaratorSyntax variableDeclarator)
+            static SyntaxTrivia[] GetTriviaFromVariableDeclarator(VariableDeclaratorSyntax variableDeclarator)
                 => SyntaxNodeOrTokenExtensions.GetTrivia(variableDeclarator.Identifier, variableDeclarator.Initializer.EqualsToken, variableDeclarator.Initializer.Value);
-
-            SyntaxTrivia[] GetTriviaFromNode(SyntaxNode node)
+            static SyntaxTrivia[] GetTriviaFromNode(SyntaxNode node)
             {
                 switch (node.Kind())
                 {

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public TriviaResult(SemanticDocument document, ITriviaSavedResult result, int endOfLineKind, int whitespaceKind)
             {
-                this.SemanticDocument = document;
+                SemanticDocument = document;
 
                 _result = result;
                 _endOfLineKind = endOfLineKind;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var result = new List<SyntaxTrivia>();
 
                 var seenFirstEndOfLine = false;
-                int i = 0;
+                var i = 0;
 
                 foreach (var trivia in list)
                 {
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 // this will make sure that it doesn't have more than two subsequent end of line
                 // trivia without any noisy trivia
                 var stack = new Stack<SyntaxTrivia>();
-                int numberOfEndOfLinesWithoutAnyNoisyTrivia = 0;
+                var numberOfEndOfLinesWithoutAnyNoisyTrivia = 0;
 
                 foreach (var trivia in list)
                 {

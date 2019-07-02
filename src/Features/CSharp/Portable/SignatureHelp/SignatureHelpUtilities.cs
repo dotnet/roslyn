@@ -29,16 +29,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     list => list.Arguments.GetWithSeparators();
 
         private static readonly Func<BaseArgumentListSyntax, IEnumerable<string>> s_getBaseArgumentListNames =
-            list => list.Arguments.Select(argument => argument.NameColon == null ? null : argument.NameColon.Name.Identifier.ValueText);
+            list => list.Arguments.Select(argument => argument.NameColon?.Name.Identifier.ValueText);
         private static readonly Func<TypeArgumentListSyntax, IEnumerable<string>> s_getTypeArgumentListNames =
             list => list.Arguments.Select(a => (string)null);
         private static readonly Func<AttributeArgumentListSyntax, IEnumerable<string>> s_getAttributeArgumentListNames =
             list => list.Arguments.Select(
                 argument => argument.NameColon != null
                     ? argument.NameColon.Name.Identifier.ValueText
-                    : argument.NameEquals != null
-                        ? argument.NameEquals.Name.Identifier.ValueText
-                        : null);
+                    : argument.NameEquals?.Name.Identifier.ValueText);
 
         internal static SignatureHelpState GetSignatureHelpState(BaseArgumentListSyntax argumentList, int position)
         {

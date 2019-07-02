@@ -6863,5 +6863,184 @@ public static class Program
     }
 }", optionName);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DoesNotUseLocalFunctionName_PreferUnused()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        int [|x|] = M2();
+        x = 2;
+        return x;
+
+        void unused() { }
+    }
+
+    int M2() => 0;
+}",
+@"class C
+{
+    int M()
+    {
+        int unused1 = M2();
+        int x = 2;
+        return x;
+
+        void unused() { }
+    }
+
+    int M2() => 0;
+}", options: PreferUnusedLocal);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task CanUseLocalFunctionParameterName_PreferUnused()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        int [|x|] = M2();
+        x = 2;
+        return x;
+
+        void MLocal(int unused) { }
+    }
+
+    int M2() => 0;
+}",
+@"class C
+{
+    int M()
+    {
+        int unused = M2();
+        int x = 2;
+        return x;
+
+        void MLocal(int unused) { }
+    }
+
+    int M2() => 0;
+}", options: PreferUnusedLocal);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DoesNotUseLambdaFunctionParameterNameWithCSharpLessThan8_PreferUnused()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+class C
+{
+    int M()
+    {
+        int [|x|] = M2();
+        x = 2;
+        Action<int> myLambda = unused => { };
+
+        return x;
+    }
+
+    int M2() => 0;
+}",
+@"
+using System;
+class C
+{
+    int M()
+    {
+        int unused1 = M2();
+        int x = 2;
+        Action<int> myLambda = unused => { };
+
+        return x;
+    }
+
+    int M2() => 0;
+}", options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task CanUseLambdaFunctionParameterNameWithCSharp8_PreferUnused()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+class C
+{
+    int M()
+    {
+        int [|x|] = M2();
+        x = 2;
+        Action<int> myLambda = unused => { };
+
+        return x;
+    }
+
+    int M2() => 0;
+}",
+@"
+using System;
+class C
+{
+    int M()
+    {
+        int unused = M2();
+        int x = 2;
+        Action<int> myLambda = unused => { };
+
+        return x;
+    }
+
+    int M2() => 0;
+}", options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(33464, "https://github.com/dotnet/roslyn/issues/33464")]
+        public async Task UsingDeclaration()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C : IDisposable
+{
+    public void Dispose()
+    {
+    }
+
+    void M()
+    {
+        using var [|x|] = new C();
+    }
+}", options: PreferDiscard,
+    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(33464, "https://github.com/dotnet/roslyn/issues/33464")]
+        public async Task UsingDeclarationWithInitializer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C : IDisposable
+{
+    public int P { get; set; }
+    public void Dispose()
+    {
+    }
+
+    void M()
+    {
+        using var [|x|] = new C() { P = 1 };
+    }
+}", options: PreferDiscard,
+    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
     }
 }

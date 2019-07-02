@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -92,10 +91,10 @@ namespace Microsoft.CodeAnalysis.Host
             private readonly ProjectCacheService _owner;
             private readonly SemaphoreSlim _gate;
 
-            public ImplicitCacheMonitor(ProjectCacheService owner, int backOffTimeSpanInMS) :
-                base(AsynchronousOperationListenerProvider.NullListener,
-                     backOffTimeSpanInMS,
-                     CancellationToken.None)
+            public ImplicitCacheMonitor(ProjectCacheService owner, int backOffTimeSpanInMS)
+                : base(AsynchronousOperationListenerProvider.NullListener,
+                       backOffTimeSpanInMS,
+                       CancellationToken.None)
             {
                 _owner = owner;
                 _gate = new SemaphoreSlim(0);

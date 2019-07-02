@@ -664,6 +664,12 @@ Do you want to continue?</value>
   <data name="Remove_Suppression" xml:space="preserve">
     <value>Remove Suppression</value>
   </data>
+  <data name="Configure_0_severity" xml:space="preserve">
+    <value>Configure {0} severity</value>
+  </data>
+  <data name="Configure_0_code_style" xml:space="preserve">
+    <value>Configure {0} code style</value>
+  </data>
   <data name="Pending" xml:space="preserve">
     <value>&lt;Pending&gt;</value>
   </data>
@@ -1505,7 +1511,7 @@ This version used in: {2}</value>
   <data name="Unnecessary_assignment_of_a_value" xml:space="preserve">
     <value>Unnecessary assignment of a value</value>
   </data>
-  <data name="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc_These_are_treated_as_special_discard_symbol_names" xml:space="preserve">
+  <data name="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc" xml:space="preserve">
     <value>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</value>
   </data>
   <data name="Use_discarded_local" xml:space="preserve">
@@ -1637,5 +1643,30 @@ This version used in: {2}</value>
   </data>
   <data name="MethodMustReturnStreamThatSupportsReadAndSeek" xml:space="preserve">
     <value>{0} must return a stream that supports read and seek operations.</value>
+  </data>
+  <data name="Dispose_objects_before_losing_scope" xml:space="preserve">
+    <value>Dispose objects before losing scope</value>
+  </data>
+  <data name="Disposable_object_created_by_0_is_never_disposed" xml:space="preserve">
+    <value>Disposable object created by '{0}' is never disposed</value>
+  </data>
+  <data name="Use_recommended_dispose_pattern" xml:space="preserve">
+    <value>Use recommended dispose pattern</value>
+  </data>
+  <data name="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally" xml:space="preserve">
+    <value>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</value>
+    <comment>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</comment>
+  </data>
+  <data name="UseRecommendedDisposePatternDescription" xml:space="preserve">
+    <value>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</value>
+  </data>
+  <data name="Disposable_fields_should_be_disposed" xml:space="preserve">
+    <value>Disposable fields should be disposed</value>
+  </data>
+  <data name="Disposable_field_0_is_never_disposed" xml:space="preserve">
+    <value>Disposable field '{0}' is never disposed</value>
+  </data>
+  <data name="DisposableFieldsShouldBeDisposedDescription" xml:space="preserve">
+    <value>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</value>
   </data>
 </root>

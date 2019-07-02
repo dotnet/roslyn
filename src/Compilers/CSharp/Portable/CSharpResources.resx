@@ -5322,6 +5322,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_UnboxPossibleNull_Title" xml:space="preserve">
     <value>Unboxing a possibly null value.</value>
   </data>
+  <data name="WRN_NullabilityMismatchInTypeOnOverride" xml:space="preserve">
+    <value>Nullability of reference types in type doesn't match overridden member.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInTypeOnOverride_Title" xml:space="preserve">
+    <value>Nullability of reference types in type doesn't match overridden member.</value>
+  </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOnOverride" xml:space="preserve">
     <value>Nullability of reference types in return type doesn't match overridden member.</value>
   </data>
@@ -5341,19 +5347,19 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Nullability of reference types in type of parameter doesn't match partial method declaration.</value>
   </data>
   <data name="WRN_NullabilityMismatchInTypeOnImplicitImplementation" xml:space="preserve">
-    <value>Nullability of reference types in type doesn't match implicitly implemented member '{0}'.</value>
+    <value>Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</value>
   </data>
   <data name="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title" xml:space="preserve">
     <value>Nullability of reference types in type doesn't match implicitly implemented member.</value>
   </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation" xml:space="preserve">
-    <value>Nullability of reference types in return type doesn't match implicitly implemented member '{0}'.</value>
+    <value>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</value>
   </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title" xml:space="preserve">
     <value>Nullability of reference types in return type doesn't match implicitly implemented member.</value>
   </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation" xml:space="preserve">
-    <value>Nullability of reference types in type of parameter '{0}' doesn't match implicitly implemented member '{1}'.</value>
+    <value>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</value>
   </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title" xml:space="preserve">
     <value>Nullability of reference types in type of parameter doesn't match implicitly implemented member.</value>
@@ -5454,6 +5460,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInArgumentForOutput_Title" xml:space="preserve">
     <value>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</value>
   </data>
+  <data name="WRN_DisallowNullAttributeForbidsMaybeNullAssignment" xml:space="preserve">
+    <value>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</value>
+  </data>
+  <data name="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title" xml:space="preserve">
+    <value>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</value>
+  </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate" xml:space="preserve">
     <value>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</value>
   </data>
@@ -5488,10 +5500,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match constraint type.</value>
   </data>
   <data name="WRN_MissingNonNullTypesContextForAnnotation" xml:space="preserve">
-    <value>The annotation for nullable reference types should only be used in code within a '#nullable' context.</value>
+    <value>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</value>
   </data>
   <data name="WRN_MissingNonNullTypesContextForAnnotation_Title" xml:space="preserve">
-    <value>The annotation for nullable reference types should only be used in code within a '#nullable' context.</value>
+    <value>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</value>
   </data>
   <data name="ERR_ExplicitNullableAttribute" xml:space="preserve">
     <value>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</value>
@@ -5691,12 +5703,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="CannotCreateConstructedFromNongeneric" xml:space="preserve">
     <value>Cannot create constructed generic type from non-generic type.</value>
   </data>
-  <data name="WRN_DefaultLiteralConvertedToNullIsNotIntended" xml:space="preserve">
-    <value>'default' is converted to 'null', not 'default({0})'</value>
-  </data>
-  <data name="WRN_DefaultLiteralConvertedToNullIsNotIntended_Title" xml:space="preserve">
-    <value>'default' is converted to 'null'</value>
-  </data>
   <data name="IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator" xml:space="preserve">
     <value>unconstrained type parameters in null coalescing operator</value>
   </data>
@@ -5711,9 +5717,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint_Title" xml:space="preserve">
     <value>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'class' constraint.</value>
-  </data>
-  <data name="IDS_FeatureObjectGenericTypeConstraint" xml:space="preserve">
-    <value>object generic type constraint</value>
   </data>
   <data name="ERR_TripleDotNotAllowed" xml:space="preserve">
     <value>Unexpected character sequence '...'</value>
@@ -5736,6 +5739,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NullableDirectiveQualifierExpected" xml:space="preserve">
     <value>Expected 'enable', 'disable', or 'restore'</value>
   </data>
+  <data name="ERR_NullableDirectiveTargetExpected" xml:space="preserve">
+    <value>Expected 'warnings', 'annotations', or end of directive</value>
+  </data>
   <data name="ERR_ExpressionTreeCantContainRefStruct" xml:space="preserve">
     <value>Expression tree cannot contain value of ref struct or restricted type '{0}'.</value>
   </data>
@@ -5746,7 +5752,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An expression tree may not contain a null coalescing assignment</value>
   </data>
   <data name="ERR_BadNullableContextOption" xml:space="preserve">
-    <value>Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'warnings'</value>
+    <value>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</value>
   </data>
   <data name="ERR_SwitchGoverningExpressionRequiresParens" xml:space="preserve">
     <value>Parentheses are required around the switch governing expression.</value>
@@ -5897,5 +5903,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureNestedStackalloc" xml:space="preserve">
     <value>stackalloc in nested expressions</value>
+  </data>
+  <data name="ERR_NotNullConstraintMustBeFirst" xml:space="preserve">
+    <value>The 'notnull' constraint must come before any other constraints</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInTypeParameterNotNullConstraint" xml:space="preserve">
+    <value>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInTypeParameterNotNullConstraint_Title" xml:space="preserve">
+    <value>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</value>
+  </data>
+  <data name="IDS_FeatureNotNullGenericTypeConstraint" xml:space="preserve">
+    <value>notnull generic type constraint</value>
   </data>
 </root>

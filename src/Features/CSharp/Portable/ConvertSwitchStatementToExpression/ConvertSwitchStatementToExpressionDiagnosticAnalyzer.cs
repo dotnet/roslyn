@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
     {
         public ConvertSwitchStatementToExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId,
+                CSharpCodeStyleOptions.PreferSwitchExpression,
+                LanguageNames.CSharp,
                 new LocalizableResourceString(nameof(CSharpFeaturesResources.Convert_switch_statement_to_expression), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)),
                 new LocalizableResourceString(nameof(CSharpFeaturesResources.Use_switch_expression), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)))
         {
@@ -61,9 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 return;
             }
 
-            context.ReportDiagnostic(Diagnostic.Create(Descriptor,
+            context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor,
                 // Report the diagnostic on the "switch" keyword.
                 location: switchStatement.GetFirstToken().GetLocation(),
+                effectiveSeverity: styleOption.Notification.Severity,
                 additionalLocations: new[] { switchStatement.GetLocation() },
                 properties: ImmutableDictionary<string, string>.Empty
                     .Add(Constants.NodeToGenerateKey, ((int)nodeToGenerate).ToString(CultureInfo.InvariantCulture))

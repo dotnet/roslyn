@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 //   <expression>[
                 // or
                 //   <identifier>?[
-                ElementAccessExpressionSyntax elementAccessExpression = SyntaxFactory.ElementAccessExpression(expression, newBracketedArgumentList);
+                var elementAccessExpression = SyntaxFactory.ElementAccessExpression(expression, newBracketedArgumentList);
                 offset = expression.SpanStart - elementAccessExpression.SpanStart;
                 argumentList = elementAccessExpression.ArgumentList;
             }
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     ?? semanticModel.GetSymbolInfo(expression).GetAnySymbol().GetSymbolType();
             }
 
-            indexers = semanticModel.LookupSymbols(position, expressionType, WellKnownMemberNames.Indexer)
+            indexers = semanticModel.LookupSymbols(position, expressionType.WithoutNullability(), WellKnownMemberNames.Indexer)
                 .OfType<IPropertySymbol>()
                 .ToImmutableArray();
             return true;

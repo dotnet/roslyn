@@ -22,9 +22,8 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
             var cancellationToken = context.CancellationToken;
 
             // the provider might be invoked in non-interactive context:
-            Workspace ws;
-            SourceText sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            if (Workspace.TryGetWorkspace(sourceText.Container, out ws))
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            if (Workspace.TryGetWorkspace(sourceText.Container, out var ws))
             {
                 if (ws is InteractiveWorkspace workspace)
                 {
@@ -33,14 +32,14 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
 
                     if (await ShouldDisplayCommandCompletionsAsync(tree, position, cancellationToken).ConfigureAwait(false))
                     {
-                        IInteractiveWindowCommands commands = window.GetInteractiveCommands();
+                        var commands = window.GetInteractiveCommands();
                         if (commands != null)
                         {
                             foreach (var command in commands.GetCommands())
                             {
                                 foreach (var commandName in command.Names)
                                 {
-                                    string completion = GetCompletionString(commandName);
+                                    var completion = GetCompletionString(commandName);
                                     context.AddItem(CommonCompletionItem.Create(
                                         completion, displayTextSuffix: "", CompletionItemRules.Default, description: command.Description.ToSymbolDisplayParts(), glyph: Glyph.Intrinsic));
                                 }

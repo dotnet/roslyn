@@ -2,10 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -176,6 +173,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return initialState;
         }
 
+        protected override void VisitSwitchSection(BoundSwitchSection node, bool isLastSection)
+        {
+            TakeIncrementalSnapshot(node);
+            SetState(UnreachableState());
+            foreach (var label in node.SwitchLabels)
+            {
+                TakeIncrementalSnapshot(label);
+                VisitLabel(label.Label, node);
+            }
+
+            VisitStatementList(node);
+        }
+
         private PooledDictionary<LabelSymbol, (LocalState state, bool believedReachable)>
             LearnFromDecisionDag(
             SyntaxNode node,
@@ -229,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         // We may need to recompute the Deconstruct method for a deconstruction if
                                         // the receiver type has changed (e.g. its nested nullability).
                                         var method = e.DeconstructMethod;
-                                        int extensionExtra = method.IsStatic ? 1 : 0;
+                                        int extensionExtra = method.RequiresInstanceReceiver ? 0 : 1;
                                         for (int i = 0; i < method.ParameterCount - extensionExtra; i++)
                                         {
                                             var parameterType = method.Parameters[i + extensionExtra].TypeWithAnnotations;
@@ -493,7 +503,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var arm in node.SwitchArms)
             {
                 SetState(!arm.Pattern.HasErrors && labelStateMap.TryGetValue(arm.Label, out var labelState) ? labelState.state : UnreachableState());
+                // https://github.com/dotnet/roslyn/issues/35836 Is this where we want to take the snapshot?
+                TakeIncrementalSnapshot(arm);
                 (BoundExpression expression, Conversion conversion) = RemoveConversion(arm.Value, includeExplicitConversions: false);
+                SnapshotWalkerThroughConversionGroup(arm.Value, expression);
                 expressions.Add(expression);
                 conversions.Add(conversion);
                 var armType = VisitRvalueWithState(expression);

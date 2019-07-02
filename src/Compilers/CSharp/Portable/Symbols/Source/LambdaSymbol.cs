@@ -179,6 +179,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _returnType; }
         }
 
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
         // In error recovery and type inference scenarios we do not know the return type
         // until after the body is bound, but the symbol is created before the body
         // is bound.  Fill in the return type post hoc in these scenarios; the

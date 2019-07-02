@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 return;
             }
 
-            var embeddedContext = new EmbeddedCompletionContext(this._language, context, tree, stringToken);
+            var embeddedContext = new EmbeddedCompletionContext(_language, context, tree, stringToken);
             ProvideCompletions(embeddedContext);
 
             if (embeddedContext.Items.Count == 0)
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 properties.Add(LengthKey, textChange.Span.Length.ToString());
                 properties.Add(NewTextKey, textChange.NewText);
                 properties.Add(DescriptionKey, embeddedItem.FullDescription);
-                properties.Add(EmbeddedLanguageCompletionProvider.EmbeddedProviderName, this.Name);
+                properties.Add(EmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name);
 
                 if (change.NewPosition != null)
                 {

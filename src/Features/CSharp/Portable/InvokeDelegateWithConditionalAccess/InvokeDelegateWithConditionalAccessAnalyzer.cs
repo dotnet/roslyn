@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
     {
         public InvokeDelegateWithConditionalAccessAnalyzer()
             : base(IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId,
+                   CSharpCodeStyleOptions.PreferConditionalDelegateCall,
+                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpFeaturesResources.Delegate_invocation_can_be_simplified), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)))
         {
         }
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             var ifStatement = (IfStatementSyntax)syntaxContext.Node;
 
             // ?. is only available in C# 6.0 and above.  Don't offer this refactoring
-            // in projects targetting a lesser version.
+            // in projects targeting a lesser version.
             if (((CSharpParseOptions)ifStatement.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp6)
             {
                 return;

@@ -706,24 +706,29 @@ class C
 
             comp.VerifyDiagnostics();
             comp.VerifyAnalyzerDiagnostics(new[] { new NullabilityPrinter() }, null, null, true,
-                Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "MaybeNull", "Annotated").WithLocation(7, 13),
-                Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "MaybeNull", "Annotated").WithLocation(8, 13),
-                Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "NotNull", "NotAnnotated").WithLocation(9, 13));
+                Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "MaybeNull", "Annotated", "MaybeNull").WithLocation(7, 13),
+                Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "MaybeNull", "Annotated", "MaybeNull").WithLocation(8, 13),
+                Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "NotNull", "NotAnnotated", "NotNull").WithLocation(9, 13));
         }
 
         private class NullabilityPrinter : DiagnosticAnalyzer
         {
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
 
-            private static DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(id: "CA9999_NullabilityPrinter", title: "CA9999_NullabilityPrinter", messageFormat: "Nullability of '{0}' is '{1}':'{2}'", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            private static DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(id: "CA9999_NullabilityPrinter", title: "CA9999_NullabilityPrinter", messageFormat: "Nullability of '{0}' is '{1}':'{2}'. Speculative flow state is '{3}'", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             public override void Initialize(AnalysisContext context)
             {
+                var newSource = (ExpressionStatementSyntax)SyntaxFactory.ParseStatement("_ = o;");
+                var oReference = ((AssignmentExpressionSyntax)newSource.Expression).Right;
+
                 context.RegisterSyntaxNodeAction(syntaxContext =>
                 {
                     if (syntaxContext.Node.ToString() == "_") return;
                     var info = syntaxContext.SemanticModel.GetTypeInfo(syntaxContext.Node);
-                    syntaxContext.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_descriptor, syntaxContext.Node.GetLocation(), syntaxContext.Node, info.Nullability.FlowState, info.Nullability.Annotation));
+                    Assert.True(syntaxContext.SemanticModel.TryGetSpeculativeSemanticModel(syntaxContext.Node.SpanStart, newSource, out var specModel));
+                    var specInfo = specModel.GetTypeInfo(oReference);
+                    syntaxContext.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_descriptor, syntaxContext.Node.GetLocation(), syntaxContext.Node, info.Nullability.FlowState, info.Nullability.Annotation, specInfo.Nullability.FlowState));
                 }, SyntaxKind.IdentifierName);
             }
         }
@@ -818,6 +823,268 @@ class C
             Assert.Equal(notNull, leftInfo.ConvertedNullability);
             Assert.Equal(@null, rightInfo.Nullability);
             Assert.Equal(notNull, rightInfo.ConvertedNullability);
+        }
+
+        [Fact]
+        public void InferredDeclarationType()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+#nullable enable
+class C : System.IDisposable
+{
+    void M(C? x, C x2)
+    {
+        var /*T:C?*/ y = x;
+        var /*T:C!*/ y2 = x2;
+        
+        using var /*T:C?*/ y3 = x;
+        using var /*T:C!*/ y4 = x2;
+        
+        using (var /*T:C?*/ y5 = x) { }
+        using (var /*T:C!*/ y6 = x2) { }
+        
+        ref var/*T:C?*/ y7 = ref x;
+        ref var/*T:C!*/ y8 = ref x2;
+        
+        if (x == null) 
+            return;
+        var /*T:C!*/ y9 = x;
+        using var /*T:C!*/ y10 = x;
+        ref var /*T:C!*/ y11 = ref x;
+        
+        x = null;
+        var /*T:C?*/ y12 = x;
+        using var /*T:C?*/ y13 = x;
+        ref var /*T:C?*/ y14 = ref x;
+        
+        x2 = null; // 1
+        var /*T:C?*/ y15 = x2;
+        using var /*T:C?*/ y16 = x2;
+        ref var /*T:C?*/ y17 = ref x2;
+    }
+    
+    void M2(List<C?> l1, List<C> l2)
+    {
+        foreach (var /*T:C?*/ x in l1) { }
+        foreach (var /*T:C!*/ x in l2) { }
+    }
+
+    public void Dispose() { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (31,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x2 = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(31, 14)
+                );
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void SpeculativeSemanticModel_BasicTest()
+        {
+            var source = @"
+class C
+{
+    void M(string? s1)
+    {
+        if (s1 != null)
+        {
+            s1.ToString();
+        }
+
+        s1?.ToString();
+
+        s1 = """";
+        var s2 = s1 == null ? """" : s1;
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var ifStatement = root.DescendantNodes().OfType<IfStatementSyntax>().Single();
+            var conditionalAccessExpression = root.DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().Single();
+            var ternary = root.DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+
+            var newSource = (BlockSyntax)SyntaxFactory.ParseStatement(@"{ string? s3 = null; _ = s1 == """" ? s1 : s1; }");
+            var newExprStatement = (ExpressionStatementSyntax)newSource.Statements[1];
+            var newTernary = (ConditionalExpressionSyntax)((AssignmentExpressionSyntax)newExprStatement.Expression).Right;
+            var inCondition = ((BinaryExpressionSyntax)newTernary.Condition).Left;
+            var whenTrue = newTernary.WhenTrue;
+            var whenFalse = newTernary.WhenFalse;
+
+            var newReference = (IdentifierNameSyntax)SyntaxFactory.ParseExpression(@"s1");
+            var newCoalesce = (AssignmentExpressionSyntax)SyntaxFactory.ParseExpression(@"s3 ??= s1", options: TestOptions.Regular8);
+
+            // Before the if statement
+            verifySpeculativeModel(ifStatement.SpanStart, PublicNullableFlowState.MaybeNull);
+
+            // In if statement consequence
+            verifySpeculativeModel(ifStatement.Statement.SpanStart, PublicNullableFlowState.NotNull);
+
+            // Before the conditional access
+            verifySpeculativeModel(conditionalAccessExpression.SpanStart, PublicNullableFlowState.MaybeNull);
+
+            // After the conditional access
+            verifySpeculativeModel(conditionalAccessExpression.WhenNotNull.SpanStart, PublicNullableFlowState.NotNull);
+
+            // In the conditional whenTrue
+            verifySpeculativeModel(ternary.WhenTrue.SpanStart, PublicNullableFlowState.MaybeNull);
+
+            // In the conditional whenFalse
+            verifySpeculativeModel(ternary.WhenFalse.SpanStart, PublicNullableFlowState.NotNull);
+
+            void verifySpeculativeModel(int spanStart, PublicNullableFlowState conditionFlowState)
+            {
+                Assert.True(model.TryGetSpeculativeSemanticModel(spanStart, newSource, out var speculativeModel));
+
+                var speculativeTypeInfo = speculativeModel.GetTypeInfo(inCondition);
+                Assert.Equal(conditionFlowState, speculativeTypeInfo.Nullability.FlowState);
+
+                speculativeTypeInfo = speculativeModel.GetTypeInfo(whenTrue);
+                Assert.Equal(PublicNullableFlowState.NotNull, speculativeTypeInfo.Nullability.FlowState);
+
+                var referenceTypeInfo = speculativeModel.GetSpeculativeTypeInfo(whenTrue.SpanStart, newReference, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(PublicNullableFlowState.NotNull, referenceTypeInfo.Nullability.FlowState);
+                var coalesceTypeInfo = speculativeModel.GetSpeculativeTypeInfo(whenTrue.SpanStart, newCoalesce, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(PublicNullableFlowState.NotNull, coalesceTypeInfo.Nullability.FlowState);
+
+                speculativeTypeInfo = speculativeModel.GetTypeInfo(whenFalse);
+                Assert.Equal(conditionFlowState, speculativeTypeInfo.Nullability.FlowState);
+                referenceTypeInfo = speculativeModel.GetSpeculativeTypeInfo(whenFalse.SpanStart, newReference, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(conditionFlowState, referenceTypeInfo.Nullability.FlowState);
+
+                coalesceTypeInfo = speculativeModel.GetSpeculativeTypeInfo(whenFalse.SpanStart, newCoalesce, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(conditionFlowState, coalesceTypeInfo.Nullability.FlowState);
+            }
+        }
+
+        [Fact]
+        public void SpeculativeModel_Properties()
+        {
+            var source = @"
+class C
+{
+    object? Foo
+    {
+        get
+        {
+            object? x = null;
+            return x;
+        }
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var returnStatement = root.DescendantNodes().OfType<ReturnStatementSyntax>().Single();
+            var newSource = (BlockSyntax)SyntaxFactory.ParseStatement("{ var y = x ?? new object(); y.ToString(); }");
+            var yReference = ((MemberAccessExpressionSyntax)newSource.DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression).Expression;
+            Assert.True(model.TryGetSpeculativeSemanticModel(returnStatement.SpanStart, newSource, out var specModel));
+            var speculativeTypeInfo = specModel.GetTypeInfo(yReference);
+            Assert.Equal(PublicNullableFlowState.NotNull, speculativeTypeInfo.Nullability.FlowState);
+        }
+
+        [Fact]
+        public void TupleAssignment()
+        {
+            var source =
+@"
+#pragma warning disable CS0219
+#nullable enable
+class C
+{
+    void M(C? x, C x2)
+    {
+        (C? a, C b) t = (x, x2) /*T:(C? x, C! x2)*/ /*CT:(C? a, C! b)*/;
+        (object a, int b) t2 = (x, (short)0)/*T:(C? x, short)*/ /*CT:(object! a, int b)*/; // 1
+        (object a, int b) t3 = (default, default) /*T:<null>!*/ /*CT:(object! a, int b)*/; // 2
+        (object a, int b) t4 = (default(object), default(int)) /*T:(object?, int)*/ /*CT:(object! a, int b)*/; // 3
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (9,32): warning CS8619: Nullability of reference types in value of type '(object? x, int)' doesn't match target type '(object a, int b)'.
+                //         (object a, int b) t2 = (x, (short)0)/*T:(C? x, short)*/ /*CT:(object! a, int b)*/; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, (short)0)").WithArguments("(object? x, int)", "(object a, int b)").WithLocation(9, 32),
+                // (10,32): warning CS8619: Nullability of reference types in value of type '(object?, int)' doesn't match target type '(object a, int b)'.
+                //         (object a, int b) t3 = (default, default) /*T:<null>!*/ /*CT:(object! a, int b)*/; //2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(default, default)").WithArguments("(object?, int)", "(object a, int b)").WithLocation(10, 32),
+                // (11,32): warning CS8619: Nullability of reference types in value of type '(object?, int)' doesn't match target type '(object a, int b)'.
+                //         (object a, int b) t4 = (default(object), default(int)) /*T:(object?, int)*/ /*CT:(object! a, int b)*/; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(default(object), default(int))").WithArguments("(object?, int)", "(object a, int b)").WithLocation(11, 32)
+                );
+        }
+
+        [Fact]
+        public void SpeculativeGetTypeInfo_Basic()
+        {
+
+            var source = @"
+class C
+{
+    static object? staticField = null;
+    object field = staticField is null ? new object() : staticField;
+
+    string M(string? s1)
+    {
+        if (s1 != null)
+        {
+            s1.ToString();
+        }
+
+        s1?.ToString();
+
+        s1 = """";
+        var s2 = s1 == null ? """" : s1;
+
+        return null!;
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var ifStatement = root.DescendantNodes().OfType<IfStatementSyntax>().Single();
+            var conditionalAccessExpression = root.DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().Single();
+            var ternary = root.DescendantNodes().OfType<ConditionalExpressionSyntax>().Skip(1).Single();
+
+            var newReference = (IdentifierNameSyntax)SyntaxFactory.ParseExpression(@"s1");
+            var newCoalesce = (AssignmentExpressionSyntax)SyntaxFactory.ParseExpression(@"s1 ??= """"");
+
+            verifySpeculativeTypeInfo(ifStatement.SpanStart, PublicNullableFlowState.MaybeNull);
+            verifySpeculativeTypeInfo(ifStatement.Statement.SpanStart, PublicNullableFlowState.NotNull);
+
+            verifySpeculativeTypeInfo(conditionalAccessExpression.SpanStart, PublicNullableFlowState.MaybeNull);
+            verifySpeculativeTypeInfo(conditionalAccessExpression.WhenNotNull.SpanStart, PublicNullableFlowState.NotNull);
+
+            verifySpeculativeTypeInfo(ternary.WhenTrue.SpanStart, PublicNullableFlowState.MaybeNull);
+            verifySpeculativeTypeInfo(ternary.WhenFalse.SpanStart, PublicNullableFlowState.NotNull);
+
+            void verifySpeculativeTypeInfo(int position, PublicNullableFlowState expectedFlowState)
+            {
+                var specTypeInfo = model.GetSpeculativeTypeInfo(position, newReference, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(expectedFlowState, specTypeInfo.Nullability.FlowState);
+                specTypeInfo = model.GetSpeculativeTypeInfo(position, newCoalesce, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(PublicNullableFlowState.NotNull, specTypeInfo.Nullability.FlowState);
+            }
         }
     }
 }
