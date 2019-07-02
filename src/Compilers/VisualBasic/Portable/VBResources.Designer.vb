@@ -7611,6 +7611,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Invalid value &apos;{0}&apos; for /sarifversion. Supported values are 1 and 2. Default is 1..
+        '''</summary>
+        Friend Readonly Property ERR_BadSarifVersion() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadSarifVersion", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;MyBase&apos; cannot be used with method &apos;{0}&apos; because it is declared &apos;MustOverride&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_MyBaseAbstractCall1() As String

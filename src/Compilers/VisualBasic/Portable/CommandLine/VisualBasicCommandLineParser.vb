@@ -104,6 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim outputDirectory As String = baseDirectory
             Dim documentationPath As String = Nothing
             Dim errorLogPath As String = Nothing
+            Dim sarifVersion As SarifVersion = SarifVersion.Default
             Dim parseDocumentationComments As Boolean = False ' Don't just null check documentationFileName because we want to do this even if the file name is invalid.
             Dim outputKind As OutputKind = OutputKind.ConsoleApplication
             Dim ssVersion As SubsystemVersion = SubsystemVersion.None
@@ -563,6 +564,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Else
                                 errorLogPath = ParseGenericPathToFile(unquoted, diagnostics, baseDirectory)
                             End If
+
+                            Continue For
+
+                        case "sarifversion"
+                            Dim unquoted = RemoveQuotesAndSlashes(value)
+                            If String.IsNullOrEmpty(unquoted) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "sarifVersion", ":<version>")
+                            ElseIf Not SarifVersionFacts.TryParse(unquoted, sarifVersion)
+                                AddDiagnostic(diagnostics, ERRID.ERR_BadSarifVersion, unquoted)
+                            End if
 
                             Continue For
 
@@ -1411,6 +1422,7 @@ lVbRuntimePlus:
                 .OutputDirectory = outputDirectory,
                 .DocumentationPath = documentationPath,
                 .ErrorLogPath = errorLogPath,
+                .SarifVersion = sarifVersion,
                 .SourceFiles = sourceFiles.AsImmutable(),
                 .PathMap = pathMap,
                 .Encoding = codepage,

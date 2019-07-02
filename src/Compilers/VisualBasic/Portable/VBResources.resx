@@ -183,6 +183,9 @@
   <data name="ERR_MutuallyExclusiveOptions" xml:space="preserve">
     <value>Compilation options '{0}' and '{1}' can't both be specified at the same time.</value>
   </data>
+  <data name="ERR_BadSarifVersion" xml:space="preserve">
+    <value>Invalid value '{0}' for /sarifversion. Supported values are 1 and 2. Default is 1.</value>
+  </data>
   <data name="WRN_BadUILang" xml:space="preserve">
     <value>The language name '{0}' is invalid.</value>
   </data>

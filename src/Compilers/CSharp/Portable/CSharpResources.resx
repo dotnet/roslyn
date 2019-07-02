@@ -1213,7 +1213,7 @@
     <value>'{1} {0}' has the wrong return type</value>
   </data>
   <data name="ERR_BadSarifVersion" xml:space="preserve">
-    <value>Invalid option '{0}' for /sarifversion. Supported values are 1 and 2. Default is 1.</value>
+    <value>Invalid value '{0}' for /sarifversion. Supported values are 1 and 2. Default is 1.</value>
   </data>
   <data name="ERR_DelegateRefMismatch" xml:space="preserve">
     <value>Ref mismatch between '{0}' and delegate '{1}'</value>

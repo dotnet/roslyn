@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../VBResources.resx">
     <body>
+      <trans-unit id="ERR_BadSarifVersion">
+        <source>Invalid value '{0}' for /sarifversion. Supported values are 1 and 2. Default is 1.</source>
+        <target state="new">Invalid value '{0}' for /sarifversion. Supported values are 1 and 2. Default is 1.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
         <target state="new">Please use language version {0} or greater to use comments after line continuation character.</target>

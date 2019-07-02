@@ -2032,7 +2032,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /sarifversion. Supported values are 1 and 2. Default is 1..
+        ///   Looks up a localized string similar to Invalid value &apos;{0}&apos; for /sarifversion. Supported values are 1 and 2. Default is 1..
         /// </summary>
         internal static string ERR_BadSarifVersion {
             get {
