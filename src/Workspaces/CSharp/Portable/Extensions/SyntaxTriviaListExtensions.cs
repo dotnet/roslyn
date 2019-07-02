@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 currentLine.Add(trivia);
                 if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
                 {
-                    bool currentLineIsBlank = currentLine.All(t =>
+                    var currentLineIsBlank = currentLine.All(t =>
                         t.Kind() == SyntaxKind.EndOfLineTrivia ||
                         t.Kind() == SyntaxKind.WhitespaceTrivia);
                     if (!currentLineIsBlank)

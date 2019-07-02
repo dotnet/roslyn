@@ -425,6 +425,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 accessibility: overriddenProperty.ComputeResultantAccessibility(containingType),
                 modifiers: modifiers,
                 name: overriddenProperty.Name,
+                parameters: overriddenProperty.Parameters.WithAttributesToBeCopied(containingType),
                 isIndexer: overriddenProperty.IsIndexer(),
                 getMethod: accessorGet,
                 setMethod: accessorSet);
@@ -526,6 +527,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     method: overriddenMethod,
                     accessibility: overriddenMethod.ComputeResultantAccessibility(newContainingType),
                     modifiers: modifiers,
+                    parameters: overriddenMethod.Parameters.WithAttributesToBeCopied(newContainingType),
                     statements: overriddenMethod.ReturnsVoid
                         ? ImmutableArray.Create(codeFactory.ExpressionStatement(body))
                         : ImmutableArray.Create(codeFactory.ReturnStatement(body)));

@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor
         public string Name { get; }
         public IEnumerable<string> ContentTypes { get; }
 
-        public ExportCommandHandlerAttribute(string name, params string[] contentTypes) :
-            base(typeof(ICommandHandler))
+        public ExportCommandHandlerAttribute(string name, params string[] contentTypes)
+            : base(typeof(ICommandHandler))
         {
             this.Name = name;
             this.ContentTypes = contentTypes;

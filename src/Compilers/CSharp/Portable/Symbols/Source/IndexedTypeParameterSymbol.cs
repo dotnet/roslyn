@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool HasNotNullConstraint => false;
 
-        internal override bool? IsNotNullableIfReferenceType => null;
+        internal override bool? IsNotNullable => null;
 
         public override bool HasUnmanagedTypeConstraint
         {

@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                   out _lazyRefCustomModifiers,
                                                                   out _lazyParameters, alsoCopyParamsModifier: false);
                     this.FindExplicitlyImplementedMemberVerification(overriddenOrExplicitlyImplementedMethod, diagnostics);
-                    TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this, overriddenOrExplicitlyImplementedMethod, true, diagnostics);
+                    TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this.ContainingType, this, overriddenOrExplicitlyImplementedMethod, isExplicit: true, diagnostics);
                 }
                 else
                 {
@@ -1132,6 +1132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
             var location = GetSyntax().ReturnType.Location;
+            var compilation = DeclaringCompilation;
 
             Debug.Assert(location != null);
 
@@ -1143,14 +1144,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var syntax = this.GetSyntax();
                 Debug.Assert(syntax.ExplicitInterfaceSpecifier != null);
-                _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics);
+                _explicitInterfaceType.CheckAllConstraints(compilation, conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics);
             }
 
-            this.ReturnType.CheckAllConstraints(DeclaringCompilation, conversions, this.Locations[0], diagnostics);
+            this.ReturnType.CheckAllConstraints(compilation, conversions, this.Locations[0], diagnostics);
 
             foreach (var parameter in this.Parameters)
             {
-                parameter.Type.CheckAllConstraints(DeclaringCompilation, conversions, parameter.Locations[0], diagnostics);
+                parameter.Type.CheckAllConstraints(compilation, conversions, parameter.Locations[0], diagnostics);
             }
 
             var implementingPart = this.SourcePartialImplementation;
@@ -1161,17 +1162,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_refKind == RefKind.RefReadOnly)
             {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
-            if (ReturnTypeWithAnnotations.NeedsNullableAttribute())
+            if (compilation.ShouldEmitNullableAttributes(this) && ReturnTypeWithAnnotations.NeedsNullableAttribute())
             {
-                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
-            ParameterHelpers.EnsureNullableAttributeExists(Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
         }
 
         /// <summary>
@@ -1210,16 +1211,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             PartialMethodConstraintsChecks(definition, implementation, diagnostics);
 
-            ImmutableArray<ParameterSymbol> implementationParameters = implementation.Parameters;
-            ImmutableArray<ParameterSymbol> definitionParameters = definition.ConstructIfGeneric(implementation.TypeArgumentsWithAnnotations).Parameters;
-            for (int i = 0; i < implementationParameters.Length; i++)
-            {
-                if (!implementationParameters[i].TypeWithAnnotations.Equals(definitionParameters[i].TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions) &&
-                    implementationParameters[i].TypeWithAnnotations.Equals(definitionParameters[i].TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
+            SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
+                implementation.DeclaringCompilation,
+                definition.ConstructIfGeneric(implementation.TypeArgumentsWithAnnotations),
+                implementation,
+                diagnostics,
+                reportMismatchInReturnType: null,
+                (diagnostics, implementedMethod, implementingMethod, implementingParameter, arg) =>
                 {
-                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementation.Locations[0], new FormattedSymbol(implementationParameters[i], SymbolDisplayFormat.ShortFormat));
-                }
-            }
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementingMethod.Locations[0], new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
+                },
+                extraArgument: (object)null);
         }
 
         private static void PartialMethodConstraintsChecks(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation, DiagnosticBag diagnostics)

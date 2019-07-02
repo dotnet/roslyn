@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis
         {
             ValidateFileLength(workspace, _path);
 
-            DateTime prevLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
+            var prevLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
 
             TextAndVersion textAndVersion;
 
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis
             // probably invalid, so throw an IOException which indicates to our caller that we should automatically attempt a re-read.
             // If the file hasn't been closed yet and there's another writer, we will rely on file change notifications to notify us
             // and reload the file.
-            DateTime newLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
+            var newLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
             if (!newLastWriteTime.Equals(prevLastWriteTime))
             {
                 var message = string.Format(WorkspacesResources.File_was_externally_modified_colon_0, _path);
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis
         {
             ValidateFileLength(workspace, _path);
 
-            DateTime prevLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
+            var prevLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
 
             TextAndVersion textAndVersion;
 
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis
             // probably invalid, so throw an IOException which indicates to our caller that we should automatically attempt a re-read.
             // If the file hasn't been closed yet and there's another writer, we will rely on file change notifications to notify us
             // and reload the file.
-            DateTime newLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
+            var newLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
             if (!newLastWriteTime.Equals(prevLastWriteTime))
             {
                 var message = string.Format(WorkspacesResources.File_was_externally_modified_colon_0, _path);

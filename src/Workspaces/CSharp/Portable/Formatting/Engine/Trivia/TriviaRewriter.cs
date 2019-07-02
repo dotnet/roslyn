@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var text = pair.Value.GetTextChanges(GetTextSpan(pair.Key)).Single().NewText;
             var trailingTrivia = SyntaxFactory.ParseTrailingTrivia(text);
 
-            int width = trailingTrivia.GetFullWidth();
+            var width = trailingTrivia.GetFullWidth();
             var leadingTrivia = SyntaxFactory.ParseLeadingTrivia(text.Substring(width));
 
             return ValueTuple.Create(trailingTrivia, leadingTrivia);
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 yield break;
             }
 
-            for (int i = startIndex; i <= endIndex; i++)
+            for (var i = startIndex; i <= endIndex; i++)
             {
                 yield return triviaList[i];
             }
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private int GetFirstEndOfLineIndexOrRightBeforeComment(List<SyntaxTrivia> triviaList)
         {
-            for (int i = 0; i < triviaList.Count; i++)
+            for (var i = 0; i < triviaList.Count; i++)
             {
                 var trivia = triviaList[i];
 

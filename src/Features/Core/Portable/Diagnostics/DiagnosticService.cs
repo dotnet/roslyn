@@ -87,19 +87,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var eventToken = _listener.BeginAsyncOperation(DiagnosticsUpdatedEventName);
             _eventQueue.ScheduleTask(() =>
             {
-                using (var pooledObject = SharedPools.Default<List<DiagnosticsUpdatedArgs>>().GetPooledObject())
-                {
-                    var removed = pooledObject.Object;
-                    if (!ClearDiagnosticsReportedBySource(source, removed))
-                    {
-                        // there is no change, nothing to raise events for.
-                        return;
-                    }
+                using var pooledObject = SharedPools.Default<List<DiagnosticsUpdatedArgs>>().GetPooledObject();
 
-                    foreach (var args in removed)
-                    {
-                        ev.RaiseEvent(handler => handler(source, args));
-                    }
+                var removed = pooledObject.Object;
+                if (!ClearDiagnosticsReportedBySource(source, removed))
+                {
+                    // there is no change, nothing to raise events for.
+                    return;
+                }
+
+                foreach (var args in removed)
+                {
+                    ev.RaiseEvent(handler => handler(source, args));
                 }
             }).CompletesAsyncOperation(eventToken);
         }
@@ -246,16 +245,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 else
                 {
-                    using (var pool = SharedPools.Default<List<Data>>().GetPooledObject())
-                    {
-                        AppendMatchingData(source, workspace, projectId, documentId, id, pool.Object);
-                        Debug.Assert(pool.Object.Count == 0 || pool.Object.Count == 1);
+                    using var pool = SharedPools.Default<List<Data>>().GetPooledObject();
 
-                        if (pool.Object.Count == 1)
-                        {
-                            var diagnostics = pool.Object[0].Diagnostics;
-                            return !includeSuppressedDiagnostics ? FilterSuppressedDiagnostics(diagnostics) : diagnostics;
-                        }
+                    AppendMatchingData(source, workspace, projectId, documentId, id, pool.Object);
+                    Debug.Assert(pool.Object.Count == 0 || pool.Object.Count == 1);
+
+                    if (pool.Object.Count == 1)
+                    {
+                        var diagnostics = pool.Object[0].Diagnostics;
+                        return !includeSuppressedDiagnostics ? FilterSuppressedDiagnostics(diagnostics) : diagnostics;
                     }
                 }
             }
@@ -294,19 +292,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 else
                 {
-                    using (var list = SharedPools.Default<List<Data>>().GetPooledObject())
-                    {
-                        AppendMatchingData(source, workspace, projectId, documentId, null, list.Object);
+                    using var list = SharedPools.Default<List<Data>>().GetPooledObject();
 
-                        foreach (var data in list.Object)
+                    AppendMatchingData(source, workspace, projectId, documentId, null, list.Object);
+
+                    foreach (var data in list.Object)
+                    {
+                        foreach (var diagnostic in data.Diagnostics)
                         {
-                            foreach (var diagnostic in data.Diagnostics)
+                            AssertIfNull(diagnostic);
+                            if (includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
                             {
-                                AssertIfNull(diagnostic);
-                                if (includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
-                                {
-                                    yield return diagnostic;
-                                }
+                                yield return diagnostic;
                             }
                         }
                     }
@@ -321,14 +318,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                using (var list = SharedPools.Default<List<Data>>().GetPooledObject())
-                {
-                    AppendMatchingData(source, workspace, projectId, documentId, null, list.Object);
+                using var list = SharedPools.Default<List<Data>>().GetPooledObject();
 
-                    foreach (var data in list.Object)
-                    {
-                        yield return new UpdatedEventArgs(data.Id, data.Workspace, data.ProjectId, data.DocumentId);
-                    }
+                AppendMatchingData(source, workspace, projectId, documentId, null, list.Object);
+
+                foreach (var data in list.Object)
+                {
+                    yield return new UpdatedEventArgs(data.Id, data.Workspace, data.ProjectId, data.DocumentId);
                 }
             }
         }
@@ -415,18 +411,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public readonly object Id;
             public readonly ImmutableArray<DiagnosticData> Diagnostics;
 
-            public Data(UpdatedEventArgs args) :
-                this(args, ImmutableArray<DiagnosticData>.Empty)
+            public Data(UpdatedEventArgs args)
+                : this(args, ImmutableArray<DiagnosticData>.Empty)
             {
             }
 
             public Data(UpdatedEventArgs args, ImmutableArray<DiagnosticData> diagnostics)
             {
-                this.Workspace = args.Workspace;
-                this.ProjectId = args.ProjectId;
-                this.DocumentId = args.DocumentId;
-                this.Id = args.Id;
-                this.Diagnostics = diagnostics;
+                Workspace = args.Workspace;
+                ProjectId = args.ProjectId;
+                DocumentId = args.DocumentId;
+                Id = args.Id;
+                Diagnostics = diagnostics;
             }
         }
     }

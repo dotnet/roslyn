@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var treeMap = s_treeAliasMap.GetValue(semanticModel.Compilation, s_createTreeMap);
 
             // check again to see whether somebody has beaten us
-            var key = (tree: semanticModel.SyntaxTree, namespaceId: namespaceId);
+            var key = (tree: semanticModel.SyntaxTree, namespaceId);
             if (treeMap.ContainsKey(key))
             {
                 return;

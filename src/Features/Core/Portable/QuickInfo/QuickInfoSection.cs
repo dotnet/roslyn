@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
         private QuickInfoSection(string kind, ImmutableArray<TaggedText> taggedParts)
         {
-            this.Kind = kind ?? string.Empty;
-            this.TaggedParts = taggedParts.NullToEmpty();
+            Kind = kind ?? string.Empty;
+            TaggedParts = taggedParts.NullToEmpty();
         }
 
         /// <summary>
@@ -48,13 +48,13 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             {
                 if (_text == null)
                 {
-                    if (this.TaggedParts.Length == 0)
+                    if (TaggedParts.Length == 0)
                     {
                         _text = string.Empty;
                     }
                     else
                     {
-                        Interlocked.CompareExchange(ref _text, string.Concat(this.TaggedParts.Select(t => t.Text)), null);
+                        Interlocked.CompareExchange(ref _text, string.Concat(TaggedParts.Select(t => t.Text)), null);
                     }
                 }
 

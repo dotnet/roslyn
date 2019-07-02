@@ -83,27 +83,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
                 if (enabled)
                 {
-                    using (var transaction = CaretPreservingEditTransaction.TryCreate(
-                        CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
+                    using var transaction = CaretPreservingEditTransaction.TryCreate(
+                        CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
+
+                    var cursorPosition = SplitStringLiteral(document, options, caret, CancellationToken.None);
+                    if (cursorPosition != null)
                     {
-                        var cursorPosition = SplitStringLiteral(document, options, caret, CancellationToken.None);
+                        var snapshotPoint = new SnapshotPoint(
+                            subjectBuffer.CurrentSnapshot, cursorPosition.Value);
+                        var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
+                            snapshotPoint, PointTrackingMode.Negative, PositionAffinity.Predecessor,
+                            textView.TextBuffer);
 
-                        if (cursorPosition != null)
+                        if (newCaretPoint != null)
                         {
-                            var snapshotPoint = new SnapshotPoint(
-                                subjectBuffer.CurrentSnapshot, cursorPosition.Value);
-                            var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
-                                snapshotPoint, PointTrackingMode.Negative, PositionAffinity.Predecessor,
-                                textView.TextBuffer);
-
-                            if (newCaretPoint != null)
-                            {
-                                textView.Caret.MoveTo(newCaretPoint.Value);
-                            }
-
-                            transaction.Complete();
-                            return true;
+                            textView.Caret.MoveTo(newCaretPoint.Value);
                         }
+
+                        transaction.Complete();
+                        return true;
                     }
                 }
             }

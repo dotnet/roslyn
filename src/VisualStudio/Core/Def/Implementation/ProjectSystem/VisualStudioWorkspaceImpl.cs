@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using EnvDTE;
@@ -59,8 +58,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly ITextBufferCloneService _textBufferCloneService;
 
-        private readonly Lazy<IVsSolution> _lazyVsSolution;
-
         // document worker coordinator
         private ISolutionCrawlerRegistrationService _registrationService;
 
@@ -69,6 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private readonly ForegroundThreadAffinitizedObject _foregroundObject;
 
+        private ImmutableDictionary<ProjectId, IVsHierarchy> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy>.Empty;
         private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = ImmutableDictionary<ProjectId, Guid>.Empty;
 
         /// <summary>
@@ -105,8 +103,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
             _projectCodeModelFactory = exportProvider.GetExport<IProjectCodeModelFactory>();
-
-            _lazyVsSolution = new Lazy<IVsSolution>(() => exportProvider.GetExport<SVsServiceProvider>().Value.GetService<IVsSolution, SVsSolution>());
 
             // We fetch this lazily because VisualStudioProjectFactory depends on VisualStudioWorkspaceImpl -- we have a circularity. Since this
             // exists right now as a compat shim, we'll just do this.
@@ -154,11 +150,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _openFileTrackerOpt?.ProcessQueuedWorkOnUIThread();
         }
 
-        internal void AddProjectToInternalMaps(VisualStudioProject project, Guid projectGuid, string projectSystemName)
+        internal void AddProjectToInternalMaps(VisualStudioProject project, IVsHierarchy hierarchy, Guid guid, string projectSystemName)
         {
             lock (_gate)
             {
-                _projectToGuidMap = _projectToGuidMap.Add(project.Id, projectGuid);
+                _projectToHierarchyMap = _projectToHierarchyMap.Add(project.Id, hierarchy);
+                _projectToGuidMap = _projectToGuidMap.Add(project.Id, guid);
                 _projectSystemNameToProjectsMap.MultiAdd(projectSystemName, project);
             }
         }
@@ -213,20 +210,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return ContainedDocument.TryGetContainedDocument(documentId);
         }
 
-        internal VisualStudioProject GetProjectWithGuidAndName(Guid projectGuid, string projectName)
+        internal VisualStudioProject GetProjectWithHierarchyAndName(IVsHierarchy hierarchy, string projectName)
         {
-            Debug.Assert(projectGuid != Guid.Empty);
-            Debug.Assert(projectName != null);
-
             lock (_gate)
             {
                 if (_projectSystemNameToProjectsMap.TryGetValue(projectName, out var projects))
                 {
                     foreach (var project in projects)
                     {
-                        if (GetProjectGuid(project.Id) == projectGuid)
+                        if (_projectToHierarchyMap.TryGetValue(project.Id, out var projectHierarchy))
                         {
-                            return project;
+                            if (projectHierarchy == hierarchy)
+                            {
+                                return project;
+                            }
                         }
                     }
                 }
@@ -555,10 +552,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             GetProjectData(projectId, out var hierarchy, out var project);
 
-            string filePath = GetAnalyzerPath(analyzerReference);
+            var filePath = GetAnalyzerPath(analyzerReference);
             if (filePath != null)
             {
-                VSProject3 vsProject = (VSProject3)project.Object;
+                var vsProject = (VSProject3)project.Object;
                 vsProject.AnalyzerReferences.Add(filePath);
             }
         }
@@ -577,10 +574,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             GetProjectData(projectId, out var hierarchy, out var project);
 
-            string filePath = GetAnalyzerPath(analyzerReference);
+            var filePath = GetAnalyzerPath(analyzerReference);
             if (filePath != null)
             {
-                VSProject3 vsProject = (VSProject3)project.Object;
+                var vsProject = (VSProject3)project.Object;
                 vsProject.AnalyzerReferences.Remove(filePath);
             }
         }
@@ -610,10 +607,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             GetProjectData(projectId, out var hierarchy, out var project);
 
-            string filePath = GetMetadataPath(metadataReference);
+            var filePath = GetMetadataPath(metadataReference);
             if (filePath != null)
             {
-                VSProject vsProject = (VSProject)project.Object;
+                var vsProject = (VSProject)project.Object;
                 vsProject.References.Add(filePath);
 
                 var undoManager = TryGetUndoManager();
@@ -636,10 +633,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             GetProjectData(projectId, out var hierarchy, out var project);
 
-            string filePath = GetMetadataPath(metadataReference);
+            var filePath = GetMetadataPath(metadataReference);
             if (filePath != null)
             {
-                VSProject vsProject = (VSProject)project.Object;
+                var vsProject = (VSProject)project.Object;
                 foreach (Reference reference in vsProject.References)
                 {
                     if (StringComparer.OrdinalIgnoreCase.Equals(reference.Path, filePath))
@@ -1241,12 +1238,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public override IVsHierarchy GetHierarchy(ProjectId projectId)
         {
-            // TODO: XAML calls this on a background thread: https://github.com/dotnet/roslyn/issues/36223
-            // _foregroundObject.AssertIsForeground();
-
-            // This doesn't take a lock since _projectToGuidMap is immutable
-            return _projectToGuidMap.TryGetValue(projectId, out var projectGuid) &&
-                   ErrorHandler.Succeeded(_lazyVsSolution.Value.GetProjectOfGuid(ref projectGuid, out var hierarchy)) ? hierarchy : null;
+            // This doesn't take a lock since _projectToHierarchyMap is immutable
+            return _projectToHierarchyMap.GetValueOrDefault(projectId, defaultValue: null);
         }
 
         internal override Guid GetProjectGuid(ProjectId projectId)
@@ -1298,7 +1291,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // current hierarchy as the active context of that shared hierarchy. This is kept as a loop that we do multiple times in the case that you
                     // have multiple pointers. This used to be the case for multitargeting projects, but that was now handled by setting the active context property
                     // above. Some project systems out there might still be supporting it, so we'll support it too.
-                    while (SharedProjectUtilities.TryGetItemInSharedAssetsProject(hierarchy, itemId, out var sharedHierarchy, out uint sharedItemId) &&
+                    while (SharedProjectUtilities.TryGetItemInSharedAssetsProject(hierarchy, itemId, out var sharedHierarchy, out var sharedItemId) &&
                            hierarchy != sharedHierarchy)
                     {
                         // Ensure the shared context is set correctly
@@ -1379,7 +1372,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var fileNames = documents.Select(GetFilePath).ToArray();
 
             // TODO: meditate about the flags we can pass to this and decide what is most appropriate for Roslyn
-            int result = queryEdit.QueryEditFiles(
+            var result = queryEdit.QueryEditFiles(
                 rgfQueryEdit: 0,
                 cFiles: fileNames.Length,
                 rgpszMkDocuments: fileNames,
@@ -1419,8 +1412,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // First we have to see if either project disallows the reference being added.
             const int ContextFlags = (int)__VSQUERYFLAVORREFERENCESCONTEXT.VSQUERYFLAVORREFERENCESCONTEXT_RefreshReference;
 
-            uint canAddProjectReference = (uint)__VSREFERENCEQUERYRESULT.REFERENCE_UNKNOWN;
-            uint canBeReferenced = (uint)__VSREFERENCEQUERYRESULT.REFERENCE_UNKNOWN;
+            var canAddProjectReference = (uint)__VSREFERENCEQUERYRESULT.REFERENCE_UNKNOWN;
+            var canBeReferenced = (uint)__VSREFERENCEQUERYRESULT.REFERENCE_UNKNOWN;
 
             if (referencingHierarchy is IVsProjectFlavorReferences3 referencingProjectFlavor3)
             {
@@ -1518,7 +1511,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new Dictionary<ProjectId, ProjectReferenceInformation>();
+        private Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new Dictionary<ProjectId, ProjectReferenceInformation>();
 
         private ProjectReferenceInformation GetReferenceInfo_NoLock(ProjectId projectId)
         {
@@ -1541,6 +1534,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     _projectReferenceInfoMap.Remove(projectId);
                 }
 
+                _projectToHierarchyMap = _projectToHierarchyMap.Remove(projectId);
                 _projectToGuidMap = _projectToGuidMap.Remove(projectId);
                 _projectToRuleSetFilePath.Remove(projectId);
                 _projectCompilationOutputs.Remove(projectId);

@@ -256,6 +256,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Is this System.Nullable`1 type, or its substitution.
+        /// 
+        /// To check whether a type is System.Nullable`1 or is a type parameter constrained to System.Nullable`1
+        /// use <see cref="TypeSymbolExtensions.IsNullableTypeOrTypeParameter" /> instead.
         /// </summary>
         public bool IsNullableType() => Type.IsNullableType();
 
@@ -479,8 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (NullableAnnotation.IsAnnotated() || newTypeWithModifiers.NullableAnnotation.IsAnnotated())
             {
-                newAnnotation = NullableAnnotation.IsAnnotated() || newTypeWithModifiers.NullableAnnotation.IsAnnotated() ?
-                    NullableAnnotation.Annotated : NullableAnnotation.Annotated;
+                newAnnotation = NullableAnnotation.Annotated;
             }
             else if (IsIndexedTypeParameter(newTypeWithModifiers.Type))
             {
@@ -545,6 +547,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeWithAnnotations WithTypeAndModifiers(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers) =>
             _extensions.WithTypeAndModifiers(this, typeSymbol, customModifiers);
 
+        /// <summary>
+        /// Used by callers before calling CSharpCompilation.EnsureNullableAttributeExists().
+        /// </summary>
+        /// <remarks>
+        /// This method ignores any [NullableContext]. For example, if there is a [NullableContext(1)]
+        /// at the containing type, and this type reference is oblivious, NeedsNullableAttribute()
+        /// will return false even though a [Nullable(0)] will be emitted for this type reference.
+        /// In practice, this shouldn't be an issue though since EnsuresNullableAttributeExists()
+        /// will have returned true for at least some of other type references that required
+        /// [Nullable(1)] and were subsequently aggregated to the [NullableContext(1)].
+        /// </remarks>
         public bool NeedsNullableAttribute()
         {
             return NeedsNullableAttribute(this, typeOpt: null);
@@ -563,34 +576,79 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (object)type != null;
         }
 
+        /// <summary>
+        /// If the type is a non-generic value type or Nullable&lt;&gt;, and
+        /// is not a type parameter, the nullability is not included in the byte[].
+        /// </summary>
+        private static bool SkipNullableTransform(TypeSymbol type)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if (namedType is null)
+            {
+                return false;
+            }
+            if (namedType.IsGenericType)
+            {
+                return type.IsNullableType();
+            }
+            return type.IsValueType && !type.IsTupleType;
+        }
+
         public void AddNullableTransforms(ArrayBuilder<byte> transforms)
         {
-            var typeSymbol = Type;
-            byte flag;
+            AddNullableTransforms(this, transforms);
+        }
 
-            if (NullableAnnotation.IsOblivious() || typeSymbol.IsValueType)
+        private static void AddNullableTransforms(TypeWithAnnotations typeWithAnnotations, ArrayBuilder<byte> transforms)
+        {
+            while (true)
             {
-                flag = NullableAnnotationExtensions.ObliviousAttributeValue;
-            }
-            else if (NullableAnnotation.IsAnnotated())
-            {
-                flag = NullableAnnotationExtensions.AnnotatedAttributeValue;
-            }
-            else
-            {
-                flag = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
-            }
+                var type = typeWithAnnotations.Type;
 
-            transforms.Add(flag);
-            typeSymbol.AddNullableTransforms(transforms);
+                if (!SkipNullableTransform(type))
+                {
+                    var annotation = typeWithAnnotations.NullableAnnotation;
+                    byte flag;
+                    if (annotation.IsOblivious() || type.IsValueType)
+                    {
+                        flag = NullableAnnotationExtensions.ObliviousAttributeValue;
+                    }
+                    else if (annotation.IsAnnotated())
+                    {
+                        flag = NullableAnnotationExtensions.AnnotatedAttributeValue;
+                    }
+                    else
+                    {
+                        flag = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
+                    }
+                    transforms.Add(flag);
+                }
+
+                if (type.TypeKind != TypeKind.Array)
+                {
+                    type.AddNullableTransforms(transforms);
+                    return;
+                }
+
+                // Avoid recursion to allow for deeply-nested arrays.
+                typeWithAnnotations = ((ArrayTypeSymbol)type).ElementTypeWithAnnotations;
+            }
         }
 
         public bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeWithAnnotations result)
         {
             result = this;
 
+            TypeSymbol oldTypeSymbol = Type;
             byte transformFlag;
-            if (transforms.IsDefault)
+
+            // Check SkipNullableTransform first to avoid
+            // applying transforms to simple value types.
+            if (SkipNullableTransform(oldTypeSymbol))
+            {
+                transformFlag = NullableAnnotationExtensions.ObliviousAttributeValue;
+            }
+            else if (transforms.IsDefault)
             {
                 transformFlag = defaultTransformFlag;
             }
@@ -603,9 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            TypeSymbol oldTypeSymbol = Type;
             TypeSymbol newTypeSymbol;
-
             if (!oldTypeSymbol.ApplyNullableTransforms(defaultTransformFlag, transforms, ref position, out newTypeSymbol))
             {
                 return false;

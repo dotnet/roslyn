@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
         {
             if (workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest))
             {
-                return InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false, cancellationToken: cancellationToken);
+                return InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
             }
 
             return SpecializedTasks.Default<RemoteHostClient>();

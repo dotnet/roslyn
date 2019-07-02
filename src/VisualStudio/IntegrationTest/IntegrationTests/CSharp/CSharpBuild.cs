@@ -46,7 +46,7 @@ class Program
             // TODO: Validate build works as expected
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18204"), Trait(Traits.Feature, Traits.Features.Build)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Build)]
         public void BuildWithCommandLine()
         {
             VisualStudio.SolutionExplorer.SaveAll();

@@ -136,42 +136,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
         }
 
         private static string GetBinaryOperatorKindText(BinaryOperatorKind kind)
-        {
-            switch (kind)
+            => kind switch
             {
-                case BinaryOperatorKind.Plus:
-                    return "plus";
-                case BinaryOperatorKind.BitwiseOr:
-                    return "bitor";
-                case BinaryOperatorKind.BitwiseAnd:
-                    return "bitand";
-                case BinaryOperatorKind.Concatenate:
-                    return "concatenate";
-                case BinaryOperatorKind.AddDelegate:
-                    return "adddelegate";
-                default:
-                    throw new InvalidOperationException("Invalid BinaryOperatorKind: " + kind.ToString());
-            }
-        }
+                BinaryOperatorKind.Plus => "plus",
+                BinaryOperatorKind.BitwiseOr => "bitor",
+                BinaryOperatorKind.BitwiseAnd => "bitand",
+                BinaryOperatorKind.Concatenate => "concatenate",
+                BinaryOperatorKind.AddDelegate => "adddelegate",
+                _ => throw new InvalidOperationException("Invalid BinaryOperatorKind: " + kind.ToString()),
+            };
 
         private static string GetVariableKindText(VariableKind kind)
-        {
-            switch (kind)
+            => kind switch
             {
-                case VariableKind.Property:
-                    return "property";
-                case VariableKind.Method:
-                    return "method";
-                case VariableKind.Field:
-                    return "field";
-                case VariableKind.Local:
-                    return "local";
-                case VariableKind.Unknown:
-                    return "unknown";
-                default:
-                    throw new InvalidOperationException("Invalid SymbolKind: " + kind.ToString());
-            }
-        }
+                VariableKind.Property => "property",
+                VariableKind.Method => "method",
+                VariableKind.Field => "field",
+                VariableKind.Local => "local",
+                VariableKind.Unknown => "unknown",
+                _ => throw new InvalidOperationException("Invalid SymbolKind: " + kind.ToString()),
+            };
 
         private IDisposable Tag(string name, params AttributeInfo[] attributes)
         {
@@ -229,17 +213,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
         }
 
         private AttributeInfo SpecialCastKindAttribute(SpecialCastKind? specialCastKind = null)
-        {
-            switch (specialCastKind)
+            => specialCastKind switch
             {
-                case SpecialCastKind.DirectCast:
-                    return new AttributeInfo(DirectCastAttributeName, "yes");
-                case SpecialCastKind.TryCast:
-                    return new AttributeInfo(TryCastAttributeName, "yes");
-                default:
-                    return AttributeInfo.Empty;
-            }
-        }
+                SpecialCastKind.DirectCast => new AttributeInfo(DirectCastAttributeName, "yes"),
+                SpecialCastKind.TryCast => new AttributeInfo(TryCastAttributeName, "yes"),
+                _ => AttributeInfo.Empty,
+            };
 
         private AttributeInfo TypeAttribute(string typeName)
         {
@@ -486,10 +465,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
             if (type.TypeKind == TypeKind.Array)
             {
                 var arrayType = (IArrayTypeSymbol)type;
-                using (var tag = ArrayTypeTag(arrayType.Rank))
-                {
-                    GenerateType(arrayType.ElementType, @implicit, assemblyQualify);
-                }
+                using var tag = ArrayTypeTag(arrayType.Rank);
+
+                GenerateType(arrayType.ElementType, @implicit, assemblyQualify);
             }
             else
             {

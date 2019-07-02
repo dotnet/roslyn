@@ -50,5 +50,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 return string.Format("0x{0:x8}", pointer.ToInt32());
             }
         }
+
+        protected static string PointerToString(UIntPtr pointer)
+        {
+            if (Environment.Is64BitProcess)
+            {
+                return string.Format("0x{0:x16}", pointer.ToUInt64());
+            }
+            else
+            {
+                return string.Format("0x{0:x8}", pointer.ToUInt32());
+            }
+        }
     }
 }

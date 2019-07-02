@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         public RQParameter(RQType type)
         {
             System.Diagnostics.Debug.Assert(type != null);
-            this.Type = type;
+            Type = type;
         }
 
         public SimpleTreeNode ToSimpleTree()

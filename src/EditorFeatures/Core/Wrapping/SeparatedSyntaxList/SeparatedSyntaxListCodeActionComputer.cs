@@ -308,16 +308,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
             }
 
             private string GetNestedCodeActionTitle(WrappingStyle wrappingStyle)
-            {
-                switch (wrappingStyle)
+                => wrappingStyle switch
                 {
-                    case WrappingStyle.WrapFirst_IndentRest: return Wrapper.Indent_all_items;
-                    case WrappingStyle.UnwrapFirst_AlignRest: return Wrapper.Align_wrapped_items;
-                    case WrappingStyle.UnwrapFirst_IndentRest: return Wrapper.Indent_wrapped_items;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(wrappingStyle);
-                }
-            }
+                    WrappingStyle.WrapFirst_IndentRest => Wrapper.Indent_all_items,
+                    WrappingStyle.UnwrapFirst_AlignRest => Wrapper.Align_wrapped_items,
+                    WrappingStyle.UnwrapFirst_IndentRest => Wrapper.Indent_wrapped_items,
+                    _ => throw ExceptionUtilities.UnexpectedValue(wrappingStyle),
+                };
 
             private ImmutableArray<Edit> GetWrapEachEdits(
                 WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia)

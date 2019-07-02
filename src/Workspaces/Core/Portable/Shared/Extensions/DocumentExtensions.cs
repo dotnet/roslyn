@@ -46,29 +46,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static async Task<SemanticModel> GetSemanticModelForSpanAsync(this Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            try
+            var syntaxFactService = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticModelService = document.Project.Solution.Workspace.Services.GetService<ISemanticModelService>();
+            if (semanticModelService == null || syntaxFactService == null)
             {
-                var syntaxFactService = document.GetLanguageService<ISyntaxFactsService>();
-                var semanticModelService = document.Project.Solution.Workspace.Services.GetService<ISemanticModelService>();
-                if (semanticModelService == null || syntaxFactService == null)
-                {
-                    return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                }
-
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var token = root.FindToken(span.Start);
-                if (token.Parent == null)
-                {
-                    return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                }
-
-                var node = token.Parent.AncestorsAndSelf().FirstOrDefault(a => a.FullSpan.Contains(span));
-                return await GetSemanticModelForNodeAsync(semanticModelService, syntaxFactService, document, node, span, cancellationToken).ConfigureAwait(false);
+                return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = root.FindToken(span.Start);
+            if (token.Parent == null)
             {
-                throw ExceptionUtilities.Unreachable;
+                return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             }
+
+            var node = token.Parent.AncestorsAndSelf().FirstOrDefault(a => a.FullSpan.Contains(span));
+            return await GetSemanticModelForNodeAsync(semanticModelService, syntaxFactService, document, node, span, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -122,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            ignoreErrorCode = ignoreErrorCode ?? SpecializedCollections.EmptyList<string>();
+            ignoreErrorCode ??= SpecializedCollections.EmptyList<string>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return semanticModel.GetDiagnostics(cancellationToken: cancellationToken).WhereAsArray(
                 diag => diag.Severity == DiagnosticSeverity.Error && !ignoreErrorCode.Contains(diag.Id));
