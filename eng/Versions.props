@@ -24,7 +24,7 @@
     <CodeStyleLayerCodeAnalysisVersion>2.8.2</CodeStyleLayerCodeAnalysisVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.0-beta1-63310-01</MicrosoftCodeAnalysisTestingVersion>
     <CodeStyleAnalyzerVersion>3.1.0-beta1-19113-04</CodeStyleAnalyzerVersion>
-    <VisualStudioEditorPackagesVersion>16.1.101</VisualStudioEditorPackagesVersion>
+    <VisualStudioEditorPackagesVersion>16.3.27</VisualStudioEditorPackagesVersion>
   </PropertyGroup>
   <!-- 
     Dependency versions
