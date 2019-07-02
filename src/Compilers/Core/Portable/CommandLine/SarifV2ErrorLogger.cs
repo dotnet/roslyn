@@ -59,6 +59,15 @@ namespace Microsoft.CodeAnalysis
                 _writer.WriteObjectEnd();
             }
 
+            if (diagnostic.IsSuppressed)
+            {
+                _writer.WriteArrayStart("suppressions");
+                _writer.WriteObjectStart(); // suppression
+                _writer.Write("kind", "inSource");
+                _writer.WriteObjectEnd(); // suppression
+                _writer.WriteArrayEnd();
+            }
+
             WriteLocations(diagnostic.Location, diagnostic.AdditionalLocations);
 
             WriteResultProperties(diagnostic);

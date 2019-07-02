@@ -198,7 +198,7 @@ public class C
             CleanupAllGeneratedFiles(errorLogFile);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289", AlwaysSkip = "Suppressions are NYI")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void SimpleCompilerDiagnostics_Suppressed()
         {
             var source = @"
@@ -219,7 +219,7 @@ public class C
             var exitCode = cmd.Run(outWriter);
             var actualConsoleOutput = outWriter.ToString().Trim();
 
-            // Suppressed diagnostics are only report in the error log, not the console output.
+            // Suppressed diagnostics are only reported in the error log, not the console output.
             Assert.DoesNotContain("CS0169", actualConsoleOutput);
             Assert.Contains("CS5001", actualConsoleOutput);
             Assert.NotEqual(0, exitCode);
