@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using static System.Collections.Immutable.ImmutableArrayExtensions;
+using System.Collections.Immutable;
 
 namespace Analyzer.Utilities.Extensions
 {
