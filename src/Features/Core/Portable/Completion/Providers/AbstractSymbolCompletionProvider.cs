@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            var type = (symbol.GetMemberType() ?? symbol.GetSymbolType()).WithoutNullability();
+            var type = symbol.GetMemberType() ?? symbol.GetSymbolType();
             if (type == null)
             {
                 return false;
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                                select g;
 
             var itemListBuilder = ImmutableArray.CreateBuilder<CompletionItem>();
-            var typeConvertibilityCache = new Dictionary<ITypeSymbol, bool>();
+            var typeConvertibilityCache = new Dictionary<ITypeSymbol, bool>(AllNullabilityIgnoringSymbolComparer.Instance);
 
             foreach (var symbolGroup in symbolGroups)
             {
