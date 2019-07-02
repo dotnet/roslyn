@@ -12,7 +12,8 @@ Imports Roslyn.Test.Utilities.SharedResourceHelpers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 
-    Public Class ErrorLoggerTests
+    <Trait(Traits.Feature, Traits.Features.SarifErrorLogging)>
+    Public Class SarifV1ErrorLoggerTests
         Inherits BasicTestBase
 
         Private ReadOnly _baseDirectory As String = TempRoot.Root
