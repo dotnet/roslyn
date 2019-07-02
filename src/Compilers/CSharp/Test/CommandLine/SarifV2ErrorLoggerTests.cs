@@ -56,7 +56,7 @@ class C
         ""driver"": {{
           ""name"": ""{0}"",
           ""version"": ""{1}"",
-          ""fileVersion"": ""{2}"",
+          ""dottedQuadFileVersion"": ""{2}"",
           ""semanticVersion"": ""{3}"",
           ""language"": ""{4}""
         }}
@@ -143,7 +143,7 @@ public class C
         ""driver"": {{
           ""name"": ""{0}"",
           ""version"": ""{1}"",
-          ""fileVersion"": ""{2}"",
+          ""dottedQuadFileVersion"": ""{2}"",
           ""semanticVersion"": ""{3}"",
           ""language"": ""{4}"",
           ""rules"": [
@@ -277,7 +277,7 @@ public class C
         ""driver"": {{
           ""name"": ""{0}"",
           ""version"": ""{1}"",
-          ""fileVersion"": ""{2}"",
+          ""dottedQuadFileVersion"": ""{2}"",
           ""semanticVersion"": ""{3}"",
           ""language"": ""{4}"",
           ""rules"": [
@@ -362,11 +362,6 @@ public class C
             var expectedHeader = GetExpectedErrorLogHeader();
             var expectedIssues = AnalyzerForErrorLogTest.GetExpectedErrorLogResultsText(cmd.Compilation);
             var expectedOutput = expectedHeader + expectedIssues;
-            if (actualOutput != expectedOutput)
-            {
-                File.WriteAllText(@"C:\Users\Larry Golding\Desktop\" + nameof(AnalyzerDiagnosticsWithAndWithoutLocation) + "-actual.sarif", actualOutput);
-                File.WriteAllText(@"C:\Users\Larry Golding\Desktop\" + nameof(AnalyzerDiagnosticsWithAndWithoutLocation) + "-expected.sarif", expectedOutput);
-            }
             Assert.Equal(expectedOutput, actualOutput);
 
             CleanupAllGeneratedFiles(sourceFile);
@@ -381,8 +376,8 @@ public class C
         {
             var arguments = new object[] {
                 compiler.GetToolName(),
-                compiler.GetAssemblyVersion(),
                 compiler.GetCompilerVersion(),
+                compiler.GetAssemblyVersion(),
                 compiler.GetAssemblyVersion().ToString(fieldCount: 3),
                 compiler.GetCultureName()
             }.Concat(additionalArguments).ToArray();

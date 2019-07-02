@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void AdditionalLocationsAsRelatedLocations()
         {
             var stream = new MemoryStream();
-            using (var logger = new SarifV2ErrorLogger(stream, "toolName", "1.2.3.4", new Version(1, 2, 3, 4), new CultureInfo("fr-CA", useUserOverride: false)))
+            using (var logger = new SarifV2ErrorLogger(stream, "toolName", "1.2.3.4 for Windows", new Version(1, 2, 3, 4), new CultureInfo("fr-CA", useUserOverride: false)))
             {
                 var span = new TextSpan(0, 0);
                 var position = new LinePositionSpan(LinePosition.Zero, LinePosition.Zero);
@@ -95,8 +95,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
       ""tool"": {
         ""driver"": {
           ""name"": ""toolName"",
-          ""version"": ""1.2.3.4"",
-          ""fileVersion"": ""1.2.3.4"",
+          ""version"": ""1.2.3.4 for Windows"",
+          ""dottedQuadFileVersion"": ""1.2.3.4"",
           ""semanticVersion"": ""1.2.3"",
           ""language"": ""fr-CA"",
           ""rules"": [
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             };
 
             var stream = new MemoryStream();
-            using (var logger = new SarifV2ErrorLogger(stream, "toolName", "1.2.3.4", new Version(1, 2, 3, 4), new CultureInfo("en-US", useUserOverride: false)))
+            using (var logger = new SarifV2ErrorLogger(stream, "toolName", "1.2.3.4 for Windows", new Version(1, 2, 3, 4), new CultureInfo("en-US", useUserOverride: false)))
             {
                 for (int i = 0; i < 2; i++)
                 {
@@ -361,8 +361,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
       ""tool"": {
         ""driver"": {
           ""name"": ""toolName"",
-          ""version"": ""1.2.3.4"",
-          ""fileVersion"": ""1.2.3.4"",
+          ""version"": ""1.2.3.4 for Windows"",
+          ""dottedQuadFileVersion"": ""1.2.3.4"",
           ""semanticVersion"": ""1.2.3"",
           ""language"": ""en-US"",
           ""rules"": [
