@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
@@ -334,6 +335,7 @@ class C
 }", parameters: s_testParameters);
         }
 
+        [WorkItem(36909, "https://github.com/dotnet/roslyn/issues/36909")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
         public async Task TestMissingWithNoSystemIndex()
         {
