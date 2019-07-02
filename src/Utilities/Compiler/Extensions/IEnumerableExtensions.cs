@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -118,6 +119,16 @@ namespace Analyzer.Utilities.Extensions
                 throw new ArgumentNullException(nameof(source));
             }
 
+            if (source is ICollection<TSource> collectionoft)
+            {
+                return collectionoft.Count == count;
+            }
+
+            if (source is ICollection collection)
+            {
+                return collection.Count == count;
+            }
+
             using (var enumerator = source.GetEnumerator())
             {
                 while (count-- > 0)
@@ -147,6 +158,16 @@ namespace Analyzer.Utilities.Extensions
                 throw new ArgumentNullException(nameof(source));
             }
 
+            if (source is ICollection<TSource> collectionoft)
+            {
+                return collectionoft.Count > count;
+            }
+
+            if (source is ICollection collection)
+            {
+                return collection.Count > count;
+            }
+
             using (var enumerator = source.GetEnumerator())
             {
                 while (count-- > 0)
@@ -174,6 +195,16 @@ namespace Analyzer.Utilities.Extensions
             if (source is null)
             {
                 throw new ArgumentNullException(nameof(source));
+            }
+
+            if (source is ICollection<TSource> collectionoft)
+            {
+                return collectionoft.Count < count;
+            }
+
+            if (source is ICollection collection)
+            {
+                return collection.Count < count;
             }
 
             using (var enumerator = source.GetEnumerator())

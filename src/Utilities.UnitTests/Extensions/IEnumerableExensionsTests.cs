@@ -3,12 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Collections.Specialized;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Analyzer.Utilities.Extensions;
 using Xunit;
 
 namespace Analyzer.Utilities.Extensions
@@ -20,7 +15,7 @@ namespace Analyzer.Utilities.Extensions
         [InlineData(2, true)]
         [InlineData(3, false)]
         [Theory]
-        public void HasExactly2_ReturnsTheCorrectValue(int count, bool result)
+        public void IEnumerableHasExactly2_ReturnsTheCorrectValue(int count, bool result)
         {
             Assert.Equal(result, IEnumerableExtensions.HasExactly(CreateIEnumerable(count), 2));
         }
@@ -30,7 +25,7 @@ namespace Analyzer.Utilities.Extensions
         [InlineData(2, false)]
         [InlineData(3, true)]
         [Theory]
-        public void HasMoreThan2_ReturnsTheCorrectValue(int count, bool result)
+        public void IEnumerableHasMoreThan2_ReturnsTheCorrectValue(int count, bool result)
         {
             Assert.Equal(result, IEnumerableExtensions.HasMoreThan(CreateIEnumerable(count), 2));
         }
@@ -40,12 +35,109 @@ namespace Analyzer.Utilities.Extensions
         [InlineData(2, false)]
         [InlineData(3, false)]
         [Theory]
-        public void HasLessThan2_ReturnsTheCorrectValue(int count, bool result)
+        public void IEnumerableHasLessThan2_ReturnsTheCorrectValue(int count, bool result)
         {
             Assert.Equal(result, IEnumerableExtensions.HasLessThan(CreateIEnumerable(count), 2));
         }
 
         private static IEnumerable<int> CreateIEnumerable(int count)
-            => count > 0 ? Enumerable.Range(0, count) : Enumerable.Empty<int>();
+        {
+            if (count < 0)
+            {
+                count = 0;
+            }
+
+            for (var i = count; i > 0; i--)
+            {
+                yield return 0;
+            }
+        }
+
+        [InlineData(0, false)]
+        [InlineData(1, false)]
+        [InlineData(2, true)]
+        [InlineData(3, false)]
+        [Theory]
+        public void ICollectionHasExactly2_ReturnsTheCorrectValue(int count, bool result)
+        {
+            Assert.Equal(result, IEnumerableExtensions.HasExactly(new Collection(count), 2));
+        }
+
+        [InlineData(0, false)]
+        [InlineData(1, false)]
+        [InlineData(2, false)]
+        [InlineData(3, true)]
+        [Theory]
+        public void ICollectionHasMoreThan2_ReturnsTheCorrectValue(int count, bool result)
+        {
+            Assert.Equal(result, IEnumerableExtensions.HasMoreThan(new Collection(count), 2));
+        }
+
+        [InlineData(0, true)]
+        [InlineData(1, true)]
+        [InlineData(2, false)]
+        [InlineData(3, false)]
+        [Theory]
+        public void ICollectionHasLessThan2_ReturnsTheCorrectValue(int count, bool result)
+        {
+            Assert.Equal(result, IEnumerableExtensions.HasLessThan(new Collection(count), 2));
+        }
+
+#pragma warning disable CA1010 // Collections should implement generic interface
+        private class Collection : ICollection, IEnumerable<int>
+        {
+            public Collection(int count) => this.Count = count > 0 ? count : 0;
+            public int Count { get; }
+            public object SyncRoot => throw new NotImplementedException();
+            public bool IsSynchronized => throw new NotImplementedException();
+            public void CopyTo(Array array, int index) => throw new NotImplementedException();
+            public IEnumerator GetEnumerator() => throw new NotImplementedException();
+            IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
+        }
+#pragma warning restore CA1010 // Collections should implement generic interface
+
+        [InlineData(0, false)]
+        [InlineData(1, false)]
+        [InlineData(2, true)]
+        [InlineData(3, false)]
+        [Theory]
+        public void IIntCollectionHasExactly2_ReturnsTheCorrectValue(int count, bool result)
+        {
+            Assert.Equal(result, IEnumerableExtensions.HasExactly(new IntCollection(count), 2));
+        }
+
+        [InlineData(0, false)]
+        [InlineData(1, false)]
+        [InlineData(2, false)]
+        [InlineData(3, true)]
+        [Theory]
+        public void IIntCollectionHasMoreThan2_ReturnsTheCorrectValue(int count, bool result)
+        {
+            Assert.Equal(result, IEnumerableExtensions.HasMoreThan(new IntCollection(count), 2));
+        }
+
+        [InlineData(0, true)]
+        [InlineData(1, true)]
+        [InlineData(2, false)]
+        [InlineData(3, false)]
+        [Theory]
+        public void IIntCollectionHasLessThan2_ReturnsTheCorrectValue(int count, bool result)
+        {
+            Assert.Equal(result, IEnumerableExtensions.HasLessThan(new IntCollection(count), 2));
+        }
+
+        private class IntCollection : ICollection<int>
+        {
+            public IntCollection(int count) => this.Count = count > 0 ? count : 0;
+            public int Count { get; }
+            public bool IsReadOnly { get; }
+            public void Add(int item) => throw new NotImplementedException();
+            public void Clear() => throw new NotImplementedException();
+            public bool Contains(int item) => throw new NotImplementedException();
+            public void CopyTo(int[] array, int arrayIndex) => throw new NotImplementedException();
+            public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
+            public bool Remove(int item) => throw new NotImplementedException();
+            IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+        }
     }
 }
