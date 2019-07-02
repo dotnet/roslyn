@@ -1654,7 +1654,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             ElseIf existingAttributes.Count > 0 Then
                 Return Me.InsertNodesAfter(declaration, existingAttributes(existingAttributes.Count - 1), newAttributes)
             Else
-                Dim lists = Me.GetAttributeLists(declaration)
+                Dim lists = GetAttributeLists(declaration)
                 Return Me.WithAttributeLists(declaration, lists.AddRange(AsAttributeLists(attributes)))
             End If
         End Function
