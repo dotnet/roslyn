@@ -83,8 +83,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSarifVersion">
-        <source>Invalid option '{0}' for /sarifversion. Supported values are 1 and 2. Default is 1.</source>
-        <target state="new">Invalid option '{0}' for /sarifversion. Supported values are 1 and 2. Default is 1.</target>
+        <source>Invalid value '{0}' for /sarifversion. Supported values are 1 and 2. Default is 1.</source>
+        <target state="new">Invalid value '{0}' for /sarifversion. Supported values are 1 and 2. Default is 1.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -539,6 +539,8 @@
                               diagnostics.
 -errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
                               diagnostics.
+-sarifversion:[1|2]           Specify the version of the SARIF format in the
+                              error log file.
 -reportanalyzer               Report additional analyzer information, such as
                               execution time.
 

@@ -4607,6 +4607,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               diagnostics.
 -errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
                               diagnostics.
+-sarifversion:[1|2]           Specify the version of the SARIF format in the
+                              error log file.
 -reportanalyzer               Report additional analyzer information, such as
                               execution time.
 
