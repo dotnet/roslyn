@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private void CheckSnapshot(ITextSnapshot snapshot)
             {
                 var container = snapshot.TextBuffer.AsTextContainer();
-                if (Workspace.TryGetWorkspace(container, out var dummy))
+                if (Workspace.TryGetWorkspace(container, out _))
                 {
                     // if the buffer is part of our workspace, it must be the latest.
                     Debug.Assert(snapshot.Version.Next == null, "should be on latest snapshot");

@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 case ReportDiagnostic.Suppress:
                     return KnownMonikers.CodeSuppressedRule;
                 default:
-                    return default(ImageMoniker);
+                    return default;
             }
         }
 

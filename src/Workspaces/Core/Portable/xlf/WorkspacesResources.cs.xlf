@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
         <source>Adding analyzer config documents is not supported.</source>
-        <target state="new">Adding analyzer config documents is not supported.</target>
+        <target state="translated">Přidávání dokumentů konfigurace analyzátoru se nepodporuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
         <source>Changing analyzer config documents is not supported.</source>
-        <target state="new">Changing analyzer config documents is not supported.</target>
+        <target state="translated">Změna dokumentů konfigurace analyzátoru se nepodporuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_document_0_is_not_supported">
@@ -441,7 +441,7 @@ Ukotvení $ najde shodu s \n, ale nenajde shodu s \r\n (kombinace znaků návrat
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_long">
         <source>Matches an ASCII character, where ## is a two-digit hexadecimal character code.</source>
-        <target state="translated">Shoda se znakem ASCII, kde ## je dvouciferný kód šestnáctkového znaku</target>
+        <target state="translated">Shoda se znakem ASCII, kde ## je dvouciferný šestnáctkový kód znaku</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
@@ -1224,7 +1224,7 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou šířkou se o
       </trans-unit>
       <trans-unit id="Removing_analyzer_config_documents_is_not_supported">
         <source>Removing analyzer config documents is not supported.</source>
-        <target state="new">Removing analyzer config documents is not supported.</target>
+        <target state="translated">Odebírání dokumentů konfigurace analyzátoru se nepodporuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -1329,7 +1329,7 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou šířkou se o
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_Qualify">
         <source>Qualify</source>
-        <target state="translated">Kvalifikovat</target>
+        <target state="translated">Kvalifikace</target>
         <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_TypeArgument">

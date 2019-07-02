@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
         <source>Adding analyzer config documents is not supported.</source>
-        <target state="new">Adding analyzer config documents is not supported.</target>
+        <target state="translated">Çözümleyici yapılandırma belgelerinin eklenmesi desteklenmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
         <source>Changing analyzer config documents is not supported.</source>
-        <target state="new">Changing analyzer config documents is not supported.</target>
+        <target state="translated">Çözümleyici yapılandırma belgelerinin değiştirilmesi desteklenmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_document_0_is_not_supported">
@@ -596,7 +596,7 @@ $ yer işareti \n ile eşleşir, ancak \r\n (satır başı ve yeni satır karakt
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_lazy_short">
         <source>match one or more times (lazy)</source>
-        <target state="translated">en az bir kez eşleş (gecikmeli)</target>
+        <target state="translated">bir veya daha çok kez eşleş (en düşük kapsamlı)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_long">
@@ -611,7 +611,7 @@ $ yer işareti \n ile eşleşir, ancak \r\n (satır başı ve yeni satır karakt
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_lazy_long">
         <source>The *? quantifier matches the preceding element zero or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier *</source>
-        <target state="translated">*? niceleyicisi bir önceki öğeyle en az sıfır kez eşleşir, ancak bunu mümkün olduğunca az sayıda yapar. Bu, * hızlı niceleyicisinin gecikmeli karşılığıdır</target>
+        <target state="translated">*? niceleyicisi bir önceki öğeyle sıfır veya daha çok kez eşleşir, ancak bunu mümkün olduğunca az sayıda yapar. Bu, * en yüksek kapsamlı niceleyicisinin en düşük kapsamlı karşılığıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_lazy_short">
@@ -932,7 +932,7 @@ Sekizlik kaçış kodları (\16 gibi) ile aynı gösterimi kullanan \number geri
       </trans-unit>
       <trans-unit id="Regex_positive_character_range_long">
         <source>A positive character range specifies a range of characters, any one of which may appear in an input string for a match to occur.  'firstCharacter' is the character that begins the range and 'lastCharacter' is the character that ends the range. </source>
-        <target state="translated">Pozitif bir karakter aralığı, herhangi biri bir eşleşme olması için giriş dizesinde görünebilir bir karakter aralığı belirtir.  'firstCharacter', aralığı başlatan karakter ve 'lastCharacter', aralığı sonlandıran karakterdir. </target>
+        <target state="translated">Pozitif bir karakter aralığı, herhangi bir eşleşme olması için giriş dizesinde görünebilir bir karakter aralığı belirtir.  'firstCharacter', aralığı başlatan karakter ve 'lastCharacter', aralığı sonlandıran karakterdir. </target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_positive_character_range_short">
@@ -1114,7 +1114,7 @@ ECMAScript uyumlu davranış belirtilmişse, \s değeri [ \f\n\r\t\v] ile eşde�
         <source>The \b anchor specifies that the match must occur on a boundary between a word character (the \w language element) and a non-word character (the \W language element). Word characters consist of alphanumeric characters and underscores; a non-word character is any character that is not alphanumeric or an underscore. The match may also occur on a word boundary at the beginning or end of the string.
 
 The \b anchor is frequently used to ensure that a subexpression matches an entire word instead of just the beginning or end of a word.</source>
-        <target state="translated">\b yer işareti, eşleşmenin bir sözcük karakteri (\w dil öğesi) ile sözcük olmayan bir karakter (\w dil öğesi) arasındaki bir sınır üzerinde oluşması gerektiğini belirtir. Sözcük karakterleri, alfasayısal karakterlerden ve alt çizgilerden oluşur; sözcük olmayan karakter, alfasayısal veya alt çizgi olmayan herhangi bir karakterdir. Ayrıca dizenin başlangıcında veya sonunda bulunan bir sözcük sınırında da eşleşme gerçekleşebilir.
+        <target state="translated">\b yer işareti, eşleşmenin bir sözcük karakteri (\w dil öğesi) ile sözcük olmayan bir karakter (\W dil öğesi) arasındaki bir sınırda oluşması gerektiğini belirtir. Sözcük karakterleri, alfasayısal karakterlerden ve alt çizgilerden oluşur; sözcük olmayan karakter, alfasayısal veya alt çizgi olmayan herhangi bir karakterdir. Ayrıca dizenin başlangıcında veya sonunda bulunan bir sözcük sınırında da eşleşme gerçekleşebilir.
 
 \b yer işareti, sıklıkla bir alt ifadenin yalnızca sözcüğün başı veya sonu yerine tüm sözcükle eşleştiğinden emin olmak için kullanılır.</target>
         <note />
@@ -1167,7 +1167,7 @@ ECMAScript uyumlu davranış belirtilmişse, \w [a-zA-Z_0-9] ile eşdeğerdir</t
 A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but more general pattern to be matched. In this case, it is often used to limit backtracking. At the end of a regular expression, it can define a subexpression that cannot occur at the end of a match.</source>
         <target state="translated">Eşleşmenin başarılı olması için giriş dizesinin alt ifadedeki normal ifade deseniyle eşleşmemesi gerektiği sıfır genişlikli bir negatif ileri yönlü onaylama. Eşleşen dize, eşleşme sonucuna dahil değildir.
 
-Sıfır genişlikli bir negatif ileri yönlü onaylama genellikle normal ifadenin başında veya sonunda kullanılır. Normal bir ifadenin başında, normal ifadenin başlangıcı eşleştirilecek benzer ancak daha genel bir desen tanımladığında, eşleştirilmemesi gereken belirli bir desen tanımlayabilir. Bu durumda, genellikle geri izlemeyi sınırlandırmak için kullanılır. Normal bir ifadenin sonunda, bir eşleşmenin sonunda gerçekleştirilemeyecek bir alt ifade tanımlayabilir.</target>
+Sıfır genişlikli bir negatif ileri yönlü onaylama genellikle normal ifadenin başında veya sonunda kullanılır. Normal bir ifadenin başında olduğunda, normal ifadenin başının eşleştirilecek benzer ancak daha genel bir desen tanımlaması durumunda, eşleştirilmemesi gereken belirli bir desen tanımlayabilir. Bu durumda, genellikle geri izlemeyi sınırlandırmak için kullanılır. Normal bir ifadenin sonunda olduğunda, bir eşleşmenin sonunda oluşamayacak bir alt ifade tanımlayabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_short">
@@ -1207,9 +1207,9 @@ Sıfır genişlikli bir pozitif ileri yönlü onaylama genellikle normal ifade d
         <source>A zero-width positive lookbehind assertion, where for a match to be successful, 'subexpression' must occur at the input string to the left of the current position. 'subexpression' is not included in the match result. A zero-width positive lookbehind assertion does not backtrack.
 
 Zero-width positive lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define is a precondition for a match, although it is not a part of the match result.</source>
-        <target state="translated">Bir eşleşmenin başarılı olması için geçerli konumun solundaki giriş dizesinde 'subexpression' oluşması gerektiği sıfır genişlikli bir pozitif geri yönlü onaylama işlemi. 'subexpression' eşleşme sonucuna dahil değildir. Sıfır genişlikli bir pozitif geri yönlü işlemi geri izleme yapmaz.
+        <target state="translated">Bir eşleşmenin başarılı olması için geçerli konumun solundaki giriş dizesinde 'subexpression' oluşması gereken sıfır genişlikli bir pozitif geri yönlü onaylama işlemi. 'subexpression' eşleşme sonucuna dahil değildir. Sıfır genişlikli bir pozitif geri yönlü onaylama işlemi geri izleme yapmaz.
 
-Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadelerin başlangıcında kullanılır. Tanımladıkları desen eşleşme sonucunun bir parçası olmasa da, bir eşleşme ön koşuludur.</target>
+Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadelerin başında kullanılır. Tanımladıkları desen eşleşme sonucunun bir parçası olmasa da, bir eşleşme ön koşuludur.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookbehind_assertion_short">
@@ -1224,7 +1224,7 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="Removing_analyzer_config_documents_is_not_supported">
         <source>Removing analyzer config documents is not supported.</source>
-        <target state="new">Removing analyzer config documents is not supported.</target>
+        <target state="translated">Çözümleyici yapılandırma belgelerinin kaldırılması desteklenmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -1329,7 +1329,7 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_Qualify">
         <source>Qualify</source>
-        <target state="translated">Uygun bul</target>
+        <target state="translated">Nitelikli hale getir</target>
         <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_TypeArgument">
@@ -2084,7 +2084,7 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="Cannot_include_class_0_in_character_range">
         <source>Cannot include class \{0} in character range</source>
-        <target state="new">Cannot include class \{0} in character range</target>
+        <target state="translated">Sınıf \{0} içeremez karakter aralığı</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-\w]. {0} is the invalid class (\w here)</note>
       </trans-unit>
       <trans-unit id="Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">

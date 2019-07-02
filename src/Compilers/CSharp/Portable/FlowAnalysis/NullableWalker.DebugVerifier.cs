@@ -165,6 +165,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node = child;
                 }
             }
+
+            public override BoundNode VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
+            {
+                Visit(node.SourceTuple);
+                return base.VisitConvertedTupleLiteral(node);
+            }
         }
 #endif
     }

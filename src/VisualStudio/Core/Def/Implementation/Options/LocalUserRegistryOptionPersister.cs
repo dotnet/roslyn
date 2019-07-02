@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                                 {
                                     // Due to a previous bug we were accidentally serializing longs as strings.
                                     // Gracefully convert those back.
-                                    var suceeded = long.TryParse(stringValue, out long longValue);
+                                    var suceeded = long.TryParse(stringValue, out var longValue);
                                     value = longValue;
                                     return suceeded;
                                 }
@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                                 {
                                     // Due to a previous bug we were accidentally serializing ints as strings. 
                                     // Gracefully convert those back.
-                                    var suceeded = int.TryParse(stringValue, out int intValue);
+                                    var suceeded = int.TryParse(stringValue, out var intValue);
                                     value = intValue;
                                     return suceeded;
                                 }

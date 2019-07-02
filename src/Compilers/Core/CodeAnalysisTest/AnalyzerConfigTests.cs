@@ -853,7 +853,7 @@ RoOt = TruE");
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
 [*.cs]
-dotnet_diagnostic.cs000.severity = suppress
+dotnet_diagnostic.cs000.severity = none
 
 [*.vb]
 dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
@@ -876,7 +876,7 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
 [*.cs]
-dotnet_diagnostic.cs000.severity = suppress
+dotnet_diagnostic.cs000.severity = none
 
 [test.*]
 dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
@@ -899,13 +899,13 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
 [*.cs]
-dotnet_diagnostic.cs000.severity = suppress
+dotnet_diagnostic.cs000.severity = none
 
 [*.vb]
 dotnet_diagnostic.cs000.severity = error
 
 [{test.*]
-dotnet_diagnostic.cs000.severity = info"
+dotnet_diagnostic.cs000.severity = suggestion"
 , "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
@@ -926,8 +926,8 @@ dotnet_diagnostic.cs000.severity = info"
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
 [*.cs]
-dotnet_diagnostic.cs000.severity = suppress
-dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
+dotnet_diagnostic.cs000.severity = none
+dotnet_diagnostic.cs001.severity = suggestion", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
                 new[] { "/test.cs" },
@@ -943,15 +943,37 @@ dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
         }
 
         [Fact]
+        public void TwoTermsForHidden()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = silent
+dotnet_diagnostic.cs001.severity = refactoring", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs" },
+                configs);
+            configs.Free();
+
+            Assert.Equal(new[]
+            {
+                CreateImmutableDictionary(
+                    ("cs000", ReportDiagnostic.Hidden),
+                    ("cs001", ReportDiagnostic.Hidden)),
+            }, options.Select(o => o.TreeOptions).ToArray());
+        }
+
+        [Fact]
         public void TwoSettingsDifferentSections()
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
 [*.cs]
-dotnet_diagnostic.cs000.severity = suppress
+dotnet_diagnostic.cs000.severity = none
 
 [test.*]
-dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
+dotnet_diagnostic.cs001.severity = suggestion", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
                 new[] { "/test.cs" },
@@ -972,13 +994,13 @@ dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
 [**/*]
-dotnet_diagnostic.cs000.severity = suppress
+dotnet_diagnostic.cs000.severity = none
 
 [**test.*]
-dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
+dotnet_diagnostic.cs001.severity = suggestion", "/.editorconfig"));
             configs.Add(Parse(@"
 [**]
-dotnet_diagnostic.cs000.severity = warn
+dotnet_diagnostic.cs000.severity = warning
 
 [test.cs]
 dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
@@ -1005,10 +1027,10 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
 [**/*]
-dotnet_diagnostic.cs000.severity = suppress
+dotnet_diagnostic.cs000.severity = none
 
 [**test.cs]
-dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
+dotnet_diagnostic.cs001.severity = suggestion", "/.editorconfig"));
             configs.Add(Parse(@"
 [test.cs]
 dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
@@ -1036,7 +1058,7 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
 [*.cs]
-dotnet_diagnostic.cs000.severity = suppress", "Z:\\.editorconfig"));
+dotnet_diagnostic.cs000.severity = none", "Z:\\.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
                 new[] { "Z:\\test.cs" },
@@ -1187,7 +1209,7 @@ dotnet_diagnostic.cs000.some_key = some_other_val", "/subdir/.editorconfig"));
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
 [*.cs]
-dotnet_diagnostic..severity = warn
+dotnet_diagnostic..severity = warning
 dotnet_diagnostic..some_key = some_val", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
@@ -1247,7 +1269,7 @@ dotnet_diagnostic.some_key = some_val", "/.editorconfig"));
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
 [a{-10..0}b{0..10}.cs]
-dotnet_diagnostic.cs000.severity = warn", "/.editorconfig"));
+dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
                 new[] { "/a0b0.cs", "/test/a-5b5.cs", "/a0b0.vb" },

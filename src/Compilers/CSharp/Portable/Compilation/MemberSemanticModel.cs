@@ -1443,8 +1443,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //    cached nodes for the root syntax node, and the existing snapshot manager must be null.
                 Debug.Assert((IsSpeculativeSemanticModel && manager is null) ||
                              (!IsSpeculativeSemanticModel &&
-                              (manager is null && (!Compilation.NullableAnalysisEnabled || syntax != Root)) ||
-                              (manager is object && syntax == Root && Compilation.NullableAnalysisEnabled && _lazySnapshotManager is null)));
+                              (manager is null && (!Compilation.NullableSemanticAnalysisEnabled || syntax != Root)) ||
+                              (manager is object && syntax == Root && Compilation.NullableSemanticAnalysisEnabled && _lazySnapshotManager is null)));
                 if (!IsSpeculativeSemanticModel && manager is object)
                 {
                     _lazySnapshotManager = manager;
@@ -1846,7 +1846,7 @@ done:
             DiagnosticBag diagnostics = _ignoredDiagnostics;
 
             // If we're in DEBUG mode, always enable the analysis, but throw away the results
-            if (!Compilation.NullableAnalysisEnabled)
+            if (!Compilation.NullableSemanticAnalysisEnabled)
             {
 #if DEBUG
                 diagnostics = new DiagnosticBag();
@@ -1871,7 +1871,7 @@ done:
                 // In DEBUG mode, we don't want to increase test run times, so if
                 // nullable analysis isn't enabled and some node has already been bound
                 // we assume we've already done this test binding and just return
-                || (!Compilation.NullableAnalysisEnabled && _guardedNodeMap.Count > 0)
+                || (!Compilation.NullableSemanticAnalysisEnabled && _guardedNodeMap.Count > 0)
 #endif
                 )
             {
@@ -1914,7 +1914,7 @@ done:
                 boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnostics, takeSnapshots, out var snapshotManager);
 #if DEBUG
                 // Don't actually cache the results if the nullable analysis is not enabled in debug mode.
-                if (!Compilation.NullableAnalysisEnabled) return;
+                if (!Compilation.NullableSemanticAnalysisEnabled) return;
 #endif
                 GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, snapshotManager);
             }

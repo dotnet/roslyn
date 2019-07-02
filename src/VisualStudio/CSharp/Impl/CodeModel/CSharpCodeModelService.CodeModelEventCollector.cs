@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 Debug.Assert(oldAttribute != null && newAttribute != null);
 
-                bool same = true;
+                var same = true;
 
                 if (!CompareNames(oldAttribute.Name, newAttribute.Name))
                 {
@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return false;
                 }
 
-                for (int i = 0; i < oldArguments.Count; i++)
+                for (var i = 0; i < oldArguments.Count; i++)
                 {
                     var oldArgument = oldArguments[i];
                     var newArgument = newArguments[i];
@@ -206,7 +206,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 Debug.Assert(oldParameter != null && newParameter != null);
 
-                bool same = true;
+                var same = true;
 
                 if (!StringComparer.Ordinal.Equals(CodeModelService.GetName(oldParameter), CodeModelService.GetName(newParameter)))
                 {
@@ -275,7 +275,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 Debug.Assert(oldEnumMember != null && newEnumMember != null);
 
-                bool same = true;
+                var same = true;
 
                 if (!StringComparer.Ordinal.Equals(CodeModelService.GetName(oldEnumMember), CodeModelService.GetName(newEnumMember)))
                 {
@@ -302,7 +302,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 Debug.Assert(oldProperty != null && newProperty != null);
 
-                bool same = true;
+                var same = true;
 
                 if (!StringComparer.Ordinal.Equals(CodeModelService.GetName(oldProperty), CodeModelService.GetName(newProperty)))
                 {
@@ -372,7 +372,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 Debug.Assert(oldField != null && newField != null);
 
-                bool same = true;
+                var same = true;
                 same &= CompareChildren(
                     CompareVariableDeclarators,
                     oldField.Declaration.Variables.AsReadOnlyList(),
@@ -434,7 +434,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 }
                 else
                 {
-                    bool same = true;
+                    var same = true;
 
                     if (!CompareModifiers(oldMethod, newMethod))
                     {
@@ -531,7 +531,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     var oldMembers = GetValidMembers(oldType);
                     var newMembers = GetValidMembers(newType);
 
-                    bool same = true;
+                    var same = true;
 
                     // If the type name is different, it might mean that the whole type has been removed and a new one added.
                     // In that case, we shouldn't do any other checks and instead return immediately.
@@ -589,7 +589,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 {
                     var newDelegate = (DelegateDeclarationSyntax)newMember;
 
-                    bool same = true;
+                    var same = true;
 
                     // If the delegate name is different, it might mean that the whole delegate has been removed and a new one added.
                     // In that case, we shouldn't do any other checks and instead return immediately.
@@ -692,7 +692,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         return false;
                     }
 
-                    for (int i = 0; i < oldTypes.Count; i++)
+                    for (var i = 0; i < oldTypes.Count; i++)
                     {
                         if (!CompareTypes(oldTypes[i].Type, newTypes[i].Type))
                         {
@@ -753,7 +753,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                             return false;
                         }
 
-                        for (int i = 0; i < oldGenericName.Arity; i++)
+                        for (var i = 0; i < oldGenericName.Arity; i++)
                         {
                             if (!CompareTypes(oldGenericName.TypeArgumentList.Arguments[i], newGenericName.TypeArgumentList.Arguments[i]))
                             {

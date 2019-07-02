@@ -20,7 +20,7 @@ using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    internal abstract class AbstractVsTextViewFilter<TPackage, TLanguageService> : AbstractVsTextViewFilter, IVsTextViewFilter, IVsReadOnlyViewNotification
+    internal abstract class AbstractVsTextViewFilter<TPackage, TLanguageService> : AbstractVsTextViewFilter, IVsTextViewFilter
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             try
             {
-                int result = VSConstants.S_OK;
+                var result = VSConstants.S_OK;
                 LanguageService.Package.ComponentModel.GetService<IWaitIndicator>().Wait(
                     "Intellisense",
                     allowCancel: true,
@@ -122,39 +122,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         int IVsTextViewFilter.GetWordExtent(int iLine, int iIndex, uint dwFlags, TextSpan[] pSpan)
             => VSConstants.E_NOTIMPL;
-
-        #region Edit and Continue 
-
-        int IVsReadOnlyViewNotification.OnDisabledEditingCommand(ref Guid pguidCmdGuid, uint dwCmdId)
-        {
-            var container = GetSubjectBufferContainingCaret().AsTextContainer();
-            if (!CodeAnalysis.Workspace.TryGetWorkspace(container, out var workspace))
-            {
-                return VSConstants.S_OK;
-            }
-
-            var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
-            if (vsWorkspace == null)
-            {
-                return VSConstants.S_OK;
-            }
-
-            foreach (var documentId in vsWorkspace.GetRelatedDocumentIds(container))
-            {
-                var project = VsENCRebuildableProjectImpl.TryGetRebuildableProject(documentId.ProjectId);
-
-                if (project != null)
-                {
-                    if (project.OnEdit(documentId))
-                    {
-                        break;
-                    }
-                }
-            }
-
-            return VSConstants.S_OK;
-        }
-
-        #endregion
     }
 }

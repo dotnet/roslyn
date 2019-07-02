@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var text = root.GetText();
 
                 // Expand selection in both directions until a double quote or any line break character is reached
-                bool IsWordCharacter(char ch) => !(ch == '"' || TextUtilities.IsAnyLineBreakCharacter(ch));
+                static bool IsWordCharacter(char ch) => !(ch == '"' || TextUtilities.IsAnyLineBreakCharacter(ch));
 
                 result = CommonCompletionUtilities.GetWordSpan(
                     text, startSpan.Start, IsWordCharacter, IsWordCharacter, alwaysExtendEndSpan: true);
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return result;
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default(char?), CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default, CancellationToken cancellationToken = default)
         {
             var projectIdGuid = item.Properties[ProjectGuidKey];
             var projectId = ProjectId.CreateFromSerialized(new System.Guid(projectIdGuid));

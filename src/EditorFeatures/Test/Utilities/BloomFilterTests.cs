@@ -120,11 +120,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             stream.Position = 0;
 
-            using (var reader = ObjectReader.TryGetReader(stream))
-            {
-                var rehydratedFilter = BloomFilter.ReadFrom(reader);
-                Assert.True(bloomFilter.IsEquivalent(rehydratedFilter));
-            }
+            using var reader = ObjectReader.TryGetReader(stream);
+            var rehydratedFilter = BloomFilter.ReadFrom(reader);
+            Assert.True(bloomFilter.IsEquivalent(rehydratedFilter));
         }
 
         [Fact]
@@ -140,11 +138,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             stream.Position = 0;
 
-            using (var reader = ObjectReader.TryGetReader(stream))
-            {
-                var rehydratedFilter = BloomFilter.ReadFrom(reader);
-                Assert.True(bloomFilter.IsEquivalent(rehydratedFilter));
-            }
+            using var reader = ObjectReader.TryGetReader(stream);
+            var rehydratedFilter = BloomFilter.ReadFrom(reader);
+            Assert.True(bloomFilter.IsEquivalent(rehydratedFilter));
         }
 
         [Fact]

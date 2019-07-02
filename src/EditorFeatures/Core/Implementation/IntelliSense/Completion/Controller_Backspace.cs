@@ -165,7 +165,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var textSnapshot = caretPoint.Snapshot;
 
             var currentText = model.GetCurrentTextInSnapshot(item.Span, textSnapshot, textSpanToText);
-            var currentTextSpan = new TextSpan(filterSpanInViewBuffer.TextSpan.Start, currentText.Length);
 
             return currentText.Length == 0;
         }

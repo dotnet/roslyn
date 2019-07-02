@@ -100,8 +100,8 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
             if (_trackActiveTokens)
             {
-                int i = 0;
-                bool removed = false;
+                var i = 0;
+                var removed = false;
                 while (i < _diagnosticTokenList.Count)
                 {
                     if (_diagnosticTokenList[i] == token)

@@ -109,7 +109,7 @@ namespace Roslyn.Utilities
                 // PERF: First spin wait for the lock to become available, but only up to the first planned yield.
                 // This additional amount of spinwaiting was inherited from SemaphoreSlim's implementation where
                 // it showed measurable perf gains in test scenarios.
-                SpinWait spin = new SpinWait();
+                var spin = new SpinWait();
                 while (this.IsLocked && !spin.NextSpinWillYield)
                 {
                     spin.SpinOnce();

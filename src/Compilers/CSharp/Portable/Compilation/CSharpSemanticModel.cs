@@ -1955,7 +1955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // The bound tree always fully binds tuple literals. From the language point of
                                 // view, however, converted tuple literals represent tuple conversions
                                 // from tuple literal expressions which may or may not have types
-                                type = tupleLiteral.NaturalTypeOpt;
+                                type = tupleLiteral.SourceTuple.Type;
                                 break;
                             }
                     }
@@ -1987,7 +1987,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (tupleLiteralConversion.Operand.Kind == BoundKind.ConvertedTupleLiteral)
                     {
                         var convertedTuple = (BoundConvertedTupleLiteral)tupleLiteralConversion.Operand;
-                        type = convertedTuple.NaturalTypeOpt;
+                        type = convertedTuple.SourceTuple.Type;
                         nullability = convertedTuple.TopLevelNullability;
                     }
                     else

@@ -788,19 +788,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _explicitInterfaceType.CheckAllConstraints(compilation, conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
 
                 // Note: we delayed nullable-related checks that could pull on NonNullTypes
-                PropertySymbol overriddenOrImplementedProperty = null;
-                if (this.IsOverride)
+                if (!_explicitInterfaceImplementations.IsEmpty)
                 {
-                    overriddenOrImplementedProperty = this.OverriddenProperty;
-                }
-                else if (!_explicitInterfaceImplementations.IsEmpty)
-                {
-                    overriddenOrImplementedProperty = _explicitInterfaceImplementations[0];
-                }
-
-                if (overriddenOrImplementedProperty != null)
-                {
-                    TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this, overriddenOrImplementedProperty, true, diagnostics);
+                    TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this.ContainingType, this, _explicitInterfaceImplementations[0], isExplicit: true, diagnostics);
                 }
             }
 
@@ -1256,9 +1246,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.SynthesizeTupleNamesAttribute(type.Type));
             }
 
-            if (compilation.ShouldEmitNullableAttributes(this) && type.NeedsNullableAttribute())
+            if (compilation.ShouldEmitNullableAttributes(this))
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, ContainingType.GetNullableContextValue(), type));
             }
 
             if (this.ReturnsByRefReadonly)

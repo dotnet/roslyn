@@ -8855,10 +8855,10 @@ tryAgain:
             Equality,
             Relational,
             Shift,
-            Range,
             Additive,
             Mutiplicative,
             Switch,
+            Range,
             Unary,
             Cast,
             PointerIndirection,
@@ -10381,6 +10381,7 @@ tryAgain:
                 case SyntaxKind.EndOfFileToken:
                 case SyntaxKind.SwitchKeyword:
                 case SyntaxKind.EqualsGreaterThanToken:
+                case SyntaxKind.DotDotToken:
                     return false;
                 default:
                     return true;

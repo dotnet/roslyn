@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Prefer_switch_expression">
         <source>Prefer switch expression</source>
-        <target state="new">Prefer switch expression</target>
+        <target state="translated">Preferovat výraz switch</target>
         <note />
       </trans-unit>
       <trans-unit id="Preferred_using_directive_placement">

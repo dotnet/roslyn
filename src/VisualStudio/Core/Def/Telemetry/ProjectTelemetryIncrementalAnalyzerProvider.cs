@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                 {
                     lock (_lockObject)
                     {
-                        Inputs newInputs = new Inputs(
+                        var newInputs = new Inputs(
                             language,
                             analyzerReferenceCount,
                             projectReferencesCount,

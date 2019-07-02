@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 parts.Add(Punctuation(SyntaxKind.ColonToken));
                 parts.Add(Space());
 
-                bool needComma = false;
+                var needComma = false;
 
                 // class/struct constraint must be first
                 if (typeParam.HasReferenceTypeConstraint)

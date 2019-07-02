@@ -45,13 +45,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     return ImmutableArray<CodeFixProvider>.Empty;
                 }
 
-                IEnumerable<TypeInfo> typeInfos = null;
                 var builder = ArrayBuilder<CodeFixProvider>.GetInstance();
 
                 try
                 {
-                    Assembly analyzerAssembly = analyzerFileReference.GetAssembly();
-                    typeInfos = analyzerAssembly.DefinedTypes;
+                    var analyzerAssembly = analyzerFileReference.GetAssembly();
+                    var typeInfos = analyzerAssembly.DefinedTypes;
 
                     foreach (var typeInfo in typeInfos)
                     {

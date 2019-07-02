@@ -221,6 +221,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Public Overrides Function GetHashCode() As Integer
+            If Me._substitution.WasConstructedForModifiers() Then
+                Return OriginalDefinition.GetHashCode()
+            End If
+
             Dim _hash As Integer = _fullInstanceType.GetHashCode()
 
             _hash = Hash.Combine(ContainingType, _hash)

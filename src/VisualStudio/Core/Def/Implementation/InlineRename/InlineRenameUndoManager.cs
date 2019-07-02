@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
 
                 // If we're not undoing conflict resolution, we need to undo the next unit after our startRenameUndoPrimitive
                 var count = GetUndoUnits(undoManager).SkipWhile(u => u != markerPrimitive).Count() + (undoConflictResolution ? 0 : -1);
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
                     undoManager.UndoTo(null);
                 }
@@ -230,12 +230,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
                 }
 
                 const int BatchSize = 100;
-                IOleUndoUnit[] fetchedUndoUnits = new IOleUndoUnit[BatchSize];
+                var fetchedUndoUnits = new IOleUndoUnit[BatchSize];
 
                 while (true)
                 {
                     undoUnitEnumerator.Next(BatchSize, fetchedUndoUnits, out var fetchedCount);
-                    for (int i = 0; i < fetchedCount; i++)
+                    for (var i = 0; i < fetchedCount; i++)
                     {
                         yield return fetchedUndoUnits[i];
                     }

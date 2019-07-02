@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MockDiagnos
         [Fact]
         public async Task Bug906919()
         {
-            string source = "[|class C { }|]";
+            var source = "[|class C { }|]";
             await VerifyDiagnosticsAsync(source);
         }
     }
