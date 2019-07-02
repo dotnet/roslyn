@@ -121,8 +121,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(FeaturesResources.Remove_unused_member, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Remove_unused_member, createChangedDocument)
             {
             }
         }

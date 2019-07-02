@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
             var paramColumnCount = 0;
 
-            for (int i = 0; i < _signatureHelpItem.Parameters.Length; i++)
+            for (var i = 0; i < _signatureHelpItem.Parameters.Length; i++)
             {
                 var sigHelpParameter = _signatureHelpItem.Parameters[i];
 

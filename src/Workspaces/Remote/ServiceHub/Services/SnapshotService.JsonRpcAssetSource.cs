@@ -83,33 +83,32 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var results = new List<(Checksum, object)>();
 
-                using (var reader = ObjectReader.TryGetReader(stream, cancellationToken))
-                {
-                    Debug.Assert(reader != null,
+                using var reader = ObjectReader.TryGetReader(stream, cancellationToken);
+
+                Debug.Assert(reader != null,
 @"We only ge a reader for data transmitted between live processes.
 This data should always be correct as we're never persisting the data between sessions.");
 
-                    var responseScopeId = reader.ReadInt32();
-                    Contract.ThrowIfFalse(scopeId == responseScopeId);
+                var responseScopeId = reader.ReadInt32();
+                Contract.ThrowIfFalse(scopeId == responseScopeId);
 
-                    var count = reader.ReadInt32();
-                    Contract.ThrowIfFalse(count == checksums.Count);
+                var count = reader.ReadInt32();
+                Contract.ThrowIfFalse(count == checksums.Count);
 
-                    for (var i = 0; i < count; i++)
-                    {
-                        var responseChecksum = Checksum.ReadFrom(reader);
-                        Contract.ThrowIfFalse(checksums.Contains(responseChecksum));
+                for (var i = 0; i < count; i++)
+                {
+                    var responseChecksum = Checksum.ReadFrom(reader);
+                    Contract.ThrowIfFalse(checksums.Contains(responseChecksum));
 
-                        var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
+                    var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
 
-                        // in service hub, cancellation means simply closed stream
-                        var @object = serializerService.Deserialize<object>(kind, reader, cancellationToken);
+                    // in service hub, cancellation means simply closed stream
+                    var @object = serializerService.Deserialize<object>(kind, reader, cancellationToken);
 
-                        results.Add((responseChecksum, @object));
-                    }
-
-                    return results;
+                    results.Add((responseChecksum, @object));
                 }
+
+                return results;
             }
 
             private static string GetRequestLogInfo(int serviceId, IEnumerable<Checksum> checksums)

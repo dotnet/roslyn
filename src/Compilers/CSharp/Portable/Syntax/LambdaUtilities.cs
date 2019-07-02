@@ -115,14 +115,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public static SyntaxNode GetNestedFunctionBody(SyntaxNode nestedFunction)
-        {
-            switch (nestedFunction)
+            => nestedFunction switch
             {
-                case AnonymousFunctionExpressionSyntax anonymousFunctionExpressionSyntax: return anonymousFunctionExpressionSyntax.Body;
-                case LocalFunctionStatementSyntax localFunctionStatementSyntax: return (CSharpSyntaxNode)localFunctionStatementSyntax.Body ?? localFunctionStatementSyntax.ExpressionBody.Expression;
-                default: throw ExceptionUtilities.UnexpectedValue(nestedFunction);
-            }
-        }
+                AnonymousFunctionExpressionSyntax anonymousFunctionExpressionSyntax => anonymousFunctionExpressionSyntax.Body,
+                LocalFunctionStatementSyntax localFunctionStatementSyntax => (CSharpSyntaxNode)localFunctionStatementSyntax.Body ?? localFunctionStatementSyntax.ExpressionBody.Expression,
+                _ => throw ExceptionUtilities.UnexpectedValue(nestedFunction),
+            };
 
         public static bool IsNotLambdaBody(SyntaxNode node)
         {

@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var methodSymbol = (MethodSymbol)this.MemberSymbol;
             binder = new ExecutableCodeBinder(statement, methodSymbol, binder);
-            speculativeModel = CreateSpeculative(parentModel, methodSymbol, statement, binder, SnapshotManager, position);
+            speculativeModel = CreateSpeculative(parentModel, methodSymbol, statement, binder, GetSnapshotManager(), position);
             return true;
         }
 

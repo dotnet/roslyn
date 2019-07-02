@@ -27,8 +27,7 @@ namespace Roslyn.Utilities
             }
 
             // perf optimization. try to not use enumerator if possible
-            var list = source as IList<T>;
-            if (list != null)
+            if (source is IList<T> list)
             {
                 for (int i = 0, count = list.Count; i < count; i++)
                 {
@@ -169,14 +168,12 @@ namespace Roslyn.Utilities
 
         public static bool IsEmpty<T>(this IEnumerable<T> source)
         {
-            var readOnlyCollection = source as IReadOnlyCollection<T>;
-            if (readOnlyCollection != null)
+            if (source is IReadOnlyCollection<T> readOnlyCollection)
             {
                 return readOnlyCollection.Count == 0;
             }
 
-            var genericCollection = source as ICollection<T>;
-            if (genericCollection != null)
+            if (source is ICollection<T> genericCollection)
             {
                 return genericCollection.Count == 0;
             }

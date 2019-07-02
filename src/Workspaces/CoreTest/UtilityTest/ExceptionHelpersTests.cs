@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestExecuteWithErrorReportingThrowOperationCanceledException()
         {
-            bool finallyExecuted = false;
+            var finallyExecuted = false;
 
             void a()
             {

@@ -35,8 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
-            var visualStudioWorkspace = workspace as VisualStudioWorkspace;
-            if (visualStudioWorkspace == null)
+            if (!(workspace is VisualStudioWorkspace visualStudioWorkspace))
             {
                 return null;
             }

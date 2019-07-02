@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             // First, make sure that every node (except the last one) ends with
             // a newline.
-            for (int i = 0; i < list.Count - 1; i++)
+            for (var i = 0; i < list.Count - 1; i++)
             {
                 var node = list[i];
                 var trailingTrivia = node.GetTrailingTrivia();
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             // Now, make sure that every node (except the first one) does *not*
             // start with newlines.
-            for (int i = 1; i < list.Count; i++)
+            for (var i = 1; i < list.Count; i++)
             {
                 var node = list[i];
                 list[i] = TrimLeadingNewLines(node);

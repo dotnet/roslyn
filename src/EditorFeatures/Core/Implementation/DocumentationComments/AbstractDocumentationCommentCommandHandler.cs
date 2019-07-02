@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
         private void AddLineBreaks(SourceText text, IList<string> lines, string newLine)
         {
-            for (int i = 0; i < lines.Count; i++)
+            for (var i = 0; i < lines.Count; i++)
             {
                 lines[i] = lines[i] + newLine;
             }
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             // Add indents
             var lineOffset = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(options.GetOption(FormattingOptions.TabSize));
             var indentText = lineOffset.CreateIndentationString(options.GetOption(FormattingOptions.UseTabs), options.GetOption(FormattingOptions.TabSize));
-            for (int i = 1; i < lines.Count - 1; i++)
+            for (var i = 1; i < lines.Count - 1; i++)
             {
                 lines[i] = indentText + lines[i];
             }
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             // Add indents
             var lineOffset = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(options.GetOption(FormattingOptions.TabSize));
             var indentText = lineOffset.CreateIndentationString(options.GetOption(FormattingOptions.UseTabs), options.GetOption(FormattingOptions.TabSize));
-            for (int i = 1; i < lines.Count; i++)
+            for (var i = 1; i < lines.Count; i++)
             {
                 lines[i] = indentText + lines[i];
             }
@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             Debug.Assert(line.Start + lineOffset == startPosition);
 
             var indentText = lineOffset.CreateIndentationString(options.GetOption(FormattingOptions.UseTabs), options.GetOption(FormattingOptions.TabSize));
-            for (int i = 1; i < lines.Count; i++)
+            for (var i = 1; i < lines.Count; i++)
             {
                 lines[i] = indentText + lines[i];
             }
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             // Check to see if the current line starts with exterior trivia. If so, we'll take over.
             // If not, let the nextHandler run.
 
-            int originalPosition = -1;
+            var originalPosition = -1;
 
             // The original position should be a position that is consistent with the syntax tree, even
             // after Enter is pressed. Thus, we use the start of the first selection if there is one.

@@ -37,17 +37,17 @@ indent_size = 2
 
 # Dotnet diagnostic settings
 [*.{cs,vb}]
-dotnet_diagnostic.xUnit2018.severity = suppress # "do not compare an object's exact type to the abstract class" is a valid assert, but very noisy right now
+dotnet_diagnostic.xUnit2018.severity = none # "do not compare an object's exact type to the abstract class" is a valid assert, but very noisy right now
 
 # Dotnet code style settings:
 [*.{cs,vb}]
 # Sort using and Import directives with System.* appearing first
 dotnet_sort_system_directives_first = true
 # Avoid "this." and "Me." if not necessary
-dotnet_style_qualification_for_field = false:suggestion
-dotnet_style_qualification_for_property = false:suggestion
-dotnet_style_qualification_for_method = false:suggestion
-dotnet_style_qualification_for_event = false:suggestion
+dotnet_style_qualification_for_field = false:refactoring
+dotnet_style_qualification_for_property = false:refactoring
+dotnet_style_qualification_for_method = false:refactoring
+dotnet_style_qualification_for_event = false:refactoring
 
 # Use language keywords instead of framework type names for type references
 dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion

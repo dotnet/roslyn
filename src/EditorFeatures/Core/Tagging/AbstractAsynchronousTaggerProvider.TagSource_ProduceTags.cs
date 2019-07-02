@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     default:
                         var textChangeRanges = new TextChangeRange[count];
-                        for (int i = 0; i < count; i++)
+                        for (var i = 0; i < count; i++)
                         {
                             var c = contentChanges[i];
                             textChangeRanges[i] = new TextChangeRange(new TextSpan(c.OldSpan.Start, c.OldSpan.Length), c.NewLength);

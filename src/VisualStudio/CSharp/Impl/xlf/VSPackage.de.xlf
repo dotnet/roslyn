@@ -330,13 +330,13 @@ Namensvorschläge anzeigen;</target>
         <note />
       </trans-unit>
       <trans-unit id="2358">
-        <source>CSharp Editor</source>
-        <target state="translated">CSharp-Editor</target>
+        <source>C# Editor</source>
+        <target state="needs-review-translation">CSharp-Editor</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
-        <source>CSharp Editor with Encoding</source>
-        <target state="translated">CSharp-Editor mit Codierung</target>
+        <source>C# Editor with Encoding</source>
+        <target state="needs-review-translation">CSharp-Editor mit Codierung</target>
         <note />
       </trans-unit>
       <trans-unit id="113">

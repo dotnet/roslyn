@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(FeaturesResources.Add_braces, createChangedDocument, FeaturesResources.Add_braces)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Add_braces, createChangedDocument, FeaturesResources.Add_braces)
             {
             }
         }

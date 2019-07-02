@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var mergedSpan = new SnapshotSpan(requestedSpans[0].Start, requestedSpans[requestedSpans.Count - 1].End);
             var result = GetIntersectingSpans(mergedSpan);
 
-            int requestIndex = 0;
+            var requestIndex = 0;
 
             var enumerator = result.GetEnumerator();
 
