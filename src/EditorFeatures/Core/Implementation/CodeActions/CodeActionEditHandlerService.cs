@@ -146,8 +146,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             var singleChangedDocument = TryGetSingleChangedText(oldSolution, operations);
             if (singleChangedDocument != null)
             {
-                // ConfigureAwait(true) so we come back to the same thread as 
-                // we do all application on the UI thread.
                 var text = singleChangedDocument.GetTextSynchronously(cancellationToken);
 
                 using (workspace.Services.GetService<ISourceTextUndoService>().RegisterUndoTransaction(text, title))
