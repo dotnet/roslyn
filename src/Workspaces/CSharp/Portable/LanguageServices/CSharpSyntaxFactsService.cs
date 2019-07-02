@@ -1967,5 +1967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public SyntaxNode GetContainingPropertyDeclaration(SyntaxNode node) => node.GetAncestor<PropertyDeclarationSyntax>();
+
+        public SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node) => CSharpSyntaxGenerator.GetAttributeLists(node);
     }
 }

@@ -249,6 +249,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsAttribute(SyntaxNode node);
         bool IsAttributeName(SyntaxNode node);
+        SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node);
 
         bool IsAttributeNamedArgumentIdentifier(SyntaxNode node);
         bool IsObjectInitializerNamedAssignmentIdentifier(SyntaxNode node);

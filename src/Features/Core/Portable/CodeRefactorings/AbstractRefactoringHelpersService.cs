@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <para>
         /// Note: this function trims all whitespace from both the beginning and the end of given <paramref name="selection"/>.
         /// The trimmed version is then used to determine relevant <see cref="SyntaxNode"/>. It also handles incomplete selections
-        /// of tokens gracefully.
+        /// of tokens gracefully. Over-selection containing leading comments is also handled correctly. 
         /// </para>
         /// </summary>
         protected Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selection, Predicate<SyntaxNode> predicate, CancellationToken cancellationToken)
@@ -61,12 +61,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// potentially returned instead of current Node. 
         /// </para>
         /// <para>
-        /// Note: this function trims all whitespace from both the beginning and the end of given <paramref name="selection"/>.
+        /// Note: this function trims all whitespace from both the beginning and the end of given <paramref name="selectionRaw"/>.
         /// The trimmed version is then used to determine relevant <see cref="SyntaxNode"/>. It also handles incomplete selections
-        /// of tokens gracefully.
+        /// of tokens gracefully. Over-selection containing leading comments is also handled correctly. 
         /// </para>
         /// </summary>
-        protected async Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selection, Predicate<SyntaxNode> predicate, Func<SyntaxNode, ISyntaxFactsService, bool, SyntaxNode> extractNode, CancellationToken cancellationToken)
+        protected async Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selectionRaw, Predicate<SyntaxNode> predicate, Func<SyntaxNode, ISyntaxFactsService, bool, SyntaxNode> extractNode, CancellationToken cancellationToken)
         {
             // Given selection is trimmed first to enable over-selection that spans multiple lines. Since trailing whitespace ends
             // at newline boundary over-selection to e.g. a line after LocalFunctionStatement would cause FindNode to find enclosing
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var selectionTrimmed = await CodeRefactoringHelpers.GetTrimmedTextSpan(document, selection, cancellationToken).ConfigureAwait(false);
+            var selectionTrimmed = await CodeRefactoringHelpers.GetTrimmedTextSpan(document, selectionRaw, cancellationToken).ConfigureAwait(false);
 
             // Every time a Node is considered by following algorithm (and tested with predicate) and the predicate fails
             // extractNode is called on the node and the result is tested with predicate again. If any of those succeed
@@ -94,24 +94,36 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             // Handle selections:
             // - The smallest node whose FullSpan includes the whole (trimmed) selection
+            //   - Using FullSpan is important because it handles over-selection with comments
             // - Travels upwards through same-sized (FullSpan) nodes, extracting and testing predicate
             // - Handles situations where:
             //  - Token with wanted Node as direct parent is selected (e.g. IdentifierToken for LocalFunctionStatement: `C [|Fun|]() {}`) 
             //  - Most/the whole wanted Node is selected (e.g. `C [|Fun() {}|]`
-            var node = root.FindNode(selectionTrimmed, getInnermostNodeForTie: true);
-            SyntaxNode prevNode;
+            var selectionNode = root.FindNode(selectionTrimmed, getInnermostNodeForTie: true);
+            var prevNode = selectionNode;
             do
             {
-                var wantedNode = TryGetAcceptedNodeOrExtracted(node, predicate, extractNode, syntaxFacts, extractParentsOfHeader: false);
+                var wantedNode = TryGetAcceptedNodeOrExtracted(selectionNode, predicate, extractNode, syntaxFacts, extractParentsOfHeader: false);
                 if (wantedNode != null)
                 {
+                    // For selections we need to handle an edge case where only AttributeLists are within selection (e.g. `Func([|[in][out]|] arg1);`).
+                    // In that case the smallest encompassing node is still the whole argument node but it's hard to justify showing refactorings for it
+                    // if user selected only its attributes.
+
+                    // Selection contains only AttributeLists -> don't consider current Node
+                    var spanWithoutAttributes = GetSpanWithoutAttributes(wantedNode, root, syntaxFacts);
+                    if (!selectionTrimmed.IntersectsWith(spanWithoutAttributes))
+                    {
+                        break;
+                    }
+
                     return wantedNode;
                 }
 
-                prevNode = node;
-                node = node.Parent;
+                prevNode = selectionNode;
+                selectionNode = selectionNode.Parent;
             }
-            while (node != null && prevNode.FullWidth() == node.FullWidth());
+            while (selectionNode != null && prevNode.FullWidth() == selectionNode.FullWidth());
 
             // Handle what current selection is touching:
             //
@@ -134,7 +146,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // continue traveling upwards. The situation for right edge (`C methodName(){}[||]`) is analogical.
             // E.g. for right edge `C methodName(){}[||]`: CloseBraceToken -> BlockSyntax -> LocalFunctionStatement -> null (higher 
             // node doesn't end on position anymore)
-            if (!selection.IsEmpty)
+            // Note: left-edge climbing needs to handle AttributeLists explicitly, see below for more information. 
+            if (!selectionRaw.IsEmpty)
             {
                 return null;
             }
@@ -162,9 +175,29 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                         return wantedNode;
                     }
 
-                    rightNode = rightNode?.Parent;
+                    rightNode = rightNode.Parent;
+                    if (rightNode == null)
+                    {
+                        break;
+                    }
+
+                    // The edge climbing for node to the right needs to handle Attributes e.g.:
+                    // [Test1]
+                    // //Comment1
+                    // [||]object Property1 { get; set; }
+                    // In essence:
+                    // - On the left edge of the node (-> left edge of first AttributeLists)
+                    // - On the left edge of the node sans AttributeLists (& as everywhere comments)
+                    if (rightNode.Span.Start != location)
+                    {
+                        var rightNodeSpanWithoutAttributes = GetSpanWithoutAttributes(rightNode, root, syntaxFacts);
+                        if (rightNodeSpanWithoutAttributes.Start != location)
+                        {
+                            break;
+                        }
+                    }
                 }
-                while (rightNode != null && rightNode.Span.Start == location);
+                while (true);
             }
 
             // if the location is inside tokenToRightOrIn -> no Token can be to Left (tokenToRightOrIn is also left from location, e.g: `tok[||]enITORightOrIn`)
@@ -195,9 +228,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                         return wantedNode;
                     }
 
-                    leftNode = leftNode?.Parent;
+                    leftNode = leftNode.Parent;
+                    if (leftNode != null || leftNode.Span.End != location)
+                    {
+                        break;
+                    }
                 }
-                while (leftNode != null && leftNode.Span.End == location);
+                while (true);
             }
 
             // nothing found -> return null
@@ -220,6 +257,28 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     ? extractedNode
                     : null;
             }
+        }
+
+        private static TextSpan GetSpanWithoutAttributes(SyntaxNode node, SyntaxNode root, ISyntaxFactsService syntaxFacts)
+        {
+            // Span without AttributeLists
+            // - No AttributeLists -> original .Span
+            // - Some AttributeLists -> (first non-trivia/comment Token.Span.Begin, original.Span.End)
+            //   - We need to be mindful about comments due to:
+            //      // [Test1]
+            //      //Comment1
+            //      [||]object Property1 { get; set; }
+            //     the comment node being part of the next token's (`object`) leading trivia and not the AttributeList's node.
+            var attributeList = syntaxFacts.GetAttributeLists(node);
+            if (attributeList.Any())
+            {
+                var endOfAttributeLists = attributeList.Last().Span.End;
+                var afterAttributesToken = root.FindTokenOnRightOfPosition(endOfAttributeLists);
+
+                return TextSpan.FromBounds(afterAttributesToken.Span.Start, node.Span.End);
+            }
+
+            return node.Span;
         }
 
         /// <summary>
