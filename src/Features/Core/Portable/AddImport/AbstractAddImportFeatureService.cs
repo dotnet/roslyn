@@ -70,8 +70,6 @@ namespace Microsoft.CodeAnalysis.AddImport
                     },
                     cancellationToken).ConfigureAwait(false);
 
-                var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
                 if (result != null)
                 {
                     return result.ToImmutableArray();
@@ -101,7 +99,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 {
                     if (!cancellationToken.IsCancellationRequested)
                     {
-                        if (this.CanAddImport(node, cancellationToken))
+                        if (CanAddImport(node, cancellationToken))
                         {
                             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                             var allSymbolReferences = await FindResultsAsync(
@@ -228,21 +226,20 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             // Create another cancellation token so we can both search all projects in parallel,
             // but also stop any searches once we get enough results.
-            using (var nestedTokenSource = new CancellationTokenSource())
-            using (var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken))
-            {
-                foreach (var unreferencedProject in viableUnreferencedProjects)
-                {
-                    // Search in this unreferenced project.  But don't search in any of its'
-                    // direct references.  i.e. we don't want to search in its metadata references
-                    // or in the projects it references itself. We'll be searching those entities
-                    // individually.
-                    findTasks.Add(finder.FindInSourceSymbolsInProjectAsync(
-                        projectToAssembly, unreferencedProject, exact, linkedTokenSource.Token));
-                }
+            using var nestedTokenSource = new CancellationTokenSource();
+            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken);
 
-                await WaitForTasksAsync(allSymbolReferences, maxResults, findTasks, nestedTokenSource, cancellationToken).ConfigureAwait(false);
+            foreach (var unreferencedProject in viableUnreferencedProjects)
+            {
+                // Search in this unreferenced project.  But don't search in any of its'
+                // direct references.  i.e. we don't want to search in its metadata references
+                // or in the projects it references itself. We'll be searching those entities
+                // individually.
+                findTasks.Add(finder.FindInSourceSymbolsInProjectAsync(
+                    projectToAssembly, unreferencedProject, exact, linkedTokenSource.Token));
             }
+
+            await WaitForTasksAsync(allSymbolReferences, maxResults, findTasks, nestedTokenSource, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task FindResultsInUnreferencedMetadataSymbolsAsync(
@@ -270,25 +267,24 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             // Create another cancellation token so we can both search all projects in parallel,
             // but also stop any searches once we get enough results.
-            using (var nestedTokenSource = new CancellationTokenSource())
-            using (var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken))
+            using var nestedTokenSource = new CancellationTokenSource();
+            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken);
+
+            foreach (var (referenceProjectId, reference) in newReferences)
             {
-                foreach (var (referenceProjectId, reference) in newReferences)
+                var compilation = referenceToCompilation.GetOrAdd(
+                    reference, r => CreateCompilation(project, r));
+
+                // Ignore netmodules.  First, they're incredibly esoteric and barely used.
+                // Second, the SymbolFinder API doesn't even support searching them. 
+                if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                 {
-                    var compilation = referenceToCompilation.GetOrAdd(
-                        reference, r => CreateCompilation(project, r));
-
-                    // Ignore netmodules.  First, they're incredibly esoteric and barely used.
-                    // Second, the SymbolFinder API doesn't even support searching them. 
-                    if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
-                    {
-                        findTasks.Add(finder.FindInMetadataSymbolsAsync(
-                            assembly, referenceProjectId, reference, exact, linkedTokenSource.Token));
-                    }
+                    findTasks.Add(finder.FindInMetadataSymbolsAsync(
+                        assembly, referenceProjectId, reference, exact, linkedTokenSource.Token));
                 }
-
-                await WaitForTasksAsync(allSymbolReferences, maxResults, findTasks, nestedTokenSource, cancellationToken).ConfigureAwait(false);
             }
+
+            await WaitForTasksAsync(allSymbolReferences, maxResults, findTasks, nestedTokenSource, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -541,7 +537,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             throw ExceptionUtilities.Unreachable;
         }
 
-        private ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, ISyntaxFactsService syntaxFactsService, SyntaxNode node, CancellationToken cancellationToken)
+        private ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, ISyntaxFactsService syntaxFactsService, SyntaxNode node)
         {
             var awaitExpression = FirstAwaitExpressionAncestor(syntaxFactsService, node);
 

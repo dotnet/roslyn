@@ -547,6 +547,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeWithAnnotations WithTypeAndModifiers(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers) =>
             _extensions.WithTypeAndModifiers(this, typeSymbol, customModifiers);
 
+        /// <summary>
+        /// Used by callers before calling CSharpCompilation.EnsureNullableAttributeExists().
+        /// </summary>
+        /// <remarks>
+        /// This method ignores any [NullableContext]. For example, if there is a [NullableContext(1)]
+        /// at the containing type, and this type reference is oblivious, NeedsNullableAttribute()
+        /// will return false even though a [Nullable(0)] will be emitted for this type reference.
+        /// In practice, this shouldn't be an issue though since EnsuresNullableAttributeExists()
+        /// will have returned true for at least some of other type references that required
+        /// [Nullable(1)] and were subsequently aggregated to the [NullableContext(1)].
+        /// </remarks>
         public bool NeedsNullableAttribute()
         {
             return NeedsNullableAttribute(this, typeOpt: null);
@@ -585,27 +596,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public void AddNullableTransforms(ArrayBuilder<byte> transforms)
         {
-            var type = Type;
+            AddNullableTransforms(this, transforms);
+        }
 
-            if (!SkipNullableTransform(type))
+        private static void AddNullableTransforms(TypeWithAnnotations typeWithAnnotations, ArrayBuilder<byte> transforms)
+        {
+            while (true)
             {
-                byte flag;
-                if (NullableAnnotation.IsOblivious() || type.IsValueType)
-                {
-                    flag = NullableAnnotationExtensions.ObliviousAttributeValue;
-                }
-                else if (NullableAnnotation.IsAnnotated())
-                {
-                    flag = NullableAnnotationExtensions.AnnotatedAttributeValue;
-                }
-                else
-                {
-                    flag = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
-                }
-                transforms.Add(flag);
-            }
+                var type = typeWithAnnotations.Type;
 
-            type.AddNullableTransforms(transforms);
+                if (!SkipNullableTransform(type))
+                {
+                    var annotation = typeWithAnnotations.NullableAnnotation;
+                    byte flag;
+                    if (annotation.IsOblivious() || type.IsValueType)
+                    {
+                        flag = NullableAnnotationExtensions.ObliviousAttributeValue;
+                    }
+                    else if (annotation.IsAnnotated())
+                    {
+                        flag = NullableAnnotationExtensions.AnnotatedAttributeValue;
+                    }
+                    else
+                    {
+                        flag = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
+                    }
+                    transforms.Add(flag);
+                }
+
+                if (type.TypeKind != TypeKind.Array)
+                {
+                    type.AddNullableTransforms(transforms);
+                    return;
+                }
+
+                // Avoid recursion to allow for deeply-nested arrays.
+                typeWithAnnotations = ((ArrayTypeSymbol)type).ElementTypeWithAnnotations;
+            }
         }
 
         public bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeWithAnnotations result)
@@ -615,13 +642,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol oldTypeSymbol = Type;
             byte transformFlag;
 
-            if (transforms.IsDefault)
-            {
-                transformFlag = defaultTransformFlag;
-            }
-            else if (SkipNullableTransform(oldTypeSymbol))
+            // Check SkipNullableTransform first to avoid
+            // applying transforms to simple value types.
+            if (SkipNullableTransform(oldTypeSymbol))
             {
                 transformFlag = NullableAnnotationExtensions.ObliviousAttributeValue;
+            }
+            else if (transforms.IsDefault)
+            {
+                transformFlag = defaultTransformFlag;
             }
             else if (position < transforms.Length)
             {

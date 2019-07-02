@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Of the items the service returned, pick the one most recently committed
             var bestItem = GetBestCompletionItemBasedOnMRU(chosenItems, recentItems);
             VSCompletionItem uniqueItem = null;
-            int selectedItemIndex = 0;
+            var selectedItemIndex = 0;
 
             // Determine if we should consider this item 'unique' or not.  A unique item
             // will be automatically committed if the user hits the 'invoke completion' 
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return null;
             }
 
-            bool isHardSelection = IsHardSelection(
+            var isHardSelection = IsHardSelection(
                 filterText, initialRoslynTriggerKind, bestOrFirstCompletionItem,
                 completionHelper, filterReason, recentItems, hasSuggestedItemOptions);
 
@@ -343,8 +343,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             ImmutableArray<CompletionFilterWithState> filters,
             ImmutableArray<CompletionItemWithHighlight> highlightedList)
         {
+            var matchingItems = filterResults.Where(r => r.FilterResult.MatchedFilterText).AsImmutable();
             if (filterTriggerKind == CompletionTriggerReason.Insertion &&
-                !filterResults.Any(r => r.FilterResult.MatchedFilterText))
+                !matchingItems.Any())
             {
                 // The user has typed something, but nothing in the actual list matched what
                 // they were typing.  In this case, we want to dismiss completion entirely.
@@ -356,15 +357,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             ExtendedFilterResult? bestFilterResult = null;
-            int matchCount = 1;
-            foreach (var currentFilterResult in filterResults.Where(r => r.FilterResult.MatchedFilterText))
+            foreach (var currentFilterResult in matchingItems)
             {
                 if (bestFilterResult == null ||
                     IsBetterDeletionMatch(currentFilterResult.FilterResult, bestFilterResult.Value.FilterResult))
                 {
                     // We had no best result yet, so this is now our best result.
                     bestFilterResult = currentFilterResult;
-                    matchCount++;
                 }
             }
 
@@ -392,11 +391,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 hardSelect = false;
             }
 
+            var deduplicatedListCount = matchingItems.Where(r => !r.VSCompletionItem.DisplayText.StartsWith("★")).Count();
+
             return new FilteredCompletionModel(
                 highlightedList, index, filters,
                 hardSelect ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected,
                 centerSelection: true,
-                uniqueItem: matchCount == 1 ? bestFilterResult.GetValueOrDefault().VSCompletionItem : default);
+                uniqueItem: deduplicatedListCount == 1 ? bestFilterResult.GetValueOrDefault().VSCompletionItem : default);
         }
 
         private FilteredCompletionModel HandleAllItemsFilteredOut(

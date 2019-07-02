@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override SyntaxNode FindEnclosingLambdaBody(SyntaxNode containerOpt, SyntaxNode node)
         {
-            SyntaxNode root = GetEncompassingAncestor(containerOpt);
+            var root = GetEncompassingAncestor(containerOpt);
 
             while (node != root && node != null)
             {
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // - for query lambdas the root is the query clause containing the lambda (e.g. where).
                 // - for local functions the root is LocalFunctionStatement.
 
-                SyntaxNode GetMatchingRoot(SyntaxNode body)
+                static SyntaxNode GetMatchingRoot(SyntaxNode body)
                 {
                     var parent = body.Parent;
                     // We could apply this change across all ArrowExpressionClause consistently not just for ones with LocalFunctionStatement parents
@@ -671,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override IEnumerable<KeyValuePair<SyntaxNode, int>> EnumerateNearStatements(SyntaxNode statement)
         {
-            int direction = +1;
+            var direction = +1;
             SyntaxNodeOrToken nodeOrToken = statement;
             var fieldOrPropertyModifiers = SyntaxUtilities.TryGetFieldOrPropertyModifiers(statement);
 
@@ -3333,7 +3333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return false;
             }
 
-            for (int i = 0; i < oldVariables.Length; i++)
+            for (var i = 0; i < oldVariables.Length; i++)
             {
                 if (!SyntaxFactory.AreEquivalent(oldVariables[i], newVariables[i]))
                 {

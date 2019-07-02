@@ -271,6 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 case ApplyChangesKind.ChangeDocument:
                 case ApplyChangesKind.ChangeAdditionalDocument:
                 case ApplyChangesKind.ChangeAnalyzerConfigDocument:
+                case ApplyChangesKind.ChangeDocumentInfo:
                     return this.CanApplyChangeDocument;
 
                 case ApplyChangesKind.AddProjectReference:
@@ -415,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             IProjectionEditResolver editResolver = null)
         {
             GetSpansAndCaretFromSurfaceBufferMarkup(markup, baseDocuments,
-                out var projectionBufferSpans, out Dictionary<string, ImmutableArray<TextSpan>> mappedSpans, out var mappedCaretLocation);
+                out var projectionBufferSpans, out var mappedSpans, out var mappedCaretLocation);
 
             var projectionBufferFactory = this.GetService<IProjectionBufferFactoryService>();
             var projectionBuffer = projectionBufferFactory.CreateProjectionBuffer(editResolver, projectionBufferSpans, options);
@@ -577,7 +578,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             var tempMappedMarkupSpans = new Dictionary<string, ArrayBuilder<TextSpan>>();
 
-            foreach (string key in markupSpans.Keys)
+            foreach (var key in markupSpans.Keys)
             {
                 tempMappedMarkupSpans[key] = ArrayBuilder<TextSpan>.GetInstance();
                 foreach (var markupSpan in markupSpans[key])

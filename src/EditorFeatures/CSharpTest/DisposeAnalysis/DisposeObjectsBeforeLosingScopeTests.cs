@@ -5024,6 +5024,37 @@ class C : IDisposable
 }");
         }
 
+        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        public async Task UsingDeclaration()
+        {
+            await TestDiagnosticsAsync(@"
+using System;
+class C : IDisposable
+{
+    public void Dispose() { }
+    void M1()
+    {
+        [|using var c = new C()|];
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        public async Task UsingDeclarationWithInitializer()
+        {
+            await TestDiagnosticsAsync(@"
+using System;
+class C : IDisposable
+{
+    public int P { get; set; }
+    public void Dispose() { }
+    void M1()
+    {
+        [|using var c = new C() { P = 1 }|];
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
         [Fact]
         public async Task MissingDisposeInMethodWithAttributes()
         {

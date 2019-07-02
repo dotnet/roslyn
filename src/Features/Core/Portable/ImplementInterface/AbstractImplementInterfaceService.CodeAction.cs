@@ -41,13 +41,13 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 bool abstractly,
                 ISymbol throughMember)
             {
-                this.Service = service;
-                this.Document = document;
-                this.State = state;
-                this.Abstractly = abstractly;
-                this.Explicitly = explicitly;
-                this.ThroughMember = throughMember;
-                _equivalenceKey = ComputeEquivalenceKey(state, explicitly, abstractly, throughMember, this.GetType().FullName);
+                Service = service;
+                Document = document;
+                State = state;
+                Abstractly = abstractly;
+                Explicitly = explicitly;
+                ThroughMember = throughMember;
+                _equivalenceKey = ComputeEquivalenceKey(state, explicitly, abstractly, throughMember, GetType().FullName);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementAbstractlyCodeAction(
@@ -143,15 +143,12 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public override string EquivalenceKey => _equivalenceKey;
 
             private static string GetDescription(ISymbol throughMember)
-            {
-                switch (throughMember)
+                => throughMember switch
                 {
-                    case IFieldSymbol field: return field.Name;
-                    case IPropertySymbol property: return property.Name;
-                    default:
-                        throw new InvalidOperationException();
-                }
-            }
+                    IFieldSymbol field => field.Name,
+                    IPropertySymbol property => property.Name,
+                    _ => throw new InvalidOperationException(),
+                };
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
@@ -224,11 +221,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var implementedVisibleMembers = new List<ISymbol>();
                 var implementedMembers = ArrayBuilder<ISymbol>.GetInstance();
 
-                foreach (var tuple in unimplementedMembers)
+                foreach (var (_, unimplementedInterfaceMembers) in unimplementedMembers)
                 {
-                    var interfaceType = tuple.type;
-                    var unimplementedInterfaceMembers = tuple.members;
-
                     foreach (var unimplementedInterfaceMember in unimplementedInterfaceMembers)
                     {
                         var member = GenerateMember(
@@ -386,7 +380,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
                 CancellationToken cancellationToken)
             {
-                var factory = this.Document.GetLanguageService<SyntaxGenerator>();
+                var factory = Document.GetLanguageService<SyntaxGenerator>();
                 var modifiers = new DeclarationModifiers(isAbstract: generateAbstractly, isNew: addNew, isUnsafe: addUnsafe);
 
                 var useExplicitInterfaceSymbol = generateInvisibly || !Service.CanImplementImplicitly;
@@ -560,7 +554,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             private bool IdentifiersMatch(string identifier1, string identifier2)
             {
-                return this.IsCaseSensitive
+                return IsCaseSensitive
                     ? identifier1 == identifier2
                     : StringComparer.OrdinalIgnoreCase.Equals(identifier1, identifier2);
             }
@@ -569,7 +563,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 get
                 {
-                    return this.Document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive;
+                    return Document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive;
                 }
             }
 
@@ -617,7 +611,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
 
                 return SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(
-                    member1, member2, this.IsCaseSensitive);
+                    member1, member2, IsCaseSensitive);
             }
         }
     }

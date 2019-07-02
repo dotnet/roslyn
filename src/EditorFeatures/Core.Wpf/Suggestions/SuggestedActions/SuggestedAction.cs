@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 map[FixAllLogger.FixAllScope] = fixSome.FixAllState.Scope.ToString();
             }
 
-            if (TryGetTelemetryId(out Guid telemetryId))
+            if (TryGetTelemetryId(out var telemetryId))
             {
                 // Lightbulb correlation info
                 map["TelemetryId"] = telemetryId.ToString();

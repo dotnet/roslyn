@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             OptionSet optionSet,
             ChainedFormattingRules formattingRules,
             SyntaxToken token1,
-            SyntaxToken token2) :
-            base(TreeData.Create(trivia, initialColumn),
-                 optionSet,
-                 formattingRules,
-                 token1,
-                 token2)
+            SyntaxToken token2)
+            : base(TreeData.Create(trivia, initialColumn),
+                   optionSet,
+                   formattingRules,
+                   token1,
+                   token2)
         {
         }
 
