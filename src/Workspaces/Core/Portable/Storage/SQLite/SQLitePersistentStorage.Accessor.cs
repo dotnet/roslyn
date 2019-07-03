@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.SQLite
         private abstract class Accessor<TKey, TWriteQueueKey, TDatabaseId>
         {
             protected readonly SQLitePersistentStorage Storage;
-            private readonly string _select_rowid_from_0_where_1;
+            private readonly string _select_rowid_from_main_0_where_1;
 
             public Accessor(SQLitePersistentStorage storage)
             {
                 Storage = storage;
-                _select_rowid_from_0_where_1 = $@"select rowid from ""{MainDBName}.{DataTableName}"" where ""{DataIdColumnName}"" = ?";
+                _select_rowid_from_main_0_where_1 = $@"select rowid from ""{MainDBName}.{DataTableName}"" where ""{DataIdColumnName}"" = ?";
             }
 
             protected abstract string DataTableName { get; }
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // ROWID, _ROWID_, or OID. Except if you declare an ordinary table column to use one 
                 // of those special names, then the use of that name will refer to the declared column
                 // not to the internal ROWID.
-                using (var resettableStatement = connection.GetResettableStatement(_select_rowid_from_0_where_1))
+                using (var resettableStatement = connection.GetResettableStatement(_select_rowid_from_main_0_where_1))
                 {
                     var statement = resettableStatement.Statement;
 
