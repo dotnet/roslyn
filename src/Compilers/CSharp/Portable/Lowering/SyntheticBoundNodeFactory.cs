@@ -1453,10 +1453,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BinaryOperatorKind.Equal:
                         return Literal(ConstantValue.Create(rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
-                    //LocalRewriter.MakeLiteral(syntax, ConstantValue.Create(rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
                     case BinaryOperatorKind.NotEqual:
                         return Literal(ConstantValue.Create(rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
-                        //LocalRewriter.MakeLiteral(syntax, ConstantValue.Create(!rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
                 }
             }
 
@@ -1468,7 +1466,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Box type parameters.
                     rewrittenExpr = Convert(objectType, rewrittenExpr, Conversion.Boxing);
-                    // LocalRewriter.MakeConversionNode(syntax, rewrittenExpr, Conversion.Boxing, objectType, @checked: false);
 
                 }
                 else if (exprType.IsNullableType())
@@ -1479,13 +1476,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (operatorKind == BinaryOperatorKind.NullableNullEqual || operatorKind == BinaryOperatorKind.NullableNullNotEqual)
             {
                 return RewriteNullableNullEquality(syntax, operatorKind, rewrittenExpr, Literal(ConstantValue.Null, objectType), boolType); 
-                /*LocalRewriter.MakeBinaryOperator(
-                syntax,
-                operatorKind,
-                rewrittenExpr,
-                Literal(ConstantValue.Null, objectType), //LocalRewriter.MakeLiteral(syntax, ConstantValue.Null, objectType),
-                boolType,
-                null);*/
             }
             else
             {

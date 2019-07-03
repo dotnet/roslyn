@@ -1208,7 +1208,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 boundStatements = boundStatementsWithNullCheck;
                             }
-
                         }
 
 
