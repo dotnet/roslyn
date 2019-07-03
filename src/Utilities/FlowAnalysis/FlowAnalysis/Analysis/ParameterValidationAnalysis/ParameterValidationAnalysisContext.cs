@@ -30,8 +30,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
-            ImmutableHashSet<string> nullCheckValidationMethodNames,
-            ImmutableHashSet<IMethodSymbol> nullCheckValidationMethodSymbols,
+            SymbolNamesOption nullCheckValidationMethods,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             PointsToAnalysisResult pointsToAnalysisResultOpt,
@@ -46,8 +45,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                   interproceduralAnalysisPredicateOpt: null)
         {
             TrackHazardousParameterUsages = trackHazardousParameterUsages;
-            NullCheckValidationMethodNames = nullCheckValidationMethodNames;
-            NullCheckValidationMethodSymbols = nullCheckValidationMethodSymbols;
+            NullCheckValidationMethodNames = nullCheckValidationMethods;
         }
 
         public static ParameterValidationAnalysisContext Create(
@@ -55,29 +53,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
-            ImmutableArray<string> nullCheckValidationMethods,
+            SymbolNamesOption nullCheckValidationMethods,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             PointsToAnalysisResult pointsToAnalysisResultOpt,
             Func<ParameterValidationAnalysisContext, ParameterValidationAnalysisResult> tryGetOrComputeAnalysisResult)
         {
-            var nullCheckValidationMethodNames = nullCheckValidationMethods.IsEmpty ?
-                ImmutableHashSet<string>.Empty :
-                nullCheckValidationMethods.Where(s => !s.Contains("."))
-                    .ToImmutableHashSet(wellKnownTypeProvider.Compilation.IsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
-
-            var nullCheckValidationMethodSymbols = nullCheckValidationMethods.IsEmpty ?
-                ImmutableHashSet<IMethodSymbol>.Empty :
-                nullCheckValidationMethods.Where(s => s.Contains("."))
-                    .Select(s => s.StartsWith("M:", StringComparison.Ordinal) ? s : "M:" + s)
-                    .SelectMany(s => DocumentationCommentId.GetSymbolsForDeclarationId(s, wellKnownTypeProvider.Compilation))
-                    .OfType<IMethodSymbol>()
-                    .WhereNotNull()
-                    .ToImmutableHashSet();
-
             return new ParameterValidationAnalysisContext(
                 valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol,
-                nullCheckValidationMethodNames, nullCheckValidationMethodSymbols, interproceduralAnalysisConfig,
+                nullCheckValidationMethods, interproceduralAnalysisConfig,
                 pessimisticAnalysis, pointsToAnalysisResultOpt, tryGetOrComputeAnalysisResult, parentControlFlowGraphOpt: null,
                 interproceduralAnalysisDataOpt: null, trackHazardousParameterUsages: false);
         }
@@ -99,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             // We only care about analyzing validation methods.
             return new ParameterValidationAnalysisContext(
                 ValueDomain, WellKnownTypeProvider, invokedCfg, invokedMethod,
-                NullCheckValidationMethodNames, NullCheckValidationMethodSymbols, InterproceduralAnalysisConfiguration,
+                NullCheckValidationMethodNames, InterproceduralAnalysisConfiguration,
                 PessimisticAnalysis, pointsToAnalysisResultOpt, TryGetOrComputeAnalysisResult, ControlFlowGraph,
                 interproceduralAnalysisData, TrackHazardousParameterUsages);
         }
@@ -107,22 +91,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
         public ParameterValidationAnalysisContext WithTrackHazardousParameterUsages()
             => new ParameterValidationAnalysisContext(
                 ValueDomain, WellKnownTypeProvider, ControlFlowGraph,
-                OwningSymbol, NullCheckValidationMethodNames, NullCheckValidationMethodSymbols,
+                OwningSymbol, NullCheckValidationMethodNames,
                 InterproceduralAnalysisConfiguration, PessimisticAnalysis,
                 PointsToAnalysisResultOpt, TryGetOrComputeAnalysisResult, ParentControlFlowGraphOpt,
                 InterproceduralAnalysisDataOpt, trackHazardousParameterUsages: true);
 
         public bool TrackHazardousParameterUsages { get; }
 
-        private ImmutableHashSet<string> NullCheckValidationMethodNames { get; }
-        private ImmutableHashSet<IMethodSymbol> NullCheckValidationMethodSymbols { get; }
+        private SymbolNamesOption NullCheckValidationMethodNames { get; }
         public bool IsNullCheckValidationMethod(IMethodSymbol method)
-            => NullCheckValidationMethodSymbols.Contains(method) || NullCheckValidationMethodNames.Contains(method.Name);
+            => NullCheckValidationMethodNames.Contains(method);
+
         protected override void ComputeHashCodePartsSpecific(ArrayBuilder<int> builder)
         {
             builder.Add(TrackHazardousParameterUsages.GetHashCode());
-            builder.Add(HashUtilities.Combine(NullCheckValidationMethodNames));
-            builder.Add(HashUtilities.Combine(NullCheckValidationMethodSymbols));
+            builder.Add(NullCheckValidationMethodNames.GetHashCode());
         }
     }
 }
