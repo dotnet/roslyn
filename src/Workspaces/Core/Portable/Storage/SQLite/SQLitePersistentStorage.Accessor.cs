@@ -27,20 +27,6 @@ namespace Microsoft.CodeAnalysis.SQLite
             private readonly string _select_rowid_from_0_where_1;
             private readonly string _insert_or_replace_into_0_1_2_3_value;
 
-            /// <summary>
-            /// Queue of actions we want to perform all at once against the DB in a single transaction.
-            /// </summary>
-            private readonly MultiDictionary<TWriteQueueKey, Action<SqlConnection>> _writeQueueKeyToWrites =
-                new MultiDictionary<TWriteQueueKey, Action<SqlConnection>>();
-
-            /// <summary>
-            /// The task responsible for writing out all the batched actions we have for a particular
-            /// queue.  When new reads come in for that queue they can 'await' this write-task completing
-            /// so that all reads for the queue observe any previously completed writes.
-            /// </summary>
-            private readonly Dictionary<TWriteQueueKey, Task> _writeQueueKeyToWriteTask =
-                new Dictionary<TWriteQueueKey, Task>();
-
             public Accessor(SQLitePersistentStorage storage)
             {
                 Storage = storage;
@@ -54,9 +40,9 @@ namespace Microsoft.CodeAnalysis.SQLite
             protected abstract void BindFirstParameter(SqlStatement statement, TDatabaseId dataId);
             protected abstract TWriteQueueKey GetWriteQueueKey(TKey key);
 
-            public async Task<Checksum> ReadChecksumAsync(TKey key, CancellationToken cancellationToken)
+            public Checksum ReadChecksum(TKey key, CancellationToken cancellationToken)
             {
-                using (var stream = await ReadBlobColumnAsync(key, ChecksumColumnName, checksumOpt: null, cancellationToken).ConfigureAwait(false))
+                using (var stream = ReadBlobColumn(key, ChecksumColumnName, checksumOpt: null, cancellationToken))
                 using (var reader = ObjectReader.TryGetReader(stream, cancellationToken))
                 {
                     if (reader != null)
@@ -68,10 +54,10 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return null;
             }
 
-            public Task<Stream> ReadStreamAsync(TKey key, Checksum checksum, CancellationToken cancellationToken)
-                => ReadBlobColumnAsync(key, DataColumnName, checksum, cancellationToken);
+            public Stream ReadStream(TKey key, Checksum checksum, CancellationToken cancellationToken)
+                => ReadBlobColumn(key, DataColumnName, checksum, cancellationToken);
 
-            private async Task<Stream> ReadBlobColumnAsync(
+            private Stream ReadBlobColumn(
                 TKey key, string columnName, Checksum checksumOpt, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -87,23 +73,23 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                     if (haveDataId)
                     {
-                        // Ensure all pending document writes to this name are flushed to the DB so that 
-                        // we can find them below.
-                        await FlushPendingWritesAsync(key, cancellationToken).ConfigureAwait(false);
-
-                        try
+                        // First, try to see if there was a write to this key in 
+                        // our in-memory db.
+                        var result = ReadBlob(
+                            Storage._inMemoryDBConnection, dataId, columnName,
+                            checksumOpt, cancellationToken);
+                        if (result != null)
                         {
-                            using (var pooledConnection = Storage.GetPooledConnection())
-                            {
-                                // Lookup the row from the DocumentData table corresponding to our dataId.
-                                return ReadBlob(
-                                    pooledConnection.Connection, dataId, columnName,
-                                    checksumOpt, cancellationToken);
-                            }
+                            return result;
                         }
-                        catch (Exception ex)
+
+                        // Wasn't in the in-memory write-cache.  Check the full on-disk file.
+                        using (var pooledConnection = Storage.GetPooledConnection())
                         {
-                            StorageDatabaseLogger.LogException(ex);
+                            // Lookup the row from the DocumentData table corresponding to our dataId.
+                            return ReadBlob(
+                                pooledConnection.Connection, dataId, columnName,
+                                checksumOpt, cancellationToken);
                         }
                     }
                 }
@@ -135,21 +121,24 @@ namespace Microsoft.CodeAnalysis.SQLite
                         var (checksumBytes, checksumLength, checksumPooled) = GetBytes(checksumOpt, cancellationToken);
                         var (dataBytes, dataLength, dataPooled) = GetBytes(stream);
 
-                        await AddWriteTaskAsync(key, con =>
-                        {
-                            InsertOrReplaceBlob(con, dataId,
-                                checksumBytes, checksumLength,
-                                dataBytes, dataLength);
-                            if (dataPooled)
-                            {
-                                ReturnPooledBytes(dataBytes);
-                            }
+                        // Write the information into the in-memory write-cache.
+                        InsertOrReplaceBlob(Storage._inMemoryDBConnection, dataId,
+                            checksumBytes, checksumLength,
+                            dataBytes, dataLength);
 
-                            if (checksumPooled)
-                            {
-                                ReturnPooledBytes(checksumBytes);
-                            }
-                        }, cancellationToken).ConfigureAwait(false);
+                        // Let the storage system know it should flush this information
+                        // to disk in the future.
+                        Storage.EnqueueFlushTask();
+
+                        if (dataPooled)
+                        {
+                            ReturnPooledBytes(dataBytes);
+                        }
+
+                        if (checksumPooled)
+                        {
+                            ReturnPooledBytes(checksumBytes);
+                        }
 
                         return true;
                     }
@@ -158,44 +147,45 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return false;
             }
 
-            private Task FlushPendingWritesAsync(TKey key, CancellationToken cancellationToken)
-                => Storage.FlushSpecificWritesAsync(_writeQueueKeyToWrites, _writeQueueKeyToWriteTask, GetWriteQueueKey(key), cancellationToken);
-
-            private Task AddWriteTaskAsync(TKey key, Action<SqlConnection> action, CancellationToken cancellationToken)
-                => Storage.AddWriteTaskAsync(_writeQueueKeyToWrites, GetWriteQueueKey(key), action, cancellationToken);
-
             private Stream ReadBlob(
                 SqlConnection connection, TDatabaseId dataId, string columnName,
                 Checksum checksumOpt, CancellationToken cancellationToken)
             {
-                // Note: it's possible that someone may write to this row between when we
-                // get the row ID above and now.  That's fine.  We'll just read the new
-                // bytes that have been written to this location.  Note that only the
-                // data for a row in our system can change, the ID will always stay the
-                // same, and the data will always be valid for our ID.  So there is no
-                // safety issue here.
-                if (TryGetRowId(connection, dataId, out var rowId))
+                try
                 {
-                    // Have to run the blob reading in a transaction.  This is necessary
-                    // for two reasons.  First, blob reading outside a transaction is not
-                    // safe to do with the sqlite API.  It may produce corrupt bits if 
-                    // another thread is writing to the blob.  Second, if a checksum was
-                    // passed in, we need to validate that the checksums match.  This is
-                    // only safe if we are in a transaction and no-one else can race with
-                    // us.
-                    return connection.RunInTransaction((tuple) =>
+                    // Note: it's possible that someone may write to this row between when we
+                    // get the row ID above and now.  That's fine.  We'll just read the new
+                    // bytes that have been written to this location.  Note that only the
+                    // data for a row in our system can change, the ID will always stay the
+                    // same, and the data will always be valid for our ID.  So there is no
+                    // safety issue here.
+                    if (TryGetRowId(connection, dataId, out var rowId))
                     {
-                        // If we were passed a checksum, make sure it matches what we have
-                        // stored in the table already.  If they don't match, don't read
-                        // out the data value at all.
-                        if (tuple.checksumOpt != null &&
-                            !ChecksumsMatch_MustRunInTransaction(tuple.connection, tuple.rowId, tuple.checksumOpt, cancellationToken))
+                        // Have to run the blob reading in a transaction.  This is necessary
+                        // for two reasons.  First, blob reading outside a transaction is not
+                        // safe to do with the sqlite API.  It may produce corrupt bits if 
+                        // another thread is writing to the blob.  Second, if a checksum was
+                        // passed in, we need to validate that the checksums match.  This is
+                        // only safe if we are in a transaction and no-one else can race with
+                        // us.
+                        return connection.RunInTransaction((tuple) =>
                         {
-                            return null;
-                        }
+                            // If we were passed a checksum, make sure it matches what we have
+                            // stored in the table already.  If they don't match, don't read
+                            // out the data value at all.
+                            if (tuple.checksumOpt != null &&
+                                !ChecksumsMatch_MustRunInTransaction(tuple.connection, tuple.rowId, tuple.checksumOpt, cancellationToken))
+                            {
+                                return null;
+                            }
 
-                        return connection.ReadBlob_MustRunInTransaction(tuple.self.DataTableName, tuple.columnName, tuple.rowId);
-                    }, (self: this, connection, columnName, checksumOpt, rowId));
+                            return connection.ReadBlob_MustRunInTransaction(tuple.self.DataTableName, tuple.columnName, tuple.rowId);
+                        }, (self: this, connection, columnName, checksumOpt, rowId));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    StorageDatabaseLogger.LogException(ex);
                 }
 
                 return null;
@@ -284,15 +274,6 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                     statement.Step();
                 }
-            }
-
-            public void AddAndClearAllPendingWrites(ArrayBuilder<Action<SqlConnection>> result)
-            {
-                // Copy the pending work we have to the result copy.
-                result.AddRange(_writeQueueKeyToWrites.SelectMany(kvp => kvp.Value));
-
-                // Clear out the collection so we don't process things multiple times.
-                _writeQueueKeyToWrites.Clear();
             }
         }
     }

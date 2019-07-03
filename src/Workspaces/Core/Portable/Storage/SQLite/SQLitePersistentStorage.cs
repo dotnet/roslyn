@@ -125,6 +125,15 @@ namespace Microsoft.CodeAnalysis.SQLite
         private readonly object _connectionGate = new object();
         private readonly Stack<SqlConnection> _connectionsPool = new Stack<SqlConnection>();
 
+        // We have a single connection to an in-memory write-cache for our writes.  This
+        // is because writes to disk actually take a fair amount of time due to transaction
+        // overhead.  By writing to this first (and flushing this to disk in a single
+        // transaction later) we can great speedup our processing.  The only downside is
+        // that if VS crashes we will lose whatever is in memory.  However, as the persistence
+        // service is just a cache, it's ok to lose some data since it can just be recreated
+        // the next time VS runs.
+        private SqlConnection _inMemoryDBConnection;
+
         public SQLitePersistentStorage(
             string workingFolderPath,
             string solutionFilePath,
@@ -197,7 +206,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             // are definitely persisted to the DB.
             try
             {
-                FlushAllPendingWritesAsync(CancellationToken.None).Wait();
+                FlushInMemoryDataToDisk(CancellationToken.None).Wait();
             }
             catch (Exception e)
             {
@@ -216,6 +225,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                     var connection = _connectionsPool.Pop();
                     connection.Close_OnlyForUseBySqlPersistentStorage();
                 }
+
+                _inMemoryDBConnection.Close_OnlyForUseBySqlPersistentStorage();
             }
         }
 
@@ -250,34 +261,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // transaction. While some writes can be lost, they are never reordered, and higher layers will recover from that.
                 connection.ExecuteCommand("pragma synchronous=normal", throwOnError: false);
 
-                // First, create all our tables
-                connection.ExecuteCommand(
-$@"create table if not exists ""{StringInfoTableName}"" (
-    ""{DataIdColumnName}"" integer primary key autoincrement not null,
-    ""{DataColumnName}"" varchar)");
-
-                // Ensure that the string-info table's 'Value' column is defined to be 'unique'.
-                // We don't allow duplicate strings in this table.
-                connection.ExecuteCommand(
-$@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" on ""{StringInfoTableName}""(""{DataColumnName}"")");
-
-                connection.ExecuteCommand(
-$@"create table if not exists ""{SolutionDataTableName}"" (
-    ""{DataIdColumnName}"" varchar primary key not null,
-    ""{ChecksumColumnName}"" blob,
-    ""{DataColumnName}"" blob)");
-
-                connection.ExecuteCommand(
-$@"create table if not exists ""{ProjectDataTableName}"" (
-    ""{DataIdColumnName}"" integer primary key not null,
-    ""{ChecksumColumnName}"" blob,
-    ""{DataColumnName}"" blob)");
-
-                connection.ExecuteCommand(
-$@"create table if not exists ""{DocumentDataTableName}"" (
-    ""{DataIdColumnName}"" integer primary key not null,
-    ""{ChecksumColumnName}"" blob,
-    ""{DataColumnName}"" blob)");
+                CreateTables(connection);
 
                 // Also get the known set of string-to-id mappings we already have in the DB.
                 // Do this in one batch if possible.
@@ -290,7 +274,43 @@ $@"create table if not exists ""{DocumentDataTableName}"" (
                 // Try to bulk populate all the IDs we'll need for strings/projects/documents.
                 // Bulk population is much faster than trying to do everything individually.
                 BulkPopulateIds(connection, solution, fetchStringTable);
+
+                // Create and initialize the in-memory write-cache.
+                _inMemoryDBConnection = SqlConnection.CreateInMemory(_faultInjectorOpt);
+                CreateTables(_inMemoryDBConnection);
             }
+        }
+
+        private static void CreateTables(SqlConnection connection)
+        {
+            // First, create all our tables
+            connection.ExecuteCommand(
+$@"create table if not exists ""{StringInfoTableName}"" (
+    ""{DataIdColumnName}"" integer primary key autoincrement not null,
+    ""{DataColumnName}"" varchar)");
+
+            // Ensure that the string-info table's 'Value' column is defined to be 'unique'.
+            // We don't allow duplicate strings in this table.
+            connection.ExecuteCommand(
+$@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" on ""{StringInfoTableName}""(""{DataColumnName}"")");
+
+            connection.ExecuteCommand(
+$@"create table if not exists ""{SolutionDataTableName}"" (
+    ""{DataIdColumnName}"" varchar primary key not null,
+    ""{ChecksumColumnName}"" blob,
+    ""{DataColumnName}"" blob)");
+
+            connection.ExecuteCommand(
+$@"create table if not exists ""{ProjectDataTableName}"" (
+    ""{DataIdColumnName}"" integer primary key not null,
+    ""{ChecksumColumnName}"" blob,
+    ""{DataColumnName}"" blob)");
+
+            connection.ExecuteCommand(
+$@"create table if not exists ""{DocumentDataTableName}"" (
+    ""{DataIdColumnName}"" integer primary key not null,
+    ""{ChecksumColumnName}"" blob,
+    ""{DataColumnName}"" blob)");
         }
     }
 }

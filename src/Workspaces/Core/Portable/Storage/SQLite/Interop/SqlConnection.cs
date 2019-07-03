@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -61,6 +60,28 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             if (result != Result.OK)
             {
                 throw new SqlException(result, $"Could not open database file: {databasePath} ({result})");
+            }
+
+            Contract.ThrowIfNull(handle);
+
+            raw.sqlite3_busy_timeout(handle, (int)TimeSpan.FromMinutes(1).TotalMilliseconds);
+
+            return new SqlConnection(faultInjector, handle);
+        }
+
+        public static SqlConnection CreateInMemory(IPersistentStorageFaultInjector faultInjector)
+        {
+            faultInjector?.OnNewConnection();
+
+            // Use SQLITE_OPEN_NOMUTEX to enable multi-thread mode, where multiple connections can be used provided each
+            // one is only used from a single thread at a time.
+            // see https://sqlite.org/threadsafe.html for more detail
+            var flags = OpenFlags.SQLITE_OPEN_CREATE | OpenFlags.SQLITE_OPEN_READWRITE | OpenFlags.SQLITE_OPEN_FULLMUTEX;
+            var result = (Result)raw.sqlite3_open_v2(":memory:", out var handle, (int)flags, vfs: null);
+
+            if (result != Result.OK)
+            {
+                throw new SqlException(result, $"Could not open in-memory database: ({result})");
             }
 
             Contract.ThrowIfNull(handle);
