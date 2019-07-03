@@ -86,6 +86,29 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.False(result);
         }
 
+        [Fact]
+        public void NetstandardIgnored()
+        {
+            var directory = Temp.CreateDirectory();
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
+            var betaDll = directory.CreateFile("Beta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Beta);
+            var gammaDll = directory.CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Gamma);
+            var deltaDll = directory.CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Delta);
+            directory.CreateFile("netstandard.dll").WriteAllBytes(TestResources.NetFX.netstandard20.netstandard);
+
+            var analyzerReferences = ImmutableArray.Create(
+                new CommandLineAnalyzerReference("Alpha.dll"),
+                new CommandLineAnalyzerReference("Beta.dll"),
+                new CommandLineAnalyzerReference("Gamma.dll"),
+                new CommandLineAnalyzerReference("Delta.dll"),
+                new CommandLineAnalyzerReference("netstandard.dll"));
+
+            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new InMemoryAssemblyLoader());
+
+            Assert.True(result);
+
+        }
+
         private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader
         {
             private readonly Dictionary<string, Assembly> _assemblies = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
