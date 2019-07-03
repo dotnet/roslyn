@@ -23,19 +23,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         internal class Indenter : AbstractIndenter
         {
             public Indenter(
-                ISyntaxFactsService syntaxFacts,
-                SyntaxTree syntaxTree,
+                SyntacticDocument document,
                 IEnumerable<AbstractFormattingRule> rules,
                 OptionSet optionSet,
                 TextLine line,
                 CancellationToken cancellationToken)
-                : base(syntaxFacts, syntaxTree, rules, optionSet, line, cancellationToken)
+                : base(document, rules, optionSet, line, cancellationToken)
             {
             }
 
-            public override bool ShouldUseFormatterIfAvailable()
+            protected override bool ShouldUseTokenIndenter(out SyntaxToken syntaxToken)
                 => ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                    Rules, Root, LineToBeIndented, OptionSet, CancellationToken);
+                    Rules, Root, LineToBeIndented, OptionSet, out syntaxToken);
+
+            protected override ISmartTokenFormatter CreateSmartTokenFormatter()
+            {
+                var workspace = Document.Project.Solution.Workspace;
+                var formattingRuleFactory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
+                var rules = formattingRuleFactory.CreateRule(Document.Document, LineToBeIndented.Start).Concat(Formatter.GetDefaultFormattingRules(Document.Document));
+
+                return new CSharpSmartTokenFormatter(OptionSet, rules, Root);
+            }
 
             protected override IndentationResult GetDesiredIndentationWorker(
                 SyntaxToken token, TextLine previousLine, int lastNonWhitespacePosition)
