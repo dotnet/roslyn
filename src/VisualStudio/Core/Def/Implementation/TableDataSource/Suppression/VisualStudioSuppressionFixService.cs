@@ -51,7 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl workspace,
             IDiagnosticAnalyzerService diagnosticService,
-            ExternalErrorDiagnosticUpdateSource buildErrorDiagnosticService,
             ICodeFixService codeFixService,
             ICodeActionEditHandlerService editHandlerService,
             IVisualStudioDiagnosticListSuppressionStateService suppressionStateService,
@@ -60,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         {
             _workspace = workspace;
             _diagnosticService = diagnosticService;
-            _buildErrorDiagnosticService = buildErrorDiagnosticService;
+            _buildErrorDiagnosticService = workspace.ExternalErrorDiagnosticUpdateSource;
             _codeFixService = codeFixService;
             _suppressionStateService = (VisualStudioDiagnosticListSuppressionStateService)suppressionStateService;
             _editHandlerService = editHandlerService;

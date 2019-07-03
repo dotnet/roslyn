@@ -11,14 +11,13 @@ using System.Threading;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Composition;
@@ -26,6 +25,7 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MetadataReferences;
+using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
@@ -35,7 +35,6 @@ using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Utilities;
 using VSLangProj;
 using VSLangProj140;
-using VSLangProj80;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using OleInterop = Microsoft.VisualStudio.OLE.Interop;
 
@@ -57,9 +56,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Lazy<VisualStudioProjectFactory> _projectFactory;
 
         private readonly ITextBufferCloneService _textBufferCloneService;
-
-        // document worker coordinator
-        private ISolutionCrawlerRegistrationService _registrationService;
 
         /// <summary>
         /// A <see cref="ForegroundThreadAffinitizedObject"/> to make assertions that stuff is on the right thread.
@@ -95,6 +91,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<ProjectId, CompilationOutputs> _projectCompilationOutputs = new Dictionary<ProjectId, CompilationOutputs>();
         private readonly object _projectCompilationOutputsGuard = new object();
 
+        private readonly Lazy<ExternalErrorDiagnosticUpdateSource> _lazyExternalErrorDiagnosticUpdateSource;
+
         public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider)
             : base(VisualStudioMefHostServices.Create(exportProvider))
         {
@@ -122,7 +120,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             FileWatchedReferenceFactory = exportProvider.GetExportedValue<FileWatchedPortableExecutableReferenceFactory>();
 
             FileWatchedReferenceFactory.ReferenceChanged += this.RefreshMetadataReferencesForFile;
+
+            _lazyExternalErrorDiagnosticUpdateSource = new Lazy<ExternalErrorDiagnosticUpdateSource>(() =>
+                new ExternalErrorDiagnosticUpdateSource(
+                    this,
+                    exportProvider.GetExportedValue<IDiagnosticAnalyzerService>(),
+                    exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>(),
+                    exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>()), isThreadSafe: true);
         }
+
+        internal ExternalErrorDiagnosticUpdateSource ExternalErrorDiagnosticUpdateSource => _lazyExternalErrorDiagnosticUpdateSource.Value;
 
         public async System.Threading.Tasks.Task ConnectToOpenFileTrackerOnUIThreadAsync(IAsyncServiceProvider asyncServiceProvider)
         {
@@ -1318,36 +1325,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return hierarchy != null;
         }
 
-        internal void StartSolutionCrawler()
-        {
-            if (_registrationService == null)
-            {
-                lock (this)
-                {
-                    if (_registrationService == null)
-                    {
-                        _registrationService = this.Services.GetService<ISolutionCrawlerRegistrationService>();
-                        _registrationService.Register(this);
-                    }
-                }
-            }
-        }
-
-        internal void StopSolutionCrawler()
-        {
-            if (_registrationService != null)
-            {
-                lock (this)
-                {
-                    if (_registrationService != null)
-                    {
-                        _registrationService.Unregister(this, blockingShutdown: true);
-                        _registrationService = null;
-                    }
-                }
-            }
-        }
-
         protected override void Dispose(bool finalize)
         {
             if (!finalize)
@@ -1356,9 +1333,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _projectionBufferFactoryService.ProjectionBufferCreated -= AddTextBufferCloneServiceToBuffer;
                 FileWatchedReferenceFactory.ReferenceChanged -= RefreshMetadataReferencesForFile;
             }
-
-            // workspace is going away. unregister this workspace from work coordinator
-            StopSolutionCrawler();
 
             base.Dispose(finalize);
         }
