@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Adornments;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -47,7 +48,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
             // Roslyn calls into third party extensions to compute reference results and needs to be on the UI thread to compute results.
             // This is not great for us and ideally we should ask for a Roslyn API where we can make this call without blocking the UI.
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            if (VsTaskLibraryHelper.ServiceInstance != null)
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            }
+
             await findUsagesService.FindReferencesAsync(document, position, context).ConfigureAwait(false);
 
             if (requestContext?.ClientCapabilities?.HasVisualStudioLspCapability() == true)

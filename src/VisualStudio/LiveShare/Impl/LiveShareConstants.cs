@@ -8,5 +8,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         public const string RoslynContractName = "Roslyn";
         // The service name for an LSP server implemented using Roslyn designed to be used with the LSP SDK client
         public const string RoslynLSPSDKContractName = "RoslynLSPSDK";
+        public const string TypeScriptLanguageName = "TypeScript";
     }
 }
