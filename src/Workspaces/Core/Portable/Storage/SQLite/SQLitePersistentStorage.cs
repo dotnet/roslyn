@@ -99,7 +99,16 @@ namespace Microsoft.CodeAnalysis.SQLite
         private const string ChecksumColumnName = "Checksum";
         private const string DataColumnName = "Data";
 
+        /// <summary>
+        /// Name of the on-disk db.  "main" is the default that sqlite uses.  This just allows us to
+        /// be explicit that we want this db.
+        /// </summary>
         private const string MainDBName = "main";
+
+        /// <summary>
+        /// Name for the in-memory write-cache db.  Writes will be staged there and will be periodically
+        /// flushed to the real on-disk db to help with perf.
+        /// </summary>
         private const string WriteCacheDBName = "writecache";
 
         private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
