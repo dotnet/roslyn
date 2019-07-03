@@ -153,6 +153,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)>.Builder _analyzedNullabilityMapOpt;
 
         /// <summary>
+        /// Contains the map of calls to reinferred method symbols, used by the optional rewriter phase of the compiler.
+        /// </summary>
+        private readonly ImmutableDictionary<BoundCall, MethodSymbol>.Builder _updatedMethodSymbolMapOpt;
+
+        /// <summary>
         /// Manages creating snapshots of the walker as appropriate. Null if we're not taking snapshots of
         /// this walker.
         /// </summary>
@@ -336,6 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableState initialState,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt,
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMapOpt,
+            ImmutableDictionary<BoundCall, MethodSymbol>.Builder updatedMethodSymbolMapOpt,
             SnapshotManager.Builder snapshotBuilderOpt,
             bool isSpeculative = false)
             // Members of variables are tracked up to a fixed depth, to avoid cycles. The
@@ -347,6 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _useMethodSignatureParameterTypes = (object)methodSignatureOpt != null && useMethodSignatureParameterTypes;
             _methodSignatureOpt = methodSignatureOpt;
             _analyzedNullabilityMapOpt = analyzedNullabilityMapOpt;
+            _updatedMethodSymbolMapOpt = updatedMethodSymbolMapOpt;
             _returnTypesOpt = returnTypesOpt;
             _snapshotBuilderOpt = snapshotBuilderOpt;
             _isSpeculative = isSpeculative;
@@ -436,6 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodSignatureOpt: method,
                 initialState: null,
                 analyzedNullabilityMapOpt: null,
+                updatedMethodSymbolMapOpt: null,
                 snapshotBuilderOpt: null,
                 returnTypesOpt: null);
         }
@@ -450,6 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out SnapshotManager snapshotManager)
         {
             var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>();
+            var updatedMethodSymbols = ImmutableDictionary.CreateBuilder<BoundCall, MethodSymbol>();
             var methodSymbol = symbol as MethodSymbol;
             // Attributes don't have a symbol, which is what SnapshotBuilder uses as an index for maintaining global state.
             // Until we have a workaround for this, disable snapshots for null symbols.
@@ -465,22 +474,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useMethodSignatureParameterTypes: !(methodSymbol is null),
                 methodSignatureOpt: methodSymbol,
                 initialState: null,
-                analyzedNullabilityMapOpt: analyzedNullabilities,
+                analyzedNullabilities,
+                updatedMethodSymbols,
                 snapshotBuilder,
                 returnTypesOpt: null);
 
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
-
+            var updatedMethodSymbolsMap = updatedMethodSymbols.ToImmutable();
             snapshotManager = snapshotBuilder?.ToManagerAndFree();
 
 #if DEBUG
             // https://github.com/dotnet/roslyn/issues/34993 Enable for all calls
             if (compilation.NullableSemanticAnalysisEnabled)
             {
-                DebugVerifier.Verify(analyzedNullabilitiesMap, snapshotManager, node);
+                DebugVerifier.Verify(analyzedNullabilitiesMap, updatedMethodSymbolsMap, snapshotManager, node);
             }
 #endif
-            return new NullabilityRewriter(analyzedNullabilitiesMap).Visit(node);
+            return new NullabilityRewriter(analyzedNullabilitiesMap, updatedMethodSymbolsMap).Visit(node);
         }
 
         internal static BoundNode AnalyzeAndRewriteSpeculation(
@@ -492,21 +502,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             out SnapshotManager newSnapshots)
         {
             var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>();
+            var updatedMethodSymbols = ImmutableDictionary.CreateBuilder<BoundCall, MethodSymbol>();
             var newSnapshotBuilder = takeNewSnapshots ? new SnapshotManager.Builder() : null;
-            var (walker, initialState, symbol) = originalSnapshots.RestoreWalkerToAnalyzeNewNode(position, node, binder, analyzedNullabilities, newSnapshotBuilder);
+            var (walker, initialState, symbol) = originalSnapshots.RestoreWalkerToAnalyzeNewNode(position, node, binder, analyzedNullabilities, updatedMethodSymbols, newSnapshotBuilder);
             Analyze(walker, symbol, diagnostics: null, initialState, snapshotBuilderOpt: newSnapshotBuilder);
 
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
+            var updatedMethodSymbolsMap = updatedMethodSymbols.ToImmutable();
             newSnapshots = newSnapshotBuilder?.ToManagerAndFree();
 
 #if DEBUG
             if (binder.Compilation.NullableSemanticAnalysisEnabled)
             {
-                DebugVerifier.Verify(analyzedNullabilitiesMap, newSnapshots, node);
+                DebugVerifier.Verify(analyzedNullabilitiesMap, updatedMethodSymbolsMap, newSnapshots, node);
             }
 #endif
 
-            return new NullabilityRewriter(analyzedNullabilitiesMap).Visit(node);
+            return new NullabilityRewriter(analyzedNullabilitiesMap, updatedMethodSymbolsMap).Visit(node);
         }
 
         internal static void AnalyzeIfNeeded(
@@ -531,6 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodSignatureOpt: null,
                 initialState: null,
                 analyzedNullabilityMapOpt: null,
+                updatedMethodSymbolMapOpt: null,
                 snapshotBuilderOpt: null,
                 returnTypesOpt: null);
         }
@@ -543,6 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol delegateInvokeMethod,
             VariableState initialState,
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMapOpt,
+            ImmutableDictionary<BoundCall, MethodSymbol>.Builder updatedMethodSymbolMapOpt,
             SnapshotManager.Builder snapshotBuilderOpt,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt)
         {
@@ -557,6 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodSignatureOpt: delegateInvokeMethod,
                 initialState,
                 analyzedNullabilityMapOpt,
+                updatedMethodSymbolMapOpt,
                 snapshotBuilderOpt,
                 returnTypesOpt);
         }
@@ -572,6 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol methodSignatureOpt,
             VariableState initialState,
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMapOpt,
+            ImmutableDictionary<BoundCall, MethodSymbol>.Builder updatedMethodSymbolMapOpt,
             SnapshotManager.Builder snapshotBuilderOpt,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt)
         {
@@ -586,6 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     initialState,
                                                     returnTypesOpt,
                                                     analyzedNullabilityMapOpt,
+                                                    updatedMethodSymbolMapOpt,
                                                     snapshotBuilderOpt);
 
             Analyze(walker, symbol, diagnostics, initialState, snapshotBuilderOpt);
@@ -1996,6 +2013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             initialState: null,
                                             returnTypesOpt: null,
                                             analyzedNullabilityMapOpt: null,
+                                            updatedMethodSymbolMapOpt: null,
                                             snapshotBuilderOpt: null);
 
             int n = returns.Count;
@@ -2834,6 +2852,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             SetResult(node, GetReturnTypeWithState(method), method.ReturnTypeWithAnnotations);
+            if (_updatedMethodSymbolMapOpt is object)
+            {
+                _updatedMethodSymbolMapOpt[node] = method;
+            }
         }
 
         private void LearnFromEqualsMethod(MethodSymbol method, BoundCall node, TypeWithState receiverType, ImmutableArray<VisitArgumentResult> results)
@@ -5211,6 +5233,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitLambda(BoundLambda node, NamedTypeSymbol delegateTypeOpt, DiagnosticBag diagnostics, VariableState initialState = null)
         {
             Debug.Assert(delegateTypeOpt?.IsDelegateType() != false);
+            var analyzedNullabilityMap = _analyzedNullabilityMapOpt;
+            var updatedMethodSymbolMap = _updatedMethodSymbolMapOpt;
+            var snapshotBuilder = _snapshotBuilderOpt;
+            if (_disableNullabilityAnalysis)
+            {
+                analyzedNullabilityMap = null;
+                updatedMethodSymbolMap = null;
+                snapshotBuilder = null;
+            }
+
             Analyze(
                 compilation,
                 node,
@@ -5218,8 +5250,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 delegateTypeOpt?.DelegateInvokeMethod,
                 initialState: initialState ?? GetVariableState(State.Clone()),
-                _disableNullabilityAnalysis ? null : _analyzedNullabilityMapOpt,
-                _snapshotBuilderOpt,
+                analyzedNullabilityMap,
+                updatedMethodSymbolMap,
+                snapshotBuilder,
                 returnTypesOpt: null);
         }
 
@@ -5238,8 +5271,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var body = node.Body;
             if (body != null)
             {
-                ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMap = _analyzedNullabilityMapOpt;
-                SnapshotManager.Builder snapshotBuilder = _snapshotBuilderOpt;
+                var analyzedNullabilityMap = _analyzedNullabilityMapOpt;
+                var updatedMethodSymbolMap = _updatedMethodSymbolMapOpt;
+                var snapshotBuilder = _snapshotBuilderOpt;
                 if (_disableNullabilityAnalysis)
                 {
                     analyzedNullabilityMap = null;
@@ -5255,8 +5289,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         useMethodSignatureParameterTypes: false,
                         methodSignatureOpt: null,
                         initialState: GetVariableState(this.TopState()),
-                        analyzedNullabilityMapOpt: analyzedNullabilityMap,
-                        snapshotBuilderOpt: snapshotBuilder,
+                        analyzedNullabilityMap,
+                        updatedMethodSymbolMap,
+                        snapshotBuilder,
                         returnTypesOpt: null);
             }
             SetInvalidResult();
