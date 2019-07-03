@@ -25,13 +25,11 @@ namespace Microsoft.CodeAnalysis.SQLite
         {
             protected readonly SQLitePersistentStorage Storage;
             private readonly string _select_rowid_from_0_where_1;
-            private readonly string _insert_or_replace_into_0_1_2_3_value;
 
             public Accessor(SQLitePersistentStorage storage)
             {
                 Storage = storage;
-                _select_rowid_from_0_where_1 = $@"select rowid from ""{DataTableName}"" where ""{DataIdColumnName}"" = ?";
-                _insert_or_replace_into_0_1_2_3_value = $@"insert or replace into ""{DataTableName}""(""{DataIdColumnName}"",""{ChecksumColumnName}"",""{DataColumnName}"") values (?,?,?)";
+                _select_rowid_from_0_where_1 = $@"select rowid from ""{MainDBName}.{DataTableName}"" where ""{DataIdColumnName}"" = ?";
             }
 
             protected abstract string DataTableName { get; }
@@ -73,23 +71,24 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                     if (haveDataId)
                     {
-                        // First, try to see if there was a write to this key in 
-                        // our in-memory db.
-                        var result = ReadBlob(
-                            Storage._inMemoryDBConnection, dataId, columnName,
-                            checksumOpt, cancellationToken);
-                        if (result != null)
-                        {
-                            return result;
-                        }
-
-                        // Wasn't in the in-memory write-cache.  Check the full on-disk file.
                         using (var pooledConnection = Storage.GetPooledConnection())
                         {
+                            // First, try to see if there was a write to this key in 
+                            // our in-memory db.
+                            var result = ReadBlob(
+                                pooledConnection.Connection, WriteCacheDBName,
+                                dataId, columnName, checksumOpt, cancellationToken);
+                            if (result != null)
+                            {
+                                return result;
+                            }
+
+                            // Wasn't in the in-memory write-cache.  Check the full on-disk file.
+
                             // Lookup the row from the DocumentData table corresponding to our dataId.
                             return ReadBlob(
-                                pooledConnection.Connection, dataId, columnName,
-                                checksumOpt, cancellationToken);
+                                pooledConnection.Connection, MainDBName,
+                                dataId, columnName, checksumOpt, cancellationToken);
                         }
                     }
                 }
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return null;
             }
 
-            public async Task<bool> WriteStreamAsync(
+            public bool WriteStream(
                 TKey key, Stream stream, Checksum checksumOpt, CancellationToken cancellationToken)
             {
                 // Note: we're technically fully synchronous.  However, we're called from several
@@ -121,10 +120,14 @@ namespace Microsoft.CodeAnalysis.SQLite
                         var (checksumBytes, checksumLength, checksumPooled) = GetBytes(checksumOpt, cancellationToken);
                         var (dataBytes, dataLength, dataPooled) = GetBytes(stream);
 
-                        // Write the information into the in-memory write-cache.
-                        InsertOrReplaceBlob(Storage._inMemoryDBConnection, dataId,
-                            checksumBytes, checksumLength,
-                            dataBytes, dataLength);
+                        using (var pooledConnection = Storage.GetPooledConnection())
+                        {
+                            // Write the information into the in-memory write-cache.
+                            InsertOrReplaceBlobIntoWriteCache(
+                                pooledConnection.Connection, dataId,
+                                checksumBytes, checksumLength,
+                                dataBytes, dataLength);
+                        }
 
                         // Let the storage system know it should flush this information
                         // to disk in the future.
@@ -148,7 +151,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             private Stream ReadBlob(
-                SqlConnection connection, TDatabaseId dataId, string columnName,
+                SqlConnection connection, string dbName, TDatabaseId dataId, string columnName,
                 Checksum checksumOpt, CancellationToken cancellationToken)
             {
                 try
@@ -159,7 +162,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                     // data for a row in our system can change, the ID will always stay the
                     // same, and the data will always be valid for our ID.  So there is no
                     // safety issue here.
-                    if (TryGetRowId(connection, dataId, out var rowId))
+                    if (TryGetRowIdFromMainDB(connection, dataId, out var rowId))
                     {
                         // Have to run the blob reading in a transaction.  This is necessary
                         // for two reasons.  First, blob reading outside a transaction is not
@@ -174,13 +177,13 @@ namespace Microsoft.CodeAnalysis.SQLite
                             // stored in the table already.  If they don't match, don't read
                             // out the data value at all.
                             if (tuple.checksumOpt != null &&
-                                !ChecksumsMatch_MustRunInTransaction(tuple.connection, tuple.rowId, tuple.checksumOpt, cancellationToken))
+                                !ChecksumsMatch_MustRunInTransaction(tuple.connection, tuple.dbName, tuple.rowId, tuple.checksumOpt, cancellationToken))
                             {
                                 return null;
                             }
 
-                            return connection.ReadBlob_MustRunInTransaction(tuple.self.DataTableName, tuple.columnName, tuple.rowId);
-                        }, (self: this, connection, columnName, checksumOpt, rowId));
+                            return connection.ReadBlob_MustRunInTransaction(tuple.dbName, tuple.self.DataTableName, tuple.columnName, tuple.rowId);
+                        }, (self: this, connection, dbName, columnName, checksumOpt, rowId));
                     }
                 }
                 catch (Exception ex)
@@ -191,9 +194,10 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return null;
             }
 
-            private bool ChecksumsMatch_MustRunInTransaction(SqlConnection connection, long rowId, Checksum checksum, CancellationToken cancellationToken)
+            private bool ChecksumsMatch_MustRunInTransaction(
+                SqlConnection connection, string dbName, long rowId, Checksum checksum, CancellationToken cancellationToken)
             {
-                using (var checksumStream = connection.ReadBlob_MustRunInTransaction(DataTableName, ChecksumColumnName, rowId))
+                using (var checksumStream = connection.ReadBlob_MustRunInTransaction(dbName, DataTableName, ChecksumColumnName, rowId))
                 using (var reader = ObjectReader.TryGetReader(checksumStream, cancellationToken))
                 {
                     return reader != null && Checksum.ReadFrom(reader) == checksum;
@@ -214,7 +218,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // make sure that if we actually request the rowId from the database that it
                 // is equal to our data id.  Only do this in debug as this can be expensive
                 // and we definitely do not want to do this in release.
-                if (TryGetRowIdWorker(connection, (TDatabaseId)(object)dataId, out rowId))
+                if (TryGetRowIdFromMainDBWorker(connection, (TDatabaseId)(object)dataId, out rowId))
                 {
                     Debug.Assert(dataId == rowId);
                 }
@@ -226,10 +230,10 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return true;
             }
 
-            protected virtual bool TryGetRowId(SqlConnection connection, TDatabaseId dataId, out long rowId)
-                => TryGetRowIdWorker(connection, dataId, out rowId);
+            protected virtual bool TryGetRowIdFromMainDB(SqlConnection connection, TDatabaseId dataId, out long rowId)
+                => TryGetRowIdFromMainDBWorker(connection, dataId, out rowId);
 
-            private bool TryGetRowIdWorker(SqlConnection connection, TDatabaseId dataId, out long rowId)
+            private bool TryGetRowIdFromMainDBWorker(SqlConnection connection, TDatabaseId dataId, out long rowId)
             {
                 // See https://sqlite.org/autoinc.html
                 // > In SQLite, table rows normally have a 64-bit signed integer ROWID which is 
@@ -258,12 +262,13 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return false;
             }
 
-            private void InsertOrReplaceBlob(
+            private void InsertOrReplaceBlobIntoWriteCache(
                 SqlConnection connection, TDatabaseId dataId,
                 byte[] checksumBytes, int checksumLength,
                 byte[] dataBytes, int dataLength)
             {
-                using (var resettableStatement = connection.GetResettableStatement(_insert_or_replace_into_0_1_2_3_value))
+                using (var resettableStatement = connection.GetResettableStatement(
+                    $@"insert or replace into ""{WriteCacheDBName}.{DataTableName}""(""{DataIdColumnName}"",""{ChecksumColumnName}"",""{DataColumnName}"") values (?,?,?)"))
                 {
                     var statement = resettableStatement.Statement;
 

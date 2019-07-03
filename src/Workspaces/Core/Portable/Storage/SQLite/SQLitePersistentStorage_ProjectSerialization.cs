@@ -10,13 +10,13 @@ namespace Microsoft.CodeAnalysis.SQLite
     internal partial class SQLitePersistentStorage
     {
         public override Task<Checksum> ReadChecksumAsync(Project project, string name, CancellationToken cancellationToken)
-            => _projectAccessor.ReadChecksumAsync((project, name), cancellationToken);
+            => Task.FromResult(_projectAccessor.ReadChecksum((project, name), cancellationToken));
 
         public override Task<Stream> ReadStreamAsync(Project project, string name, Checksum checksum, CancellationToken cancellationToken = default)
-            => _projectAccessor.ReadStreamAsync((project, name), checksum, cancellationToken);
+            => Task.FromResult(_projectAccessor.ReadStream((project, name), checksum, cancellationToken));
 
         public override Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken = default)
-            => _projectAccessor.WriteStreamAsync((project, name), stream, checksum, cancellationToken);
+            => Task.FromResult(_projectAccessor.WriteStream((project, name), stream, checksum, cancellationToken));
 
         /// <summary>
         /// <see cref="Accessor{TKey, TWriteQueueKey, TDatabaseId}"/> responsible for storing and
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             protected override void BindFirstParameter(SqlStatement statement, long dataId)
                 => statement.BindInt64Parameter(parameterIndex: 1, value: dataId);
 
-            protected override bool TryGetRowId(SqlConnection connection, long dataId, out long rowId)
+            protected override bool TryGetRowIdFromMainDB(SqlConnection connection, long dataId, out long rowId)
                 => GetAndVerifyRowId(connection, dataId, out rowId);
         }
     }

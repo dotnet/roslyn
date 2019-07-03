@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.SQLite
         // 2. Updated to store checksums.  Tables now key->(checksum,value).  Allows for reading
         //    and validating checksums without the overhead of reading the full 'value' into
         //    memory.
-        private const string Version = "2";
+        // 3. Use an in-memory DB to cache writes before flushing to disk.
+        private const string Version = "3";
 
         /// <summary>
         /// Inside the DB we have a table dedicated to storing strings that also provides a unique 
@@ -98,6 +99,9 @@ namespace Microsoft.CodeAnalysis.SQLite
         private const string ChecksumColumnName = "Checksum";
         private const string DataColumnName = "Data";
 
+        private const string MainDBName = "main";
+        private const string WriteCacheDBName = "writecache";
+
         private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
 
         private readonly IDisposable _dbOwnershipLock;
@@ -114,9 +118,9 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         // cached query strings
 
-        private readonly string _select_star_from_0;
-        private readonly string _insert_into_0_1_values;
-        private readonly string _select_star_from_0_where_1_limit_one;
+        private readonly string _select_star_from_main_0;
+        private readonly string _insert_into_main_0_1_values;
+        private readonly string _select_star_from_main_0_where_1_limit_one;
 
         // We pool connections to the DB so that we don't have to take the hit of 
         // reconnecting.  The connections also cache the prepared statements used
@@ -124,15 +128,6 @@ namespace Microsoft.CodeAnalysis.SQLite
         // at a time, but is not safe for simultaneous use by multiple threads.
         private readonly object _connectionGate = new object();
         private readonly Stack<SqlConnection> _connectionsPool = new Stack<SqlConnection>();
-
-        // We have a single connection to an in-memory write-cache for our writes.  This
-        // is because writes to disk actually take a fair amount of time due to transaction
-        // overhead.  By writing to this first (and flushing this to disk in a single
-        // transaction later) we can great speedup our processing.  The only downside is
-        // that if VS crashes we will lose whatever is in memory.  However, as the persistence
-        // service is just a cache, it's ok to lose some data since it can just be recreated
-        // the next time VS runs.
-        private SqlConnection _inMemoryDBConnection;
 
         public SQLitePersistentStorage(
             string workingFolderPath,
@@ -149,9 +144,9 @@ namespace Microsoft.CodeAnalysis.SQLite
             _projectAccessor = new ProjectAccessor(this);
             _documentAccessor = new DocumentAccessor(this);
 
-            _select_star_from_0 = $@"select * from ""{StringInfoTableName}""";
-            _insert_into_0_1_values = $@"insert into ""{StringInfoTableName}""(""{DataColumnName}"") values (?)";
-            _select_star_from_0_where_1_limit_one = $@"select * from ""{StringInfoTableName}"" where (""{DataColumnName}"" = ?) limit 1";
+            _select_star_from_main_0 = $@"select * from ""{MainDBName}.{StringInfoTableName}""";
+            _insert_into_main_0_1_values = $@"insert into ""{MainDBName}.{StringInfoTableName}""(""{DataColumnName}"") values (?)";
+            _select_star_from_main_0_where_1_limit_one = $@"select * from ""{MainDBName}.{StringInfoTableName}"" where (""{DataColumnName}"" = ?) limit 1";
         }
 
         private SqlConnection GetConnection()
@@ -206,7 +201,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             // are definitely persisted to the DB.
             try
             {
-                FlushInMemoryDataToDisk(CancellationToken.None).Wait();
+                FlushInMemoryDataToDisk();
             }
             catch (Exception e)
             {
@@ -225,8 +220,6 @@ namespace Microsoft.CodeAnalysis.SQLite
                     var connection = _connectionsPool.Pop();
                     connection.Close_OnlyForUseBySqlPersistentStorage();
                 }
-
-                _inMemoryDBConnection.Close_OnlyForUseBySqlPersistentStorage();
             }
         }
 
@@ -261,11 +254,11 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // transaction. While some writes can be lost, they are never reordered, and higher layers will recover from that.
                 connection.ExecuteCommand("pragma synchronous=normal", throwOnError: false);
 
-                CreateTables(connection);
+                CreateTables(connection, MainDBName);
 
                 // Also get the known set of string-to-id mappings we already have in the DB.
                 // Do this in one batch if possible.
-                var fetched = TryFetchStringTable(connection);
+                var fetched = TryFetchStringTableFromMainDB(connection);
 
                 // If we weren't able to retrieve the entire string table in one batch,
                 // attempt to retrieve it for each 
@@ -276,38 +269,38 @@ namespace Microsoft.CodeAnalysis.SQLite
                 BulkPopulateIds(connection, solution, fetchStringTable);
 
                 // Create and initialize the in-memory write-cache.
-                _inMemoryDBConnection = SqlConnection.CreateInMemory(_faultInjectorOpt);
-                CreateTables(_inMemoryDBConnection);
+                connection.ExecuteCommand($"ATTACH DATABASE 'file::memory:?cache=shared' AS ${WriteCacheDBName};");
+                CreateTables(connection, WriteCacheDBName);
             }
         }
 
-        private static void CreateTables(SqlConnection connection)
+        private static void CreateTables(SqlConnection connection, string tableName)
         {
             // First, create all our tables
             connection.ExecuteCommand(
-$@"create table if not exists ""{StringInfoTableName}"" (
+$@"create table if not exists ""{tableName}.{StringInfoTableName}"" (
     ""{DataIdColumnName}"" integer primary key autoincrement not null,
     ""{DataColumnName}"" varchar)");
 
             // Ensure that the string-info table's 'Value' column is defined to be 'unique'.
             // We don't allow duplicate strings in this table.
             connection.ExecuteCommand(
-$@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" on ""{StringInfoTableName}""(""{DataColumnName}"")");
+$@"create unique index if not exists ""{tableName}.{StringInfoTableName}_{DataColumnName}"" on ""{StringInfoTableName}""(""{DataColumnName}"")");
 
             connection.ExecuteCommand(
-$@"create table if not exists ""{SolutionDataTableName}"" (
+$@"create table if not exists ""{tableName}.{SolutionDataTableName}"" (
     ""{DataIdColumnName}"" varchar primary key not null,
     ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
 
             connection.ExecuteCommand(
-$@"create table if not exists ""{ProjectDataTableName}"" (
+$@"create table if not exists ""{tableName}.{ProjectDataTableName}"" (
     ""{DataIdColumnName}"" integer primary key not null,
     ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
 
             connection.ExecuteCommand(
-$@"create table if not exists ""{DocumentDataTableName}"" (
+$@"create table if not exists ""{tableName}.{DocumentDataTableName}"" (
     ""{DataIdColumnName}"" integer primary key not null,
     ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
