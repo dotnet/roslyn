@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 while (true);
             }
 
-            // if the location is inside tokenToRightOrIn -> no Token can be to Left (tokenToRightOrIn is also left from location, e.g: `tok[||]enITORightOrIn`)
+            // if the location is inside tokenToRightOrIn -> no Token can be to Left (tokenToRightOrIn is also left from location, e.g: `tok[||]enToRightOrIn`)
             if (tokenToRightOrIn != default && tokenToRightOrIn.Span.Start != location)
             {
                 return null;
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     }
 
                     leftNode = leftNode.Parent;
-                    if (leftNode != null || leftNode.Span.End != location)
+                    if (leftNode == null || leftNode.Span.End != location)
                     {
                         break;
                     }
