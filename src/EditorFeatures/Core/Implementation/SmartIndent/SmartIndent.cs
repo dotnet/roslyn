@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 if (newService != null)
                 {
                     var result = newService.GetDesiredIndentation(document, lineToBeIndented.LineNumber, cancellationToken);
-                    return result?.GetIndentation(_textView, lineToBeIndented);
+                    return result.GetIndentation(_textView, lineToBeIndented);
                 }
 
                 // If we don't have a feature-layer service, try to fall back to the legacy
@@ -75,7 +75,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                     return result?.GetIndentation(_textView, lineToBeIndented);
                 }
 #pragma warning restore CS0618 // Type or member is obsolete
-
 
                 return null;
             }
