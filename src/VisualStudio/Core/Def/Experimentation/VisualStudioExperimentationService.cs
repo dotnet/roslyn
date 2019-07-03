@@ -4,6 +4,7 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
@@ -15,13 +16,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
     [ExportWorkspaceService(typeof(IExperimentationServiceFactory), ServiceLayer.Host), Shared]
     internal class VisualStudioExperimentationService : IExperimentationServiceFactory
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IAsyncServiceProvider _serviceProvider;
         private IExperimentationService _experimentationService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioExperimentationService(SVsServiceProvider serviceProvider)
+        public VisualStudioExperimentationService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
         {
+            _threadingContext = threadingContext;
             _serviceProvider = (IAsyncServiceProvider)serviceProvider;
         }
 
@@ -29,8 +32,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
         {
             if (_experimentationService is null)
             {
-                var featureFlags = (IVsFeatureFlags)await _serviceProvider.GetServiceAsync(typeof(SVsFeatureFlags)).ConfigureAwait(false);
-                var shellExperimentationService = (IVsExperimentationService)await _serviceProvider.GetServiceAsync(typeof(SVsExperimentationService)).ConfigureAwait(false);
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var featureFlags = (IVsFeatureFlags)await _serviceProvider.GetServiceAsync(typeof(SVsFeatureFlags)).ConfigureAwait(true);
+                var shellExperimentationService = (IVsExperimentationService)await _serviceProvider.GetServiceAsync(typeof(SVsExperimentationService)).ConfigureAwait(true);
                 var experimentationService = new ExperimentationService(featureFlags, shellExperimentationService);
                 Interlocked.CompareExchange(ref _experimentationService, experimentationService, null);
             }
