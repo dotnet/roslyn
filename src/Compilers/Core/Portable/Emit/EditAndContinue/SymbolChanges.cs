@@ -137,8 +137,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
             }
 
-            var symbol = def as ISymbol;
-            if (symbol != null)
+            if (def is ISymbol symbol)
             {
                 return GetChange(symbol);
             }
@@ -180,10 +179,17 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 case SymbolChange.Updated:
                 case SymbolChange.ContainsChanges:
-                    if (symbol is IDefinition definition && !_definitionMap.DefinitionExists(definition))
+                    if (symbol is IDefinition definition)
                     {
                         // If the definition did not exist in the previous generation, it was added.
-                        return SymbolChange.Added;
+                        return _definitionMap.DefinitionExists(definition) ? SymbolChange.None : SymbolChange.Added;
+                    }
+
+                    if (symbol is INamespace @namespace)
+                    {
+                        // If the namespace did not exist in the previous generation, it was added.
+                        // Otherwise the namespace may contains changes.
+                        return _definitionMap.NamespaceExists(@namespace) ? SymbolChange.ContainsChanges : SymbolChange.Added;
                     }
 
                     return SymbolChange.None;

@@ -83,10 +83,17 @@ namespace Microsoft.CodeAnalysis.Emit
                    (mapToMetadata != mapToPrevious ? mapToMetadata.MapDefinition(definition) : null);
         }
 
-        internal bool DefinitionExists(Cci.IDefinition definition)
+        internal Cci.INamespace MapNamespace(Cci.INamespace @namespace)
         {
-            return MapDefinition(definition) != null;
+            return mapToPrevious.MapNamespace(@namespace) ??
+                   (mapToMetadata != mapToPrevious ? mapToMetadata.MapNamespace(@namespace) : null);
         }
+
+        internal bool DefinitionExists(Cci.IDefinition definition)
+            => MapDefinition(definition) is object;
+
+        internal bool NamespaceExists(Cci.INamespace @namespace)
+            => MapNamespace(@namespace) is object;
 
         internal abstract bool TryGetTypeHandle(Cci.ITypeDefinition def, out TypeDefinitionHandle handle);
         internal abstract bool TryGetEventHandle(Cci.IEventDefinition def, out EventDefinitionHandle handle);

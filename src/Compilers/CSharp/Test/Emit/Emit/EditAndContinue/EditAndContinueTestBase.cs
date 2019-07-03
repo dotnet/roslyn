@@ -205,6 +205,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             AssertEx.Equal(expectedNames, actualNames);
         }
 
+        internal static void CheckNames(MetadataReader[] readers, (StringHandle Namespace, StringHandle Name)[] handles, params string[] expectedNames)
+        {
+            var actualNames = handles.Select(handlePair => string.Join(".", readers.GetString(handlePair.Namespace), readers.GetString(handlePair.Name))).ToArray();
+            AssertEx.Equal(expectedNames, actualNames);
+        }
+
         internal static string EncLogRowToString(EditAndContinueLogEntry row)
         {
             TableIndex tableIndex;
