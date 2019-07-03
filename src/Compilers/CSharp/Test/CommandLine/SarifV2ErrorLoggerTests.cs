@@ -359,9 +359,8 @@ public class C
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
 
-            var expectedHeader = GetExpectedErrorLogHeader();
-            var expectedIssues = AnalyzerForErrorLogTest.GetExpectedErrorLogResultsText(cmd.Compilation);
-            var expectedOutput = expectedHeader + expectedIssues;
+            // TODO: This isn't the whole output.
+            var expectedOutput = AnalyzerForErrorLogTest.GetExpectedErrorLogResultsText(cmd.Compilation);
             Assert.Equal(expectedOutput, actualOutput);
 
             CleanupAllGeneratedFiles(sourceFile);
@@ -383,11 +382,6 @@ public class C
             }.Concat(additionalArguments).ToArray();
 
             return string.Format(CultureInfo.InvariantCulture, s, arguments);
-        }
-
-        private static string GetExpectedErrorLogHeader()
-        {
-            return "";
         }
     }
 }
