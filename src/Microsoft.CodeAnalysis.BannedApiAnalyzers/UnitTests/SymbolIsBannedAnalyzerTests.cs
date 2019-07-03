@@ -309,6 +309,39 @@ class C
         }
 
         [Fact]
+        public async Task CSharp_BannedClass_Operators()
+        {
+            var source = @"
+class C
+{
+    public static implicit operator C(int i) => new C();
+    public static explicit operator C(float f) => new C();
+    public static C operator +(C c, int i) => c;
+    public static C operator ++(C c) => c;
+    public static C operator -(C c) => c;
+
+    void M()
+    {
+        C c = 0;        // implicit conversion.
+        c = (C)1.0f;    // Explicit conversion.
+        c = c + 1;      // Binary operator.
+        c++;            // Increment or decrement.
+        c = -c;         // Unary operator.
+    }
+}";
+            var bannedText = @"T:C";
+
+            await VerifyCSharpAsync(source, bannedText,
+                GetCSharpResultAt(4, 49, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(5, 51, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(12, 15, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(13, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(14, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(15, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(16, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
+        }
+
+        [Fact]
         public async Task CSharp_BannedClass_Property()
         {
             var source = @"
