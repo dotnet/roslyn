@@ -129,10 +129,6 @@ namespace Microsoft.CodeAnalysis.SQLite
                                 dataBytes, dataLength);
                         }
 
-                        // Let the storage system know it should flush this information
-                        // to disk in the future.
-                        Storage.EnqueueFlushTask();
-
                         if (dataPooled)
                         {
                             ReturnPooledBytes(dataBytes);
@@ -279,6 +275,10 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                     statement.Step();
                 }
+
+                // Let the storage system know it should flush this information
+                // to disk in the future.
+                Storage.EnqueueFlushTask();
             }
         }
     }
