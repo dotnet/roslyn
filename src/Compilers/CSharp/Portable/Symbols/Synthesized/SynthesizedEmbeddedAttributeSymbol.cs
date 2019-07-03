@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _namespace = _module.GlobalNamespace;
             foreach (var part in description.Namespace.Split('.'))
             {
-                _namespace = new MissingNamespaceSymbol(_namespace, part);
+                _namespace = new SynthesizedNamespaceSymbol(_namespace, part);
             }
 
             if (includeAttributeUsageAttribute)
