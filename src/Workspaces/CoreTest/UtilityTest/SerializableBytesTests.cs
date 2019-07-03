@@ -13,192 +13,218 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task ReadableStreamTestReadAByteAtATime()
         {
-            using (var expected = new MemoryStream())
+            using var expected = new MemoryStream();
+            for (var i = 0; i < 10000; i++)
             {
-                for (var i = 0; i < 10000; i++)
-                {
-                    expected.WriteByte((byte)(i % byte.MaxValue));
-                }
+                expected.WriteByte((byte)(i % byte.MaxValue));
+            }
 
-                expected.Position = 0;
-                using (var stream = await SerializableBytes.CreateReadableStreamAsync(expected, CancellationToken.None))
-                {
-                    Assert.Equal(expected.Length, stream.Length);
+            expected.Position = 0;
+            using var stream = await SerializableBytes.CreateReadableStreamAsync(expected, CancellationToken.None);
+            Assert.Equal(expected.Length, stream.Length);
 
-                    expected.Position = 0;
-                    stream.Position = 0;
-                    for (var i = 0; i < expected.Length; i++)
-                    {
-                        Assert.Equal(expected.ReadByte(), stream.ReadByte());
-                    }
-                }
+            expected.Position = 0;
+            stream.Position = 0;
+            for (var i = 0; i < expected.Length; i++)
+            {
+                Assert.Equal(expected.ReadByte(), stream.ReadByte());
             }
         }
 
         [Fact]
         public async Task ReadableStreamTestReadChunks()
         {
-            using (var expected = new MemoryStream())
+            using var expected = new MemoryStream();
+            for (var i = 0; i < 10000; i++)
             {
-                for (var i = 0; i < 10000; i++)
+                expected.WriteByte((byte)(i % byte.MaxValue));
+            }
+
+            expected.Position = 0;
+            using var stream = await SerializableBytes.CreateReadableStreamAsync(expected, CancellationToken.None);
+            Assert.Equal(expected.Length, stream.Length);
+
+            stream.Position = 0;
+
+            var index = 0;
+            int count;
+            var bytes = new byte[1000];
+
+            while ((count = stream.Read(bytes, 0, bytes.Length)) > 0)
+            {
+                for (var i = 0; i < count; i++)
                 {
-                    expected.WriteByte((byte)(i % byte.MaxValue));
-                }
-
-                expected.Position = 0;
-                using (var stream = await SerializableBytes.CreateReadableStreamAsync(expected, CancellationToken.None))
-                {
-                    Assert.Equal(expected.Length, stream.Length);
-
-                    stream.Position = 0;
-
-                    int index = 0;
-                    int count;
-                    var bytes = new byte[1000];
-
-                    while ((count = stream.Read(bytes, 0, bytes.Length)) > 0)
-                    {
-                        for (var i = 0; i < count; i++)
-                        {
-                            Assert.Equal((byte)(index % byte.MaxValue), bytes[i]);
-                            index++;
-                        }
-                    }
-
-                    Assert.Equal(index, stream.Length);
+                    Assert.Equal((byte)(index % byte.MaxValue), bytes[i]);
+                    index++;
                 }
             }
+
+            Assert.Equal(index, stream.Length);
         }
 
         [Fact]
         public async Task ReadableStreamTestReadRandomBytes()
         {
-            using (var expected = new MemoryStream())
+            using var expected = new MemoryStream();
+            for (var i = 0; i < 10000; i++)
             {
-                for (var i = 0; i < 10000; i++)
-                {
-                    expected.WriteByte((byte)(i % byte.MaxValue));
-                }
+                expected.WriteByte((byte)(i % byte.MaxValue));
+            }
 
-                expected.Position = 0;
-                using (var stream = await SerializableBytes.CreateReadableStreamAsync(expected, CancellationToken.None))
-                {
-                    Assert.Equal(expected.Length, stream.Length);
+            expected.Position = 0;
+            using var stream = await SerializableBytes.CreateReadableStreamAsync(expected, CancellationToken.None);
+            Assert.Equal(expected.Length, stream.Length);
 
-                    var random = new Random(0);
-                    for (var i = 0; i < 100; i++)
-                    {
-                        var position = random.Next((int)expected.Length);
-                        expected.Position = position;
-                        stream.Position = position;
+            var random = new Random(0);
+            for (var i = 0; i < 100; i++)
+            {
+                var position = random.Next((int)expected.Length);
+                expected.Position = position;
+                stream.Position = position;
 
-                        Assert.Equal(expected.ReadByte(), stream.ReadByte());
-                    }
-                }
+                Assert.Equal(expected.ReadByte(), stream.ReadByte());
             }
         }
 
         [Fact]
         public void WritableStreamTest1()
         {
-            using (var expected = new MemoryStream())
+            using var expected = new MemoryStream();
+            for (var i = 0; i < 10000; i++)
             {
-                for (var i = 0; i < 10000; i++)
-                {
-                    expected.WriteByte((byte)(i % byte.MaxValue));
-                }
-
-                expected.Position = 0;
-                using (var stream = SerializableBytes.CreateWritableStream())
-                {
-                    for (var i = 0; i < 10000; i++)
-                    {
-                        stream.WriteByte((byte)(i % byte.MaxValue));
-                    }
-
-                    StreamEqual(expected, stream);
-                }
+                expected.WriteByte((byte)(i % byte.MaxValue));
             }
+
+            expected.Position = 0;
+            using var stream = SerializableBytes.CreateWritableStream();
+            for (var i = 0; i < 10000; i++)
+            {
+                stream.WriteByte((byte)(i % byte.MaxValue));
+            }
+
+            StreamEqual(expected, stream);
         }
 
         [Fact]
         public void WritableStreamTest2()
         {
-            using (var expected = new MemoryStream())
+            using var expected = new MemoryStream();
+            for (var i = 0; i < 10000; i++)
             {
-                for (var i = 0; i < 10000; i++)
+                expected.WriteByte((byte)(i % byte.MaxValue));
+            }
+
+            expected.Position = 0;
+            using var stream = SerializableBytes.CreateWritableStream();
+            for (var i = 0; i < 10000; i++)
+            {
+                stream.WriteByte((byte)(i % byte.MaxValue));
+            }
+
+            Assert.Equal(expected.Length, stream.Length);
+
+            stream.Position = 0;
+
+            var index = 0;
+            int count;
+            var bytes = new byte[1000];
+
+            while ((count = stream.Read(bytes, 0, bytes.Length)) > 0)
+            {
+                for (var i = 0; i < count; i++)
                 {
-                    expected.WriteByte((byte)(i % byte.MaxValue));
-                }
-
-                expected.Position = 0;
-                using (var stream = SerializableBytes.CreateWritableStream())
-                {
-                    for (var i = 0; i < 10000; i++)
-                    {
-                        stream.WriteByte((byte)(i % byte.MaxValue));
-                    }
-
-                    Assert.Equal(expected.Length, stream.Length);
-
-                    stream.Position = 0;
-
-                    int index = 0;
-                    int count;
-                    var bytes = new byte[1000];
-
-                    while ((count = stream.Read(bytes, 0, bytes.Length)) > 0)
-                    {
-                        for (var i = 0; i < count; i++)
-                        {
-                            Assert.Equal((byte)(index % byte.MaxValue), bytes[i]);
-                            index++;
-                        }
-                    }
-
-                    Assert.Equal(index, stream.Length);
+                    Assert.Equal((byte)(index % byte.MaxValue), bytes[i]);
+                    index++;
                 }
             }
+
+            Assert.Equal(index, stream.Length);
         }
 
         [Fact]
         public void WritableStreamTest3()
         {
-            using (var expected = new MemoryStream())
+            using var expected = new MemoryStream();
+            using var stream = SerializableBytes.CreateWritableStream();
+            var random = new Random(0);
+            for (var i = 0; i < 100; i++)
             {
-                using (var stream = SerializableBytes.CreateWritableStream())
-                {
-                    var random = new Random(0);
-                    for (var i = 0; i < 100; i++)
-                    {
-                        var position = random.Next(10000);
-                        WriteByte(expected, stream, position, i);
-                    }
-
-                    StreamEqual(expected, stream);
-                }
+                var position = random.Next(10000);
+                WriteByte(expected, stream, position, i);
             }
+
+            StreamEqual(expected, stream);
         }
 
         [Fact]
         public void WritableStreamTest4()
         {
+            using var expected = new MemoryStream();
+            using var stream = SerializableBytes.CreateWritableStream();
+            var random = new Random(0);
+            for (var i = 0; i < 100; i++)
+            {
+                var position = random.Next(10000);
+                WriteByte(expected, stream, position, i);
+
+                var position1 = random.Next(10000);
+                var temp = GetInitializedArray(100 + position1);
+                Write(expected, stream, position1, temp);
+            }
+
+            StreamEqual(expected, stream);
+        }
+
+        [Fact]
+        public void WritableStream_SetLength1()
+        {
             using (var expected = new MemoryStream())
             {
+                expected.WriteByte(1);
+                expected.SetLength(10000);
+                expected.WriteByte(2);
+                expected.SetLength(1);
+                var expectedPosition = expected.Position;
+                expected.Position = 0;
+
                 using (var stream = SerializableBytes.CreateWritableStream())
                 {
-                    var random = new Random(0);
-                    for (var i = 0; i < 100; i++)
-                    {
-                        var position = random.Next(10000);
-                        WriteByte(expected, stream, position, i);
-
-                        var position1 = random.Next(10000);
-                        var temp = GetInitializedArray(100 + position1);
-                        Write(expected, stream, position1, temp);
-                    }
+                    stream.WriteByte(1);
+                    stream.SetLength(10000);
+                    stream.WriteByte(2);
+                    stream.SetLength(1);
 
                     StreamEqual(expected, stream);
+                    Assert.Equal(expectedPosition, stream.Position);
+                }
+            }
+        }
+
+        [Fact]
+        public void WritableStream_SetLength2()
+        {
+            using (var expected = new MemoryStream())
+            {
+                expected.WriteByte(1);
+                expected.SetLength(10000);
+                expected.Position = 10000 - 1;
+                expected.WriteByte(2);
+                expected.SetLength(SharedPools.ByteBufferSize);
+                expected.WriteByte(3);
+                var expectedPosition = expected.Position;
+                expected.Position = 0;
+
+                using (var stream = SerializableBytes.CreateWritableStream())
+                {
+                    stream.WriteByte(1);
+                    stream.SetLength(10000);
+                    stream.Position = 10000 - 1;
+                    stream.WriteByte(2);
+                    stream.SetLength(SharedPools.ByteBufferSize);
+                    stream.WriteByte(3);
+
+                    StreamEqual(expected, stream);
+                    Assert.Equal(expectedPosition, stream.Position);
                 }
             }
         }

@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             if (_installStatus == LiveCodeAnalysisInstallStatus.Unknown)
             {
                 var vsShell = _serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
-                var hr = vsShell.IsPackageInstalled(FxCopAnalyzersPackageGuid, out int installed);
+                var hr = vsShell.IsPackageInstalled(FxCopAnalyzersPackageGuid, out var installed);
                 if (ErrorHandler.Failed(hr))
                 {
                     FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));

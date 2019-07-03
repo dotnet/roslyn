@@ -180,7 +180,7 @@ namespace Roslyn.Utilities
             cancellationToken.ThrowIfCancellationRequested();
 
             // If the value is already available, return it immediately
-            if (TryGetValue(out T value))
+            if (TryGetValue(out var value))
             {
                 return value;
             }
@@ -293,7 +293,7 @@ namespace Roslyn.Utilities
                 _requests = new HashSet<Request>();
             }
 
-            Request request = new Request();
+            var request = new Request();
             _requests.Add(request);
             return request;
         }

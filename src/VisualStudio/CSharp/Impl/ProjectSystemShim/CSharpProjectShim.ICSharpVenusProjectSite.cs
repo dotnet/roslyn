@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         public void RemoveReferenceToCodeDirectory(string assemblyFileName, ICSharpProjectRoot project)
         {
-            CSharpProjectShim projectSite = GetProjectSite(project);
+            var projectSite = GetProjectSite(project);
 
             var projectReferencesToRemove = VisualStudioProject.GetProjectReferences().Where(p => p.ProjectId == projectSite.VisualStudioProject.Id).ToList();
 
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         public void OnCodeDirectoryAliasesChanged(ICSharpProjectRoot project, int previousAliasesCount, string[] previousAliases, int currentAliasesCount, string[] currentAliases)
         {
-            CSharpProjectShim projectSite = GetProjectSite(project);
+            var projectSite = GetProjectSite(project);
 
             using (VisualStudioProject.CreateBatchScope())
             {
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         public void AddReferenceToCodeDirectoryEx(string assemblyFileName, ICSharpProjectRoot projectRoot, CompilerOptions optionID)
         {
-            CSharpProjectShim projectSite = GetProjectSite(projectRoot);
+            var projectSite = GetProjectSite(projectRoot);
 
             VisualStudioProject.AddProjectReference(new ProjectReference(projectSite.VisualStudioProject.Id, embedInteropTypes: optionID == CompilerOptions.OPTID_IMPORTSUSINGNOPIA));
         }
@@ -64,13 +64,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         private static CSharpProjectShim GetProjectSite(ICSharpProjectRoot project)
         {
             // Get the host back for the project
-            Guid projectSiteGuid = typeof(ICSharpProjectSite).GUID;
-            CSharpProjectShim projectSite = project.GetProjectSite(ref projectSiteGuid) as CSharpProjectShim;
+            var projectSiteGuid = typeof(ICSharpProjectSite).GUID;
 
             // We should have gotten a ProjectSite back. If we didn't, that means we're being given
             // a project site that we didn't get BindToProject called on first which is a no-no by
             // the project system.
-            if (projectSite == null)
+            if (!(project.GetProjectSite(ref projectSiteGuid) is CSharpProjectShim projectSite))
             {
                 throw new ArgumentException($"{project} was not properly sited with the language service.", nameof(project));
             }

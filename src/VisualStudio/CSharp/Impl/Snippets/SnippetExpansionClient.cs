@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         /// otherwise.</returns>
         protected override ITrackingSpan InsertEmptyCommentAndGetEndPositionTrackingSpan()
         {
-            VsTextSpan[] endSpanInSurfaceBuffer = new VsTextSpan[1];
+            var endSpanInSurfaceBuffer = new VsTextSpan[1];
             if (ExpansionSession.GetEndSpan(endSpanInSurfaceBuffer) != VSConstants.S_OK)
             {
                 return null;
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
             var endPosition = subjectBufferEndSpan.Start.Position;
 
-            string commentString = "/**/";
+            var commentString = "/**/";
             SubjectBuffer.Insert(endPosition, commentString);
 
             var commentSpan = new Span(endPosition, commentString.Length);

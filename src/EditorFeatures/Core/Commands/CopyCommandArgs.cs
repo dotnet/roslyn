@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.Editor.Commands
     [ExcludeFromCodeCoverage]
     internal class CopyCommandArgs : CommandArgs
     {
-        public CopyCommandArgs(ITextView textView, ITextBuffer subjectBuffer) :
-            base(textView, subjectBuffer)
+        public CopyCommandArgs(ITextView textView, ITextBuffer subjectBuffer)
+            : base(textView, subjectBuffer)
         {
         }
     }

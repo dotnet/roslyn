@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 // fire and forget on a background thread:
                 try
                 {
-                    Task.Run(TrackActiveSpansAsync, _editSession.Cancellation.Token);
+                    Task.Run(TrackActiveSpansAsync, _editSession.CancellationToken);
                 }
                 catch (TaskCanceledException)
                 {
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 try
                 {
-                    var baseActiveStatements = await _editSession.BaseActiveStatements.GetValueAsync(_editSession.Cancellation.Token).ConfigureAwait(false);
+                    var baseActiveStatements = await _editSession.BaseActiveStatements.GetValueAsync(_editSession.CancellationToken).ConfigureAwait(false);
 
                     if (baseActiveStatements.DocumentMap.TryGetValue(document.Id, out var documentActiveStatements) &&
                         TryGetSnapshot(document, out var snapshot))
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                             TrackActiveSpansNoLock(document, snapshot, documentActiveStatements);
                         }
 
-                        bool leafChanged = documentActiveStatements.Contains(s => s.IsLeaf);
+                        var leafChanged = documentActiveStatements.Contains(s => s.IsLeaf);
                         _service.OnTrackingSpansChanged(leafChanged);
                     }
                 }
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 try
                 {
-                    var baseActiveStatements = await _editSession.BaseActiveStatements.GetValueAsync(_editSession.Cancellation.Token).ConfigureAwait(false);
+                    var baseActiveStatements = await _editSession.BaseActiveStatements.GetValueAsync(_editSession.CancellationToken).ConfigureAwait(false);
 
                     lock (_trackingSpans)
                     {
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 try
                 {
-                    var documentAnalysis = await _editSession.GetDocumentAnalysis(document).GetValueAsync(_editSession.Cancellation.Token).ConfigureAwait(false);
+                    var documentAnalysis = await _editSession.GetDocumentAnalysis(document).GetValueAsync(_editSession.CancellationToken).ConfigureAwait(false);
 
                     // Do nothing if the statements aren't available (in presence of compilation errors).
                     if (!documentAnalysis.ActiveStatements.IsDefault)
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             private void RefreshTrackingSpans(DocumentId documentId, ITextSnapshot snapshot, ImmutableArray<ActiveStatement> documentActiveStatements)
             {
-                bool updated = false;
+                var updated = false;
                 lock (_trackingSpans)
                 {
                     if (_trackingSpans.TryGetValue(documentId, out var documentTrackingSpans) && documentTrackingSpans == null)
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             private static ActiveStatementTrackingSpan[] CreateTrackingSpans(ITextSnapshot snapshot, ImmutableArray<ActiveStatement> documentActiveStatements)
             {
                 var result = new ActiveStatementTrackingSpan[documentActiveStatements.Length];
-                for (int i = 0; i < result.Length; i++)
+                for (var i = 0; i < result.Length; i++)
                 {
                     var span = snapshot.GetTextSpan(documentActiveStatements[i].Span).ToSpan();
                     result[i] = CreateTrackingSpan(snapshot, span, documentActiveStatements[i].Flags);
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 }
 
                 var result = new ActiveStatementTextSpan[documentTrackingSpans.Length];
-                for (int i = 0; i < documentTrackingSpans.Length; i++)
+                for (var i = 0; i < documentTrackingSpans.Length; i++)
                 {
                     Debug.Assert(documentTrackingSpans[i].Span.TextBuffer == snapshot.TextBuffer);
 
@@ -368,8 +368,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             public void UpdateActiveStatementSpans(SourceText source, IEnumerable<(ActiveStatementId, ActiveStatementTextSpan)> spans)
             {
-                bool leafUpdated = false;
-                bool updated = false;
+                var leafUpdated = false;
+                var updated = false;
                 lock (_trackingSpans)
                 {
                     foreach (var (id, span) in spans)

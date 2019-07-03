@@ -13,12 +13,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     /// </summary>
     internal class NewLinesViewModel : AbstractOptionPreviewViewModel
     {
-        private static string s_previewText = @"//[
+        private const string s_previewText = @"//[
 class C {
 }
 //]";
 
-        private static string s_methodPreview = @"class c {
+        private const string s_methodPreview = @"class c {
 //[
     void Goo(){
         Console.WriteLine();
@@ -32,7 +32,7 @@ class C {
 //]
 }";
 
-        private static string s_propertyPreview = @"class c {
+        private const string s_propertyPreview = @"class c {
 //[
     public int Property {
         get {

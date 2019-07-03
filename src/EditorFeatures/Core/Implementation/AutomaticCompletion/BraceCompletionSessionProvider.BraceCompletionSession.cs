@@ -66,11 +66,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             private void Start(CancellationToken cancellationToken)
             {
                 // this is where the caret should go after the change
-                SnapshotPoint pos = TextView.Caret.Position.BufferPosition;
-                ITrackingPoint beforeTrackingPoint = pos.Snapshot.CreateTrackingPoint(pos.Position, PointTrackingMode.Negative);
+                var pos = TextView.Caret.Position.BufferPosition;
+                var beforeTrackingPoint = pos.Snapshot.CreateTrackingPoint(pos.Position, PointTrackingMode.Negative);
 
-                ITextSnapshot snapshot = SubjectBuffer.CurrentSnapshot;
-                SnapshotPoint closingSnapshotPoint = ClosingPoint.GetPoint(snapshot);
+                var snapshot = SubjectBuffer.CurrentSnapshot;
+                var closingSnapshotPoint = ClosingPoint.GetPoint(snapshot);
 
                 if (closingSnapshotPoint.Position < 1)
                 {
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                     return;
                 }
 
-                SnapshotPoint openingSnapshotPoint = closingSnapshotPoint.Subtract(1);
+                var openingSnapshotPoint = closingSnapshotPoint.Subtract(1);
 
                 if (openingSnapshotPoint.GetChar() != OpeningBrace)
                 {
@@ -99,79 +99,75 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                     return;
                 }
 
-                using (ITextUndoTransaction undo = CreateUndoTransaction())
+                using var undo = CreateUndoTransaction();
+
+                // insert the closing brace
+                using (var edit = SubjectBuffer.CreateEdit())
                 {
-                    // insert the closing brace
-                    using (ITextEdit edit = SubjectBuffer.CreateEdit())
+                    edit.Insert(closingSnapshotPoint, ClosingBrace.ToString());
+
+                    if (edit.HasFailedChanges)
                     {
-                        edit.Insert(closingSnapshotPoint, ClosingBrace.ToString());
+                        Debug.Fail("Unable to insert closing brace");
 
-                        if (edit.HasFailedChanges)
-                        {
-                            Debug.Fail("Unable to insert closing brace");
-
-                            // exit without setting the closing point which will take us off the stack
-                            edit.Cancel();
-                            undo.Cancel();
-                            return;
-                        }
-                        else
-                        {
-                            snapshot = edit.ApplyAndLogExceptions();
-                        }
+                        // exit without setting the closing point which will take us off the stack
+                        edit.Cancel();
+                        undo.Cancel();
+                        return;
                     }
-
-                    SnapshotPoint beforePoint = beforeTrackingPoint.GetPoint(TextView.TextSnapshot);
-
-                    // switch from positive to negative tracking so it stays against the closing brace
-                    ClosingPoint = SubjectBuffer.CurrentSnapshot.CreateTrackingPoint(ClosingPoint.GetPoint(snapshot), PointTrackingMode.Negative);
-
-                    Debug.Assert(ClosingPoint.GetPoint(snapshot).Position > 0 && (new SnapshotSpan(ClosingPoint.GetPoint(snapshot).Subtract(1), 1))
-                                .GetText().Equals(ClosingBrace.ToString()), "The closing point does not match the closing brace character");
-
-                    // move the caret back between the braces
-                    TextView.Caret.MoveTo(beforePoint);
-
-                    _session.AfterStart(this, cancellationToken);
-
-                    undo.Complete();
+                    else
+                    {
+                        snapshot = edit.ApplyAndLogExceptions();
+                    }
                 }
+
+                var beforePoint = beforeTrackingPoint.GetPoint(TextView.TextSnapshot);
+
+                // switch from positive to negative tracking so it stays against the closing brace
+                ClosingPoint = SubjectBuffer.CurrentSnapshot.CreateTrackingPoint(ClosingPoint.GetPoint(snapshot), PointTrackingMode.Negative);
+
+                Debug.Assert(ClosingPoint.GetPoint(snapshot).Position > 0 && (new SnapshotSpan(ClosingPoint.GetPoint(snapshot).Subtract(1), 1))
+                            .GetText().Equals(ClosingBrace.ToString()), "The closing point does not match the closing brace character");
+
+                // move the caret back between the braces
+                TextView.Caret.MoveTo(beforePoint);
+
+                _session.AfterStart(this, cancellationToken);
+
+                undo.Complete();
             }
 
             public void PreBackspace(out bool handledCommand)
             {
                 handledCommand = false;
 
-                SnapshotPoint? caretPos = this.GetCaretPosition();
-                ITextSnapshot snapshot = SubjectBuffer.CurrentSnapshot;
+                var caretPos = this.GetCaretPosition();
+                var snapshot = SubjectBuffer.CurrentSnapshot;
 
                 if (caretPos.HasValue && caretPos.Value.Position > 0 && (caretPos.Value.Position - 1) == OpeningPoint.GetPoint(snapshot).Position
                     && !HasForwardTyping)
                 {
-                    using (ITextUndoTransaction undo = CreateUndoTransaction())
+                    using var undo = CreateUndoTransaction();
+                    using var edit = SubjectBuffer.CreateEdit();
+
+                    var span = new SnapshotSpan(OpeningPoint.GetPoint(snapshot), ClosingPoint.GetPoint(snapshot));
+
+                    edit.Delete(span);
+
+                    if (edit.HasFailedChanges)
                     {
-                        using (ITextEdit edit = SubjectBuffer.CreateEdit())
-                        {
-                            SnapshotSpan span = new SnapshotSpan(OpeningPoint.GetPoint(snapshot), ClosingPoint.GetPoint(snapshot));
-
-                            edit.Delete(span);
-
-                            if (edit.HasFailedChanges)
-                            {
-                                edit.Cancel();
-                                undo.Cancel();
-                                Debug.Fail("Unable to clear braces");
-                            }
-                            else
-                            {
-                                // handle the command so the backspace does 
-                                // not go through since we've already cleared the braces
-                                handledCommand = true;
-                                edit.ApplyAndLogExceptions();
-                                undo.Complete();
-                                EndSession();
-                            }
-                        }
+                        edit.Cancel();
+                        undo.Cancel();
+                        Debug.Fail("Unable to clear braces");
+                    }
+                    else
+                    {
+                        // handle the command so the backspace does 
+                        // not go through since we've already cleared the braces
+                        handledCommand = true;
+                        edit.ApplyAndLogExceptions();
+                        undo.Complete();
+                        EndSession();
                     }
                 }
             }
@@ -193,45 +189,43 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 var snapshot = this.SubjectBuffer.CurrentSnapshot;
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
 
-                SnapshotPoint closingSnapshotPoint = ClosingPoint.GetPoint(snapshot);
+                var closingSnapshotPoint = ClosingPoint.GetPoint(snapshot);
                 if (!HasForwardTyping && _session.AllowOverType(this, cancellationToken))
                 {
-                    SnapshotPoint? caretPos = this.GetCaretPosition();
+                    var caretPos = this.GetCaretPosition();
 
                     Debug.Assert(caretPos.HasValue && caretPos.Value.Position < closingSnapshotPoint.Position);
 
                     // ensure that we are within the session before clearing
                     if (caretPos.HasValue && caretPos.Value.Position < closingSnapshotPoint.Position && closingSnapshotPoint.Position > 0)
                     {
-                        using (ITextUndoTransaction undo = CreateUndoTransaction())
+                        using var undo = CreateUndoTransaction();
+
+                        _editorOperations.AddBeforeTextBufferChangePrimitive();
+
+                        var span = new SnapshotSpan(caretPos.Value, closingSnapshotPoint.Subtract(1));
+
+                        using var edit = SubjectBuffer.CreateEdit();
+
+                        edit.Delete(span);
+
+                        if (edit.HasFailedChanges)
                         {
-                            _editorOperations.AddBeforeTextBufferChangePrimitive();
+                            Debug.Fail("Unable to clear closing brace");
+                            edit.Cancel();
+                            undo.Cancel();
+                        }
+                        else
+                        {
+                            handledCommand = true;
 
-                            SnapshotSpan span = new SnapshotSpan(caretPos.Value, closingSnapshotPoint.Subtract(1));
+                            edit.ApplyAndLogExceptions();
 
-                            using (ITextEdit edit = SubjectBuffer.CreateEdit())
-                            {
-                                edit.Delete(span);
+                            MoveCaretToClosingPoint();
 
-                                if (edit.HasFailedChanges)
-                                {
-                                    Debug.Fail("Unable to clear closing brace");
-                                    edit.Cancel();
-                                    undo.Cancel();
-                                }
-                                else
-                                {
-                                    handledCommand = true;
+                            _editorOperations.AddAfterTextBufferChangePrimitive();
 
-                                    edit.ApplyAndLogExceptions();
-
-                                    MoveCaretToClosingPoint();
-
-                                    _editorOperations.AddAfterTextBufferChangePrimitive();
-
-                                    undo.Complete();
-                                }
-                            }
+                            undo.Complete();
                         }
                     }
                 }
@@ -249,16 +243,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 {
                     handledCommand = true;
 
-                    using (ITextUndoTransaction undo = CreateUndoTransaction())
-                    {
-                        _editorOperations.AddBeforeTextBufferChangePrimitive();
+                    using var undo = CreateUndoTransaction();
 
-                        MoveCaretToClosingPoint();
+                    _editorOperations.AddBeforeTextBufferChangePrimitive();
 
-                        _editorOperations.AddAfterTextBufferChangePrimitive();
+                    MoveCaretToClosingPoint();
 
-                        undo.Complete();
-                    }
+                    _editorOperations.AddAfterTextBufferChangePrimitive();
+
+                    undo.Complete();
                 }
             }
 
@@ -271,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             {
                 if (this.GetCaretPosition().HasValue)
                 {
-                    SnapshotPoint closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
+                    var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
 
                     if (closingSnapshotPoint.Position > 0 && HasNoForwardTyping(this.GetCaretPosition().Value, closingSnapshotPoint.Subtract(1)))
                     {
@@ -315,11 +308,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             {
                 get
                 {
-                    SnapshotPoint closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
+                    var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
 
                     if (closingSnapshotPoint.Position > 0)
                     {
-                        SnapshotPoint? caretPos = this.GetCaretPosition();
+                        var caretPos = this.GetCaretPosition();
 
                         if (caretPos.HasValue && !HasNoForwardTyping(caretPos.Value, closingSnapshotPoint.Subtract(1)))
                         {
@@ -345,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
                     if (caretPoint.Position < endPoint.Position)
                     {
-                        SnapshotSpan span = new SnapshotSpan(caretPoint, endPoint);
+                        var span = new SnapshotSpan(caretPoint, endPoint);
 
                         return string.IsNullOrWhiteSpace(span.GetText());
                     }
@@ -361,10 +354,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
             private void MoveCaretToClosingPoint()
             {
-                SnapshotPoint closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
+                var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
 
                 // find the position just after the closing brace in the view's text buffer
-                SnapshotPoint? afterBrace = TextView.BufferGraph.MapUpToBuffer(closingSnapshotPoint,
+                var afterBrace = TextView.BufferGraph.MapUpToBuffer(closingSnapshotPoint,
                     PointTrackingMode.Negative, PositionAffinity.Predecessor, TextView.TextBuffer);
 
                 Debug.Assert(afterBrace.HasValue, "Unable to move caret to closing point");

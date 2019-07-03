@@ -6,20 +6,21 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
+using Microsoft.CodeAnalysis.CSharp.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Moq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
+namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
     [UseExportProvider]
-    public class EditSessionTests : TestBase
+    public class EditSessionActiveStatementsTests : TestBase
     {
         internal sealed class TestActiveStatementProvider : IActiveStatementProvider
         {
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         {
             IEnumerable<(TextSpan Span, int Id, SourceText Text, string DocumentName, DocumentId DocumentId)> EnumerateAllSpans()
             {
-                int sourceIndex = 0;
+                var sourceIndex = 0;
                 foreach (var markedSource in markedSources)
                 {
                     var documentName = TestWorkspace.GetDefaultTestSourceDocumentName(sourceIndex, extension);
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 var moduleId = new Guid("00000000-0000-0000-0000-000000000001");
                 var threadId = new Guid("00000000-0000-0000-0000-000000000010");
 
-                int index = 0;
+                var index = 0;
                 foreach (var (span, id, text, documentName, documentId) in EnumerateAllSpans().OrderBy(s => s.Id))
                 {
                     yield return new ActiveStatementDebugInfo(
@@ -92,56 +93,51 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions = null,
             Func<Solution, Solution> adjustSolution = null)
         {
-
             var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer)).WithPart(typeof(DummyLanguageService)));
 
             var exportProvider = exportProviderFactory.CreateExportProvider();
 
-            using (var workspace = TestWorkspace.CreateCSharp(
-                ActiveStatementsDescription.ClearTags(markedSource),
-                exportProvider: exportProvider))
+            using var workspace = TestWorkspace.CreateCSharp(ActiveStatementsDescription.ClearTags(markedSource), exportProvider: exportProvider);
+
+            if (adjustSolution != null)
             {
-                var baseSolution = workspace.CurrentSolution;
-                if (adjustSolution != null)
-                {
-                    baseSolution = adjustSolution(baseSolution);
-                }
-
-                var docsIds = from p in baseSolution.Projects
-                              from d in p.DocumentIds
-                              select d;
-
-                var debuggingSession = new DebuggingSession(baseSolution);
-                var activeStatementProvider = new TestActiveStatementProvider(activeStatements);
-
-                var editSession = new EditSession(
-                    baseSolution,
-                    debuggingSession,
-                    activeStatementProvider,
-                    ImmutableDictionary<ProjectId, ProjectReadOnlyReason>.Empty,
-                    nonRemappableRegions ?? ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
-                    stoppedAtException: false);
-
-                return (await editSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false),
-                        await editSession.BaseActiveExceptionRegions.GetValueAsync(CancellationToken.None).ConfigureAwait(false),
-                        docsIds.ToImmutableArray());
+                workspace.ChangeSolution(adjustSolution(workspace.CurrentSolution));
             }
+
+            var docsIds = from p in workspace.CurrentSolution.Projects
+                          from d in p.DocumentIds
+                          select d;
+
+            var activeStatementProvider = new TestActiveStatementProvider(activeStatements);
+            var mockDebuggeModuleProvider = new Mock<IDebuggeeModuleMetadataProvider>();
+            var mockCompilationOutputsProvider = new Mock<ICompilationOutputsProviderService>();
+
+            var debuggingSession = new DebuggingSession(workspace, mockDebuggeModuleProvider.Object, activeStatementProvider, mockCompilationOutputsProvider.Object);
+
+            debuggingSession.Test_SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
+
+            var telemetry = new EditSessionTelemetry();
+            var editSession = new EditSession(debuggingSession, telemetry);
+
+            return (await editSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false),
+                    await editSession.BaseActiveExceptionRegions.GetValueAsync(CancellationToken.None).ConfigureAwait(false),
+                    docsIds.ToImmutableArray());
         }
 
         private static string Delete(string src, string marker)
         {
             while (true)
             {
-                string startStr = "/*delete" + marker;
-                string endStr = "*/";
-                int start = src.IndexOf(startStr);
+                var startStr = "/*delete" + marker;
+                var endStr = "*/";
+                var start = src.IndexOf(startStr);
                 if (start == -1)
                 {
                     return src;
                 }
 
-                int end = src.IndexOf(endStr, start + startStr.Length) + endStr.Length;
+                var end = src.IndexOf(endStr, start + startStr.Length) + endStr.Length;
                 src = src.Substring(0, start) + src.Substring(end);
             }
         }
@@ -150,18 +146,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         {
             while (true)
             {
-                string startStr = "/*insert" + marker + "[";
-                string endStr = "*/";
+                var startStr = "/*insert" + marker + "[";
+                var endStr = "*/";
 
-                int start = src.IndexOf(startStr);
+                var start = src.IndexOf(startStr);
                 if (start == -1)
                 {
                     return src;
                 }
 
-                int startOfLineCount = start + startStr.Length;
-                int endOfLineCount = src.IndexOf(']', startOfLineCount);
-                int lineCount = int.Parse(src.Substring(startOfLineCount, endOfLineCount - startOfLineCount));
+                var startOfLineCount = start + startStr.Length;
+                var endOfLineCount = src.IndexOf(']', startOfLineCount);
+                var lineCount = int.Parse(src.Substring(startOfLineCount, endOfLineCount - startOfLineCount));
 
                 var end = src.IndexOf(endStr, endOfLineCount) + endStr.Length;
 
@@ -342,11 +338,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 )
             );
 
-            EditSession.TestAccessor.GetActiveStatementAndExceptionRegionSpans(
+            EditSession.GetActiveStatementAndExceptionRegionSpans(
                 module2,
                 baseActiveStatements,
                 baseExceptionRegions,
-                updatedMethodTokens: new[] { 0x06000004 }, // contains only recompiled methods in the project we are interested in (module2)
+                updatedMethodTokens: ImmutableArray.Create(0x06000004), // contains only recompiled methods in the project we are interested in (module2)
                 ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
                 newActiveStatementsInChangedDocuments,
                 out var activeStatementsInUpdatedMethods,
@@ -442,11 +438,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 )
             );
 
-            EditSession.TestAccessor.GetActiveStatementAndExceptionRegionSpans(
+            EditSession.GetActiveStatementAndExceptionRegionSpans(
                 module1,
                 baseActiveStatementMap,
                 baseExceptionRegions,
-                updatedMethodTokens: new[] { 0x06000001 }, // F1
+                updatedMethodTokens: ImmutableArray.Create(0x06000001), // F1
                 ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
                 newActiveStatementsInChangedDocuments,
                 out var activeStatementsInUpdatedMethods,
@@ -624,11 +620,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 )
             );
 
-            EditSession.TestAccessor.GetActiveStatementAndExceptionRegionSpans(
+            EditSession.GetActiveStatementAndExceptionRegionSpans(
                 module1,
                 baseActiveStatementMap,
                 baseExceptionRegions,
-                updatedMethodTokens: new[] { 0x06000002, 0x06000004 }, // F2, F4
+                updatedMethodTokens: ImmutableArray.Create(0x06000002, 0x06000004), // F2, F4
                 initialNonRemappableRegions,
                 newActiveStatementsInChangedDocuments,
                 out var activeStatementsInUpdatedMethods,

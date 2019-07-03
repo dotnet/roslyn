@@ -28,7 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
         private readonly IProjectCodeModel _projectCodeModel;
         private readonly Lazy<ProjectExternalErrorReporter> _externalErrorReporterOpt;
-        private readonly EditAndContinue.VsENCRebuildableProjectImpl _editAndContinueProject;
 
         public string DisplayName
         {
@@ -81,14 +80,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 _visualStudioWorkspace.AddProjectRuleSetFileToInternalMaps(
                     visualStudioProject,
                     () => _visualStudioProjectOptionsProcessor.EffectiveRuleSetFilePath);
-            }
-
-            // We don't have a SVsShellDebugger service in unit tests, in that case we can't implement ENC. We're OK
-            // leaving the field null in that case.
-            if (Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsShellDebugger)) != null)
-            {
-                // TODO: make this lazier, as fetching all the services up front during load shoudn't be necessary
-                _editAndContinueProject = new EditAndContinue.VsENCRebuildableProjectImpl(_visualStudioWorkspace, _visualStudioProject, Shell.ServiceProvider.GlobalProvider);
             }
 
             Guid = projectGuid;

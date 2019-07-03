@@ -160,22 +160,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             {
                 // More than just a single document changed.  Make a global undo to run 
                 // all the changes under.
-                using (var transaction = workspace.OpenGlobalUndoTransaction(title))
+                using var transaction = workspace.OpenGlobalUndoTransaction(title);
+
+                // link current file in the global undo transaction
+                // Do this before processing operations, since that can change
+                // documentIds.
+                if (fromDocument != null)
                 {
-                    // link current file in the global undo transaction
-                    // Do this before processing operations, since that can change
-                    // documentIds.
-                    if (fromDocument != null)
-                    {
-                        transaction.AddDocument(fromDocument.Id);
-                    }
-
-                    applied = ProcessOperations(
-                        workspace, operations, progressTracker,
-                        cancellationToken);
-
-                    transaction.Commit();
+                    transaction.AddDocument(fromDocument.Id);
                 }
+
+                applied = ProcessOperations(
+                    workspace, operations, progressTracker,
+                    cancellationToken);
+
+                transaction.Commit();
             }
 
             var updatedSolution = operations.OfType<ApplyChangesOperation>().FirstOrDefault()?.ChangedSolution ?? oldSolution;

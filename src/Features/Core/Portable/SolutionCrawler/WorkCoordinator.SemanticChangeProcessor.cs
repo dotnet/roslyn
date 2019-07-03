@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     IncrementalAnalyzerProcessor documentWorkerProcessor,
                     int backOffTimeSpanInMS,
                     int projectBackOffTimeSpanInMS,
-                    CancellationToken cancellationToken) :
-                    base(listener, backOffTimeSpanInMS, cancellationToken)
+                    CancellationToken cancellationToken)
+                    : base(listener, backOffTimeSpanInMS, cancellationToken)
                 {
                     _gate = new SemaphoreSlim(initialCount: 0);
 
@@ -355,8 +355,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Registration registration,
                         IncrementalAnalyzerProcessor processor,
                         int backOffTimeSpanInMS,
-                        CancellationToken cancellationToken) :
-                        base(listener, backOffTimeSpanInMS, cancellationToken)
+                        CancellationToken cancellationToken)
+                        : base(listener, backOffTimeSpanInMS, cancellationToken)
                     {
                         _registration = registration;
                         _processor = processor;

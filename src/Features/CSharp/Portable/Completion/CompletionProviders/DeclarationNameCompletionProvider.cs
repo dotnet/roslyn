@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 var recommendedNames = await GetRecommendedNamesAsync(baseNames, nameInfo, context, document, cancellationToken).ConfigureAwait(false);
-                int sortValue = 0;
+                var sortValue = 0;
                 foreach (var (name, kind) in recommendedNames)
                 {
                     // We've produced items in the desired order, add a sort text to each item to prevent alphabetization

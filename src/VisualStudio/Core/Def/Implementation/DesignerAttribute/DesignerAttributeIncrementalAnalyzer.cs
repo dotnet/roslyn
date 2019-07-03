@@ -227,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                         return;
                     }
 
-                    uint itemId = hierarchy.TryGetItemId(document.FilePath);
+                    var itemId = hierarchy.TryGetItemId(document.FilePath);
 
                     if (itemId == VSConstants.VSITEMID_NIL)
                     {

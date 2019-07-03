@@ -23,17 +23,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping.SeparatedSyntaxList
             => listSyntax.Arguments;
 
         protected override BaseArgumentListSyntax TryGetApplicableList(SyntaxNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case InvocationExpressionSyntax invocationExpression: return invocationExpression.ArgumentList;
-                case ElementAccessExpressionSyntax elementAccessExpression: return elementAccessExpression.ArgumentList;
-                case ObjectCreationExpressionSyntax objectCreationExpression: return objectCreationExpression.ArgumentList;
-                case ConstructorInitializerSyntax constructorInitializer: return constructorInitializer.ArgumentList;
-            }
-
-            return null;
-        }
+                InvocationExpressionSyntax invocationExpression => invocationExpression.ArgumentList,
+                ElementAccessExpressionSyntax elementAccessExpression => elementAccessExpression.ArgumentList,
+                ObjectCreationExpressionSyntax objectCreationExpression => objectCreationExpression.ArgumentList,
+                ConstructorInitializerSyntax constructorInitializer => constructorInitializer.ArgumentList,
+                _ => (BaseArgumentListSyntax)null,
+            };
 
         protected override bool PositionIsApplicable(
             SyntaxNode root, int position,
@@ -52,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping.SeparatedSyntaxList
 
                 startToken = name == null ? listSyntax.GetFirstToken() : name.GetFirstToken();
             }
-            else if (declaration is ObjectCreationExpressionSyntax objectCreation)
+            else if (declaration is ObjectCreationExpressionSyntax)
             {
                 // allow anywhere in `new Foo(...)`
                 startToken = declaration.GetFirstToken();

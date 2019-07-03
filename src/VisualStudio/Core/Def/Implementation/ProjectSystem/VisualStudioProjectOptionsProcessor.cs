@@ -190,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _project.AssemblyName = _commandLineArgumentsForCommandLine.CompilationName ?? _project.AssemblyName;
             _project.CompilationOptions = compilationOptions;
 
-            string fullIntermediateOutputPath = _commandLineArgumentsForCommandLine.OutputDirectory != null && _commandLineArgumentsForCommandLine.OutputFileName != null
+            var fullIntermediateOutputPath = _commandLineArgumentsForCommandLine.OutputDirectory != null && _commandLineArgumentsForCommandLine.OutputFileName != null
                                                     ? Path.Combine(_commandLineArgumentsForCommandLine.OutputDirectory, _commandLineArgumentsForCommandLine.OutputFileName)
                                                     : _commandLineArgumentsForCommandLine.OutputFileName;
 
