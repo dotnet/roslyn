@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
         internal static bool IsSupportedType(ITypeSymbol type, out ITypeSymbol valueTypeSymbol)
         {
-            if (type.IsPrimitiveType() || type.SpecialType == SpecialType.System_String)
+            if (type.IsPrimitiveType())
             {
                 valueTypeSymbol = type;
                 return true;
@@ -204,6 +204,34 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         }
 
         public bool IsLiteralState => !LiteralValues.IsEmpty && NonLiteralState == ValueContainsNonLiteralState.No;
+
+        /// <summary>
+        /// For super simple cases: If this abstract value is a single literal, then get that literal value.
+        /// </summary>
+        /// <typeparam name="T">Type of the expected literal value.</typeparam>
+        /// <param name="literalValue">Literal value, or its default if not a single literal value.</param>
+        /// <returns>True if a literal value was found, false otherwise.</returns>
+        /// <remarks>If you're looking for null, you should be looking at <see cref="PointsToAnalysis"/>.</remarks>
+        public bool TryGetSingleLiteral<T>(out T literalValue)
+        {
+            if (!IsLiteralState || LiteralValues.Count != 1)
+            {
+                literalValue = default;
+                return false;
+            }
+
+            object o = LiteralValues.First();
+            if (o is T v)
+            {
+                literalValue = v;
+                return true;
+            }
+            else
+            {
+                literalValue = default;
+                return false;
+            }
+        }
 
         internal ValueContentAbstractValue IntersectLiteralValues(ValueContentAbstractValue value2)
         {

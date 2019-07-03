@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             var indices = ImmutableArray<AbstractIndex>.Empty;
             IOperation instance = null;
-            var type = symbol.GetMemerOrLocalOrParameterType();
+            var type = symbol.GetMemberOrLocalOrParameterType();
             Debug.Assert(type != null);
 
             return TryCreate(symbol, indices, type, instance, out analysisEntity);
@@ -493,9 +493,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             (symbolOpt.Kind == SymbolKind.Local || symbolOpt.Kind == SymbolKind.Parameter))
                         {
                             interproceduralCallStackForSymbolDeclaration = _getInterproceduralCallStackForOwningSymbol(symbolOpt.ContainingSymbol);
-                            Debug.Assert(!symbolOpt.ContainingSymbol.IsLambdaOrLocalFunction() ||
-                                interproceduralCallStackForSymbolDeclaration != null &&
-                                !interproceduralCallStackForSymbolDeclaration.IsEmpty);
                         }
                         else
                         {

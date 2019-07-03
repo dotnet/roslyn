@@ -300,6 +300,9 @@ namespace Analyzer.Utilities
         public const string SystemSecurityCryptographyRfc2898DeriveBytes = "System.Security.Cryptography.Rfc2898DeriveBytes";
         public const string SystemXmlXslXslTransform = "System.Xml.Xsl.XslTransform";
         public const string MicrosoftWindowsAzureStorageCloudStorageAccount = "Microsoft.WindowsAzure.Storage.CloudStorageAccount";
+        public const string NewtonsoftJsonJsonConvert = "Newtonsoft.Json.JsonConvert";
+        public const string NewtonsoftJsonJsonSerializer = "Newtonsoft.Json.JsonSerializer";
+        public const string NewtonsoftJsonJsonSerializerSettings = "Newtonsoft.Json.JsonSerializerSettings";
         public const string SystemNullable1 = "System.Nullable`1";
         public const string MicrosoftWindowsAzureStorageSharedAccessProtocol = "Microsoft.WindowsAzure.Storage.SharedAccessProtocol";
         public const string SystemSecurityCryptographyHashAlgorithmName = "System.Security.Cryptography.HashAlgorithmName";
@@ -312,5 +315,10 @@ namespace Analyzer.Utilities
         public const string SystemSecurityCryptographyDSA = "System.Security.Cryptography.DSA";
         public const string SystemSecurityCryptographyAsymmetricAlgorithm = "System.Security.Cryptography.AsymmetricAlgorithm";
         public const string SystemSecurityCryptographyCryptoConfig = "System.Security.Cryptography.CryptoConfig";
+        public const string SystemIOCompressionZipArchiveEntry = "System.IO.Compression.ZipArchiveEntry";
+        public const string SystemIOCompressionZipFileExtensions = "System.IO.Compression.ZipFileExtensions";
+        public const string SystemIOFileStream = "System.IO.FileStream";
+        public const string SystemIOPath = "System.IO.Path";
+        public const string SystemString = "System.String";
     }
 }

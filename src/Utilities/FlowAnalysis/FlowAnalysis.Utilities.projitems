@@ -134,6 +134,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\XmlSanitizers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\XmlSinks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\XPathSinks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\ZipSlipSanitizers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\ZipSlipSinks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\ZipSlipSources.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAbstractValue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAbstractValueKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAnalysis.CoreTaintedDataAnalysisDataDomain.cs" />
@@ -154,6 +157,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\ConstructorMapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\HazardousUsageEvaluator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\HazardousUsageEvaluatorCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\HazardousUsageEvaluatorKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\HazardousUsageEvaluationResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertyMapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertyMapperCollection.cs" />
@@ -162,10 +166,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAbstractValue.ValuePool.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAnalysis.PropertySetAbstractValueDomain.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAnalysis.PropertySetDataFlowOperationVisitor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAnalysis.PropertySetDataFlowOperationVisitor.TrackedAssignmentData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAnalysis.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAnalysisContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAnalysisResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetBlockAnalysisResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetCallbacks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ParameterValidationAnalysis\ParameterValidationAnalysisContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ParameterValidationAnalysis\ParameterValidationAbstractValue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ParameterValidationAnalysis\ParameterValidationAnalysis.cs" />

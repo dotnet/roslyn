@@ -121,6 +121,37 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
                         case IAddressOfOperation addressOf:
                             VerifyType(context.ReportDiagnostic, addressOf.Type, context.Operation.Syntax);
+
+                        case IConversionOperation conversion:
+                            if (conversion.OperatorMethod != null)
+                            {
+                                VerifySymbol(context.ReportDiagnostic, conversion.OperatorMethod, context.Operation.Syntax);
+                                VerifyType(context.ReportDiagnostic, conversion.OperatorMethod.ContainingType, context.Operation.Syntax);
+                            }
+                            break;
+
+                        case IUnaryOperation unary:
+                            if (unary.OperatorMethod != null)
+                            {
+                                VerifySymbol(context.ReportDiagnostic, unary.OperatorMethod, context.Operation.Syntax);
+                                VerifyType(context.ReportDiagnostic, unary.OperatorMethod.ContainingType, context.Operation.Syntax);
+                            }
+                            break;
+
+                        case IBinaryOperation binary:
+                            if (binary.OperatorMethod != null)
+                            {
+                                VerifySymbol(context.ReportDiagnostic, binary.OperatorMethod, context.Operation.Syntax);
+                                VerifyType(context.ReportDiagnostic, binary.OperatorMethod.ContainingType, context.Operation.Syntax);
+                            }
+                            break;
+
+                        case IIncrementOrDecrementOperation incrementOrDecrement:
+                            if (incrementOrDecrement.OperatorMethod != null)
+                            {
+                                VerifySymbol(context.ReportDiagnostic, incrementOrDecrement.OperatorMethod, context.Operation.Syntax);
+                                VerifyType(context.ReportDiagnostic, incrementOrDecrement.OperatorMethod.ContainingType, context.Operation.Syntax);
+                            }
                             break;
                     }
                 },
@@ -131,7 +162,12 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 OperationKind.MethodReference,
                 OperationKind.PropertyReference,
                 OperationKind.ArrayCreation,
-                OperationKind.AddressOf);
+                OperationKind.AddressOf,
+                OperationKind.Conversion,
+                OperationKind.UnaryOperator,
+                OperationKind.BinaryOperator,
+                OperationKind.Increment,
+                OperationKind.Decrement);
 
             compilationContext.RegisterSyntaxNodeAction(
                 context => VerifyDocumentationSyntax(context.ReportDiagnostic, GetReferenceSyntaxNodeFromXmlCref(context.Node), context),
@@ -299,7 +335,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
             void VerifyDocumentationSyntax(Action<Diagnostic> reportDiagnostic, SyntaxNode syntaxNode, SyntaxNodeAnalysisContext context)
             {
-                var symbol = syntaxNode.GetDeclaredOrReferencedSymbol(context.SemanticModel);
+                var symbol = context.SemanticModel.GetSymbolInfo(syntaxNode, context.CancellationToken).Symbol;
 
                 if (symbol is ITypeSymbol typeSymbol)
                 {

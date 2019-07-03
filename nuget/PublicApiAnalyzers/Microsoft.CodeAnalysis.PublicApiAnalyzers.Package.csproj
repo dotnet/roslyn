@@ -11,6 +11,7 @@
     <ReleaseNotes>Public API Analyzers</ReleaseNotes>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics PublicApi ApiAnalyzer</PackageTags>
     <AnalyzerDocumentationFileDir>$(RepoRoot)src\PublicApiAnalyzers</AnalyzerDocumentationFileDir>
+    <AnalyzerSarifFileDir>$(RepoRoot)src\PublicApiAnalyzers</AnalyzerSarifFileDir>
   </PropertyGroup>
 
   <Choose>
@@ -25,7 +26,7 @@
     <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.PublicApiAnalyzers.dll" />
     <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes.dll" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\PublicApiAnalyzers\Core\Analyzers\Microsoft.CodeAnalysis.PublicApiAnalyzers.csproj" />
     <ProjectReference Include="..\..\src\PublicApiAnalyzers\Core\CodeFixes\Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes.csproj" />

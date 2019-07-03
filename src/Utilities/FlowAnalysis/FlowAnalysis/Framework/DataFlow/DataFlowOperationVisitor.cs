@@ -1378,8 +1378,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     break;
 
                 case IInvocationOperation invocation:
-                    // Predicate analysis for different equality comparison methods.
+                    // Predicate analysis for different equality comparison methods and argument null check methods.
                     Debug.Assert(invocation.Type.SpecialType == SpecialType.System_Boolean);
+
+                    if (invocation.TargetMethod.IsArgumentNullCheckMethod())
+                    {
+                        // Predicate analysis for null checks.
+                        if (invocation.Arguments.Length == 1)
+                        {
+                            predicateValueKind = SetValueForIsNullComparisonOperator(invocation.Arguments[0].Value, equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue, targetAnalysisData: targetAnalysisData);
+                        }
+
+                        break;
+                    }
 
                     IOperation leftOperand = null;
                     IOperation rightOperand = null;
@@ -2631,7 +2642,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 // Predicate analysis for different equality compare method invocations.
                 if (PredicateAnalysis &&
                     operation.Type.SpecialType == SpecialType.System_Boolean &&
-                    targetMethod.Name.EndsWith("Equals", StringComparison.Ordinal))
+                    (targetMethod.Name.EndsWith("Equals", StringComparison.Ordinal) ||
+                     targetMethod.IsArgumentNullCheckMethod()))
                 {
                     PerformPredicateAnalysis(operation);
                 }
@@ -2702,7 +2714,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             else
             {
                 resolvedMethodTargetsOpt = null;
-                ResetCurrentAnalysisData();
+                if (PessimisticAnalysis)
+                {
+                    ResetCurrentAnalysisData();
+                }
             }
 
             return value;

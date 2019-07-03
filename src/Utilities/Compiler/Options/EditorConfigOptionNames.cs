@@ -32,5 +32,40 @@ namespace Analyzer.Utilities
         /// Boolean option to configure if single letter type parameter names are not flagged for CA1715 (https://docs.microsoft.com/visualstudio/code-quality/ca1715-identifiers-should-have-correct-prefix).
         /// </summary>
         public const string ExcludeSingleLetterTypeParameters = "exclude_single_letter_type_parameters";
+
+        /// <summary>
+        /// Integral option to configure sufficient IterationCount when using weak KDF algorithm.
+        /// </summary>
+        public const string SufficientIterationCountForWeakKDFAlgorithm = "sufficient_IterationCount_for_weak_KDF_algorithm";
+
+        /// <summary>
+        /// String option to configure names of null check validation methods (separated by '|') that validate arguments passed to the method are non-null for CA1062 (https://docs.microsoft.com/visualstudio/code-quality/ca1062-validate-arguments-of-public-methods).
+        /// Allowed method name formats:
+        ///   1. Method name only (includes all methods with the name, regardless of the containing type or namespace)
+        ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format
+        ///      with an optional "M:" prefix.
+        /// </summary>
+        public const string NullCheckValidationMethods = "null_check_validation_methods";
+
+        /// <summary>
+        /// String option to configure names of symbols (separated by '|') that are excluded for analysis.
+        /// Configurable rules: CA1303 (https://docs.microsoft.com/visualstudio/code-quality/ca1303-do-not-pass-literals-as-localized-parameters).
+        /// Allowed method name formats:
+        ///   1. Symbol name only (includes all symbols with the name, regardless of the containing type or namespace)
+        ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format.
+        ///      Note that each symbol name requires a symbol kind prefix, such as "M:" prefix for methods, "T:" prefix for types, "N:" prefix for namespaces, etc.
+        ///   3. ".ctor" for constructors and ".cctor" for static constructors
+        /// </summary>
+        public const string ExcludedSymbolNames = "excluded_symbol_names";
+
+        /// <summary>
+        /// String option to configure names of types (separated by '|'), so that the type and all its derived types are excluded for analysis.
+        /// Configurable rules: CA1303 (https://docs.microsoft.com/visualstudio/code-quality/ca1303-do-not-pass-literals-as-localized-parameters).
+        /// Allowed method name formats:
+        ///   1. Type name only (includes all types with the name, regardless of the containing type or namespace)
+        ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format
+        ///      with an optional "T:" prefix.
+        /// </summary>
+        public const string ExcludedTypeNamesWithDerivedTypes = "excluded_type_names_with_derived_types";
     }
 }

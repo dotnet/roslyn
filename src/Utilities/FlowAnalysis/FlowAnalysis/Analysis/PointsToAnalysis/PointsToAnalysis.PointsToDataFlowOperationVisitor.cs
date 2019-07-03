@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 => ShouldBeTracked(parameter.Type) ?
                     PointsToAbstractValue.Create(
                         AbstractLocation.CreateSymbolLocation(parameter, DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.CallStack),
-                        mayBeNull: true) :
+                        mayBeNull: !parameter.IsParams) :
                     PointsToAbstractValue.NoLocation;
 
             protected override void EscapeValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity)
@@ -881,7 +881,54 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     HandleEscapingOperation(originalOperation, visitedArguments[0].Value);
                 }
 
-                return VisitInvocationCommon(originalOperation, visitedInstance);
+                var value = VisitInvocationCommon(originalOperation, visitedInstance);
+
+                if (IsSpecialEmptyOrFactoryMethod(method) &&
+                    !TryGetInterproceduralAnalysisResult(originalOperation, out _))
+                {
+                    return value.MakeNonNull();
+                }
+
+                return value;
+            }
+
+            private static bool IsSpecialEmptyOrFactoryMethod(IMethodSymbol method)
+                => IsSpecialFactoryMethod(method) || IsSpecialEmptyMember(method);
+
+            /// <summary>
+            /// Returns true if this special static factory method whose name starts with "Create", such that 
+            /// method's containing type is static OR a special type OR derives from or is same as the type of the field/property/method return.
+            /// For example: class SomeType { static SomeType CreateXXX(...); }
+            /// </summary>
+            private static bool IsSpecialFactoryMethod(IMethodSymbol method)
+            {
+                return method.IsStatic &&
+                    method.Name.StartsWith("Create", StringComparison.Ordinal) &&
+                    (method.ContainingType.IsStatic ||
+                     method.ContainingType.SpecialType != SpecialType.None ||
+                     method.ReturnType is INamedTypeSymbol namedType &&
+                     method.ContainingType.DerivesFromOrImplementsAnyConstructionOf(namedType.OriginalDefinition));
+            }
+
+            /// <summary>
+            /// Returns true if this special member symbol named "Empty", such that one of the following is true:
+            ///  1. It is a static method with no parameters or
+            ///  2. It is a static readonly property or
+            ///  3. It is static readonly field
+            /// and symbol's containing type is a special type or derives from or is same as the type of the field/property/method return.
+            /// For example:
+            ///  1. class SomeType { static readonly SomeType Empty; }
+            ///  2. class SomeType { static readonly SomeType Empty { get; } }
+            ///  3. class SomeType { static SomeType Empty(); }
+            /// </summary>
+            private static bool IsSpecialEmptyMember(ISymbol symbol)
+            {
+                return symbol.IsStatic &&
+                    symbol.Name.Equals("Empty", StringComparison.Ordinal) &&
+                    (symbol.IsReadOnlyFieldOrProperty() || symbol.Kind == SymbolKind.Method) &&
+                    (symbol.ContainingType.SpecialType != SpecialType.None ||
+                     symbol.GetMemberType() is INamedTypeSymbol namedType &&
+                     symbol.ContainingType.DerivesFromOrImplementsAnyConstructionOf(namedType.OriginalDefinition));
             }
 
             public override PointsToAbstractValue VisitInvocation_LocalFunction(
@@ -951,12 +998,28 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             public override PointsToAbstractValue VisitFieldReference(IFieldReferenceOperation operation, object argument)
             {
                 var value = base.VisitFieldReference(operation, argument);
+
+                // "class SomeType { static readonly SomeType Empty; }"
+                if (IsSpecialEmptyMember(operation.Field) &&
+                    value.NullState != NullAbstractValue.Null)
+                {
+                    return value.MakeNonNull();
+                }
+
                 return GetValueBasedOnInstanceOrReferenceValue(operation.Instance, operation, value);
             }
 
             public override PointsToAbstractValue VisitPropertyReference(IPropertyReferenceOperation operation, object argument)
             {
                 var value = base.VisitPropertyReference(operation, argument);
+
+                // "class SomeType { static SomeType Empty { get; } }"
+                if (IsSpecialEmptyMember(operation.Property) &&
+                    value.NullState != NullAbstractValue.Null)
+                {
+                    return value.MakeNonNull();
+                }
+
                 return GetValueBasedOnInstanceOrReferenceValue(operation.Instance, operation, value);
             }
 

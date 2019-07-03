@@ -1,7 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
+using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
@@ -26,6 +30,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
+            SymbolNamesOption nullCheckValidationMethods,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             PointsToAnalysisResult pointsToAnalysisResultOpt,
@@ -40,6 +45,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                   interproceduralAnalysisPredicateOpt: null)
         {
             TrackHazardousParameterUsages = trackHazardousParameterUsages;
+            NullCheckValidationMethodNames = nullCheckValidationMethods;
         }
 
         public static ParameterValidationAnalysisContext Create(
@@ -47,13 +53,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
+            SymbolNamesOption nullCheckValidationMethods,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             PointsToAnalysisResult pointsToAnalysisResultOpt,
             Func<ParameterValidationAnalysisContext, ParameterValidationAnalysisResult> tryGetOrComputeAnalysisResult)
         {
             return new ParameterValidationAnalysisContext(
-                valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, interproceduralAnalysisConfig,
+                valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol,
+                nullCheckValidationMethods, interproceduralAnalysisConfig,
                 pessimisticAnalysis, pointsToAnalysisResultOpt, tryGetOrComputeAnalysisResult, parentControlFlowGraphOpt: null,
                 interproceduralAnalysisDataOpt: null, trackHazardousParameterUsages: false);
         }
@@ -74,7 +82,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             // Do not invoke any interprocedural analysis more than one level down.
             // We only care about analyzing validation methods.
             return new ParameterValidationAnalysisContext(
-                ValueDomain, WellKnownTypeProvider, invokedCfg, invokedMethod, InterproceduralAnalysisConfiguration,
+                ValueDomain, WellKnownTypeProvider, invokedCfg, invokedMethod,
+                NullCheckValidationMethodNames, InterproceduralAnalysisConfiguration,
                 PessimisticAnalysis, pointsToAnalysisResultOpt, TryGetOrComputeAnalysisResult, ControlFlowGraph,
                 interproceduralAnalysisData, TrackHazardousParameterUsages);
         }
@@ -82,15 +91,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
         public ParameterValidationAnalysisContext WithTrackHazardousParameterUsages()
             => new ParameterValidationAnalysisContext(
                 ValueDomain, WellKnownTypeProvider, ControlFlowGraph,
-                OwningSymbol, InterproceduralAnalysisConfiguration, PessimisticAnalysis,
+                OwningSymbol, NullCheckValidationMethodNames,
+                InterproceduralAnalysisConfiguration, PessimisticAnalysis,
                 PointsToAnalysisResultOpt, TryGetOrComputeAnalysisResult, ParentControlFlowGraphOpt,
                 InterproceduralAnalysisDataOpt, trackHazardousParameterUsages: true);
 
         public bool TrackHazardousParameterUsages { get; }
 
+        private SymbolNamesOption NullCheckValidationMethodNames { get; }
+        public bool IsNullCheckValidationMethod(IMethodSymbol method)
+            => NullCheckValidationMethodNames.Contains(method);
+
         protected override void ComputeHashCodePartsSpecific(ArrayBuilder<int> builder)
         {
             builder.Add(TrackHazardousParameterUsages.GetHashCode());
+            builder.Add(NullCheckValidationMethodNames.GetHashCode());
         }
     }
 }

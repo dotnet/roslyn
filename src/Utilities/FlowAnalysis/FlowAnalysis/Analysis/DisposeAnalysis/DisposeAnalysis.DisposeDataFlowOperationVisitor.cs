@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             private readonly Dictionary<IFieldSymbol, PointsToAbstractValue> _trackedInstanceFieldLocationsOpt;
             private ImmutableHashSet<INamedTypeSymbol> DisposeOwnershipTransferLikelyTypes => DataFlowAnalysisContext.DisposeOwnershipTransferLikelyTypes;
             private bool DisposeOwnershipTransferAtConstructor => DataFlowAnalysisContext.DisposeOwnershipTransferAtConstructor;
+            private bool DisposeOwnershipTransferAtMethodCall => DataFlowAnalysisContext.DisposeOwnershipTransferAtMethodCall;
 
             public DisposeDataFlowOperationVisitor(DisposeAnalysisContext analysisContext)
                 : base(analysisContext)
@@ -378,8 +379,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 // Local functions.
                 bool IsDisposeOwnershipTransfer()
                 {
-                    if (!operation.Parameter.Type.IsDisposable(WellKnownTypeProvider.IDisposable))
+                    if (operation.Parameter.RefKind == RefKind.Out)
                     {
+                        // Out arguments are always owned by the caller.
                         return false;
                     }
 
@@ -390,8 +392,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                                 DisposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type);
 
                         case IInvocationOperation invocation:
-                            return IsDisposableCreationSpecialCase(invocation.TargetMethod) &&
-                                DisposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type);
+                            return DisposeOwnershipTransferAtMethodCall ||
+                                IsDisposableCreationSpecialCase(invocation.TargetMethod) && DisposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type);
 
                         default:
                             return false;

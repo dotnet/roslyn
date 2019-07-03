@@ -19,17 +19,17 @@
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToDescription">
         <source>RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.</source>
-        <target state="new">RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.</target>
+        <target state="translated">RestrictedInternalsVisibleToAttribute aktiviert eine eingeschränkte Version von InternalsVisibleToAttribute, die den Zugriff auf interne Symbole auf diejenigen innerhalb der angegebenen Namespaces beschränkt. Jede verweisende Assembly kann nur auf interne Symbole zugreifen, die in den eingeschränkten Namespaces definiert sind, die von der referenzierten Assembly zugelassen werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToMessage">
         <source>External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'</source>
-        <target state="new">External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'</target>
+        <target state="translated">Der externe Zugriff auf das interne Symbol "{0}" ist unzulässig. Die Assembly "{1}" erlaubt nur den Zugriff auf interne Symbole, die in den folgenden Namespaces definiert sind: {2}</target>
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToTitle">
         <source>External access to internal symbols outside the restricted namespace(s) is prohibited</source>
-        <target state="new">External access to internal symbols outside the restricted namespace(s) is prohibited</target>
+        <target state="translated">Externer Zugriff auf interne Symbole außerhalb der eingeschränkten Namespaces ist unzulässig</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedDescription">

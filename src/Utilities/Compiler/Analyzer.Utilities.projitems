@@ -36,6 +36,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)DisposeMethodKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperationBlockAnalysisContextExtension.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\WellKnownDiagnosticTagsExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolNamesOption.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledHashSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\ArrayBuilder.Enumerator.cs" />
@@ -57,7 +58,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ObjectExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SymbolVisibility.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxNodeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\UriExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfigOptionNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolVisibilityGroup.cs" />
