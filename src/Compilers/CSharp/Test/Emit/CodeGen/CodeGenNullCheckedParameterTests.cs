@@ -1193,7 +1193,7 @@ class C
         }
 
         [Fact]
-        public void TestNullCheckedExpressionBodyLocalFunction()
+        public void TestNullCheckedExpressionBodyMethod()
         {
             var source = @"
 class C
