@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -91,11 +92,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal FileWatchedPortableExecutableReferenceFactory FileWatchedReferenceFactory { get; }
 
         private readonly Lazy<IProjectCodeModelFactory> _projectCodeModelFactory;
-
+        private readonly IEnumerable<IDocumentOptionsProviderFactory> _documentOptionsProviderFactories;
+        private bool _documentOptionsProvidersInitialized = false;
         private readonly Dictionary<ProjectId, CompilationOutputs> _projectCompilationOutputs = new Dictionary<ProjectId, CompilationOutputs>();
         private readonly object _projectCompilationOutputsGuard = new object();
 
-        public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider)
+        public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider, IEnumerable<CodeAnalysis.Options.IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
             : base(VisualStudioMefHostServices.Create(exportProvider))
         {
             _threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
@@ -103,6 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
             _projectCodeModelFactory = exportProvider.GetExport<IProjectCodeModelFactory>();
+            _documentOptionsProviderFactories = documentOptionsProviderFactories;
 
             // We fetch this lazily because VisualStudioProjectFactory depends on VisualStudioWorkspaceImpl -- we have a circularity. Since this
             // exists right now as a compat shim, we'll just do this.
@@ -1883,6 +1886,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_projectCompilationOutputsGuard)
             {
                 return _projectCompilationOutputs.TryGetValue(projectId, out var outputs) ? outputs : CompilationOutputFiles.None;
+            }
+        }
+
+        internal void EnsureDocumentOptionProvidersInitialized()
+        {
+            _foregroundObject.AssertIsForeground();
+
+            if (_documentOptionsProvidersInitialized)
+            {
+                return;
+            }
+
+            _documentOptionsProvidersInitialized = true;
+
+            foreach (var providerFactory in _documentOptionsProviderFactories)
+            {
+                var optionsProvider = providerFactory.TryCreate(this);
+
+                if (optionsProvider != null)
+                {
+                    Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(optionsProvider);
+                }
             }
         }
     }
