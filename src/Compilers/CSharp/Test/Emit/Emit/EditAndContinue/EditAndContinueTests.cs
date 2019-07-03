@@ -3439,7 +3439,7 @@ class B : A<B>
                 ModuleMetadata.CreateFromImage(bytes0),
                 m => testData0.GetMethodData(methodNames0[MetadataTokens.GetRowNumber(m) - 1]).GetEncDebugInfo());
 
-#region Gen1 
+            #region Gen1 
 
             var method1 = compilation1.GetMember<MethodSymbol>("B.M");
             var diff1 = compilation1.EmitDifference(
@@ -3495,9 +3495,9 @@ class B : A<B>
   </methods>
 </symbols>");
 
-#endregion
+            #endregion
 
-#region Gen2 
+            #region Gen2 
 
             var method2 = compilation2.GetMember<MethodSymbol>("B.M");
             var diff2 = compilation2.EmitDifference(
@@ -3550,9 +3550,9 @@ class B : A<B>
   </methods>
 </symbols>");
 
-#endregion
+            #endregion
 
-#region Gen3
+            #region Gen3
 
             // Modify different method. (Previous generations
             // have not referenced method.)
@@ -3607,7 +3607,7 @@ class B : A<B>
   </methods>
 </symbols>");
 
-#endregion
+            #endregion
         }
 
         /// <summary>

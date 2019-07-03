@@ -15,17 +15,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<MethodSymbol> _constructors;
 
         public SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol(
-            CSharpCompilation compilation,
-            DiagnosticBag diagnostics)
-            : base(AttributeDescription.NullablePublicOnlyAttribute, compilation, diagnostics, includeAttributeUsageAttribute: true)
+            string name,
+            NamespaceSymbol containingNamespace,
+            ModuleSymbol containingModule,
+            NamedTypeSymbol systemAttributeType,
+            TypeSymbol systemBooleanType)
+            : base(name, containingNamespace, containingModule, baseType: systemAttributeType)
         {
-            var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
-            Binder.ReportUseSiteDiagnostics(boolType, diagnostics, Location.None);
-
             _fields = ImmutableArray.Create<FieldSymbol>(
                 new SynthesizedFieldSymbol(
                     this,
-                    boolType,
+                    systemBooleanType,
                     "IncludesInternals",
                     isPublic: true,
                     isReadOnly: true,
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _constructors = ImmutableArray.Create<MethodSymbol>(
                 new SynthesizedEmbeddedAttributeConstructorWithBodySymbol(
                     this,
-                    m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, TypeWithAnnotations.Create(boolType), 0, RefKind.None)),
+                    m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, TypeWithAnnotations.Create(systemBooleanType), 0, RefKind.None)),
                     GenerateConstructorBody));
 
             // Ensure we never get out of sync with the description
