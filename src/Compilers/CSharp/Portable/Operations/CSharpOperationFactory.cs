@@ -1413,6 +1413,12 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundBlock.WasCompilerGenerated;
+            if (_semanticModel is MemberSemanticModel memberModel
+                && memberModel.ContainsNullCheckedParameter
+                && _semanticModel.Root.ChildNodes().Contains(boundBlock.Syntax))
+            {
+                //boundBlock = LocalRewriter.ConstructNullCheckedStatementList();
+            }
             return new CSharpLazyBlockOperation(this, boundBlock, locals, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 

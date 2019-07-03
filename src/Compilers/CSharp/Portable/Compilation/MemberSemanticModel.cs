@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly int _speculatedPosition;
 
         private readonly Lazy<CSharpOperationFactory> _operationFactory;
+        private readonly bool _containsNullCheckedParameter;
 
         protected MemberSemanticModel(
             CSharpSyntaxNode root,
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _parentSemanticModelOpt = parentSemanticModelOpt;
             _parentSnapshotManagerOpt = snapshotManagerOpt;
             _speculatedPosition = speculatedPosition;
-
+            _containsNullCheckedParameter = _memberSymbol.GetParameters().Any(x => ((SourceParameterSymbolBase)x).IsNullChecked || ((SynthesizedParameterSymbolBase)x).IsNullChecked);
             _operationFactory = new Lazy<CSharpOperationFactory>(() => new CSharpOperationFactory(this));
         }
 
@@ -86,6 +87,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return _root;
+            }
+        }
+
+        internal bool ContainsNullCheckedParameter
+        {
+            get
+            {
+                return _containsNullCheckedParameter;
             }
         }
 
