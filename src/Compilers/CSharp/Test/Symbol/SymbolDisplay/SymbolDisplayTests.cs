@@ -5327,6 +5327,11 @@ class C
                 throw new NotImplementedException();
             }
 
+            public bool Equals(ITypeSymbol other, TypeSymbolEqualityComparer equalityComparer)
+            {
+                throw new NotImplementedException();
+            }
+
             public bool IsComImport => throw new NotImplementedException();
 
             public bool IsSerializable => throw new NotImplementedException();
