@@ -160,6 +160,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             return this.GetFromMap<SinkInfo>(sinkKind, this.SinkSymbolMap);
         }
 
+        public bool HasTaintArraySource(SinkKind sinkKind)
+        {
+            return GetSourceInfos(sinkKind).Any(o => o.TaintConstantArray);
+        }
+
         private TaintedDataSymbolMap<T> GetFromMap<T>(SinkKind sinkKind, Dictionary<SinkKind, Lazy<TaintedDataSymbolMap<T>>> map)
             where T : ITaintedDataInfo
         {
