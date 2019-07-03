@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
                 }
             }
 
-            stringLiteral = default(SyntaxToken);
+            stringLiteral = default;
             return false;
         }
     }

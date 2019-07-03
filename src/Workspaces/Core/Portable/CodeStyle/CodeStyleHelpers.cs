@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static bool TryParseStringEditorConfigCodeStyleOption(string arg, out CodeStyleOption<string> option)
         {
             if (TryGetCodeStyleValueAndOptionalNotification(
-                    arg, out string value, out NotificationOption notificationOpt))
+                    arg, out var value, out var notificationOpt))
             {
                 option = new CodeStyleOption<string>(value, notificationOpt ?? NotificationOption.Silent);
                 return true;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static bool TryParseBoolEditorConfigCodeStyleOption(string arg, out CodeStyleOption<bool> option)
         {
             if (TryGetCodeStyleValueAndOptionalNotification(
-                    arg, out string value, out NotificationOption notificationOpt))
+                    arg, out var value, out var notificationOpt))
             {
                 // First value has to be true or false.  Anything else is unsupported.
                 if (bool.TryParse(value, out var isEnabled))
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     // 'true' must always be provided with a notification option.
                     if (isEnabled == false)
                     {
-                        notificationOpt = notificationOpt ?? NotificationOption.Silent;
+                        notificationOpt ??= NotificationOption.Silent;
                         option = new CodeStyleOption<bool>(false, notificationOpt);
                         return true;
                     }
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         private static readonly CodeStyleOption<UnusedValuePreference> s_preferNoneUnusedValuePreference =
-            new CodeStyleOption<UnusedValuePreference>(default(UnusedValuePreference), NotificationOption.None);
+            new CodeStyleOption<UnusedValuePreference>(default, NotificationOption.None);
 
         private static readonly BidirectionalMap<string, UnusedValuePreference> s_unusedExpressionAssignmentPreferenceMap =
             new BidirectionalMap<string, UnusedValuePreference>(new[]

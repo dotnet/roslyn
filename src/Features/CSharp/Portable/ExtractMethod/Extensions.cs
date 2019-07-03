@@ -164,8 +164,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
         public static bool ContainPreprocessorCrossOver(this IEnumerable<SyntaxToken> tokens, TextSpan textSpan)
         {
-            int activeRegions = 0;
-            int activeIfs = 0;
+            var activeRegions = 0;
+            var activeIfs = 0;
 
             foreach (var trivia in tokens.GetAllTrivia())
             {

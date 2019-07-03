@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             Debug.Assert(Text[beforeSlash].Char == '\\');
             Debug.Assert(Text[beforeSlash + 1].Char == 'x' || Text[beforeSlash + 1].Char == 'u');
 
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 if (Position < Text.Length && IsHexChar(this.CurrentChar))
                 {
@@ -426,9 +426,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             Debug.Assert(IsOctalDigit(Text[start].Char));
 
             const int maxChars = 3;
-            int currentVal = 0;
+            var currentVal = 0;
 
-            for (int i = 0; i < maxChars; i++)
+            for (var i = 0; i < maxChars; i++)
             {
                 if (Position < Text.Length && IsOctalDigit(this.CurrentChar))
                 {

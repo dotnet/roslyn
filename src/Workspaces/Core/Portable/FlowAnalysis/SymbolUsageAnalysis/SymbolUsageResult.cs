@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
         /// </summary>
         public int GetSymbolWriteCount(ISymbol symbol)
         {
-            int count = 0;
+            var count = 0;
             foreach (var kvp in SymbolWritesMap)
             {
                 if (Equals(kvp.Key.symbol, symbol))

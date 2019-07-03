@@ -588,9 +588,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 }
             }
 
-            var node = parent != null
-                ? parent.AncestorsAndSelf().FirstOrDefault(n => CodeModelService.MatchesScope(n, scope))
-                : null;
+            var node = parent?.AncestorsAndSelf().FirstOrDefault(n => CodeModelService.MatchesScope(n, scope));
 
             if (node == null)
             {
@@ -675,7 +673,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                             var node = element.LookupNode();
                             if (node != null)
                             {
-                                elementAndPaths = elementAndPaths ?? new List<ValueTuple<AbstractKeyedCodeElement, SyntaxPath>>();
+                                elementAndPaths ??= new List<ValueTuple<AbstractKeyedCodeElement, SyntaxPath>>();
                                 elementAndPaths.Add(ValueTuple.Create(element, new SyntaxPath(node)));
                             }
                         }

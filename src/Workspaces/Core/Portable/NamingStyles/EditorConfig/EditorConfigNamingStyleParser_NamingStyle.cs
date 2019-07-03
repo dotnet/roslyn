@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             out NamingStyle namingStyle)
         {
             namingStyle = default;
-            if (!TryGetNamingStyleTitle(namingRuleName, rawOptions, out string namingStyleTitle))
+            if (!TryGetNamingStyleTitle(namingRuleName, rawOptions, out var namingStyleTitle))
             {
                 return false;
             }
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private static string GetStringFromConventionsDictionary(string namingStyleName, string optionName, IReadOnlyDictionary<string, string> conventionsDictionary)
         {
-            conventionsDictionary.TryGetValue($"dotnet_naming_style.{namingStyleName}.{optionName}", out string result);
+            conventionsDictionary.TryGetValue($"dotnet_naming_style.{namingStyleName}.{optionName}", out var result);
             return result ?? string.Empty;
         }
 

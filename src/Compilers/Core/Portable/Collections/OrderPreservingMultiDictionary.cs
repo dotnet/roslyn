@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         private void EnsureDictionary()
         {
-            _dictionary = _dictionary ?? PooledDictionary<K, ValueSet>.GetInstance();
+            _dictionary ??= PooledDictionary<K, ValueSet>.GetInstance();
         }
 
         public bool IsEmpty => _dictionary == null;

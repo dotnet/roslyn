@@ -27,12 +27,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             }
 
             internal static State Generate(
-                SemanticDocument document, TextSpan textSpan,
-                TTypeDeclarationSyntax typeDeclaration, bool isSelectionOnTypeHeader,
-                CancellationToken cancellationToken)
+                SemanticDocument document, TTypeDeclarationSyntax typeDeclaration,
+                bool isSelectionOnTypeHeader, CancellationToken cancellationToken)
             {
                 var state = new State(document);
-                if (!state.TryInitialize(textSpan, typeDeclaration, isSelectionOnTypeHeader, cancellationToken))
+                if (!state.TryInitialize(typeDeclaration, isSelectionOnTypeHeader, cancellationToken))
                 {
                     return null;
                 }
@@ -41,7 +40,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             }
 
             private bool TryInitialize(
-                TextSpan textSpan,
                 TTypeDeclarationSyntax typeDeclaration,
                 bool isSelectionOnTypeHeader,
                 CancellationToken cancellationToken)

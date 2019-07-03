@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 bool selectionInExpression,
                 SemanticDocument document,
                 SyntaxAnnotation firstTokenAnnotation,
-                SyntaxAnnotation lastTokenAnnotation) :
-                base(status, originalSpan, finalSpan, options, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation)
+                SyntaxAnnotation lastTokenAnnotation)
+                : base(status, originalSpan, finalSpan, options, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation)
             {
             }
 

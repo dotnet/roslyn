@@ -71,13 +71,11 @@ End Class
 
         private void AssertFormat(string expected, SyntaxTree tree)
         {
-            using (var workspace = new AdhocWorkspace())
-            {
-                var formattedRoot = Formatter.Format(tree.GetRoot(), workspace);
-                var actualFormattedText = formattedRoot.ToFullString();
+            using var workspace = new AdhocWorkspace();
+            var formattedRoot = Formatter.Format(tree.GetRoot(), workspace);
+            var actualFormattedText = formattedRoot.ToFullString();
 
-                Assert.Equal(expected, actualFormattedText);
-            }
+            Assert.Equal(expected, actualFormattedText);
         }
     }
 }

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.AddImports
 
         private static ImmutableArray<SyntaxNode> GetAllContainers(SyntaxNode root, SyntaxNode contextLocation)
         {
-            contextLocation = contextLocation ?? root;
+            contextLocation ??= root;
 
             var applicableContainer = GetFirstApplicableContainer(contextLocation);
             return applicableContainer.GetAncestorsOrThis<SyntaxNode>().ToImmutableArray();
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.AddImports
 
         public SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode contextLocation, SyntaxNode import)
         {
-            contextLocation = contextLocation ?? root;
+            contextLocation ??= root;
             GetContainers(root, contextLocation,
                 out var externContainer, out var usingContainer, out var staticUsingContainer, out var aliasContainer);
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.AddImports
             IEnumerable<SyntaxNode> newImports,
             bool placeSystemNamespaceFirst)
         {
-            contextLocation = contextLocation ?? root;
+            contextLocation ??= root;
 
             var globalImports = GetGlobalImports(compilation);
             var containers = GetAllContainers(root, contextLocation);

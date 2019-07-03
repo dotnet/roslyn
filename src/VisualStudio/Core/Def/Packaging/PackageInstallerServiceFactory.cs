@@ -341,7 +341,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             ThisCanBeCalledOnAnyThread();
 
-            bool localSolutionChanged = false;
+            var localSolutionChanged = false;
             ProjectId localChangedProject = null;
             switch (e.Kind)
             {

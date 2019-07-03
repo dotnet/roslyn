@@ -250,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             // BulkFileOperation can't have nested events. there will be ever only 1 events (Begin/End)
             // so we only need simple tracking.
-            object gate = new object();
+            var gate = new object();
             GlobalOperationRegistration localRegistration = null;
 
             BulkFileOperation.End += (s, a) =>

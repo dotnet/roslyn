@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        private static SymbolDisplayFormat s_parameterDefinitionFormat = s_definitionFormat
+        private static readonly SymbolDisplayFormat s_parameterDefinitionFormat = s_definitionFormat
             .AddParameterOptions(SymbolDisplayParameterOptions.IncludeName);
     }
 }

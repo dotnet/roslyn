@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             // Also ensure that the left side of the subtraction : `s.Length - value` is actually
             // getting the length off the same instance we're indexing into.
 
-            lengthLikePropertyOpt = lengthLikePropertyOpt ?? TryGetLengthLikeProperty(infoCache, targetMethodOpt);
+            lengthLikePropertyOpt ??= TryGetLengthLikeProperty(infoCache, targetMethodOpt);
             if (lengthLikePropertyOpt == null ||
                 !IsInstanceLengthCheck(lengthLikePropertyOpt, instance, subtraction.LeftOperand))
             {
