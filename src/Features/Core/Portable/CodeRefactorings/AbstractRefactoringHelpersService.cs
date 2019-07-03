@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             var location = selectionTrimmed.Start;
             var tokenOnLocation = root.FindToken(location);
 
-            // Gets a token that is directly to the right of current location or that encompasses current location (`[||]tokenITORightOrIn` or `tok[||]enITORightOrIn`)
+            // Gets a token that is directly to the right of current location or that encompasses current location (`[||]tokenToRightOrIn` or `tok[||]enToRightOrIn`)
             var tokenToRightOrIn = tokenOnLocation.Span.Contains(location)
                 ? tokenOnLocation
                 : default;
