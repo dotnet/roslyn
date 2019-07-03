@@ -2821,6 +2821,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LearnFromEqualsMethod(method, node, receiverType, results);
 
+            LearnFromCompareExchangeMethod(method, node, results);
+
             if (method.MethodKind == MethodKind.LocalFunction)
             {
                 var localFunc = (LocalFunctionSymbol)method.OriginalDefinition;
@@ -2924,6 +2926,57 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Split();
                     LearnFromNonNullTest(right, ref StateWhenTrue);
+                }
+            }
+        }
+
+        private void LearnFromCompareExchangeMethod(MethodSymbol method, BoundCall node, ImmutableArray<VisitArgumentResult> results)
+        {
+            // easy out
+            var parameterCount = method.ParameterCount;
+            if (parameterCount != 3
+                || method.MethodKind != MethodKind.Ordinary
+                || !method.IsStatic
+                || method.Name != WellKnownMembers.GetDescriptor(WellKnownMember.System_Threading_Interlocked__CompareExchange).Name)
+            {
+                return;
+            }
+
+            var isCompareExchangeMethod = method.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange))
+                || method.OriginalDefinition.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T));
+            if (!isCompareExchangeMethod)
+            {
+                return;
+            }
+
+            // In general a call to CompareExchange of the form:
+            //
+            // Interlocked.CompareExchange(ref location, value, comparand);
+            //
+            // will be analyzed similarly to the following:
+            //
+            // if (location == comparand)
+            // {
+            //     location = value;
+            // }
+
+            var arguments = node.Arguments;
+            var location = arguments[0];
+            var locationSlot = MakeSlot(location);
+            if (locationSlot != -1)
+            {
+                var comparand = arguments[2];
+                var valueFlowState = results[1].RValueType.State;
+                if (comparand.ConstantValue?.IsNull == true)
+                {
+                    // If location contained a null, then the write `location = value` definitely occurred
+                    State[locationSlot] = valueFlowState;
+                }
+                else
+                {
+                    var locationFlowState = results[0].RValueType.State;
+                    // A write may have occurred
+                    State[locationSlot] = valueFlowState.Join(locationFlowState);
                 }
             }
         }
