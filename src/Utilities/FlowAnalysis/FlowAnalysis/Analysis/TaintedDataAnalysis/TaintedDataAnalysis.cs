@@ -48,29 +48,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig)
         {
             WellKnownTypeProvider wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
-            PointsToAnalysisResult pointsToAnalysisResult = PointsToAnalysis.TryGetOrComputeResult(
-                cfg,
-                containingMethod,
-                wellKnownTypeProvider,
-                interproceduralAnalysisConfig,
-                interproceduralAnalysisPredicateOpt: null,
-                pessimisticAnalysis: true,
-                performCopyAnalysis: false);
-            if (pointsToAnalysisResult == null)
-            {
-                return null;
-            }
-
-            ValueContentAnalysisResult valueContentAnalysisResultOpt = ValueContentAnalysis.TryGetOrComputeResult(
+            ValueContentAnalysisResult valueContentAnalysisResult = ValueContentAnalysis.TryGetOrComputeResult(
                     cfg,
                     containingMethod,
                     wellKnownTypeProvider,
                     interproceduralAnalysisConfig,
                     out var copyAnalysisResult,
-                    out pointsToAnalysisResult,
+                    out var pointsToAnalysisResult,
                     pessimisticAnalysis: true,
                     performCopyAnalysis: false);
-            if (valueContentAnalysisResultOpt == null)
+            if (valueContentAnalysisResult == null)
             {
                 return null;
             }
@@ -82,8 +69,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 containingMethod,
                 interproceduralAnalysisConfig,
                 pessimisticAnalysis: false,
+                copyAnalysisResultOpt: copyAnalysisResult,
                 pointsToAnalysisResult: pointsToAnalysisResult,
-                valueContentAnalysisResultOpt: valueContentAnalysisResultOpt,
+                valueContentAnalysisResult: valueContentAnalysisResult,
                 tryGetOrComputeAnalysisResult: TryGetOrComputeResultForAnalysisContext,
                 taintedSourceInfos: taintedSourceInfos,
                 taintedSanitizerInfos: taintedSanitizerInfos,

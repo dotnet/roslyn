@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
     using InterproceduralTaintedDataAnalysisData = InterproceduralAnalysisData<TaintedDataAnalysisData, TaintedDataAnalysisContext, TaintedDataAbstractValue>;
+    using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
     using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
 
     internal sealed class TaintedDataAnalysisContext : AbstractDataFlowAnalysisContext<TaintedDataAnalysisData, TaintedDataAnalysisContext, TaintedDataAnalysisResult, TaintedDataAbstractValue>
@@ -26,8 +27,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             ISymbol owningSymbol,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
+            CopyAnalysisResult copyAnalysisResultOpt,
             PointsToAnalysisResult pointsToAnalysisResult,
-            ValueContentAnalysisResult valueContentAnalysisResultOpt,
+            ValueContentAnalysisResult valueContentAnalysisResult,
             Func<TaintedDataAnalysisContext, TaintedDataAnalysisResult> tryGetOrComputeAnalysisResult,
             ControlFlowGraph parentControlFlowGraph,
             InterproceduralTaintedDataAnalysisData interproceduralAnalysisDataOpt,
@@ -43,9 +45,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                   pessimisticAnalysis,
                   predicateAnalysis: false,
                   exceptionPathsAnalysis: false,
-                  copyAnalysisResultOpt: null,
+                  copyAnalysisResultOpt,
                   pointsToAnalysisResult,
-                  valueContentAnalysisResultOpt: valueContentAnalysisResultOpt,
+                  valueContentAnalysisResult,
                   tryGetOrComputeAnalysisResult,
                   parentControlFlowGraph,
                   interproceduralAnalysisDataOpt,
@@ -65,8 +67,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             ISymbol owningSymbol,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
+            CopyAnalysisResult copyAnalysisResultOpt,
             PointsToAnalysisResult pointsToAnalysisResult,
-            ValueContentAnalysisResult valueContentAnalysisResultOpt,
+            ValueContentAnalysisResult valueContentAnalysisResult,
             Func<TaintedDataAnalysisContext, TaintedDataAnalysisResult> tryGetOrComputeAnalysisResult,
             TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
             TaintedDataSymbolMap<SanitizerInfo> taintedSanitizerInfos,
@@ -81,8 +84,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 owningSymbol,
                 interproceduralAnalysisConfig,
                 pessimisticAnalysis,
+                copyAnalysisResultOpt,
                 pointsToAnalysisResult,
-                valueContentAnalysisResultOpt,
+                valueContentAnalysisResult,
                 tryGetOrComputeAnalysisResult,
                 parentControlFlowGraph: null,
                 interproceduralAnalysisDataOpt: null,
@@ -100,9 +104,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue> valueContentAnalysisResultOpt,
             InterproceduralTaintedDataAnalysisData interproceduralAnalysisData)
         {
-            Debug.Assert(copyAnalysisResultOpt == null);   // Just because we're not passing this argument along.
-            Debug.Assert(valueContentAnalysisResultOpt == null);
-
             return new TaintedDataAnalysisContext(
                 this.ValueDomain,
                 this.WellKnownTypeProvider,
@@ -110,6 +111,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 invokedMethod,
                 this.InterproceduralAnalysisConfiguration,
                 this.PessimisticAnalysis,
+                copyAnalysisResultOpt,
                 pointsToAnalysisResultOpt,
                 valueContentAnalysisResultOpt,
                 this.TryGetOrComputeAnalysisResult,
