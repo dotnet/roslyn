@@ -269,6 +269,12 @@ namespace Microsoft.CodeAnalysis.SQLite
                 BulkPopulateIds(connection, solution, fetchStringTable);
 
                 // Create and initialize the in-memory write-cache.
+                // From: https://www.sqlite.org/sharedcache.html
+                // Enabling shared-cache for an in-memory database allows two or more database 
+                // connections in the same process to have access to the same in-memory database.
+                // An in-memory database in shared cache is automatically deleted and memory is
+                // reclaimed when the last connection to that database closes.
+
                 connection.ExecuteCommand($"ATTACH DATABASE 'file::memory:?cache=shared' AS ${WriteCacheDBName};");
                 CreateTables(connection, WriteCacheDBName);
             }
