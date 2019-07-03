@@ -137,7 +137,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             CancellationToken cancellationToken)
         {
             if (currentNode == null ||
-                IsInAStringOrCharacter(currentNode, caret))
+                IsInAStringOrCharacter(currentNode, caret) ||
+                currentNode.IsKind(SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression))
             {
                 // Don't complete statement.  Return without moving the caret.
                 return;

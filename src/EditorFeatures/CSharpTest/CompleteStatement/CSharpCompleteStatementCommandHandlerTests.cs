@@ -3930,6 +3930,25 @@ class D
             VerifyNoSpecialSemicolonHandling(code);
         }
 
+
+        [WorkItem(36945, "https://github.com/dotnet/roslyn/issues/36945")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListInSimpleLambda()
+        {
+            var code = @"
+SimpleLambdaTest
+
+class Program
+    {
+        void M()
+        {
+            var items = new[] { 1, 2, 3 };
+            var test = items.Select(i => i.ToString()$$)
+        }
+    }";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
         protected override TestWorkspace CreateTestWorkspace(string code)
             => TestWorkspace.CreateCSharp(code);
     }
