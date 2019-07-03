@@ -370,65 +370,37 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
               ""id"": ""TST001-001"",
               ""shortDescription"": {
                 ""text"": ""_TST001-001_""
-              },
-              ""defaultConfiguration"": {
-                ""level"": ""warning"",
-                ""enabled"": true
               }
             },
             {
               ""id"": ""TST001"",
               ""shortDescription"": {
                 ""text"": ""_TST001_""
-              },
-              ""defaultConfiguration"": {
-                ""level"": ""warning"",
-                ""enabled"": true
               }
             },
             {
               ""id"": ""TST001"",
               ""shortDescription"": {
                 ""text"": ""_TST001-002_""
-              },
-              ""defaultConfiguration"": {
-                ""level"": ""warning"",
-                ""enabled"": true
               }
             },
             {
               ""id"": ""TST001"",
               ""shortDescription"": {
                 ""text"": ""_TST001-003_""
-              },
-              ""defaultConfiguration"": {
-                ""level"": ""warning"",
-                ""enabled"": true
               }
             },
             {
-              ""id"": ""TST002"",
-              ""defaultConfiguration"": {
-                ""level"": ""warning"",
-                ""enabled"": true
-              }
+              ""id"": ""TST002""
             },
             {
               ""id"": ""TST002"",
               ""shortDescription"": {
                 ""text"": ""title_001""
-              },
-              ""defaultConfiguration"": {
-                ""level"": ""warning"",
-                ""enabled"": true
               }
             },
             {
               ""id"": ""TST002"",
-              ""defaultConfiguration"": {
-                ""level"": ""warning"",
-                ""enabled"": true
-              },
               ""properties"": {
                 ""category"": ""category_002""
               }
@@ -436,14 +408,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             {
               ""id"": ""TST002"",
               ""defaultConfiguration"": {
-                ""level"": ""error"",
-                ""enabled"": true
+                ""level"": ""error""
               }
             },
             {
               ""id"": ""TST002"",
               ""defaultConfiguration"": {
-                ""level"": ""warning"",
                 ""enabled"": false
               }
             },
@@ -451,10 +421,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
               ""id"": ""TST002"",
               ""fullDescription"": {
                 ""text"": ""description_005""
-              },
-              ""defaultConfiguration"": {
-                ""level"": ""warning"",
-                ""enabled"": true
               }
             }
           ]

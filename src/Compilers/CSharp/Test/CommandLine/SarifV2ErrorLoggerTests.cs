@@ -150,8 +150,7 @@ public class C
             {{
               ""id"": ""CS5001"",
               ""defaultConfiguration"": {{
-                ""level"": ""error"",
-                ""enabled"": true
+                ""level"": ""error""
               }},
               ""properties"": {{
                 ""category"": ""Compiler"",
@@ -166,10 +165,6 @@ public class C
               ""id"": ""CS0169"",
               ""shortDescription"": {{
                 ""text"": ""Field is never used""
-              }},
-              ""defaultConfiguration"": {{
-                ""level"": ""warning"",
-                ""enabled"": true
               }},
               ""properties"": {{
                 ""category"": ""Compiler"",
@@ -284,8 +279,7 @@ public class C
             {{
               ""id"": ""CS5001"",
               ""defaultConfiguration"": {{
-                ""level"": ""error"",
-                ""enabled"": true
+                ""level"": ""error""
               }},
               ""properties"": {{
                 ""category"": ""Compiler"",
@@ -300,10 +294,6 @@ public class C
               ""id"": ""CS0169"",
               ""shortDescription"": {{
                 ""text"": ""Field is never used""
-              }},
-              ""defaultConfiguration"": {{
-                ""level"": ""warning"",
-                ""enabled"": true
               }},
               ""properties"": {{
                 ""category"": ""Compiler"",

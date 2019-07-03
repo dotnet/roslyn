@@ -167,10 +167,6 @@ End Class
               ""shortDescription"": {{
                 ""text"": ""Unused local variable""
               }},
-              ""defaultConfiguration"": {{
-                ""level"": ""warning"",
-                ""enabled"": true
-              }},
               ""properties"": {{
                 ""category"": ""Compiler"",
                 ""tags"": [
@@ -182,8 +178,7 @@ End Class
             {{
               ""id"": ""BC30420"",
               ""defaultConfiguration"": {{
-                ""level"": ""error"",
-                ""enabled"": true
+                ""level"": ""error""
               }},
               ""properties"": {{
                 ""category"": ""Compiler"",
@@ -307,10 +302,6 @@ End Class
               ""shortDescription"": {{
                 ""text"": ""Unused local variable""
               }},
-              ""defaultConfiguration"": {{
-                ""level"": ""warning"",
-                ""enabled"": true
-              }},
               ""properties"": {{
                 ""category"": ""Compiler"",
                 ""tags"": [
@@ -322,8 +313,7 @@ End Class
             {{
               ""id"": ""BC30420"",
               ""defaultConfiguration"": {{
-                ""level"": ""error"",
-                ""enabled"": true
+                ""level"": ""error""
               }},
               ""properties"": {{
                 ""category"": ""Compiler"",

@@ -231,10 +231,30 @@ namespace Microsoft.CodeAnalysis
 
         private void WriteDefaultConfiguration(DiagnosticDescriptor descriptor)
         {
-            _writer.WriteObjectStart("defaultConfiguration");
-            _writer.Write("level", GetLevel(descriptor.DefaultSeverity));
-            _writer.Write("enabled", descriptor.IsEnabledByDefault);
-            _writer.WriteObjectEnd(); // defaultConfiguration
+            string defaultLevel = GetLevel(descriptor.DefaultSeverity);
+
+            // Don't bother to emit default values.
+            bool emitLevel = defaultLevel != "warning";
+
+            // The default value for "enabled" is "true".
+            bool emitEnabled = !descriptor.IsEnabledByDefault;
+
+            if (emitLevel || emitEnabled)
+            {
+                _writer.WriteObjectStart("defaultConfiguration");
+
+                if (emitLevel)
+                {
+                    _writer.Write("level", defaultLevel);
+                }
+
+                if (emitEnabled)
+                {
+                    _writer.Write("enabled", descriptor.IsEnabledByDefault);
+                }
+
+                _writer.WriteObjectEnd(); // defaultConfiguration
+            }
         }
 
         /// <summary>
