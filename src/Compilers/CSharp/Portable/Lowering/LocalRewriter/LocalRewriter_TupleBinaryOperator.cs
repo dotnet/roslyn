@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                hasValue = MakeNullableHasValue(expr.Syntax, expr);
+                hasValue = _factory.MakeNullableHasValue(expr.Syntax, expr);
             }
 
             value = MakeValueOrDefaultTemp(expr, temps, innerEffects);
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundLocal MakeHasValueTemp(BoundExpression expression, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects)
         {
-            BoundExpression hasValueCall = MakeNullableHasValue(expression.Syntax, expression);
+            BoundExpression hasValueCall = _factory.MakeNullableHasValue(expression.Syntax, expression);
             return MakeTemp(hasValueCall, temps, effects);
         }
 

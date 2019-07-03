@@ -102,11 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sawLocalFunctions = localRewriter._sawLocalFunctions;
                 sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
 
-                if (visited is BoundBlock block)
-                {
-                    loweredStatement = localRewriter.RewriteNullChecking(block);
-                }
-
                 if (localRewriter._needsSpilling && !loweredStatement.HasErrors)
                 {
                     // Move spill sequences to a top-level statement. This handles "lifting" await and the switch expression.
@@ -242,7 +237,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 _factory.CurrentFunction = node.Symbol;
-                return base.VisitLambda(node);
+                var visited = (BoundLambda)base.VisitLambda(node);
+                if (RewriteNullChecking(visited.Body) is BoundBlock newBody)
+                {
+                    visited = visited.Update(visited.UnboundLambda, visited.Symbol, newBody, visited.Diagnostics, visited.Binder, visited.Type);
+                }
+                return visited;
             }
             finally
             {
@@ -281,7 +281,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 _factory.CurrentFunction = localFunction;
-                return base.VisitLocalFunctionStatement(node);
+                var visited = (BoundLocalFunctionStatement)base.VisitLocalFunctionStatement(node);
+                if (RewriteNullChecking(visited.Body) is BoundBlock newBody)
+                {
+                    visited = visited.Update(localFunction, newBody, null);
+                }
+                return visited;
             }
             finally
             {
