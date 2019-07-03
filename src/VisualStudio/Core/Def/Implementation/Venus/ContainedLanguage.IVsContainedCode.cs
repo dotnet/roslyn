@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private IList<TextSpanAndCookie> EnumOriginalCodeBlocksWorker(CancellationToken cancellationToken)
         {
             var snapshot = this.SubjectBuffer.CurrentSnapshot;
-            Document document = snapshot.GetDocument();
+            var document = snapshot.GetDocument();
             if (document == null)
             {
                 return SpecializedCollections.EmptyList<TextSpanAndCookie>();

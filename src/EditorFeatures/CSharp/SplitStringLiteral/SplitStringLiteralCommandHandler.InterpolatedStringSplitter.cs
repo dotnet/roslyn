@@ -82,11 +82,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 var content = SourceText.ToString(TextSpan.FromBounds(start, end));
                 return SyntaxFactory.InterpolatedStringText(
                     SyntaxFactory.Token(
-                        leading: default(SyntaxTriviaList),
+                        leading: default,
                         kind: SyntaxKind.InterpolatedStringTextToken,
                         text: content,
                         valueText: "",
-                        trailing: default(SyntaxTriviaList)));
+                        trailing: default));
             }
 
             protected override int StringOpenQuoteLength() => "$\"".Length;

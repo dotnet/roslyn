@@ -120,6 +120,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private HashSet<SyntaxTree> _lazyCompilationUnitCompletedTrees;
 
+        /// <summary>
+        /// Run the nullable walker during the flow analysis passes. True if the project-level nullable
+        /// context option is set, or if any file enables nullable or just the nullable warnings.
+        /// </summary>
+        private ThreeState _lazyShouldRunNullableWalker;
+
         public override string Language
         {
             get
@@ -171,9 +177,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool FeatureStrictEnabled => Feature("strict") != null;
 
         /// <summary>
-        /// True if we should enable nullable analysis in this compilation.
+        /// True if we should enable nullable semantic analysis in this compilation.
         /// </summary>
-        internal bool NullableAnalysisEnabled => Feature("run-nullable-analysis") is "true";
+        // Note that this is intentionally not conditioned off RunNullableWalker currently. Once we fully enable
+        // the nullable analysis semantic model feature and feel confident in it, we only run the analysis if
+        // the feature flag is set.
+        internal bool NullableSemanticAnalysisEnabled => Feature("run-nullable-analysis") is "true";
 
         /// <summary>
         /// True when the "peverify-compat" feature flag is set or the language version is below C# 7.2.
@@ -182,6 +191,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The flag is only to be used if PEVerify pass is extremely important.
         /// </summary>
         internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature("peverify-compat") != null;
+
+        internal bool ShouldRunNullableWalker
+        {
+            get
+            {
+                if (!_lazyShouldRunNullableWalker.HasValue())
+                {
+                    if (Options.NullableContextOptions != NullableContextOptions.Disable)
+                    {
+                        _lazyShouldRunNullableWalker = ThreeState.True;
+                        return true;
+                    }
+
+                    foreach (var syntaxTree in SyntaxTrees)
+                    {
+                        if (((CSharpSyntaxTree)syntaxTree).HasNullableEnables())
+                        {
+                            _lazyShouldRunNullableWalker = ThreeState.True;
+                            return true;
+                        }
+                    }
+
+                    _lazyShouldRunNullableWalker = ThreeState.False;
+                }
+
+                return _lazyShouldRunNullableWalker.Value();
+            }
+        }
 
         /// <summary>
         /// The language version that was used to parse the syntax trees of this compilation.
@@ -2693,9 +2730,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
 
-                bool hasMethodBodyErrorOrWarningAsError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag);
+                bool hasMethodBodyError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag);
 
-                if (hasDeclarationErrors || hasMethodBodyErrorOrWarningAsError)
+                if (hasDeclarationErrors || hasMethodBodyError)
                 {
                     return false;
                 }
@@ -3305,12 +3342,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            // For symbols that do not have explicit accessibility in metadata,
+            // use the accessibility of the container.
+            symbol = getExplicitAccessibilitySymbol(symbol);
+
             if (!AccessCheck.IsEffectivelyPublicOrInternal(symbol, out bool isInternal))
             {
                 return false;
             }
 
             return !isInternal || SourceAssembly.InternalsAreVisible;
+
+            static Symbol getExplicitAccessibilitySymbol(Symbol symbol)
+            {
+                while (true)
+                {
+                    switch (symbol.Kind)
+                    {
+                        case SymbolKind.Parameter:
+                        case SymbolKind.TypeParameter:
+                        case SymbolKind.Property:
+                        case SymbolKind.Event:
+                            symbol = symbol.ContainingSymbol;
+                            break;
+                        default:
+                            return symbol;
+                    }
+                }
+            }
         }
 
         internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager)

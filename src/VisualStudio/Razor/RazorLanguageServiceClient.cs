@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             _serviceName = serviceName;
         }
 
-        public async Task<Session> CreateSessionAsync(Solution solution, object callbackTarget = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<Session> CreateSessionAsync(Solution solution, object callbackTarget = null, CancellationToken cancellationToken = default)
         {
             if (solution == null)
             {

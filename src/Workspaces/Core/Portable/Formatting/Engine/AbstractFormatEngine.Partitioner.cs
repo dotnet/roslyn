@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     var list = new List<IEnumerable<TokenPairWithOperations>>();
 
                     // too small items in the list. give out one list
-                    int perPartition = _operationPairs.Length / partitionCount;
+                    var perPartition = _operationPairs.Length / partitionCount;
                     if (perPartition < 10 || partitionCount <= 1 || _operationPairs.Length < MinimumItemsPerPartition)
                     {
                         list.Add(GetOperationPairsFromTo(0, _operationPairs.Length));
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             private IEnumerable<TokenPairWithOperations> GetOperationPairsFromTo(int from, int to)
             {
-                for (int i = from; i < to; i++)
+                for (var i = from; i < to; i++)
                 {
                     yield return _operationPairs[i];
                 }

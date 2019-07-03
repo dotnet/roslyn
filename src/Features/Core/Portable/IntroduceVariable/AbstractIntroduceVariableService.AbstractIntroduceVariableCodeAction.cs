@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -80,7 +79,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
 
             // Indexed by: allOccurrences, isConstant, isLocal
-            private static string[,,] formatStrings = new string[2, 2, 2]
+            private static readonly string[,,] formatStrings = new string[2, 2, 2]
                 {
                   {
                     { FeaturesResources.Introduce_field_for_0, FeaturesResources.Introduce_local_for_0 },

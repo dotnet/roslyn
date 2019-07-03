@@ -210,7 +210,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                 return reference.Path;
             }
 
-            string name = reference.Name;
+            var name = reference.Name;
             if (name == "mscorlib")
             {
                 // mscorlib is always loaded

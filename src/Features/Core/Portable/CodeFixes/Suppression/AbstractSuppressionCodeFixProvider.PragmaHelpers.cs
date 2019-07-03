@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var root = await nodeWithTokens.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var startAndEndTokenAreTheSame = startToken == endToken;
-                SyntaxToken newStartToken = getNewStartToken(startToken, diagnosticSpan);
+                var newStartToken = getNewStartToken(startToken, diagnosticSpan);
 
-                SyntaxToken newEndToken = endToken;
+                var newEndToken = endToken;
                 if (startAndEndTokenAreTheSame)
                 {
                     var annotation = new SyntaxAnnotation();
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var currentEndToken = endToken;
                 var newStartToken = startToken.WithLeadingTrivia(previousOfStart.TrailingTrivia.Concat(startToken.LeadingTrivia));
 
-                SyntaxToken newEndToken = currentEndToken;
+                var newEndToken = currentEndToken;
                 if (startAndEndTokensAreSame)
                 {
                     newEndToken = newStartToken;

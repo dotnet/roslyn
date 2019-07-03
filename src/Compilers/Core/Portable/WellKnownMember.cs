@@ -68,6 +68,8 @@ namespace Microsoft.CodeAnalysis
 
         System_IEquatable_T__Equals,
 
+        System_Collections_Generic_IEqualityComparer_T__Equals,
+
         System_Collections_Generic_EqualityComparer_T__Equals,
         System_Collections_Generic_EqualityComparer_T__GetHashCode,
         System_Collections_Generic_EqualityComparer_T__get_Default,
@@ -420,6 +422,7 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_NullableAttribute__ctorByte,
         System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
+        System_Runtime_CompilerServices_NullableContextAttribute__ctor,
         System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor,
         System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor,
         System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,

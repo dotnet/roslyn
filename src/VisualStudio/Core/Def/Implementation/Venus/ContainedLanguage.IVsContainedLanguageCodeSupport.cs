@@ -176,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public int OnRenamed(ContainedLanguageRenameType clrt, string bstrOldID, string bstrNewID)
         {
-            int result = 0;
+            var result = 0;
 
             var waitIndicator = this.ComponentModel.GetService<IWaitIndicator>();
             waitIndicator.Wait(

@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                     return;
                 }
 
-                Document document = textView.TextSnapshot.GetDocument();
+                var document = textView.TextSnapshot.GetDocument();
                 if (document == null)
                 {
                     Contract.Fail("Event Hookup could not find the document for the IBufferView.");

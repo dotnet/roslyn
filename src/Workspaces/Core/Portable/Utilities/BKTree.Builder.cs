@@ -100,7 +100,7 @@ namespace Roslyn.Utilities
                 _wordSpans = new TextSpan[distinctValues.Length];
 
                 var characterIndex = 0;
-                for (int i = 0; i < distinctValues.Length; i++)
+                for (var i = 0; i < distinctValues.Length; i++)
                 {
                     var value = distinctValues[i];
                     _wordSpans[i] = new TextSpan(characterIndex, value.Length);

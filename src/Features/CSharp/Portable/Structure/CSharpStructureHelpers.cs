@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 {
                     if (trivia.IsSingleLineComment())
                     {
-                        startComment = startComment ?? trivia;
+                        startComment ??= trivia;
                         endComment = trivia;
                     }
                     else if (trivia.IsMultiLineComment())

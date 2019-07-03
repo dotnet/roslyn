@@ -169,7 +169,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var serializer = solution.Workspace.Services.GetService<ISerializerService>();
                 var checksum = serializer.CreateChecksum(reference, cancellationToken);
-                return checksum;
+
+                // Include serialization format version in our checksum.  That way if the 
+                // version ever changes, all persisted data won't match the current checksum
+                // we expect, and we'll recompute things.
+                return Checksum.Create(
+                    WellKnownSynchronizationKind.SymbolTreeInfo,
+                    new[] { checksum, SerializationFormatChecksum });
             });
         }
 
@@ -188,7 +194,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 loadOnly,
                 createAsync: () => CreateMetadataSymbolTreeInfoAsync(solution, checksum, reference, cancellationToken),
                 keySuffix: "_Metadata_" + filePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, (names, nodes) => GetSpellCheckerTask(solution, checksum, filePath, names, nodes)),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, (names, nodes) => GetSpellCheckerTask(solution, checksum, filePath, names, nodes)),
                 cancellationToken: cancellationToken);
             Contract.ThrowIfFalse(result != null || loadOnly == true, "Result can only be null if 'loadOnly: true' was passed.");
             return result;
@@ -568,7 +574,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 while (true)
                 {
-                    int dotIndex = blobReader.IndexOf((byte)'.');
+                    var dotIndex = blobReader.IndexOf((byte)'.');
                     unsafe
                     {
                         // Note: we won't get any string sharing as we're just using the 

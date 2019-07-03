@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         [Fact]
         public async Task SpaceAfterAttribute()
         {
-            string code = @"
+            var code = @"
 public class C
 {
     void M(int? p) { }

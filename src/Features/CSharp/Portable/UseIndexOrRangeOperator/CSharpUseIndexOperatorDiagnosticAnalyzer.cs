@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     {
         public CSharpUseIndexOperatorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseIndexOperatorDiagnosticId,
+                   CSharpCodeStyleOptions.PreferIndexOperator,
+                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_index_operator), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Indexing_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -196,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             // Also ensure that the left side of the subtraction : `s.Length - value` is actually
             // getting the length off the same instance we're indexing into.
 
-            lengthLikePropertyOpt = lengthLikePropertyOpt ?? TryGetLengthLikeProperty(infoCache, targetMethodOpt);
+            lengthLikePropertyOpt ??= TryGetLengthLikeProperty(infoCache, targetMethodOpt);
             if (lengthLikePropertyOpt == null ||
                 !IsInstanceLengthCheck(lengthLikePropertyOpt, instance, subtraction.LeftOperand))
             {

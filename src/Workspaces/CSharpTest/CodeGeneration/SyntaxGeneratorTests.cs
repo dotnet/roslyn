@@ -1880,7 +1880,7 @@ public class C
             var cls = cu.Members[0];
             var summary = cls.DescendantNodes(descendIntoTrivia: true).OfType<XmlElementSyntax>().First();
 
-            var summary2 = summary.WithContent(default(SyntaxList<XmlNodeSyntax>));
+            var summary2 = summary.WithContent(default);
 
             var newCu = Generator.ReplaceNode(cu, summary, summary2);
 

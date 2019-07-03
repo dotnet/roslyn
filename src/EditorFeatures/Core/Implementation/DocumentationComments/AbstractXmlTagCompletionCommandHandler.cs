@@ -67,18 +67,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
         protected void InsertTextAndMoveCaret(ITextView textView, ITextBuffer subjectBuffer, SnapshotPoint position, string insertionText, int? finalCaretPosition)
         {
-            using (var transaction = _undoHistory.GetHistory(textView.TextBuffer).CreateTransaction("XmlTagCompletion"))
+            using var transaction = _undoHistory.GetHistory(textView.TextBuffer).CreateTransaction("XmlTagCompletion");
+
+            subjectBuffer.Insert(position, insertionText);
+
+            if (finalCaretPosition.HasValue)
             {
-                subjectBuffer.Insert(position, insertionText);
-
-                if (finalCaretPosition.HasValue)
-                {
-                    var point = subjectBuffer.CurrentSnapshot.GetPoint(finalCaretPosition.Value);
-                    textView.TryMoveCaretToAndEnsureVisible(point);
-                }
-
-                transaction.Complete();
+                var point = subjectBuffer.CurrentSnapshot.GetPoint(finalCaretPosition.Value);
+                textView.TryMoveCaretToAndEnsureVisible(point);
             }
+
+            transaction.Complete();
         }
     }
 }

@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 var nameText = token.ValueText;
                 if (nameText?.Length >= MinTokenLength)
                 {
-                    semanticModel = semanticModel ?? await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    semanticModel ??= await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var symbolInfo = semanticModel.GetSymbolInfo(name, cancellationToken);
                     if (symbolInfo.Symbol == null)
                     {

@@ -103,9 +103,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return null;
             }
 
-            options = options ?? CompilerAnalyzerConfigOptions.Empty;
-            rules = rules ?? GetDefaultFormattingRules(syntaxFormattingService);
-            spans = spans ?? SpecializedCollections.SingletonEnumerable(node.FullSpan);
+            options ??= CompilerAnalyzerConfigOptions.Empty;
+            rules ??= GetDefaultFormattingRules(syntaxFormattingService);
+            spans ??= SpecializedCollections.SingletonEnumerable(node.FullSpan);
             return syntaxFormattingService.Format(node, spans, options, rules, cancellationToken);
         }
 
