@@ -276,7 +276,7 @@ $@"create table if not exists ""{MainDBName}.{StringInfoTableName}"" (
             // Ensure that the string-info table's 'Value' column is defined to be 'unique'.
             // We don't allow duplicate strings in this table.
             connection.ExecuteCommand(
-$@"create unique index if not exists ""{MainDBName}.{StringInfoTableName}_{DataColumnName}"" on ""{StringInfoTableName}""(""{DataColumnName}"")");
+$@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" on ""{MainDBName}.{StringInfoTableName}""(""{DataColumnName}"")");
 
             // Now create the individual tables for the solution/project/document info.
             CreateTables(connection, MainDBName);
