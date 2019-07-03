@@ -148,6 +148,47 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
+        /// Returns true if the given symbol has been configured to be excluded from analysis by options.
+        /// </summary>
+        public static bool IsConfiguredToSkipAnalysis(
+            this ISymbol symbol,
+            AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+        {
+            var excludedSymbols = options.GetExcludedSymbolNamesOption(rule, compilation, cancellationToken);
+            var excludedTypeNamesWithDerivedTypes = options.GetExcludedTypeNamesWithDerivedTypesOption(rule, compilation, cancellationToken);
+            if (excludedSymbols.IsEmpty && excludedTypeNamesWithDerivedTypes.IsEmpty)
+            {
+                return false;
+            }
+
+            while (symbol != null)
+            {
+                if (excludedSymbols.Contains(symbol))
+                {
+                    return true;
+                }
+
+                if (symbol is INamedTypeSymbol namedType && !excludedTypeNamesWithDerivedTypes.IsEmpty)
+                {
+                    foreach (var type in namedType.GetBaseTypesAndThis())
+                    {
+                        if (excludedTypeNamesWithDerivedTypes.Contains(type))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                symbol = symbol.ContainingSymbol;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// True if the symbol is externally visible outside this assembly.
         /// </summary>
         public static bool IsExternallyVisible(this ISymbol symbol) =>
@@ -619,5 +660,14 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool IsLambdaOrLocalFunction(this ISymbol symbol)
             => (symbol as IMethodSymbol)?.IsLambdaOrLocalFunction() == true;
+
+        /// <summary>
+        /// Returns true for symbols whose name starts with an underscore and
+        /// are optionally followed by an integer, such as '_', '_1', '_2', etc.
+        /// These symbols can be treated as special discard symbol names.
+        /// </summary>
+        public static bool IsSymbolWithSpecialDiscardName(this ISymbol symbol)
+            => symbol?.Name.StartsWith("_", StringComparison.Ordinal) == true &&
+               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name.Substring(1), out _));
     }
 }

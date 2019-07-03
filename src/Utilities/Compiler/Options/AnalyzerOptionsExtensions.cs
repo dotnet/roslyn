@@ -115,25 +115,49 @@ namespace Analyzer.Utilities
             return analyzerConfigOptions.GetOptionValue(optionName, rule, uint.TryParse, defaultValue);
         }
 
-        public static ImmutableArray<string> GetSeparatedStringOptionValue(
+        public static SymbolNamesOption GetNullCheckValidationMethodsOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.NullCheckValidationMethods, namePrefixOpt: "M:", rule, compilation, cancellationToken);
+
+        public static SymbolNamesOption GetExcludedSymbolNamesOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.ExcludedSymbolNames, namePrefixOpt: null, rule, compilation, cancellationToken);
+
+        public static SymbolNamesOption GetExcludedTypeNamesWithDerivedTypesOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.ExcludedTypeNamesWithDerivedTypes, namePrefixOpt: "T:", rule, compilation, cancellationToken);
+
+        private static SymbolNamesOption GetSymbolNamesOption(
             this AnalyzerOptions options,
             string optionName,
+            string namePrefixOpt,
             DiagnosticDescriptor rule,
+            Compilation compilation,
             CancellationToken cancellationToken)
         {
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(cancellationToken);
-            return analyzerConfigOptions.GetOptionValue<ImmutableArray<string>>(optionName, rule, TryParse, defaultValue: ImmutableArray<string>.Empty);
+            return analyzerConfigOptions.GetOptionValue(optionName, rule, TryParse, defaultValue: SymbolNamesOption.Empty);
 
             // Local functions.
-            bool TryParse(string s, out ImmutableArray<string> parts)
+            bool TryParse(string s, out SymbolNamesOption option)
             {
                 if (string.IsNullOrEmpty(s))
                 {
-                    parts = ImmutableArray<string>.Empty;
+                    option = SymbolNamesOption.Empty;
                     return false;
                 }
 
-                parts = s.Split('~').ToImmutableArray();
+                var names = s.Split('|').ToImmutableArray();
+                option = SymbolNamesOption.Create(names, compilation, namePrefixOpt);
                 return true;
             }
         }
