@@ -374,13 +374,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             {
                 var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
                 var cancellationToken = context.CancellationToken;
-                _editHandlerService.ApplyAsync(
+                _editHandlerService.Apply(
                     _workspace,
                     fromDocument: null,
                     operations: operations,
                     title: title,
                     progressTracker: context.ProgressTracker,
-                    cancellationToken: cancellationToken).Wait(cancellationToken);
+                    cancellationToken: cancellationToken);
             }
 
             result = InvokeWithWaitDialog(applyFix, title, waitDialogMessage);

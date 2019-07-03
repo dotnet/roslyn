@@ -1191,7 +1191,7 @@ class C
                 Dim notificationService = DirectCast(workspace.Services.GetService(Of INotificationService)(), INotificationServiceCallback)
                 notificationService.NotificationCallback = Sub(message, title, severity) actualSeverity = severity
 
-                Await editHandler.ApplyAsync(
+                editHandler.Apply(
                     workspace,
                     workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id),
                     Await actions.First().NestedCodeActions.First().GetOperationsAsync(CancellationToken.None),
