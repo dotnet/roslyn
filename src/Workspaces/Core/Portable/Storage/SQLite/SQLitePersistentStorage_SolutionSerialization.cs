@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             => Task.FromResult(_solutionAccessor.ReadStream(name, checksum, cancellationToken));
 
         public override Task<bool> WriteStreamAsync(string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
-            => _solutionAccessor.WriteStreamAsync(name, stream, checksum, cancellationToken);
+            => Task.FromResult(_solutionAccessor.WriteStream(name, stream, checksum, cancellationToken));
 
         /// <summary>
         /// <see cref="Accessor{TKey, TWriteQueueKey, TDatabaseId}"/> responsible for storing and 
