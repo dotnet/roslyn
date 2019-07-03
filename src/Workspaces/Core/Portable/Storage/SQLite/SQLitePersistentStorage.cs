@@ -246,79 +246,85 @@ namespace Microsoft.CodeAnalysis.SQLite
         public void Initialize(Solution solution)
         {
             // Create a connection to the DB and ensure it has tables for the types we care about. 
-            using (var pooledConnection = GetPooledConnection())
-            {
-                var connection = pooledConnection.Connection;
+            using var pooledConnection = GetPooledConnection();
 
-                // Enable write-ahead logging to increase write performance by reducing amount of disk writes,
-                // by combining writes at checkpoint, salong with using sequential-only writes to populate the log.
-                // Also, WAL allows for relaxed ("normal") "synchronous" mode, see below.
-                connection.ExecuteCommand("pragma journal_mode=wal", throwOnError: false);
+            var connection = pooledConnection.Connection;
 
-                // Set "synchronous" mode to "normal" instead of default "full" to reduce the amount of buffer flushing syscalls,
-                // significantly reducing both the blocked time and the amount of context switches.
-                // When coupled with WAL, this (according to https://sqlite.org/pragma.html#pragma_synchronous and 
-                // https://www.sqlite.org/wal.html#performance_considerations) is unlikely to significantly affect durability,
-                // while significantly increasing performance, because buffer flushing is done for each checkpoint, instead of each
-                // transaction. While some writes can be lost, they are never reordered, and higher layers will recover from that.
-                connection.ExecuteCommand("pragma synchronous=normal", throwOnError: false);
+            // Enable write-ahead logging to increase write performance by reducing amount of disk writes,
+            // by combining writes at checkpoint, salong with using sequential-only writes to populate the log.
+            // Also, WAL allows for relaxed ("normal") "synchronous" mode, see below.
+            connection.ExecuteCommand("pragma journal_mode=wal", throwOnError: false);
 
-                CreateTables(connection, MainDBName);
+            // Set "synchronous" mode to "normal" instead of default "full" to reduce the amount of buffer flushing syscalls,
+            // significantly reducing both the blocked time and the amount of context switches.
+            // When coupled with WAL, this (according to https://sqlite.org/pragma.html#pragma_synchronous and 
+            // https://www.sqlite.org/wal.html#performance_considerations) is unlikely to significantly affect durability,
+            // while significantly increasing performance, because buffer flushing is done for each checkpoint, instead of each
+            // transaction. While some writes can be lost, they are never reordered, and higher layers will recover from that.
+            connection.ExecuteCommand("pragma synchronous=normal", throwOnError: false);
 
-                // Also get the known set of string-to-id mappings we already have in the DB.
-                // Do this in one batch if possible.
-                var fetched = TryFetchStringTableFromMainDB(connection);
-
-                // If we weren't able to retrieve the entire string table in one batch,
-                // attempt to retrieve it for each 
-                var fetchStringTable = !fetched;
-
-                // Try to bulk populate all the IDs we'll need for strings/projects/documents.
-                // Bulk population is much faster than trying to do everything individually.
-                BulkPopulateIds(connection, solution, fetchStringTable);
-
-                // Create and initialize the in-memory write-cache.
-                // From: https://www.sqlite.org/sharedcache.html
-                // Enabling shared-cache for an in-memory database allows two or more database 
-                // connections in the same process to have access to the same in-memory database.
-                // An in-memory database in shared cache is automatically deleted and memory is
-                // reclaimed when the last connection to that database closes.
-
-                connection.ExecuteCommand($"ATTACH DATABASE 'file::memory:?cache=shared' AS ${WriteCacheDBName};");
-                CreateTables(connection, WriteCacheDBName);
-            }
-        }
-
-        private static void CreateTables(SqlConnection connection, string tableName)
-        {
-            // First, create all our tables
+            // First, create all string tables in the main on-disk db.  These tables
+            // don't need to be in the write-cache as all string looks go to/from the
+            // main db.  This isn't a perf problem as we write the strings in bulk, 
+            // so there's no need for a write caching layer.  This also keeps consistency
+            // totally clear as there's only one source of truth.
             connection.ExecuteCommand(
-$@"create table if not exists ""{tableName}.{StringInfoTableName}"" (
+$@"create table if not exists ""{MainDBName}.{StringInfoTableName}"" (
     ""{DataIdColumnName}"" integer primary key autoincrement not null,
     ""{DataColumnName}"" varchar)");
 
             // Ensure that the string-info table's 'Value' column is defined to be 'unique'.
             // We don't allow duplicate strings in this table.
             connection.ExecuteCommand(
-$@"create unique index if not exists ""{tableName}.{StringInfoTableName}_{DataColumnName}"" on ""{StringInfoTableName}""(""{DataColumnName}"")");
+$@"create unique index if not exists ""{MainDBName}.{StringInfoTableName}_{DataColumnName}"" on ""{StringInfoTableName}""(""{DataColumnName}"")");
 
-            connection.ExecuteCommand(
+            // Now create the individual tables for the solution/project/document info.
+            CreateTables(connection, MainDBName);
+
+            // Also get the known set of string-to-id mappings we already have in the DB.
+            // Do this in one batch if possible.
+            var fetched = TryFetchStringTableFromMainDB(connection);
+
+            // If we weren't able to retrieve the entire string table in one batch,
+            // attempt to retrieve it for each 
+            var fetchStringTable = !fetched;
+
+            // Try to bulk populate all the IDs we'll need for strings/projects/documents.
+            // Bulk population is much faster than trying to do everything individually.
+            BulkPopulateIds(connection, solution, fetchStringTable);
+
+            // Create and initialize the in-memory write-cache.
+            //
+            // From: https://www.sqlite.org/sharedcache.html
+            // Enabling shared-cache for an in-memory database allows two or more database 
+            // connections in the same process to have access to the same in-memory database.
+            // An in-memory database in shared cache is automatically deleted and memory is
+            // reclaimed when the last connection to that database closes.
+            connection.ExecuteCommand($"ATTACH DATABASE 'file::memory:?cache=shared' AS ${WriteCacheDBName};");
+            CreateTables(connection, WriteCacheDBName);
+
+            return;
+
+            static void CreateTables(SqlConnection connection, string tableName)
+            {
+                connection.ExecuteCommand(
 $@"create table if not exists ""{tableName}.{SolutionDataTableName}"" (
     ""{DataIdColumnName}"" varchar primary key not null,
     ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
 
-            connection.ExecuteCommand(
+                connection.ExecuteCommand(
 $@"create table if not exists ""{tableName}.{ProjectDataTableName}"" (
     ""{DataIdColumnName}"" integer primary key not null,
     ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
 
-            connection.ExecuteCommand(
+                connection.ExecuteCommand(
 $@"create table if not exists ""{tableName}.{DocumentDataTableName}"" (
     ""{DataIdColumnName}"" integer primary key not null,
     ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
+            }
         }
     }
 }
