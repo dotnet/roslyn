@@ -1216,7 +1216,7 @@ class C
         }
 
         [Fact]
-        public void TestNullCheckedExpressionAndBlockBodyLambda()
+        public void TestNullChecked2ExpressionBodyLambdas()
         {
             var source = @"
 using System;
