@@ -2,19 +2,18 @@
 
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Indentation;
 using System.Composition;
-using System;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
 {
-    [ExportLanguageServiceFactory(typeof(ISynchronousIndentationService), StringConstants.CSharpLspLanguageName), Shared]
-    [Obsolete]
+    [ExportLanguageServiceFactory(typeof(IIndentationService), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspIndentationServiceFactory : ILanguageServiceFactory
     {
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
-            return languageServices.GetOriginalLanguageService<ISynchronousIndentationService>();
+            return languageServices.GetOriginalLanguageService<IIndentationService>();
         }
     }
 }

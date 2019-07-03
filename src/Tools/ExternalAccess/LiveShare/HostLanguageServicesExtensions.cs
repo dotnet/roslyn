@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
     {
         public static TLanguageService GetOriginalLanguageService<TLanguageService>(this HostLanguageServices languageServices) where TLanguageService : class, ILanguageService
         {
+            return languageServices.GetOriginalLanguageServices().GetService<TLanguageService>();
+        }
+
+        public static HostLanguageServices GetOriginalLanguageServices(this HostLanguageServices languageServices)
+        {
             var language = languageServices.Language;
             var originalLanguage = language;
 
@@ -25,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
                     return null;
             }
 
-            return languageServices.WorkspaceServices.GetLanguageServices(originalLanguage).GetService<TLanguageService>();
+            return languageServices.WorkspaceServices.GetLanguageServices(originalLanguage);
         }
     }
 }
