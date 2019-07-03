@@ -1815,6 +1815,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return position >= start && position <= end;
         }
 
+        public bool IsPartOfPropertyDeclarationHeader(SyntaxNode node)
+        {
+            var propertyDeclaration = node.GetAncestor<PropertyDeclarationSyntax>();
+            if (propertyDeclaration == null)
+            {
+                return false;
+            }
+
+            var start = propertyDeclaration.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart ??
+                        propertyDeclaration.SpanStart;
+            var end = propertyDeclaration.Identifier.FullSpan.End;
+
+            return node.Span.Start >= start && node.Span.End <= end;
+        }
+
         public bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position)
         {
             var token = root.FindToken(position);
@@ -1949,21 +1964,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
-        }
-
-        public bool IsPartOfPropertyDeclarationHeader(SyntaxNode node)
-        {
-            var propertyDeclaration = node.GetAncestor<PropertyDeclarationSyntax>();
-            if (propertyDeclaration == null)
-            {
-                return false;
-            }
-
-            var start = propertyDeclaration.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart ??
-                        propertyDeclaration.SpanStart;
-            var end = propertyDeclaration.Identifier.FullSpan.End;
-
-            return node.Span.Start >= start && node.Span.End <= end;
         }
 
         public SyntaxNode GetContainingPropertyDeclaration(SyntaxNode node) => node.GetAncestor<PropertyDeclarationSyntax>();
