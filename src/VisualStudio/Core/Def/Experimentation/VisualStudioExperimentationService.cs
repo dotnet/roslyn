@@ -77,7 +77,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     // since we use this for experimentation service as well
                 }
 
-                return _experimentationService.IsCachedFlightEnabled(experimentName);
+                try
+                {
+                    return _experimentationService.IsCachedFlightEnabled(experimentName);
+                }
+                catch
+                {
+                    return false;
+                }
             }
         }
     }
