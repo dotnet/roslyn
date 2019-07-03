@@ -1466,7 +1466,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Box type parameters.
                     rewrittenExpr = Convert(objectType, rewrittenExpr, Conversion.Boxing);
-
                 }
                 else if (exprType.IsNullableType())
                 {

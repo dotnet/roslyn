@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(statement != null);
             Debug.Assert(compilationState != null);
+
             try
             {
                 var factory = new SyntheticBoundNodeFactory(method, statement.Syntax, compilationState, diagnostics);

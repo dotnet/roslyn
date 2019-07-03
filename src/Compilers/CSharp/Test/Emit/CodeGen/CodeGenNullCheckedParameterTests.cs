@@ -889,7 +889,7 @@ class C
 {
     public void M()
     {
-        Func<string, string> func1 = x! => x;
+        Func<string, string> func1 = _! => null;
     }
 }";
             var compilation = CompileAndVerify(source);
@@ -901,7 +901,7 @@ class C
     IL_0001:  brtrue.s   IL_0009
     IL_0003:  newobj     ""System.Exception..ctor()""
     IL_0008:  throw
-    IL_0009:  ldarg.1
+    IL_0009:  ldnull
     IL_000a:  ret
 }");
         }

@@ -1210,7 +1210,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-
                         var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
 
                         var emittedBody = GenerateMethodBody(
@@ -1266,6 +1265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(compilationState.ModuleBuilderOpt != null);
             stateMachineTypeOpt = null;
+
             if (body.HasErrors)
             {
                 return body;
