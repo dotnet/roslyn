@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -19,14 +20,11 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal abstract partial class AbstractPackage<TPackage, TLanguageService> : AbstractPackage
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
         private TLanguageService _languageService;
-        private MiscellaneousFilesWorkspace _miscellaneousFilesWorkspace;
 
         private PackageInstallerService _packageInstallerService;
         private VisualStudioSymbolSearchService _symbolSearchService;
@@ -72,22 +70,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             //          installs a service roslyn visual studio workspace requires
             shell.LoadPackage(Guids.RoslynPackageId, out var setupPackage);
 
-            _miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
-            if (_miscellaneousFilesWorkspace != null)
-            {
-                // make sure solution crawler start once everything has been setup.
-                _miscellaneousFilesWorkspace.StartSolutionCrawler();
-            }
-
-            RegisterMiscellaneousFilesWorkspaceInformation(_miscellaneousFilesWorkspace);
+            var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
+            RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
 
             this.Workspace = this.CreateWorkspace();
             if (await IsInIdeModeAsync(this.Workspace, cancellationToken).ConfigureAwait(true))
             {
-                // make sure solution crawler start once everything has been setup.
-                // this also should be started before any of workspace events start firing
-                this.Workspace.StartSolutionCrawler();
-
                 // start remote host
                 EnableRemoteHostClientService();
 
@@ -146,17 +134,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             if (disposing)
             {
-                if (_miscellaneousFilesWorkspace != null)
-                {
-                    _miscellaneousFilesWorkspace.StopSolutionCrawler();
-                }
-
                 ThreadHelper.JoinableTaskFactory.Run(async () =>
                 {
                     if (await IsInIdeModeAsync(this.Workspace, CancellationToken.None).ConfigureAwait(true))
                     {
-                        this.Workspace.StopSolutionCrawler();
-
                         DisableRemoteHostClientService();
 
                         await UnregisterObjectBrowserLibraryManagerAsync(CancellationToken.None).ConfigureAwait(true);

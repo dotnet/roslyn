@@ -720,7 +720,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
-            return view.GetBufferContainingCaret();
+            var caretBuffer = view.GetBufferContainingCaret();
+            if (caretBuffer is null)
+            {
+                throw new InvalidOperationException($"Unable to find the buffer containing the caret. Ensure the Editor is activated berfore calling.");
+            }
+
+            return caretBuffer;
         }
 
         public string[] GetOutliningSpans()
