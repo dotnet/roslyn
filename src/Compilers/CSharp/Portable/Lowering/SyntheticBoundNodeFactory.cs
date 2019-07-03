@@ -1516,7 +1516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (LocalRewriter.NullableNeverHasValue(nullable))
             {
-                return Literal(kind == BinaryOperatorKind.NullableNullEqual); // MakeLiteral(syntax, ConstantValue.Create(kind == BinaryOperatorKind.NullableNullEqual), returnType);
+                return Literal(kind == BinaryOperatorKind.NullableNullEqual);
             }
 
             BoundExpression nonNullValue = LocalRewriter.NullableAlwaysHasValue(nullable);
@@ -1531,7 +1531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax: syntax,
                     locals: ImmutableArray<LocalSymbol>.Empty,
                     sideEffects: ImmutableArray.Create<BoundExpression>(nonNullValue),
-                    value: Literal(kind == BinaryOperatorKind.NullableNullNotEqual), //MakeBooleanConstant(syntax, kind == BinaryOperatorKind.NullableNullNotEqual),
+                    value: Literal(kind == BinaryOperatorKind.NullableNullNotEqual),
                     type: returnType);
             }
 
@@ -1547,7 +1547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredLeft.IsLiteralNull() ? loweredLeft : loweredRight,
                     returnType);
 
-                var whenNull = kind == BinaryOperatorKind.NullableNullEqual ? Literal(true) /*MakeBooleanConstant(syntax, true)*/ : null;
+                var whenNull = kind == BinaryOperatorKind.NullableNullEqual ? Literal(true) : null;
 
                 return conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.HasValueMethodOpt, whenNotNull, whenNull, conditionalAccess.Id, whenNotNull.Type);
             }
