@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -19,7 +21,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         [Fact]
         public void ReportDiagnostics()
         {
-            var service = new DiagnosticService(AsynchronousOperationListenerProvider.NullProvider);
+            var service = new DiagnosticService(
+                AsynchronousOperationListenerProvider.NullProvider, Array.Empty<Lazy<IEventListener, EventListenerMetadata>>());
             var source = new EditAndContinueDiagnosticUpdateSource(service);
 
             var updates = new List<string>();
