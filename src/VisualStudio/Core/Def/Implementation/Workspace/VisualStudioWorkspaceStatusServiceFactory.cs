@@ -76,6 +76,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 Task.Run(() => EnsureInitializationAsync(CancellationToken.None), CancellationToken.None).CompletesAsyncOperation(asyncToken);
             }
 
+            // unfortunately, IVsOperationProgressStatusService requires UI thread to let project system to proceed to next stages.
+            // this method should only be used with either await or JTF.Run, it should be never used with Task.Wait otherwise, it can
+            // deadlock
             public async Task WaitUntilFullyLoadedAsync(CancellationToken cancellationToken)
             {
                 using (Logger.LogBlock(FunctionId.PartialLoad_FullyLoaded, KeyValueLogMessage.NoProperty, cancellationToken))
@@ -97,6 +100,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
+            // unfortunately, IVsOperationProgressStatusService requires UI thread to let project system to proceed to next stages.
+            // this method should only be used with either await or JTF.Run, it should be never used with Task.Wait otherwise, it can
+            // deadlock
             public async Task<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
             {
                 await EnsureInitializationAsync(cancellationToken).ConfigureAwait(false);
