@@ -520,6 +520,192 @@ class C
         }
 
         [Fact]
+        public void AddThenModifyMethod_RefReadOnly()
+        {
+            var source0 =
+@"
+namespace System.Runtime.CompilerServices { class X { } }
+namespace N
+{
+    class C
+    {
+        static void Main() { }
+    }
+}
+";
+            var source1 =
+@"
+namespace System.Runtime.CompilerServices { class X { } }
+namespace N
+{
+    class C
+    {
+        static void Main() 
+        { 
+            Id(in G());
+        }
+
+        static ref readonly int Id(in int x) => ref x;
+        static ref readonly int G() => ref new int[1] { 1 }[0];
+    }
+}";
+            var source2 =
+@"
+namespace System.Runtime.CompilerServices { class X { } }
+namespace N
+{
+    class C
+    {
+        static void Main() { Id(in G()); }
+
+        static ref readonly int Id(in int x) => ref x;
+        static ref readonly int G() => ref new int[1] { 2 }[0];
+    }
+}";
+            var compilation0 = CreateCompilation(source0, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+            var compilation2 = compilation1.WithSource(source2);
+
+            var main0 = compilation0.GetMember<MethodSymbol>("N.C.Main");
+            var main1 = compilation1.GetMember<MethodSymbol>("N.C.Main");
+            var id1 = compilation1.GetMember<MethodSymbol>("N.C.Id");
+            var g1 = compilation1.GetMember<MethodSymbol>("N.C.G");
+            var g2 = compilation2.GetMember<MethodSymbol>("N.C.G");
+
+            // Verify full metadata contains expected rows.
+            using var md0 = ModuleMetadata.CreateFromImage(compilation0.EmitToArray());
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, main0, main1),
+                    new SemanticEdit(SemanticEditKind.Insert, null, id1),
+                    new SemanticEdit(SemanticEditKind.Insert, null, g1)));
+
+            diff1.VerifySynthesizedMembers(
+                "<global namespace>: {Microsoft}",
+                "Microsoft: {CodeAnalysis}",
+                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
+                "System.Runtime.CompilerServices: {IsReadOnlyAttribute}");
+
+            diff1.VerifyIL("N.C.Main", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  call       ""ref readonly int N.C.G()""
+  IL_0006:  call       ""ref readonly int N.C.Id(in int)""
+  IL_000b:  pop
+  IL_000c:  ret
+}
+");
+            diff1.VerifyIL("N.C.Id", @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}
+");
+            diff1.VerifyIL("N.C.G", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  4
+  IL_0000:  ldc.i4.1
+  IL_0001:  newarr     ""int""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stelem.i4
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldelema    ""int""
+  IL_0010:  ret
+}
+");
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+
+            var reader0 = md0.MetadataReader;
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            CheckNames(readers, reader1.GetTypeDefFullNames(), "Microsoft.CodeAnalysis.EmbeddedAttribute", "System.Runtime.CompilerServices.IsReadOnlyAttribute");
+            CheckNames(readers, reader1.GetMethodDefNames(), "Main", ".ctor", ".ctor", "Id", "G");
+
+            CheckEncLog(reader1,
+                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, g1, g2)));
+
+            // synthesized members did not change:
+            diff2.VerifySynthesizedMembers(
+                "<global namespace>: {Microsoft}",
+                "Microsoft: {CodeAnalysis}",
+                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
+                "System.Runtime.CompilerServices: {IsReadOnlyAttribute}");
+
+            // Verify delta metadata contains expected rows.
+            using var md2 = diff2.GetMetadata();
+
+            var reader2 = md2.Reader;
+            readers = new[] { reader0, reader1, reader2 };
+
+            CheckNames(readers, reader2.GetTypeDefFullNames());
+            CheckNames(readers, reader2.GetMethodDefNames(), "G");
+
+            // note no new TypeDefs emitted:
+            CheckEncLog(reader2,
+                Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(11, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(13, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
+
+            CheckEncMap(reader2,
+                Handle(11, TableIndex.TypeRef),
+                Handle(12, TableIndex.TypeRef),
+                Handle(13, TableIndex.TypeRef),
+                Handle(7, TableIndex.MethodDef),
+                Handle(3, TableIndex.AssemblyRef));
+        }
+
+        [Fact]
         public void AddField()
         {
             var source0 =
