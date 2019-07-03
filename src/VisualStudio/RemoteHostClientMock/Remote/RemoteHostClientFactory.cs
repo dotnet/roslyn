@@ -24,7 +24,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.Remote
             // this is the point where we can create different kind of remote host client in future (cloud or etc)
             if (workspace.Options.GetOption(RemoteHostClientFactoryOptions.RemoteHost_InProc))
             {
-                return InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: true, cancellationToken: cancellationToken);
+                return InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: true);
             }
 
             return ServiceHubRemoteHostClient.CreateAsync(workspace, cancellationToken);

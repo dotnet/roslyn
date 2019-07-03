@@ -83,11 +83,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Commands
             {
                 // Build up chain of handlers.
                 var handlerChain = lastHandler ?? delegate { };
-                for (int i = commandHandlers.Count - 1; i >= 1; i--)
+                for (var i = commandHandlers.Count - 1; i >= 1; i--)
                 {
                     // Declare locals to ensure that we don't end up capturing the wrong thing
                     var nextHandler = handlerChain;
-                    int j = i;
+                    var j = i;
                     handlerChain = () => commandHandlers[j].ExecuteCommand(args, nextHandler);
                 }
 
@@ -117,11 +117,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Commands
             {
                 // Build up chain of handlers.
                 var handlerChain = lastHandler ?? delegate { return default; };
-                for (int i = commandHandlers.Count - 1; i >= 1; i--)
+                for (var i = commandHandlers.Count - 1; i >= 1; i--)
                 {
                     // Declare locals to ensure that we don't end up capturing the wrong thing
                     var nextHandler = handlerChain;
-                    int j = i;
+                    var j = i;
                     handlerChain = () => commandHandlers[j].GetCommandState(args, nextHandler);
                 }
 

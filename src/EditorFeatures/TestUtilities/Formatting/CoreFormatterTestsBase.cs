@@ -2,7 +2,6 @@
 
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -13,7 +12,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Moq;
@@ -26,8 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
     public abstract class CoreFormatterTestsBase
     {
         internal abstract string GetLanguageName();
-        internal abstract AbstractSmartTokenFormatterCommandHandler CreateSmartTokenFormatterCommandHandler(
-            ITextUndoHistoryRegistry registry, IEditorOperationsFactoryService operations);
 
         protected void TestIndentation(
             TestWorkspace workspace, int point,
@@ -42,20 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             var snapshot = subjectDocument.TextBuffer.CurrentSnapshot;
             var indentationLineFromBuffer = snapshot.GetLineFromPosition(point);
 
-            var commandHandler = CreateSmartTokenFormatterCommandHandler(textUndoHistory.Object, editorOperationsFactory.Object);
-            commandHandler.ExecuteCommandWorker(new ReturnKeyCommandArgs(textView, subjectDocument.TextBuffer), CancellationToken.None);
-            var newSnapshot = subjectDocument.TextBuffer.CurrentSnapshot;
-
-            int? actualIndentation;
-            if (newSnapshot.Version.VersionNumber > snapshot.Version.VersionNumber)
-            {
-                actualIndentation = newSnapshot.GetLineFromLineNumber(indentationLineFromBuffer.LineNumber).GetFirstNonWhitespaceOffset();
-            }
-            else
-            {
-                var provider = new SmartIndent(textView);
-                actualIndentation = provider.GetDesiredIndentation(indentationLineFromBuffer);
-            }
+            var provider = new SmartIndent(textView);
+            var actualIndentation = provider.GetDesiredIndentation(indentationLineFromBuffer);
 
             Assert.Equal(expectedIndentation, actualIndentation.Value);
 

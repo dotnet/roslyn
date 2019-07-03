@@ -59,10 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(CSharpFeaturesResources.use_var_instead_of_explicit_type,
-                     createChangedDocument,
-                     CSharpFeaturesResources.use_var_instead_of_explicit_type)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpFeaturesResources.use_var_instead_of_explicit_type,
+                       createChangedDocument,
+                       CSharpFeaturesResources.use_var_instead_of_explicit_type)
             {
             }
         }

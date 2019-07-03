@@ -81,18 +81,14 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         }
 
         public static string GetParameterString(this Exception exception)
-        {
-            switch (exception)
+            => exception switch
             {
-                case RemoteInvocationException remote:
-                    return $"{remote.ErrorCode} {remote.StackTrace ?? exception.Message}";
-                case AggregateException aggregate when aggregate.InnerException != null:
+                RemoteInvocationException remote => $"{remote.ErrorCode} {remote.StackTrace ?? exception.Message}",
+                AggregateException aggregate when aggregate.InnerException != null =>
                     // get first exception that is not aggregated exception
-                    return GetParameterString(aggregate.InnerException);
-                default:
-                    return $"{exception.GetType().ToString()} {(exception.StackTrace ?? exception.ToString())}";
-            }
-        }
+                    GetParameterString(aggregate.InnerException),
+                _ => $"{exception.GetType().ToString()} {(exception.StackTrace ?? exception.ToString())}",
+            };
 
         /// <summary>
         /// hold onto last issue we reported. we use hash

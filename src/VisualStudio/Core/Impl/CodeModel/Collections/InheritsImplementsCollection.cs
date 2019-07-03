@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         {
             var node = LookupNode();
 
-            int currentIndex = 0;
+            var currentIndex = 0;
 
             // Inherits statements
             var inheritsNodes = CodeModelService.GetInheritsNodes(node);

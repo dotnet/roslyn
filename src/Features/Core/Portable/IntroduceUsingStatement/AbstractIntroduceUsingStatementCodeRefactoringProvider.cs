@@ -148,15 +148,15 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             var statementsToSurround = GetStatementsToSurround(declarationStatement, localVariable, semanticModel, syntaxFactsService, cancellationToken);
 
             // Separate the newline from the trivia that is going on the using declaration line.
-            var trailingTrivia = SplitTrailingTrivia(declarationStatement, syntaxFactsService);
+            var (sameLine, endOfLine) = SplitTrailingTrivia(declarationStatement, syntaxFactsService);
 
             var usingStatement =
                 CreateUsingStatement(
                     declarationStatement,
-                    trailingTrivia.sameLine,
+                    sameLine,
                     statementsToSurround)
                     .WithLeadingTrivia(declarationStatement.GetLeadingTrivia())
-                    .WithTrailingTrivia(trailingTrivia.endOfLine);
+                    .WithTrailingTrivia(endOfLine);
 
             if (statementsToSurround.Any())
             {

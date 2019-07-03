@@ -272,6 +272,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return type.IsMscorlibType("System.Collections", "IEnumerable");
         }
 
+        internal static bool IsIntPtr(this Type type)
+            => type.IsMscorlibType("System", "IntPtr");
+
+        internal static bool IsUIntPtr(this Type type)
+            => type.IsMscorlibType("System", "UIntPtr");
+
         internal static bool IsIEnumerableOfT(this Type type)
         {
             return type.IsMscorlibType("System.Collections.Generic", "IEnumerable`1");

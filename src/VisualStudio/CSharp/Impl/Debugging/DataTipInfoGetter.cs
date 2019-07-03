@@ -28,8 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
 
                 var token = root.FindToken(position);
 
-                var expression = token.Parent as ExpressionSyntax;
-                if (expression == null)
+                if (!(token.Parent is ExpressionSyntax expression))
                 {
                     return token.IsKind(SyntaxKind.IdentifierToken)
                         ? new DebugDataTipInfo(token.Span, text: null)

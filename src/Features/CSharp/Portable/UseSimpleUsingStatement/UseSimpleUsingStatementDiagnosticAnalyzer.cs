@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             // Note: we only have to check up to the `using`, since the checks below in
             // UsingValueDoesNotLeakToFollowingStatements ensure that there would be no
             // labels/gotos *after* the using statement.
-            for (int i = 0; i < index; i++)
+            for (var i = 0; i < index; i++)
             {
                 var priorStatement = parentStatements[i];
                 if (IsGotoOrLabeledStatement(priorStatement))

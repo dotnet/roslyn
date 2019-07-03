@@ -3333,7 +3333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return false;
             }
 
-            for (int i = 0; i < oldVariables.Length; i++)
+            for (var i = 0; i < oldVariables.Length; i++)
             {
                 if (!SyntaxFactory.AreEquivalent(oldVariables[i], newVariables[i]))
                 {

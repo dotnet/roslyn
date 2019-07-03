@@ -30,8 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
             ExternalErrorDiagnosticUpdateSource errorSource,
-            ITableManagerProvider provider) :
-            this(workspace, diagnosticService, errorSource, provider)
+            ITableManagerProvider provider)
+            : this(workspace, diagnosticService, errorSource, provider)
         {
             ConnectWorkspaceEvents();
 
@@ -58,15 +58,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         /// this is for test only
-        internal VisualStudioDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
-            this(workspace, diagnosticService, errorSource: null, provider)
+        internal VisualStudioDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider)
+            : this(workspace, diagnosticService, errorSource: null, provider)
         {
             AddInitialTableSource(workspace.CurrentSolution, _liveTableSource);
         }
 
         /// this is for test only
-        internal VisualStudioDiagnosticListTable(Workspace workspace, ExternalErrorDiagnosticUpdateSource errorSource, ITableManagerProvider provider) :
-            this(workspace, diagnosticService: null, errorSource, provider)
+        internal VisualStudioDiagnosticListTable(Workspace workspace, ExternalErrorDiagnosticUpdateSource errorSource, ITableManagerProvider provider)
+            : this(workspace, diagnosticService: null, errorSource, provider)
         {
             AddInitialTableSource(workspace.CurrentSolution, _buildTableSource);
         }
@@ -75,8 +75,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             Workspace workspace,
             IDiagnosticService diagnosticService,
             ExternalErrorDiagnosticUpdateSource errorSource,
-            ITableManagerProvider provider) :
-            base(workspace, diagnosticService, provider)
+            ITableManagerProvider provider)
+            : base(workspace, diagnosticService, provider)
         {
             _liveTableSource = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);
             _buildTableSource = new BuildTableDataSource(workspace, errorSource);

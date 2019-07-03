@@ -259,8 +259,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
         private class ConvertToInterpolatedStringCodeAction : CodeAction.DocumentChangeAction
         {
-            public ConvertToInterpolatedStringCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+            public ConvertToInterpolatedStringCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
             {
             }
         }
