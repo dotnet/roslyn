@@ -127,9 +127,9 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         // cached query strings
 
-        private readonly string _select_star_from_main_0;
-        private readonly string _insert_into_main_0_1_values;
-        private readonly string _select_star_from_main_0_where_1_limit_one;
+        private readonly string _select_star_from_0;
+        private readonly string _insert_into_0_1_values;
+        private readonly string _select_star_from_0_where_1_limit_one;
 
         // We pool connections to the DB so that we don't have to take the hit of 
         // reconnecting.  The connections also cache the prepared statements used
@@ -153,9 +153,9 @@ namespace Microsoft.CodeAnalysis.SQLite
             _projectAccessor = new ProjectAccessor(this);
             _documentAccessor = new DocumentAccessor(this);
 
-            _select_star_from_main_0 = $@"select * from {MainDBName}.{StringInfoTableName}";
-            _insert_into_main_0_1_values = $@"insert into {MainDBName}.{StringInfoTableName}(""{DataColumnName}"") values (?)";
-            _select_star_from_main_0_where_1_limit_one = $@"select * from {MainDBName}.{StringInfoTableName} where (""{DataColumnName}"" = ?) limit 1";
+            _select_star_from_0 = $@"select * from {StringInfoTableName}";
+            _insert_into_0_1_values = $@"insert into {StringInfoTableName}(""{DataColumnName}"") values (?)";
+            _select_star_from_0_where_1_limit_one = $@"select * from {StringInfoTableName} where (""{DataColumnName}"" = ?) limit 1";
         }
 
         private SqlConnection GetConnection()

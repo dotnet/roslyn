@@ -12,11 +12,11 @@ namespace Microsoft.CodeAnalysis.SQLite
     {
         private readonly ConcurrentDictionary<string, int> _stringToIdMap = new ConcurrentDictionary<string, int>();
 
-        private bool TryFetchStringTableFromMainDB(SqlConnection connection)
+        private bool TryFetchStringTable(SqlConnection connection)
         {
             try
             {
-                using (var resettableStatement = connection.GetResettableStatement(_select_star_from_main_0))
+                using (var resettableStatement = connection.GetResettableStatement(_select_star_from_0))
                 {
                     var statement = resettableStatement.Statement;
                     while (statement.Step() == Result.ROW)
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
-        private int? TryGetStringId(SqlConnection connection, string value)
+        private int? TryGetStringIdFromDatabase(SqlConnection connection, string value)
         {
             // Null strings are not supported at all.  Just ignore these. Any read/writes 
             // to null values will fail and will return 'false/null' to indicate failure
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             // Otherwise, try to get or add the string to the string table in the database.
-            var id = TryGetStringIdFromMainDatabase(connection, value);
+            var id = TryGetStringIdFromDatabaseWorker(connection, value);
             if (id != null)
             {
                 _stringToIdMap[value] = id.Value;
@@ -69,10 +69,10 @@ namespace Microsoft.CodeAnalysis.SQLite
             return id;
         }
 
-        private int? TryGetStringIdFromMainDatabase(SqlConnection connection, string value)
+        private int? TryGetStringId(SqlConnection connection, string value)
         {
             // First, check if we can find that string in the string table.
-            var stringId = TryGetStringIdFromMainDatabaseWorker(connection, value, canReturnNull: true);
+            var stringId = TryGetStringIdWorker(connection, value, canReturnNull: true);
             if (stringId != null)
             {
                 // Found the value already in the db.  Another process (or thread) might have added it.
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 // We got a constraint violation.  This means someone else beat us to adding this
                 // string to the string-table.  We should always be able to find the string now.
-                stringId = TryGetStringIdFromMainDatabaseWorker(connection, value, canReturnNull: false);
+                stringId = TryGetStringIdWorker(connection, value, canReturnNull: false);
                 return stringId;
             }
             catch (Exception ex)
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             var id = -1;
 
-            using (var resettableStatement = connection.GetResettableStatement(_insert_into_main_0_1_values))
+            using (var resettableStatement = connection.GetResettableStatement(_insert_into_0_1_values))
             {
                 var statement = resettableStatement.Statement;
 
@@ -138,12 +138,12 @@ namespace Microsoft.CodeAnalysis.SQLite
             return id;
         }
 
-        private int? TryGetStringIdFromMainDatabaseWorker(
+        private int? TryGetStringIdWorker(
             SqlConnection connection, string value, bool canReturnNull)
         {
             try
             {
-                using (var resettableStatement = connection.GetResettableStatement(_select_star_from_main_0_where_1_limit_one))
+                using (var resettableStatement = connection.GetResettableStatement(_select_star_from_0_where_1_limit_one))
                 {
                     var statement = resettableStatement.Statement;
 
