@@ -153,9 +153,9 @@ namespace Microsoft.CodeAnalysis.SQLite
             _projectAccessor = new ProjectAccessor(this);
             _documentAccessor = new DocumentAccessor(this);
 
-            _select_star_from_main_0 = $@"select * from ""{MainDBName}.{StringInfoTableName}""";
-            _insert_into_main_0_1_values = $@"insert into ""{MainDBName}.{StringInfoTableName}""(""{DataColumnName}"") values (?)";
-            _select_star_from_main_0_where_1_limit_one = $@"select * from ""{MainDBName}.{StringInfoTableName}"" where (""{DataColumnName}"" = ?) limit 1";
+            _select_star_from_main_0 = $@"select * from {MainDBName}.{StringInfoTableName}";
+            _insert_into_main_0_1_values = $@"insert into {MainDBName}.{StringInfoTableName}(""{DataColumnName}"") values (?)";
+            _select_star_from_main_0_where_1_limit_one = $@"select * from {MainDBName}.{StringInfoTableName} where (""{DataColumnName}"" = ?) limit 1";
         }
 
         private SqlConnection GetConnection()
@@ -269,14 +269,14 @@ namespace Microsoft.CodeAnalysis.SQLite
             // so there's no need for a write caching layer.  This also keeps consistency
             // totally clear as there's only one source of truth.
             connection.ExecuteCommand(
-$@"create table if not exists ""{MainDBName}.{StringInfoTableName}"" (
+$@"create table if not exists {MainDBName}.{StringInfoTableName}(
     ""{DataIdColumnName}"" integer primary key autoincrement not null,
     ""{DataColumnName}"" varchar)");
 
             // Ensure that the string-info table's 'Value' column is defined to be 'unique'.
             // We don't allow duplicate strings in this table.
             connection.ExecuteCommand(
-$@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" on ""{MainDBName}.{StringInfoTableName}""(""{DataColumnName}"")");
+$@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" on {MainDBName}.{StringInfoTableName}(""{DataColumnName}"")");
 
             // Now make sure we have the individual tables for the solution/project/document info.
             EnsureTables(connection, MainDBName);
@@ -297,19 +297,19 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
         private static void EnsureTables(SqlConnection connection, string dbName)
         {
             connection.ExecuteCommand(
-$@"create table if not exists ""{dbName}.{SolutionDataTableName}"" (
+$@"create table if not exists {dbName}.{SolutionDataTableName}(
     ""{DataIdColumnName}"" varchar primary key not null,
     ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
 
             connection.ExecuteCommand(
-$@"create table if not exists ""{dbName}.{ProjectDataTableName}"" (
+$@"create table if not exists {dbName}.{ProjectDataTableName}(
     ""{DataIdColumnName}"" integer primary key not null,
     ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
 
             connection.ExecuteCommand(
-$@"create table if not exists ""{dbName}.{DocumentDataTableName}"" (
+$@"create table if not exists {dbName}.{DocumentDataTableName}(
     ""{DataIdColumnName}"" integer primary key not null,
     ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
