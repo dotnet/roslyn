@@ -86,7 +86,8 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             // connections in the same process to have access to the same in-memory database.
             // An in-memory database in shared cache is automatically deleted and memory is
             // reclaimed when the last connection to that database closes.
-            SQLitePersistentStorage.AttachWriteCache(this);
+            this.ExecuteCommand($"attach database 'file::memory:?cache=shared' as {SQLitePersistentStorage.WriteCacheDBName};");
+            SQLitePersistentStorage.EnsureTables(this, SQLitePersistentStorage.WriteCacheDBName);
         }
 
         ~SqlConnection()

@@ -294,7 +294,7 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
             BulkPopulateIds(connection, solution, fetchStringTable);
         }
 
-        private static void EnsureTables(SqlConnection connection, string dbName)
+        public static void EnsureTables(SqlConnection connection, string dbName)
         {
             connection.ExecuteCommand(
 $@"create table if not exists {dbName}.{SolutionDataTableName}(
@@ -313,12 +313,6 @@ $@"create table if not exists {dbName}.{DocumentDataTableName}(
     ""{DataIdColumnName}"" integer primary key not null,
     ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
-        }
-
-        public static void AttachWriteCache(SqlConnection connection)
-        {
-            connection.ExecuteCommand($"attach database 'file::memory:?cache=shared' as {WriteCacheDBName};");
-            EnsureTables(connection, WriteCacheDBName);
         }
     }
 }
