@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </summary>
         private Dictionary<FieldSymbol, NamedTypeSymbol> _fixedImplementationTypes;
 
+        private bool _usesNullableAttributes;
         private int _needsGeneratedAttributes;
         private bool _needsGeneratedAttributes_IsFrozen;
 
@@ -58,10 +59,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return (EmbeddableAttributes)_needsGeneratedAttributes | Compilation.GetNeedsGeneratedAttributes();
         }
 
-        internal void SetNeedsGeneratedAttributes(EmbeddableAttributes attributes)
+        private void SetNeedsGeneratedAttributes(EmbeddableAttributes attributes)
         {
             Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
             ThreadSafeFlagOperations.Set(ref _needsGeneratedAttributes, (int)attributes);
+        }
+
+        private bool GetUsesNullableAttributes()
+        {
+            _needsGeneratedAttributes_IsFrozen = true;
+            return _usesNullableAttributes | Compilation.GetUsesNullableAttributes();
+        }
+
+        private void SetUsesNullableAttributes()
+        {
+            Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
+            _usesNullableAttributes = true;
         }
 
         internal PEModuleBuilder(
@@ -1542,6 +1555,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor, arguments, isOptionalUse: true);
         }
 
+        internal bool ShouldEmitNullablePublicOnlyAttribute()
+        {
+            return GetUsesNullableAttributes() && Compilation.EmitNullablePublicOnly;
+        }
+
         internal virtual SynthesizedAttributeData SynthesizeNullablePublicOnlyAttribute(ImmutableArray<TypedConstant> arguments)
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
@@ -1570,15 +1588,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
 
-            if ((GetNeedsGeneratedAttributesInternal() & attribute) != 0)
+            if ((GetNeedsGeneratedAttributesInternal() & attribute) == 0)
             {
-                return;
+                // Don't report any errors. They should be reported during binding.
+                if (Compilation.CheckIfAttributeShouldBeEmbedded(attribute, diagnosticsOpt: null, locationOpt: null))
+                {
+                    SetNeedsGeneratedAttributes(attribute);
+                }
             }
 
-            // Don't report any errors. They should be reported during binding.
-            if (Compilation.CheckIfAttributeShouldBeEmbedded(attribute, diagnosticsOpt: null, locationOpt: null))
+            if ((attribute & (EmbeddableAttributes.NullableAttribute | EmbeddableAttributes.NullableContextAttribute)) != 0)
             {
-                SetNeedsGeneratedAttributes(attribute);
+                SetUsesNullableAttributes();
             }
         }
 
