@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
-        private int? TryGetStringIdFromDatabase(SqlConnection connection, string value)
+        private int? TryGetStringId(SqlConnection connection, string value)
         {
             // Null strings are not supported at all.  Just ignore these. Any read/writes 
             // to null values will fail and will return 'false/null' to indicate failure
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             // Otherwise, try to get or add the string to the string table in the database.
-            var id = TryGetStringIdFromDatabaseWorker(connection, value);
+            var id = TryGetStringIdFromDatabase(connection, value);
             if (id != null)
             {
                 _stringToIdMap[value] = id.Value;
@@ -69,10 +69,10 @@ namespace Microsoft.CodeAnalysis.SQLite
             return id;
         }
 
-        private int? TryGetStringId(SqlConnection connection, string value)
+        private int? TryGetStringIdFromDatabase(SqlConnection connection, string value)
         {
             // First, check if we can find that string in the string table.
-            var stringId = TryGetStringIdWorker(connection, value, canReturnNull: true);
+            var stringId = TryGetStringIdFromDatabaseWorker(connection, value, canReturnNull: true);
             if (stringId != null)
             {
                 // Found the value already in the db.  Another process (or thread) might have added it.
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 // We got a constraint violation.  This means someone else beat us to adding this
                 // string to the string-table.  We should always be able to find the string now.
-                stringId = TryGetStringIdWorker(connection, value, canReturnNull: false);
+                stringId = TryGetStringIdFromDatabaseWorker(connection, value, canReturnNull: false);
                 return stringId;
             }
             catch (Exception ex)
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             return id;
         }
 
-        private int? TryGetStringIdWorker(
+        private int? TryGetStringIdFromDatabaseWorker(
             SqlConnection connection, string value, bool canReturnNull)
         {
             try

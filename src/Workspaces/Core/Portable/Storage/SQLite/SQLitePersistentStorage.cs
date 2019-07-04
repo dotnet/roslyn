@@ -283,7 +283,7 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
 
             // Also get the known set of string-to-id mappings we already have in the DB.
             // Do this in one batch if possible.
-            var fetched = TryFetchStringTableFromMainDB(connection);
+            var fetched = TryFetchStringTable(connection);
 
             // If we weren't able to retrieve the entire string table in one batch,
             // attempt to retrieve it for each 
