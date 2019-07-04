@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             var flags = OpenFlags.SQLITE_OPEN_CREATE |
                 OpenFlags.SQLITE_OPEN_READWRITE |
                 OpenFlags.SQLITE_OPEN_NOMUTEX |
-                // OpenFlags.SQLITE_OPEN_SHAREDCACHE |
+                OpenFlags.SQLITE_OPEN_SHAREDCACHE |
                 OpenFlags.SQLITE_OPEN_URI;
             var result = (Result)raw.sqlite3_open_v2(databasePath, out var handle, (int)flags, vfs: null);
 
