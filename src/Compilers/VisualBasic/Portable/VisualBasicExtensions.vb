@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
@@ -622,7 +622,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If symbol IsNot Nothing Then
                 Return StaticCast(Of INamedTypeSymbol).From(symbol.GetModuleMembers())
             Else
-                Return ImmutableArray.Create(Of INamedTypeSymbol)()
+                Return ImmutableArray(Of INamedTypeSymbol).Empty
             End If
         End Function
 
@@ -638,7 +638,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If symbol IsNot Nothing Then
                 Return StaticCast(Of INamedTypeSymbol).From(symbol.GetModuleMembers(name))
             Else
-                Return ImmutableArray.Create(Of INamedTypeSymbol)()
+                Return ImmutableArray(Of INamedTypeSymbol).Empty
             End If
         End Function
 #End Region
@@ -1517,7 +1517,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetMemberGroup(expression, cancellationToken)
             Else
-                Return ImmutableArray.Create(Of ISymbol)
+                Return ImmutableArray(Of ISymbol).Empty
             End If
         End Function
 
@@ -1530,7 +1530,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetSpeculativeMemberGroup(position, expression)
             Else
-                Return ImmutableArray.Create(Of ISymbol)
+                Return ImmutableArray(Of ISymbol).Empty
             End If
         End Function
 
@@ -1543,7 +1543,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetMemberGroup(attribute, cancellationToken)
             Else
-                Return ImmutableArray.Create(Of ISymbol)
+                Return ImmutableArray(Of ISymbol).Empty
             End If
         End Function
 
