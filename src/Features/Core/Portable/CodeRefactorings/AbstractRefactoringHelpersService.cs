@@ -88,9 +88,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // While we want to do most extractions for both selections and just caret location (empty selection), extractions based 
             // on type's header node (caret is anywhere in a header of wanted type e.g. `in[||]t A { get; set; }) are limited to 
             // empty selections. Otherwise `[|int|] A { get; set; }) would trigger all refactorings for Property Decl.
+            // Thus: selection -> extractParentsOfHeader: false; location -> extractParentsOfHeader
             //
             // See local function TryGetAcceptedNodeOrExtracted DefaultNodeExtractor for more info.
-
 
             // Handle selections:
             // - The smallest node whose FullSpan includes the whole (trimmed) selection
@@ -293,6 +293,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <para>
         /// The rationale is that when user selects e.g. entire local declaration statement [|var a = b;|] it is reasonable
         /// to provide refactoring for `b` node. Similarly for other types of refactorings.
+        /// </para>
+        /// <para>
+        /// The rationale behind <paramref name="extractParentsOfHeader"/> is following. We want to extract a parent Node of header Node/Token
+        /// if its just for location (empty selection) but not for selection. We assume that if user selects just one node he wants to work
+        /// with that and only that node. On the other hand placing cursor anywhere in header should still count as selecting the node it's header of.
         /// </para>
         /// </summary>
         protected virtual SyntaxNode DefaultNodeExtractor(SyntaxNode node, ISyntaxFactsService syntaxFacts, bool extractParentsOfHeader)
