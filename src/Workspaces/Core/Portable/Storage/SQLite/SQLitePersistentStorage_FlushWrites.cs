@@ -46,42 +46,13 @@ namespace Microsoft.CodeAnalysis.SQLite
             // db to the main on-disk db.  Once that is done, within the same transaction,
             // clear the writecache tables so they can be filled by the next set of writes
             // coming in.
-            connection.Connection.RunInTransaction(connection =>
+            connection.Connection.RunInTransaction(tuple =>
             {
-                CopyFromInMemoryToDisk(connection, SolutionDataTableName);
-                CopyFromInMemoryToDisk(connection, ProjectDataTableName);
-                CopyFromInMemoryToDisk(connection, DocumentDataTableName);
-
-                ClearInMemoryTable(connection, SolutionDataTableName);
-                ClearInMemoryTable(connection, ProjectDataTableName);
-                ClearInMemoryTable(connection, DocumentDataTableName);
-            }, connection.Connection);
-
-            return;
-
-            static void CopyFromInMemoryToDisk(SqlConnection connection, string tableName)
-            {
-                if (!connection.IsInTransaction)
-                {
-                    throw new InvalidOperationException("Must clear tables within a transaction to ensure consistency");
-                }
-
-                // Efficient call to sqlite to just fully copy all data from one table to the
-                // other.  No need to actually do any reading/writing of the data ourselves.
-                using var statement = connection.GetResettableStatement($"insert or replace into {MainDBName}.{tableName} select * from {WriteCacheDBName}.{tableName};");
-                statement.Statement.Step();
-            }
-
-            static void ClearInMemoryTable(SqlConnection connection, string tableName)
-            {
-                if (!connection.IsInTransaction)
-                {
-                    throw new InvalidOperationException("Must copy tables within a transaction to ensure consistency");
-                }
-
-                using var statement = connection.GetResettableStatement($"delete from {WriteCacheDBName}.{tableName};");
-                statement.Statement.Step();
-            }
+                var connection = tuple.Connection;
+                tuple.self._solutionAccessor.FlushInMemoryDataToDisk(connection);
+                tuple.self._projectAccessor.FlushInMemoryDataToDisk(connection);
+                tuple.self._documentAccessor.FlushInMemoryDataToDisk(connection);
+            }, (self: this, connection.Connection));
         }
     }
 }

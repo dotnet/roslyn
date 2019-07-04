@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             private readonly string _select_rowid_from_main_0_where_1;
             private readonly string _select_rowid_from_writecache_0_where_1;
             private readonly string _insert_or_replace_into_writecache_0_1_2_3_value;
+            private readonly string _delete_from_writecache_0;
+            private readonly string _insert_or_replace_into_main_0_select_star_from_writecache_1;
 
             public Accessor(SQLitePersistentStorage storage)
             {
@@ -31,6 +33,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                 _select_rowid_from_main_0_where_1 = $@"select rowid from {MainDBName}.{DataTableName} where ""{DataIdColumnName}"" = ?";
                 _select_rowid_from_writecache_0_where_1 = $@"select rowid from {WriteCacheDBName}.{DataTableName} where ""{DataIdColumnName}"" = ?";
                 _insert_or_replace_into_writecache_0_1_2_3_value = $@"insert or replace into {WriteCacheDBName}.{DataTableName}(""{DataIdColumnName}"",""{ChecksumColumnName}"",""{DataColumnName}"") values (?,?,?)";
+                _delete_from_writecache_0 = $"delete from {WriteCacheDBName}.{DataTableName};";
+                _insert_or_replace_into_main_0_select_star_from_writecache_1 = $"insert or replace into {MainDBName}.{DataTableName} select * from {WriteCacheDBName}.{DataTableName};";
             }
 
             protected abstract string DataTableName { get; }
@@ -281,6 +285,27 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // Let the storage system know it should flush this information
                 // to disk in the future.
                 Storage.EnqueueFlushTask();
+            }
+
+
+            public void FlushInMemoryDataToDisk(SqlConnection connection)
+            {
+                if (!connection.IsInTransaction)
+                {
+                    throw new InvalidOperationException("Must flush tables within a transaction to ensure consistency");
+                }
+
+                // Efficient call to sqlite to just fully copy all data from one table to the
+                // other.  No need to actually do any reading/writing of the data ourselves.
+                using (var statement = connection.GetResettableStatement(_insert_or_replace_into_main_0_select_star_from_writecache_1))
+                {
+                    statement.Statement.Step();
+                }
+
+                using (var statement = connection.GetResettableStatement(_delete_from_writecache_0))
+                {
+                    statement.Statement.Step();
+                }
             }
         }
     }
