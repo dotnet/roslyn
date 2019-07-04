@@ -78,8 +78,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                     {
                         using (var pooledConnection = Storage.GetPooledConnection())
                         {
-                            // First, try to see if there was a write to this key in 
-                            // our in-memory db.
+                            // First, try to see if there was a write to this key in our in-memory db.
                             var result = ReadBlob(
                                 pooledConnection.Connection, writeCacheDB: true,
                                 dataId, columnName, checksumOpt, cancellationToken);
@@ -89,8 +88,6 @@ namespace Microsoft.CodeAnalysis.SQLite
                             }
 
                             // Wasn't in the in-memory write-cache.  Check the full on-disk file.
-
-                            // Lookup the row from the DocumentData table corresponding to our dataId.
                             return ReadBlob(
                                 pooledConnection.Connection, writeCacheDB: false,
                                 dataId, columnName, checksumOpt, cancellationToken);
