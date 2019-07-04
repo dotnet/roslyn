@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// Name of the on-disk db.  "main" is the default that sqlite uses.  This just allows us to
         /// be explicit that we want this db.
         /// </summary>
-        private const string MainDBName = "main";
+        public const string MainDBName = "main";
 
         /// <summary>
         /// Name for the in-memory write-cache db.  Writes will be staged there and will be periodically

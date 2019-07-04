@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             protected override void BindFirstParameter(SqlStatement statement, long dataId)
                 => statement.BindInt64Parameter(parameterIndex: 1, value: dataId);
 
-            protected override bool TryGetRowId(SqlConnection connection, string dbName, long dataId, out long rowId)
-                => GetAndVerifyRowId(connection, dbName, dataId, out rowId);
+            protected override bool TryGetRowId(SqlConnection connection, bool writeCacheDB, long dataId, out long rowId)
+                => GetAndVerifyRowId(connection, writeCacheDB, dataId, out rowId);
         }
     }
 }
