@@ -1815,7 +1815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return position >= start && position <= end;
         }
 
-        public bool IsPartOfPropertyDeclarationHeader(SyntaxNode node)
+        public bool IsInPropertyDeclarationHeader(SyntaxNode node)
         {
             var propertyDeclaration = node.GetAncestor<PropertyDeclarationSyntax>();
             if (propertyDeclaration == null)

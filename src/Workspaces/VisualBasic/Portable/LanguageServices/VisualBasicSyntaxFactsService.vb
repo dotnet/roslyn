@@ -1754,7 +1754,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return position >= start AndAlso position <= _end
         End Function
 
-        Public Function IsPartOfPropertyDeclarationHeader(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsPartOfPropertyDeclarationHeader
+        Public Function IsInPropertyDeclarationHeader(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInPropertyDeclarationHeader
             Dim propertyDeclaration = node.GetAncestor(Of PropertyStatementSyntax)()
 
             If propertyDeclaration Is Nothing Then

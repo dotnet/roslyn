@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             if (extractParentsOfHeader)
             {
                 // Header: [TestAttribute] `public int a` { get; set; }
-                if (syntaxFacts.IsPartOfPropertyDeclarationHeader(node))
+                if (syntaxFacts.IsInPropertyDeclarationHeader(node))
                 {
                     return syntaxFacts.GetContainingPropertyDeclaration(node);
                 }

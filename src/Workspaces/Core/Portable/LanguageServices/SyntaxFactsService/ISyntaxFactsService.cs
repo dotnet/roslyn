@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         ImmutableArray<SyntaxNode> GetSelectedFieldsAndProperties(SyntaxNode root, TextSpan textSpan, bool allowPartialSelection);
         bool IsOnTypeHeader(SyntaxNode root, int position);
-        bool IsPartOfPropertyDeclarationHeader(SyntaxNode node);
+        bool IsInPropertyDeclarationHeader(SyntaxNode node);
         bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position);
 
         // Walks the tree, starting from contextNode, looking for the first construct
