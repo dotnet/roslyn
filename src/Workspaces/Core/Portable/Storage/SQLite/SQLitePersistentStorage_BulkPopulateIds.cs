@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.Storage;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite
 {
