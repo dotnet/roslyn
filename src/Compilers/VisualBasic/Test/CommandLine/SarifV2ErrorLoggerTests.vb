@@ -75,7 +75,7 @@ End Class
   ]
 }}"
 
-            expectedOutput = FormatExpectedOutput(expectedOutput, cmd)
+            expectedOutput = FormatOutputText(expectedOutput, cmd)
             Assert.Equal(expectedOutput, actualOutput)
 
             CleanupAllGeneratedFiles(hello)
@@ -197,7 +197,7 @@ End Class
   ]
 }}"
 
-            expectedOutput = FormatExpectedOutput(
+            expectedOutput = FormatOutputText(
                 expectedOutput,
                 cmd,
                 AnalyzerForErrorLogTest.GetUriForPath(sourceFilePath),
@@ -332,7 +332,7 @@ End Class
   ]
 }}"
 
-            expectedOutput = FormatExpectedOutput(
+            expectedOutput = FormatOutputText(
                 expectedOutput,
                 cmd,
                 AnalyzerForErrorLogTest.GetUriForPath(sourceFilePath),
@@ -344,6 +344,7 @@ End Class
             CleanupAllGeneratedFiles(errorLogFile)
         End Sub
 
+        <Fact>
         Public Sub AnalyzerDiagnosticsWithAndWithoutLocation()
             Dim source As String = <text>
 Imports System
@@ -376,18 +377,41 @@ End Class
 
             Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
 
-            Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
-            Dim expectedIssues = AnalyzerForErrorLogTest.GetExpectedErrorLogResultsText(cmd.Compilation)
+            Dim expectedOutput =
+"{{
+  ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
+  ""version"": ""2.1.0"",
+  ""runs"": [
+    {{
+{5},
+      ""tool"": {{
+        ""driver"": {{
+          ""name"": ""{0}"",
+          ""version"": ""{1}"",
+          ""dottedQuadFileVersion"": ""{2}"",
+          ""semanticVersion"": ""{3}"",
+          ""language"": ""{4}"",
+{6}
+        }}
+      }},
+      ""columnKind"": ""utf16CodeUnits""
+    }}
+  ]
+}}"
+            expectedOutput = FormatOutputText(
+                expectedOutput,
+                cmd,
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogResultsText(cmd.Compilation),
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText())
 
-            Dim expectedText = expectedHeader + expectedIssues
-            Assert.Equal(expectedText, actualOutput)
+            Assert.Equal(expectedOutput, actualOutput)
 
             CleanupAllGeneratedFiles(sourceFilePath)
             CleanupAllGeneratedFiles(outputFilePath)
             CleanupAllGeneratedFiles(errorLogFile)
         End Sub
 
-        Private Function FormatExpectedOutput(s As String, compiler as CommonCompiler, ParamArray additionalArguments() As Object) As String
+        Private Function FormatOutputText(s As String, compiler as CommonCompiler, ParamArray additionalArguments() As Object) As String
             Dim arguments = New List(Of Object) From {
                 compiler.GetToolName(),
                 compiler.GetCompilerVersion(),

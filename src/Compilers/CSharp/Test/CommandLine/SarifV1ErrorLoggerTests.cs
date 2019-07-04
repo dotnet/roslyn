@@ -282,7 +282,7 @@ public class C
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
 
             var expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd);
-            var expectedIssues = AnalyzerForErrorLogTest.GetExpectedErrorLogResultsText(cmd.Compilation);
+            var expectedIssues = AnalyzerForErrorLogTest.GetExpectedV1ErrorLogResultsAndRulesText(cmd.Compilation);
             var expectedText = expectedHeader + expectedIssues;
             Assert.Equal(expectedText, actualOutput);
 

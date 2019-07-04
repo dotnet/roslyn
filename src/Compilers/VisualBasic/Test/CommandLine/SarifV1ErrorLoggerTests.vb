@@ -297,7 +297,7 @@ End Class
             Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
 
             Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
-            Dim expectedIssues = AnalyzerForErrorLogTest.GetExpectedErrorLogResultsText(cmd.Compilation)
+            Dim expectedIssues = AnalyzerForErrorLogTest.GetExpectedV1ErrorLogResultsAndRulesText(cmd.Compilation)
 
             Dim expectedText = expectedHeader + expectedIssues
             Assert.Equal(expectedText, actualOutput)

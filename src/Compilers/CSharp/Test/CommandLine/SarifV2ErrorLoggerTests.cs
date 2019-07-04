@@ -322,7 +322,7 @@ public class C
             CleanupAllGeneratedFiles(errorLogFile);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289", AlwaysSkip = "I have no idea what this test does. -- lgolding 2019-07-02")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void AnalyzerDiagnosticsWithAndWithoutLocation()
         {
             var source = @"
@@ -349,8 +349,33 @@ public class C
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
 
-            // TODO: This isn't the whole output.
-            var expectedOutput = AnalyzerForErrorLogTest.GetExpectedErrorLogResultsText(cmd.Compilation);
+            var expectedOutput =
+@"{{
+  ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
+  ""version"": ""2.1.0"",
+  ""runs"": [
+    {{
+{5},
+      ""tool"": {{
+        ""driver"": {{
+          ""name"": ""{0}"",
+          ""version"": ""{1}"",
+          ""dottedQuadFileVersion"": ""{2}"",
+          ""semanticVersion"": ""{3}"",
+          ""language"": ""{4}"",
+{6}
+        }}
+      }},
+      ""columnKind"": ""utf16CodeUnits""
+    }}
+  ]
+}}";
+            expectedOutput = FormatOutputText(
+                expectedOutput,
+                cmd,
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogResultsText(cmd.Compilation),
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText());
+
             Assert.Equal(expectedOutput, actualOutput);
 
             CleanupAllGeneratedFiles(sourceFile);
