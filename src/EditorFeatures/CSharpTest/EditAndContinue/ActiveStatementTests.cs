@@ -9065,5 +9065,55 @@ class C
         }
 
         #endregion
+
+        #region C# 8.0
+
+        [Fact]
+        public void UpdateAroundActiveStatement_SwitchExpression_PositionalPattern()
+        {
+            var src1 = @"
+class C
+{
+    static void F(object x)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        var r = (x, y, z) switch {
+            (1, 2, 3) => 0,
+            (var a, 3, 4) => a,
+            (0, var b, int c) when c > 1 => 2,
+            (1, 1, Point { X: 0 } p) => 3,
+            _ => 4
+        };
+
+        Console.WriteLine(r);
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void F(object x)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        var r = ((x, y, z)) switch {
+            (1, 2, 3) => 0,
+            (var a1, 3, 4) => a1 * 2,
+            (_, int b1, double c1) when c1 > 2 => c1,
+            (1, 1, Point { Y: 0 } p1) => 3,
+            _ => 4
+        };
+
+        Console.WriteLine(r);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        #endregion
+
     }
 }
