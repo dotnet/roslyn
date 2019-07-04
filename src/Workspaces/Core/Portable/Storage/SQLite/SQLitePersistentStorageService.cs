@@ -110,7 +110,6 @@ namespace Microsoft.CodeAnalysis.SQLite
                      workingFolderPath, solution.FilePath, databaseFilePath, dbOwnershipLock, _faultInjectorOpt);
 
                 sqlStorage.Initialize(solution);
-
             }
             catch (Exception)
             {

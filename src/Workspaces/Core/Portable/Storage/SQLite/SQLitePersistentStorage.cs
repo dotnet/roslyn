@@ -2,10 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.Storage;
 
@@ -280,6 +278,7 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
 
             // Now make sure we have the individual tables for the solution/project/document info.
             EnsureTables(connection, MainDBName);
+            EnsureTables(connection, WriteCacheDBName);
 
             // Also get the known set of string-to-id mappings we already have in the DB.
             // Do this in one batch if possible.
@@ -292,27 +291,29 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
             // Try to bulk populate all the IDs we'll need for strings/projects/documents.
             // Bulk population is much faster than trying to do everything individually.
             BulkPopulateIds(connection, solution, fetchStringTable);
-        }
 
-        public static void EnsureTables(SqlConnection connection, string dbName)
-        {
-            connection.ExecuteCommand(
+            return;
+
+            static void EnsureTables(SqlConnection connection, string dbName)
+            {
+                connection.ExecuteCommand(
 $@"create table if not exists {dbName}.{SolutionDataTableName}(
     ""{DataIdColumnName}"" varchar primary key not null,
     ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
 
-            connection.ExecuteCommand(
+                connection.ExecuteCommand(
 $@"create table if not exists {dbName}.{ProjectDataTableName}(
     ""{DataIdColumnName}"" integer primary key not null,
     ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
 
-            connection.ExecuteCommand(
+                connection.ExecuteCommand(
 $@"create table if not exists {dbName}.{DocumentDataTableName}(
     ""{DataIdColumnName}"" integer primary key not null,
     ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
+            }
         }
     }
 }
