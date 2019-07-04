@@ -269,14 +269,14 @@ namespace Microsoft.CodeAnalysis.SQLite
             // so there's no need for a write caching layer.  This also keeps consistency
             // totally clear as there's only one source of truth.
             connection.ExecuteCommand(
-$@"create table if not exists {MainDBName}.{StringInfoTableName}(
+$@"create table if not exists {StringInfoTableName}(
     ""{DataIdColumnName}"" integer primary key autoincrement not null,
     ""{DataColumnName}"" varchar)");
 
             // Ensure that the string-info table's 'Value' column is defined to be 'unique'.
             // We don't allow duplicate strings in this table.
             connection.ExecuteCommand(
-$@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" on {MainDBName}.{StringInfoTableName}(""{DataColumnName}"")");
+$@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" on {StringInfoTableName}(""{DataColumnName}"")");
 
             // Now make sure we have the individual tables for the solution/project/document info.
             EnsureTables(connection, MainDBName);
