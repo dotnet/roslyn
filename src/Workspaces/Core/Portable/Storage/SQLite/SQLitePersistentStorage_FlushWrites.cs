@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                 // Efficient call to sqlite to just fully copy all data from one table to the
                 // other.  No need to actually do any reading/writing of the data ourselves.
-                using var statement = connection.GetResettableStatement($"INSERT INTO '${MainDBName}.${tableName}' SELECT * from '${WriteCacheDBName}.${tableName}';");
+                using var statement = connection.GetResettableStatement($"INSERT INTO '{MainDBName}.{tableName}' SELECT * from '{WriteCacheDBName}.{tableName}';");
                 statement.Statement.Step();
             }
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                     throw new InvalidOperationException("Must copy tables within a transaction to ensure consistency");
                 }
 
-                using var statement = connection.GetResettableStatement($"DELETE FROM '${WriteCacheDBName}.${tableName}';");
+                using var statement = connection.GetResettableStatement($"DELETE FROM '{WriteCacheDBName}.{tableName}';");
                 statement.Statement.Step();
             }
         }
