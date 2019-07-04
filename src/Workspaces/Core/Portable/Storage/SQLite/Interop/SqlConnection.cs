@@ -54,7 +54,11 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             // Use SQLITE_OPEN_NOMUTEX to enable multi-thread mode, where multiple connections can be used provided each
             // one is only used from a single thread at a time.
             // see https://sqlite.org/threadsafe.html for more detail
-            var flags = OpenFlags.SQLITE_OPEN_CREATE | OpenFlags.SQLITE_OPEN_READWRITE | OpenFlags.SQLITE_OPEN_NOMUTEX;
+            var flags = OpenFlags.SQLITE_OPEN_CREATE |
+                OpenFlags.SQLITE_OPEN_READWRITE |
+                OpenFlags.SQLITE_OPEN_NOMUTEX |
+                // OpenFlags.SQLITE_OPEN_SHAREDCACHE |
+                OpenFlags.SQLITE_OPEN_URI;
             var result = (Result)raw.sqlite3_open_v2(databasePath, out var handle, (int)flags, vfs: null);
 
             if (result != Result.OK)
@@ -73,6 +77,16 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         {
             _faultInjector = faultInjector;
             _handle = handle;
+
+            // Look for the in-memory write cache and attach to this connection.
+            // If it's not there, then create it and attach it.
+            //
+            // From: https://www.sqlite.org/sharedcache.html
+            // Enabling shared-cache for an in-memory database allows two or more database 
+            // connections in the same process to have access to the same in-memory database.
+            // An in-memory database in shared cache is automatically deleted and memory is
+            // reclaimed when the last connection to that database closes.
+            SQLitePersistentStorage.AttachWriteCache(this);
         }
 
         ~SqlConnection()
