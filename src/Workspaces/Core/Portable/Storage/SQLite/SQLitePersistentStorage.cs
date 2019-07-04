@@ -317,7 +317,7 @@ $@"create table if not exists {dbName}.{DocumentDataTableName}(
 
         public static void AttachWriteCache(SqlConnection connection)
         {
-            connection.ExecuteCommand($"ATTACH DATABASE 'file::memory:?cache=shared' AS {WriteCacheDBName};");
+            connection.ExecuteCommand($"attach database 'file::memory:?cache=shared' as {WriteCacheDBName};");
             EnsureTables(connection, WriteCacheDBName);
         }
     }
