@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -298,6 +299,60 @@ class C
 
         [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingSelectedLowerNode()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        [|C|] LocalFunction(C c)
+        {
+            return null;
+        }
+    }
+}";
+            await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingSelectedWhitespace()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        C[| |]LocalFunction(C c)
+        {
+            return null;
+        }
+    }
+}";
+            await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingSelectedWhitespace2()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+       [| |]C LocalFunction(C c)
+        {
+            return null;
+        }
+    }
+}";
+            await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestCompleteSelection()
         {
             var testText = @"
@@ -580,7 +635,116 @@ class C
 
         #endregion
 
+        #region Extractions general
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestExtractionsClimbing()
+        {
+            var testText = @"
+using System;
+class C
+{
+    void M()
+    {
+        var a = {|result:new object()|};[||]
+    }
+}";
+            await TestAsync<ObjectCreationExpressionSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingExtractHeaderForSelection()
+        {
+            var testText = @"
+using System;
+class C
+{
+    class TestAttribute : Attribute { }
+    [Test] public [|int|] a { get; set; }
+}";
+            await TestMissingAsync<PropertyDeclarationSyntax>(testText);
+        }
+        #endregion
+
         #region Extractions
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestExtractFromDeclaration()
+        {
+            var testText = @"
+using System;
+class C
+{
+    void M()
+    {
+        [|var a = {|result:new object()|};|]
+    }
+}";
+            await TestAsync<ObjectCreationExpressionSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestExtractFromDeclaration2()
+        {
+            var testText = @"
+using System;
+class C
+{
+    void M()
+    {
+        var a = [|{|result:new object()|};|]
+    }
+}";
+            await TestAsync<ObjectCreationExpressionSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestExtractFromAssignment()
+        {
+            var testText = @"
+using System;
+class C
+{
+    void M()
+    {
+        object a;
+        a = [|{|result:new object()|};|]
+    }
+}";
+            await TestAsync<ObjectCreationExpressionSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestExtractInHeaderOfProperty()
+        {
+            var testText = @"
+using System;
+class C
+{
+    class TestAttribute : Attribute { }
+    {|result:[Test] public i[||]nt a { get; set; }|}
+}";
+            await TestAsync<PropertyDeclarationSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingExtractNotInHeaderOfProperty()
+        {
+            var testText = @"
+using System;
+class C
+{
+    class TestAttribute : Attribute { }
+    [Test] public int a { [||]get; set; }
+}";
+            await TestMissingAsync<PropertyDeclarationSyntax>(testText);
+        }
+
         #endregion
     }
 }
