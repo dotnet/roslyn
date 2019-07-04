@@ -1,12 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Analyzer.Utilities.PooledObjects;
-using static Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SourceInfo;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
-    internal static class HardCodeEncryptionKeySources
+    internal static class HardcodedEncryptionKeySources
     {
         /// <summary>
         /// <see cref="SourceInfo"/>s for hardcoded key tainted data sources.
@@ -16,25 +20,25 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// Statically constructs.
         /// </summary>
-        static HardCodeEncryptionKeySources()
+        static HardcodedEncryptionKeySources()
         {
             var builder = PooledHashSet<SourceInfo>.GetInstance();
 
-            builder.AddSourceInfoWithArgumentChecks(
+            builder.AddSourceInfo(
                 WellKnownTypeNames.SystemConvert,
                 isInterface: false,
                 taintedProperties: null,
-                taintedMethods: new (string, (string, ArgumentCheck)[])[] {
+                taintedMethodsNeedPointsToAnalysis: null,
+                taintedMethodsNeedsValueContentAnalysis: new (string, IsInvocationTaintedWithValueContentAnalysis)[]{
                     ("FromBase64String",
-                        new (string, ArgumentCheck)[] {
-                            ("s", (ImmutableHashSet<object> potentialArgumentValues) => !potentialArgumentValues.IsEmpty),
-                        }),
+                    (IEnumerable<PointsToAbstractValue> argumentPonitsTos, IEnumerable<ValueContentAbstractValue> argumentValueContents) => argumentValueContents.All(o => o.IsLiteralState)),
                 });
             builder.AddSourceInfo(
                 WellKnownTypeNames.SystemByte,
                 isInterface: false,
                 taintedProperties: null,
-                taintedMethods: null,
+                taintedMethodsNeedPointsToAnalysis: null,
+                taintedMethodsNeedsValueContentAnalysis: null,
                 taintConstantArray: true);
 
             SourceInfos = builder.ToImmutableAndFree();

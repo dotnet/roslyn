@@ -1,10 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
+    public delegate bool IsInvocationTaintedWithPointsToAnalysis(IEnumerable<PointsToAbstractValue> argumentPonitsTos);
+    public delegate bool IsInvocationTaintedWithValueContentAnalysis(IEnumerable<PointsToAbstractValue> argumentPonitsTos, IEnumerable<ValueContentAbstractValue> argumentValueContents);
+
     /// <summary>
     /// Info for tainted data sources, which generate tainted data.
     /// </summary>
@@ -15,14 +21,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         /// <param name="fullTypeName">Full type name of the...type (namespace + type).</param>
         /// <param name="taintedProperties">Properties that generate tainted data.</param>
-        /// <param name="taintedMethods">Methods that generate tainted data.</param>
+        /// <param name="taintedMethodsNeedPointsToAnalysis">Methods that generate tainted data and whose arguments don't need extra value content analysis.</param>
+        /// <param name="taintedMethodsNeedsValueContentAnalysis">Methods that generate tainted data and whose arguments need extra value content analysis and points to analysis.</param>
         /// <param name="taintConstantArray"></param>
-        public SourceInfo(string fullTypeName, bool isInterface, ImmutableHashSet<string> taintedProperties, ImmutableDictionary<string, ImmutableDictionary<string, ArgumentCheck>> taintedMethods, bool taintConstantArray)
+        public SourceInfo(
+            string fullTypeName,
+            bool isInterface,
+            ImmutableHashSet<string> taintedProperties,
+            ImmutableDictionary<string, IsInvocationTaintedWithPointsToAnalysis> taintedMethodsNeedPointsToAnalysis,
+            ImmutableDictionary<string, IsInvocationTaintedWithValueContentAnalysis> taintedMethodsNeedsValueContentAnalysis,
+            bool taintConstantArray)
         {
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
             IsInterface = isInterface;
             TaintedProperties = taintedProperties ?? throw new ArgumentNullException(nameof(taintedProperties));
-            TaintedMethods = taintedMethods ?? throw new ArgumentNullException(nameof(taintedMethods));
+            TaintedMethodsNeedPointsToAnalysis = taintedMethodsNeedPointsToAnalysis ?? throw new ArgumentNullException(nameof(taintedMethodsNeedPointsToAnalysis));
+            TaintedMethodsNeedsValueContentAnalysis = taintedMethodsNeedsValueContentAnalysis ?? throw new ArgumentNullException(nameof(taintedMethodsNeedsValueContentAnalysis));
             TaintConstantArray = taintConstantArray;
         }
 
@@ -41,12 +55,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public ImmutableHashSet<string> TaintedProperties { get; }
 
-        public delegate bool ArgumentCheck(ImmutableHashSet<object> argumentValue);
+        /// <summary>
+        /// Methods that generate tainted data and whose arguments don't need extra value content analysis.
+        /// </summary>
+        public ImmutableDictionary<string, IsInvocationTaintedWithPointsToAnalysis> TaintedMethodsNeedPointsToAnalysis { get; }
 
         /// <summary>
-        /// Methods that generate tainted data.
+        /// Methods that generate tainted data and whose arguments need extra value content analysis and points to analysis.
         /// </summary>
-        public ImmutableDictionary<string, ImmutableDictionary<string, ArgumentCheck>> TaintedMethods { get; }
+        public ImmutableDictionary<string, IsInvocationTaintedWithValueContentAnalysis> TaintedMethodsNeedsValueContentAnalysis { get; }
 
         /// <summary>
         /// Indicates arrays initialized with constant values of this type generates tainted data.
@@ -57,9 +74,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             return HashUtilities.Combine(this.TaintConstantArray.GetHashCode(),
                 HashUtilities.Combine(this.TaintedProperties,
-                HashUtilities.Combine(this.TaintedMethods,
+                HashUtilities.Combine(this.TaintedMethodsNeedPointsToAnalysis,
+                HashUtilities.Combine(this.TaintedMethodsNeedsValueContentAnalysis,
                 HashUtilities.Combine(this.IsInterface.GetHashCode(),
-                    StringComparer.Ordinal.GetHashCode(this.FullTypeName)))));
+                    StringComparer.Ordinal.GetHashCode(this.FullTypeName))))));
         }
 
         public override bool Equals(object obj)
@@ -73,7 +91,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && this.FullTypeName == other.FullTypeName
                 && this.IsInterface == other.IsInterface
                 && this.TaintedProperties == other.TaintedProperties
-                && this.TaintedMethods == other.TaintedMethods
+                && this.TaintedMethodsNeedPointsToAnalysis == other.TaintedMethodsNeedPointsToAnalysis
+                && this.TaintedMethodsNeedsValueContentAnalysis == other.TaintedMethodsNeedsValueContentAnalysis
                 && this.TaintConstantArray == other.TaintConstantArray;
         }
     }

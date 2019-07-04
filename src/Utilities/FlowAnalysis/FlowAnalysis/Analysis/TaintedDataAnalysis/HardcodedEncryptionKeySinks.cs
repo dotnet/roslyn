@@ -5,20 +5,20 @@ using Analyzer.Utilities.PooledObjects;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
-    internal static class HardCodeEncryptionKeySinks
+    internal static class HardcodedEncryptionKeySinks
     {
         /// <summary>
         /// <see cref="SinkInfo"/>s for tainted data process symmetric algorithm sinks.
         /// </summary>
         public static ImmutableHashSet<SinkInfo> SinkInfos { get; }
 
-        static HardCodeEncryptionKeySinks()
+        static HardcodedEncryptionKeySinks()
         {
             var builder = PooledHashSet<SinkInfo>.GetInstance();
 
             builder.AddSinkInfo(
                 WellKnownTypeNames.SystemSecurityCryptographySymmetricAlgorithm,
-                SinkKind.HardCodeEncryptionKey,
+                SinkKind.HardcodedEncryptionKey,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
                 sinkProperties: new[] {

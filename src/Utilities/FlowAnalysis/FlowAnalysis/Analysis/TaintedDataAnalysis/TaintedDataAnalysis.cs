@@ -5,12 +5,14 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
     using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
+    using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
 
     internal partial class TaintedDataAnalysis : ForwardDataFlowAnalysis<TaintedDataAnalysisData, TaintedDataAnalysisContext, TaintedDataAnalysisResult, TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>
     {
@@ -30,12 +32,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
             TaintedDataSymbolMap<SanitizerInfo> taintedSanitizerInfos,
             TaintedDataSymbolMap<SinkInfo> taintedSinkInfos,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            bool needValueContentAnalysis = false)
         {
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                 analyzerOptions, rule, InterproceduralAnalysisKind.ContextSensitive, cancellationToken);
             return TryGetOrComputeResult(cfg, compilation, containingMethod, taintedSourceInfos,
-                taintedSanitizerInfos, taintedSinkInfos, interproceduralAnalysisConfig);
+                taintedSanitizerInfos, taintedSinkInfos, interproceduralAnalysisConfig, needValueContentAnalysis);
         }
 
         private static TaintedDataAnalysisResult TryGetOrComputeResult(
@@ -45,21 +48,43 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
             TaintedDataSymbolMap<SanitizerInfo> taintedSanitizerInfos,
             TaintedDataSymbolMap<SinkInfo> taintedSinkInfos,
-            InterproceduralAnalysisConfiguration interproceduralAnalysisConfig)
+            InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
+            bool needValueContentAnalysis)
         {
             WellKnownTypeProvider wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
-            ValueContentAnalysisResult valueContentAnalysisResult = ValueContentAnalysis.TryGetOrComputeResult(
-                    cfg,
-                    containingMethod,
-                    wellKnownTypeProvider,
-                    interproceduralAnalysisConfig,
-                    out var copyAnalysisResult,
-                    out var pointsToAnalysisResult,
-                    pessimisticAnalysis: true,
-                    performCopyAnalysis: false);
-            if (valueContentAnalysisResult == null)
+            ValueContentAnalysisResult valueContentAnalysisResult = null;
+            CopyAnalysisResult copyAnalysisResult = null;
+            PointsToAnalysisResult pointsToAnalysisResult = null;
+            if (needValueContentAnalysis)
             {
-                return null;
+                valueContentAnalysisResult = ValueContentAnalysis.TryGetOrComputeResult(
+                        cfg,
+                        containingMethod,
+                        wellKnownTypeProvider,
+                        interproceduralAnalysisConfig,
+                        out copyAnalysisResult,
+                        out pointsToAnalysisResult,
+                        pessimisticAnalysis: true,
+                        performCopyAnalysis: false);
+                if (valueContentAnalysisResult == null)
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                pointsToAnalysisResult = PointsToAnalysis.TryGetOrComputeResult(
+                cfg,
+                containingMethod,
+                wellKnownTypeProvider,
+                interproceduralAnalysisConfig,
+                interproceduralAnalysisPredicateOpt: null,
+                pessimisticAnalysis: true,
+                performCopyAnalysis: false);
+                if (pointsToAnalysisResult == null)
+                {
+                    return null;
+                }
             }
 
             TaintedDataAnalysisContext analysisContext = TaintedDataAnalysisContext.Create(

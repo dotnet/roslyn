@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Analyzer.Utilities.PooledObjects;
-using static Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SourceInfo;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -61,30 +61,32 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             string fullTypeName,
             bool isInterface,
             string[] taintedProperties,
-            string[] taintedMethods,
-            bool taintConstantArray = false)
+            IEnumerable<string> taintedMethods)
         {
             SourceInfo metadata = new SourceInfo(
                 fullTypeName,
                 isInterface: isInterface,
                 taintedProperties: taintedProperties?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty,
-                taintedMethods:
+                taintedMethodsNeedPointsToAnalysis:
                     taintedMethods
-                        ?.Select(o => new KeyValuePair<string, ImmutableDictionary<string, ArgumentCheck>>(o, ImmutableDictionary<string, ArgumentCheck>.Empty))
-                        ?.ToImmutableDictionary(StringComparer.Ordinal)
-                    ?? ImmutableDictionary<string, ImmutableDictionary<string, ArgumentCheck>>.Empty,
-                taintConstantArray: taintConstantArray);
+                    ?.Select(o => new KeyValuePair<string, IsInvocationTaintedWithPointsToAnalysis>(o, (IEnumerable<PointsToAbstractValue> argumentValueContents) => { return true; }))
+                    ?.ToImmutableDictionary(StringComparer.Ordinal)
+                    ?? ImmutableDictionary<string, IsInvocationTaintedWithPointsToAnalysis>.Empty,
+                taintedMethodsNeedsValueContentAnalysis:
+                    ImmutableDictionary<string, IsInvocationTaintedWithValueContentAnalysis>.Empty,
+                taintConstantArray: false);
             builder.Add(metadata);
         }
 
         // Just to make hardcoding SourceInfos more convenient.
-        public static void AddSourceInfoWithArgumentChecks(
+        public static void AddSourceInfo(
         this PooledHashSet<SourceInfo> builder,
         string fullTypeName,
         bool isInterface,
         string[] taintedProperties,
-        IEnumerable<(string Method, (string parameterName, ArgumentCheck argumentCheck)[] ParameterNameAndConditionChecks)> taintedMethods,
+        IEnumerable<(string Method, IsInvocationTaintedWithPointsToAnalysis)> taintedMethodsNeedPointsToAnalysis,
+        IEnumerable<(string Method, IsInvocationTaintedWithValueContentAnalysis)> taintedMethodsNeedsValueContentAnalysis,
         bool taintConstantArray = false)
         {
             SourceInfo metadata = new SourceInfo(
@@ -92,16 +94,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 isInterface: isInterface,
                 taintedProperties: taintedProperties?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty,
-                taintedMethods:
-                    taintedMethods
-                            ?.Select(o => new KeyValuePair<string, ImmutableDictionary<string, ArgumentCheck>>(
-                                o.Method,
-                                o.ParameterNameAndConditionChecks
-                                    ?.Select(o => new KeyValuePair<string, ArgumentCheck>(o.parameterName, o.argumentCheck))
-                                    ?.ToImmutableDictionary(StringComparer.Ordinal)
-                                    ?? ImmutableDictionary<string, ArgumentCheck>.Empty))
-                            ?.ToImmutableDictionary(StringComparer.Ordinal)
-                            ?? ImmutableDictionary<string, ImmutableDictionary<string, ArgumentCheck>>.Empty,
+                taintedMethodsNeedPointsToAnalysis:
+                    taintedMethodsNeedPointsToAnalysis
+                        ?.Select(o => new KeyValuePair<string, IsInvocationTaintedWithPointsToAnalysis>(o.Method, o.Item2))
+                        ?.ToImmutableDictionary(StringComparer.Ordinal)
+                    ?? ImmutableDictionary<string, IsInvocationTaintedWithPointsToAnalysis>.Empty,
+                taintedMethodsNeedsValueContentAnalysis:
+                    taintedMethodsNeedsValueContentAnalysis
+                        ?.Select(o => new KeyValuePair<string, IsInvocationTaintedWithValueContentAnalysis>(o.Method, o.Item2))
+                        ?.ToImmutableDictionary(StringComparer.Ordinal)
+                    ?? ImmutableDictionary<string, IsInvocationTaintedWithValueContentAnalysis>.Empty,
                 taintConstantArray: taintConstantArray);
             builder.Add(metadata);
         }
