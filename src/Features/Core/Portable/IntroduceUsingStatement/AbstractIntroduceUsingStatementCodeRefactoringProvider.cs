@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             var document = context.Document;
             var span = context.Span;
 
-            var (declarationSyntax, _) =
-                await FindDisposableLocalDeclaration(document, span, context.CancellationToken).ConfigureAwait(false);
+            var declarationSyntax = await FindDisposableLocalDeclaration(document, span, context.CancellationToken).ConfigureAwait(false);
 
             if (declarationSyntax != null)
             {
@@ -47,7 +46,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             }
         }
 
-        private async Task<(TLocalDeclarationSyntax, ILocalSymbol)> FindDisposableLocalDeclaration(Document document, TextSpan selection, CancellationToken cancellationToken)
+        private async Task<TLocalDeclarationSyntax> FindDisposableLocalDeclaration(Document document, TextSpan selection, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -115,7 +114,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 return default;
             }
 
-            return (declarationSyntax, declarator.Symbol);
+            return declarationSyntax;
         }
 
         /// <summary>
@@ -138,14 +137,14 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             TextSpan span,
             CancellationToken cancellationToken)
         {
-            var (declarationStatement, localVariable) = await FindDisposableLocalDeclaration(document, span, cancellationToken).ConfigureAwait(false);
+            var declarationStatement = await FindDisposableLocalDeclaration(document, span, cancellationToken).ConfigureAwait(false);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
 
-            var statementsToSurround = GetStatementsToSurround(declarationStatement, localVariable, semanticModel, syntaxFactsService, cancellationToken);
+            var statementsToSurround = GetStatementsToSurround(declarationStatement, semanticModel, syntaxFactsService, cancellationToken);
 
             // Separate the newline from the trivia that is going on the using declaration line.
             var (sameLine, endOfLine) = SplitTrailingTrivia(declarationStatement, syntaxFactsService);
@@ -187,7 +186,6 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
 
         private SyntaxList<TStatementSyntax> GetStatementsToSurround(
             TLocalDeclarationSyntax declarationStatement,
-            ILocalSymbol localVariable,
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFactsService,
             CancellationToken cancellationToken)
@@ -196,12 +194,11 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             // in order to not break existing references to the local.
             var lastUsageStatement = FindSiblingStatementContainingLastUsage(
                 declarationStatement,
-                localVariable,
                 semanticModel,
                 syntaxFactsService,
                 cancellationToken);
 
-            if (lastUsageStatement == null)
+            if (lastUsageStatement == declarationStatement)
             {
                 return default;
             }
@@ -227,103 +224,91 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
 
         private static TStatementSyntax FindSiblingStatementContainingLastUsage(
             TStatementSyntax declarationSyntax,
-            ILocalSymbol localVariable,
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFactsService,
             CancellationToken cancellationToken)
         {
-            var firstVariableUsage = new Dictionary<ILocalSymbol, int>();
-            var lastVariableUsage = new Dictionary<ILocalSymbol, int>();
-            var localVariables = new List<ILocalSymbol> { localVariable };
+            // We are going to step through the statements starting with the trigger variable's declaration.
+            // We will track when new locals are declared and when they are used. To determine the last
+            // statement that we should surround, we will walk through the locals in the order they are declared.
+            // If the local's declaration index falls within the last variable usage index, we will extend
+            // the last variable usage index to include the local's last usage.
 
-            // Take all the statements after the trigger variable's declaration.
+            // Take all the statements starting with the trigger variable's declaration.
             var statementsAfterDeclaration = declarationSyntax.Parent.ChildNodesAndTokens()
                 .Select(nodeOrToken => nodeOrToken.AsNode())
                 .OfType<TStatementSyntax>()
                 .SkipWhile(node => node != declarationSyntax)
                 .ToArray();
 
+            // List of local variables that will be in the order they are declared.
+            var localVariables = new List<ISymbol>();
+
+            // Map a symbol to an index into the statementsAfterDeclaration 
+            var variableDeclarationIndex = PooledDictionary<ISymbol, int>.GetInstance();
+            var lastVariableUsageIndex = PooledDictionary<ISymbol, int>.GetInstance();
+
             for (var statementIndex = 0; statementIndex < statementsAfterDeclaration.Length; statementIndex++)
             {
                 var node = statementsAfterDeclaration[statementIndex];
-                if (ContainsReference(node, localVariables, semanticModel, syntaxFactsService, cancellationToken, out var referencedVariable))
+
+                // Update the last usage index for any variable referenced in the statement.
+                var referencedVariables = GetReferencedLocalVariables(node, localVariables, semanticModel, syntaxFactsService, cancellationToken);
+                foreach (var referencedVariable in referencedVariables)
                 {
-                    // Update the statement index this variable was last used in.
-                    lastVariableUsage[referencedVariable] = statementIndex;
+                    lastVariableUsageIndex[referencedVariable] = statementIndex;
                 }
 
-                if (node is TLocalDeclarationSyntax localDeclarationSyntax)
+                // Add new variables that were declared in the statement
+                var declaredVariables = semanticModel.GetAllDeclaredSymbols(node, cancellationToken);
+                foreach (var declaredVariable in declaredVariables)
                 {
-                    // Get all symbols declared in this statement.
-                    var operation = semanticModel.GetOperation(localDeclarationSyntax, cancellationToken) as IVariableDeclarationGroupOperation;
-                    var localSymbols = operation.Declarations
-                        .SelectMany(declaration => declaration.Declarators)
-                        .Select(declarator => declarator.Symbol);
-
-                    // Set their declaration index.
-                    foreach (var localSymbol in localSymbols)
-                    {
-                        firstVariableUsage[localSymbol] = statementIndex;
-                    }
-
-                    // Add the variables to the list of locals.
-                    localVariables.AddRange(localSymbols);
+                    variableDeclarationIndex[declaredVariable] = statementIndex;
+                    lastVariableUsageIndex[declaredVariable] = statementIndex;
+                    localVariables.Add(declaredVariable);
                 }
             }
 
-            // If the trigger variable has no other usage, then return null.
-            if (!lastVariableUsage.ContainsKey(localVariable))
-            {
-                return null;
-            }
+            var lastUsageIndex = 0;
 
-            var lastUsageIndex = lastVariableUsage[localVariable];
-
-            // Skip the trigger variable and loop through local variables
-            // in the order that they were declared.
-            foreach (var localSymbol in localVariables.Skip(1))
+            // Walk through the local variables in the order that they were declared.
+            foreach (var localSymbol in localVariables)
             {
-                var declarationIndex = firstVariableUsage[localSymbol];
+                var declarationIndex = variableDeclarationIndex[localSymbol];
                 if (declarationIndex > lastUsageIndex)
                 {
                     // If the variable was declared after the last statement to include in
-                    // the using statement, we have gone far enough and other variables should
-                    // also be outside the using statement.
+                    // the using statement, we have gone far enough and other variables will
+                    // also be declared outside the using statement.
                     break;
                 }
 
-                // If the variable has no other usages, then we can move to the next variable.
-                if (!lastVariableUsage.TryGetValue(localSymbol, out var lastUsage))
-                {
-                    continue;
-                }
-
-                lastUsageIndex = Math.Max(lastUsageIndex, lastUsage);
+                lastUsageIndex = Math.Max(lastUsageIndex, lastVariableUsageIndex[localSymbol]);
             }
+
+            variableDeclarationIndex.Free();
+            lastVariableUsageIndex.Free();
 
             return statementsAfterDeclaration[lastUsageIndex];
         }
 
-        private static bool ContainsReference(
+        private static ImmutableArray<ISymbol> GetReferencedLocalVariables(
             SyntaxNode node,
-            List<ILocalSymbol> localVariables,
+            List<ISymbol> localVariables,
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFactsService,
-            CancellationToken cancellationToken,
-            out ILocalSymbol referencedVariable)
+            CancellationToken cancellationToken)
         {
+            var referencedVariables = ArrayBuilder<ISymbol>.GetInstance();
             if (syntaxFactsService.IsIdentifierName(node))
             {
                 var identifierName = syntaxFactsService.GetIdentifierOfSimpleName(node).ValueText;
 
-                referencedVariable = localVariables.FirstOrDefault(localVariable
+                var variable = localVariables.FirstOrDefault(localVariable
                     => syntaxFactsService.StringComparer.Equals(localVariable.Name, identifierName) &&
                         localVariable.Equals(semanticModel.GetSymbolInfo(node).Symbol));
 
-                if (referencedVariable is object)
-                {
-                    return true;
-                }
+                referencedVariables.AddIfNotNull(variable);
             }
 
             foreach (var nodeOrToken in node.ChildNodesAndTokens())
@@ -334,14 +319,11 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                     continue;
                 }
 
-                if (ContainsReference(childNode, localVariables, semanticModel, syntaxFactsService, cancellationToken, out referencedVariable))
-                {
-                    return true;
-                }
+                var variables = GetReferencedLocalVariables(childNode, localVariables, semanticModel, syntaxFactsService, cancellationToken);
+                referencedVariables.AddRange(variables);
             }
 
-            referencedVariable = null;
-            return false;
+            return referencedVariables.ToImmutableAndFree();
         }
 
         private sealed class MyCodeAction : DocumentChangeAction

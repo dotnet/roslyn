@@ -547,5 +547,47 @@ class C
     }
 }");
         }
+
+        [Fact]
+        public async Task ExpandsToIncludeSurroundedOutVariableDeclarations()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.IO;
+
+class C
+{
+    void M()
+    {
+        var reader = new MemoryStream()[||];
+        var buffer = reader.GetBuffer();
+        if (!int.TryParse(buffer[0].ToString(), out var number))
+        {
+            return;
+        }
+        var a = number;
+        var b = a;
+        var c = 1;
+    }
+}",
+@"using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var reader = new MemoryStream())
+        {
+            var buffer = reader.GetBuffer();
+            if (!int.TryParse(buffer[0].ToString(), out var number))
+            {
+                return;
+            }
+            var a = number;
+            var b = a;
+        }
+        var c = 1;
+    }
+}");
+        }
     }
 }
