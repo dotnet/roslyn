@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
     public abstract class RefactoringHelpersTestBase<TWorkspaceFixture> : TestBase, IClassFixture<TWorkspaceFixture>, IDisposable
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
-        protected TWorkspaceFixture fixture;
+        protected readonly TWorkspaceFixture fixture;
 
         protected RefactoringHelpersTestBase(TWorkspaceFixture workspaceFixture)
         {
