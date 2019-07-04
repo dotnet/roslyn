@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Large
         }
 
-        private const int NumThreads = 1;
+        private const int NumThreads = 10;
         private const string PersistentFolderPrefix = "PersistentStorageTests_";
 
         private readonly Encoding _encoding = Encoding.UTF8;
