@@ -24,12 +24,10 @@ namespace Microsoft.CodeAnalysis.SQLite
         private abstract class Accessor<TKey, TWriteQueueKey, TDatabaseId>
         {
             protected readonly SQLitePersistentStorage Storage;
-            private readonly string _select_rowid_from_main_0_where_1;
 
             public Accessor(SQLitePersistentStorage storage)
             {
                 Storage = storage;
-                _select_rowid_from_main_0_where_1 = $@"select rowid from {MainDBName}.{DataTableName} where ""{DataIdColumnName}"" = ?";
             }
 
             protected abstract string DataTableName { get; }
@@ -158,7 +156,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                     // data for a row in our system can change, the ID will always stay the
                     // same, and the data will always be valid for our ID.  So there is no
                     // safety issue here.
-                    if (TryGetRowIdFromMainDB(connection, dataId, out var rowId))
+                    if (TryGetRowId(connection, dbName, dataId, out var rowId))
                     {
                         // Have to run the blob reading in a transaction.  This is necessary
                         // for two reasons.  First, blob reading outside a transaction is not
@@ -200,7 +198,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 }
             }
 
-            protected bool GetAndVerifyRowId(SqlConnection connection, long dataId, out long rowId)
+            protected bool GetAndVerifyRowId(SqlConnection connection, string dbName, long dataId, out long rowId)
             {
                 // For the Document and Project tables, our dataId is our rowId:
                 // 
@@ -214,7 +212,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // make sure that if we actually request the rowId from the database that it
                 // is equal to our data id.  Only do this in debug as this can be expensive
                 // and we definitely do not want to do this in release.
-                if (TryGetRowIdFromMainDBWorker(connection, (TDatabaseId)(object)dataId, out rowId))
+                if (TryGetRowIdWorker(connection, dbName, (TDatabaseId)(object)dataId, out rowId))
                 {
                     Debug.Assert(dataId == rowId);
                 }
@@ -226,10 +224,10 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return true;
             }
 
-            protected virtual bool TryGetRowIdFromMainDB(SqlConnection connection, TDatabaseId dataId, out long rowId)
-                => TryGetRowIdFromMainDBWorker(connection, dataId, out rowId);
+            protected virtual bool TryGetRowId(SqlConnection connection, string dbName, TDatabaseId dataId, out long rowId)
+                => TryGetRowIdWorker(connection, dbName, dataId, out rowId);
 
-            private bool TryGetRowIdFromMainDBWorker(SqlConnection connection, TDatabaseId dataId, out long rowId)
+            private bool TryGetRowIdWorker(SqlConnection connection, string dbName, TDatabaseId dataId, out long rowId)
             {
                 // See https://sqlite.org/autoinc.html
                 // > In SQLite, table rows normally have a 64-bit signed integer ROWID which is 
@@ -239,7 +237,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // ROWID, _ROWID_, or OID. Except if you declare an ordinary table column to use one 
                 // of those special names, then the use of that name will refer to the declared column
                 // not to the internal ROWID.
-                using (var resettableStatement = connection.GetResettableStatement(_select_rowid_from_main_0_where_1))
+                using (var resettableStatement = connection.GetResettableStatement(
+                    $@"select rowid from {dbName}.{DataTableName} where ""{DataIdColumnName}"" = ?"))
                 {
                     var statement = resettableStatement.Statement;
 
