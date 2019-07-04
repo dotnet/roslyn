@@ -166,17 +166,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
         {
-            return VisitSwitchExpression(node);
-        }
-
-        public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
-        {
             if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsSwitchExpression, node);
             }
 
-            return base.VisitSwitchExpression(node);
+            return base.VisitConvertedSwitchExpression(node);
         }
 
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)

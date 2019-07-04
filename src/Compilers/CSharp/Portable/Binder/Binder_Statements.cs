@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Transactions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -359,32 +360,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindThrownExpression(ExpressionSyntax exprSyntax, DiagnosticBag diagnostics, ref bool hasErrors)
         {
-            // PROTOTYPE(ngafter): Per spec this should be *converted* to `Exception`.  But that is a (planned)
-            // language change from 7.3 to 8.0.  We should do so now, at the same time that we introduce the
-            // switch expression conversion, so that `throw b switch { true => x1, false => x2 )` works when x1 and x2 are
-            // of unrelated exception types.
             var boundExpr = BindValue(exprSyntax, diagnostics, BindValueKind.RValue);
-
-            // SPEC VIOLATION: The spec requires the thrown exception to have a type, and that the type
-            // be System.Exception or derived from System.Exception. (Or, if a type parameter, to have
-            // an effective base class that meets that criterion.) However, we allow the literal null 
-            // to be thrown, even though it does not meet that criterion and will at runtime always
-            // produce a null reference exception.
-
-            if (!boundExpr.IsLiteralNull())
+            if (Compilation.LanguageVersion < MessageID.IDS_FeatureSwitchExpression.RequiredVersion())
             {
-                var type = boundExpr.Type;
-
-                // If the expression is a lambda, anonymous method, or method group then it will
-                // have no compile-time type; give the same error as if the type was wrong.
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-
-                if ((object)type == null || !type.IsErrorType() && !Compilation.IsExceptionType(type.EffectiveType(ref useSiteDiagnostics), ref useSiteDiagnostics))
+                // This is the pre-C# 8 algorithm for binding a thrown expression.
+                // SPEC VIOLATION: The spec requires the thrown exception to have a type, and that the type
+                // be System.Exception or derived from System.Exception. (Or, if a type parameter, to have
+                // an effective base class that meets that criterion.) However, we allow the literal null
+                // to be thrown, even though it does not meet that criterion and will at runtime always
+                // produce a null reference exception.
+                if (!boundExpr.IsLiteralNull())
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadExceptionType, exprSyntax.Location);
-                    hasErrors = true;
-                    diagnostics.Add(exprSyntax, useSiteDiagnostics);
+                    var type = boundExpr.Type;
+
+                    // If the expression is a lambda, anonymous method, or method group then it will
+                    // have no compile-time type; give the same error as if the type was wrong.
+                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+                    if ((object)type == null || !type.IsErrorType() && !Compilation.IsExceptionType(type.EffectiveType(ref useSiteDiagnostics), ref useSiteDiagnostics))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadExceptionType, exprSyntax.Location);
+                        hasErrors = true;
+                        diagnostics.Add(exprSyntax, useSiteDiagnostics);
+                    }
                 }
+            }
+            else
+            {
+                // In C# 8 and later we follow the ECMA specification, which neatly handles null and expressions of exception type.
+                boundExpr = GenerateConversionForAssignment(Compilation.GetWellKnownType(WellKnownType.System_Exception), boundExpr, diagnostics);
             }
 
             return boundExpr;
@@ -593,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // PROTOTYPE(ngafter): This should bind a switch expression as a statement expression, to `void`.
             // That requires some not-yet-present target typing.
-            var expression = BindValue(syntax, diagnostics, BindValueKind.RValue);
+            var expression = BindToNaturalType(BindValue(syntax, diagnostics, BindValueKind.RValue), diagnostics);
             ReportSuppressionIfNeeded(expression, diagnostics);
             if (!allowsAnyExpression && !IsValidStatementExpression(syntax, expression))
             {
@@ -856,12 +860,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression BindToNaturalType(BoundExpression expression, DiagnosticBag diagnostics)
         {
+            BoundExpression result;
             switch (expression)
             {
                 case BoundConvertedSwitchExpression _:
                 case BoundConvertedTupleLiteral _:
-                    return expression;
-                case BoundSwitchExpression expr:
+                    result = expression;
+                    break;
+                case BoundUnconvertedSwitchExpression expr:
                     var commonType = expr.Type;
                     var exprSyntax = (SwitchExpressionSyntax)expr.Syntax;
                     bool hasErrors = expression.HasErrors;
@@ -871,19 +877,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         commonType = CreateErrorType();
                         hasErrors = true;
                     }
-                    return ConvertSwitchExpression(expr, commonType, diagnostics, hasErrors);
-                case BoundTupleLiteral { Type: { } t } sourceTuple:
-                    return new BoundConvertedTupleLiteral(
+                    result = ConvertSwitchExpression(expr, commonType, diagnostics, hasErrors);
+                    break;
+                case BoundTupleLiteral sourceTuple:
+                    result = new BoundConvertedTupleLiteral(
                         sourceTuple.Syntax,
-                        t,
+                        sourceTuple.Type,
                         sourceTuple.Arguments.SelectAsArray(e => BindToNaturalType(e, diagnostics)),
                         sourceTuple.ArgumentNamesOpt,
                         sourceTuple.InferredNamesOpt,
                         sourceTuple.Type, // same type to keep original element names
                         sourceTuple.HasErrors).WithSuppression(sourceTuple.IsSuppressed);
+                    break;
                 default:
-                    return expression;
+                    result = expression;
+                    break;
             }
+
+            return result.WithWasConverted();
         }
 
         private static bool IsInitializerRefKindValid(
@@ -1463,6 +1474,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     op1.Kind != BoundKind.DynamicObjectInitializerMember)
                 {
                     op2 = conversion;
+                }
+                else
+                {
+                    op2 = BindToNaturalType(op2, diagnostics);
                 }
 
                 if (isRef)
@@ -2162,9 +2177,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_StackAllocConversionNotPossible, syntax, stackAllocExpression.ElementType, targetType);
                         return;
                     }
-                case BoundKind.SwitchExpression:
+                case BoundKind.UnconvertedSwitchExpression:
                     {
-                        var switchExpression = (BoundSwitchExpression)operand;
+                        var switchExpression = (BoundUnconvertedSwitchExpression)operand;
                         HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                         bool reportedError = false;
                         foreach (var arm in switchExpression.SwitchArms)
@@ -2291,7 +2306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundUnaryOperator(
                     node,
                     UnaryOperatorKind.DynamicTrue,
-                    expr,
+                    BindToNaturalType(expr, diagnostics),
                     ConstantValue.NotAvailable,
                     null,
                     LookupResultKind.Viable,
@@ -2618,7 +2633,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BindValueKind requiredValueKind = GetRequiredReturnValueKind(refKind);
                 arg = BindValue(expressionSyntax, diagnostics, requiredValueKind);
-                arg = ValidateEscape(arg, Binder.ExternalScope, refKind != RefKind.None, diagnostics);
             }
             else
             {
@@ -2633,7 +2647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind sigRefKind;
             TypeSymbol retType = GetCurrentReturnType(out sigRefKind);
 
-            bool hasErrors;
+            bool hasErrors = false;
             if (IsDirectlyInIterator)
             {
                 diagnostics.Add(ErrorCode.ERR_ReturnInIterator, syntax.ReturnKeyword.GetLocation());
@@ -2664,11 +2678,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (arg != null)
             {
-                hasErrors = arg.HasErrors || ((object)arg.Type != null && arg.Type.IsErrorType());
-            }
-            else
-            {
-                hasErrors = false;
+                hasErrors |= arg.HasErrors || ((object)arg.Type != null && arg.Type.IsErrorType());
             }
 
             if (hasErrors)
@@ -2696,6 +2706,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             // Anonymous function converted to a void returning delegate cannot return a value
                             Error(diagnostics, errorCode, syntax.ReturnKeyword);
+                            hasErrors = true;
 
                             // COMPATIBILITY: The native compiler also produced an error
                             // COMPATIBILITY: "Cannot convert lambda expression to delegate type 'Action' because some of the
@@ -2711,6 +2722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 : ErrorCode.ERR_TaskRetNoObjectRequired;
 
                             Error(diagnostics, errorCode, syntax.ReturnKeyword, container);
+                            hasErrors = true;
                         }
                     }
                 }
@@ -2724,10 +2736,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             : retType;
 
                         Error(diagnostics, ErrorCode.ERR_RetObjectRequired, syntax.ReturnKeyword, requiredType);
+                        hasErrors = true;
                     }
                     else
                     {
                         arg = CreateReturnConversion(syntax, diagnostics, arg, sigRefKind, retType);
+                        arg = ValidateEscape(arg, Binder.ExternalScope, refKind != RefKind.None, diagnostics);
                     }
                 }
             }
@@ -2737,10 +2751,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)arg?.Type != null && arg.Type.IsVoidType())
                 {
                     Error(diagnostics, ErrorCode.ERR_CantReturnVoid, expressionSyntax);
+                    hasErrors = true;
                 }
             }
 
-            return new BoundReturnStatement(syntax, refKind, arg);
+            return new BoundReturnStatement(syntax, refKind, arg, hasErrors);
         }
 
         internal BoundExpression CreateReturnConversion(

@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _disableDiagnostics = previousDiagnostics;
         }
 
-        protected override void VisitRvalue(BoundExpression node)
+        protected override void VisitRvalue(BoundExpression node, bool isKnownToBeAnLvalue = false)
         {
             Visit(node);
             VisitRvalueEpilogue(node);

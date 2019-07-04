@@ -785,7 +785,7 @@
       </trans-unit>
       <trans-unit id="IDS_DefaultInterfaceImplementation">
         <source>default interface implementation</source>
-        <target state="translated">默认接口实现</target>
+        <target state="new">default interface implementation</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_Disposable">
@@ -908,6 +908,11 @@
         <target state="translated">静态本地函数</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureSwitchExpression">
+        <source>&lt;switch expression&gt;</source>
+        <target state="new">&lt;switch expression&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
         <source>tuple equality</source>
         <target state="translated">元组相等</target>
@@ -946,11 +951,6 @@
       <trans-unit id="IDS_OverrideWithConstraints">
         <source>constraints for override and explicit interface implementation methods</source>
         <target state="new">constraints for override and explicit interface implementation methods</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_SwitchExpression">
-        <source>&lt;switch expression&gt;</source>
-        <target state="new">&lt;switch expression&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ThrowExpression">

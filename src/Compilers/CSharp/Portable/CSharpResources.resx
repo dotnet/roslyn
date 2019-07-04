@@ -123,7 +123,7 @@
   <data name="IDS_ThrowExpression" xml:space="preserve">
     <value>&lt;throw expression&gt;</value>
   </data>
-  <data name="IDS_SwitchExpression" xml:space="preserve">
+  <data name="IDS_FeatureSwitchExpression" xml:space="preserve">
     <value>&lt;switch expression&gt;</value>
   </data>
   <data name="IDS_RELATEDERROR" xml:space="preserve">

@@ -51,6 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (IsLegalDynamicOperand(right) && IsLegalDynamicOperand(left))
                 {
+                    left = BindToNaturalType(left, diagnostics);
+                    right = BindToNaturalType(right, diagnostics);
                     var finalDynamicConversion = this.Compilation.Conversions.ClassifyConversionFromExpression(right, left.Type, ref useSiteDiagnostics);
                     diagnostics.Add(node, useSiteDiagnostics);
 
@@ -570,6 +572,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultLeft = CreateConversion(left, best.LeftConversion, signature.LeftType, diagnostics);
                 resultRight = CreateConversion(right, best.RightConversion, signature.RightType, diagnostics);
                 resultConstant = FoldBinaryOperator(node, resultOperatorKind, resultLeft, resultRight, resultType.SpecialType, diagnostics, ref compoundStringLength);
+            }
+            else
+            {
+                resultLeft = BindToNaturalType(resultLeft, diagnostics);
+                resultRight = BindToNaturalType(resultRight, diagnostics);
             }
 
             hasErrors = hasErrors || resultConstant != null && resultConstant.IsBad;
@@ -3200,6 +3207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
 
                 case BoundKind.TupleLiteral:
+                case BoundKind.ConvertedTupleLiteral:
                     if ((object)operand.Type == null)
                     {
                         Error(diagnostics, ErrorCode.ERR_TypelessTupleInAs, node);
@@ -3273,6 +3281,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operand = new BoundDefaultExpression(defaultLiteral.Syntax, targetType: null, constantValueOpt: ConstantValue.Null,
                     type: GetSpecialType(SpecialType.System_Object, diagnostics, node));
             }
+
+            // PROTOTYPE(ngafter): need to report typeless switch expression (or any other kind of expression with no type) on the left of as.
 
             var operandType = operand.Type;
             Debug.Assert((object)operandType != null);
@@ -3420,6 +3430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindNullCoalescingOperator(BinaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var leftOperand = BindValue(node.Left, diagnostics, BindValueKind.RValue);
+            leftOperand = BindToNaturalType(leftOperand, diagnostics);
             var rightOperand = BindValue(node.Right, diagnostics, BindValueKind.RValue);
 
             // If either operand is bad, bail out preventing more cascading errors
@@ -3483,6 +3494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)optRightType != null && optRightType.IsDynamic())
             {
                 var leftConversion = Conversions.ClassifyConversionFromExpression(leftOperand, GetSpecialType(SpecialType.System_Object, diagnostics, node), ref useSiteDiagnostics);
+                rightOperand = BindToNaturalType(rightOperand, diagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
                 return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
                     leftConversion, BoundNullCoalescingOperatorResultKind.RightDynamicType, optRightType);
@@ -3548,6 +3560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)optRightType != null)
             {
+                rightOperand = BindToNaturalType(rightOperand, diagnostics);
                 Conversion leftConversion;
                 BoundNullCoalescingOperatorResultKind resultKind;
 

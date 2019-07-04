@@ -1282,15 +1282,18 @@ namespace BoundTreeGenerator
                                     WriteLine(",");
                             }
 
-                            if (IsDerivedType("BoundExpression", node.Name))
+                            if (allFields.Length != 0)
                             {
-                                if (allFields.Length != 0)
-                                {
-                                    WriteLine(",");
-                                }
-                                Write("new TreeDumperNode(\"isSuppressed\", node.IsSuppressed, null)");
+                                WriteLine(",");
                             }
 
+                            if (IsDerivedType("BoundExpression", node.Name))
+                            {
+                                Write("new TreeDumperNode(\"isSuppressed\", node.IsSuppressed, null)");
+                                WriteLine(",");
+                            }
+
+                            Write("new TreeDumperNode(\"hasErrors\", node.HasErrors, null)");
                             WriteLine("");
                             Unbrace();
                         }

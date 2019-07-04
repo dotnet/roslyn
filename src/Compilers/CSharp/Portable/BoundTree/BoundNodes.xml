@@ -1178,19 +1178,22 @@
     <Field Name="Label" Type="LabelSymbol"/>
   </Node>
 
-  <Node Name="BoundSwitchExpression" Base="BoundExpression">
+  <AbstractNode Name="BoundSwitchExpression" Base="BoundExpression">
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="SwitchArms" Type="ImmutableArray&lt;BoundSwitchExpressionArm&gt;"/>
     <Field Name="DecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
     <Field Name="DefaultLabel" Type="LabelSymbol" Null="allow"/>
     <Field Name="ReportedNotExhaustive" Type="bool"/>
-  </Node>
+  </AbstractNode>
   <Node Name="BoundSwitchExpressionArm" Base="BoundNode">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
     <Field Name="WhenClause" Type="BoundExpression" Null="allow"/>
     <Field Name="Value" Type="BoundExpression" Null="disallow"/>
     <Field Name="Label" Type="LabelSymbol" Null="disallow"/>
+  </Node>
+
+  <Node Name="BoundUnconvertedSwitchExpression" Base="BoundSwitchExpression">
   </Node>
 
   <!-- 

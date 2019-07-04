@@ -31,6 +31,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        internal BoundExpression WithWasConverted()
+        {
+#if DEBUG
+            // We track the WasConverted flag for locals and parameters only, as many other
+            // kinds of bound nodes have special behavior that prevents this from working for them.
+            if (Kind != BoundKind.Local && Kind != BoundKind.Parameter || this.WasConverted)
+                return this;
+
+            var result = ShallowClone();
+            result.WasConverted = true;
+            return result;
+#else
+            return this;
+#endif
+        }
+
+        internal bool NeedsToBeConverted()
+        {
+            switch (Kind)
+            {
+                case BoundKind.TupleLiteral:
+                case BoundKind.UnconvertedSwitchExpression:
+#if DEBUG
+                case BoundKind.Local:
+                case BoundKind.Parameter:
+#endif
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         public virtual ConstantValue ConstantValue
         {
             get

@@ -2730,7 +2730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var kind = result.ConversionForArg(arg);
                 BoundExpression argument = arguments[arg];
 
-                if (!kind.IsIdentity || argument.Kind == BoundKind.TupleLiteral || argument.Kind == BoundKind.SwitchExpression)
+                if (!kind.IsIdentity || argument.NeedsToBeConverted())
                 {
                     TypeWithAnnotations typeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
 
@@ -3363,15 +3363,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (countSyntax.Kind() != SyntaxKind.OmittedArraySizeExpression)
             {
                 count = BindValue(countSyntax, diagnostics, BindValueKind.RValue);
-                if (!count.HasAnyErrors)
+                count = GenerateConversionForAssignment(GetSpecialType(SpecialType.System_Int32, diagnostics, node), count, diagnostics);
+                if (IsNegativeConstantForArraySize(count))
                 {
-                    // NOTE: this is different from how we would bind an array size (in which case we would allow uint, long, or ulong).
-                    count = GenerateConversionForAssignment(GetSpecialType(SpecialType.System_Int32, diagnostics, node), count, diagnostics);
-                    if (!count.HasAnyErrors && IsNegativeConstantForArraySize(count))
-                    {
-                        Error(diagnostics, ErrorCode.ERR_NegativeStackAllocSize, countSyntax);
-                        hasErrors = true;
-                    }
+                    Error(diagnostics, ErrorCode.ERR_NegativeStackAllocSize, countSyntax);
+                    hasErrors = true;
                 }
             }
             else if (node.Initializer == null)
@@ -3891,7 +3887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors = true;
                 }
 
-                BoundExpression argument = analyzedArguments.Arguments.Count >= 1 ? analyzedArguments.Arguments[0] : null;
+                BoundExpression argument = BindToNaturalType(analyzedArguments.Arguments.Count >= 1 ? analyzedArguments.Arguments[0] : null, diagnostics);
 
                 if (hasErrors)
                 {
@@ -5451,13 +5447,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    boundLeft = new BoundPointerIndirectionOperator(exprSyntax, boundLeft, pointedAtType, hasErrors)
+                    boundLeft = new BoundPointerIndirectionOperator(exprSyntax, BindToNaturalType(boundLeft, diagnostics), pointedAtType, hasErrors)
                     {
                         WasCompilerGenerated = true, // don't interfere with the type info for exprSyntax.
                     };
                 }
             }
 
+            boundLeft = BindToNaturalType(boundLeft, diagnostics);
             return BindMemberAccessWithBoundLeft(node, boundLeft, node.Name, node.OperatorToken, invoked, indexed, diagnostics);
         }
 
@@ -5516,8 +5513,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     // NOTE: ReplaceTypeOrValueReceiver will call CheckValue explicitly.
                                     var newValueDiagnostics = new DiagnosticBag();
                                     newValueDiagnostics.AddRangeAndFree(valueDiagnostics);
-
-                                    return new BoundTypeOrValueExpression(left, new BoundTypeOrValueData(leftSymbol, boundValue, newValueDiagnostics, boundType, typeDiagnostics), leftType);
+                                    boundValue = BindToNaturalType(boundValue, newValueDiagnostics);
+                                    return new BoundTypeOrValueExpression(left,
+                                        new BoundTypeOrValueData(leftSymbol, boundValue, newValueDiagnostics, boundType, typeDiagnostics), leftType);
                                 }
                             }
                             break;
@@ -7539,7 +7537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 receiverOpt,
                                 lengthOrCountProperty,
                                 property,
-                                arguments[0],
+                                BindToNaturalType(arguments[0], diagnostics),
                                 property.Type);
                             break;
                         }
@@ -7558,7 +7556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         receiverOpt,
                         lengthOrCountProperty,
                         substring,
-                        arguments[0],
+                        BindToNaturalType(arguments[0], diagnostics),
                         substring.ReturnType);
                 }
             }
@@ -7595,7 +7593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 receiverOpt,
                                 lengthOrCountProperty,
                                 method,
-                                arguments[0],
+                                BindToNaturalType(arguments[0], diagnostics),
                                 method.ReturnType);
                             break;
                         }

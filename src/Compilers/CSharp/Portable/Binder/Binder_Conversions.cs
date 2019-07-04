@@ -101,10 +101,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.Kind == ConversionKind.SwitchExpression)
             {
-                return ConvertSwitchExpression((BoundSwitchExpression)source, destination, diagnostics);
+                return ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, destination, diagnostics);
             }
 
-            if (source.Kind == BoundKind.SwitchExpression)
+            if (source.Kind == BoundKind.UnconvertedSwitchExpression)
             {
                 TypeSymbol type = source.Type;
                 bool hasErrors = false;
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors = true;
                 }
 
-                source = ConvertSwitchExpression((BoundSwitchExpression)source, type, diagnostics, hasErrors);
+                source = ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, type, diagnostics, hasErrors);
                 if (destination.Equals(type, TypeCompareKind.ConsiderEverything) && wasCompilerGenerated)
                 {
                     return source;
@@ -145,14 +145,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 explicitCastInCode: isCast && !wasCompilerGenerated,
                 conversionGroupOpt,
                 constantValueOpt: constantValue,
-                type: destination)
-            { WasCompilerGenerated = wasCompilerGenerated };
+                type: destination) { WasCompilerGenerated = wasCompilerGenerated };
         }
 
         /// <summary>
         /// Rewrite the expressions in the switch expression arms to add a conversion to the destination type.
         /// </summary>
-        private BoundConvertedSwitchExpression ConvertSwitchExpression(BoundSwitchExpression source, TypeSymbol destination, DiagnosticBag diagnostics, bool hasErrors = false)
+        private BoundExpression ConvertSwitchExpression(BoundUnconvertedSwitchExpression source, TypeSymbol destination, DiagnosticBag diagnostics, bool hasErrors = false)
         {
             var builder = ArrayBuilder<BoundSwitchExpressionArm>.GetInstance();
             foreach (var oldCase in source.SwitchArms)

@@ -176,6 +176,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindArgListOperator(InvocationExpressionSyntax node, DiagnosticBag diagnostics, AnalyzedArguments analyzedArguments)
         {
+            bool wasError = analyzedArguments.HasErrors;
+
             // We allow names, oddly enough; M(__arglist(x : 123)) is legal. We just ignore them.
             TypeSymbol objType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
             for (int i = 0; i < analyzedArguments.Arguments.Count; ++i)
@@ -200,6 +202,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (argument.Type.IsVoidType())
                 {
                     Error(diagnostics, ErrorCode.ERR_CantUseVoidInArglist, argument.Syntax);
+                    wasError = true;
+                }
+                else if (analyzedArguments.RefKind(i) == RefKind.None)
+                {
+                    analyzedArguments.Arguments[i] = BindToNaturalType(analyzedArguments.Arguments[i], diagnostics);
                 }
 
                 switch (analyzedArguments.RefKind(i))
@@ -210,13 +217,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default:
                         // Disallow "in" or "out" arguments
                         Error(diagnostics, ErrorCode.ERR_CantUseInOrOutInArglist, argument.Syntax);
+                        wasError = true;
                         break;
                 }
             }
 
             ImmutableArray<BoundExpression> arguments = analyzedArguments.Arguments.ToImmutable();
             ImmutableArray<RefKind> refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
-            return new BoundArgListOperator(node, arguments, refKinds, null, analyzedArguments.HasErrors);
+            return new BoundArgListOperator(node, arguments, refKinds, null, wasError);
         }
 
         /// <summary>
@@ -344,6 +352,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                     }
                 }
+            }
+            else
+            {
+                expression = BindToNaturalType(expression, diagnostics);
             }
 
             ImmutableArray<BoundExpression> argArray = BuildArgumentsForDynamicInvocation(arguments, diagnostics);
@@ -950,10 +962,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var boundWithErrors = unboundLambda.BindForErrorRecovery();
                                 diagnostics.AddRange(boundWithErrors.Diagnostics);
                                 break;
-                            case BoundConvertedSwitchExpression _:
+                            case BoundTupleLiteral _:
+                                // Tuple literals can contain unbound lambdas or switch expressions.
+                                _ = BindToNaturalType(argument, diagnostics);
                                 break;
-                            case BoundSwitchExpression { Type: { } naturalType } switchExpr:
-                                ConvertSwitchExpression(switchExpr, naturalType ?? CreateErrorType(), diagnostics);
+                            case BoundUnconvertedSwitchExpression { Type: { } naturalType } switchExpr:
+                                _ = ConvertSwitchExpression(switchExpr, naturalType ?? CreateErrorType(), diagnostics);
                                 break;
                         }
                     }
@@ -1165,7 +1179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Replace a BoundTypeOrValueExpression with a BoundExpression for either a type (if useType is true)
-        /// or a value (if useType is false).  Any other node is unmodified.
+        /// or a value (if useType is false).  Any other node is bound to its natural type.
         /// </summary>
         /// <remarks>
         /// Call this once overload resolution has succeeded on the method group of which the BoundTypeOrValueExpression
@@ -1199,10 +1213,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var value = q.Value;
                     var replaced = ReplaceTypeOrValueReceiver(value, useType, diagnostics);
                     return (value == replaced) ? q : q.Update(replaced, q.DefinedSymbol, q.Operation, q.Cast, q.Binder, q.UnoptimizedForm, q.Type);
-            }
 
-            // PROTOTYPE(ngafter): has the receiver had the BindToNaturalType treatment?
-            return receiver;
+                default:
+                    return BindToNaturalType(receiver, diagnostics);
+            }
         }
 
         /// <summary>

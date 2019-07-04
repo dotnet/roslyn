@@ -494,26 +494,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var diagnostics = DiagnosticBag.GetInstance();
 
-            // when binding for real (not for return inference), there is still
-            // a good chance that we could reuse a body of a lambda previously bound for 
-            // return type inference.
             var cacheKey = ReturnInferenceCacheKey.Create(Binder, delegateType, IsAsync);
 
-            BoundLambda returnInferenceLambda;
-            if (_returnInferenceCache.TryGetValue(cacheKey, out returnInferenceLambda) && returnInferenceLambda.InferredReturnType.FromSingleType)
-            {
-                lambdaSymbol = returnInferenceLambda.Symbol;
-                var lambdaReturnType = lambdaSymbol.ReturnTypeWithAnnotations;
-                if ((object)LambdaSymbol.InferenceFailureReturnType != lambdaReturnType.Type &&
-                    lambdaReturnType.Equals(returnType, TypeCompareKind.ConsiderEverything) && lambdaSymbol.RefKind == refKind)
-                {
-                    lambdaBodyBinder = returnInferenceLambda.Binder;
-                    block = returnInferenceLambda.Body;
-                    diagnostics.AddRange(returnInferenceLambda.Diagnostics);
-
-                    goto haveLambdaBodyAndBinders;
-                }
-            }
+            // When binding for real (not for return inference), we cannot reuse a body of a lambda
+            // previously bound for return type inference because we have not converted the returned
+            // expression(s) to the return type.
 
             lambdaSymbol = new LambdaSymbol(
                 Binder.Compilation,
@@ -550,8 +535,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ((ExecutableCodeBinder)lambdaBodyBinder).ValidateIteratorMethods(diagnostics);
             ValidateUnsafeParameters(diagnostics, cacheKey.ParameterTypes);
-
-haveLambdaBodyAndBinders:
 
             bool reachableEndpoint = ControlFlowPass.Analyze(Binder.Compilation, lambdaSymbol, block, diagnostics);
             if (reachableEndpoint)

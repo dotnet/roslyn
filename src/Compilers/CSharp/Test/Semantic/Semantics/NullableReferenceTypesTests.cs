@@ -3670,51 +3670,42 @@ class C
     interface Interface { }
 }";
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,24): error CS8597: Thrown value may be null.
-                //         _ = c ?? throw e; // 1
-                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "e").WithLocation(6, 24),
-                // (7,24): error CS8597: Thrown value may be null.
-                //         _ = c ?? throw null; // 2
-                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "null").WithLocation(7, 24),
-                // (8,15): error CS8597: Thrown value may be null.
-                //         throw null; // 3
-                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "null").WithLocation(8, 15),
-                // (13,19): error CS8597: Thrown value may be null.
-                //             throw e; // 4
-                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "e").WithLocation(13, 19),
-                // (19,15): error CS0155: The type caught or thrown must be derived from System.Exception
-                //         throw this; // 5
-                Diagnostic(ErrorCode.ERR_BadExceptionType, "this").WithLocation(19, 15),
-                // (24,15): error CS8597: Thrown value may be null.
-                //         throw e; // 6
-                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "e").WithLocation(24, 15),
-                // (28,15): error CS8597: Thrown value may be null.
-                //         throw e; // 7
-                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "e").WithLocation(28, 15),
-                // (30,25): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     void M6<TException>(TException? e) where TException : Interface
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "TException?").WithLocation(30, 25),
-                // (32,15): error CS0155: The type caught or thrown must be derived from System.Exception
-                //         throw e; // 8
-                Diagnostic(ErrorCode.ERR_BadExceptionType, "e").WithLocation(32, 15),
-                // (32,15): error CS8597: Thrown value may be null.
-                //         throw e; // 8
-                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "e").WithLocation(32, 15),
-                // (36,15): error CS0155: The type caught or thrown must be derived from System.Exception
-                //         throw e; // 9
-                Diagnostic(ErrorCode.ERR_BadExceptionType, "e").WithLocation(36, 15),
-                // (36,15): error CS8597: Thrown value may be null.
-                //         throw e; // 9
-                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "e").WithLocation(36, 15),
-                // (40,15): error CS0155: The type caught or thrown must be derived from System.Exception
-                //         throw e; // 10
-                Diagnostic(ErrorCode.ERR_BadExceptionType, "e").WithLocation(40, 15),
-                // (44,15): error CS0155: The type caught or thrown must be derived from System.Exception
-                //         throw e; // 11
-                Diagnostic(ErrorCode.ERR_BadExceptionType, "e").WithLocation(44, 15),
-                // (44,15): error CS8597: Thrown value may be null.
-                //         throw e; // 11
-                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "e").WithLocation(44, 15)
+                    // (6,24): warning CS8597: Thrown value may be null.
+                    //         _ = c ?? throw e; // 1
+                    Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "e").WithLocation(6, 24),
+                    // (7,24): warning CS8597: Thrown value may be null.
+                    //         _ = c ?? throw null; // 2
+                    Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "null").WithLocation(7, 24),
+                    // (8,15): warning CS8597: Thrown value may be null.
+                    //         throw null; // 3
+                    Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "null").WithLocation(8, 15),
+                    // (13,19): warning CS8597: Thrown value may be null.
+                    //             throw e; // 4
+                    Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "e").WithLocation(13, 19),
+                    // (19,15): warning CS8597: Thrown value may be null.
+                    //         throw this; // 5
+                    Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "this").WithLocation(19, 15),
+                    // (24,15): warning CS8597: Thrown value may be null.
+                    //         throw e; // 6
+                    Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "e").WithLocation(24, 15),
+                    // (28,15): warning CS8597: Thrown value may be null.
+                    //         throw e; // 7
+                    Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "e").WithLocation(28, 15),
+                    // (30,25): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                    //     void M6<TException>(TException? e) where TException : Interface
+                    Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "TException?").WithLocation(30, 25),
+                    // (32,15): error CS0029: Cannot implicitly convert type 'TException' to 'System.Exception'
+                    //         throw e; // 8
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("TException", "System.Exception").WithLocation(32, 15),
+                    // (36,15): error CS0029: Cannot implicitly convert type 'TException' to 'System.Exception'
+                    //         throw e; // 9
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("TException", "System.Exception").WithLocation(36, 15),
+                    // (40,15): error CS0029: Cannot implicitly convert type 'TException' to 'System.Exception'
+                    //         throw e; // 10
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("TException", "System.Exception").WithLocation(40, 15),
+                    // (44,15): error CS0029: Cannot implicitly convert type 'T' to 'System.Exception'
+                    //         throw e; // 11
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("T", "System.Exception").WithLocation(44, 15)
                 );
         }
 

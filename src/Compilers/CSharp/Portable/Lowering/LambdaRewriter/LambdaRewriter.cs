@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var localFrame = (LocalSymbol)framePointer;
-            return new BoundLocal(syntax, localFrame, null, localFrame.Type);
+            return new BoundLocal(syntax, localFrame, null, localFrame.Type) { WasCompilerGenerated = true };
         }
 
         private static void InsertAndFreePrologue<T>(ArrayBuilder<BoundStatement> result, ArrayBuilder<T> prologue) where T : BoundNode
@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(TypeSymbol.Equals(frameType, constructor.ContainingType, TypeCompareKind.ConsiderEverything2));
 
                 prologue.Add(new BoundAssignmentOperator(syntax,
-                    new BoundLocal(syntax, framePointer, null, frameType),
+                    new BoundLocal(syntax, framePointer, null, frameType) { WasCompilerGenerated = true },
                     new BoundObjectCreationExpression(syntax: syntax, constructor: constructor, binderOpt: null),
                     frameType));
             }
@@ -664,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var capturedFrame = LambdaCapturedVariable.Create(frame, _innermostFramePointer, ref _synthesizedFieldNameIdDispenser);
                     FieldSymbol frameParent = capturedFrame.AsMember(frameType);
-                    BoundExpression left = new BoundFieldAccess(syntax, new BoundLocal(syntax, framePointer, null, frameType), frameParent, null);
+                    BoundExpression left = new BoundFieldAccess(syntax, new BoundLocal(syntax, framePointer, null, frameType) { WasCompilerGenerated = true }, frameParent, null);
                     BoundExpression right = FrameOfType(syntax, frameParent.Type as NamedTypeSymbol);
                     BoundExpression assignment = new BoundAssignmentOperator(syntax, left, right, left.Type);
                     prologue.Add(assignment);
@@ -754,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
                 }
 
-                var left = proxy.Replacement(syntax, frameType1 => new BoundLocal(syntax, framePointer, null, framePointer.Type));
+                var left = proxy.Replacement(syntax, frameType1 => new BoundLocal(syntax, framePointer, null, framePointer.Type) { WasCompilerGenerated = true });
                 var assignToProxy = new BoundAssignmentOperator(syntax, left, value, value.Type);
                 if (_currentMethod.MethodKind == MethodKind.Constructor &&
                     symbol == _currentMethod.ThisParameter &&
@@ -780,7 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterSymbol replacementParameter;
             if (_parameterMap.TryGetValue(node.ParameterSymbol, out replacementParameter))
             {
-                return new BoundParameter(node.Syntax, replacementParameter, node.HasErrors);
+                return node.Update(replacementParameter, node.Type);
             }
 
             return base.VisitUnhoistedParameter(node);

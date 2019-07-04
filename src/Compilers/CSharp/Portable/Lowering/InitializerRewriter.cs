@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax = fieldInit.Syntax;
             syntax = (syntax as EqualsValueClauseSyntax)?.Value ?? syntax; //we want the attached sequence point to indicate the value node
             var boundReceiver = fieldInit.Field.IsStatic ? null :
-                                        new BoundThisReference(syntax, fieldInit.Field.ContainingType);
+                                        new BoundThisReference(syntax, fieldInit.Field.ContainingType) { WasCompilerGenerated = true };
 
             BoundStatement boundStatement =
                 new BoundExpressionStatement(syntax,

@@ -24,11 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SwitchExpressionLocalRewriter.Rewrite(this, node);
         }
 
-        public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
-        {
-            throw ExceptionUtilities.UnexpectedValue(node.Kind);
-        }
-
         private class SwitchExpressionLocalRewriter : BaseSwitchLocalRewriter
         {
             private SwitchExpressionLocalRewriter(BoundConvertedSwitchExpression node, LocalRewriter localRewriter)

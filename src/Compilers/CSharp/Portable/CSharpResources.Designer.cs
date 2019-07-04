@@ -11762,6 +11762,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;switch expression&gt;.
+        /// </summary>
+        internal static string IDS_FeatureSwitchExpression {
+            get {
+                return ResourceManager.GetString("IDS_FeatureSwitchExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to switch on boolean type.
         /// </summary>
         internal static string IDS_FeatureSwitchOnBool {
@@ -12145,15 +12154,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_SK_VARIABLE {
             get {
                 return ResourceManager.GetString("IDS_SK_VARIABLE", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &lt;switch expression&gt;.
-        /// </summary>
-        internal static string IDS_SwitchExpression {
-            get {
-                return ResourceManager.GetString("IDS_SwitchExpression", resourceCulture);
             }
         }
         

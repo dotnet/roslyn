@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly SyntaxNode Syntax;
 
         [Flags()]
-        private enum BoundNodeAttributes : byte
+        private enum BoundNodeAttributes : short
         {
             HasErrors = 1 << 0,
             CompilerGenerated = 1 << 1,
@@ -38,6 +38,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             WasCompilerGeneratedIsChecked = 1 << 6,
             WasTopLevelNullabilityChecked = 1 << 7,
+
+            /// <summary>
+            /// Captures the fact that the node was either converted to some type, or converted to its natural
+            /// type.  This is used to check the fact that every rvalue must pass through one of the two,
+            /// so that expressions like tuple literals and switch expressions can reliably be rewritten once
+            /// the target type is known.
+            /// </summary>
+            WasConverted = 1 << 8,
 #endif
         }
 
@@ -115,6 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(original is BoundExpression || !original.IsSuppressed);
             this.IsSuppressed = original.IsSuppressed;
+            this.WasConverted = original.WasConverted;
         }
 
         /// <remarks>
@@ -259,6 +268,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public bool WasConverted
+        {
+            get
+            {
+#if DEBUG
+                return (_attributes & BoundNodeAttributes.WasConverted) != 0;
+#else
+                return true;
+#endif
+            }
+            internal set
+            {
+#if DEBUG
+                Debug.Assert((_attributes & BoundNodeAttributes.WasConverted) == 0, "WasConverted flag should not be set twice or reset");
+                if (value)
+                {
+                    _attributes |= BoundNodeAttributes.WasConverted;
+                }
+#endif
+            }
+        }
+
         public BoundKind Kind
         {
             get
@@ -270,6 +301,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode Accept(BoundTreeVisitor visitor)
         {
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Set the HasErrors flag by mutating the given node.  This is done after binding at the top level when an error
+        /// was reported.
+        /// </summary>
+        internal void DangerousSetHasErrors()
+        {
+            // PROTOTYPE(ngafter): this should really be done by cloning the node and setting the flag on the clone so it isn't dangerous
+            this._attributes |= BoundNodeAttributes.HasErrors;
         }
 
 #if DEBUG

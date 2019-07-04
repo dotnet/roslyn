@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var multiple = (TupleBinaryOperatorInfo.Multiple)@operator;
                     if (multiple.Operators.Length == 0)
                     {
-                        return expr;
+                        return BindToNaturalType(expr, diagnostics);
                     }
 
                     ImmutableArray<BoundExpression> arguments = tuple.Arguments;
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // This element isn't getting a converted type
-                return expr;
+                return BindToNaturalType(expr, diagnostics);
             }
 
             // We were able to determine a converted type (for this tuple literal or element), we can just convert to it

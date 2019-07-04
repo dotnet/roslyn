@@ -2839,7 +2839,7 @@ moreArguments:
                     // only possible in error cases (if possible at all)
                     return false;
 
-                case BoundKind.SwitchExpression:
+                case BoundKind.UnconvertedSwitchExpression:
                 case BoundKind.ConvertedSwitchExpression:
                     foreach (var arm in ((BoundSwitchExpression)expr).SwitchArms)
                     {

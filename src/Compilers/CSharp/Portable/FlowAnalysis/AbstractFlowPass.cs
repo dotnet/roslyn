@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// AssignedWhenFalse.
         /// </summary>
         /// <param name="node"></param>
-        protected virtual void VisitRvalue(BoundExpression node)
+        protected virtual void VisitRvalue(BoundExpression node, bool isKnownToBeAnLvalue = false)
         {
             Visit(node);
             Unsplit();
@@ -1038,7 +1038,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note that we require that the variable whose reference we are taking
             // has been initialized; it is similar to passing the variable as a ref parameter.
 
-            VisitRvalue(node.Operand);
+            VisitRvalue(node.Operand, isKnownToBeAnLvalue: true);
             return null;
         }
 
@@ -1064,7 +1064,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.InitializerOpt != null)
             {
-                VisitRvalue(node.InitializerOpt); // analyze the expression
+                // analyze the expression
+                VisitRvalue(node.InitializerOpt, isKnownToBeAnLvalue: node.LocalSymbol.RefKind != RefKind.None);
 
                 // byref assignment is also a potential write
                 if (node.LocalSymbol.RefKind != RefKind.None)
@@ -1225,7 +1226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RefKind refKind = GetRefKind(refKindsOpt, i);
                 if (refKind != RefKind.Out)
                 {
-                    VisitRvalue(arguments[i]);
+                    VisitRvalue(arguments[i], isKnownToBeAnLvalue: refKind != RefKind.None);
                 }
                 else
                 {
@@ -1612,7 +1613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual BoundNode VisitReturnStatementNoAdjust(BoundReturnStatement node)
         {
-            VisitRvalue(node.ExpressionOpt);
+            VisitRvalue(node.ExpressionOpt, isKnownToBeAnLvalue: node.RefKind != RefKind.None);
 
             // byref return is also a potential write
             if (node.RefKind != RefKind.None)
@@ -1710,7 +1711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             VisitLvalue(node.Left);
-            VisitRvalue(node.Right);
+            VisitRvalue(node.Right, isKnownToBeAnLvalue: node.IsRef);
 
             // byref assignment is also a potential write
             if (node.IsRef)
@@ -1764,7 +1765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            VisitRvalue(node.Left);
+            VisitRvalue(node.Left, isKnownToBeAnLvalue: true);
         }
 
         protected void AfterRightHasBeenVisited(BoundCompoundAssignmentOperator node)
@@ -2893,7 +2894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitRvalue(node.LeftOperand);
+                VisitRvalue(node.LeftOperand, isKnownToBeAnLvalue: true);
                 savedState = this.State.Clone();
                 VisitAssignmentOfNullCoalescingAssignment(node, propertyAccessOpt: null);
             }

@@ -940,7 +940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundConvertedSwitchExpression _:
                     // It has already been subjected to a switch expression conversion.
                     return Conversion.NoConversion;
-                case BoundSwitchExpression switchExpression:
+                case BoundUnconvertedSwitchExpression switchExpression:
                     foreach (var arm in switchExpression.SwitchArms)
                     {
                         if (!this.ClassifyConversionFromExpression(arm.Value, destination, ref useSiteDiagnostics).IsImplicit)

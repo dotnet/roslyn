@@ -140,11 +140,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
         {
-            // PROTOTYPE(ngafter): should this be the only form of switch accepted in a flow pass?
             return this.VisitSwitchExpression(node);
         }
 
-        public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
+        public override BoundNode VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node)
+        {
+            return this.VisitSwitchExpression(node);
+        }
+
+        private BoundNode VisitSwitchExpression(BoundSwitchExpression node)
         {
             VisitRvalue(node.Expression);
             var dispatchState = this.State;

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // so that flow analysis will see that some of the cases may be unreachable.
             decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(boundInputExpression);
 
-            return new BoundSwitchExpression(
+            return new BoundUnconvertedSwitchExpression(
                 node, boundInputExpression, switchArms, decisionDag,
                 defaultLabel: defaultLabel, reportedNotExhaustive: reportedNotExhaustive, type: naturalType);
         }
