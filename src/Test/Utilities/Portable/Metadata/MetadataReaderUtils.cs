@@ -81,7 +81,7 @@ namespace Roslyn.Test.Utilities
                 || headers.CoffHeader.Machine == Machine.IA64;
         }
 
-        public static string GetString(this MetadataReader[] readers, StringHandle handle)
+        public static string GetString(this IEnumerable<MetadataReader> readers, StringHandle handle)
         {
             int index = MetadataTokens.GetHeapOffset(handle);
             foreach (var reader in readers)
@@ -96,7 +96,7 @@ namespace Roslyn.Test.Utilities
             return null;
         }
 
-        public static string[] GetStrings(this MetadataReader[] readers, StringHandle[] handles)
+        public static string[] GetStrings(this IEnumerable<MetadataReader> readers, IEnumerable<StringHandle> handles)
         {
             return handles.Select(handle => readers.GetString(handle)).ToArray();
         }
