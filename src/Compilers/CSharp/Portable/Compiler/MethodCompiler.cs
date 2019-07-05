@@ -958,7 +958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     body = BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, out importChain, out originalBodyNested, out forSemanticModel);
                     if (diagsForCurrentMethod.HasAnyErrors())
                     {
-                        body = body.WithHasErrors();
+                        body = (BoundBlock)body.WithHasErrors();
                     }
 
                     if (body != null && methodSymbol.MethodKind == MethodKind.Constructor)

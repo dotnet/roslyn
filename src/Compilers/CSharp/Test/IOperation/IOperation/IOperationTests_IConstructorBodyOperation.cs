@@ -122,18 +122,21 @@ class C
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
 IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public C()  ... row null; }')
-  Initializer: 
+    Initializer: 
     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': base()')
-      Expression: 
+        Expression: 
         IInvocationOperation ( System.Object..ctor()) (OperationKind.Invocation, Type: System.Void) (Syntax: ': base()')
-          Instance Receiver: 
+            Instance Receiver: 
             IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: System.Object, IsImplicit) (Syntax: ': base()')
-          Arguments(0)
-  BlockBody: 
+            Arguments(0)
+    BlockBody: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ throw null; }')
-      IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw null;')
-        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-  ExpressionBody: 
+        IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw null;')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+    ExpressionBody: 
     null
 ");
 
@@ -146,14 +149,17 @@ Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': base()')
-          Expression: 
+            Expression: 
             IInvocationOperation ( System.Object..ctor()) (OperationKind.Invocation, Type: System.Void) (Syntax: ': base()')
-              Instance Receiver: 
+                Instance Receiver: 
                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: System.Object, IsImplicit) (Syntax: ': base()')
-              Arguments(0)
-
+                Arguments(0)
     Next (Throw) Block[null]
-        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            (ImplicitReference)
+            Operand: 
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 Block[B2] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
@@ -182,21 +188,24 @@ class C
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
 IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public C()  ... throw null;')
-  Initializer: 
+    Initializer: 
     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': base()')
-      Expression: 
-        IInvocationOperation ( System.Object..ctor()) (OperationKind.Invocation, Type: System.Void) (Syntax: ': base()')
-          Instance Receiver: 
-            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: System.Object, IsImplicit) (Syntax: ': base()')
-          Arguments(0)
-  BlockBody: 
-    null
-  ExpressionBody: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> throw null')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'throw null')
         Expression: 
-          IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw null')
-            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+        IInvocationOperation ( System.Object..ctor()) (OperationKind.Invocation, Type: System.Void) (Syntax: ': base()')
+            Instance Receiver: 
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: System.Object, IsImplicit) (Syntax: ': base()')
+            Arguments(0)
+    BlockBody: 
+    null
+    ExpressionBody: 
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> throw null')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'throw null')
+        Expression: 
+            IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw null')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ");
 
             VerifyFlowGraph(compilation, node1, expectedFlowGraph:
@@ -208,14 +217,17 @@ Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': base()')
-          Expression: 
+            Expression: 
             IInvocationOperation ( System.Object..ctor()) (OperationKind.Invocation, Type: System.Void) (Syntax: ': base()')
-              Instance Receiver: 
+                Instance Receiver: 
                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: System.Object, IsImplicit) (Syntax: ': base()')
-              Arguments(0)
-
+                Arguments(0)
     Next (Throw) Block[null]
-        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            (ImplicitReference)
+            Operand: 
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 Block[B2] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
@@ -244,13 +256,16 @@ class C
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
 IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public C() ... row null; }')
-  Initializer: 
+    Initializer: 
     null
-  BlockBody: 
+    BlockBody: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ throw null; }')
-      IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw null;')
-        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-  ExpressionBody: 
+        IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw null;')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+    ExpressionBody: 
     null
 ");
 
@@ -263,7 +278,11 @@ Block[B1] - Block
     Predecessors: [B0]
     Statements (0)
     Next (Throw) Block[null]
-        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            (ImplicitReference)
+            Operand: 
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 Block[B2] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
@@ -292,16 +311,19 @@ class C
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
 IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public C() ... throw null;')
-  Initializer: 
+    Initializer: 
     null
-  BlockBody: 
+    BlockBody: 
     null
-  ExpressionBody: 
+    ExpressionBody: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> throw null')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'throw null')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'throw null')
         Expression: 
-          IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw null')
-            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+            IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw null')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ");
 
             VerifyFlowGraph(compilation, node1, expectedFlowGraph:
@@ -313,7 +335,11 @@ Block[B1] - Block
     Predecessors: [B0]
     Statements (0)
     Next (Throw) Block[null]
-        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsImplicit) (Syntax: 'null')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            (ImplicitReference)
+            Operand: 
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 Block[B2] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
@@ -349,18 +375,24 @@ class C
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
 IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null, IsInvalid) (Syntax: 'public C() ... throw null;')
-  Initializer: 
+    Initializer: 
     null
-  BlockBody: 
+    BlockBody: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ throw null; }')
-      IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw null;')
-        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
-  ExpressionBody: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> throw null')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw null')
-        Expression: 
-          IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw null')
+        IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw null;')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+    ExpressionBody: 
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> throw null')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw null')
+        Expression: 
+            IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw null')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
 ");
 
             VerifyFlowGraph(compilation, node1, expectedFlowGraph:
@@ -372,17 +404,23 @@ Block[B1] - Block
     Predecessors: [B0]
     Statements (0)
     Next (Throw) Block[null]
-        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
-
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            (ImplicitReference)
+            Operand: 
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
 .erroneous body {R1}
 {
     Block[B2] - Block [UnReachable]
         Predecessors (0)
         Statements (0)
         Next (Throw) Block[null]
-            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                (ImplicitReference)
+                Operand: 
+                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
 }
-
 Block[B3] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
@@ -519,16 +557,18 @@ class C
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B2]
-
 .erroneous body {R1}
 {
     Block[B1] - Block [UnReachable]
         Predecessors (0)
         Statements (0)
         Next (Throw) Block[null]
-            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                (ImplicitReference)
+                Operand: 
+                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
 }
-
 Block[B2] - Exit
     Predecessors: [B0]
     Statements (0)

@@ -69,14 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             );
         }
 
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundLambda(this.Syntax, this.UnboundLambda, this.Symbol, this.Body, this.Diagnostics, this.Binder, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            result.InferredReturnType = InferredReturnType;
-            return result;
-        }
-
         public TypeWithAnnotations GetInferredReturnType(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // Nullability (and conversions) are ignored.

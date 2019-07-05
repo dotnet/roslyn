@@ -436,13 +436,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDeconstructValuePlaceholder(this.Syntax, this.ValEscape, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundTupleOperandPlaceholder : BoundValuePlaceholderBase
@@ -474,13 +467,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundTupleOperandPlaceholder(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -514,13 +500,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAwaitableValuePlaceholder(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundDisposableValuePlaceholder : BoundValuePlaceholderBase
@@ -553,13 +532,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDisposableValuePlaceholder(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundDup : BoundExpression
@@ -590,13 +562,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDup(this.Syntax, this.RefKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundPassByCopy : BoundExpression
@@ -623,13 +588,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundPassByCopy(this.Syntax, this.Expression, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -665,13 +623,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundBadExpression(this.Syntax, this.ResultKind, this.Symbols, this.ChildBoundNodes, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -760,13 +711,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundTypeExpression(this.Syntax, this.AliasOpt, this.BoundContainingTypeOpt, this.BoundDimensionsOpt, this.TypeWithAnnotations, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundTypeOrValueExpression : BoundExpression
@@ -802,13 +746,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundTypeOrValueExpression(this.Syntax, this.Data, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -850,13 +787,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundNamespaceExpression(this.Syntax, this.NamespaceSymbol, this.AliasOpt, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundUnaryOperator : BoundExpression
@@ -897,13 +827,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundUnaryOperator(this.Syntax, this.OperatorKind, this.Operand, this.ConstantValueOpt, this.MethodOpt, this.ResultKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -949,13 +872,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundIncrementOperator(this.Syntax, this.OperatorKind, this.Operand, this.MethodOpt, this.OperandConversion, this.ResultConversion, this.ResultKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundAddressOfOperator : BoundExpression
@@ -987,13 +903,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAddressOfOperator(this.Syntax, this.Operand, this.IsManaged, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundPointerIndirectionOperator : BoundExpression
@@ -1021,13 +930,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundPointerIndirectionOperator(this.Syntax, this.Operand, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1064,13 +966,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundPointerElementAccess(this.Syntax, this.Expression, this.Index, this.Checked, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundRefTypeOperator : BoundExpression
@@ -1102,13 +997,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundRefTypeOperator(this.Syntax, this.Operand, this.GetTypeFromHandle, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundMakeRefOperator : BoundExpression
@@ -1136,13 +1024,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundMakeRefOperator(this.Syntax, this.Operand, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1175,13 +1056,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundRefValueOperator(this.Syntax, this.NullableAnnotation, this.Operand, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundFromEndIndexExpression : BoundExpression
@@ -1212,13 +1086,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundFromEndIndexExpression(this.Syntax, this.Operand, this.MethodOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1252,13 +1119,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundRangeExpression(this.Syntax, this.LeftOperandOpt, this.RightOperandOpt, this.MethodOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1319,13 +1179,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundBinaryOperator(this.Syntax, this.OperatorKind, this.ConstantValueOpt, this.MethodOpt, this.ResultKind, this.Left, this.Right, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundTupleBinaryOperator : BoundExpression
@@ -1364,13 +1217,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundTupleBinaryOperator(this.Syntax, this.Left, this.Right, this.OperatorKind, this.Operators, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1417,13 +1263,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundUserDefinedConditionalLogicalOperator(this.Syntax, this.OperatorKind, this.LogicalOperator, this.TrueOperator, this.FalseOperator, this.ResultKind, this.Left, this.Right, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundCompoundAssignmentOperator : BoundExpression
@@ -1469,13 +1308,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundCompoundAssignmentOperator(this.Syntax, this.Operator, this.Left, this.Right, this.LeftConversion, this.FinalConversion, this.ResultKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundAssignmentOperator : BoundExpression
@@ -1508,13 +1340,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAssignmentOperator(this.Syntax, this.Left, this.Right, this.IsRef, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1550,13 +1375,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDeconstructionAssignmentOperator(this.Syntax, this.Left, this.Right, this.IsUsed, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1595,13 +1413,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundNullCoalescingOperator(this.Syntax, this.LeftOperand, this.RightOperand, this.LeftConversion, this.OperatorResultKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundNullCoalescingAssignmentOperator : BoundExpression
@@ -1632,13 +1443,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundNullCoalescingAssignmentOperator(this.Syntax, this.LeftOperand, this.RightOperand, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1682,13 +1486,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundConditionalOperator(this.Syntax, this.IsRef, this.Condition, this.Consequence, this.Alternative, this.ConstantValueOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundArrayAccess : BoundExpression
@@ -1721,13 +1518,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundArrayAccess(this.Syntax, this.Expression, this.Indices, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundArrayLength : BoundExpression
@@ -1755,13 +1545,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundArrayLength(this.Syntax, this.Expression, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1794,13 +1577,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAwaitExpression(this.Syntax, this.Expression, this.AwaitableInfo, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1854,13 +1630,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundTypeOfOperator(this.Syntax, this.SourceType, this.GetTypeFromHandle, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundMethodDefIndex : BoundExpression
@@ -1899,13 +1668,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundMethodDefIndex(this.Syntax, this.Method, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundMaximumMethodDefIndex : BoundExpression
@@ -1937,13 +1699,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundMaximumMethodDefIndex(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1981,13 +1736,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundInstrumentationPayloadRoot(this.Syntax, this.AnalysisKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundModuleVersionId : BoundExpression
@@ -2020,13 +1768,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundModuleVersionId(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundModuleVersionIdString : BoundExpression
@@ -2058,13 +1799,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundModuleVersionIdString(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2103,13 +1837,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundSourceDocumentIndex(this.Syntax, this.Document, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2153,13 +1880,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundMethodInfo(this.Syntax, this.Method, this.GetMethodFromHandle, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundFieldInfo : BoundExpression
@@ -2202,13 +1922,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundFieldInfo(this.Syntax, this.Field, this.GetFieldFromHandle, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundDefaultExpression : BoundExpression
@@ -2235,13 +1948,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDefaultExpression(this.Syntax, this.TargetType, this.ConstantValueOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2278,13 +1984,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundIsOperator(this.Syntax, this.Operand, this.TargetType, this.Conversion, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundAsOperator : BoundExpression
@@ -2320,13 +2019,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAsOperator(this.Syntax, this.Operand, this.TargetType, this.Conversion, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundSizeOfOperator : BoundExpression
@@ -2357,13 +2049,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundSizeOfOperator(this.Syntax, this.SourceType, this.ConstantValueOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2411,13 +2096,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundConversion(this.Syntax, this.Operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValueOpt, this.ConversionGroupOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundReadOnlySpanFromArray : BoundExpression
@@ -2449,13 +2127,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundReadOnlySpanFromArray(this.Syntax, this.Operand, this.ConversionMethod, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2489,13 +2160,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundArgList(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundArgListOperator : BoundExpression
@@ -2525,13 +2189,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundArgListOperator(this.Syntax, this.Arguments, this.ArgumentRefKindsOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2570,13 +2227,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundFixedLocalCollectionInitializer(this.Syntax, this.ElementPointerType, this.ElementPointerTypeConversion, this.Expression, this.GetPinnableOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -3691,13 +3341,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundLiteral(this.Syntax, this.ConstantValueOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundThisReference : BoundExpression
@@ -3729,13 +3372,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundThisReference(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -3769,13 +3405,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundPreviousSubmissionReference(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundHostObjectMemberReference : BoundExpression
@@ -3808,13 +3437,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundHostObjectMemberReference(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundBaseReference : BoundExpression
@@ -3840,13 +3462,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundBaseReference(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -3898,13 +3513,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundLocal(this.Syntax, this.LocalSymbol, this.DeclarationKind, this.ConstantValueOpt, this.IsNullableUnknown, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundPseudoVariable : BoundExpression
@@ -3949,13 +3557,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundPseudoVariable(this.Syntax, this.LocalSymbol, this.EmitExpressions, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundRangeVariable : BoundExpression
@@ -3987,13 +3588,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundRangeVariable(this.Syntax, this.RangeVariableSymbol, this.Value, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -4032,13 +3626,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundParameter(this.Syntax, this.ParameterSymbol, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -4175,13 +3762,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundLabel(this.Syntax, this.Label, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -4350,13 +3930,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundUnconvertedSwitchExpression(this.Syntax, this.Expression, this.SwitchArms, this.DecisionDag, this.DefaultLabel, this.ReportedNotExhaustive, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundConvertedSwitchExpression : BoundSwitchExpression
@@ -4386,13 +3959,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundConvertedSwitchExpression(this.Syntax, this.NaturalTypeOpt, this.Expression, this.SwitchArms, this.DecisionDag, this.DefaultLabel, this.ReportedNotExhaustive, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -4999,13 +4565,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundSequencePointExpression(this.Syntax, this.Expression, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundSequence : BoundExpression
@@ -5042,13 +4601,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundSequence(this.Syntax, this.Locals, this.SideEffects, this.Value, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundSpillSequence : BoundExpression
@@ -5084,13 +4636,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundSpillSequence(this.Syntax, this.Locals, this.SideEffects, this.Value, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5132,13 +4677,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDynamicMemberAccess(this.Syntax, this.Receiver, this.TypeArgumentsOpt, this.Name, this.Invoked, this.Indexed, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5195,13 +4733,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDynamicInvocation(this.Syntax, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.ApplicableMethods, this.Expression, this.Arguments, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundConditionalAccess : BoundExpression
@@ -5233,13 +4764,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundConditionalAccess(this.Syntax, this.Receiver, this.AccessExpression, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5282,13 +4806,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundLoweredConditionalAccess(this.Syntax, this.Receiver, this.HasValueMethodOpt, this.WhenNotNull, this.WhenNullOpt, this.Id, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundConditionalReceiver : BoundExpression
@@ -5325,13 +4842,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundConditionalReceiver(this.Syntax, this.Id, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundComplexConditionalReceiver : BoundExpression
@@ -5363,13 +4873,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundComplexConditionalReceiver(this.Syntax, this.ValueTypeReceiver, this.ReferenceTypeReceiver, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5414,13 +4917,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundMethodGroup(this.Syntax, this.TypeArgumentsOpt, this.Name, this.Methods, this.LookupSymbolOpt, this.LookupError, this.Flags, this.ReceiverOpt, this.ResultKind, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundPropertyGroup : BoundMethodOrPropertyGroup
@@ -5447,13 +4943,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundPropertyGroup(this.Syntax, this.Properties, this.ReceiverOpt, this.ResultKind, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5515,13 +5004,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundCall(this.Syntax, this.ReceiverOpt, this.Method, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.IsDelegateCall, this.Expanded, this.InvokedAsExtensionMethod, this.ArgsToParamsOpt, this.ResultKind, this.BinderOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundEventAssignmentOperator : BoundExpression
@@ -5562,13 +5044,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundEventAssignmentOperator(this.Syntax, this.Event, this.IsAddition, this.IsDynamic, this.ReceiverOpt, this.Argument, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5617,13 +5092,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAttribute(this.Syntax, this.Constructor, this.ConstructorArguments, this.ConstructorArgumentNamesOpt, this.ConstructorArgumentsToParamsOpt, this.ConstructorExpanded, this.NamedArguments, this.ResultKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5682,13 +5150,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundObjectCreationExpression(this.Syntax, this.Constructor, this.ConstructorsGroup, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Expanded, this.ArgsToParamsOpt, this.ConstantValueOpt, this.InitializerExpressionOpt, this.BinderOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal abstract partial class BoundTupleExpression : BoundExpression
@@ -5734,13 +5195,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundTupleLiteral(this.Syntax, this.Arguments, this.ArgumentNamesOpt, this.InferredNamesOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundConvertedTupleLiteral : BoundTupleExpression
@@ -5767,13 +5221,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundConvertedTupleLiteral(this.Syntax, this.NaturalTypeOpt, this.Arguments, this.ArgumentNamesOpt, this.InferredNamesOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5820,13 +5267,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDynamicObjectCreationExpression(this.Syntax, this.Name, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.InitializerExpressionOpt, this.ApplicableMethods, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundNoPiaObjectCreationExpression : BoundExpression
@@ -5856,13 +5296,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundNoPiaObjectCreationExpression(this.Syntax, this.GuidString, this.InitializerExpressionOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5904,13 +5337,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundObjectInitializerExpression(this.Syntax, this.Initializers, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5966,13 +5392,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundObjectInitializerMember(this.Syntax, this.MemberSymbol, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Expanded, this.ArgsToParamsOpt, this.ResultKind, this.ReceiverType, this.BinderOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundDynamicObjectInitializerMember : BoundExpression
@@ -6017,13 +5436,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDynamicObjectInitializerMember(this.Syntax, this.MemberName, this.ReceiverType, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundCollectionInitializerExpression : BoundObjectInitializerExpressionBase
@@ -6048,13 +5460,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundCollectionInitializerExpression(this.Syntax, this.Initializers, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6107,13 +5512,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundCollectionElementInitializer(this.Syntax, this.AddMethod, this.Arguments, this.ImplicitReceiverOpt, this.Expanded, this.ArgsToParamsOpt, this.InvokedAsExtensionMethod, this.ResultKind, this.BinderOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundDynamicCollectionElementInitializer : BoundDynamicInvocableBase
@@ -6143,13 +5541,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDynamicCollectionElementInitializer(this.Syntax, this.ApplicableMethods, this.Expression, this.Arguments, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6182,13 +5573,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundImplicitReceiver(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6225,13 +5609,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAnonymousObjectCreationExpression(this.Syntax, this.Constructor, this.Arguments, this.Declarations, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6271,13 +5648,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAnonymousPropertyDeclaration(this.Syntax, this.Property, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundNewT : BoundExpression
@@ -6304,13 +5674,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundNewT(this.Syntax, this.InitializerExpressionOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6346,13 +5709,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDelegateCreationExpression(this.Syntax, this.Argument, this.MethodOpt, this.IsExtensionMethod, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundArrayCreation : BoundExpression
@@ -6384,13 +5740,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundArrayCreation(this.Syntax, this.Bounds, this.InitializerOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundArrayInitialization : BoundExpression
@@ -6417,13 +5766,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundArrayInitialization(this.Syntax, this.Initializers, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6471,13 +5813,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundStackAllocArrayCreation(this.Syntax, this.ElementType, this.Count, this.InitializerOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundConvertedStackAllocExpression : BoundStackAllocArrayCreation
@@ -6503,13 +5838,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundConvertedStackAllocExpression(this.Syntax, this.ElementType, this.Count, this.InitializerOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6555,13 +5883,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundFieldAccess(this.Syntax, this.ReceiverOpt, this.FieldSymbol, this.ConstantValueOpt, this.ResultKind, this.IsByValue, this.IsDeclaration, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundHoistedFieldAccess : BoundExpression
@@ -6600,13 +5921,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundHoistedFieldAccess(this.Syntax, this.FieldSymbol, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundPropertyAccess : BoundExpression
@@ -6641,13 +5955,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundPropertyAccess(this.Syntax, this.ReceiverOpt, this.PropertySymbol, this.ResultKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6686,13 +5993,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundEventAccess(this.Syntax, this.ReceiverOpt, this.EventSymbol, this.IsUsableAsField, this.ResultKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6747,13 +6047,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundIndexerAccess(this.Syntax, this.ReceiverOpt, this.Indexer, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Expanded, this.ArgsToParamsOpt, this.BinderOpt, this.UseSetterForDefaultArgumentGeneration, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundIndexOrRangePatternIndexerAccess : BoundExpression
@@ -6793,13 +6086,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundIndexOrRangePatternIndexerAccess(this.Syntax, this.Receiver, this.LengthOrCountProperty, this.PatternSymbol, this.Argument, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6841,13 +6127,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDynamicIndexerAccess(this.Syntax, this.ReceiverOpt, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.ApplicableIndexers, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6927,13 +6206,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new UnboundLambda(this.Syntax, this.Data, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7026,13 +6298,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundNameOfOperator(this.Syntax, this.Argument, this.ConstantValueOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundInterpolatedString : BoundExpression
@@ -7059,13 +6324,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundInterpolatedString(this.Syntax, this.Parts, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7099,13 +6357,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundStringInsert(this.Syntax, this.Value, this.Alignment, this.Format, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7149,13 +6400,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundIsPatternExpression(this.Syntax, this.Expression, this.Pattern, this.DecisionDag, this.WhenTrueLabel, this.WhenFalseLabel, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7415,13 +6659,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDiscardExpression(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundThrowExpression : BoundExpression
@@ -7448,13 +6685,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundThrowExpression(this.Syntax, this.Expression, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7498,13 +6728,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new OutVariablePendingInference(this.Syntax, this.VariableSymbol, this.ReceiverOpt, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class DeconstructionVariablePendingInference : VariablePendingInference
@@ -7528,13 +6751,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new DeconstructionVariablePendingInference(this.Syntax, this.VariableSymbol, this.ReceiverOpt, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7651,13 +6867,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundExpressionWithNullability(this.Syntax, this.Expression, this.NullableAnnotation, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 

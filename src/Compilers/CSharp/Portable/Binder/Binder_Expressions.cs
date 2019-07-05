@@ -4691,7 +4691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementInitializer,
                     applicableMethods: ImmutableArray<MethodSymbol>.Empty,
                     implicitReceiver,
-                    arguments: boundElementInitializerExpressions,
+                    arguments: boundElementInitializerExpressions.SelectAsArray(e => BindToNaturalType(e, diagnostics)),
                     type: GetSpecialType(SpecialType.System_Void, diagnostics, elementInitializer),
                     hasErrors: hasErrors);
             }
