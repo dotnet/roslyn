@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 }
 
                 return SwitchExpression(
-                    node.Expression,
+                    node.Expression.Parenthesize(),
                     Token(leading: default, SyntaxKind.SwitchKeyword, node.CloseParenToken.TrailingTrivia),
                     Token(SyntaxKind.OpenBraceToken),
                     SeparatedList(
