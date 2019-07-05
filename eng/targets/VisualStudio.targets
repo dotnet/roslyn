@@ -82,9 +82,9 @@
       <VSIXCopyLocalReferenceSourceItem Include="@(_AssetsByPackageId->'%(Path)')">
         <ForceIncludeInVsix>true</ForceIncludeInVsix>
         <Private>true</Private>
-        <Ngen Condition="'%(Optimization)' == 'true'">true</Ngen>
-        <NgenArchitecture Condition="'%(Optimization)' == 'true'">All</NgenArchitecture>
-        <NgenPriority Condition="'%(Optimization)' == 'true'">3</NgenPriority>
+        <Ngen Condition="'%(_AssetsByPackageId.Optimization)' == 'true'">true</Ngen>
+        <NgenArchitecture Condition="'%(_AssetsByPackageId.Optimization)' == 'true'">All</NgenArchitecture>
+        <NgenPriority Condition="'%(_AssetsByPackageId.Optimization)' == 'true'">3</NgenPriority>
       </VSIXCopyLocalReferenceSourceItem>
     </ItemGroup>
   </Target>
