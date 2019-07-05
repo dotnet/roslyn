@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class SemanticTests : CSharpTestBase
     {
         [Fact]
-        public void UnamangedConstraintOnExtensionMethod()
+        public void UnmanagedConstraintOnExtensionMethod()
         {
             var src = @"
 public static class FooExtensions
