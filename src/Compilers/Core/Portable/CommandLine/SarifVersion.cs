@@ -10,12 +10,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The original, non-standardized version of the SARIF format.
         /// </summary>
-        V1_0_0,
+        V1_0_0 = 1,
 
         /// <summary>
         /// The first standardized version of the SARIF format.
         /// </summary>
-        V2_1_0,
+        V2_1_0 = 2,
 
         /// <summary>
         /// The default SARIF version, which is v1.0.0 for compatibility with

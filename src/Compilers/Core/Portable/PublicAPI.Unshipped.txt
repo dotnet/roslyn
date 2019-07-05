@@ -38,10 +38,10 @@ Microsoft.CodeAnalysis.ITypeSymbol.ToMinimalDisplayParts(Microsoft.CodeAnalysis.
 Microsoft.CodeAnalysis.ITypeSymbol.ToMinimalDisplayString(Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.NullableFlowState topLevelNullability, int position, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> string
 Microsoft.CodeAnalysis.NullabilityInfo
 Microsoft.CodeAnalysis.SarifVersion
-Microsoft.CodeAnalysis.SarifVersion.Default = 0 -> Microsoft.CodeAnalysis.SarifVersion
+Microsoft.CodeAnalysis.SarifVersion.Default = 1 -> Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.SarifVersion.Latest = 2147483647 -> Microsoft.CodeAnalysis.SarifVersion
-Microsoft.CodeAnalysis.SarifVersion.V1_0_0 = 0 -> Microsoft.CodeAnalysis.SarifVersion
-Microsoft.CodeAnalysis.SarifVersion.V2_1_0 = 1 -> Microsoft.CodeAnalysis.SarifVersion
+Microsoft.CodeAnalysis.SarifVersion.V1_0_0 = 1 -> Microsoft.CodeAnalysis.SarifVersion
+Microsoft.CodeAnalysis.SarifVersion.V2_1_0 = 2 -> Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.SarifVersionFacts
 Microsoft.CodeAnalysis.NullabilityInfo.Annotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.NullabilityInfo.Equals(Microsoft.CodeAnalysis.NullabilityInfo other) -> bool

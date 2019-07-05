@@ -1195,15 +1195,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "sarifversion":
                             unquoted = RemoveQuotesAndSlashes(value);
-                           if (string.IsNullOrEmpty(unquoted))
-                           {
+                            if (string.IsNullOrEmpty(unquoted))
+                            {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, ":<version>", RemoveQuotesAndSlashes(arg));
-                           }
-                           else if (!SarifVersionFacts.TryParse(unquoted, out sarifVersion))
-                           {
-                               AddDiagnostic(diagnostics, ErrorCode.ERR_BadSarifVersion, unquoted);
-                           }
-                           continue;
+                            }
+                            else if (!SarifVersionFacts.TryParse(unquoted, out sarifVersion))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_BadSarifVersion, unquoted);
+                            }
+                            continue;
 
                         case "appconfig":
                             unquoted = RemoveQuotesAndSlashes(value);
