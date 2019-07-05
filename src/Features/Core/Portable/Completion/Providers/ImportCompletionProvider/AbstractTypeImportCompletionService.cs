@@ -262,13 +262,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     var isGeneric = symbol.Arity > 0;
 
                     // Need to determine if a type is an attribute up front since we want to filter out 
-                    // non-attribute types if in attribute context. We can't do this lazily since we don't hold 
-                    // on to symbols.
-                    //
-                    // Also for attribute types with "Attribute" suffix, we only cache items with their full name 
-                    // (and creating those w/o suffix on ther fly if in attribute context), because we assume it's
-                    // much more common to trigger completion in non-attribute context.
-                    var isAttribute = symbol.IsAttribute();
+                    // non-attribute types when in attribute context. We can't do this lazily since we don't hold 
+                    // on to symbols. However, the cost of calling `IsAttribute` on every top-level type symbols 
+                    // is prohibitively high, so we opt for the heuristic that would do the simple textual "Attribute" 
+                    // suffix check first, then the more expensive symbolic check. As a result, all unimported
+                    // attribute types that don't have "Attribute" suffix would be filtered out when in attribute context.
+                    var isAttribute = symbol.Name.HasAttributeSuffix(isCaseSensitive: false) && symbol.IsAttribute();
 
                     var item = TypeImportCompletionItem.Create(symbol, containingNamespace, _genericTypeSuffix);
                     item.IsCached = true;
