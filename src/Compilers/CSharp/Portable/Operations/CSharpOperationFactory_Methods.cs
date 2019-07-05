@@ -444,11 +444,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 var currentDeclaration = declarations[currentDeclarationIndex];
 
-                // https://github.com/dotnet/roslyn/issues/35044: This works for simple success cases, but does not work for failures. Likely will have to do something more complicated here involving rebinding the
-                // declarators based on the newly constructed anonymous type symbol above and matching them to the existing symbol
-                if ((object)currentProperty == currentDeclaration.Property ||
-                    (currentDeclaration.Property.Name == currentProperty.Name &&
-                     currentDeclaration.Property.Type.Equals(currentProperty.Type, TypeCompareKind.ConsiderEverything | TypeCompareKind.AllNullableIgnoreOptions)))
+                if (currentProperty.MemberIndexOpt == currentDeclaration.Property.MemberIndexOpt)
                 {
                     currentDeclarationIndex++;
                     return currentDeclaration;

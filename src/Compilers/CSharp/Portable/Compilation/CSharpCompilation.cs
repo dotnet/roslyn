@@ -179,20 +179,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// True if we should enable nullable semantic analysis in this compilation.
         /// </summary>
-        // Note that this is intentionally not conditioned off RunNullableWalker currently. Once we fully enable
-        // the nullable analysis semantic model feature and feel confident in it, we only run the analysis if
-        // the feature flag is set.
         internal bool NullableSemanticAnalysisEnabled
         {
             get
             {
-                const string NullableAnalysisFlag = "run-nullable-analysis";
-                if (Feature(NullableAnalysisFlag) is "false")
+                var nullableAnalysisFlag = Feature("run-nullable-analysis");
+                if (nullableAnalysisFlag == "false")
                 {
                     return false;
                 }
 
-                return ShouldRunNullableWalker || Feature(NullableAnalysisFlag) is "true";
+                return ShouldRunNullableWalker || nullableAnalysisFlag == "true";
             }
         }
 

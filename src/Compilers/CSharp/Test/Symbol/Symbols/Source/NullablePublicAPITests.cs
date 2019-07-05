@@ -1085,7 +1085,6 @@ class C
                 specTypeInfo = model.GetSpeculativeTypeInfo(position, newCoalesce, SpeculativeBindingOption.BindAsExpression);
                 Assert.Equal(PublicNullableFlowState.NotNull, specTypeInfo.Nullability.FlowState);
             }
-
         }
 
         [Fact]
