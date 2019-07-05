@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
         {
             throw ExceptionUtilities.UnexpectedValue(node.Kind);
-            // return VisitTupleExpression(node);
         }
 
         public override BoundNode VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)

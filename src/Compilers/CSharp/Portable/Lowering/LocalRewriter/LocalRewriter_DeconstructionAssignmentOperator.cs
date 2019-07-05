@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var rightPart = rightParts[i];
                     if (inInit)
                     {
-                        rightPart = EvaluateSideEffectingArgumentToTemp(VisitExpression(rightPart), effects.init, temps);
+                        rightPart = EvaluateSideEffectingArgumentToTemp(rightPart, effects.init, temps);
                     }
                     BoundExpression leftTarget = leftTargets[i].Single;
 
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(!IsTupleExpression(right.Kind));
 
-                BoundExpression evaluationResult = EvaluateSideEffectingArgumentToTemp(VisitExpression(right),
+                BoundExpression evaluationResult = EvaluateSideEffectingArgumentToTemp(right,
                     inInit ? effects.init : effects.deconstructions, temps);
 
                 inInit = false;

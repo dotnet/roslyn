@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 LocalSymbol rhsTemp = _factory.SynthesizedLocal(exprType);
 
-                BoundExpression boundRhs = new BoundLocal(syntax, rhsTemp, null, exprType) { WasCompilerGenerated = true };
+                BoundExpression boundRhs = new BoundLocal(syntax, rhsTemp, null, exprType);
 
                 BoundExpression rhsAssignment = new BoundAssignmentOperator(
                     syntax,

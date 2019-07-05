@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.TypeExpression:
                     return false;
 
-                // PROTOTYPE(ngafter): Must add support for a (converted) method group.  It cannot change if the receiver cannot change.
+                // CONSIDER: Could add support for a (converted) method group.  It cannot change if the receiver cannot change.
 
                 default:
                     return true;

@@ -107,6 +107,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return (_attributes & BoundNodeAttributes.HasErrors) != 0;
             }
+            protected set
+            {
+                if (value)
+                {
+                    _attributes |= BoundNodeAttributes.HasErrors;
+                }
+                else
+                {
+                    Debug.Assert((_attributes & BoundNodeAttributes.HasErrors) == 0,
+                        "HasErrors flag should not be reset here");
+                }
+            }
         }
 
         public SyntaxTree SyntaxTree
@@ -268,6 +280,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// WasConverted flag is used for debugging purposes only (not to direct the behavior of semantic analysis).
+        /// It is used on BoundLocal and BoundParameter to check that every such rvalue that has not been converted to
+        /// some type has been converted to its natural type.
+        /// </summary>
         public bool WasConverted
         {
             get
@@ -278,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
 #endif
             }
-            internal set
+            protected set
             {
 #if DEBUG
                 Debug.Assert((_attributes & BoundNodeAttributes.WasConverted) == 0, "WasConverted flag should not be set twice or reset");
@@ -304,13 +321,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Set the HasErrors flag by mutating the given node.  This is done after binding at the top level when an error
-        /// was reported.
+        /// Return a clone of the current node with the HasErrors flag set.
         /// </summary>
-        internal void DangerousSetHasErrors()
+        internal BoundNode WithHasErrors()
         {
-            // PROTOTYPE(ngafter): this should really be done by cloning the node and setting the flag on the clone so it isn't dangerous
-            this._attributes |= BoundNodeAttributes.HasErrors;
+            if (this.HasErrors)
+                return this;
+
+            var clone = (BoundNode)this.MemberwiseClone();
+            clone.HasErrors = true;
+            return clone;
         }
 
 #if DEBUG

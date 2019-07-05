@@ -1085,7 +1085,7 @@ class D {}
             Assert.Equal(5, invocations.Length);
 
             var symbolInfo = model.GetSymbolInfo(invocations[0].Expression);
-            // Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
             Assert.Equal(4, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("void Program.M(A a)", symbolInfo.CandidateSymbols[0].ToTestDisplayString());
             Assert.Equal("void Program.M(B b)", symbolInfo.CandidateSymbols[1].ToTestDisplayString());

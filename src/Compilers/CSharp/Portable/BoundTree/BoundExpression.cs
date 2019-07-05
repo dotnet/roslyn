@@ -47,6 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
         }
 
+        internal new BoundExpression WithHasErrors()
+        {
+            return (BoundExpression)base.WithHasErrors();
+        }
+
         internal bool NeedsToBeConverted()
         {
             switch (Kind)
@@ -54,8 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.TupleLiteral:
                 case BoundKind.UnconvertedSwitchExpression:
 #if DEBUG
-                case BoundKind.Local:
-                case BoundKind.Parameter:
+                case BoundKind.Local when !WasConverted:
+                case BoundKind.Parameter when !WasConverted:
 #endif
                     return true;
                 default:

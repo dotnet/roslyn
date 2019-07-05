@@ -2958,6 +2958,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion visitors
     }
 
+    /// <summary>
+    /// The possible places that we are processing when there is a region.
+    /// </summary>
+    /// <remarks>
+    /// This should be nested inside <see cref="AbstractFlowPass{TLocalState}"/> but is not due to https://github.com/dotnet/roslyn/issues/36992 .
+    /// </remarks>
     internal enum RegionPlace { Before, Inside, After };
 }
 

@@ -2730,19 +2730,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var kind = result.ConversionForArg(arg);
                 BoundExpression argument = arguments[arg];
 
-                if (!kind.IsIdentity || argument.NeedsToBeConverted())
+                // CONSIDER: should we create an (Identity) conversion when the kind is Identity but the types differ?
+                if (!kind.IsIdentity)
                 {
-                    TypeWithAnnotations typeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
+                    TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
 
                     // NOTE: for some reason, dev10 doesn't report this for indexer accesses.
-                    if (!methodResult.Member.IsIndexer() && !argument.HasAnyErrors && typeWithAnnotations.Type.IsUnsafe())
+                    if (!methodResult.Member.IsIndexer() && !argument.HasAnyErrors && parameterTypeWithAnnotations.Type.IsUnsafe())
                     {
                         // CONSIDER: dev10 uses the call syntax, but this seems clearer.
                         ReportUnsafeIfNotAllowed(argument.Syntax, diagnostics);
                         //CONSIDER: Return a bad expression so that HasErrors is true?
                     }
 
-                    arguments[arg] = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, typeWithAnnotations.Type, diagnostics);
+                    arguments[arg] = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, parameterTypeWithAnnotations.Type, diagnostics);
                 }
                 else if (argument.Kind == BoundKind.OutVariablePendingInference)
                 {
@@ -2759,6 +2760,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
                     Debug.Assert(parameterTypeWithAnnotations.HasType);
                     arguments[arg] = ((BoundDiscardExpression)argument).SetInferredTypeWithAnnotations(parameterTypeWithAnnotations);
+                }
+                else if (argument.NeedsToBeConverted())
+                {
+                    Debug.Assert(kind.IsIdentity);
+                    if (argument is BoundTupleLiteral sourceTuple)
+                    {
+                        TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
+                        TupleTypeSymbol.ReportNamesMismatchesIfAny(parameterTypeWithAnnotations.Type, sourceTuple, diagnostics);
+                    }
+
+                    arguments[arg] = BindToNaturalType(argument, diagnostics);
                 }
             }
         }
