@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
         }
 
         private RemoteDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider)
-            : base(workspace, diagnosticService, provider)
+            : base(workspace, provider)
         {
             _source = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);
             AddInitialTableSource(workspace.CurrentSolution, _source);
