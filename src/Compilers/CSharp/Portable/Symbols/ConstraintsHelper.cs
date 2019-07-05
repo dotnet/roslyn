@@ -873,8 +873,11 @@ hasRelatedInterfaces:
                     diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.Type)));
                     return false;
                 }
-                else if (managedKind == ManagedKind.UnmanagedWithGenerics)
+                else if (managedKind == ManagedKind.UnmanagedWithGenerics && currentCompilation is object)
                 {
+                    // In batch scenarios currentCompilation should always be non-null, but the public API
+                    // can check constraints in multiple places and there may not be a current compilation.
+                    // For these scenarios, we'll skip checking
                     var csDiagnosticInfo = MessageID.IDS_FeatureUnmanagedConstructedTypes
                         .GetFeatureAvailabilityDiagnosticInfoOpt((CSharpCompilation)currentCompilation);
                     if (csDiagnosticInfo != null)
