@@ -234,6 +234,15 @@ namespace Microsoft.CodeAnalysis
         public AssemblyIdentityComparer AssemblyIdentityComparer { get; protected set; }
 
         /// <summary>
+        /// Gets the default nullable context state in this compilation.
+        /// </summary>
+        /// <remarks>
+        /// This context does not apply to files that are marked as generated. Nullable is off
+        /// by default in those locations.
+        /// </remarks>
+        public NullableContextOptions NullableContextOptions { get; protected set; }
+
+        /// <summary>
         /// A set of strings designating experimental compiler features that are to be enabled.
         /// </summary>
         [Obsolete]
