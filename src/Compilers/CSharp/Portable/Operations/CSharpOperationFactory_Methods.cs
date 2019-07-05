@@ -395,9 +395,9 @@ namespace Microsoft.CodeAnalysis.Operations
                         isImplicit: true);
 
                 // Find matching declaration for the current argument.
-                IPropertySymbol property = AnonymousTypeManager.GetAnonymousTypeProperty((NamedTypeSymbol)type, i);
-                if (currentDeclarationIndex >= declarations.Length ||
-                    (object)property != declarations[currentDeclarationIndex].Property)
+                PropertySymbol property = AnonymousTypeManager.GetAnonymousTypeProperty((NamedTypeSymbol)type, i);
+                BoundAnonymousPropertyDeclaration anonymousProperty = getDeclaration(declarations, property, ref currentDeclarationIndex);
+                if (anonymousProperty is null)
                 {
                     // No matching declaration, synthesize a property reference to be assigned.
                     target = new PropertyReferenceOperation(
@@ -413,7 +413,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
                 else
                 {
-                    BoundAnonymousPropertyDeclaration anonymousProperty = declarations[currentDeclarationIndex++];
                     target = new PropertyReferenceOperation(anonymousProperty.Property,
                                                             instance,
                                                             ImmutableArray<IArgumentOperation>.Empty,
@@ -435,6 +434,24 @@ namespace Microsoft.CodeAnalysis.Operations
 
             Debug.Assert(currentDeclarationIndex == declarations.Length);
             return builder.ToImmutableAndFree();
+
+            static BoundAnonymousPropertyDeclaration getDeclaration(ImmutableArray<BoundAnonymousPropertyDeclaration> declarations, PropertySymbol currentProperty, ref int currentDeclarationIndex)
+            {
+                if (currentDeclarationIndex >= declarations.Length)
+                {
+                    return null;
+                }
+
+                var currentDeclaration = declarations[currentDeclarationIndex];
+
+                if (currentProperty.MemberIndexOpt == currentDeclaration.Property.MemberIndexOpt)
+                {
+                    currentDeclarationIndex++;
+                    return currentDeclaration;
+                }
+
+                return null;
+            }
         }
 
         internal class Helper

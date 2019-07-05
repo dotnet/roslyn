@@ -3745,7 +3745,7 @@ class C
         string? s = null;
         new C(s);
     }
-}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -3782,7 +3782,7 @@ class C
         IEnumerable<string?> s;
         new C(s);
     }
-}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+}");
         }
     }
 }
