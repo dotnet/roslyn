@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     // See also VB and C# command line unit tests for additional coverage.
-    [Trait(Traits.Feature, Traits.Features.SarifLogging)]
+    [Trait(Traits.Feature, Traits.Features.SarifErrorLogging)]
     public class SarifV2ErrorLoggerTests : SarifErrorLoggerTests
     {
         internal override SarifErrorLogger CreateLogger(

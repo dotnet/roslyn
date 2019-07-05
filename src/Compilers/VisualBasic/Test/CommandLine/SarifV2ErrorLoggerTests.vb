@@ -14,7 +14,7 @@ Imports Roslyn.Test.Utilities.SharedResourceHelpers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 
-    <Trait(Traits.Feature, Traits.Features.SarifLogging)>
+    <Trait(Traits.Feature, Traits.Features.SarifErrorLogging)>
     Public Class SarifV2ErrorLoggerTests
         Inherits BasicTestBase
 
