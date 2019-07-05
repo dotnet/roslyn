@@ -8319,6 +8319,47 @@ class C
 ");
         }
 
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void SyntaxOffset_OutVarInSwitchExpresison()
+        {
+            var source = @"class C { static object G() { return N(out var x) switch { null => x switch {1 =>  1, _ => 2 }, _ => 1 }; } static object N(out int x) { x = 1; return null; } }";
+
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb("C.G", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""G"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""19"" />
+          <slot kind=""35"" offset=""9"" />
+          <slot kind=""35"" offset=""9"" />
+          <slot kind=""28"" offset=""39"" />
+          <slot kind=""35"" offset=""39"" />
+          <slot kind=""28"" offset=""39"" ordinal=""1"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""29"" endLine=""1"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x1"" startLine=""1"" startColumn=""31"" endLine=""1"" endColumn=""106"" document=""1"" />
+        <entry offset=""0x37"" startLine=""1"" startColumn=""107"" endLine=""1"" endColumn=""108"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x3a"">
+        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x3a"" attributes=""0"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
         #endregion
 
         [WorkItem(4370, "https://github.com/dotnet/roslyn/issues/4370")]
