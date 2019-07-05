@@ -3920,8 +3920,6 @@ class C
         public void RecursiveSwitchExpression()
         {
             var source = @"
-using System.Threading.Tasks;
-
 class C
 {
     static object G(object o)
@@ -4139,7 +4137,6 @@ class C
         public void SwitchExpressionWithOutVar()
         {
             var source = @"
-using System.Threading.Tasks;
 class C
 {
     static object G()
