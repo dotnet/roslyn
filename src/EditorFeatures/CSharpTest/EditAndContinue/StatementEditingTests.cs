@@ -8344,6 +8344,10 @@ class C
         var a = F(1, await F(1)), b = F(1, await G(1));
         b = F(1, await F(1));
         b += await F(1);
+        var r = (x, y) switch {
+            (Task<object> obj, 3) => await obj,
+            _ => 0
+        };
     }
 }
 ";
@@ -8360,10 +8364,14 @@ class C
         var a = F(1, await F(2)), b = F(1, await G(2));
         b = F(1, await F(2));
         b += await F(2);
+        var r = (x, y) switch {
+            (Task<int> t, 3) => await t,
+            _ => 0
+        };
     }
 }
 ";
-            var edits = GetTopEdits(src1, src2);
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
 
             // consider: these edits can be allowed if we get more sophisticated
             edits.VerifyRudeDiagnostics(
@@ -8375,7 +8383,8 @@ class C
                 Diagnostic(RudeEditKind.AwaitStatementUpdate, "var a = F(1, await F(2)), b = F(1, await G(2));"),
                 Diagnostic(RudeEditKind.AwaitStatementUpdate, "var a = F(1, await F(2)), b = F(1, await G(2));"),
                 Diagnostic(RudeEditKind.AwaitStatementUpdate, "b = F(1, await F(2));"),
-                Diagnostic(RudeEditKind.AwaitStatementUpdate, "b += await F(2);"));
+                Diagnostic(RudeEditKind.AwaitStatementUpdate, "b += await F(2);"),
+                Diagnostic(RudeEditKind.AwaitStatementUpdate, "var r = (x, y) switch {\r\n            (Task<int> t, 3) => await t,\r\n            _ => 0\r\n        };"));
         }
 
         [Fact]
@@ -9045,7 +9054,7 @@ if (o is string { Length: 7 } s7) return 5;
         [Fact]
         public void RecursivePatterns_Update()
         {
-            var src1 = @"var r = obj switch
+            var src1 = @"var r = await GetObj() switch
 {
     string s when s.Length > 0 => (s, obj1) switch
     {
@@ -9057,7 +9066,7 @@ if (o is string { Length: 7 } s7) return 5;
 };
 ";
 
-            var src2 = @"var r = obj switch
+            var src2 = @"var r = await GetObj() switch
 {
     string s when s.Length > 0 => (s, obj1) switch
     {
@@ -9072,7 +9081,7 @@ if (o is string { Length: 7 } s7) return 5;
             var edits = GetMethodEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
 
             edits.VerifyEdits(
-                @"Update [r = obj switch
+                @"Update [r = await GetObj() switch
 {
     string s when s.Length > 0 => (s, obj1) switch
     {
@@ -9081,7 +9090,7 @@ if (o is string { Length: 7 } s7) return 5;
     },
     int i => i * i,
     _ => -1
-}]@6 -> [r = obj switch
+}]@6 -> [r = await GetObj() switch
 {
     string s when s.Length > 0 => (s, obj1) switch
     {
@@ -9091,8 +9100,8 @@ if (o is string { Length: 7 } s7) return 5;
     double i => i * i,
     _ => -1
 }]@6",
-                "Reorder [i]@144 -> @106",
-                "Update [i]@144 -> [i1]@106");
+                "Reorder [i]@155 -> @117",
+                "Update [i]@155 -> [i1]@117");
         }
 
         [Fact]

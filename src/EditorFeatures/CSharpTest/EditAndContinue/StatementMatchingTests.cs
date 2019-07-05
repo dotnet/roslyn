@@ -1743,6 +1743,7 @@ if (o is string { Length: 7 } s7) return 5;
     string s when s.Length > 0 => (s, obj1) switch
     {
         (""a"", int i) => i,
+        ("""", Task<int> t) => await t,
         _ => 0
     },
     int i => i * i,
@@ -1755,6 +1756,7 @@ if (o is string { Length: 7 } s7) return 5;
     string s when s.Length > 0 => (s, obj1) switch
     {
         (""b"", decimal i1) => i1,
+        ("""", Task<object> obj2) => await obj2,
         _ => 0
     },
     double i => i * i,
@@ -1766,12 +1768,14 @@ if (o is string { Length: 7 } s7) return 5;
             var actual = ToMatchingPairs(match);
 
             var expected = new MatchingPairs {
-                { "var r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"a\", int i) => i,         _ => 0     },     int i => i * i,     _ => -1 };", "var r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"b\", decimal i1) => i1,         _ => 0     },     double i => i * i,     _ => -1 };" },
-                { "var r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"a\", int i) => i,         _ => 0     },     int i => i * i,     _ => -1 }", "var r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"b\", decimal i1) => i1,         _ => 0     },     double i => i * i,     _ => -1 }" },
-                { "r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"a\", int i) => i,         _ => 0     },     int i => i * i,     _ => -1 }", "r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"b\", decimal i1) => i1,         _ => 0     },     double i => i * i,     _ => -1 }" },
+                { "var r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"a\", int i) => i,         (\"\", Task<int> t) => await t,         _ => 0     },     int i => i * i,     _ => -1 };", "var r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"b\", decimal i1) => i1,         (\"\", Task<object> obj2) => await obj2,         _ => 0     },     double i => i * i,     _ => -1 };" },
+                { "var r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"a\", int i) => i,         (\"\", Task<int> t) => await t,         _ => 0     },     int i => i * i,     _ => -1 }", "var r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"b\", decimal i1) => i1,         (\"\", Task<object> obj2) => await obj2,         _ => 0     },     double i => i * i,     _ => -1 }" },
+                { "r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"a\", int i) => i,         (\"\", Task<int> t) => await t,         _ => 0     },     int i => i * i,     _ => -1 }", "r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"b\", decimal i1) => i1,         (\"\", Task<object> obj2) => await obj2,         _ => 0     },     double i => i * i,     _ => -1 }" },
                 { "s", "s" },
                 { "when s.Length > 0", "when s.Length > 0" },
                 { "i", "i" },
+                { "t", "obj2" },
+                { "await t", "await obj2" },
                 { "i", "i1" }
             };
 
