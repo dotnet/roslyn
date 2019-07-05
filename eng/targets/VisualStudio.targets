@@ -70,11 +70,21 @@
       <_AssetsByPackageId Remove="@(_ExcludedPackageId)" />
     </ItemGroup>
 
+    <!-- Update assets to mark those need to be optimized -->
+    <ItemGroup>
+      <_AssetsByPackageId Update="@(NuGetPackageToIncludeInVsix)">
+        <Optimization Condition="'@(NuGetPackageToIncludeInVsix->'%(Optimization)')' == 'true'">true</Optimization>
+      </_AssetsByPackageId>
+    </ItemGroup>
+
     <!-- Include the assets in the VSIX -->
     <ItemGroup>
       <VSIXCopyLocalReferenceSourceItem Include="@(_AssetsByPackageId->'%(Path)')">
         <ForceIncludeInVsix>true</ForceIncludeInVsix>
         <Private>true</Private>
+        <Ngen Condition="'%(Optimization)' == 'true'">true</Ngen>
+        <NgenArchitecture Condition="'%(Optimization)' == 'true'">All</NgenArchitecture>
+        <NgenPriority Condition="'%(Optimization)' == 'true'">3</NgenPriority>
       </VSIXCopyLocalReferenceSourceItem>
     </ItemGroup>
   </Target>
