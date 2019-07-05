@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                         editor.InsertAfter(fieldDeclarators.Key, newDeclaration);
                     }
 
-                    editor.RemoveNode(fieldDeclarators.Key);
+                    editor.RemoveNode(fieldDeclarators.Key, SyntaxRemoveOptions.KeepLeadingTrivia);
                 }
             }
         }
