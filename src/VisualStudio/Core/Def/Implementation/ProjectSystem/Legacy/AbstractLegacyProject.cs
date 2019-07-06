@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             // which returns null.
             try
             {
-                _externalErrorReporter = new ProjectExternalErrorReporter(VisualStudioProject.Id, externalErrorReportingPrefix, Workspace, componentModel.GetService<ExternalErrorDiagnosticUpdateSource>());
+                _externalErrorReporter = new ProjectExternalErrorReporter(VisualStudioProject.Id, externalErrorReportingPrefix, (VisualStudioWorkspaceImpl)Workspace);
             }
             catch (Exception)
             {
