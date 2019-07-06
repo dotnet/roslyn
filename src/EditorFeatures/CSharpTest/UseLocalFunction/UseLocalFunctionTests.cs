@@ -3687,7 +3687,7 @@ class Program
     {
         static string? f(string? s) => s;
     }
-}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+}", parseOptions: TestOptions.Regular8);
         }
     }
 }
