@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
     {
         protected abstract string[] VersionSpecificArguments { get; }
         internal abstract string GetExpectedOutputForNoDiagnostics(CommonCompiler cmd);
+        internal abstract string GetExpectedOutputForSimpleCompilerDiagnostics(CommonCompiler cmd, string sourceFile);
 
         protected void NoDiagnosticsImpl()
         {
@@ -48,6 +49,40 @@ class C
             Assert.Equal(expectedOutput, actualOutput);
 
             CleanupAllGeneratedFiles(hello);
+            CleanupAllGeneratedFiles(errorLogFile);
+        }
+
+        protected void SimpleCompilerDiagnosticsImpl()
+        {
+            var source = @"
+public class C
+{
+    private int x;
+}";
+            var sourceFile = Temp.CreateFile().WriteAllText(source).Path;
+            var errorLogDir = Temp.CreateDirectory();
+            var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
+
+            string[] arguments = new[] { "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" }
+                .Concat(VersionSpecificArguments)
+                .ToArray();
+
+            var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments);
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var exitCode = cmd.Run(outWriter);
+            var actualConsoleOutput = outWriter.ToString().Trim();
+
+            Assert.Contains("CS0169", actualConsoleOutput);
+            Assert.Contains("CS5001", actualConsoleOutput);
+            Assert.NotEqual(0, exitCode);
+
+            var actualOutput = File.ReadAllText(errorLogFile).Trim();
+            var expectedOutput = GetExpectedOutputForSimpleCompilerDiagnostics(cmd, sourceFile);
+
+            Assert.Equal(expectedOutput, actualOutput);
+
+            CleanupAllGeneratedFiles(sourceFile);
             CleanupAllGeneratedFiles(errorLogFile);
         }
     }

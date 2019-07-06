@@ -37,31 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             NoDiagnosticsImpl();
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
-        public void SimpleCompilerDiagnostics()
+        internal override string GetExpectedOutputForSimpleCompilerDiagnostics(CommonCompiler cmd, string sourceFile)
         {
-            var source = @"
-public class C
-{
-    private int x;
-}";
-            var sourceFile = Temp.CreateFile().WriteAllText(source).Path;
-            var errorLogDir = Temp.CreateDirectory();
-            var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
-
-            var cmd = CreateCSharpCompiler(null, WorkingDirectory, new[] {
-                "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" });
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-
-            var exitCode = cmd.Run(outWriter);
-            var actualConsoleOutput = outWriter.ToString().Trim();
-
-            Assert.Contains("CS0169", actualConsoleOutput);
-            Assert.Contains("CS5001", actualConsoleOutput);
-            Assert.NotEqual(0, exitCode);
-
-            var actualOutput = File.ReadAllText(errorLogFile).Trim();
-
             var expectedHeader = GetExpectedErrorLogHeader(cmd);
             var expectedIssues = string.Format(@"
       ""results"": [
@@ -124,11 +101,13 @@ public class C
   ]
 }}", AnalyzerForErrorLogTest.GetUriForPath(sourceFile));
 
-            var expectedText = expectedHeader + expectedIssues;
-            Assert.Equal(expectedText, actualOutput);
+            return expectedHeader + expectedIssues;
+        }
 
-            CleanupAllGeneratedFiles(sourceFile);
-            CleanupAllGeneratedFiles(errorLogFile);
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        public void SimpleCompilerDiagnostics()
+        {
+            SimpleCompilerDiagnosticsImpl();
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
