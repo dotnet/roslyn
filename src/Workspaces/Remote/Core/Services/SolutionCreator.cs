@@ -71,18 +71,17 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task<Solution> UpdateProjectsAsync(Solution solution, ChecksumCollection oldChecksums, ChecksumCollection newChecksums)
         {
-            using (var olds = SharedPools.Default<HashSet<Checksum>>().GetPooledObject())
-            using (var news = SharedPools.Default<HashSet<Checksum>>().GetPooledObject())
-            {
-                olds.Object.UnionWith(oldChecksums);
-                news.Object.UnionWith(newChecksums);
+            using var olds = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
+            using var news = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
 
-                // remove projects that exist in both side
-                olds.Object.ExceptWith(newChecksums);
-                news.Object.ExceptWith(oldChecksums);
+            olds.Object.UnionWith(oldChecksums);
+            news.Object.UnionWith(newChecksums);
 
-                return await UpdateProjectsAsync(solution, olds.Object, news.Object).ConfigureAwait(false);
-            }
+            // remove projects that exist in both side
+            olds.Object.ExceptWith(newChecksums);
+            news.Object.ExceptWith(oldChecksums);
+
+            return await UpdateProjectsAsync(solution, olds.Object, news.Object).ConfigureAwait(false);
         }
 
         private async Task<Solution> UpdateProjectsAsync(Solution solution, HashSet<Checksum> oldChecksums, HashSet<Checksum> newChecksums)
@@ -139,21 +138,20 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task SynchronizeAssetsAsync(Solution solution, Dictionary<ProjectId, ProjectStateChecksums> oldMap, Dictionary<ProjectId, ProjectStateChecksums> newMap)
         {
-            using (var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject())
-            {
-                // added project
-                foreach (var kv in newMap)
-                {
-                    if (oldMap.ContainsKey(kv.Key))
-                    {
-                        continue;
-                    }
+            using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
 
-                    pooledObject.Object.Add(kv.Value.Checksum);
+            // added project
+            foreach (var kv in newMap)
+            {
+                if (oldMap.ContainsKey(kv.Key))
+                {
+                    continue;
                 }
 
-                await _assetService.SynchronizeProjectAssetsAsync(pooledObject.Object, _cancellationToken).ConfigureAwait(false);
+                pooledObject.Object.Add(kv.Value.Checksum);
             }
+
+            await _assetService.SynchronizeProjectAssetsAsync(pooledObject.Object, _cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<Solution> UpdateProjectAsync(Project project, ProjectStateChecksums oldProjectChecksums, ProjectStateChecksums newProjectChecksums)
@@ -294,65 +292,64 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<Solution, ImmutableArray<DocumentInfo>, Solution> addDocuments,
             Func<Solution, DocumentId, Solution> removeDocument)
         {
-            using (var olds = SharedPools.Default<HashSet<Checksum>>().GetPooledObject())
-            using (var news = SharedPools.Default<HashSet<Checksum>>().GetPooledObject())
+            using var olds = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
+            using var news = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
+
+            olds.Object.UnionWith(oldChecksums);
+            news.Object.UnionWith(newChecksums);
+
+            // remove documents that exist in both side
+            olds.Object.ExceptWith(newChecksums);
+            news.Object.ExceptWith(oldChecksums);
+
+            var oldMap = await GetDocumentMapAsync(existingTextDocumentStates, olds.Object).ConfigureAwait(false);
+            var newMap = await GetDocumentMapAsync(_assetService, news.Object).ConfigureAwait(false);
+
+            // added document
+            ImmutableArray<DocumentInfo>.Builder documentsToAdd = null;
+            foreach (var kv in newMap)
             {
-                olds.Object.UnionWith(oldChecksums);
-                news.Object.UnionWith(newChecksums);
-
-                // remove documents that exist in both side
-                olds.Object.ExceptWith(newChecksums);
-                news.Object.ExceptWith(oldChecksums);
-
-                var oldMap = await GetDocumentMapAsync(project, existingTextDocumentStates, olds.Object).ConfigureAwait(false);
-                var newMap = await GetDocumentMapAsync(_assetService, news.Object).ConfigureAwait(false);
-
-                // added document
-                ImmutableArray<DocumentInfo>.Builder documentsToAdd = null;
-                foreach (var kv in newMap)
+                if (!oldMap.ContainsKey(kv.Key))
                 {
-                    if (!oldMap.ContainsKey(kv.Key))
-                    {
-                        documentsToAdd = documentsToAdd ?? ImmutableArray.CreateBuilder<DocumentInfo>();
+                    documentsToAdd ??= ImmutableArray.CreateBuilder<DocumentInfo>();
 
-                        // we have new document added
-                        var documentInfo = await SolutionInfoCreator.CreateDocumentInfoAsync(_assetService, kv.Value.Checksum, _cancellationToken).ConfigureAwait(false);
-                        documentsToAdd.Add(documentInfo);
-                    }
+                    // we have new document added
+                    var documentInfo = await SolutionInfoCreator.CreateDocumentInfoAsync(_assetService, kv.Value.Checksum, _cancellationToken).ConfigureAwait(false);
+                    documentsToAdd.Add(documentInfo);
                 }
-
-                if (documentsToAdd != null)
-                {
-                    project = addDocuments(project.Solution, documentsToAdd.ToImmutable()).GetProject(project.Id);
-                }
-
-                // changed document
-                foreach (var kv in newMap)
-                {
-                    if (!oldMap.TryGetValue(kv.Key, out var oldDocumentChecksums))
-                    {
-                        continue;
-                    }
-
-                    var newDocumentChecksums = kv.Value;
-                    Contract.ThrowIfTrue(oldDocumentChecksums.Checksum == newDocumentChecksums.Checksum);
-
-                    var document = project.GetDocument(kv.Key) ?? project.GetAdditionalDocument(kv.Key) ?? project.GetAnalyzerConfigDocument(kv.Key);
-                    project = await UpdateDocumentAsync(document, oldDocumentChecksums, newDocumentChecksums).ConfigureAwait(false);
-                }
-
-                // removed document
-                foreach (var kv in oldMap)
-                {
-                    if (!newMap.ContainsKey(kv.Key))
-                    {
-                        // we have a document removed
-                        project = removeDocument(project.Solution, kv.Key).GetProject(project.Id);
-                    }
-                }
-
-                return project;
             }
+
+            if (documentsToAdd != null)
+            {
+                project = addDocuments(project.Solution, documentsToAdd.ToImmutable()).GetProject(project.Id);
+            }
+
+            // changed document
+            foreach (var kv in newMap)
+            {
+                if (!oldMap.TryGetValue(kv.Key, out var oldDocumentChecksums))
+                {
+                    continue;
+                }
+
+                var newDocumentChecksums = kv.Value;
+                Contract.ThrowIfTrue(oldDocumentChecksums.Checksum == newDocumentChecksums.Checksum);
+
+                var document = project.GetDocument(kv.Key) ?? project.GetAdditionalDocument(kv.Key) ?? project.GetAnalyzerConfigDocument(kv.Key);
+                project = await UpdateDocumentAsync(document, oldDocumentChecksums, newDocumentChecksums).ConfigureAwait(false);
+            }
+
+            // removed document
+            foreach (var kv in oldMap)
+            {
+                if (!newMap.ContainsKey(kv.Key))
+                {
+                    // we have a document removed
+                    project = removeDocument(project.Solution, kv.Key).GetProject(project.Id);
+                }
+            }
+
+            return project;
         }
 
         private async Task<Project> UpdateDocumentAsync(TextDocument document, DocumentStateChecksums oldDocumentChecksums, DocumentStateChecksums newDocumentChecksums)
@@ -368,23 +365,13 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var sourceText = await _assetService.GetAssetAsync<SourceText>(newDocumentChecksums.Text, _cancellationToken).ConfigureAwait(false);
 
-                switch (document.Kind)
+                document = document.Kind switch
                 {
-                    case TextDocumentKind.Document:
-                        document = document.Project.Solution.WithDocumentText(document.Id, sourceText).GetDocument(document.Id);
-                        break;
-
-                    case TextDocumentKind.AnalyzerConfigDocument:
-                        document = document.Project.Solution.WithAnalyzerConfigDocumentText(document.Id, sourceText).GetAnalyzerConfigDocument(document.Id);
-                        break;
-
-                    case TextDocumentKind.AdditionalDocument:
-                        document = document.Project.Solution.WithAdditionalDocumentText(document.Id, sourceText).GetAdditionalDocument(document.Id);
-                        break;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(document.Kind);
-                }
+                    TextDocumentKind.Document => document.Project.Solution.WithDocumentText(document.Id, sourceText).GetDocument(document.Id),
+                    TextDocumentKind.AnalyzerConfigDocument => document.Project.Solution.WithAnalyzerConfigDocumentText(document.Id, sourceText).GetAnalyzerConfigDocument(document.Id),
+                    TextDocumentKind.AdditionalDocument => document.Project.Solution.WithAdditionalDocumentText(document.Id, sourceText).GetAdditionalDocument(document.Id),
+                    _ => throw ExceptionUtilities.UnexpectedValue(document.Kind),
+                };
             }
 
             return document.Project;
@@ -433,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return map;
         }
 
-        private async Task<Dictionary<DocumentId, DocumentStateChecksums>> GetDocumentMapAsync(Project project, IEnumerable<TextDocumentState> states, HashSet<Checksum> documents)
+        private async Task<Dictionary<DocumentId, DocumentStateChecksums>> GetDocumentMapAsync(IEnumerable<TextDocumentState> states, HashSet<Checksum> documents)
         {
             var map = new Dictionary<DocumentId, DocumentStateChecksums>();
 

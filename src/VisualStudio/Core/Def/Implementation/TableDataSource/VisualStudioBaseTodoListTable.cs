@@ -19,8 +19,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal class VisualStudioBaseTodoListTable : AbstractTable
     {
         private static readonly string[] s_columns = new string[]
@@ -35,8 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private readonly TableDataSource _source;
 
-        protected VisualStudioBaseTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, string identifier, ITableManagerProvider provider) :
-            base(workspace, provider, StandardTables.TasksTable)
+        protected VisualStudioBaseTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, string identifier, ITableManagerProvider provider)
+            : base(workspace, provider, StandardTables.TasksTable)
         {
             _source = new TableDataSource(workspace, todoListProvider, identifier);
             AddInitialTableSource(workspace.CurrentSolution, _source);
@@ -75,8 +73,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private readonly string _identifier;
             private readonly ITodoListProvider _todoListProvider;
 
-            public TableDataSource(Workspace workspace, ITodoListProvider todoListProvider, string identifier) :
-                base(workspace)
+            public TableDataSource(Workspace workspace, ITodoListProvider todoListProvider, string identifier)
+                : base(workspace)
             {
                 _workspace = workspace;
                 _identifier = identifier;
@@ -142,8 +140,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             public override AbstractTableEntriesSnapshot<TodoTableItem> CreateSnapshot(AbstractTableEntriesSource<TodoTableItem> source, int version, ImmutableArray<TodoTableItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
             {
-                return new TableEntriesSnapshot(source, version, items, trackingPoints);
+                return new TableEntriesSnapshot(version, items, trackingPoints);
             }
+
+            public override IEqualityComparer<TodoTableItem> GroupingComparer
+                => TodoTableItem.GroupingComparer.Instance;
 
             public override IEnumerable<TodoTableItem> Order(IEnumerable<TodoTableItem> groupedItems)
             {
@@ -183,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return new TableEntriesSource(this, item.Workspace, item.DocumentId);
             }
 
-            private class TableEntriesSource : AbstractTableEntriesSource<TodoTableItem>
+            private sealed class TableEntriesSource : AbstractTableEntriesSource<TodoTableItem>
             {
                 private readonly TableDataSource _source;
                 private readonly Workspace _workspace;
@@ -200,10 +201,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override ImmutableArray<TodoTableItem> GetItems()
                 {
-                    var provider = _source._todoListProvider;
-
-                    return provider.GetTodoItems(_workspace, _documentId, CancellationToken.None)
-                                   .Select(data => new TodoTableItem(_workspace, cache: null, data))
+                    return _source._todoListProvider.GetTodoItems(_workspace, _documentId, CancellationToken.None)
+                                   .Select(data => TodoTableItem.Create(_workspace, data))
                                    .ToImmutableArray();
                 }
 
@@ -213,15 +212,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
-            private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<TodoTableItem>
+            private sealed class TableEntriesSnapshot : AbstractTableEntriesSnapshot<TodoTableItem>
             {
-                private readonly AbstractTableEntriesSource<TodoTableItem> _source;
-
-                public TableEntriesSnapshot(
-                    AbstractTableEntriesSource<TodoTableItem> source, int version, ImmutableArray<TodoTableItem> items, ImmutableArray<ITrackingPoint> trackingPoints) :
-                    base(version, items, trackingPoints)
+                public TableEntriesSnapshot(int version, ImmutableArray<TodoTableItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
+                    : base(version, items, trackingPoints)
                 {
-                    _source = source;
                 }
 
                 public override bool TryGetValue(int index, string columnName, out object content)
@@ -249,10 +244,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = GetFileName(data.OriginalFilePath, data.MappedFilePath);
                             return content != null;
                         case StandardTableKeyNames.Line:
-                            content = GetLineColumn(data).Line;
+                            content = GetLineColumn(item).Line;
                             return true;
                         case StandardTableKeyNames.Column:
-                            content = GetLineColumn(data).Character;
+                            content = GetLineColumn(item).Character;
                             return true;
                         case StandardTableKeyNames.TaskCategory:
                             content = ValueTypeCache.GetOrCreate(VSTASKCATEGORY.CAT_COMMENTS);
@@ -261,29 +256,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = item.ProjectName;
                             return content != null;
                         case ProjectNames:
-                            content = item.ProjectNames;
-                            return ((string[])content).Length > 0;
+                            var names = item.ProjectNames;
+                            content = names;
+                            return names.Length > 0;
                         case StandardTableKeyNames.ProjectGuid:
                             content = ValueTypeCache.GetOrCreate(item.ProjectGuid);
                             return (Guid)content != Guid.Empty;
                         case ProjectGuids:
-                            content = item.ProjectGuids;
-                            return ((Guid[])content).Length > 0;
+                            var guids = item.ProjectGuids;
+                            content = guids;
+                            return guids.Length > 0;
                         default:
                             content = null;
                             return false;
                     }
                 }
 
-                private LinePosition GetLineColumn(TodoItem item)
+                // TODO: Apply location mapping when creating the TODO item (https://github.com/dotnet/roslyn/issues/36217)
+                private LinePosition GetLineColumn(TodoTableItem item)
                 {
                     return VisualStudioVenusSpanMappingService.GetAdjustedLineColumn(
                         item.Workspace,
-                        item.DocumentId,
-                        item.OriginalLine,
-                        item.OriginalColumn,
-                        item.MappedLine,
-                        item.MappedColumn);
+                        item.Data.DocumentId,
+                        item.Data.OriginalLine,
+                        item.Data.OriginalColumn,
+                        item.Data.MappedLine,
+                        item.Data.MappedColumn);
                 }
 
                 public override bool TryNavigateTo(int index, bool previewTab)

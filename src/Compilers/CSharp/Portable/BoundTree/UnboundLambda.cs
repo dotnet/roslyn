@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool HasExplicitlyTypedParameterList { get { return Data.HasExplicitlyTypedParameterList; } }
         public int ParameterCount { get { return Data.ParameterCount; } }
         public TypeWithAnnotations InferReturnType(ConversionsBase conversions, NamedTypeSymbol delegateType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-            => BindForReturnTypeInference(delegateType).GetInferredReturnType(conversions, _nullableState, ref useSiteDiagnostics);
+            => BindForReturnTypeInference(delegateType).GetInferredReturnType(conversions, _nullableState?.Clone(), ref useSiteDiagnostics);
 
         public RefKind RefKind(int index) { return Data.RefKind(index); }
         public void GenerateAnonymousFunctionConversionError(DiagnosticBag diagnostics, TypeSymbol targetType) { Data.GenerateAnonymousFunctionConversionError(diagnostics, targetType); }
@@ -485,6 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundBlock block;
 
             var diagnostics = DiagnosticBag.GetInstance();
+            var compilation = Binder.Compilation;
 
             var cacheKey = ReturnInferenceCacheKey.Create(Binder, delegateType, IsAsync);
 
@@ -493,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // expression(s) to the return type.
 
             lambdaSymbol = new LambdaSymbol(
-                Binder.Compilation,
+                compilation,
                 Binder.ContainingMemberOrLambda,
                 _unboundLambda,
                 cacheKey.ParameterTypes,
@@ -505,30 +506,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (lambdaSymbol.RefKind == CodeAnalysis.RefKind.RefReadOnly)
             {
-                Binder.Compilation.EnsureIsReadOnlyAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
+                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
             }
 
             var lambdaParameters = lambdaSymbol.Parameters;
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(lambdaParameters, diagnostics, modifyCompilation: false);
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, lambdaParameters, diagnostics, modifyCompilation: false);
 
             if (returnType.HasType)
             {
-                if (returnType.NeedsNullableAttribute())
+                if (compilation.ShouldEmitNullableAttributes(lambdaSymbol) &&
+                    returnType.NeedsNullableAttribute())
                 {
-                    Binder.Compilation.EnsureNullableAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
-                    // Note: we don't need to warn on annotations used without NonNullTypes context for lambdas, as this is handled in binding already
+                    compilation.EnsureNullableAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
+                    // Note: we don't need to warn on annotations used in #nullable disable context for lambdas, as this is handled in binding already
                 }
             }
 
-            ParameterHelpers.EnsureNullableAttributeExists(lambdaParameters, diagnostics, modifyCompilation: false);
-            // Note: we don't need to warn on annotations used without NonNullTypes context for lambdas, as this is handled in binding already
+            ParameterHelpers.EnsureNullableAttributeExists(compilation, lambdaSymbol, lambdaParameters, diagnostics, modifyCompilation: false);
+            // Note: we don't need to warn on annotations used in #nullable disable context for lambdas, as this is handled in binding already
 
             block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
 
             ((ExecutableCodeBinder)lambdaBodyBinder).ValidateIteratorMethods(diagnostics);
             ValidateUnsafeParameters(diagnostics, cacheKey.ParameterTypes);
 
-            bool reachableEndpoint = ControlFlowPass.Analyze(Binder.Compilation, lambdaSymbol, block, diagnostics);
+            bool reachableEndpoint = ControlFlowPass.Analyze(compilation, lambdaSymbol, block, diagnostics);
             if (reachableEndpoint)
             {
                 if (DelegateNeedsReturn(invokeMethod))
@@ -546,8 +548,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (returnType.HasType && // Can be null if "delegateType" is not actually a delegate type.
                     !returnType.IsVoidType() &&
-                    !returnType.Type.IsNonGenericTaskType(Binder.Compilation) &&
-                    !returnType.Type.IsGenericTaskType(Binder.Compilation))
+                    !returnType.Type.IsNonGenericTaskType(compilation) &&
+                    !returnType.Type.IsGenericTaskType(compilation))
                 {
                     // Cannot convert async {0} to delegate type '{1}'. An async {0} may return void, Task or Task&lt;T&gt;, none of which are convertible to '{1}'.
                     diagnostics.Add(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, lambdaSymbol.DiagnosticLocation, lambdaSymbol.MessageID.Localize(), delegateType);

@@ -1798,7 +1798,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal IOperation CreateBoundConvertedTupleLiteralOperation(BoundConvertedTupleLiteral boundConvertedTupleLiteral, bool createDeclaration = true)
         {
-            return CreateTupleOperation(boundConvertedTupleLiteral, boundConvertedTupleLiteral.NaturalTypeOpt, createDeclaration);
+            return CreateTupleOperation(boundConvertedTupleLiteral, boundConvertedTupleLiteral.SourceTuple.Type, createDeclaration);
         }
 
         internal IOperation CreateTupleOperation(BoundTupleExpression boundTupleExpression, ITypeSymbol naturalType, bool createDeclaration)

@@ -96,9 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
 
-            if (type.NeedsNullableAttribute())
+            if (compilation.ShouldEmitNullableAttributes(this))
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, GetNullableContextValue(), type));
             }
         }
 

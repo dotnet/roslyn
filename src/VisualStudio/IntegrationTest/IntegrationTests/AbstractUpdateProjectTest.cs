@@ -32,7 +32,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 projectElement.Elements().Where(IsUnconditionalPropertyGroup),
                 group => GetPropertyValue(group, name) == value);
 
-            bool IsUnconditionalPropertyGroup(XElement element)
+            static bool IsUnconditionalPropertyGroup(XElement element)
                 => element.Name.LocalName == "PropertyGroup" && !element.Attributes().Any(a => a.Name.LocalName == "Condition");
         }
 
@@ -42,7 +42,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 projectElement.Elements().Where(IsConditionalPropertyGroup),
                 group => Assert.Equal(value, GetPropertyValue(group, name)));
 
-            bool IsConditionalPropertyGroup(XElement element)
+            static bool IsConditionalPropertyGroup(XElement element)
                 => element.Name.LocalName == "PropertyGroup" && element.Attributes().Any(a => a.Name.LocalName == "Condition");
         }
 

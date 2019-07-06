@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
                 return false;
             }
 
-            SemanticModel model = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var model = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             typeSymbol = model.GetTypeInfo(expressionNode, cancellationToken).Type;
 
             return typeSymbol != null;

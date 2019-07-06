@@ -312,6 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        [DebuggerStepThrough]
         private BoundNode VisitWithStackGuard(BoundNode node)
         {
             var expression = node as BoundExpression;
@@ -323,6 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.Visit(node);
         }
 
+        [DebuggerStepThrough]
         protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
         {
             return (BoundExpression)base.Visit(node);
@@ -1140,7 +1142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitReceiverAfterCall(BoundExpression receiverOpt, MethodSymbol method)
         {
             NamedTypeSymbol containingType;
-            if (receiverOpt != null && ((object)method == null || method.MethodKind == MethodKind.Constructor || (object)(containingType = method.ContainingType) != null && !method.IsStatic && !containingType.IsReferenceType && !TypeIsImmutable(containingType)))
+            if (receiverOpt != null && ((object)method == null || method.MethodKind == MethodKind.Constructor || (object)(containingType = method.ContainingType) != null && method.RequiresInstanceReceiver && !containingType.IsReferenceType && !TypeIsImmutable(containingType)))
             {
                 WriteArgument(receiverOpt, method?.MethodKind == MethodKind.Constructor ? RefKind.Out : RefKind.Ref, method);
             }
@@ -1297,7 +1299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodGroup = node.Argument as BoundMethodGroup;
             if (methodGroup != null)
             {
-                if ((object)node.MethodOpt != null && !node.MethodOpt.IsStatic)
+                if ((object)node.MethodOpt != null && node.MethodOpt.RequiresInstanceReceiver)
                 {
                     if (_trackRegions)
                     {
@@ -1378,7 +1380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.ConversionKind == ConversionKind.MethodGroup)
             {
-                if (node.IsExtensionMethod || ((object)node.SymbolOpt != null && !node.SymbolOpt.IsStatic))
+                if (node.IsExtensionMethod || ((object)node.SymbolOpt != null && node.SymbolOpt.RequiresInstanceReceiver))
                 {
                     BoundExpression receiver = ((BoundMethodGroup)node.Operand).ReceiverOpt;
                     // A method group's "implicit this" is only used for instance methods.

@@ -246,13 +246,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
                 return false;
             }
 
-            return isSingleStatement(statementRange.FirstStatement);
+            return IsSingleStatement(statementRange.FirstStatement);
 
-            bool isSingleStatement(StatementSyntax statement)
+            static bool IsSingleStatement(StatementSyntax statement)
             {
                 if (statement is BlockSyntax block)
                 {
-                    return block.Statements.Count == 1 && isSingleStatement(block.Statements[0]);
+                    return block.Statements.Count == 1 && IsSingleStatement(block.Statements[0]);
                 }
 
                 return true;

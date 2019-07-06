@@ -72,10 +72,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
         private IList<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method, SemanticModel semanticModel, int position)
         {
-            var result = new List<SymbolDisplayPart>();
-
-            result.Add(Punctuation(SyntaxKind.GreaterThanToken));
-            result.Add(Punctuation(SyntaxKind.OpenParenToken));
+            var result = new List<SymbolDisplayPart>
+            {
+                Punctuation(SyntaxKind.GreaterThanToken),
+                Punctuation(SyntaxKind.OpenParenToken)
+            };
 
             var first = true;
             foreach (var parameter in method.Parameters)

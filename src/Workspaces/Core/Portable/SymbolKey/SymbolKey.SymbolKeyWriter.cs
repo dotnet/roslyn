@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis
                 // If it's a reference to a method type parameter, and we're currently writing
                 // out a signture, then only write out the ordinal of type parameter.  This 
                 // helps prevent recursion problems in cases like "Goo<T>(T t).
-                if (ShouldWriteTypeParameterOrdinal(typeParameterSymbol, out int methodIndex))
+                if (ShouldWriteTypeParameterOrdinal(typeParameterSymbol, out var methodIndex))
                 {
                     WriteType(SymbolKeyType.TypeParameterOrdinal);
                     TypeParameterOrdinalSymbolKey.Create(typeParameterSymbol, methodIndex, this);

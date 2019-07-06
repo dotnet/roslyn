@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         public Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project)
         {
-            return GetDiagnosticsAsync(project, document: null, span: default(TextSpan), getDocumentDiagnostics: false, getProjectDiagnostics: true);
+            return GetDiagnosticsAsync(project, document: null, span: default, getDocumentDiagnostics: false, getProjectDiagnostics: true);
         }
 
         private async Task SynchronizeGlobalAssetToRemoteHostIfNeededAsync(Workspace workspace)

@@ -21,8 +21,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal abstract partial class VisualStudioBaseDiagnosticListTable
     {
         protected class LiveTableDataSource : AbstractRoslynTableDataSource<DiagnosticTableItem>
@@ -32,8 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private readonly Workspace _workspace;
             private readonly OpenDocumentTracker<DiagnosticTableItem> _tracker;
 
-            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier) :
-                base(workspace)
+            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier)
+                : base(workspace)
             {
                 _workspace = workspace;
                 _identifier = identifier;
@@ -113,8 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return GetItemKey(data);
                 }
 
-                var liveArgsId = args.Id as LiveDiagnosticUpdateArgsId;
-                if (liveArgsId == null)
+                if (!(args.Id is LiveDiagnosticUpdateArgsId liveArgsId))
                 {
                     return GetItemKey(data);
                 }
@@ -197,6 +194,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
+            public override IEqualityComparer<DiagnosticTableItem> GroupingComparer
+                => DiagnosticTableItem.GroupingComparer.Instance;
+
             public override IEnumerable<DiagnosticTableItem> Order(IEnumerable<DiagnosticTableItem> groupedItems)
             {
                 // this should make order of result always deterministic. we only need these 6 values since data with 
@@ -238,7 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     var provider = _source._diagnosticService;
                     var items = provider.GetDiagnostics(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, cancellationToken: CancellationToken.None)
                                         .Where(ShouldInclude)
-                                        .Select(data => new DiagnosticTableItem(_workspace, cache: null, data));
+                                        .Select(data => DiagnosticTableItem.Create(_workspace, data));
 
                     return items.ToImmutableArray();
                 }
@@ -321,14 +321,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = item.ProjectName;
                             return content != null;
                         case ProjectNames:
-                            content = item.ProjectNames;
-                            return ((string[])content).Length > 0;
+                            var names = item.ProjectNames;
+                            content = names;
+                            return names.Length > 0;
                         case StandardTableKeyNames.ProjectGuid:
                             content = ValueTypeCache.GetOrCreate(item.ProjectGuid);
                             return (Guid)content != Guid.Empty;
                         case ProjectGuids:
-                            content = item.ProjectGuids;
-                            return ((Guid[])content).Length > 0;
+                            var guids = item.ProjectGuids;
+                            content = guids;
+                            return guids.Length > 0;
                         case SuppressionStateColumnDefinition.ColumnName:
                             content = data.IsSuppressed ? ServicesVSResources.Suppressed : ServicesVSResources.Active;
                             return true;

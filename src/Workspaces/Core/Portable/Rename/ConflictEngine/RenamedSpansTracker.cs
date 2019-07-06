@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 ? _documentToModifiedSpansMap[documentId].Where(pair => pair.oldSpan.Start < startingPosition) :
                 SpecializedCollections.EmptyEnumerable<(TextSpan oldSpan, TextSpan newSpan)>();
 
-            int adjustedStartingPosition = startingPosition;
+            var adjustedStartingPosition = startingPosition;
             foreach (var textSpanPair in documentReplacementSpans)
             {
                 adjustedStartingPosition += textSpanPair.newSpan.Length - textSpanPair.oldSpan.Length;
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var annotationAndTokens2 = renameAnnotations.GetAnnotatedNodesAndTokens<RenameTokenSimplificationAnnotation>(node)
                                .Select(x => Tuple.Create(renameAnnotations.GetAnnotations<RenameTokenSimplificationAnnotation>(x).First(), (SyntaxToken)x));
 
-                        List<(TextSpan oldSpan, TextSpan newSpan)> modifiedSubSpans = new List<(TextSpan oldSpan, TextSpan newSpan)>();
+                        var modifiedSubSpans = new List<(TextSpan oldSpan, TextSpan newSpan)>();
                         foreach (var annotationAndToken in annotationAndTokens2)
                         {
                             modifiedTokensInComplexifiedStatements.Add(annotationAndToken.Item2);

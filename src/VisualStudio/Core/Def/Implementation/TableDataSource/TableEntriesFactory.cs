@@ -154,12 +154,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 // flatten items from multiple sources and group them by deduplication identity
                 // merge duplicated items into de-duplicated item list
-                var items = _sources.GetSources()
-                                    .SelectMany(s => s.GetItems())
-                                    .GroupBy(d => d.DeduplicationKey)
-                                    .Select(g => (IList<TItem>)g);
-
-                return _tableSource.Deduplicate(items);
+                return _tableSource.AggregateItems(
+                    _sources.GetSources()
+                    .SelectMany(s => s.GetItems())
+                    .GroupBy(d => d, _tableSource.GroupingComparer));
             }
 
             public ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TItem> items)
@@ -197,8 +195,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private class EmptySnapshot : AbstractTableEntriesSnapshot<TItem>
             {
-                public EmptySnapshot(int version) :
-                    base(version, ImmutableArray<TItem>.Empty, ImmutableArray<ITrackingPoint>.Empty)
+                public EmptySnapshot(int version)
+                    : base(version, ImmutableArray<TItem>.Empty, ImmutableArray<ITrackingPoint>.Empty)
                 {
                 }
 
@@ -250,8 +248,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 {
                     if (_sources == null)
                     {
-                        _sources = new Dictionary<object, AbstractTableEntriesSource<TItem>>();
-                        _sources.Add(_primary.Key, _primary);
+                        _sources = new Dictionary<object, AbstractTableEntriesSource<TItem>>
+                        {
+                            { _primary.Key, _primary }
+                        };
                         _primary = null;
                     }
                 }

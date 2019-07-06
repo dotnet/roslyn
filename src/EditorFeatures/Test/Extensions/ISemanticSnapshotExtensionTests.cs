@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         [Fact]
         public async Task TryGetSymbolTouchingPositionOnLeadingTrivia()
         {
-            using (var workspace = TestWorkspace.CreateCSharp(
+            using var workspace = TestWorkspace.CreateCSharp(
                 @"using System;
                 class Program
                 {
@@ -25,17 +25,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                         Goo();
                         #pragma warning restore 612
                     }
-                }"))
-            {
-                int position = workspace.Documents.Single(d => d.CursorPosition.HasValue).CursorPosition.Value;
-                var snapshot = workspace.Documents.Single().TextBuffer.CurrentSnapshot;
+                }");
+            var position = workspace.Documents.Single(d => d.CursorPosition.HasValue).CursorPosition.Value;
+            var snapshot = workspace.Documents.Single().TextBuffer.CurrentSnapshot;
 
-                var document = workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id);
-                Assert.NotNull(document);
+            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id);
+            Assert.NotNull(document);
 
-                var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position);
-                Assert.Null(symbol);
-            }
+            var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position);
+            Assert.Null(symbol);
         }
     }
 }

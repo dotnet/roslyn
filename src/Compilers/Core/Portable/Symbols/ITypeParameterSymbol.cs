@@ -63,6 +63,11 @@ namespace Microsoft.CodeAnalysis
         bool HasUnmanagedTypeConstraint { get; }
 
         /// <summary>
+        /// True if the notnull constraint (<c>notnull</c>) was specified for the type parameter.
+        /// </summary>
+        bool HasNotNullConstraint { get; }
+
+        /// <summary>
         /// True if the parameterless constructor constraint (<c>new()</c>) was specified for the type parameter.
         /// </summary>
         bool HasConstructorConstraint { get; }

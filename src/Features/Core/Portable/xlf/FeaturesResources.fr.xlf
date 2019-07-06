@@ -57,7 +57,7 @@
         <target state="translated">Aligner les paramètres inclus dans un wrapper</target>
         <note />
       </trans-unit>
-      <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc_These_are_treated_as_special_discard_symbol_names">
+      <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
         <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
         <target state="new">Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
         <note />
@@ -80,6 +80,16 @@
       <trans-unit id="Code_Quality">
         <source>Code Quality</source>
         <target state="translated">Qualité du code</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_0_code_style">
+        <source>Configure {0} code style</source>
+        <target state="new">Configure {0} code style</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_0_severity">
+        <source>Configure {0} severity</source>
+        <target state="new">Configure {0} severity</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -390,6 +400,11 @@
       <trans-unit id="StreamMustSupportReadAndSeek">
         <source>Stream must support read and seek operations.</source>
         <target state="new">Stream must support read and seek operations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_0">
+        <source>Suppress {0}</source>
+        <target state="new">Suppress {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
@@ -1501,11 +1516,6 @@ Voulez-vous continuer ?</target>
       <trans-unit id="Style">
         <source>Style</source>
         <target state="translated">Style</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppress_0">
-        <source>Suppress {0}</source>
-        <target state="translated">Supprimer {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Re_triage_0_currently_1">

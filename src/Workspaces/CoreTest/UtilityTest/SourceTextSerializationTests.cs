@@ -24,20 +24,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 var originalText = CreateSourceText(sb, i);
 
-                using (var stream = SerializableBytes.CreateWritableStream())
-                using (var writer = new ObjectWriter(stream))
-                {
-                    originalText.WriteTo(writer, CancellationToken.None);
+                using var stream = SerializableBytes.CreateWritableStream();
+                using var writer = new ObjectWriter(stream);
+                originalText.WriteTo(writer, CancellationToken.None);
 
-                    stream.Position = 0;
+                stream.Position = 0;
 
-                    using (var reader = ObjectReader.TryGetReader(stream))
-                    {
-                        var recovered = SourceTextExtensions.ReadFrom(textService, reader, originalText.Encoding, CancellationToken.None);
+                using var reader = ObjectReader.TryGetReader(stream);
+                var recovered = SourceTextExtensions.ReadFrom(textService, reader, originalText.Encoding, CancellationToken.None);
 
-                        Assert.Equal(originalText.ToString(), recovered.ToString());
-                    }
-                }
+                Assert.Equal(originalText.ToString(), recovered.ToString());
             }
         }
 

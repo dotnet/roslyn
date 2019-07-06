@@ -30,15 +30,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     internal abstract class AbstractOptionPreviewViewModel : AbstractNotifyPropertyChanged, IDisposable
     {
-        private IComponentModel _componentModel;
+        private readonly IComponentModel _componentModel;
         private IWpfTextViewHost _textViewHost;
 
-        private IContentType _contentType;
-        private IEditorOptionsFactoryService _editorOptions;
-        private ITextEditorFactoryService _textEditorFactoryService;
-        private ITextBufferFactoryService _textBufferFactoryService;
-        private IProjectionBufferFactoryService _projectionBufferFactory;
-        private IContentTypeRegistryService _contentTypeRegistryService;
+        private readonly IContentType _contentType;
+        private readonly IEditorOptionsFactoryService _editorOptions;
+        private readonly ITextEditorFactoryService _textEditorFactoryService;
+        private readonly ITextBufferFactoryService _textBufferFactoryService;
+        private readonly IProjectionBufferFactoryService _projectionBufferFactory;
+        private readonly IContentTypeRegistryService _contentTypeRegistryService;
 
         public List<object> Items { get; set; }
         public ObservableCollection<AbstractCodeStyleOptionViewModel> CodeStyleItems { get; set; }

@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression result = new BoundConvertedTupleLiteral(
                 sourceTuple.Syntax,
-                sourceTuple.Type,
+                sourceTuple,
                 convertedArguments.ToImmutableAndFree(),
                 sourceTuple.ArgumentNamesOpt,
                 sourceTuple.InferredNamesOpt,
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiverOpt = group.ReceiverOpt;
             Debug.Assert(receiverOpt != null);
             Debug.Assert((object)conversion.Method != null);
-            receiverOpt = ReplaceTypeOrValueReceiver(receiverOpt, conversion.Method.IsStatic && !conversion.IsExtensionMethod, diagnostics);
+            receiverOpt = ReplaceTypeOrValueReceiver(receiverOpt, !conversion.Method.RequiresInstanceReceiver && !conversion.IsExtensionMethod, diagnostics);
             return group.Update(
                 group.TypeArgumentsOpt,
                 group.Name,
@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // None of the checks below apply if the receiver can't be classified as a type or value. 
                 Debug.Assert(!invokedAsExtensionMethod);
             }
-            else if (memberSymbol.IsStatic)
+            else if (!memberSymbol.RequiresInstanceReceiver())
             {
                 Debug.Assert(!invokedAsExtensionMethod || (receiverOpt != null));
 

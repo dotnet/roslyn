@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
@@ -7869,6 +7870,161 @@ abstract class Class : IInterface
     public abstract void Method1();
 }",
 index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNotNullConstraint()
+        {
+            await TestInRegularAndScriptAsync(
+@"public interface ITest
+{
+    void M<T>() where T : notnull;
+}
+public class Test : [|ITest|]
+{
+}",
+@"public interface ITest
+{
+    void M<T>() where T : notnull;
+}
+public class Test : ITest
+{
+    public void M<T>() where T : notnull
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithNullableProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P { get; }
+}
+public class Test : [|ITest|]
+{
+}",
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P { get; }
+}
+public class Test : ITest
+{
+    public string? P => throw new System.NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithNullablePropertyAlreadyImplemented()
+        {
+            await TestMissingAsync(
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P { get; }
+}
+public class Test : [|ITest|]
+{
+    public string? P => throw new System.NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithNullableMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P();
+}
+public class Test : [|ITest|]
+{
+}",
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P();
+}
+public class Test : ITest
+{
+    public string? P()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithNullableEvent()
+        {
+            // Question whether this is needed,
+            // see https://github.com/dotnet/roslyn/issues/36673 
+            await TestInRegularAndScriptAsync(
+@"#nullable enable 
+
+using System;
+
+public interface ITest
+{
+    event EventHandler? SomeEvent;
+}
+public class Test : [|ITest|]
+{
+}",
+@"#nullable enable 
+
+using System;
+
+public interface ITest
+{
+    event EventHandler? SomeEvent;
+}
+public class Test : ITest
+{
+    public event EventHandler? SomeEvent;
+}");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36101"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithNullableDisabled()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P { get; }
+}
+
+#nullable disable
+
+public class Test : [|ITest|]
+{
+}",
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P { get; }
+}
+
+#nullable disable
+
+public class Test : ITest
+{
+    public string P => throw new System.NotImplementedException();
+}");
         }
     }
 }

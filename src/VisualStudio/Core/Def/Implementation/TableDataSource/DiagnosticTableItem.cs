@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -11,43 +13,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         public readonly DiagnosticData Data;
 
-        public DiagnosticTableItem(Workspace workspace, SharedInfoCache cache, DiagnosticData data)
-            : base(workspace, cache)
+        private DiagnosticTableItem(
+            Workspace workspace,
+            DiagnosticData data,
+            string projectName,
+            Guid projectGuid,
+            string[] projectNames,
+            Guid[] projectGuids)
+            : base(workspace, projectName, projectGuid, projectNames, projectGuids)
         {
             Contract.ThrowIfNull(data);
             Data = data;
         }
 
-        public override TableItem WithCache(SharedInfoCache cache)
-            => new DiagnosticTableItem(Workspace, cache, Data);
+        internal static DiagnosticTableItem Create(Workspace workspace, DiagnosticData data)
+        {
+            GetProjectNameAndGuid(workspace, data.ProjectId, out var projectName, out var projectGuid);
+            return new DiagnosticTableItem(workspace, data, projectName, projectGuid, projectNames: Array.Empty<string>(), projectGuids: Array.Empty<Guid>());
+        }
+
+        public override TableItem WithAggregatedData(string[] projectNames, Guid[] projectGuids)
+            => new DiagnosticTableItem(Workspace, Data, projectName: null, projectGuid: Guid.Empty, projectNames, projectGuids);
 
         public override DocumentId DocumentId
             => Data.DocumentId;
 
         public override ProjectId ProjectId
             => Data.ProjectId;
-
-        public override int GetDeduplicationKey()
-        {
-            var diagnostic = Data;
-
-            // location-less or project level diagnostic:
-            if (diagnostic.DataLocation == null ||
-                diagnostic.DataLocation.OriginalFilePath == null ||
-                diagnostic.DocumentId == null)
-            {
-                return diagnostic.GetHashCode();
-            }
-
-            return
-                Hash.Combine(diagnostic.DataLocation.OriginalStartColumn,
-                Hash.Combine(diagnostic.DataLocation.OriginalStartLine,
-                Hash.Combine(diagnostic.DataLocation.OriginalEndColumn,
-                Hash.Combine(diagnostic.DataLocation.OriginalEndLine,
-                Hash.Combine(diagnostic.DataLocation.OriginalFilePath,
-                Hash.Combine(diagnostic.IsSuppressed,
-                Hash.Combine(diagnostic.Id.GetHashCode(), diagnostic.Message.GetHashCode())))))));
-        }
 
         public override LinePosition GetOriginalPosition()
             => new LinePosition(Data.DataLocation?.OriginalStartLine ?? 0, Data.DataLocation?.OriginalStartColumn ?? 0);
@@ -73,6 +65,96 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                    diagnostic.Severity == otherDiagnostic.Severity &&
                    diagnostic.WarningLevel == otherDiagnostic.WarningLevel &&
                    diagnostic.Message == otherDiagnostic.Message;
+        }
+
+        /// <summary>
+        /// Used to group diagnostics that only differ in the project they come from.
+        /// We want to avoid displaying diagnostic multuple times when it is reported from 
+        /// multi-targeted projects and/or files linked to multiple projects.
+        /// Note that a linked file is represented by unique <see cref="DocumentId"/> in each project it is linked to,
+        /// so we don't include <see cref="DocumentId"/> in the comparison.
+        /// </summary>
+        internal sealed class GroupingComparer : IEqualityComparer<DiagnosticData>, IEqualityComparer<DiagnosticTableItem>
+        {
+            public static readonly GroupingComparer Instance = new GroupingComparer();
+
+            public bool Equals(DiagnosticData left, DiagnosticData right)
+            {
+                if (ReferenceEquals(left, right))
+                {
+                    return true;
+                }
+
+                if (left is null || right is null)
+                {
+                    return false;
+                }
+
+                var leftLocation = left.DataLocation;
+                var rightLocation = right.DataLocation;
+
+                // location-less or project level diagnostic:
+                if (leftLocation == null ||
+                    rightLocation == null ||
+                    leftLocation.OriginalFilePath == null ||
+                    rightLocation.OriginalFilePath == null ||
+                    left.DocumentId == null ||
+                    right.DocumentId == null)
+                {
+                    return left.Equals(right);
+                }
+
+                return
+                    leftLocation.OriginalStartLine == rightLocation.OriginalStartLine &&
+                    leftLocation.OriginalStartColumn == rightLocation.OriginalStartColumn &&
+                    leftLocation.OriginalEndLine == rightLocation.OriginalEndLine &&
+                    leftLocation.OriginalEndColumn == rightLocation.OriginalEndColumn &&
+                    left.Severity == right.Severity &&
+                    left.IsSuppressed == right.IsSuppressed &&
+                    left.Id == right.Id &&
+                    left.Message == right.Message &&
+                    leftLocation.OriginalFilePath == rightLocation.OriginalFilePath;
+            }
+
+            public int GetHashCode(DiagnosticData data)
+            {
+                var location = data.DataLocation;
+
+                // location-less or project level diagnostic:
+                if (location == null ||
+                    location.OriginalFilePath == null ||
+                    data.DocumentId == null)
+                {
+                    return data.GetHashCode();
+                }
+
+                return
+                    Hash.Combine(location.OriginalStartColumn,
+                    Hash.Combine(location.OriginalStartLine,
+                    Hash.Combine(location.OriginalEndColumn,
+                    Hash.Combine(location.OriginalEndLine,
+                    Hash.Combine(location.OriginalFilePath,
+                    Hash.Combine(data.IsSuppressed,
+                    Hash.Combine(data.Id, data.Severity.GetHashCode())))))));
+            }
+
+            public bool Equals(DiagnosticTableItem left, DiagnosticTableItem right)
+            {
+                if (ReferenceEquals(left, right))
+                {
+                    return true;
+                }
+
+                if (left is null || right is null)
+                {
+                    return false;
+                }
+
+                return Equals(left.Data, right.Data);
+            }
+
+            public int GetHashCode(DiagnosticTableItem item)
+                => GetHashCode(item.Data);
         }
     }
 }
