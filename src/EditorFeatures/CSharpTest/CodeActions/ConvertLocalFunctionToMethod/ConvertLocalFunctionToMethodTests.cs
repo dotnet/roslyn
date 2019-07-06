@@ -3,9 +3,10 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToMethod;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLocalFunctionToMethod
@@ -499,6 +500,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestCaretPositon()
         {
             await TestAsync("C [||]LocalFunction(C c)");
@@ -556,6 +558,7 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection1()
         {
             await TestInRegularAndScriptAsync(
@@ -583,6 +586,7 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection2()
         {
 
@@ -600,6 +604,7 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection3()
         {
             await TestInRegularAndScriptAsync(
@@ -631,6 +636,7 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection4()
         {
 
@@ -651,6 +657,7 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection5()
         {
 
@@ -672,6 +679,7 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection6()
         {
 
@@ -694,6 +702,7 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection7()
         {
             await TestMissingAsync(
@@ -710,6 +719,7 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection8()
         {
             await TestInRegularAndScriptAsync(
@@ -737,6 +747,7 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection9()
         {
             await TestInRegularAndScriptAsync(
@@ -764,6 +775,7 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection10()
         {
             await TestInRegularAndScriptAsync(
@@ -790,6 +802,7 @@ $@"class C
 }");
         }
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection11()
         {
             await TestMissingAsync(

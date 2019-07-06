@@ -160,12 +160,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 Debug.Assert(trivia.Kind() == SyntaxKind.WhitespaceTrivia);
                 Debug.Assert(trivia.Width() == trivia.FullWidth());
 
-                int space = 0;
-                int tab = 0;
-                int unknownWhitespace = 0;
+                var space = 0;
+                var tab = 0;
+                var unknownWhitespace = 0;
 
                 var text = trivia.ToString();
-                for (int i = 0; i < trivia.Width(); i++)
+                for (var i = 0; i < trivia.Width(); i++)
                 {
                     if (text[i] == ' ')
                     {

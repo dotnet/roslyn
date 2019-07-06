@@ -95,8 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                         return false;
                     }
 
-                    var method = parent.Expression as MemberAccessExpressionSyntax;
-                    if (method != null)
+                    if (parent.Expression is MemberAccessExpressionSyntax method)
                     {
                         node = method.Name;
                     }
@@ -178,8 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
                 case CS1574:
                 case CS1584:
-                    var cref = node as QualifiedCrefSyntax;
-                    if (cref != null)
+                    if (node is QualifiedCrefSyntax cref)
                     {
                         node = cref.Container;
                     }

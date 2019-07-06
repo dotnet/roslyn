@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // version ever changes, all persisted data won't match the current checksum
                 // we expect, and we'll recompute things.
                 return Checksum.Create(
-                    WellKnownSynchronizationKind.SymbolTreeInfo, 
+                    WellKnownSynchronizationKind.SymbolTreeInfo,
                     new[] { checksum, SerializationFormatChecksum });
             });
         }
@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 while (true)
                 {
-                    int dotIndex = blobReader.IndexOf((byte)'.');
+                    var dotIndex = blobReader.IndexOf((byte)'.');
                     unsafe
                     {
                         // Note: we won't get any string sharing as we're just using the 

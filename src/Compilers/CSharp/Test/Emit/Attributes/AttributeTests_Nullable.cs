@@ -3264,6 +3264,159 @@ public class Program
         }
 
         [Fact]
+        public void EmitAttribute_ValueTypes_09()
+        {
+            var source1 =
+@"#nullable enable
+public interface I
+{
+    void M1(int x);
+    void M2(int[]? x);
+    void M3(int x, object? y);
+}";
+            var comp = CreateCompilation(source1);
+            var expected1 =
+@"[NullableContext(2)] I
+    void M1(System.Int32 x)
+        System.Int32 x
+    void M2(System.Int32[]? x)
+        System.Int32[]? x
+    void M3(System.Int32 x, System.Object? y)
+        System.Int32 x
+        System.Object? y
+";
+            AssertNullableAttributes(comp, expected1);
+            var ref0 = comp.EmitToImageReference();
+
+            var source2 =
+@"#nullable enable
+class C : I
+{
+    public void M1(int x) { }
+    public void M2(int[]? x) { }
+    public void M3(int x, object? y) { }
+}";
+            comp = CreateCompilation(source2, references: new[] { ref0 });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void EmitAttribute_ValueTypes_10()
+        {
+            var source1 =
+@"#nullable enable
+public class C<T> { }
+public interface I1
+{
+    void M(int x, object? y, object? z);
+}
+public interface I2
+{
+    void M(C<int>? x, object? y, object? z);
+}";
+            var comp = CreateCompilation(source1);
+            var expected1 =
+@"C<T>
+    [Nullable(2)] T
+[NullableContext(2)] I1
+    void M(System.Int32 x, System.Object? y, System.Object? z)
+        System.Int32 x
+        System.Object? y
+        System.Object? z
+[NullableContext(2)] I2
+    void M(C<System.Int32>? x, System.Object? y, System.Object? z)
+        C<System.Int32>? x
+        System.Object? y
+        System.Object? z
+";
+            AssertNullableAttributes(comp, expected1);
+            var ref0 = comp.EmitToImageReference();
+
+            var source2 =
+@"#nullable enable
+class C1 : I1
+{
+    public void M(int x, object? y, object? z) { }
+}
+class C2 : I2
+{
+    public void M(C<int>? x, object? y, object? z) { }
+}";
+            comp = CreateCompilation(source2, references: new[] { ref0 });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void EmitAttribute_ValueTypes_11()
+        {
+            var source1 =
+@"#nullable enable
+public interface I1<T>
+{
+    void M(T x, object? y, object? z);
+}
+public interface I2<T> where T : class
+{
+    void M(T? x, object? y, object? z);
+}
+public interface I3<T> where T : struct
+{
+    void M(T x, object? y, object? z);
+}";
+            var comp = CreateCompilation(source1);
+            var expected1 =
+@"[NullableContext(2)] I1<T>
+    T
+    void M(T x, System.Object? y, System.Object? z)
+        [Nullable(1)] T x
+        System.Object? y
+        System.Object? z
+[NullableContext(1)] I2<T> where T : class!
+    T
+    [NullableContext(2)] void M(T? x, System.Object? y, System.Object? z)
+        T? x
+        System.Object? y
+        System.Object? z
+I3<T> where T : struct
+    [NullableContext(2)] void M(T x, System.Object? y, System.Object? z)
+        [Nullable(0)] T x
+        System.Object? y
+        System.Object? z
+";
+            AssertNullableAttributes(comp, expected1);
+            var ref0 = comp.EmitToImageReference();
+
+            var source2 =
+@"#nullable enable
+class C1A<T> : I1<T> where T : struct
+{
+    public void M(T x, object? y, object? z) { }
+}
+class C1B : I1<int>
+{
+    public void M(int x, object? y, object? z) { }
+}
+class C2A<T> : I2<T> where T : class
+{
+    public void M(T? x, object? y, object? z) { }
+}
+class C2B : I2<string>
+{
+    public void M(string? x, object? y, object? z) { }
+}
+class C3A<T> : I3<T> where T : struct
+{
+    public void M(T x, object? y, object? z) { }
+}
+class C3B : I3<int>
+{
+    public void M(int x, object? y, object? z) { }
+}";
+            comp = CreateCompilation(source2, references: new[] { ref0 });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void UseSiteError_LambdaReturnType()
         {
             var source0 =

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue
         [Fact]
         public void FindPartner1()
         {
-            string source1 = @"
+            var source1 = @"
 using System;
 
 class C
@@ -43,7 +43,7 @@ class C
 }
 ";
 
-            string source2 = @"
+            var source2 = @"
 using System;
 
 class C
@@ -97,7 +97,7 @@ class C
 }
 ").GetRoot();
 
-            SyntaxUtilities.FindLeafNodeAndPartner(leftRoot, leftPosition, rightRoot, out SyntaxNode leftNode, out SyntaxNode rightNodeOpt);
+            SyntaxUtilities.FindLeafNodeAndPartner(leftRoot, leftPosition, rightRoot, out var leftNode, out var rightNodeOpt);
             Assert.Equal("0", leftNode.ToString());
             Assert.Null(rightNodeOpt);
         }
@@ -147,7 +147,7 @@ class C
 }
 ").GetRoot();
 
-            SyntaxUtilities.FindLeafNodeAndPartner(leftRoot, leftPosition, rightRoot, out SyntaxNode leftNode, out SyntaxNode rightNodeOpt);
+            SyntaxUtilities.FindLeafNodeAndPartner(leftRoot, leftPosition, rightRoot, out var leftNode, out var rightNodeOpt);
             Assert.Equal("3", leftNode.ToString());
             Assert.Null(rightNodeOpt);
         }

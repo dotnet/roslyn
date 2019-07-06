@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
@@ -180,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
                 workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, remote);
 
                 var commentTokens = new TodoCommentTokens();
-                var provider = new TodoCommentIncrementalAnalyzerProvider(commentTokens);
+                var provider = new TodoCommentIncrementalAnalyzerProvider(commentTokens, Array.Empty<Lazy<IEventListener, EventListenerMetadata>>());
                 var worker = (TodoCommentIncrementalAnalyzer)provider.CreateIncrementalAnalyzer(workspace);
 
                 var document = workspace.Documents.First();
@@ -193,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
 
                 Assert.Equal(todoLists.Length, expectedLists.Count);
 
-                for (int i = 0; i < todoLists.Length; i++)
+                for (var i = 0; i < todoLists.Length; i++)
                 {
                     var todo = todoLists[i];
                     var span = expectedLists[i];

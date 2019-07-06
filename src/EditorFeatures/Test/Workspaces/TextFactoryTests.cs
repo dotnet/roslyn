@@ -67,18 +67,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var text = SourceText.From("Hello, World!");
 
             // Create a temporary storage location
-            using (var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None))
-            {
-                // Write text into it
-                await temporaryStorage.WriteTextAsync(text);
+            using var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None);
+            // Write text into it
+            await temporaryStorage.WriteTextAsync(text);
 
-                // Read text back from it
-                var text2 = await temporaryStorage.ReadTextAsync();
+            // Read text back from it
+            var text2 = await temporaryStorage.ReadTextAsync();
 
-                Assert.NotSame(text, text2);
-                Assert.Equal(text.ToString(), text2.ToString());
-                Assert.Equal(text2.Encoding, null);
-            }
+            Assert.NotSame(text, text2);
+            Assert.Equal(text.ToString(), text2.ToString());
+            Assert.Equal(text2.Encoding, null);
         }
 
         [Fact]
@@ -90,18 +88,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var text = SourceText.From("Hello, World!", Encoding.ASCII);
 
             // Create a temporary storage location
-            using (var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None))
-            {
-                // Write text into it
-                await temporaryStorage.WriteTextAsync(text);
+            using var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None);
+            // Write text into it
+            await temporaryStorage.WriteTextAsync(text);
 
-                // Read text back from it
-                var text2 = await temporaryStorage.ReadTextAsync();
+            // Read text back from it
+            var text2 = await temporaryStorage.ReadTextAsync();
 
-                Assert.NotSame(text, text2);
-                Assert.Equal(text.ToString(), text2.ToString());
-                Assert.Equal(text2.Encoding, Encoding.ASCII);
-            }
+            Assert.NotSame(text, text2);
+            Assert.Equal(text.ToString(), text2.ToString());
+            Assert.Equal(text2.Encoding, Encoding.ASCII);
         }
 
         private EditorTextFactoryService CreateMockTextFactoryService()
@@ -131,11 +127,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private void TestCreateTextInferredEncoding(byte[] bytes, Encoding defaultEncoding, Encoding expectedEncoding)
         {
             var factory = CreateMockTextFactoryService();
-            using (var stream = new MemoryStream(bytes))
-            {
-                var text = factory.CreateText(stream, defaultEncoding);
-                Assert.Equal(expectedEncoding, text.Encoding);
-            }
+            using var stream = new MemoryStream(bytes);
+            var text = factory.CreateText(stream, defaultEncoding);
+            Assert.Equal(expectedEncoding, text.Encoding);
         }
 
         private class FakeTextBufferCloneService : ITextBufferCloneService

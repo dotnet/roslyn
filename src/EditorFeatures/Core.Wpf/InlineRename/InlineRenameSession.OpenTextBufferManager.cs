@@ -97,44 +97,43 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     return;
                 }
 
-                using (var readOnlyEdit = _subjectBuffer.CreateReadOnlyRegionEdit())
+                using var readOnlyEdit = _subjectBuffer.CreateReadOnlyRegionEdit();
+
+                foreach (var oldReadOnlyRegion in _readOnlyRegions)
                 {
-                    foreach (var oldReadOnlyRegion in _readOnlyRegions)
-                    {
-                        readOnlyEdit.RemoveReadOnlyRegion(oldReadOnlyRegion);
-                    }
-
-                    _readOnlyRegions.Clear();
-
-                    if (!removeOnly)
-                    {
-                        // We will compute the new read only regions to be all spans that are not currently in an editable span
-                        var editableSpans = GetEditableSpansForSnapshot(_subjectBuffer.CurrentSnapshot);
-                        var entireBufferSpan = _subjectBuffer.CurrentSnapshot.GetSnapshotSpanCollection();
-                        var newReadOnlySpans = NormalizedSnapshotSpanCollection.Difference(entireBufferSpan, new NormalizedSnapshotSpanCollection(editableSpans));
-
-                        foreach (var newReadOnlySpan in newReadOnlySpans)
-                        {
-                            _readOnlyRegions.Add(readOnlyEdit.CreateDynamicReadOnlyRegion(newReadOnlySpan, SpanTrackingMode.EdgeExclusive, EdgeInsertionMode.Allow, _isBufferReadOnly));
-                        }
-
-                        // The spans we added allow typing at the start and end.  We'll add extra
-                        // zero-width read-only regions at the start and end of the file to fix this,
-                        // but only if we don't have an identifier at the start or end that _would_ let
-                        // them type there.
-                        if (editableSpans.All(s => s.Start > 0))
-                        {
-                            _readOnlyRegions.Add(readOnlyEdit.CreateDynamicReadOnlyRegion(new Span(0, 0), SpanTrackingMode.EdgeExclusive, EdgeInsertionMode.Deny, _isBufferReadOnly));
-                        }
-
-                        if (editableSpans.All(s => s.End < _subjectBuffer.CurrentSnapshot.Length))
-                        {
-                            _readOnlyRegions.Add(readOnlyEdit.CreateDynamicReadOnlyRegion(new Span(_subjectBuffer.CurrentSnapshot.Length, 0), SpanTrackingMode.EdgeExclusive, EdgeInsertionMode.Deny, _isBufferReadOnly));
-                        }
-                    }
-
-                    readOnlyEdit.Apply();
+                    readOnlyEdit.RemoveReadOnlyRegion(oldReadOnlyRegion);
                 }
+
+                _readOnlyRegions.Clear();
+
+                if (!removeOnly)
+                {
+                    // We will compute the new read only regions to be all spans that are not currently in an editable span
+                    var editableSpans = GetEditableSpansForSnapshot(_subjectBuffer.CurrentSnapshot);
+                    var entireBufferSpan = _subjectBuffer.CurrentSnapshot.GetSnapshotSpanCollection();
+                    var newReadOnlySpans = NormalizedSnapshotSpanCollection.Difference(entireBufferSpan, new NormalizedSnapshotSpanCollection(editableSpans));
+
+                    foreach (var newReadOnlySpan in newReadOnlySpans)
+                    {
+                        _readOnlyRegions.Add(readOnlyEdit.CreateDynamicReadOnlyRegion(newReadOnlySpan, SpanTrackingMode.EdgeExclusive, EdgeInsertionMode.Allow, _isBufferReadOnly));
+                    }
+
+                    // The spans we added allow typing at the start and end.  We'll add extra
+                    // zero-width read-only regions at the start and end of the file to fix this,
+                    // but only if we don't have an identifier at the start or end that _would_ let
+                    // them type there.
+                    if (editableSpans.All(s => s.Start > 0))
+                    {
+                        _readOnlyRegions.Add(readOnlyEdit.CreateDynamicReadOnlyRegion(new Span(0, 0), SpanTrackingMode.EdgeExclusive, EdgeInsertionMode.Deny, _isBufferReadOnly));
+                    }
+
+                    if (editableSpans.All(s => s.End < _subjectBuffer.CurrentSnapshot.Length))
+                    {
+                        _readOnlyRegions.Add(readOnlyEdit.CreateDynamicReadOnlyRegion(new Span(_subjectBuffer.CurrentSnapshot.Length, 0), SpanTrackingMode.EdgeExclusive, EdgeInsertionMode.Deny, _isBufferReadOnly));
+                    }
+                }
+
+                readOnlyEdit.Apply();
             }
 
             private void OnTextViewClosed(object sender, EventArgs e)
@@ -352,15 +351,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                     _session.UndoManager.CreateConflictResolutionUndoTransaction(_subjectBuffer, () =>
                     {
-                        using (var edit = _subjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, null, s_propagateSpansEditTag))
-                        {
-                            foreach (var change in changes)
-                            {
-                                edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
-                            }
+                        using var edit = _subjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, null, s_propagateSpansEditTag);
 
-                            edit.ApplyAndLogExceptions();
+                        foreach (var change in changes)
+                        {
+                            edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
                         }
+
+                        edit.ApplyAndLogExceptions();
                     });
 
                     // 2. We want to update referenceSpanToLinkedRenameSpanMap where spans were affected by conflict resolution.
@@ -541,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             private static string GetWithoutAttributeSuffix(string text, bool isCaseSensitive)
             {
-                if (!text.TryGetWithoutAttributeSuffix(isCaseSensitive, out string replaceText))
+                if (!text.TryGetWithoutAttributeSuffix(isCaseSensitive, out var replaceText))
                 {
                     replaceText = text;
                 }
@@ -566,8 +564,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             throw new ArgumentException(WorkspacesResources.The_specified_document_is_not_a_version_of_this_document);
                         }
 
-                        SourceText oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        SourceText newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                         if (oldText == newText)
                         {

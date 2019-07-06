@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         private readonly List<Task> _tasks = new List<Task>();
         private readonly SimpleTaskQueue _queue = new SimpleTaskQueue(TaskScheduler.Default);
 
-        public void RegisterNotification(Func<bool> action, IAsyncToken asyncToken, CancellationToken cancellationToken = default(CancellationToken))
+        public void RegisterNotification(Func<bool> action, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
         {
             RegisterNotification(action, 0, asyncToken, cancellationToken);
         }
 
-        public void RegisterNotification(Func<bool> action, int delayInMS, IAsyncToken asyncToken, CancellationToken cancellationToken = default(CancellationToken))
+        public void RegisterNotification(Func<bool> action, int delayInMS, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
         {
             Task task;
             lock (_gate)
@@ -44,12 +44,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             }
         }
 
-        public void RegisterNotification(Action action, IAsyncToken asyncToken, CancellationToken cancellationToken = default(CancellationToken))
+        public void RegisterNotification(Action action, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
         {
             RegisterNotification(action, 0, asyncToken, cancellationToken);
         }
 
-        public void RegisterNotification(Action action, int delayInMS, IAsyncToken asyncToken, CancellationToken cancellationToken = default(CancellationToken))
+        public void RegisterNotification(Action action, int delayInMS, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
         {
             Task task;
             lock (_gate)

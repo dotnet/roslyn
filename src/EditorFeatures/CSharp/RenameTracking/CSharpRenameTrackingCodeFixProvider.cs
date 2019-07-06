@@ -34,10 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RenameTracking
     {
         [ImportingConstructor]
         public CSharpRenameTrackingCodeFixProvider(
-            IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices)
-            : base(waitIndicator, undoHistoryRegistry, refactorNotifyServices)
+            : base(undoHistoryRegistry, refactorNotifyServices)
         {
         }
     }

@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             attributes = attributes.IsDefault ? symbol.GetAttributes() : attributes;
-            hideModuleNameAttribute = hideModuleNameAttribute ?? compilation.HideModuleNameAttribute();
+            hideModuleNameAttribute ??= compilation.HideModuleNameAttribute();
             foreach (var attribute in attributes)
             {
                 if (Equals(attribute.AttributeClass, hideModuleNameAttribute))
@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static bool IsBrowsingProhibitedByEditorBrowsableAttribute(
             ISymbol symbol, ImmutableArray<AttributeData> attributes, bool hideAdvancedMembers, Compilation compilation, IMethodSymbol constructor)
         {
-            constructor = constructor ?? EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(compilation);
+            constructor ??= EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(compilation);
             if (constructor == null)
             {
                 return false;
@@ -883,7 +883,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static DocumentationComment GetDocumentationComment(this ISymbol symbol, CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
         {
-            string xmlText = symbol.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
+            var xmlText = symbol.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
             return string.IsNullOrEmpty(xmlText) ? DocumentationComment.Empty : DocumentationComment.FromXmlFragment(xmlText);
         }
 
@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static bool IsAwaitableNonDynamic(this ISymbol symbol, SemanticModel semanticModel, int position)
         {
-            IMethodSymbol methodSymbol = symbol as IMethodSymbol;
+            var methodSymbol = symbol as IMethodSymbol;
             ITypeSymbol typeSymbol = null;
 
             if (methodSymbol == null)

@@ -262,11 +262,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 {
                     var orderedDiagnostics = diagnosticsToFix.OrderBy(d => d.Location.SourceSpan.Start);
                     var containingMemberDeclaration = diagnosticsToFix.Key;
-                    using (var nameGenerator = new UniqueVariableNameGenerator(containingMemberDeclaration, semanticModel, semanticFacts, cancellationToken))
-                    {
-                        await FixAllAsync(diagnosticId, orderedDiagnostics, document, semanticModel, root, containingMemberDeclaration, preference,
-                            removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken).ConfigureAwait(false);
-                    }
+                    using var nameGenerator = new UniqueVariableNameGenerator(containingMemberDeclaration, semanticModel, semanticFacts, cancellationToken);
+
+                    await FixAllAsync(diagnosticId, orderedDiagnostics, document, semanticModel, root, containingMemberDeclaration, preference,
+                        removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Second pass to post process the document.
@@ -302,7 +301,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             {
                 case IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId:
                     FixAllExpressionValueIsUnusedDiagnostics(diagnostics, semanticModel, root,
-                        preference, nameGenerator, editor, syntaxFacts, cancellationToken);
+                        preference, nameGenerator, editor, syntaxFacts);
                     break;
 
                 case IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId:
@@ -322,8 +321,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             UnusedValuePreference preference,
             UniqueVariableNameGenerator nameGenerator,
             SyntaxEditor editor,
-            ISyntaxFactsService syntaxFacts,
-            CancellationToken cancellationToken)
+            ISyntaxFactsService syntaxFacts)
         {
             // This method applies the code fix for diagnostics reported for expression statement dropping values.
             // We replace each flagged expression statement with an assignment to a discard variable or a new unused local,
@@ -528,9 +526,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     }
                 }
 
-                foreach (var nodeToAdd in nodesToAdd)
+                foreach (var (declarationStatement, node) in nodesToAdd)
                 {
-                    InsertLocalDeclarationStatement(nodeToAdd.declarationStatement, nodeToAdd.node);
+                    InsertLocalDeclarationStatement(declarationStatement, node);
                 }
 
                 if (hasAnyUnusedLocalAssignment)
@@ -840,8 +838,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey) :
-                base(title, createChangedDocument, equivalenceKey)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+                : base(title, createChangedDocument, equivalenceKey)
             {
             }
         }
