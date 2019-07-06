@@ -11,10 +11,12 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using EnvDTE80;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.CodingConventions;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -403,7 +405,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 _sendKeys.Send(VirtualKey.Escape);
 
                 dte.Debugger.TerminateAll();
-                WaitForDesignMode();
+                WaitForDesignMode(dte);
             }
 
             CloseSolution();
@@ -415,10 +417,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        private static void WaitForDesignMode()
+        private static void WaitForDesignMode(EnvDTE.DTE dte)
         {
-            var stopwatch = Stopwatch.StartNew();
-
+#if TODO// https://github.com/dotnet/roslyn/issues/35965
             // This delay was originally added to address test failures in BasicEditAndContinue. When running
             // multiple tests in sequence, situations were observed where the Edit and Continue state was not reset:
             //
@@ -431,17 +432,28 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             // state believing a debugger session was active.
             //
             // This delay should be replaced with a proper wait condition once the correct one is determined.
-            var editAndContinueService = GetComponentModelService<IEditAndContinueService>();
-            do
+            var debugService = GetComponentModelService<VisualStudioWorkspace>().Services.GetRequiredService<IDebuggingWorkspaceService>();
+            using (var debugSessionEndedEvent = new ManualResetEventSlim(initialState: false))
             {
-                if (stopwatch.Elapsed >= Helper.HangMitigatingTimeout)
+                debugService.BeforeDebuggingStateChanged += (_, e) =>
+                {
+                    if (e.After == DebuggingState.Design)
+                    {
+                        debugSessionEndedEvent.Set();
+                    }
+                };
+
+                if (dte.Debugger.CurrentMode == EnvDTE.dbgDebugMode.dbgDesignMode)
+                {
+                    return;
+                }
+
+                if (!debugSessionEndedEvent.Wait(Helper.HangMitigatingTimeout))
                 {
                     throw new TimeoutException("Failed to enter design mode in a timely manner.");
                 }
-
-                Thread.Yield();
             }
-            while (editAndContinueService?.DebuggingSession != null);
+#endif
         }
 
         private void CloseSolution()

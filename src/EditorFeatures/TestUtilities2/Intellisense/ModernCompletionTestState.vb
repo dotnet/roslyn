@@ -215,6 +215,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                     Optional isHardSelected As Boolean? = Nothing,
                                                     Optional shouldFormatOnCommit As Boolean? = Nothing,
                                                     Optional inlineDescription As String = Nothing,
+                                                    Optional automationText As String = Nothing,
                                                     Optional projectionsView As ITextView = Nothing) As Task
 
             Dim view = If(projectionsView, TextView)
@@ -265,6 +266,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             If inlineDescription IsNot Nothing Then
                 Assert.Equal(inlineDescription, items.SelectedItem.Suffix)
+            End If
+
+            If automationText IsNot Nothing Then
+                Assert.Equal(automationText, items.SelectedItem.AutomationText)
             End If
         End Function
 
