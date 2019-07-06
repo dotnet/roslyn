@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 
     <Trait(Traits.Feature, Traits.Features.SarifErrorLogging)>
     Public Class SarifV1ErrorLoggerTests
-        Inherits BasicTestBase
+        Inherits SarifErrorLoggerTests
 
         Private ReadOnly _baseDirectory As String = TempRoot.Root
 
