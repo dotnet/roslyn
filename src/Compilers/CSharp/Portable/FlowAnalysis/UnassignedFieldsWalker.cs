@@ -78,19 +78,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var member in thisType.GetMembersUnordered())
             {
-                if (member.Kind != SymbolKind.Field)
+                TypeWithAnnotations fieldType;
+                FieldSymbol field;
+                switch (member)
                 {
-                    // https://github.com/dotnet/roslyn/issues/30067 Handle events.
+                    case FieldSymbol f:
+                        fieldType = f.TypeWithAnnotations;
+                        field = f;
+                        break;
+                    case EventSymbol e:
+                        fieldType = e.TypeWithAnnotations;
+                        field = e.AssociatedField;
+                        if (field is null)
+                        {
+                            continue;
+                        }
+                        break;
+                    default:
+                        continue;
+                }
+                if (member.IsStatic || HasInitializer(member))
+                {
                     continue;
                 }
-                var field = (FieldSymbol)member;
-                // https://github.com/dotnet/roslyn/issues/30067 Can the HasInitializer
-                // call be removed, if the body already contains the initializers?
-                if (field.IsStatic || HasInitializer(field))
-                {
-                    continue;
-                }
-                var fieldType = field.TypeWithAnnotations;
                 if (fieldType.Type.IsValueType || fieldType.Type.IsErrorType())
                 {
                     continue;
@@ -102,7 +112,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int fieldSlot = VariableSlot(field, thisSlot);
                 if (fieldSlot == -1 || !this.State.IsAssigned(fieldSlot))
                 {
-                    var symbol = (Symbol)(field.AssociatedSymbol as PropertySymbol) ?? field;
+                    var symbol = member switch
+                    {
+                        FieldSymbol { AssociatedSymbol: PropertySymbol p } => p,
+                        _ => member
+                    };
                     var location = (topLevelMethod.DeclaringSyntaxReferences.IsEmpty
                         ? symbol // default constructor, use the field location
                         : topLevelMethod).Locations[0];
