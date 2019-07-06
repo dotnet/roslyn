@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         protected abstract string[] VersionSpecificArguments { get; }
         internal abstract string GetExpectedOutputForNoDiagnostics(CommonCompiler cmd);
         internal abstract string GetExpectedOutputForSimpleCompilerDiagnostics(CommonCompiler cmd, string sourceFile);
+        internal abstract string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(CommonCompiler cmd, string sourceFile);
 
         protected void NoDiagnosticsImpl()
         {
@@ -79,6 +80,43 @@ public class C
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
             var expectedOutput = GetExpectedOutputForSimpleCompilerDiagnostics(cmd, sourceFile);
+
+            Assert.Equal(expectedOutput, actualOutput);
+
+            CleanupAllGeneratedFiles(sourceFile);
+            CleanupAllGeneratedFiles(errorLogFile);
+        }
+
+        protected void SimpleCompilerDiagnosticsSuppressedImpl()
+        {
+            var source = @"
+public class C
+{
+#pragma warning disable CS0169
+    private int x;
+#pragma warning restore CS0169
+}";
+            var sourceFile = Temp.CreateFile().WriteAllText(source).Path;
+            var errorLogDir = Temp.CreateDirectory();
+            var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
+
+            string[] arguments = new[] { "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" }
+                .Concat(VersionSpecificArguments)
+                .ToArray();
+
+            var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments);
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var exitCode = cmd.Run(outWriter);
+            var actualConsoleOutput = outWriter.ToString().Trim();
+
+            // Suppressed diagnostics are only report in the error log, not the console output.
+            Assert.DoesNotContain("CS0169", actualConsoleOutput);
+            Assert.Contains("CS5001", actualConsoleOutput);
+            Assert.NotEqual(0, exitCode);
+
+            var actualOutput = File.ReadAllText(errorLogFile).Trim();
+            string expectedOutput = GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(cmd, sourceFile);
 
             Assert.Equal(expectedOutput, actualOutput);
 

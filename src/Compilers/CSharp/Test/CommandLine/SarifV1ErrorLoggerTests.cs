@@ -110,34 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             SimpleCompilerDiagnosticsImpl();
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
-        public void SimpleCompilerDiagnostics_Suppressed()
+        internal override string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(CommonCompiler cmd, string sourceFile)
         {
-            var source = @"
-public class C
-{
-#pragma warning disable CS0169
-    private int x;
-#pragma warning restore CS0169
-}";
-            var sourceFile = Temp.CreateFile().WriteAllText(source).Path;
-            var errorLogDir = Temp.CreateDirectory();
-            var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
-
-            var cmd = CreateCSharpCompiler(null, WorkingDirectory, new[] {
-                "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" });
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-
-            var exitCode = cmd.Run(outWriter);
-            var actualConsoleOutput = outWriter.ToString().Trim();
-
-            // Suppressed diagnostics are only report in the error log, not the console output.
-            Assert.DoesNotContain("CS0169", actualConsoleOutput);
-            Assert.Contains("CS5001", actualConsoleOutput);
-            Assert.NotEqual(0, exitCode);
-
-            var actualOutput = File.ReadAllText(errorLogFile).Trim();
-
             var expectedHeader = GetExpectedErrorLogHeader(cmd);
             var expectedIssues = string.Format(@"
       ""results"": [
@@ -203,11 +177,13 @@ public class C
   ]
 }}", AnalyzerForErrorLogTest.GetUriForPath(sourceFile));
 
-            var expectedText = expectedHeader + expectedIssues;
-            Assert.Equal(expectedText, actualOutput);
+            return expectedHeader + expectedIssues;
+        }
 
-            CleanupAllGeneratedFiles(sourceFile);
-            CleanupAllGeneratedFiles(errorLogFile);
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        public void SimpleCompilerDiagnosticsSuppressed()
+        {
+            SimpleCompilerDiagnosticsSuppressedImpl();
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]

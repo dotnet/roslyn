@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 
         internal override string GetExpectedOutputForNoDiagnostics(CommonCompiler cmd)
         {
-            var expectedOutput =
+            string expectedOutput =
 @"{{
   ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
   ""version"": ""2.1.0"",
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 
         internal override string GetExpectedOutputForSimpleCompilerDiagnostics(CommonCompiler cmd, string sourceFile)
         {
-            var expectedOutput =
+            string expectedOutput =
 @"{{
   ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
   ""version"": ""2.1.0"",
@@ -151,35 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             SimpleCompilerDiagnosticsImpl();
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
-        public void SimpleCompilerDiagnostics_Suppressed()
+        internal override string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(CommonCompiler cmd, string sourceFile)
         {
-            var source = @"
-public class C
-{
-#pragma warning disable CS0169
-    private int x;
-#pragma warning restore CS0169
-}";
-            var sourceFile = Temp.CreateFile().WriteAllText(source).Path;
-            var errorLogDir = Temp.CreateDirectory();
-            var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
-
-            var cmd = CreateCSharpCompiler(null, WorkingDirectory, new[] {
-                "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}", "/sarifversion:2" });
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-
-            var exitCode = cmd.Run(outWriter);
-            var actualConsoleOutput = outWriter.ToString().Trim();
-
-            // Suppressed diagnostics are only reported in the error log, not the console output.
-            Assert.DoesNotContain("CS0169", actualConsoleOutput);
-            Assert.Contains("CS5001", actualConsoleOutput);
-            Assert.NotEqual(0, exitCode);
-
-            var actualOutput = File.ReadAllText(errorLogFile).Trim();
-
-            var expectedOutput =
+            string expectedOutput =
 @"{{
   ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
   ""version"": ""2.1.0"",
@@ -269,15 +243,16 @@ public class C
   ]
 }}";
 
-            expectedOutput = FormatOutputText(
+            return FormatOutputText(
                 expectedOutput,
                 cmd,
                 AnalyzerForErrorLogTest.GetUriForPath(sourceFile));
+        }
 
-            Assert.Equal(expectedOutput, actualOutput);
-
-            CleanupAllGeneratedFiles(sourceFile);
-            CleanupAllGeneratedFiles(errorLogFile);
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        public void SimpleCompilerDiagnosticsSuppressed()
+        {
+            SimpleCompilerDiagnosticsSuppressedImpl();
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
