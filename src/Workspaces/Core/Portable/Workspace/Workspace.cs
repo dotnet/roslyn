@@ -225,10 +225,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void ClearSolution()
         {
-            var oldSolution = this.CurrentSolution;
-            this.ClearSolutionData();
+            using (_serializationLock.DisposableWait())
+            {
+                var oldSolution = this.CurrentSolution;
+                this.ClearSolutionData();
 
-            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionCleared, oldSolution, this.CurrentSolution);
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionCleared, oldSolution, this.CurrentSolution);
+            }
         }
 
         /// <summary>
@@ -286,6 +289,8 @@ namespace Microsoft.CodeAnalysis
             if (!finalize)
             {
                 this.ClearSolutionData();
+
+                this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
             }
 
             _workspaceOptionService?.OnWorkspaceDisposed(this);

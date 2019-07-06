@@ -1859,10 +1859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var currentDeclaration = node.Declarations[currentDeclarationIndex];
 
-                // https://github.com/dotnet/roslyn/issues/35044: This works for simple success cases, but does not work for failures. Likely will have to do something more complicated here involving rebinding the
-                // declarators based on the newly constructed anonymous type symbol above and matching them to the existing symbol
-                if (currentDeclaration.Property.Name == currentProperty.Name &&
-                    currentDeclaration.Property.Type.Equals(currentProperty.Type, TypeCompareKind.ConsiderEverything | TypeCompareKind.AllNullableIgnoreOptions))
+                if (currentDeclaration.Property.MemberIndexOpt == currentProperty.MemberIndexOpt)
                 {
                     currentDeclarationIndex++;
                     return currentDeclaration;
@@ -1954,6 +1951,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Report top-level warnings
                         _ = VisitConversion(conversionOpt: null, conversionOperand: expressionsNoConversions[i], Conversion.Identity, targetTypeWithNullability: inferredType, operandType: resultTypes[i],
                             checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false);
+                    }
+                }
+                else
+                {
+                    // We need to ensure that we're tracking the inferred type with nullability of any conversions that
+                    // were stripped off.
+                    for (int i = 0; i < n; i++)
+                    {
+                        TrackAnalyzedNullabilityThroughConversionGroup(inferredType.ToTypeWithState(), expressions[i] as BoundConversion, expressionsNoConversions[i]);
                     }
                 }
 
@@ -3151,24 +3157,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Visit outbound assignments and post-conditions
                 // Note: the state may get split in this step
-                if (!node.HasErrors && !parameters.IsDefault)
+                for (int i = 0; i < argumentsNoConversions.Length; i++)
                 {
-                    for (int i = 0; i < argumentsNoConversions.Length; i++)
+                    (ParameterSymbol parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
+                    if (parameter is null)
                     {
-                        (ParameterSymbol parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
-                        if (parameter is null)
-                        {
-                            continue;
-                        }
-
-                        VisitArgumentOutboundAssignmentsAndPostConditions(
-                            arguments[i],
-                            GetRefKind(refKindsOpt, i),
-                            parameter,
-                            parameterType,
-                            parameterAnnotations,
-                            results[i]);
+                        continue;
                     }
+
+                    VisitArgumentOutboundAssignmentsAndPostConditions(
+                        arguments[i],
+                        GetRefKind(refKindsOpt, i),
+                        parameter,
+                        parameterType,
+                        parameterAnnotations,
+                        results[i]);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < arguments.Length; i++)
+                {
+                    // We can hit this case when dynamic methods are involved, or when there are errors. In either case we have no information,
+                    // so just assume that the conversions have the same nullability as the underlying result
+                    var argument = arguments[i];
+                    var result = results[i];
+                    var argumentNoConversion = argumentsNoConversions[i];
+                    TrackAnalyzedNullabilityThroughConversionGroup(TypeWithState.Create(argument.Type, result.RValueType.State), argument as BoundConversion, argumentNoConversion);
                 }
             }
 
@@ -6190,6 +6205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                Visit(node.IterationVariableType);
                 foreach (var iterationVariable in node.IterationVariables)
                 {
                     var state = NullableFlowState.NotNull;
