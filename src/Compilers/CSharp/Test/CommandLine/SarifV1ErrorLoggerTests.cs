@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -18,8 +15,10 @@ using static Roslyn.Test.Utilities.SharedResourceHelpers;
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
     [Trait(Traits.Feature, Traits.Features.SarifErrorLogging)]
-    public class SarifV1ErrorLoggerTests : CommandLineTestBase
+    public class SarifV1ErrorLoggerTests : SarifErrorLoggerTests
     {
+        protected override string[] VersionSpecificArguments => new string[0];
+
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void NoDiagnostics()
         {
