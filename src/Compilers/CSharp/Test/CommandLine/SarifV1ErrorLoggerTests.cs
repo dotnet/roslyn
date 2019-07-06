@@ -19,44 +19,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
     {
         protected override string[] VersionSpecificArguments => new string[0];
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
-        public void NoDiagnostics()
+        internal override string GetExpectedOutputForNoDiagnostics(CommonCompiler cmd)
         {
-            var helloWorldCS = @"using System;
-
-class C
-{
-    public static void Main(string[] args)
-    {
-        Console.WriteLine(""Hello, world"");
-    }
-}";
-            var hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
-            var errorLogDir = Temp.CreateDirectory();
-            var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
-
-            var cmd = CreateCSharpCompiler(new[] { "/nologo", hello, $"/errorlog:{errorLogFile}" });
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-
-            var exitCode = cmd.Run(outWriter);
-
-            Assert.Equal("", outWriter.ToString().Trim());
-            Assert.Equal(0, exitCode);
-
-            var actualOutput = File.ReadAllText(errorLogFile).Trim();
-
-            var expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd);
+            var expectedHeader = GetExpectedErrorLogHeader(cmd);
             var expectedIssues = @"
       ""results"": [
       ]
     }
   ]
 }";
-            var expectedText = expectedHeader + expectedIssues;
-            Assert.Equal(expectedText, actualOutput);
+            return expectedHeader + expectedIssues;
+        }
 
-            CleanupAllGeneratedFiles(hello);
-            CleanupAllGeneratedFiles(errorLogFile);
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        public void NoDiagnostics()
+        {
+            NoDiagnosticsImpl();
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
@@ -84,7 +62,7 @@ public class C
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
 
-            var expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd);
+            var expectedHeader = GetExpectedErrorLogHeader(cmd);
             var expectedIssues = string.Format(@"
       ""results"": [
         {{
@@ -181,7 +159,7 @@ public class C
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
 
-            var expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd);
+            var expectedHeader = GetExpectedErrorLogHeader(cmd);
             var expectedIssues = string.Format(@"
       ""results"": [
         {{
@@ -280,7 +258,7 @@ public class C
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
 
-            var expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd);
+            var expectedHeader = GetExpectedErrorLogHeader(cmd);
             var expectedIssues = AnalyzerForErrorLogTest.GetExpectedV1ErrorLogResultsAndRulesText(cmd.Compilation);
             var expectedText = expectedHeader + expectedIssues;
             Assert.Equal(expectedText, actualOutput);

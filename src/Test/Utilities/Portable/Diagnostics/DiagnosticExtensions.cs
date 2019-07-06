@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutable();
         }
 
-        internal static string GetExpectedErrorLogHeader(string actualOutput, CommonCompiler compiler)
+        internal static string GetExpectedErrorLogHeader(CommonCompiler compiler)
         {
             var expectedToolName = compiler.GetToolName();
             var expectedVersion = compiler.GetAssemblyVersion();

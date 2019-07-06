@@ -19,32 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
     {
         protected override string[] VersionSpecificArguments => new[] { "/sarifversion:2" };
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
-        public void NoDiagnostics()
+        internal override string GetExpectedOutputForNoDiagnostics(CommonCompiler cmd)
         {
-            var helloWorldCS = @"using System;
-
-class C
-{
-    public static void Main(string[] args)
-    {
-        Console.WriteLine(""Hello, world"");
-    }
-}";
-            var hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
-            var errorLogDir = Temp.CreateDirectory();
-            var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
-
-            var cmd = CreateCSharpCompiler(new[] { "/nologo", hello, $"/errorlog:{errorLogFile}", "/sarifversion:2" });
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-
-            var exitCode = cmd.Run(outWriter);
-
-            Assert.Equal("", outWriter.ToString().Trim());
-            Assert.Equal(0, exitCode);
-
-            var actualOutput = File.ReadAllText(errorLogFile).Trim();
-
             var expectedOutput =
 @"{{
   ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
@@ -66,11 +42,13 @@ class C
     }}
   ]
 }}";
-            expectedOutput = FormatOutputText(expectedOutput, cmd);
-            Assert.Equal(expectedOutput, actualOutput);
+            return FormatOutputText(expectedOutput, cmd);
+        }
 
-            CleanupAllGeneratedFiles(hello);
-            CleanupAllGeneratedFiles(errorLogFile);
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        public void NoDiagnostics()
+        {
+            NoDiagnosticsImpl();
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]

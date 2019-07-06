@@ -53,7 +53,6 @@ End Class
 
             Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
 
-            Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
             Dim expectedOutput As String = "{{
   ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
   ""version"": ""2.1.0"",

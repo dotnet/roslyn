@@ -45,7 +45,7 @@ End Class
 
             Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
 
-            Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
+            Dim expectedHeader = GetExpectedErrorLogHeader(cmd)
             Dim expectedIssues = "
       ""results"": [
       ]
@@ -90,7 +90,7 @@ End Class
 
             Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
 
-            Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
+            Dim expectedHeader = GetExpectedErrorLogHeader(cmd)
             Dim expectedIssues = String.Format("
       ""results"": [
         {{
@@ -192,7 +192,7 @@ End Class
 
             Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
 
-            Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
+            Dim expectedHeader = GetExpectedErrorLogHeader(cmd)
             Dim expectedIssues = String.Format("
       ""results"": [
         {{
@@ -296,7 +296,7 @@ End Class
 
             Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
 
-            Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
+            Dim expectedHeader = GetExpectedErrorLogHeader(cmd)
             Dim expectedIssues = AnalyzerForErrorLogTest.GetExpectedV1ErrorLogResultsAndRulesText(cmd.Compilation)
 
             Dim expectedText = expectedHeader + expectedIssues
