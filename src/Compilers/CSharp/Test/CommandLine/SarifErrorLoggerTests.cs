@@ -1,10 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
 
+using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
@@ -15,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         internal abstract string GetExpectedOutputForNoDiagnostics(CommonCompiler cmd);
         internal abstract string GetExpectedOutputForSimpleCompilerDiagnostics(CommonCompiler cmd, string sourceFile);
         internal abstract string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(CommonCompiler cmd, string sourceFile);
+        internal abstract string GetExpectedOutputForAnalyzerDiagnosticsWithAndWithoutLocation(MockCSharpCompiler cmd);
 
         protected void NoDiagnosticsImpl()
         {
@@ -110,7 +115,7 @@ public class C
             var exitCode = cmd.Run(outWriter);
             var actualConsoleOutput = outWriter.ToString().Trim();
 
-            // Suppressed diagnostics are only report in the error log, not the console output.
+            // Suppressed diagnostics are only reported in the error log, not the console output.
             Assert.DoesNotContain("CS0169", actualConsoleOutput);
             Assert.Contains("CS5001", actualConsoleOutput);
             Assert.NotEqual(0, exitCode);
@@ -121,6 +126,43 @@ public class C
             Assert.Equal(expectedOutput, actualOutput);
 
             CleanupAllGeneratedFiles(sourceFile);
+            CleanupAllGeneratedFiles(errorLogFile);
+        }
+
+        protected void AnalyzerDiagnosticsWithAndWithoutLocationImpl()
+        {
+            var source = @"
+public class C
+{
+}";
+            var sourceFile = Temp.CreateFile().WriteAllText(source).Path;
+            var outputDir = Temp.CreateDirectory();
+            var errorLogFile = Path.Combine(outputDir.Path, "ErrorLog.txt");
+            var outputFilePath = Path.Combine(outputDir.Path, "test.dll");
+
+            string[] arguments = new[] { "/nologo", "/t:library", $"/out:{outputFilePath}", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" }
+                .Concat(VersionSpecificArguments)
+                .ToArray();
+
+            var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
+               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var exitCode = cmd.Run(outWriter);
+            var actualConsoleOutput = outWriter.ToString().Trim();
+
+            Assert.Contains(AnalyzerForErrorLogTest.Descriptor1.Id, actualConsoleOutput);
+            Assert.Contains(AnalyzerForErrorLogTest.Descriptor2.Id, actualConsoleOutput);
+            Assert.NotEqual(0, exitCode);
+
+            var actualOutput = File.ReadAllText(errorLogFile).Trim();
+            var expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithAndWithoutLocation(cmd);
+
+            Assert.Equal(expectedOutput, actualOutput);
+
+            CleanupAllGeneratedFiles(sourceFile);
+            CleanupAllGeneratedFiles(outputFilePath);
             CleanupAllGeneratedFiles(errorLogFile);
         }
     }

@@ -1,16 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
@@ -255,34 +252,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             SimpleCompilerDiagnosticsSuppressedImpl();
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
-        public void AnalyzerDiagnosticsWithAndWithoutLocation()
+        internal override string GetExpectedOutputForAnalyzerDiagnosticsWithAndWithoutLocation(MockCSharpCompiler cmd)
         {
-            var source = @"
-public class C
-{
-}";
-            var sourceFile = Temp.CreateFile().WriteAllText(source).Path;
-            var outputDir = Temp.CreateDirectory();
-            var errorLogFile = Path.Combine(outputDir.Path, "ErrorLog.txt");
-            var outputFilePath = Path.Combine(outputDir.Path, "test.dll");
-
-            var cmd = CreateCSharpCompiler(null, WorkingDirectory, new[] {
-                "/nologo", "/t:library", $"/out:{outputFilePath}", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}", "/sarifversion:2" },
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
-
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-
-            var exitCode = cmd.Run(outWriter);
-            var actualConsoleOutput = outWriter.ToString().Trim();
-
-            Assert.Contains(AnalyzerForErrorLogTest.Descriptor1.Id, actualConsoleOutput);
-            Assert.Contains(AnalyzerForErrorLogTest.Descriptor2.Id, actualConsoleOutput);
-            Assert.NotEqual(0, exitCode);
-
-            var actualOutput = File.ReadAllText(errorLogFile).Trim();
-
-            var expectedOutput =
+            string expectedOutput =
 @"{{
   ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
   ""version"": ""2.1.0"",
@@ -303,17 +275,17 @@ public class C
     }}
   ]
 }}";
-            expectedOutput = FormatOutputText(
+            return FormatOutputText(
                 expectedOutput,
                 cmd,
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogResultsText(cmd.Compilation),
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText());
+        }
 
-            Assert.Equal(expectedOutput, actualOutput);
-
-            CleanupAllGeneratedFiles(sourceFile);
-            CleanupAllGeneratedFiles(outputFilePath);
-            CleanupAllGeneratedFiles(errorLogFile);
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        public void AnalyzerDiagnosticsWithAndWithoutLocation()
+        {
+            AnalyzerDiagnosticsWithAndWithoutLocationImpl();
         }
 
         private string FormatOutputText(

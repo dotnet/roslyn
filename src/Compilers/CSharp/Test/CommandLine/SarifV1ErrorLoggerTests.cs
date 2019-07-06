@@ -1,16 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-using System.Globalization;
-using System.IO;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using static Microsoft.CodeAnalysis.DiagnosticExtensions;
-using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
@@ -186,41 +182,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             SimpleCompilerDiagnosticsSuppressedImpl();
         }
 
+        internal override string GetExpectedOutputForAnalyzerDiagnosticsWithAndWithoutLocation(MockCSharpCompiler cmd)
+        {
+            var expectedHeader = GetExpectedErrorLogHeader(cmd);
+            var expectedIssues = AnalyzerForErrorLogTest.GetExpectedV1ErrorLogResultsAndRulesText(cmd.Compilation);
+            return expectedHeader + expectedIssues;
+        }
+
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void AnalyzerDiagnosticsWithAndWithoutLocation()
         {
-            var source = @"
-public class C
-{
-}";
-            var sourceFile = Temp.CreateFile().WriteAllText(source).Path;
-            var outputDir = Temp.CreateDirectory();
-            var errorLogFile = Path.Combine(outputDir.Path, "ErrorLog.txt");
-            var outputFilePath = Path.Combine(outputDir.Path, "test.dll");
-
-            var cmd = CreateCSharpCompiler(null, WorkingDirectory, new[] {
-                "/nologo", "/t:library", $"/out:{outputFilePath}", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" },
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
-
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-
-            var exitCode = cmd.Run(outWriter);
-            var actualConsoleOutput = outWriter.ToString().Trim();
-
-            Assert.Contains(AnalyzerForErrorLogTest.Descriptor1.Id, actualConsoleOutput);
-            Assert.Contains(AnalyzerForErrorLogTest.Descriptor2.Id, actualConsoleOutput);
-            Assert.NotEqual(0, exitCode);
-
-            var actualOutput = File.ReadAllText(errorLogFile).Trim();
-
-            var expectedHeader = GetExpectedErrorLogHeader(cmd);
-            var expectedIssues = AnalyzerForErrorLogTest.GetExpectedV1ErrorLogResultsAndRulesText(cmd.Compilation);
-            var expectedText = expectedHeader + expectedIssues;
-            Assert.Equal(expectedText, actualOutput);
-
-            CleanupAllGeneratedFiles(sourceFile);
-            CleanupAllGeneratedFiles(outputFilePath);
-            CleanupAllGeneratedFiles(errorLogFile);
+            AnalyzerDiagnosticsWithAndWithoutLocationImpl();
         }
     }
 }
