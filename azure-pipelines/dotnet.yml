@@ -21,14 +21,6 @@ steps:
   condition: eq(variables['Agent.OS'], 'Windows_NT')
 
 - task: DotNetCoreCLI@2
-  displayName: dotnet test -f netcoreapp2.0
-  inputs:
-    command: test
-    arguments: --no-build -c $(BuildConfiguration) -f netcoreapp2.0 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true
-    testRunTitle: netcoreapp2.0-$(Agent.JobName)
-    workingDirectory: src
-
-- task: DotNetCoreCLI@2
   displayName: dotnet test -f netcoreapp2.1
   inputs:
     command: test
