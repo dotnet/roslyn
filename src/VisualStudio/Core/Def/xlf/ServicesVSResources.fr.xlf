@@ -107,9 +107,9 @@
         <target state="translated">Dans les autres opérateurs</target>
         <note />
       </trans-unit>
-      <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provides_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
-        <source>Install Microsoft recommended Roslyn analyzers, which provides additional diagnostics and fixes for common API design, security, performance, and reliability issues</source>
-        <target state="new">Install Microsoft recommended Roslyn analyzers, which provides additional diagnostics and fixes for common API design, security, performance, and reliability issues</target>
+      <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
+        <source>Install Microsoft recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</source>
+        <target state="new">Install Microsoft recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</target>
         <note />
       </trans-unit>
       <trans-unit id="Interface_cannot_have_field">
