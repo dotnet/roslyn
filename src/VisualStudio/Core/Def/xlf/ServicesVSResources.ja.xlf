@@ -57,6 +57,11 @@
         <target state="translated">戻る</target>
         <note />
       </trans-unit>
+      <trans-unit id="Build_plus_Live_Analysis_NuGet_Package">
+        <source>Build + Live Analysis (NuGet Package)</source>
+        <target state="new">Build + Live Analysis (NuGet Package)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">依存を計算しています...</target>
@@ -102,6 +107,11 @@
         <target state="translated">その他の演算子内で</target>
         <note />
       </trans-unit>
+      <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provides_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
+        <source>Install Microsoft recommended Roslyn analyzers, which provides additional diagnostics and fixes for common API design, security, performance, and reliability issues</source>
+        <target state="new">Install Microsoft recommended Roslyn analyzers, which provides additional diagnostics and fixes for common API design, security, performance, and reliability issues</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Interface_cannot_have_field">
         <source>Interface cannot have field.</source>
         <target state="translated">インターフェイスにフィールドを含めることはできません。</target>
@@ -115,6 +125,11 @@
       <trans-unit id="Kind">
         <source>Kind</source>
         <target state="translated">種類</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_Analysis_VSIX_Extension">
+        <source>Live Analysis (VSIX Extension)</source>
+        <target state="new">Live Analysis (VSIX Extension)</target>
         <note />
       </trans-unit>
       <trans-unit id="Live_analysis">
@@ -1791,11 +1806,6 @@ Additional information: {1}</source>
       <trans-unit id="Options">
         <source>Options</source>
         <target state="translated">オプション</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues">
-        <source>Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues</source>
-        <target state="translated">ライブ コード分析拡張機能のプレビュー バージョンをお試しください。共通 API の設計、名前付け、パフォーマンス、信頼性の問題について多数の修正を提供しています</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_show_this_again">

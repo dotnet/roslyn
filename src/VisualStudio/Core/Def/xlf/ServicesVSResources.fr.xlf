@@ -57,6 +57,11 @@
         <target state="translated">Précédent</target>
         <note />
       </trans-unit>
+      <trans-unit id="Build_plus_Live_Analysis_NuGet_Package">
+        <source>Build + Live Analysis (NuGet Package)</source>
+        <target state="new">Build + Live Analysis (NuGet Package)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">Calcul des dépendants...</target>
@@ -102,6 +107,11 @@
         <target state="translated">Dans les autres opérateurs</target>
         <note />
       </trans-unit>
+      <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provides_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
+        <source>Install Microsoft recommended Roslyn analyzers, which provides additional diagnostics and fixes for common API design, security, performance, and reliability issues</source>
+        <target state="new">Install Microsoft recommended Roslyn analyzers, which provides additional diagnostics and fixes for common API design, security, performance, and reliability issues</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Interface_cannot_have_field">
         <source>Interface cannot have field.</source>
         <target state="translated">L'interface ne peut pas avoir de champ.</target>
@@ -115,6 +125,11 @@
       <trans-unit id="Kind">
         <source>Kind</source>
         <target state="translated">Genre</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_Analysis_VSIX_Extension">
+        <source>Live Analysis (VSIX Extension)</source>
+        <target state="new">Live Analysis (VSIX Extension)</target>
         <note />
       </trans-unit>
       <trans-unit id="Live_analysis">
@@ -1791,11 +1806,6 @@ Informations supplémentaires : {1}</target>
       <trans-unit id="Options">
         <source>Options</source>
         <target state="translated">Options</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues">
-        <source>Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues</source>
-        <target state="translated">Essayez la préversion de notre extension d'analyse du code en temps réel, qui offre davantage de correctifs pour les problèmes usuels de conception, d'affectation de noms, de performances et de fiabilité des API</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_show_this_again">
