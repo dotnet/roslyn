@@ -1,9 +1,0 @@
-steps:
-
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: $(Build.ArtifactStagingDirectory)/build_logs
-    ArtifactName: build_logs-$(Agent.JobName)
-    ArtifactType: Container
-  displayName: Publish build_logs artifacts
-  condition: succeededOrFailed()

@@ -36,48 +36,20 @@ steps:
     testRunTitle: netcoreapp2.2-$(Agent.JobName)
     workingDirectory: src
 
-- task: CopyFiles@1
+- task: PowerShell@2
   inputs:
-    Contents: |
-      bin/**/coverage.cobertura.xml
-      obj/**/*.cs
-    TargetFolder: $(Build.ArtifactStagingDirectory)/coverageResults
-  displayName: Collecting coverage.cobertura.xml artifacts
+    filePath: azure-pipelines/variables/_pipelines.ps1
+    failOnStderr: true
+  displayName: Update pipeline variables based on build outputs
   condition: succeededOrFailed()
 
-- powershell: |
-    Write-Host "Substituting $(System.DefaultWorkingDirectory) with {reporoot}"
-    $reports = Get-ChildItem "$(Build.ArtifactStagingDirectory)/coverageResults/coverage.cobertura.xml" -Recurse
-    $reports |% {
-        $content = Get-Content -Path $_ |% { $_ -Replace [regex]::Escape("$(System.DefaultWorkingDirectory)"), "{reporoot}" }
-        Set-Content -Path $_ -Value $content -Encoding UTF8
-    }
-  displayName: Preparing code coverage reports for merging on another machine
-
-- task: PublishBuildArtifacts@1
+- task: PowerShell@2
   inputs:
-    PathtoPublish: $(Build.ArtifactStagingDirectory)/coverageResults
-    ArtifactName: coverageResults-$(Agent.JobName)
-    ArtifactType: Container
-  displayName: Publish coverageResults artifacts
+    filePath: azure-pipelines/artifacts/_pipelines.ps1
+    arguments: -ArtifactNameSuffix "-$(Agent.JobName)"
+  displayName: Publish artifacts
   condition: succeededOrFailed()
 
 - bash: bash <(curl -s https://codecov.io/bash)
   displayName: Publish code coverage results to codecov.io
   condition: ne(variables['codecov_token'], '')
-
-- task: CopyFiles@1
-  inputs:
-    Contents: |
-      obj/**/project.assets.json
-    TargetFolder: $(Build.ArtifactStagingDirectory)/projectAssetsJson
-  displayName: Collecting project.assets.json artifacts
-  condition: succeededOrFailed()
-
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: $(Build.ArtifactStagingDirectory)/projectAssetsJson
-    ArtifactName: projectAssetsJson-$(Agent.JobName)
-    ArtifactType: Container
-  displayName: Publish projectAssetsJson artifacts
-  condition: succeededOrFailed()

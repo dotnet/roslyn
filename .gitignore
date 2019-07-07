@@ -55,11 +55,6 @@ dlldata.c
 # Benchmark Results
 BenchmarkDotNet.Artifacts/
 
-# .NET Core
-project.lock.json
-project.fragment.lock.json
-artifacts/
-
 # StyleCop
 StyleCopReport.xml
 

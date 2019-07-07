@@ -30,15 +30,13 @@ jobs:
     workingDirectory: src
 
   - template: azure-pipelines/dotnet.yml
-  - template: azure-pipelines/collect-deployables.yml
-  - template: azure-pipelines/collect-logs.yml
   - template: azure-pipelines/expand-template.yml
 
   - task: NuGetCommand@2
     displayName: Push packages to CI feed
     inputs:
       command: push
-      packagesToPush: $(Build.ArtifactStagingDirectory)/deployables/*.nupkg;$(Build.ArtifactStagingDirectory)/deployables/*.snupkg
+      packagesToPush: $(Build.ArtifactStagingDirectory)/deployables-Windows/*.nupkg;$(Build.ArtifactStagingDirectory)/deployables-Windows/*.snupkg
       nuGetFeedType: internal
       publishVstsFeed: $(ci_feed)
       allowPackageConflicts: true
@@ -50,7 +48,6 @@ jobs:
   steps:
   - template: azure-pipelines/install-dependencies.yml
   - template: azure-pipelines/dotnet.yml
-  - template: azure-pipelines/collect-logs.yml
   - template: azure-pipelines/expand-template.yml
 
 - job: macOS
@@ -59,7 +56,6 @@ jobs:
   steps:
   - template: azure-pipelines/install-dependencies.yml
   - template: azure-pipelines/dotnet.yml
-  - template: azure-pipelines/collect-logs.yml
   - template: azure-pipelines/expand-template.yml
 
 - job: MergeCoverage
