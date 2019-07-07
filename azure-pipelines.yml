@@ -24,7 +24,7 @@ jobs:
   - template: azure-pipelines/install-dependencies.yml
 
   - powershell: |
-      dotnet tool install --tool-path .. nbgv
+      dotnet tool install --tool-path .. nbgv --ignore-failed-sources
       ../nbgv cloud
     displayName: Set build number
     workingDirectory: src
