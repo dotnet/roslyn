@@ -69,6 +69,7 @@ jobs:
   - macOS
   pool:
     vmImage: Ubuntu 16.04
+  condition: succeededOrFailed()
   steps:
   - template: azure-pipelines/install-dependencies.yml
   - template: azure-pipelines/publish-codecoverage.yml
