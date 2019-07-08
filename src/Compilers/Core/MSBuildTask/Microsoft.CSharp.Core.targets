@@ -58,7 +58,7 @@
       <_TargetFrameworkVersionAsVersion>$(TargetFrameworkVersion.Substring(1))</_TargetFrameworkVersionAsVersion>
       <MaxSupportedLangVersion Condition="'$(MaxSupportedLangVersion)' == '' AND
                                           '$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND
-                                          '$(_TargetFrameworkVersionAsVersion) >= '3.0'">8.0</MaxSupportedLangVersion>
+                                          '$(_TargetFrameworkVersionAsVersion)' >= '3.0'">8.0</MaxSupportedLangVersion>
       <MaxSupportedLangVersion Condition="'$(MaxSupportedLangVersion)' == ''">7.3</MaxSupportedLangVersion>
 
       <LangVersion Condition="'$(LangVersion)' == ''">$(MaxSupportedLangVersion)</LangVersion>
