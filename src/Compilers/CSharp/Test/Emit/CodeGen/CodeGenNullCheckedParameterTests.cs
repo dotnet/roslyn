@@ -1315,13 +1315,13 @@ class C
         public void TestNullCheckedEnumeratorReturningIterator()
         {
             var source = @"
-using System.Collections;
+using System.Collections.Generic;
 class C
 {
     public static void Main()
     {
-        IEnumerator e = GetChars(""hello"");
-        IEnumerator GetChars(string s!)
+        IEnumerator<char> e = GetChars(""hello"");
+        IEnumerator<char> GetChars(string s!)
         {
             foreach (var c in s)
             {
@@ -1445,6 +1445,62 @@ System.ArgumentNullException");
             //comp.MakeTypeMissing(WellKnownType.System_ArgumentNullException);
             //comp.MakeMemberMissing(WellKnownMember.System_ArgumentNullException__ctor);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void TestEmptyNullCheckedIterator1()
+        {
+            var source = @"
+using System.Collections.Generic;
+class C
+{
+    public static void Main() { }
+    static IEnumerable<char> GetChars(string s!)
+    {
+        yield break;
+    }
+}";
+            CompileAndVerify(source).VerifyIL("C.GetChars(string)", @"
+{
+    // Code size       22 (0x16)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  brtrue.s   IL_000e
+    IL_0003:  ldstr      ""s""
+    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
+    IL_000d:  throw
+    IL_000e:  ldc.i4.s   -2
+    IL_0010:  newobj     ""C.<GetChars>d__1..ctor(int)""
+    IL_0015:  ret
+}");
+        }
+
+        [Fact]
+        public void TestEmptyNullCheckedIterator2()
+        {
+            var source = @"
+using System.Collections.Generic;
+class C
+{
+    public static void Main() { }
+    static IEnumerator<char> GetChars(string s!)
+    {
+        yield break;
+    }
+}";
+            CompileAndVerify(source).VerifyIL("C.GetChars(string)", @"
+{
+    // Code size       21 (0x15)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  brtrue.s   IL_000e
+    IL_0003:  ldstr      ""s""
+    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
+    IL_000d:  throw
+    IL_000e:  ldc.i4.0
+    IL_000f:  newobj     ""C.<GetChars>d__1..ctor(int)""
+    IL_0014:  ret
+}");
         }
     }
 }
