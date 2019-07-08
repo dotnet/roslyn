@@ -17,8 +17,13 @@ For example if 2.2.300 is specified, you may install 2.2.300, 2.2.301, or 2.2.31
 while the 2.2.400 version would not be considered compatible by .NET SDK.
 See [.NET Core Versioning](https://docs.microsoft.com/en-us/dotnet/core/versions/) for more information.
 
+All dependencies can be installed by running the `init.ps1` script at the root of the repository
+using Windows PowerShell or [PowerShell Core][pwsh] (on any OS).
+
 This repository can be built on Windows, Linux, and OSX.
 
 ## Building
 
 Building, testing, and packing this repository can be done by using the standard dotnet CLI commands (e.g. `dotnet build`, `dotnet test`, `dotnet pack`, etc.).
+
+[pwsh]: https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-6
