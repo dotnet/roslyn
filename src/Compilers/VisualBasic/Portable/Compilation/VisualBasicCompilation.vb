@@ -2656,7 +2656,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function CommonCreateTupleTypeSymbol(elementTypes As ImmutableArray(Of ITypeSymbol),
                                                                  elementNames As ImmutableArray(Of String),
-                                                                 elementLocations As ImmutableArray(Of Location)) As INamedTypeSymbol
+                                                                 elementLocations As ImmutableArray(Of Location),
+                                                                 elementNullableAnnotations As ImmutableArray(Of NullableAnnotation)) As INamedTypeSymbol
             Dim typesBuilder = ArrayBuilder(Of TypeSymbol).GetInstance(elementTypes.Length)
             For i As Integer = 0 To elementTypes.Length - 1
                 typesBuilder.Add(elementTypes(i).EnsureVbSymbolOrNothing(Of TypeSymbol)($"{NameOf(elementTypes)}[{i}]"))
@@ -2673,7 +2674,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function CommonCreateTupleTypeSymbol(
                 underlyingType As INamedTypeSymbol,
                 elementNames As ImmutableArray(Of String),
-                elementLocations As ImmutableArray(Of Location)) As INamedTypeSymbol
+                elementLocations As ImmutableArray(Of Location),
+                elementNullableAnnotations As ImmutableArray(Of NullableAnnotation)) As INamedTypeSymbol
             Dim csharpUnderlyingTuple = underlyingType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(underlyingType))
 
             Dim cardinality As Integer
@@ -2683,6 +2685,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             elementNames = CheckTupleElementNames(cardinality, elementNames)
             CheckTupleElementLocations(cardinality, elementLocations)
+            CheckTupleElementNullableAnnotations(cardinality, elementNullableAnnotations)
 
             Return TupleTypeSymbol.Create(
                 locationOpt:=Nothing,

@@ -3072,13 +3072,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(
             ImmutableArray<ITypeSymbol> elementTypes,
             ImmutableArray<string> elementNames,
-            ImmutableArray<Location> elementLocations)
+            ImmutableArray<Location> elementLocations,
+            ImmutableArray<CodeAnalysis.NullableAnnotation> elementNullableAnnotations)
         {
             var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(elementTypes.Length);
             for (int i = 0; i < elementTypes.Length; i++)
             {
                 var elementType = elementTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(elementTypes)}[{i}]");
-                typesBuilder.Add(TypeWithAnnotations.Create(elementType));
+                var annotation = elementNullableAnnotations.IsDefault ? NullableAnnotation.Oblivious : elementNullableAnnotations[i].ToInternalAnnotation();
+                typesBuilder.Add(TypeWithAnnotations.Create(elementType, annotation));
             }
 
             return TupleTypeSymbol.Create(
@@ -3095,7 +3097,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(
             INamedTypeSymbol underlyingType,
             ImmutableArray<string> elementNames,
-            ImmutableArray<Location> elementLocations)
+            ImmutableArray<Location> elementLocations,
+            ImmutableArray<CodeAnalysis.NullableAnnotation> elementNullableAnnotations)
         {
             var csharpUnderlyingTuple = underlyingType.EnsureCSharpSymbolOrNull<INamedTypeSymbol, NamedTypeSymbol>(nameof(underlyingType));
 
@@ -3107,9 +3110,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             elementNames = CheckTupleElementNames(cardinality, elementNames);
             CheckTupleElementLocations(cardinality, elementLocations);
+            CheckTupleElementNullableAnnotations(cardinality, elementNullableAnnotations);
 
-            return TupleTypeSymbol.Create(
+            var tupleType = TupleTypeSymbol.Create(
                 csharpUnderlyingTuple, elementNames, elementLocations: elementLocations);
+            if (!elementNullableAnnotations.IsDefault)
+            {
+                tupleType = tupleType.WithElementTypes(
+                    tupleType.TupleElementTypesWithAnnotations.ZipAsArray(
+                        elementNullableAnnotations,
+                        (t, a) => TypeWithAnnotations.Create(t.Type, a.ToInternalAnnotation())));
+            }
+            return tupleType;
         }
 
         protected override INamedTypeSymbol CommonCreateAnonymousTypeSymbol(
