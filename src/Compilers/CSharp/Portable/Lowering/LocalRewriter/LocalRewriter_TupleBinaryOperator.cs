@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         var newArguments = builder.ToImmutableAndFree();
                         tuple = new BoundConvertedTupleLiteral(
-                            tuple.Syntax, tuple.Type, newArguments, ImmutableArray<string>.Empty,
+                            tuple.Syntax, sourceTuple: null, newArguments, ImmutableArray<string>.Empty,
                             ImmutableArray<bool>.Empty, conversion.Type, conversion.HasErrors);
                         return true;
                     }
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return new BoundConvertedTupleLiteral(
-                    syntax, expr.Type, fieldAccessorsBuilder.ToImmutableAndFree(), ImmutableArray<string>.Empty,
+                    syntax, sourceTuple: null, fieldAccessorsBuilder.ToImmutableAndFree(), ImmutableArray<string>.Empty,
                     ImmutableArray<bool>.Empty, expr.Type, expr.HasErrors);
             }
 
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var newArguments = builder.ToImmutableAndFree();
                     return new BoundConvertedTupleLiteral(
-                        tuple.Syntax, tuple.Type, newArguments, ImmutableArray<string>.Empty,
+                        tuple.Syntax, sourceTuple: null, newArguments, ImmutableArray<string>.Empty,
                         ImmutableArray<bool>.Empty, tuple.Type, tuple.HasErrors);
                 }
             }
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(underlyingConversions.Length == tupleCardinality);
                         return new BoundConvertedTupleLiteral(
                             syntax: operand.Syntax,
-                            naturalTypeOpt: expr.Type,
+                            sourceTuple: null,
                             arguments: Enumerable.Range(0, tupleCardinality)
                                 .Select(i => MakeBoundConversion(GetTuplePart(operand, i), underlyingConversions[i], types[i], conv)).AsImmutable(),
                             argumentNamesOpt: ImmutableArray<string>.Empty,

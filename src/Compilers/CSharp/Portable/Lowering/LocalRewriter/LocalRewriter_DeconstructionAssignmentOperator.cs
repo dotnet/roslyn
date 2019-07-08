@@ -108,8 +108,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// invocation, subsequent side-effects from the right go into the deconstructions bucket (otherwise they would
         /// be evaluated out of order).
         /// </summary>
-        private BoundExpression ApplyDeconstructionConversion(ArrayBuilder<Binder.DeconstructionVariable> leftTargets,
-            BoundExpression right, Conversion conversion, ArrayBuilder<LocalSymbol> temps, DeconstructionSideEffects effects,
+        private BoundExpression ApplyDeconstructionConversion(
+            ArrayBuilder<Binder.DeconstructionVariable> leftTargets,
+            BoundExpression right,
+            Conversion conversion,
+            ArrayBuilder<LocalSymbol> temps,
+            DeconstructionSideEffects effects,
             bool isUsed, bool inInit)
         {
             Debug.Assert(conversion.Kind == ConversionKind.Deconstruction);
@@ -156,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     compilation: _compilation, shouldCheckConstraints: false, includeNullability: false, errorPositions: default);
 
                 return new BoundConvertedTupleLiteral(
-                    right.Syntax, tupleType, arguments: builder.ToImmutableAndFree(), argumentNamesOpt: default, inferredNamesOpt: default, tupleType);
+                    right.Syntax, sourceTuple: null, arguments: builder.ToImmutableAndFree(), argumentNamesOpt: default, inferredNamesOpt: default, tupleType);
             }
             else
             {

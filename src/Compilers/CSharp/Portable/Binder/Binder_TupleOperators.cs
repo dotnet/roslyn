@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (convertedType is null)
             {
-                if (@operator.InfoKind == TupleBinaryOperatorInfoKind.Multiple && expr is BoundTupleExpression tuple)
+                if (@operator.InfoKind == TupleBinaryOperatorInfoKind.Multiple && expr is BoundTupleLiteral tuple)
                 {
                     // Although the tuple will remain typeless, we'll give elements converted types as possible
                     var multiple = (TupleBinaryOperatorInfo.Multiple)@operator;
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return new BoundConvertedTupleLiteral(
-                        tuple.Syntax, tuple.Type, builder.ToImmutableAndFree(), tuple.ArgumentNamesOpt, tuple.InferredNamesOpt, tuple.Type, tuple.HasErrors);
+                        tuple.Syntax, tuple, builder.ToImmutableAndFree(), tuple.ArgumentNamesOpt, tuple.InferredNamesOpt, tuple.Type, tuple.HasErrors);
                 }
 
                 // This element isn't getting a converted type

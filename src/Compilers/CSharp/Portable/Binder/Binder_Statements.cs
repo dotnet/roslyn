@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundTupleLiteral sourceTuple:
                     result = new BoundConvertedTupleLiteral(
                         sourceTuple.Syntax,
-                        sourceTuple.Type,
+                        sourceTuple,
                         sourceTuple.Arguments.SelectAsArray(e => BindToNaturalType(e, diagnostics)),
                         sourceTuple.ArgumentNamesOpt,
                         sourceTuple.InferredNamesOpt,

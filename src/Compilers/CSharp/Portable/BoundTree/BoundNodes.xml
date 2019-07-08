@@ -1537,10 +1537,8 @@
   Converted tuple literal always has a type.
   -->
   <Node Name="BoundConvertedTupleLiteral" Base="BoundTupleExpression">
-    <!-- Converted tuple must have a type -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <!-- Original tuple is preserved for the purpose of semantic model -->
-    <Field Name="SourceTuple" Type="BoundTupleLiteral" SkipInVisitor="ExceptNullabilityRewriter" />
+    <Field Name="SourceTuple" Type="BoundTupleLiteral" Null="allow" SkipInVisitor="ExceptNullabilityRewriter" />
   </Node>
 
   <Node Name="BoundDynamicObjectCreationExpression" Base="BoundExpression">

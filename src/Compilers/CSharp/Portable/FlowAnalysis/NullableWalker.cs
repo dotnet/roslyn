@@ -3792,6 +3792,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckMethodConstraints(SyntaxNode syntax, MethodSymbol method)
         {
+            if (_disableDiagnostics)
+            {
+                return;
+            }
+
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             var nullabilityBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
@@ -4195,7 +4200,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 tupleOpt = tupleOpt.WithElementTypes(elementTypesWithAnnotations);
                 var locations = tupleOpt.TupleElements.SelectAsArray((element, location) => element.Locations.FirstOrDefault() ?? location, node.Syntax.Location);
-                tupleOpt.CheckConstraints(_conversions, includeNullability: true, node.Syntax, locations, compilation, diagnosticsOpt: null, nullabilityDiagnosticsOpt: Diagnostics);
+                if (!_disableDiagnostics)
+                {
+                    tupleOpt.CheckConstraints(_conversions, includeNullability: true, node.Syntax, locations, compilation, diagnosticsOpt: null, nullabilityDiagnosticsOpt: Diagnostics);
+                }
+
                 SetResultType(node, TypeWithState.Create(tupleOpt, NullableFlowState.NotNull));
             }
         }

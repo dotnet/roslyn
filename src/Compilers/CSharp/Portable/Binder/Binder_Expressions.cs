@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             includeNullability: false,
                             errorPositions: disallowInferredNames ? inferredPositions : default);
 
-                        return new BoundConvertedTupleLiteral(syntax, tupleType, subExpressions, tupleNames, inferredPositions, tupleType);
+                        return new BoundConvertedTupleLiteral(syntax, sourceTuple: null, subExpressions, tupleNames, inferredPositions, tupleType);
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
