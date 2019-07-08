@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (bestItem != null)
             {
                 selectedItemIndex = itemsInList.IndexOf(i => Equals(i.FilterResult.CompletionItem, bestItem));
-                var deduplicatedList = matchingItems.Where(r => !r.DisplayText.StartsWith("★"));
+                var deduplicatedList = matchingItems.Where(r => !r.IsPreferredItem());
                 if (selectedItemIndex > -1 &&
                     deduplicatedList.Count() == 1 &&
                     filterText.Length > 0)
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 hardSelect = false;
             }
 
-            var deduplicatedListCount = matchingItems.Where(r => !r.VSCompletionItem.DisplayText.StartsWith("★")).Count();
+            var deduplicatedListCount = matchingItems.Where(r => !r.VSCompletionItem.IsPreferredItem()).Count();
 
             return new FilteredCompletionModel(
                 highlightedList, index, filters,
