@@ -4071,6 +4071,63 @@ class Program
                 );
         }
 
+        [Fact]
+        public void TargetTypedSwitch_DoubleConversion()
+        {
+            var source = @"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        M(false);
+        M(true);
+    }
+    public static void M(bool b)
+    {
+        C c = b switch { false => new A(), true => new B() };
+        Console.WriteLine(""."");
+    }
+}
+class A
+{
+    public A()
+    {
+        Console.Write(""new A; "");
+    }
+    public static implicit operator B(A a)
+    {
+        Console.Write(""A->"");
+        return new B();
+    }
+}
+class B
+{
+    public B()
+    {
+        Console.Write(""new B; "");
+    }
+    public static implicit operator C(B a)
+    {
+        Console.Write(""B->"");
+        return new C();
+    }
+}
+class C
+{
+    public C()
+    {
+        Console.Write(""new C; "");
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"new A; A->new B; B->new C; .
+new B; B->new C; .";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
         #endregion Target Typed Switch
     }
 }
