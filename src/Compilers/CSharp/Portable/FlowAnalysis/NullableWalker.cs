@@ -2932,16 +2932,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void LearnFromCompareExchangeMethod(MethodSymbol method, BoundCall node, ImmutableArray<VisitArgumentResult> results)
         {
-            // easy out
-            var parameterCount = method.ParameterCount;
-            if (parameterCount != 3
-                || method.MethodKind != MethodKind.Ordinary
-                || !method.IsStatic
-                || method.Name != WellKnownMembers.GetDescriptor(WellKnownMember.System_Threading_Interlocked__CompareExchange).Name)
-            {
-                return;
-            }
-
             var isCompareExchangeMethod = method.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange))
                 || method.OriginalDefinition.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T));
             if (!isCompareExchangeMethod)
@@ -2961,8 +2951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // }
 
             var arguments = node.Arguments;
-            var location = arguments[0];
-            var locationSlot = MakeSlot(location);
+            var locationSlot = MakeSlot(arguments[0]);
             if (locationSlot != -1)
             {
                 var comparand = arguments[2];
