@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageServerClient
         {
             var current = RemoteHostClient.CreateClientId(Process.GetCurrentProcess().Id.ToString());
             var hostGroup = new HostGroup(current);
-            var serviceDescriptor = new ServiceDescriptor(WellKnownServiceHubServices.CodeAnalysisService) { HostGroup = hostGroup };
+            var serviceDescriptor = new ServiceDescriptor(WellKnownServiceHubServices.LanguageServer) { HostGroup = hostGroup };
             var client = new HubClient("ManagedLanguage.IDE.CSharpLSPServerClient");
             var stream = await client.RequestServiceAsync(serviceDescriptor, token).ConfigureAwait(true);
             return new Connection(stream, stream);

@@ -38,6 +38,7 @@
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynSnapshot64.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynCodeAnalysis64.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynRemoteSymbolSearchUpdateEngine64.servicehub.service.json" />
+    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynLanguageServer.servicehub.service.json" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="BasicVisualStudio" Path="|BasicVisualStudio|" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="CSharpVisualStudio" Path="|CSharpVisualStudio|" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="SolutionExplorerShim" Path="|SolutionExplorerShim|" />

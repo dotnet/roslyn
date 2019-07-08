@@ -7,14 +7,17 @@ namespace Microsoft.CodeAnalysis.Remote
         public static void Set64bit(bool x64)
         {
             var bit = x64 ? "64" : "";
-
+             
             SnapshotService = "roslynSnapshot" + bit;
             CodeAnalysisService = "roslynCodeAnalysis" + bit;
             RemoteSymbolSearchUpdateEngine = "roslynRemoteSymbolSearchUpdateEngine" + bit;
+            LanguageServer = "roslynLanguageServer" + bit;
         }
 
         public static string SnapshotService { get; private set; } = "roslynSnapshot";
         public static string CodeAnalysisService { get; private set; } = "roslynCodeAnalysis";
+
+        public static string LanguageServer { get; private set; } = "roslynLanguageServer";
         public static string RemoteSymbolSearchUpdateEngine { get; private set; } = "roslynRemoteSymbolSearchUpdateEngine";
 
         // these are OOP implementation itself should care. not features that consume OOP care
