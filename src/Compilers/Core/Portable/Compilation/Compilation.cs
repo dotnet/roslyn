@@ -897,12 +897,21 @@ namespace Microsoft.CodeAnalysis
         /// Returns a new ArrayTypeSymbol representing an array type tied to the base types of the
         /// COR Library in this Compilation.
         /// </summary>
-        public IArrayTypeSymbol CreateArrayTypeSymbol(ITypeSymbol elementType, int rank = 1)
+        public IArrayTypeSymbol CreateArrayTypeSymbol(ITypeSymbol elementType, int rank = 1, NullableAnnotation elementNullableAnnotation = NullableAnnotation.NotApplicable)
         {
-            return CommonCreateArrayTypeSymbol(elementType, rank);
+            return CommonCreateArrayTypeSymbol(elementType, rank, elementNullableAnnotation);
         }
 
-        protected abstract IArrayTypeSymbol CommonCreateArrayTypeSymbol(ITypeSymbol elementType, int rank);
+        /// <summary>
+        /// Returns a new ArrayTypeSymbol representing an array type tied to the base types of the
+        /// COR Library in this Compilation.
+        /// </summary>
+        public IArrayTypeSymbol CreateArrayTypeSymbol(ITypeSymbol elementType, int rank)
+        {
+            return CommonCreateArrayTypeSymbol(elementType, rank, elementNullableAnnotation: default);
+        }
+
+        protected abstract IArrayTypeSymbol CommonCreateArrayTypeSymbol(ITypeSymbol elementType, int rank, NullableAnnotation elementNullableAnnotation);
 
         /// <summary>
         /// Returns a new PointerTypeSymbol representing a pointer type tied to a type in this
@@ -1112,7 +1121,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ITypeSymbol> memberTypes,
             ImmutableArray<string> memberNames,
             ImmutableArray<bool> memberIsReadOnly = default(ImmutableArray<bool>),
-            ImmutableArray<Location> memberLocations = default(ImmutableArray<Location>))
+            ImmutableArray<Location> memberLocations = default(ImmutableArray<Location>)) // PROTOTYPE
         {
             if (memberTypes.IsDefault)
             {

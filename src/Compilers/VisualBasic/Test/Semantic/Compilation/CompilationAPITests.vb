@@ -1493,6 +1493,41 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         End Sub
 
         <Fact()>
+        Public Sub CreateArrayType_DefaultArgs()
+            Dim comp = DirectCast(VisualBasicCompilation.Create(""), Compilation)
+            Dim elementType = comp.GetSpecialType(SpecialType.System_Object)
+
+            Dim arrayType = comp.CreateArrayTypeSymbol(elementType)
+            Assert.Equal(1, arrayType.Rank)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotApplicable, arrayType.ElementNullableAnnotation)
+
+            Assert.Throws(Of ArgumentException)(Function() comp.CreateArrayTypeSymbol(elementType, Nothing))
+
+            arrayType = comp.CreateArrayTypeSymbol(elementType, 1, Nothing)
+            Assert.Equal(1, arrayType.Rank)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotApplicable, arrayType.ElementNullableAnnotation)
+
+            Assert.Throws(Of ArgumentException)(Function() comp.CreateArrayTypeSymbol(elementType, rank:=Nothing))
+
+            arrayType = comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=Nothing)
+            Assert.Equal(1, arrayType.Rank)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotApplicable, arrayType.ElementNullableAnnotation)
+        End Sub
+
+        <Fact()>
+        Public Sub CreateArrayType_ElementNullableAnnotation()
+            Dim comp = DirectCast(VisualBasicCompilation.Create(""), Compilation)
+            Dim elementType = comp.GetSpecialType(SpecialType.System_Object)
+
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotApplicable, comp.CreateArrayTypeSymbol(elementType).ElementNullableAnnotation)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotApplicable, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=Nothing).ElementNullableAnnotation)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotApplicable, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=CodeAnalysis.NullableAnnotation.NotApplicable).ElementNullableAnnotation)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotApplicable, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=CodeAnalysis.NullableAnnotation.Disabled).ElementNullableAnnotation)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotApplicable, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=CodeAnalysis.NullableAnnotation.NotAnnotated).ElementNullableAnnotation)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotApplicable, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=CodeAnalysis.NullableAnnotation.Annotated).ElementNullableAnnotation)
+        End Sub
+
+        <Fact()>
         Public Sub CreateAnonymousType_IncorrectLengths()
             Dim compilation = VisualBasicCompilation.Create("HelloWorld")
             Assert.Throws(Of ArgumentException)(

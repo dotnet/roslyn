@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
@@ -2341,6 +2339,42 @@ public class C { public static FrameworkName Goo() { return null; }}";
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""x""").WithArguments("string", "int"));
 
             Assert.Throws<InvalidOperationException>(() => CreateSubmission("a + 1", previous: s0));
+        }
+
+        [Fact()]
+        public void CreateArrayType_DefaultArgs()
+        {
+            var comp = (Compilation)CSharpCompilation.Create("");
+            var elementType = comp.GetSpecialType(SpecialType.System_Object);
+
+            var arrayType = comp.CreateArrayTypeSymbol(elementType);
+            Assert.Equal(1, arrayType.Rank);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.Disabled, arrayType.ElementNullableAnnotation);
+
+            Assert.Throws<ArgumentException>(() => arrayType = comp.CreateArrayTypeSymbol(elementType, default));
+
+            arrayType = comp.CreateArrayTypeSymbol(elementType, 1, default);
+            Assert.Equal(1, arrayType.Rank);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.Disabled, arrayType.ElementNullableAnnotation);
+
+            Assert.Throws<ArgumentException>(() => arrayType = comp.CreateArrayTypeSymbol(elementType, rank: default));
+
+            arrayType = comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: default);
+            Assert.Equal(1, arrayType.Rank);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.Disabled, arrayType.ElementNullableAnnotation);
+        }
+
+        [Fact()]
+        public void CreateArrayType_ElementNullableAnnotation()
+        {
+            var comp = (Compilation)CSharpCompilation.Create("");
+            var elementType = comp.GetSpecialType(SpecialType.System_Object);
+
+            Assert.Equal(CodeAnalysis.NullableAnnotation.Disabled, comp.CreateArrayTypeSymbol(elementType).ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.Disabled, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.NotApplicable).ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.Disabled, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.Disabled).ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.NotAnnotated).ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.Annotated).ElementNullableAnnotation);
         }
 
         [Fact()]

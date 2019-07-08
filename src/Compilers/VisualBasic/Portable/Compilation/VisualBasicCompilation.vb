@@ -1856,6 +1856,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(elementType))
             End If
 
+            If rank < 1 Then
+                Throw New ArgumentException(NameOf(rank))
+            End If
+
             Return ArrayTypeSymbol.CreateVBArray(elementType, Nothing, rank, Me)
         End Function
 
@@ -2650,7 +2654,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        name)
         End Function
 
-        Protected Overrides Function CommonCreateArrayTypeSymbol(elementType As ITypeSymbol, rank As Integer) As IArrayTypeSymbol
+        Protected Overrides Function CommonCreateArrayTypeSymbol(elementType As ITypeSymbol, rank As Integer, elementNullableAnnotation As NullableAnnotation) As IArrayTypeSymbol
             Return CreateArrayTypeSymbol(elementType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(elementType)), rank)
         End Function
 
