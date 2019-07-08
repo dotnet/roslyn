@@ -56,11 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 return default;
             }
 
-            if (!parseOptions.Features.ContainsKey(CompilerFeatureFlags.RunNullableAnalysis))
-            {
-                return default;
-            }
-
             var syntaxFacts = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISyntaxFactsService>();
             var bindableParent = syntaxFacts.GetBindableParent(token);
             var symbolInfo = semanticModel.GetSymbolInfo(bindableParent, cancellationToken);
