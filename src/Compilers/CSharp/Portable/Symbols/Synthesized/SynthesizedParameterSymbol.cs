@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
-            string name = "",
-            bool isNullChecked = false)
+            string name,
+            bool isNullChecked)
         {
             Debug.Assert(type.HasType);
             Debug.Assert(name != null);
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             RefKind refKind,
             string name,
-            bool IsNullChecked = false)
+            bool IsNullChecked)
             : base(container, type, ordinal, refKind, name, IsNullChecked)
         {
         }
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind refKind,
                 string name,
                 ImmutableArray<CustomModifier> refCustomModifiers,
-                bool IsNullChecked = false)
+                bool IsNullChecked)
                 : base(container, type, ordinal, refKind, name, IsNullChecked)
             {
                 _refCustomModifiers = refCustomModifiers.NullToEmpty();
