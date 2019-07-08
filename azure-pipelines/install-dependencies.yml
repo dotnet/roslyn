@@ -5,27 +5,5 @@ steps:
     failOnStderr: true
   displayName: Set pipeline variables based on source
 
-- script: dotnet --info
-  displayName: .NET Core SDK/runtimes (on host)
-  workingDirectory: $(Agent.HomeDirectory)
-
-- task: UseDotNet@2
-  displayName: Install .NET Core SDK
-  inputs:
-    packageType: sdk
-    version: $(DotNetSdkVersion)
-
-- task: UseDotNet@2
-  displayName: Install .NET Core runtime 2.0.x
-  inputs:
-    packageType: runtime
-    version: 2.0.x
-
-- task: UseDotNet@2
-  displayName: Install .NET Core runtime 2.1.x
-  inputs:
-    packageType: runtime
-    version: 2.1.x
-
-- script: dotnet --info
-  displayName: .NET Core SDK/runtimes (explicitly installed)
+- powershell: .\init.ps1
+  displayName: Install prerequisites
