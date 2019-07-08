@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         factory.Diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, param.Locations.FirstOrNone(), new object[] { param });
                         continue;
                     }
-                    if (param.ExplicitDefaultConstantValue?.IsNull ?? false)
+                    if (param.ExplicitDefaultConstantValue?.IsNull == true)
                     {
                         factory.Diagnostics.Add(ErrorCode.WRN_NullCheckedHasDefaultNull, param.Locations.FirstOrNone(), new object[] { param });
                     }
@@ -53,11 +53,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool GetParameterIsNullChecked(ParameterSymbol x)
         {
             if (x is SourceParameterSymbolBase param && param.IsNullChecked)
+            {
                 return true;
-
+            }
             else if (x is SynthesizedParameterSymbolBase synthedParam && synthedParam.IsNullChecked)
+            {
                 return true;
-
+            }
             return false;
         }
 

@@ -566,7 +566,7 @@ class Program
         {
             Console.WriteLine(e.GetType());
         }
-}
+    }
 }";
             CompileAndVerify(source, expectedOutput: @"
 ok
@@ -601,7 +601,7 @@ class Program
         {
             Console.WriteLine(e.GetType());
         }
-}
+    }
 }";
             CompileAndVerify(source, expectedOutput: @"
 ok
@@ -723,50 +723,6 @@ class Program
             CompileAndVerify(source, expectedOutput: @"
 ok
 System.ArgumentNullException");
-        }
-
-        [Fact]
-        public void NotNullCheckedLambdaParameter()
-        {
-            var source = @"
-using System;
-class C
-{
-    public void M()
-    {
-        Func<string, string> func1 = x => x;
-    }
-}";
-            var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("C.<>c.<M>b__0_0(string)", @"
-{
-      // Code size        2 (0x2)
-      .maxstack  1
-      IL_0000:  ldarg.1
-      IL_0001:  ret
-}");
-        }
-
-        [Fact]
-        public void NotNullCheckedLambdaParameter()
-        {
-            var source = @"
-using System;
-class C
-{
-    public void M()
-    {
-        Func<string, string> func1 = x => x;
-    }
-}";
-            var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("C.<>c.<M>b__0_0(string)", @"
-{
-      // Code size        2 (0x2)
-      .maxstack  1
-      IL_0000:  ldarg.1
-      IL_0001:  ret
-}");
         }
 
         [Fact]
@@ -1278,34 +1234,332 @@ class C
         }
 
         [Fact]
+        public void NullCheckedLocalFunction()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        InnerM(""hello world"");
+        void InnerM(string x!) { }
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.<M>g__InnerM|0_0(string)", @"
+{
+    // Code size       10 (0xa)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ret
+}");
+        }
+
+        [Fact]
+        public void NullCheckedLocalFunctionWithManyParams()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        InnerM(""hello"",  ""world"");
+        void InnerM(string x!, string y) { }
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.<M>g__InnerM|0_0(string, string)", @"
+{
+    // Code size       10 (0xa)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ret
+}");
+        }
+
+        [Fact]
+        public void TestLocalFunctionWithManyNullCheckedParams()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        InnerM(""hello"",  ""world"");
+        void InnerM(string x!, string y!) { }
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.<M>g__InnerM|0_0(string, string)", @"
+{
+    // Code size       19 (0x13)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.1
+    IL_000a:  brtrue.s   IL_0012
+    IL_000c:  newobj     ""System.Exception..ctor()""
+    IL_0011:  throw
+    IL_0012:  ret
+}");
+        }
+
+        [Fact]
+        public void TestLocalFunctionWithShadowedNullCheckedInnerParam()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M(string x)
+    {
+        InnerM(""hello"");
+        void InnerM(string x!) { }
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.<M>g__InnerM|0_0(string)", @"
+{
+    // Code size       10 (0xa)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ret
+}");
+            compilation.VerifyIL("C.M(string)", @"
+{
+    // Code size       11 (0xb)
+    .maxstack  1
+    IL_0000:  ldstr      ""hello""
+    IL_0005:  call       ""void C.<M>g__InnerM|0_0(string)""
+    IL_000a:  ret
+}");
+        }
+
+        [Fact]
+        public void TestLocalFunctionWithShadowedNullCheckedOuterParam()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M(string x!)
+    {
+        InnerM(""hello"");
+        void InnerM(string x) { }
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.<M>g__InnerM|0_0(string)", @"
+{
+    // Code size        1 (0x1)
+    .maxstack  0
+    IL_0000:  ret
+}");
+            compilation.VerifyIL("C.M(string)", @"
+{
+    // Code size       20 (0x14)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldstr      ""hello""
+    IL_000e:  call       ""void C.<M>g__InnerM|0_0(string)""
+    IL_0013:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCheckedConstructors()
+        {
+            var source = @"
+class C
+{
+    public C(string x!) { }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C..ctor(string)", @"
+{
+    // Code size       16 (0x10)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.0
+    IL_000a:  call       ""object..ctor()""
+    IL_000f:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCheckedConstructorWithBaseChain()
+        {
+            var source = @"
+class B
+{
+    public B(string y) { }
+}
+class C : B
+{
+    public C(string x!) : base(x) { }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C..ctor(string)", @"
+{
+    // Code size       17 (0x11)
+    .maxstack  2
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.0
+    IL_000a:  ldarg.1
+    IL_000b:  call       ""B..ctor(string)""
+    IL_0010:  ret
+}");
+            compilation.VerifyIL("B..ctor(string)", @"
+{
+    // Code size        7 (0x7)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  call       ""object..ctor()""
+    IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCheckedConstructorWithThisChain()
+        {
+            var source = @"
+class C
+{
+    public C() { }
+    public C(string x!) : this() { }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C..ctor(string)", @"
+{
+    // Code size       16 (0x10)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.0
+    IL_000a:  call       ""C..ctor()""
+    IL_000f:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCheckedConstructorWithFieldInitializers()
+        {
+            var source = @"
+class C
+{
+    int y = 5;
+    public C(string x!) { }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C..ctor(string)", @"
+{
+    // Code size       23 (0x17)
+    .maxstack  2
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.0
+    IL_000a:  ldc.i4.5
+    IL_000b:  stfld      ""int C.y""
+    IL_0010:  ldarg.0
+    IL_0011:  call       ""object..ctor()""
+    IL_0016:  ret
+}");
+        }
+
+        [Fact(Skip = "PROTOTYPE")]
         public void TestNullCheckedIterator()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        string[] values = {""hello"", ""world""};
+        foreach (var val in values)
+        {
+            Console.WriteLine(val);
+        }
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("Iterators.<Use>g__GetChars|0_0(string)", @"
+{
+    // Code size       24 (0x18)
+    .maxstack  3
+    IL_0000:  ldarg.0
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldc.i4.s   -2
+    IL_000b:  newobj     ""Iterators.<<Use>g__GetChars|0_0>d..ctor(int)""
+    IL_0010:  dup
+    IL_0011:  ldarg.0
+    IL_0012:  stfld      ""string Iterators.<<Use>g__GetChars|0_0>d.<>3__s""
+    IL_0017:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCheckedIteratorInLocalFunction()
         {
             var source = @"
 using System.Collections.Generic;
 class Iterators
 {
-    IEnumerable<char> GetChars(string s!)
+    void Use()
     {
-        foreach (var c in s)
+        IEnumerable<char> e = GetChars(""hello"");
+        IEnumerable<char> GetChars(string s!)
         {
-            yield return c;
+            foreach (var c in s)
+            {
+                yield return c;
+            }
         }
     }
+
 }";
             var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("Iterators.GetChars(string)", @"
+            compilation.VerifyIL("Iterators.<Use>g__GetChars|0_0(string)", @"
 {
     // Code size       24 (0x18)
     .maxstack  3
-    IL_0000:  ldarg.1
+    IL_0000:  ldarg.0
     IL_0001:  brtrue.s   IL_0009
     IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
     IL_0008:  throw
     IL_0009:  ldc.i4.s   -2
-    IL_000b:  newobj     ""Iterators.<GetChars>d__0..ctor(int)""
+    IL_000b:  newobj     ""Iterators.<<Use>g__GetChars|0_0>d..ctor(int)""
     IL_0010:  dup
-    IL_0011:  ldarg.1
-    IL_0012:  stfld      ""string Iterators.<GetChars>d__0.<>3__s""
+    IL_0011:  ldarg.0
+    IL_0012:  stfld      ""string Iterators.<<Use>g__GetChars|0_0>d.<>3__s""
     IL_0017:  ret
 }");
         }

@@ -1203,6 +1203,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             var factory = new SyntheticBoundNodeFactory(methodSymbol, syntax, compilationState, diagsForCurrentMethod);
+
+                            // Iterators handled in IteratorRewriter.cs
                             if (!methodSymbol.IsIterator)
                             {
                                 var boundStatementsWithNullCheck = LocalRewriter.ConstructNullCheckedStatementList(methodSymbol.Parameters, boundStatements, factory);
