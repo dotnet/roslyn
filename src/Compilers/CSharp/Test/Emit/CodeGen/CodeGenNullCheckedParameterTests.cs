@@ -1432,5 +1432,19 @@ ok
 ok
 System.ArgumentNullException");
         }
+
+        [Fact]
+        public void TestNullCheckedWithMissingType()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args!) { }
+}";
+            var comp = CreateCompilation(source);
+            //comp.MakeTypeMissing(WellKnownType.System_ArgumentNullException);
+            //comp.MakeMemberMissing(WellKnownMember.System_ArgumentNullException__ctor);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }
