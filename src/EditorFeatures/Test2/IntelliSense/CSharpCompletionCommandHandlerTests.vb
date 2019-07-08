@@ -5011,7 +5011,7 @@ class C
                 state.AssertCompletionItemsContainAll({"Normalize", "★ Normalize"})
                 state.SendCommitUniqueCompletionListItem()
                 Await state.AssertNoCompletionSession()
-                Assert.Contains("s.Normalize", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("s.Normalize()", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -5451,15 +5451,25 @@ class C
 
             Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
                 context.AddItem(CompletionItem.Create(displayText:="★ Length", filterText:="Length"))
-                context.AddItem(CompletionItem.Create(displayText:="★ Normalize", filterText:="Normalize"))
+                context.AddItem(CompletionItem.Create(displayText:="★ Normalize", filterText:="Normalize", displayTextSuffix:="()"))
                 context.AddItem(CompletionItem.Create(displayText:="Length", filterText:="Length"))
-                context.AddItem(CompletionItem.Create(displayText:="ToString()", filterText:="ToString"))
-                context.AddItem(CompletionItem.Create(displayText:="First()", filterText:="First"))
+                context.AddItem(CompletionItem.Create(displayText:="ToString", filterText:="ToString", displayTextSuffix:="()"))
+                context.AddItem(CompletionItem.Create(displayText:="First", filterText:="First", displayTextSuffix:="()"))
                 Return Task.CompletedTask
             End Function
 
             Public Overrides Function ShouldTriggerCompletion(text As SourceText, caretPosition As Integer, trigger As CompletionTrigger, options As OptionSet) As Boolean
                 Return True
+            End Function
+
+            Public Overrides Function GetChangeAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of CompletionChange)
+                Dim commitText = item.DisplayText + item.DisplayTextSuffix
+                If commitText.StartsWith("★") Then
+                    ' remove the star and the following space
+                    commitText = commitText.Substring(2)
+                End If
+
+                Return Task.FromResult(CompletionChange.Create(New TextChange(item.Span, commitText)))
             End Function
         End Class
 
