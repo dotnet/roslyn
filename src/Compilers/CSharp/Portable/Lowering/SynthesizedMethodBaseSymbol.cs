@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ordinal++,
                         p.RefKind,
                         p.Name,
-                        isNullChecked: p is SourceParameterSymbolBase param ? param.IsNullChecked : ((SynthesizedParameterSymbolBase)p).IsNullChecked));
+                        isNullChecked: p.IsNullChecked);
             }
             var extraSynthed = ExtraSynthesizedRefParameters;
             if (!extraSynthed.IsDefaultOrEmpty)

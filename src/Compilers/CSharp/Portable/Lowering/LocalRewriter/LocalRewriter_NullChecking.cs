@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundStatement> statementList = null;
             foreach (ParameterSymbol param in parameters)
             {
-                if (GetParameterIsNullChecked(param))
+                if (param.IsNullChecked)
                 {
                     if (param.Type.IsValueType && !param.Type.IsNullableTypeOrTypeParameter())
                     {
@@ -48,19 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             statementList.AddRange(existingStatements);
             return statementList.ToImmutableAndFree();
 
-        }
-
-        private static bool GetParameterIsNullChecked(ParameterSymbol x)
-        {
-            if (x is SourceParameterSymbolBase param && param.IsNullChecked)
-            {
-                return true;
-            }
-            else if (x is SynthesizedParameterSymbolBase synthedParam && synthedParam.IsNullChecked)
-            {
-                return true;
-            }
-            return false;
         }
 
         private static BoundStatement ConstructIfStatementForParameter(ParameterSymbol parameter, SyntheticBoundNodeFactory factory)
