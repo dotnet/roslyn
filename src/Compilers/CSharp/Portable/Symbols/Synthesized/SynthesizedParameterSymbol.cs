@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _ordinal = ordinal;
             _refKind = refKind;
             _name = name;
-            _isNullChecked = isNullChecked;
         }
 
         public override TypeWithAnnotations TypeWithAnnotations
