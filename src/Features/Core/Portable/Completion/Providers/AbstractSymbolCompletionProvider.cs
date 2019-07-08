@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return _isTargetTypeCompletionFilterExperimentEnabled == true;
         }
 
+        /// <param name="inferredTypes">Should not inlcude nullability information</param>
         private bool ShouldIncludeInTargetTypedCompletionList(
             ISymbol symbol,
             ImmutableArray<ITypeSymbol> inferredTypes,
@@ -91,6 +92,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return false;
             }
 
+            type = type.WithoutNullability();
+
             if (typeConvertibilityCache.TryGetValue(type, out var isConvertible))
             {
                 return isConvertible;
@@ -98,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             foreach (var inferredType in inferredTypes)
             {
-                if (semanticModel.Compilation.ClassifyCommonConversion(type.WithoutNullability(), inferredType.WithoutNullability()).IsImplicit)
+                if (semanticModel.Compilation.ClassifyCommonConversion(type, inferredType).IsImplicit)
                 {
                     typeConvertibilityCache[type] = true;
                     return true;
@@ -138,10 +141,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (IsTargetTypeCompletionFilterExperimentEnabled(arbitraryFirstContext.Workspace))
                 {
+                    var inferredTypesWithoutNullability = inferredTypes.Select(t => t.WithoutNullability()).ToImmutableArray();
+
                     foreach (var symbol in symbolGroup)
                     {
                         var syntaxContext = contextLookup(symbol);
-                        if (ShouldIncludeInTargetTypedCompletionList(symbol, inferredTypes, syntaxContext.SemanticModel, syntaxContext.Position, typeConvertibilityCache))
+                        if (ShouldIncludeInTargetTypedCompletionList(symbol, inferredTypesWithoutNullability, syntaxContext.SemanticModel, syntaxContext.Position, typeConvertibilityCache))
                         {
                             item = item.AddTag(WellKnownTags.TargetTypeMatch);
                             break;
