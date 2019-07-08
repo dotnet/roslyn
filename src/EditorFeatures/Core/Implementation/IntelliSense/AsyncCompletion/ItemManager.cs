@@ -493,7 +493,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var mruIndex1 = GetRecentItemIndex(recentItems, bestItem);
                 var mruIndex2 = GetRecentItemIndex(recentItems, chosenItem);
 
-                if (mruIndex2 < mruIndex1)
+                if ((mruIndex2 < mruIndex1) ||
+                    (mruIndex2 == mruIndex1 && !bestItem.IsPreferredItem() && chosenItem.IsPreferredItem()))
                 {
                     bestItem = chosenItem;
                 }
@@ -513,7 +514,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var bestItemPriority = bestItem.Rules.MatchPriority;
                 var currentItemPriority = chosenItem.Rules.MatchPriority;
 
-                if (currentItemPriority > bestItemPriority)
+                if ((currentItemPriority > bestItemPriority) || 
+                    ((currentItemPriority == bestItemPriority) && !bestItem.IsPreferredItem() && chosenItem.IsPreferredItem()))
                 {
                     bestItem = chosenItem;
                 }
@@ -565,7 +567,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     return true;
                 }
+
+                if (result1.CompletionItem.IsPreferredItem() && !result2.CompletionItem.IsPreferredItem())
+                {
+                    return true;
+                }
             }
+
             return false;
         }
 
