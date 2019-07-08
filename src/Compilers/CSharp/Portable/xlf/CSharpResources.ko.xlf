@@ -1432,6 +1432,11 @@
         <target state="new">Parameter '{0}' is null-checked but is null by default.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullCheckedHasDefaultNull_Title">
+        <source>Parameter is null-checked but is null by default.</source>
+        <target state="new">Parameter is null-checked but is null by default.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
         <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
         <target state="translated">'{0}'이(가) nullable이 아닌 참조 형식이면 null 리터럴이 null 값을 지정합니다.</target>

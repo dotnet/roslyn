@@ -5928,4 +5928,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullCheckedHasDefaultNull" xml:space="preserve">
     <value>Parameter '{0}' is null-checked but is null by default.</value>
   </data>
+
+  <data name="WRN_NullCheckedHasDefaultNull_Title" xml:space="preserve">
+    <value>Parameter is null-checked but is null by default.</value>
+  </data>
 </root>

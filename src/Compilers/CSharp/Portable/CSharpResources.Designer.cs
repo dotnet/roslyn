@@ -15719,6 +15719,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parameter is null-checked but is null by default..
+        /// </summary>
+        internal static string WRN_NullCheckedHasDefaultNull_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullCheckedHasDefaultNull_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A null literal introduces a null value when &apos;{0}&apos; is a non-nullable reference type..
         /// </summary>
         internal static string WRN_NullLiteralMayIntroduceNullT {
