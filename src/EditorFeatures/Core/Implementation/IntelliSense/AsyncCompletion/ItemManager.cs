@@ -293,12 +293,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (bestItem != null)
             {
                 selectedItemIndex = itemsInList.IndexOf(i => Equals(i.FilterResult.CompletionItem, bestItem));
-                var deduplicatedList = matchingItems.Where(r => !r.IsPreferredItem());
+                var deduplicatedListCount = matchingItems.Where(r => !r.IsPreferredItem()).Count();
                 if (selectedItemIndex > -1 &&
-                    deduplicatedList.Count() == 1 &&
+                    deduplicatedListCount == 1 &&
                     filterText.Length > 0)
                 {
-                    var uniqueItemIndex = itemsInList.IndexOf(i => Equals(i.FilterResult.CompletionItem, deduplicatedList.First()));
+                    var uniqueItemIndex = itemsInList.IndexOf(i => Equals(i.FilterResult.CompletionItem, bestItem));
                     uniqueItem = highlightedList[uniqueItemIndex].CompletionItem;
                 }
             }
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var bestItemPriority = bestItem.Rules.MatchPriority;
                 var currentItemPriority = chosenItem.Rules.MatchPriority;
 
-                if ((currentItemPriority > bestItemPriority) || 
+                if ((currentItemPriority > bestItemPriority) ||
                     ((currentItemPriority == bestItemPriority) && !bestItem.IsPreferredItem() && chosenItem.IsPreferredItem()))
                 {
                     bestItem = chosenItem;

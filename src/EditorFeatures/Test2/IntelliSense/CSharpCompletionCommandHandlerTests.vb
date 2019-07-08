@@ -5477,17 +5477,13 @@ class C
         ' We want to ignore these items in CommitIfUnique.
         ' This situation should not happen. Tests with this provider were added to cover protective scenarios.
         Private Class IntelliCodeMockWeirdProvider
-            Inherits CompletionProvider
+            Inherits IntelliCodeMockProvider
 
             Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
                 context.AddItem(CompletionItem.Create(displayText:="★ Length2", filterText:="Length2"))
                 context.AddItem(CompletionItem.Create(displayText:="Length", filterText:="Length"))
                 context.AddItem(CompletionItem.Create(displayText:="★ Length3", filterText:="Length3"))
                 Return Task.CompletedTask
-            End Function
-
-            Public Overrides Function ShouldTriggerCompletion(text As SourceText, caretPosition As Integer, trigger As CompletionTrigger, options As OptionSet) As Boolean
-                Return True
             End Function
         End Class
     End Class
