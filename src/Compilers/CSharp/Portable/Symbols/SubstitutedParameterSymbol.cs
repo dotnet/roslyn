@@ -73,6 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool IsNullChecked => UnderlyingParameter.IsNullChecked;
+
         public sealed override bool Equals(object obj)
         {
             if ((object)this == obj)

@@ -157,6 +157,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool IsMetadataOptional { get; }
 
+
+        internal abstract bool IsNullChecked { get; }
+
         /// <summary>
         /// True if In flag is set in metadata.
         /// </summary>

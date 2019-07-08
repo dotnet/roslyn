@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _ordinal = ordinal;
             _refKind = refKind;
             _name = name;
+            IsNullChecked = isNullChecked;
         }
 
         public override TypeWithAnnotations TypeWithAnnotations
@@ -129,6 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<Location>.Empty; }
         }
 
+        internal override bool IsNullChecked { get; }
+
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
@@ -136,8 +139,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<SyntaxReference>.Empty;
             }
         }
-
-        internal bool IsNullChecked { get; }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
@@ -227,6 +228,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
+
+        internal override bool IsNullChecked => base.IsNullChecked;
 
         private sealed class SynthesizedParameterSymbolWithCustomModifiers : SynthesizedParameterSymbolBase
         {

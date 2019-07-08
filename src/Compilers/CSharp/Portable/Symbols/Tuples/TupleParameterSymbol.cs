@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool IsNullChecked => UnderlyingParameter.IsNullChecked;
+
         public override int GetHashCode()
         {
             return _underlyingParameter.GetHashCode();
