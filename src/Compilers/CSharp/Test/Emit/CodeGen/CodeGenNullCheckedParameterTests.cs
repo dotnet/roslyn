@@ -1275,12 +1275,53 @@ class C
         public void TestNullCheckedIterator()
         {
             var source = @"
+using System.Collections.Generic;
+class C
+{
+    IEnumerable<char> GetChars(string s!)
+    {
+        foreach (var c in s)
+        {
+            yield return c;
+        }
+    }
+    public static void Main()
+    {
+        C c = new C();
+        IEnumerable<char> e = c.GetChars(""hello"");
+
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.GetChars(string)", @"
+{
+    // Code size       29 (0x1d)
+    .maxstack  3
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_000e
+    IL_0003:  ldstr      ""s""
+    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
+    IL_000d:  throw
+    IL_000e:  ldc.i4.s   -2
+    IL_0010:  newobj     ""C.<GetChars>d__0..ctor(int)""
+    IL_0015:  dup
+    IL_0016:  ldarg.1
+    IL_0017:  stfld      ""string C.<GetChars>d__0.<>3__s""
+    IL_001c:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCheckedEnumeratorReturningIterator()
+        {
+            var source = @"
+using System.Collections;
 class C
 {
     public static void Main()
     {
-        IEnumerable<char> e = GetChars(""hello"");
-        IEnumerable<char> GetChars(string s!)
+        IEnumerator e = GetChars(""hello"");
+        IEnumerator GetChars(string s!)
         {
             foreach (var c in s)
             {
@@ -1290,20 +1331,21 @@ class C
     }
 }";
             var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("Iterators.<Use>g__GetChars|0_0(string)", @"
+            compilation.VerifyIL("C.<Main>g__GetChars|0_0(string)", @"
 {
-    // Code size       24 (0x18)
+    // Code size       28 (0x1c)
     .maxstack  3
     IL_0000:  ldarg.0
-    IL_0001:  brtrue.s   IL_0009
-    IL_0003:  newobj     ""System.ArgumentNullException..ctor()""
-    IL_0008:  throw
-    IL_0009:  ldc.i4.s   -2
-    IL_000b:  newobj     ""Iterators.<<Use>g__GetChars|0_0>d..ctor(int)""
-    IL_0010:  dup
-    IL_0011:  ldarg.0
-    IL_0012:  stfld      ""string Iterators.<<Use>g__GetChars|0_0>d.<>3__s""
-    IL_0017:  ret
+    IL_0001:  brtrue.s   IL_000e
+    IL_0003:  ldstr      ""s""
+    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
+    IL_000d:  throw
+    IL_000e:  ldc.i4.0
+    IL_000f:  newobj     ""C.<<Main>g__GetChars|0_0>d..ctor(int)""
+    IL_0014:  dup
+    IL_0015:  ldarg.0
+    IL_0016:  stfld      ""string C.<<Main>g__GetChars|0_0>d.s""
+    IL_001b:  ret
 }");
         }
 
