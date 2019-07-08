@@ -164,6 +164,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
+        internal sealed override bool IsNullChecked => UnderlyingParameter.IsNullChecked;
+
         #endregion
     }
 }

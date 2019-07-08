@@ -138,8 +138,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get { return _retargetingMethod.RetargetingModule; }
         }
-
-        internal override bool IsNullChecked => UnderlyingParameter.IsNullChecked;
     }
 
     internal sealed class RetargetingPropertyParameterSymbol : RetargetingParameterSymbol
@@ -160,7 +158,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get { return _retargetingProperty.RetargetingModule; }
         }
-
-        internal override bool IsNullChecked => UnderlyingParameter.IsNullChecked;
     }
 }

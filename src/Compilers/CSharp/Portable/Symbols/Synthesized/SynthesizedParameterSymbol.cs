@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<Location>.Empty; }
         }
 
-        internal override bool IsNullChecked { get; }
+        internal sealed override bool IsNullChecked { get; }
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
@@ -228,8 +228,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
-
-        internal override bool IsNullChecked => base.IsNullChecked;
 
         private sealed class SynthesizedParameterSymbolWithCustomModifiers : SynthesizedParameterSymbolBase
         {
