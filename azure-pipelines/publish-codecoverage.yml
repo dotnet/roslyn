@@ -4,16 +4,19 @@ steps:
   inputs:
     artifactName: coverageResults-Windows
     downloadPath: $(System.DefaultWorkingDirectory)/bin
+  continueOnError: true
 - task: DownloadBuildArtifacts@0
   displayName: Download Linux code coverage results
   inputs:
     artifactName: coverageResults-Linux
     downloadPath: $(System.DefaultWorkingDirectory)/bin
+  continueOnError: true
 - task: DownloadBuildArtifacts@0
   displayName: Download macOS code coverage results
   inputs:
     artifactName: coverageResults-macOS
     downloadPath: $(System.DefaultWorkingDirectory)/bin
+  continueOnError: true
 - powershell: |
     dotnet tool install --tool-path obj dotnet-reportgenerator-globaltool --version 4.2.2
     Copy-Item -Recurse $(System.DefaultWorkingDirectory)/bin/coverageResults-Windows/obj/* $(System.DefaultWorkingDirectory)/obj
