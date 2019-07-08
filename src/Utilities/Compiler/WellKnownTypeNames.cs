@@ -320,5 +320,7 @@ namespace Analyzer.Utilities
         public const string SystemIOFileStream = "System.IO.FileStream";
         public const string SystemIOPath = "System.IO.Path";
         public const string SystemString = "System.String";
+        public const string SystemRuntimeInteropServicesDllImportAttribute = "System.Runtime.InteropServices.DllImportAttribute";
+        public const string SystemRuntimeInteropServicesDefaultDllImportSearchPathsAttribute = "System.Runtime.InteropServices.DefaultDllImportSearchPathsAttribute";
     }
 }
