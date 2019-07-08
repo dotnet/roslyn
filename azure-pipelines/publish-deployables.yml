@@ -1,0 +1,15 @@
+steps:
+- task: DownloadBuildArtifacts@0
+  displayName: Download deployables
+  inputs:
+    artifactName: deployables-Windows
+    downloadPath: $(System.DefaultWorkingDirectory)/bin
+- task: DotNetCoreCLI@2
+  displayName: Push packages to CI feed
+  inputs:
+    command: push
+    packagesToPush: $(System.DefaultWorkingDirectory)/bin/deployables-Windows/*.nupkg
+    nuGetFeedType: internal
+    publishVstsFeed: $(ci_feed)
+    allowPackageConflicts: true
+  condition: and(succeeded(), ne(variables['ci_feed'], ''))
