@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The common name used for the F# language.
         /// </summary>
+        /// <remarks>
+        /// This value is not currently supported by Roslyn.
+        /// </remarks>
         public const string FSharp = "F#";
     }
 }
