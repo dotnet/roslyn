@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -90,23 +91,21 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public void NetstandardIgnored()
         {
             var directory = Temp.CreateDirectory();
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
-            var betaDll = directory.CreateFile("Beta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Beta);
-            var gammaDll = directory.CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Gamma);
-            var deltaDll = directory.CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Delta);
-            directory.CreateFile("netstandard.dll").WriteAllBytes(TestResources.NetFX.netstandard20.netstandard);
+            const string name = "netstandardRef";
+            var comp = CSharpCompilation.Create(
+                name,
+                new[] { SyntaxFactory.ParseSyntaxTree(@"class C {}") },
+                references: new MetadataReference[] { MetadataReference.CreateFromImage(TestResources.NetFX.netstandard20.netstandard) },
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            var compFile = directory.CreateFile(name);
+            comp.Emit(compFile.Path);
 
-            var analyzerReferences = ImmutableArray.Create(
-                new CommandLineAnalyzerReference("Alpha.dll"),
-                new CommandLineAnalyzerReference("Beta.dll"),
-                new CommandLineAnalyzerReference("Gamma.dll"),
-                new CommandLineAnalyzerReference("Delta.dll"),
-                new CommandLineAnalyzerReference("netstandard.dll"));
+
+            var analyzerReferences = ImmutableArray.Create(new CommandLineAnalyzerReference(name));
 
             var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new InMemoryAssemblyLoader());
 
             Assert.True(result);
-
         }
 
         private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader
