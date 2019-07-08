@@ -291,15 +291,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
         End Sub
 
-        Private Function GetRoslynCompletionItemOpt(editorCompletionItem As Data.CompletionItem) As CompletionItem
-            Dim roslynCompletionItem As CompletionItem = Nothing
-            If editorCompletionItem?.Properties.TryGetProperty(RoslynItem, roslynCompletionItem) Then
-                Return roslynCompletionItem
-            End If
-
-            Return Nothing
-        End Function
-
         Public Overrides Function GetCompletionItems() As IList(Of CompletionItem)
             WaitForAsynchronousOperationsAsync()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
