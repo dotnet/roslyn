@@ -5057,7 +5057,7 @@ class C
 
                 state.SendTypeChars(".len")
                 Await state.AssertCompletionSession()
-                state.AssertCompletionItemsContainAll({"Length", "★ Length3", "★ Length2"})
+                state.AssertCompletionItemsContainAll({"Length", "★ Length", "★ Length2"})
                 state.SendCommitUniqueCompletionListItem()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("s.Length", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
@@ -5479,11 +5479,9 @@ class C
         Private Class IntelliCodeMockWeirdProvider
             Inherits IntelliCodeMockProvider
 
-            Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
-                context.AddItem(CompletionItem.Create(displayText:="★ Length2", filterText:="Length2"))
-                context.AddItem(CompletionItem.Create(displayText:="Length", filterText:="Length"))
-                context.AddItem(CompletionItem.Create(displayText:="★ Length3", filterText:="Length3"))
-                Return Task.CompletedTask
+            Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
+                Await MyBase.ProvideCompletionsAsync(context).ConfigureAwait(False)
+                context.AddItem(CompletionItem.Create(displayText:="★ Length2", filterText:="Length"))
             End Function
         End Class
     End Class
