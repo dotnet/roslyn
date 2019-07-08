@@ -478,6 +478,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node)
+        {
+            VisitSwitchExpressionCore(node, inferType: true);
+            return null;
+        }
+
         private void VisitSwitchExpressionCore(BoundSwitchExpression node, bool inferType)
         {
             // first, learn from any null tests in the patterns
