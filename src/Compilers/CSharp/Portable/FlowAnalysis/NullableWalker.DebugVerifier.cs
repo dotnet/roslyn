@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (BoundExpression)base.Visit(node);
             }
 
-            public override BoundNode? Visit(BoundNode node)
+            public override BoundNode? Visit(BoundNode? node)
             {
                 // Ensure that we always have a snapshot for every BoundExpression in the map
                 // Re-enable of this assert is tracked by https://github.com/dotnet/roslyn/issues/36844
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return base.VisitConvertedTupleLiteral(node);
             }
 
-            public override BoundNode VisitTypeExpression(BoundTypeExpression node)
+            public override BoundNode? VisitTypeExpression(BoundTypeExpression node)
             {
                 // Ignore any dimensions
                 VerifyExpression(node);
