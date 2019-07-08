@@ -54,9 +54,11 @@
            actually used during compilation. .NETCore 3.0 supports up to C# 8.0, while all others support up to 7.3 by default.
            Note that other frameworks (e.g., Xamarin, Unity, etc.) are expected to override this by setting
            MaxSupportedLangVersion themselves. -->
+      <!-- Strip the 'v' off the beginning of TargetFrameworkVersion so we can actually compare it as a version. -->
+      <_TargetFrameworkVersionAsVersion>$(TargetFrameworkVersion.Substring(1))</_TargetFrameworkVersionAsVersion>
       <MaxSupportedLangVersion Condition="'$(MaxSupportedLangVersion)' == '' AND
                                           '$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND
-                                          '$(TargetFrameworkVersion.Substring(0,3)) == 'v3.'">8.0</MaxSupportedLangVersion>
+                                          '$(_TargetFrameworkVersionAsVersion) >= '3.0'">8.0</MaxSupportedLangVersion>
       <MaxSupportedLangVersion Condition="'$(MaxSupportedLangVersion)' == ''">7.3</MaxSupportedLangVersion>
 
       <LangVersion Condition="'$(LangVersion)' == ''">$(MaxSupportedLangVersion)</LangVersion>
