@@ -63,10 +63,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 paramIsNullCondition = factory.MakeNullCheck(loweredLeft.Syntax, loweredLeft, BinaryOperatorKind.Equal);
             }
+
             ImmutableArray<BoundExpression> exceptionName = ArrayBuilder<BoundExpression>.GetInstance(1, factory.StringLiteral(parameter.Name)).ToImmutableAndFree();
-            BoundObjectCreationExpression ex = factory.New(WellKnownMember.System_ArgumentNullException__ctor, exceptionName);
+            BoundObjectCreationExpression ex = factory.New(factory.WellKnownMethod(WellKnownMember.System_ArgumentNullException__ctor), exceptionName);
             BoundThrowStatement throwArgNullStatement = factory.Throw(ex);
-            // factory.WellKnownType(WellKnownType.System_ArgumentNullException)
+
             return factory.HiddenSequencePoint(factory.If(paramIsNullCondition, throwArgNullStatement));
         }
     }
