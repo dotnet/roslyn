@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindSwitchGoverningExpression(DiagnosticBag diagnostics)
         {
-            var switchGoverningExpression = BindToNaturalType(BindValue(SwitchExpressionSyntax.GoverningExpression, diagnostics, BindValueKind.RValue), diagnostics);
+            var switchGoverningExpression = BindRValueWithoutTargetType(SwitchExpressionSyntax.GoverningExpression, diagnostics);
             if (switchGoverningExpression.Type == (object)null || switchGoverningExpression.Type.IsVoidType())
             {
                 diagnostics.Add(ErrorCode.ERR_BadPatternExpression, SwitchExpressionSyntax.GoverningExpression.Location, switchGoverningExpression.Display);

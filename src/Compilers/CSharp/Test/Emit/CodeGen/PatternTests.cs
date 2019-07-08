@@ -4050,6 +4050,27 @@ public class B
                 );
         }
 
+        [Fact]
+        public void TargetTypedSwitch_As()
+        {
+            var source = @"
+class Program
+{
+    public static void M(int i, string s)
+    {
+        // we do not target-type the left-hand-side of an as expression
+        _ = i switch { 1 => i, _ => s } as object;
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,15): error CS8506: No best type was found for the switch expression.
+                //         _ = i switch { 1 => i, _ => s } as object;
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(7, 15)
+                );
+        }
+
         #endregion Target Typed Switch
     }
 }

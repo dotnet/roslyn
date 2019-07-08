@@ -536,7 +536,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var placeholders = placeholderBuilder.ToImmutableAndFree();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            // PROTOTYPE(ngafter): when `!inferType`, we need to target-type the switch expression
             TypeSymbol inferredType =
                 (inferType ? BestTypeInferrer.InferBestType(placeholders, _conversions, ref useSiteDiagnostics) : null)
                     ?? node.Type?.SetUnknownNullabilityForReferenceTypes()

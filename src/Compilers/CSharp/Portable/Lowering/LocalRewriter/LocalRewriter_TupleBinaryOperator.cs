@@ -387,14 +387,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression makeNullableHasValue(BoundExpression expr)
             {
                 // Optimize conversions where we can use the HasValue of the underlying
-                // PROTOTYPE(ngafter): Does this handle all the kinds of conversions that it must?
                 switch (expr)
                 {
                     case BoundConversion { Conversion: { IsIdentity: true }, Operand: var o }:
                         return makeNullableHasValue(o);
-                    case BoundConversion { Conversion: { IsNullable: true }, Operand: var o } when expr.Type.IsNullableType() && o.Type.IsNullableType():
-                        // PROTOTYPE(ngafter): This is not quite correct, as a user-defined conversion from K to Nullable<R> which may translate
+                    case BoundConversion { Conversion: { IsNullable: true, UnderlyingConversions: var underlying }, Operand: var o }
+                            when expr.Type.IsNullableType() && o.Type.IsNullableType() && !underlying[0].IsUserDefined:
+                        // Note that a user-defined conversion from K to Nullable<R> which may translate
                         // a non-null K to a null value gives rise to a lifted conversion from Nullable<K> to Nullable<R> with the same property.
+                        // We therefore do not attempt to optimize nullable conversions with an underlying user-defined conversion.
                         return makeNullableHasValue(o);
                     default:
                         return MakeNullableHasValue(expr.Syntax, expr);

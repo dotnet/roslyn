@@ -76,9 +76,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Filter out method group in conversion.
                 DiagnosticBag expressionDiagnostics = DiagnosticBag.GetInstance();
-                // PROTOTYPE(ngafter): The lock statement should target-type `object`, and the `using` statement
-                // should target-type `IDisposable` if it does not have a natural type that implements this interface.
-                // For using, we need to preserve its type if it is a value type.
                 BoundExpression boundExpression = originalBinder.BindToNaturalType(
                     originalBinder.BindValue(TargetExpressionSyntax, expressionDiagnostics, Binder.BindValueKind.RValueOrMethodGroup), diagnostics);
                 Interlocked.CompareExchange(ref _lazyExpressionAndDiagnostics, new ExpressionAndDiagnostics(boundExpression, expressionDiagnostics.ToReadOnlyAndFree()), null);

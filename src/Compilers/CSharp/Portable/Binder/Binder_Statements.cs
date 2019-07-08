@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (node.Expression != null)
                         {
                             var dummyDiagnostics = DiagnosticBag.GetInstance();
-                            var value = BindToNaturalType(BindValue(node.Expression, dummyDiagnostics, BindValueKind.RValue), dummyDiagnostics);
+                            var value = BindRValueWithoutTargetType(node.Expression, dummyDiagnostics);
                             childNodes = ImmutableArray.Create<BoundNode>(value);
                             dummyDiagnostics.Free();
                         }
@@ -595,9 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpressionStatement expressionStatement;
 
-            // PROTOTYPE(ngafter): This should bind a switch expression as a statement expression, to `void`.
-            // That requires some not-yet-present target typing.
-            var expression = BindToNaturalType(BindValue(syntax, diagnostics, BindValueKind.RValue), diagnostics);
+            var expression = BindRValueWithoutTargetType(syntax, diagnostics);
             ReportSuppressionIfNeeded(expression, diagnostics);
             if (!allowsAnyExpression && !IsValidStatementExpression(syntax, expression))
             {
@@ -2196,7 +2194,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!reportedError)
                         {
                             var switchSyntax = (SwitchExpressionSyntax)operand.Syntax;
-                            // PROTOTYPE(ngafter): Need a test for this error if it is possible.
                             Error(diagnostics, ErrorCode.ERR_SwitchExpressionNoBestType, switchSyntax.SwitchKeyword);
                         }
 

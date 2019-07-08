@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindMethodGroup(ExpressionSyntax node, bool invoked, bool indexed, DiagnosticBag diagnostics)
         {
-            // PROTOTYPE(ngafter): have each of the receivers been self-typed?
             switch (node.Kind())
             {
                 case SyntaxKind.IdentifierName:

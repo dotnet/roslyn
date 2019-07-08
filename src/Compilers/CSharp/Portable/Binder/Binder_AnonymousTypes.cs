@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 hasError |= expression.HasErrors;
-                boundExpressions[i] = BindToNaturalType(this.BindValue(expression, diagnostics, BindValueKind.RValue), diagnostics);
+                boundExpressions[i] = BindRValueWithoutTargetType(expression, diagnostics);
 
                 //  check the name to be unique
                 string fieldName = null;

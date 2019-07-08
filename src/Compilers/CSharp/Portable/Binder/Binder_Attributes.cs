@@ -177,7 +177,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var constructorArguments = analyzedArguments.ConstructorArguments;
-            // PROTOTYPE(ngafter): have the arguments had the BindToNaturalType treatment?
             ImmutableArray<BoundExpression> boundConstructorArguments = constructorArguments.Arguments.ToImmutableAndFree();
             ImmutableArray<string> boundConstructorArgumentNamesOpt = constructorArguments.GetNames();
             ImmutableArray<BoundExpression> boundNamedArguments = analyzedArguments.NamedArguments;

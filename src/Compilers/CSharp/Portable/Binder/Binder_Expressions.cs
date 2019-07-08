@@ -230,6 +230,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CheckValue(result, valueKind, diagnostics);
         }
 
+        internal BoundExpression BindRValueWithoutTargetType(ExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            return BindToNaturalType(BindValue(node, diagnostics, BindValueKind.RValue), diagnostics);
+        }
+
         internal BoundExpression BindValueAllowArgList(ExpressionSyntax node, DiagnosticBag diagnostics, BindValueKind valueKind)
         {
             var result = this.BindExpressionAllowArgList(node, diagnostics: diagnostics);
@@ -2898,7 +2903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (arg.Kind() != SyntaxKind.OmittedArraySizeExpression)
                     {
-                        var size = BindToNaturalType(BindValue(arg, diagnostics, BindValueKind.RValue), diagnostics);
+                        var size = BindRValueWithoutTargetType(arg, diagnostics);
                         Error(diagnostics, ErrorCode.ERR_InvalidArray, arg);
                         hasErrors = true;
                         // Capture the invalid sizes for `SemanticModel` and `IOperation`
@@ -5441,7 +5446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(node.Kind() == SyntaxKind.PointerMemberAccessExpression);
-                boundLeft = this.BindExpression(exprSyntax, diagnostics); // Not Color Color issues with ->
+                boundLeft = BindRValueWithoutTargetType(exprSyntax, diagnostics); // Not Color Color issues with ->
 
                 // CONSIDER: another approach would be to construct a BoundPointerMemberAccess (assuming such a type existed),
                 // but that would be much more cumbersome because we'd be unable to build upon the BindMemberAccess infrastructure,
@@ -5459,14 +5464,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    boundLeft = new BoundPointerIndirectionOperator(exprSyntax, BindToNaturalType(boundLeft, diagnostics), pointedAtType, hasErrors)
+                    boundLeft = new BoundPointerIndirectionOperator(exprSyntax, boundLeft, pointedAtType, hasErrors)
                     {
                         WasCompilerGenerated = true, // don't interfere with the type info for exprSyntax.
                     };
                 }
             }
 
-            boundLeft = BindToNaturalType(boundLeft, diagnostics);
             return BindMemberAccessWithBoundLeft(node, boundLeft, node.Name, node.OperatorToken, invoked, indexed, diagnostics);
         }
 
@@ -8096,7 +8100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindConditionalAccessReceiver(ConditionalAccessExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var receiverSyntax = node.Expression;
-            var receiver = BindToNaturalType(BindValue(receiverSyntax, diagnostics, BindValueKind.RValue), diagnostics);
+            var receiver = BindRValueWithoutTargetType(receiverSyntax, diagnostics);
             receiver = MakeMemberAccessValue(receiver, diagnostics);
 
             if (receiver.HasAnyErrors)

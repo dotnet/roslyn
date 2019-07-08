@@ -726,13 +726,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binary = childAsBinary;
             }
 
-            BoundExpression left = BindToNaturalType(BindValue(child, diagnostics, BindValueKind.RValue), diagnostics);
+            BoundExpression left = BindRValueWithoutTargetType(child, diagnostics);
 
             do
             {
                 binary = (BinaryExpressionSyntax)child.Parent;
-                BoundExpression right = BindToNaturalType(BindValue(binary.Right, diagnostics, BindValueKind.RValue), diagnostics);
-
+                BoundExpression right = BindRValueWithoutTargetType(binary.Right, diagnostics);
                 left = BindConditionalLogicalOperator(binary, left, right, diagnostics);
                 child = binary;
             }
@@ -2769,7 +2768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindIsOperator(BinaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var resultType = (TypeSymbol)GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
-            var operand = BindToNaturalType(BindValue(node.Left, diagnostics, BindValueKind.RValue), diagnostics);
+            var operand = BindRValueWithoutTargetType(node.Left, diagnostics);
             var operandHasErrors = IsOperandErrors(node, ref operand, diagnostics);
             // try binding as a type, but back off to binding as an expression if that does not work.
             AliasSymbol alias;
@@ -3178,7 +3177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindAsOperator(BinaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            var operand = BindToNaturalType(BindValue(node.Left, diagnostics, BindValueKind.RValue), diagnostics);
+            var operand = BindRValueWithoutTargetType(node.Left, diagnostics);
             AliasSymbol alias;
             TypeWithAnnotations targetTypeWithAnnotations = BindType(node.Right, diagnostics, out alias);
             TypeSymbol targetType = targetTypeWithAnnotations.Type;
@@ -3282,8 +3281,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: GetSpecialType(SpecialType.System_Object, diagnostics, node));
             }
 
-            // PROTOTYPE(ngafter): need to report typeless switch expression (or any other kind of expression with no type) on the left of as.
-
             var operandType = operand.Type;
             Debug.Assert((object)operandType != null);
             var operandTypeKind = operandType.TypeKind;
@@ -3314,8 +3311,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion = Conversions.ClassifyBuiltInConversion(operandType, targetType, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
             bool hasErrors = ReportAsOperatorConversionDiagnostics(node, diagnostics, this.Compilation, operandType, targetType, conversion.Kind, operand.ConstantValue);
-
-            // PROTOTYPE(ngafter): should bind to natural type here?
             return new BoundAsOperator(node, operand, typeExpression, conversion, resultType, hasErrors);
         }
 
