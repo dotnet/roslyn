@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly int _ordinal;
         private readonly string _name;
         private readonly RefKind _refKind;
-        private readonly bool _isNullChecked;
 
         public SynthesizedParameterSymbolBase(
             MethodSymbol container,
@@ -139,10 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal bool IsNullChecked
-        {
-            get { return _isNullChecked; }
-        }
+        internal bool IsNullChecked { get; }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
