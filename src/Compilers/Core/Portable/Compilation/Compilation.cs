@@ -908,7 +908,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IArrayTypeSymbol CreateArrayTypeSymbol(ITypeSymbol elementType, int rank)
         {
-            return CommonCreateArrayTypeSymbol(elementType, rank, elementNullableAnnotation: default);
+            return CreateArrayTypeSymbol(elementType, rank, elementNullableAnnotation: default);
         }
 
         protected abstract IArrayTypeSymbol CommonCreateArrayTypeSymbol(ITypeSymbol elementType, int rank, NullableAnnotation elementNullableAnnotation);
@@ -1110,18 +1110,17 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<NullableAnnotation> elementNullableAnnotations);
 
         /// <summary>
-        /// Returns a new anonymous type symbol with the given member types member names.
+        /// Returns a new anonymous type symbol with the given member types, names, source locations, and nullable annotations.
         /// Anonymous type members will be readonly by default.  Writable properties are
         /// supported in VB and can be created by passing in <see langword="false"/> in the
         /// appropriate locations in <paramref name="memberIsReadOnly"/>.
-        ///
-        /// Source locations can also be provided through <paramref name="memberLocations"/>
         /// </summary>
         public INamedTypeSymbol CreateAnonymousTypeSymbol(
             ImmutableArray<ITypeSymbol> memberTypes,
             ImmutableArray<string> memberNames,
-            ImmutableArray<bool> memberIsReadOnly = default(ImmutableArray<bool>),
-            ImmutableArray<Location> memberLocations = default(ImmutableArray<Location>)) // PROTOTYPE
+            ImmutableArray<bool> memberIsReadOnly = default,
+            ImmutableArray<Location> memberLocations = default,
+            ImmutableArray<NullableAnnotation> memberNullableAnnotations = default)
         {
             if (memberTypes.IsDefault)
             {
@@ -1151,6 +1150,12 @@ namespace Microsoft.CodeAnalysis
                                                     nameof(memberIsReadOnly), nameof(memberNames)));
             }
 
+            if (!memberNullableAnnotations.IsDefault && memberNullableAnnotations.Length != memberTypes.Length)
+            {
+                throw new ArgumentException(string.Format(CodeAnalysisResources.AnonymousTypeArgumentCountMismatch2,
+                                                    nameof(memberNullableAnnotations), nameof(memberNames)));
+            }
+
             for (int i = 0, n = memberTypes.Length; i < n; i++)
             {
                 if (memberTypes[i] == null)
@@ -1169,14 +1174,30 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return CommonCreateAnonymousTypeSymbol(memberTypes, memberNames, memberLocations, memberIsReadOnly);
+            return CommonCreateAnonymousTypeSymbol(memberTypes, memberNames, memberLocations, memberIsReadOnly, memberNullableAnnotations);
+        }
+
+        /// <summary>
+        /// Returns a new anonymous type symbol with the given member types, names, and source locations.
+        /// Anonymous type members will be readonly by default.  Writable properties are
+        /// supported in VB and can be created by passing in <see langword="false"/> in the
+        /// appropriate locations in <paramref name="memberIsReadOnly"/>.
+        /// </summary>
+        public INamedTypeSymbol CreateAnonymousTypeSymbol(
+            ImmutableArray<ITypeSymbol> memberTypes,
+            ImmutableArray<string> memberNames,
+            ImmutableArray<bool> memberIsReadOnly,
+            ImmutableArray<Location> memberLocations)
+        {
+            return CreateAnonymousTypeSymbol(memberTypes, memberNames, memberIsReadOnly, memberLocations, memberNullableAnnotations: default);
         }
 
         protected abstract INamedTypeSymbol CommonCreateAnonymousTypeSymbol(
             ImmutableArray<ITypeSymbol> memberTypes,
             ImmutableArray<string> memberNames,
             ImmutableArray<Location> memberLocations,
-            ImmutableArray<bool> memberIsReadOnly);
+            ImmutableArray<bool> memberIsReadOnly,
+            ImmutableArray<NullableAnnotation> memberNullableAnnotations);
 
         /// <summary>
         /// Classifies a conversion from <paramref name="source"/> to <paramref name="destination"/> according

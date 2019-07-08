@@ -2707,7 +2707,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 memberTypes As ImmutableArray(Of ITypeSymbol),
                 memberNames As ImmutableArray(Of String),
                 memberLocations As ImmutableArray(Of Location),
-                memberIsReadOnly As ImmutableArray(Of Boolean)) As INamedTypeSymbol
+                memberIsReadOnly As ImmutableArray(Of Boolean),
+                memberNullableAnnotations As ImmutableArray(Of CodeAnalysis.NullableAnnotation)) As INamedTypeSymbol
 
             Dim i = 0
             For Each t In memberTypes

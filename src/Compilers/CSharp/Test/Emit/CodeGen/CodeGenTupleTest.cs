@@ -6281,6 +6281,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
         public void CreateTupleTypeSymbol_UnderlyingType_DefaultArgs()
         {
             var source =
@@ -6318,6 +6319,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
         public void CreateTupleTypeSymbol_ElementTypes_DefaultArgs()
         {
             var source =
@@ -6355,6 +6357,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
         public void CreateTupleTypeSymbol_UnderlyingType_WithNullableAnnotations_01()
         {
             var source =
@@ -6393,6 +6396,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
         public void CreateTupleTypeSymbol_UnderlyingType_WithNullableAnnotations_02()
         {
             var source =
@@ -6422,6 +6426,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
         public void CreateTupleTypeSymbol_ElementTypes_WithNullableAnnotations_01()
         {
             var source =
@@ -6460,6 +6465,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
         public void CreateTupleTypeSymbol_ElementTypes_WithNullableAnnotations_02()
         {
             var source =

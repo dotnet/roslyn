@@ -1066,7 +1066,7 @@ var a = new C2();
         }
 
         [WorkItem(715872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715872")]
-        [Fact()]
+        [Fact]
         public void MissedModuleC()
         {
             var netModule1 = CreateCompilation(
@@ -2341,7 +2341,8 @@ public class C { public static FrameworkName Goo() { return null; }}";
             Assert.Throws<InvalidOperationException>(() => CreateSubmission("a + 1", previous: s0));
         }
 
-        [Fact()]
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
         public void CreateArrayType_DefaultArgs()
         {
             var comp = (Compilation)CSharpCompilation.Create("");
@@ -2364,7 +2365,8 @@ public class C { public static FrameworkName Goo() { return null; }}";
             Assert.Equal(CodeAnalysis.NullableAnnotation.Disabled, arrayType.ElementNullableAnnotation);
         }
 
-        [Fact()]
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
         public void CreateArrayType_ElementNullableAnnotation()
         {
             var comp = (Compilation)CSharpCompilation.Create("");
@@ -2377,7 +2379,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
             Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.Annotated).ElementNullableAnnotation);
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType_IncorrectLengths()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2387,7 +2389,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
                     ImmutableArray.Create("m1", "m2")));
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType_IncorrectLengths_IsReadOnly()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2399,7 +2401,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
                     ImmutableArray.Create(true)));
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType_IncorrectLengths_Locations()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2411,7 +2413,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
                     memberLocations: ImmutableArray.Create(Location.None)));
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType_WritableProperty()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2423,7 +2425,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
                     ImmutableArray.Create(false, false)));
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType_NullLocations()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2435,7 +2437,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
                     memberLocations: ImmutableArray.Create(Location.None, null)));
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType_NullArgument1()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2445,7 +2447,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
                         ImmutableArray.Create("m1")));
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType_NullArgument2()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2455,7 +2457,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
                         default(ImmutableArray<string>)));
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType_NullArgument3()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2465,7 +2467,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
                         ImmutableArray.Create("m1")));
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType_NullArgument4()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2475,7 +2477,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
                         ImmutableArray.Create((string)null)));
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType1()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2490,7 +2492,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
                 loc => Assert.Equal(loc, Location.None));
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType_Locations()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2511,7 +2513,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
             Assert.Equal("<anonymous type: int m1, int m2>", type.ToDisplayString());
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType2()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2524,6 +2526,70 @@ public class C { public static FrameworkName Goo() { return null; }}";
             Assert.Equal("<anonymous type: int m1, bool m2>", type.ToDisplayString());
             Assert.All(type.GetMembers().OfType<IPropertySymbol>().Select(p => p.Locations.FirstOrDefault()),
                 loc => Assert.Equal(loc, Location.None));
+        }
+
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        public void CreateAnonymousType_DefaultArgs()
+        {
+            var comp = (Compilation)CSharpCompilation.Create("");
+            var memberTypes = ImmutableArray.Create<ITypeSymbol>(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String));
+            var memberNames = ImmutableArray.Create("P", "Q");
+
+            var type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames);
+            Assert.Equal("<anonymous type: System.Object P, System.String Q>", type.ToTestDisplayString(includeNonNullable: true));
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, default);
+            Assert.Equal("<anonymous type: System.Object P, System.String Q>", type.ToTestDisplayString(includeNonNullable: true));
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, default, default);
+            Assert.Equal("<anonymous type: System.Object P, System.String Q>", type.ToTestDisplayString(includeNonNullable: true));
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, default, default, default);
+            Assert.Equal("<anonymous type: System.Object P, System.String Q>", type.ToTestDisplayString(includeNonNullable: true));
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberIsReadOnly: default);
+            Assert.Equal("<anonymous type: System.Object P, System.String Q>", type.ToTestDisplayString(includeNonNullable: true));
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberLocations: default);
+            Assert.Equal("<anonymous type: System.Object P, System.String Q>", type.ToTestDisplayString(includeNonNullable: true));
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberNullableAnnotations: default);
+            Assert.Equal("<anonymous type: System.Object P, System.String Q>", type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        public void CreateAnonymousType_MemberNullableAnnotations_Empty()
+        {
+            var comp = (Compilation)CSharpCompilation.Create("");
+            var type = comp.CreateAnonymousTypeSymbol(ImmutableArray<ITypeSymbol>.Empty, ImmutableArray<string>.Empty, memberNullableAnnotations: ImmutableArray<CodeAnalysis.NullableAnnotation>.Empty);
+            Assert.Equal("<empty anonymous type>", type.ToTestDisplayString(includeNonNullable: true));
+            AssertEx.Equal(Array.Empty<CodeAnalysis.NullableAnnotation>(), GetAnonymousTypeNullableAnnotations(type));
+        }
+
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        public void CreateAnonymousType_MemberNullableAnnotations()
+        {
+            var comp = (Compilation)CSharpCompilation.Create("");
+            var memberTypes = ImmutableArray.Create<ITypeSymbol>(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String));
+            var memberNames = ImmutableArray.Create("P", "Q");
+
+            var type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames);
+            Assert.Equal("<anonymous type: System.Object P, System.String Q>", type.ToTestDisplayString(includeNonNullable: true));
+            AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.Disabled, CodeAnalysis.NullableAnnotation.Disabled }, GetAnonymousTypeNullableAnnotations(type));
+
+            Assert.Throws<ArgumentException>(() => comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated)));
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableAnnotation.Annotated));
+            Assert.Equal("<anonymous type: System.Object P, System.String Q>", type.ToTestDisplayString(includeNonNullable: true));
+            AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableAnnotation.Annotated }, GetAnonymousTypeNullableAnnotations(type));
+        }
+
+        private static ImmutableArray<CodeAnalysis.NullableAnnotation> GetAnonymousTypeNullableAnnotations(ITypeSymbol type)
+        {
+            return type.GetMembers().OfType<IPropertySymbol>().SelectAsArray(p => p.NullableAnnotation);
         }
 
         #region Script return values
@@ -2773,6 +2839,6 @@ System.Action a = () => { return; };
             compilation.VerifyDiagnostics();
         }
 
-        #endregion
+#endregion
     }
 }

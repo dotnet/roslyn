@@ -3133,7 +3133,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<ITypeSymbol> memberTypes,
             ImmutableArray<string> memberNames,
             ImmutableArray<Location> memberLocations,
-            ImmutableArray<bool> memberIsReadOnly)
+            ImmutableArray<bool> memberIsReadOnly,
+            ImmutableArray<CodeAnalysis.NullableAnnotation> memberNullableAnnotations)
         {
             for (int i = 0, n = memberTypes.Length; i < n; i++)
             {
@@ -3152,7 +3153,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = memberTypes[i];
                 var name = memberNames[i];
                 var location = memberLocations.IsDefault ? Location.None : memberLocations[i];
-                fields.Add(new AnonymousTypeField(name, location, TypeWithAnnotations.Create((TypeSymbol)type)));
+                var nullableAnnotation = memberNullableAnnotations.IsDefault ? NullableAnnotation.Oblivious : memberNullableAnnotations[i].ToInternalAnnotation();
+                fields.Add(new AnonymousTypeField(name, location, TypeWithAnnotations.Create((TypeSymbol)type, nullableAnnotation)));
             }
 
             var descriptor = new AnonymousTypeDescriptor(fields.ToImmutableAndFree(), Location.None);

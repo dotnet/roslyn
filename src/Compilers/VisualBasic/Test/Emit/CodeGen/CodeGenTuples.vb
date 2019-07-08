@@ -7531,6 +7531,7 @@ additionalRefs:=s_valueTupleRefs)
         End Sub
 
         <Fact>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
         Public Sub CreateTupleTypeSymbol_UnderlyingType_DefaultArgs()
             Dim comp = CreateCompilation(
 "Module Program
@@ -7562,6 +7563,7 @@ End Module")
         End Sub
 
         <Fact>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
         Public Sub CreateTupleTypeSymbol_ElementTypes_DefaultArgs()
             Dim comp = CreateCompilation(
 "Module Program
@@ -7593,6 +7595,7 @@ End Module")
         End Sub
 
         <Fact>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
         Public Sub CreateTupleTypeSymbol_UnderlyingType_WithNullableAnnotations_01()
             Dim comp = CreateCompilation(
 "Module Program
@@ -7627,6 +7630,7 @@ End Module")
         End Sub
 
         <Fact>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
         Public Sub CreateTupleTypeSymbol_UnderlyingType_WithNullableAnnotations_02()
             Dim comp = CreateCompilation(
 "Module Program
@@ -7652,6 +7656,7 @@ End Module")
         End Sub
 
         <Fact>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
         Public Sub CreateTupleTypeSymbol_ElementTypes_WithNullableAnnotations_01()
             Dim comp = CreateCompilation(
 "Module Program
@@ -7686,6 +7691,7 @@ End Module")
         End Sub
 
         <Fact>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
         Public Sub CreateTupleTypeSymbol_ElementTypes_WithNullableAnnotations_02()
             Dim comp = CreateCompilation(
 "Module Program
