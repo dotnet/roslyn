@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         internal static int GetRecentItemIndex(ImmutableArray<string> recentItems, RoslynCompletionItem item)
         {
-            var index = recentItems.IndexOf(item.DisplayText);
+            var index = recentItems.IndexOf(item.FilterText);
             return -index;
         }
 
