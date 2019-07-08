@@ -160,6 +160,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 throw new NotImplementedException();
             }
+            
+            public bool Equals(ITypeSymbol other, TypeSymbolEqualityComparer equalityComparer)
+            {
+                throw new NotImplementedException();
+            }
 
             ITypeSymbol ITypeSymbol.OriginalDefinition => _symbol.OriginalDefinition;
             public new INamedTypeSymbol OriginalDefinition => this;

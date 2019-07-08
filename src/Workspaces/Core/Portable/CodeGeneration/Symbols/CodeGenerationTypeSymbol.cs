@@ -69,6 +69,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             throw new System.NotImplementedException();
         }
 
+        public bool Equals(ITypeSymbol other, TypeSymbolEqualityComparer equalityComparer)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public override bool IsNamespace => false;
 
         public override bool IsType => true;
