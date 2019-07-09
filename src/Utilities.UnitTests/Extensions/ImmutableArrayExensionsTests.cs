@@ -34,9 +34,9 @@ namespace Analyzer.Utilities.Extensions
         [InlineData(2, false)]
         [InlineData(3, false)]
         [Theory]
-        public void HasLessThan2_ReturnsTheCorrectValue(int count, bool result)
+        public void HasFewerThan2_ReturnsTheCorrectValue(int count, bool result)
         {
-            Assert.Equal(result, global::System.Collections.Immutable.ImmutableArrayExtensions.HasLessThan(CreateImmutableArray(count), 2));
+            Assert.Equal(result, global::System.Collections.Immutable.ImmutableArrayExtensions.HasFewerThan(CreateImmutableArray(count), 2));
         }
 
         private static ImmutableArray<int> CreateImmutableArray(int count)
