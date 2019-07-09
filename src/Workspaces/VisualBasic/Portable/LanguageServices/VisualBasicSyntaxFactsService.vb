@@ -87,9 +87,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function IsIdentifier(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsIdentifier
             Return token.Kind = SyntaxKind.IdentifierToken
         End Function
-        Public Function IsParametersIdentifier(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsParametersIdentifier
-            Return (TypeOf node Is ModifiedIdentifierSyntax) AndAlso (TypeOf node.Parent Is ParameterSyntax) AndAlso (CType(node.Parent, ParameterSyntax).Identifier Is node)
-        End Function
 
         Public Function IsGlobalNamespaceKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsGlobalNamespaceKeyword
             Return token.Kind = SyntaxKind.GlobalKeyword

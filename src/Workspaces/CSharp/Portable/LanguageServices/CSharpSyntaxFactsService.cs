@@ -54,9 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsIdentifier(SyntaxToken token) => token.IsKind(SyntaxKind.IdentifierToken);
 
-        // In C# parameter's identifier can only be Token, never Node
-        public bool IsParametersIdentifier(SyntaxNode node) => false;
-
         public bool IsGlobalNamespaceKeyword(SyntaxToken token) => token.IsKind(SyntaxKind.GlobalKeyword);
 
         public bool IsVerbatimIdentifier(SyntaxToken token) => token.IsVerbatimIdentifier();

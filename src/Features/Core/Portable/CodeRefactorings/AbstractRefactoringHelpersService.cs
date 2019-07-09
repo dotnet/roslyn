@@ -314,6 +314,22 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // that were found to be relevant for refactorings that were moved to `TryGetSelectedNodeAsync`.
             // Feel free to extend it / refine current heuristics. 
 
+            var extractedNode = ExtractNodeSimple(node, syntaxFacts);
+            if (extractedNode != null)
+            {
+                return extractedNode;
+            }
+
+            if (extractParentsOfHeader)
+            {
+                extractedNode = ExtractNodeOfHeader(node, syntaxFacts);
+            }
+
+            return extractedNode;
+        }
+
+        protected virtual SyntaxNode ExtractNodeSimple(SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        {
             // `var a = b`;
             // -> `b`
             if (syntaxFacts.IsLocalDeclarationStatement(node))
@@ -343,29 +359,24 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 return rightSide;
             }
 
-            // VB's arguments can have identifiers nested in ModifiedArgument -> we want
-            // indentifiers to represent parent node -> need to extract.
-            if (syntaxFacts.IsParametersIdentifier(node))
+            return null;
+        }
+
+        protected virtual SyntaxNode ExtractNodeOfHeader(SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        {
+            // Header: [Test] `public int a` { get; set; }
+            if (syntaxFacts.IsInPropertyDeclarationHeader(node))
             {
-                return node.Parent;
+                return syntaxFacts.GetContainingPropertyDeclaration(node);
             }
 
-            if (extractParentsOfHeader)
+            // Header: public C([Test]`int a` = 42) {}
+            if (syntaxFacts.IsInParameterHeader(node))
             {
-                // Header: [Test] `public int a` { get; set; }
-                if (syntaxFacts.IsInPropertyDeclarationHeader(node))
-                {
-                    return syntaxFacts.GetContainingPropertyDeclaration(node);
-                }
-
-                // Header: public C([Test]`int a` = 42) {}
-                if (syntaxFacts.IsInParameterHeader(node))
-                {
-                    return syntaxFacts.GetContainingParameter(node);
-                }
+                return syntaxFacts.GetContainingParameter(node);
             }
 
-            return node;
+            return null;
         }
     }
 }
