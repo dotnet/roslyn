@@ -1763,6 +1763,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return position >= start AndAlso position <= _end
         End Function
 
+        Public Function IsInPropertyDeclarationHeader(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInPropertyDeclarationHeader
+            Dim propertyDeclaration = node.GetAncestor(Of PropertyStatementSyntax)()
+
+            If propertyDeclaration Is Nothing Then
+                Return False
+            End If
+
+            Dim start = If(propertyDeclaration.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart, propertyDeclaration.SpanStart)
+            Dim [end] = If(propertyDeclaration.AsClause?.FullSpan.[End], propertyDeclaration.Identifier.FullSpan.End)
+            Return node.Span.Start >= start AndAlso node.Span.[End] <= [end]
+        End Function
+
         Public Function IsBetweenTypeMembers(sourceText As SourceText, root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsBetweenTypeMembers
             Dim token = root.FindToken(position)
             Dim typeDecl = token.GetAncestor(Of TypeBlockSyntax)
@@ -1952,6 +1964,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shadows Function SpansPreprocessorDirective(tokens As IEnumerable(Of SyntaxToken)) As Boolean
             Return MyBase.SpansPreprocessorDirective(tokens)
+        End Function
+
+        Public Function GetContainingPropertyDeclaration(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetContainingPropertyDeclaration
+            Return node.GetAncestor(Of PropertyStatementSyntax)
+        End Function
+
+        Public Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetAttributeLists
+            Return VisualBasicSyntaxGenerator.GetAttributeLists(node)
         End Function
     End Class
 End Namespace
