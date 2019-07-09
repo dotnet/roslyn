@@ -1091,6 +1091,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                         return true;
                                     }
                                     break;
+
+                                case CSharp.SyntaxKind.CoalesceAssignmentExpression:
+                                    if (((AssignmentExpressionSyntax)syntax.Parent).Left == syntax)
+                                    {
+                                        return true;
+                                    }
+                                    break;
                             }
                         }
 
@@ -1805,6 +1812,7 @@ endRegion:
                 case OperationKind.Range:
                 case OperationKind.RecursivePattern:
                 case OperationKind.DiscardPattern:
+                case OperationKind.PropertySubpattern:
                     return true;
             }
 

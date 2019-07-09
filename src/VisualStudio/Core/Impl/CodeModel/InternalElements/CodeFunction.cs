@@ -109,8 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             get
             {
-                var symbol = LookupSymbol() as IMethodSymbol;
-                if (symbol == null)
+                if (!(LookupSymbol() is IMethodSymbol symbol))
                 {
                     throw Exceptions.ThrowEUnexpected();
                 }

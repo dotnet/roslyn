@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -15,8 +14,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     {
         private VisualStudioProject FindMatchingProject(IVsHierarchy hierarchy, uint itemid)
         {
-            Debug.Assert(hierarchy != null);
-
             // Here we must determine the project that this file's document is to be a part of.
             // Venus creates a separate Project for a .aspx or .ascx file, and so we must associate
             // the document with that Project. We first query through a Venus-specific interface,
@@ -31,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 if (webApplicationCtxSvc.GetItemContext(hierarchy, itemid, out var webServiceProvider) >= 0)
                 {
                     var webFileCtxServiceGuid = typeof(IWebFileCtxService).GUID;
-                    IntPtr service = IntPtr.Zero;
+                    var service = IntPtr.Zero;
                     if (webServiceProvider.QueryService(ref webFileCtxServiceGuid, ref webFileCtxServiceGuid, out service) >= 0)
                     {
                         try
@@ -63,12 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return null;
             }
 
-            if (!hierarchy.TryGetProjectGuid(out var projectGuid))
-            {
-                return null;
-            }
-
-            return Workspace.GetProjectWithGuidAndName(projectGuid, projectName);
+            return this.Workspace.GetProjectWithHierarchyAndName(hierarchy, projectName);
         }
 
         public int GetLanguage(IVsHierarchy hierarchy, uint itemid, IVsTextBufferCoordinator bufferCoordinator, out IVsContainedLanguage language)

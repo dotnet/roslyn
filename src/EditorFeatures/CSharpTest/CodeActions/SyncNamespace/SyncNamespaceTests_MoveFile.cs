@@ -47,8 +47,10 @@ namespace [||]{declaredNamespace}
             var defaultNamespace = "A";
             var declaredNamespace = "A.B.C";
 
-            var expectedFolders = new List<string[]>();
-            expectedFolders.Add(new[] { "B", "C" });
+            var expectedFolders = new List<string[]>
+            {
+                new[] { "B", "C" }
+            };
 
             var documentPath = CreateDocumentFilePath(Array.Empty<string>());
             var code =
@@ -77,8 +79,10 @@ namespace [||]{declaredNamespace}
             var defaultNamespace = "A";
             var declaredNamespace = "A.B.C.D.E";
 
-            var expectedFolders = new List<string[]>();
-            expectedFolders.Add(new[] { "B", "C", "D", "E" });
+            var expectedFolders = new List<string[]>
+            {
+                new[] { "B", "C", "D", "E" }
+            };
 
             var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
             var documentPath2 = CreateDocumentFilePath(new[] { "B", "C" }, "File2.cs");   // file2 is in <root>\B\C\
@@ -115,8 +119,10 @@ namespace Foo
 
             var defaultNamespace = "";
 
-            var expectedFolders = new List<string[]>();
-            expectedFolders.Add(Array.Empty<string>());
+            var expectedFolders = new List<string[]>
+            {
+                Array.Empty<string>()
+            };
 
             var documentPath = CreateDocumentFilePath(new[] { "A", "B", "C" });
             var code =

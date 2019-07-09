@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             {
                 var markedSyntax = match.Groups[contentGroupName];
                 var ids = GetIds(match.Groups["Id"].Value);
-                int absoluteOffset = offset + markedSyntax.Index;
+                var absoluteOffset = offset + markedSyntax.Index;
 
                 var span = markedSyntax.Length != 0 ? new TextSpan(absoluteOffset, markedSyntax.Length) : new TextSpan();
                 yield return (span, ids);
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             foreach (var (span, ids) in GetSpansRecursive(s_activeStatementPattern, "ActiveStatement", markedSource, offset: 0))
             {
-                foreach (int id in ids)
+                foreach (var id in ids)
                 {
                     yield return (span, id);
                 }
@@ -156,10 +156,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var result = new TextSpan?[count];
 
-            for (int i = 0; i < matches.Count; i++)
+            for (var i = 0; i < matches.Count; i++)
             {
                 var span = matches[i].Groups["TrackingStatement"];
-                foreach (int id in GetIds(matches[i]))
+                foreach (var id in GetIds(matches[i]))
                 {
                     result[id] = new TextSpan(span.Index, span.Length);
                 }
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var matches = ExceptionRegionPattern.Matches(src);
             var result = new List<TextSpan>[activeStatementCount];
 
-            for (int i = 0; i < matches.Count; i++)
+            for (var i = 0; i < matches.Count; i++)
             {
                 var exceptionRegion = matches[i].Groups["ExceptionRegion"];
 
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             while (i >= list.Count)
             {
-                list.Add(default(T));
+                list.Add(default);
             }
         }
     }

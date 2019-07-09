@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
                 var result = ArrayBuilder<Edit>.GetInstance();
                 var indentationTrivia = align ? _indentAndAlignTrivia : _smartIndentTrivia;
 
-                for (int i = 1; i < _exprsAndOperators.Length; i += 2)
+                for (var i = 1; i < _exprsAndOperators.Length; i += 2)
                 {
                     var left = _exprsAndOperators[i - 1].AsNode();
                     var opToken = _exprsAndOperators[i].AsToken();
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
 
-                for (int i = 0; i < _exprsAndOperators.Length - 1; i++)
+                for (var i = 0; i < _exprsAndOperators.Length - 1; i++)
                 {
                     result.Add(Edit.UpdateBetween(
                         _exprsAndOperators[i], SingleWhitespaceTrivia,

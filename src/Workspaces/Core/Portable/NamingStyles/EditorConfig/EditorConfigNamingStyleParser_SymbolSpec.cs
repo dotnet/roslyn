@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             out SymbolSpecification symbolSpec)
         {
             symbolSpec = null;
-            if (!TryGetSymbolSpecNameForNamingRule(namingRuleTitle, conventionsDictionary, out string symbolSpecName))
+            if (!TryGetSymbolSpecNameForNamingRule(namingRuleTitle, conventionsDictionary, out var symbolSpecName))
             {
                 return false;
             }
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             string symbolSpecName,
             IReadOnlyDictionary<string, string> conventionsDictionary)
         {
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.applicable_kinds", out string result))
+            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.applicable_kinds", out var result))
             {
                 return ParseSymbolKindList(result ?? string.Empty);
             }
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             string symbolSpecName,
             IReadOnlyDictionary<string, string> conventionsDictionary)
         {
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.applicable_accessibilities", out string result))
+            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.applicable_accessibilities", out var result))
             {
                 return ParseAccessibilityKindList(result ?? string.Empty);
             }
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             string symbolSpecName,
             IReadOnlyDictionary<string, string> conventionsDictionary)
         {
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.required_modifiers", out string result))
+            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.required_modifiers", out var result))
             {
                 return ParseModifiers(result ?? string.Empty);
             }

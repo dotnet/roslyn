@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     internal enum UnusedParametersPreference
     {
         // Ununsed parameters of non-public methods are flagged.
-        NonPublicMethods = 1,
+        NonPublicMethods = 0,
 
         // Unused parameters of methods with any accessibility (private/public/protected/internal) are flagged.
-        AllMethods = 2,
+        AllMethods = 1,
     }
 }

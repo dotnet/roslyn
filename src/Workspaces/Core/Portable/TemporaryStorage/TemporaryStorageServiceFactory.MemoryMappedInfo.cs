@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Host
                         return 0;
                     }
 
-                    int adjustedCount = Math.Min(count, (int)(_end - _current));
+                    var adjustedCount = Math.Min(count, (int)(_end - _current));
                     Marshal.Copy((IntPtr)_current, buffer, offset, adjustedCount);
 
                     _current += adjustedCount;

@@ -82,14 +82,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private EquivalenceVisitor GetEquivalenceVisitor(
             bool compareMethodTypeParametersByIndex = false, bool objectAndDynamicCompareEqually = false)
         {
-            int visitorIndex = GetVisitorIndex(compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually);
+            var visitorIndex = GetVisitorIndex(compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually);
             return _equivalenceVisitors[visitorIndex];
         }
 
         private GetHashCodeVisitor GetGetHashCodeVisitor(
             bool compareMethodTypeParametersByIndex, bool objectAndDynamicCompareEqually)
         {
-            int visitorIndex = GetVisitorIndex(compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually);
+            var visitorIndex = GetVisitorIndex(compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually);
             return _getHashCodeVisitors[visitorIndex];
         }
 

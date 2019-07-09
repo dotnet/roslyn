@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             members.Add(Punctuation(SyntaxFacts.GetText(SyntaxKind.OpenBraceToken)));
             members.AddRange(Space());
 
-            bool first = true;
+            var first = true;
             foreach (var property in anonymousType.GetValidAnonymousTypeProperties())
             {
                 if (!first)

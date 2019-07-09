@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         private IEnumerable<CodeRefactoringProvider> GetProviders(Document document)
         {
-            if (this.LanguageToProvidersMap.TryGetValue(document.Project.Language, out var lazyProviders))
+            if (LanguageToProvidersMap.TryGetValue(document.Project.Language, out var lazyProviders))
             {
                 return lazyProviders.Value;
             }
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
             var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
 
-            foreach (var provider in this.GetProviders(document))
+            foreach (var provider in GetProviders(document))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
                 var tasks = new List<Task<CodeRefactoring>>();
 
-                foreach (var provider in this.GetProviders(document))
+                foreach (var provider in GetProviders(document))
                 {
                     tasks.Add(Task.Run(
                         () => GetRefactoringFromProviderAsync(document, state, provider, extensionManager, cancellationToken), cancellationToken));

@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.Editor.Commands
     [ExcludeFromCodeCoverage]
     internal class CutCommandArgs : CommandArgs
     {
-        public CutCommandArgs(ITextView textView, ITextBuffer subjectBuffer) :
-            base(textView, subjectBuffer)
+        public CutCommandArgs(ITextView textView, ITextBuffer subjectBuffer)
+            : base(textView, subjectBuffer)
         {
         }
     }

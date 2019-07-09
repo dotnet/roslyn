@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var token = genericIdentifier.GetNextToken(includeSkipped: true);
             Contract.ThrowIfFalse(token.Kind() == SyntaxKind.LessThanToken);
 
-            int stack = 0;
+            var stack = 0;
 
             do
             {

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             Func<SyntaxNode, bool> predicate,
             CancellationToken cancellationToken)
         {
-            predicate = predicate ?? Functions<SyntaxNode>.True;
+            predicate ??= Functions<SyntaxNode>.True;
             using (Logger.LogBlock(FunctionId.Refactoring_RemoveUnnecessaryImports_CSharp, cancellationToken))
             {
                 var unnecessaryImports = await GetCommonUnnecessaryImportsOfAllContextAsync(
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             SemanticModel model, SyntaxNode root,
             Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
         {
-            predicate = predicate ?? Functions<SyntaxNode>.True;
+            predicate ??= Functions<SyntaxNode>.True;
             var diagnostics = model.GetDiagnostics(cancellationToken: cancellationToken);
             if (!diagnostics.Any())
             {

@@ -24,11 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Commands
         [WpfFact]
         public void CreateBackspaceCommandArgsWithNullSubjectBuffer()
         {
-            using (var disposableView = EditorFactory.CreateView(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, "class C { }"))
-            {
-                Assert.Throws<ArgumentNullException>(() =>
-    new BackspaceKeyCommandArgs(disposableView.TextView, null));
-            }
+            using var disposableView = EditorFactory.CreateView(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, "class C { }");
+            Assert.Throws<ArgumentNullException>(() =>
+new BackspaceKeyCommandArgs(disposableView.TextView, null));
         }
 #if false
         [WpfFact]

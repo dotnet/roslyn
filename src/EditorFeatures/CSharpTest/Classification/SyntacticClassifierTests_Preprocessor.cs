@@ -797,6 +797,56 @@ aeu";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PP_NullableEnableWarnings()
+        {
+            var code = @"#nullable enable warnings";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("nullable"),
+                PPKeyword("enable"),
+                PPKeyword("warnings"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PP_NullableEnableWarningsWithComment()
+        {
+            var code = @"#nullable enable warnings //Goo";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("nullable"),
+                PPKeyword("enable"),
+                PPKeyword("warnings"),
+                Comment("//Goo"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PP_NullableEnableAnnotations()
+        {
+            var code = @"#nullable enable annotations";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("nullable"),
+                PPKeyword("enable"),
+                PPKeyword("annotations"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PP_NullableEnableAnnotationsWithComment()
+        {
+            var code = @"#nullable enable annotations //Goo";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("nullable"),
+                PPKeyword("enable"),
+                PPKeyword("annotations"),
+                Comment("//Goo"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_NullableDisable()
         {
             var code = @"#nullable disable";

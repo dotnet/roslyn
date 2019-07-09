@@ -15,18 +15,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
         Private Class Indenter
             Inherits AbstractIndenter
 
-            Public Sub New(syntaxFacts As ISyntaxFactsService,
-                           syntaxTree As SyntaxTree,
+            Public Sub New(document As SyntacticDocument,
                            rules As IEnumerable(Of AbstractFormattingRule),
                            optionSet As OptionSet,
                            line As TextLine,
                            cancellationToken As CancellationToken)
-                MyBase.New(syntaxFacts, syntaxTree, rules, optionSet, line, cancellationToken)
+                MyBase.New(document, rules, optionSet, line, cancellationToken)
             End Sub
 
-            Public Overrides Function ShouldUseFormatterIfAvailable() As Boolean
+            Protected Overrides Function ShouldUseTokenIndenter(ByRef token As SyntaxToken) As Boolean
                 Return ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                    Rules, DirectCast(Root, CompilationUnitSyntax), LineToBeIndented, OptionSet, CancellationToken)
+                    Rules, Root, LineToBeIndented, OptionSet, token, CancellationToken)
+            End Function
+
+            Protected Overrides Function CreateSmartTokenFormatter() As ISmartTokenFormatter
+                Dim workspace = Document.Project.Solution.Workspace
+                Dim formattingRuleFactory = workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)()
+                Dim rules = {New SpecialFormattingRule(), formattingRuleFactory.CreateRule(Document.Document, LineToBeIndented.Start)}.Concat(Formatter.GetDefaultFormattingRules(Document.Document))
+
+                Return New VisualBasicSmartTokenFormatter(OptionSet, rules, Root)
             End Function
 
             Protected Overrides Function GetDesiredIndentationWorker(

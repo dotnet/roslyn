@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                         assignment.Target == flowCaptureReference ||
                         flowCaptureReference.IsInLeftOfDeconstructionAssignment(out _))
                     {
-                        lvalueFlowCaptureIdBuilder = lvalueFlowCaptureIdBuilder ?? ImmutableDictionary.CreateBuilder<CaptureId, FlowCaptureKind>();
+                        lvalueFlowCaptureIdBuilder ??= ImmutableDictionary.CreateBuilder<CaptureId, FlowCaptureKind>();
                         var captureKind = flowCaptureReference.Parent.IsAnyCompoundAssignment() || rvalueFlowCaptureIds.Contains(flowCaptureReference.Id)
                             ? FlowCaptureKind.LValueAndRValueCapture
                             : FlowCaptureKind.LValueCapture;

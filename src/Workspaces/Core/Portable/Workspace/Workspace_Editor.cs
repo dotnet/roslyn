@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis
 
         private DocumentId GetDocumentIdInCurrentContext_NoLock(SourceTextContainer container)
         {
-            bool foundValue = _bufferToDocumentInCurrentContextMap.TryGetValue(container, out var docId);
+            var foundValue = _bufferToDocumentInCurrentContextMap.TryGetValue(container, out var docId);
 
             if (foundValue)
             {
@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis
 
         private void UpdateCurrentContextMapping_NoLock(SourceTextContainer textContainer, DocumentId id, bool isCurrentContext)
         {
-            if (_bufferToAssociatedDocumentsMap.TryGetValue(textContainer, out OneOrMany<DocumentId> docIds))
+            if (_bufferToAssociatedDocumentsMap.TryGetValue(textContainer, out var docIds))
             {
                 Contract.ThrowIfFalse(_bufferToDocumentInCurrentContextMap.ContainsKey(textContainer));
                 if (!docIds.Contains(id))
@@ -665,7 +665,7 @@ namespace Microsoft.CodeAnalysis
         private DocumentId UpdateCurrentContextMapping_NoLock(SourceTextContainer textContainer, DocumentId closedDocumentId)
         {
             // Check if we are tracking this textContainer.
-            if (!_bufferToAssociatedDocumentsMap.TryGetValue(textContainer, out OneOrMany<DocumentId> docIds))
+            if (!_bufferToAssociatedDocumentsMap.TryGetValue(textContainer, out var docIds))
             {
                 Contract.ThrowIfFalse(!_bufferToDocumentInCurrentContextMap.ContainsKey(textContainer));
                 return null;
