@@ -1069,7 +1069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public TextSpan GetMemberBodySpanForSpeculativeBinding(SyntaxNode node)
         {
-            if (node.Span.IsEmpty)
+            if (node == null || node.Span.IsEmpty)
             {
                 return default;
             }
