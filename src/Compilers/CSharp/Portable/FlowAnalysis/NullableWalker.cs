@@ -5277,6 +5277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_disableNullabilityAnalysis)
                 {
                     analyzedNullabilityMap = null;
+                    updatedMethodSymbolMap = null;
                     snapshotBuilder = null;
                 }
 
