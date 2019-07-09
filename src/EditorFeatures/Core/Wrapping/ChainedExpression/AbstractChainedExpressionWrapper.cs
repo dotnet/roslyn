@@ -32,13 +32,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
     /// Note: for the sake of simplicity, (arglist) is used both for the argument list of
     /// an InvocationExpression and an ElementAccessExpression.
     /// 
-    /// 'remainder' is all the postfix expression that can follow `. name (arglist)`.  i.e.
+    /// 'remainder' is all the postfix expression that can follow <c>. name (arglist)</c>.  i.e.
     /// member-access expressions, conditional-access expressions, etc.  Effectively, anything
     /// the language allows at this point as long as it doesn't start another 'chunk' itself.
     /// 
     /// This approach gives an intuitive wrapping algorithm that matches the common way
     /// many wrap dotted invocations, while also effectively not limiting the wrapper to
-    /// only simple forms like `.a(...).b(...).c(...)`.  
+    /// only simple forms like <c>.a(...).b(...).c(...)</c>.  
     /// </summary>
     internal abstract partial class AbstractChainedExpressionWrapper<
         TNameSyntax,
@@ -87,8 +87,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             // expression.  Break it into the individual chunks.  We need to have at least
             // two chunks or this to be worth wrapping.
             //
-            // i.e. if we only have `this.Goo(...)` there's nothing to wrap.  However, we can
-            // wrap when we have `this.Goo(...).Bar(...)`.
+            // i.e. if we only have <c>this.Goo(...)</c> there's nothing to wrap.  However, we can
+            // wrap when we have <c>this.Goo(...).Bar(...)</c>.
             var chunks = GetChainChunks(node);
             if (chunks.Length <= 1)
             {
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             //
             // These will be the chunks that are wrapped and aligned on that dot.
             // 
-            // Here 'remainder' is everything up to the next `. Name (...)` chunk.
+            // Here 'remainder' is everything up to the next <c>. Name (...)</c> chunk.
 
             var chunks = ArrayBuilder<ImmutableArray<SyntaxNodeOrToken>>.GetInstance();
             BreakPiecesIntoChunks(pieces, chunks);
@@ -144,11 +144,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             ArrayBuilder<ImmutableArray<SyntaxNodeOrToken>> chunks)
         {
             // Have to look for the first chunk after the first piece.  i.e. if the pieces
-            // starts with `.Foo().Bar().Baz()` then the chunks would be `.Bar()` and `.Baz()`.
-            // However, if we had `this.Foo().Bar().Baz()` then the chunks would be `.Foo()`
-            // `.Bar()` and `.Baz()`.
+            // starts with <c>.Foo().Bar().Baz()</c> then the chunks would be <c>.Bar()</c> 
+            // and <c>.Baz()</c>.
             //
-            // Note: the only way to get the `.Foo().Bar().Baz()` case today is in VB in
+            // However, if we had <c>this.Foo().Bar().Baz()</c> then the chunks would be 
+            // <c>.Foo()</c> <c>.Bar()</c> and <c>.Baz()</c>.
+            //
+            // Note: the only way to get the <c>.Foo().Bar().Baz()</c> case today is in VB in
             // a 'with' statement.  if we have that, we don't want to wrap it into:
             //
             //  <code>
@@ -191,9 +193,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
         }
 
         /// <summary>
-        /// Looks for the next sequence of `. Name (ArgList)`.  Note, except for the first
-        /// chunk, this cannot be of the form `? . Name (ArgList)` as we do not want to 
-        /// wrap before a dot in a `?.` form.  This doesn't matter for the first chunk as
+        /// Looks for the next sequence of <c>. Name (ArgList)</c>.  Note, except for the first
+        /// chunk, this cannot be of the form <c>? . Name (ArgList)</c> as we do not want to 
+        /// wrap before a dot in a <c>?.</c> form.  This doesn't matter for the first chunk as
         /// we won't be wrapping that one.
         /// </summary>
         private int FindNextChunkStart(
@@ -244,13 +246,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
         private bool IsDecomposableChainPart(SyntaxNode node)
         {
             // This is the effective set of language constructs that can 'chain' 
-            // off of a call `.M(...)`.  They are:
+            // off of a call <c>.M(...)</c>.  They are:
             //
-            // 1. `.Name` or `->Name`.  i.e. `.M(...).Name`
-            // 2. `(...)`.              i.e. `.M(...)(...)`
-            // 3. `[...]`.              i.e. `.M(...)[...]`
-            // 4. `++`, `--`, `!`.      i.e. `.M(...)++`
-            // 5. `?`.                  i.e. `.M(...)?. ...` or `.M(...)?[...]`
+            // 1. <c>.Name</c> or <c>->Name</c>.        i.e. <c>.M(...).Name</c>
+            // 2. <c>(...)</c>.                         i.e. <c>.M(...)(...)</c>
+            // 3. <c>[...]</c>.                         i.e. <c>.M(...)[...]</c>
+            // 4. <c>++</c>, </c>--</c>, </c>!</c>.     i.e. <c>.M(...)++</c>
+            // 5. <c>?</c>.                             i.e. <c>.M(...)?. ...</c> or <c>.M(...)?[...]</c>
             //      '5' handles both the ConditionalAccess and MemberBinding cases below.
 
             if (node != null)

@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
 
                 // Both [0][0] indices are safe here.  We can only get here if we had more than
                 // two chunks to wrap.  And each chunk is required to have at least three elements
-                // (i.e. `. name (arglist)`).
+                // (i.e. <c>. name (arglist)</c>).
                 var firstPeriod = chunks[0][0];
 
                 _indentAndAlignTrivia = new SyntaxTriviaList(generator.Whitespace(
@@ -129,8 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
                 DeleteAllSpacesInChunk(result, firstChunk);
 
                 var indentationTrivia = align ? _indentAndAlignTrivia : _smartIndentTrivia;
-
-                var position = indentationTrivia.FullSpan.Length;// _indentationTrivia.FullSpan.Length + NormalizedWidth(firstChunk);
+                var position = indentationTrivia.FullSpan.Length + NormalizedWidth(firstChunk);
 
                 // Now, go to each subsequent chunk.  If keeping it on the current line would
                 // cause us to go past the requested wrapping column, then wrap it and proceed.
