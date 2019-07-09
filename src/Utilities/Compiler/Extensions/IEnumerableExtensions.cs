@@ -183,14 +183,14 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Determines whether a sequence contains less than <paramref name="count"/> elements.
+        /// Determines whether a sequence contains fewer than <paramref name="count"/> elements.
         /// </summary>
         /// <typeparam name="TSource">The type of the elements of <paramref name="source"/>.</typeparam>
         /// <param name="source">The <see cref="IEnumerable{TSource}"/> to check for cardinality.</param>
         /// <param name="count">The number of elements to ensure exists.</param>
         /// <returns><see langword="true" /> the source sequence contains less than <paramref name="count"/> elements; otherwise, <see langword="false" />.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
-        public static bool HasLessThan<TSource>(this IEnumerable<TSource> source, int count)
+        public static bool HasFewerThan<TSource>(this IEnumerable<TSource> source, int count)
         {
             if (source is null)
             {
