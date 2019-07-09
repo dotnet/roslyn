@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If token.Kind = SyntaxKind.CloseBraceToken Then
                 Dim tuples = token.Parent.GetBraces()
-                openBrace = tuples.Item1
+                openBrace = tuples.openBrace
                 Return openBrace.Kind = SyntaxKind.OpenBraceToken
             End If
 
@@ -1189,7 +1189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return True
                     End If
 
-                    currentId = currentId + 1
+                    currentId += 1
                 End If
             Next
 

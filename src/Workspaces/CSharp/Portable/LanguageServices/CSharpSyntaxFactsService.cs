@@ -202,8 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SyntaxToken GetIdentifierOfGenericName(SyntaxNode genericName)
         {
-            var csharpGenericName = genericName as GenericNameSyntax;
-            return csharpGenericName != null
+            return genericName is GenericNameSyntax csharpGenericName
                 ? csharpGenericName.Identifier
                 : default;
         }
@@ -228,18 +227,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public Location GetDeconstructionReferenceLocation(SyntaxNode node)
         {
-            var tree = node.SyntaxTree;
-            switch (node)
+            return node switch
             {
-                case AssignmentExpressionSyntax assignment:
-                    return assignment.Left.GetLocation();
-
-                case ForEachVariableStatementSyntax @foreach:
-                    return @foreach.Variable.GetLocation();
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
-            }
+                AssignmentExpressionSyntax assignment => assignment.Left.GetLocation(),
+                ForEachVariableStatementSyntax @foreach => @foreach.Variable.GetLocation(),
+                _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
+            };
         }
 
         public bool IsLockStatement(SyntaxNode node)
@@ -337,43 +330,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private PredefinedType GetPredefinedType(SyntaxToken token)
         {
-            switch ((SyntaxKind)token.RawKind)
+            return (SyntaxKind)token.RawKind switch
             {
-                case SyntaxKind.BoolKeyword:
-                    return PredefinedType.Boolean;
-                case SyntaxKind.ByteKeyword:
-                    return PredefinedType.Byte;
-                case SyntaxKind.SByteKeyword:
-                    return PredefinedType.SByte;
-                case SyntaxKind.IntKeyword:
-                    return PredefinedType.Int32;
-                case SyntaxKind.UIntKeyword:
-                    return PredefinedType.UInt32;
-                case SyntaxKind.ShortKeyword:
-                    return PredefinedType.Int16;
-                case SyntaxKind.UShortKeyword:
-                    return PredefinedType.UInt16;
-                case SyntaxKind.LongKeyword:
-                    return PredefinedType.Int64;
-                case SyntaxKind.ULongKeyword:
-                    return PredefinedType.UInt64;
-                case SyntaxKind.FloatKeyword:
-                    return PredefinedType.Single;
-                case SyntaxKind.DoubleKeyword:
-                    return PredefinedType.Double;
-                case SyntaxKind.DecimalKeyword:
-                    return PredefinedType.Decimal;
-                case SyntaxKind.StringKeyword:
-                    return PredefinedType.String;
-                case SyntaxKind.CharKeyword:
-                    return PredefinedType.Char;
-                case SyntaxKind.ObjectKeyword:
-                    return PredefinedType.Object;
-                case SyntaxKind.VoidKeyword:
-                    return PredefinedType.Void;
-                default:
-                    return PredefinedType.None;
-            }
+                SyntaxKind.BoolKeyword => PredefinedType.Boolean,
+                SyntaxKind.ByteKeyword => PredefinedType.Byte,
+                SyntaxKind.SByteKeyword => PredefinedType.SByte,
+                SyntaxKind.IntKeyword => PredefinedType.Int32,
+                SyntaxKind.UIntKeyword => PredefinedType.UInt32,
+                SyntaxKind.ShortKeyword => PredefinedType.Int16,
+                SyntaxKind.UShortKeyword => PredefinedType.UInt16,
+                SyntaxKind.LongKeyword => PredefinedType.Int64,
+                SyntaxKind.ULongKeyword => PredefinedType.UInt64,
+                SyntaxKind.FloatKeyword => PredefinedType.Single,
+                SyntaxKind.DoubleKeyword => PredefinedType.Double,
+                SyntaxKind.DecimalKeyword => PredefinedType.Decimal,
+                SyntaxKind.StringKeyword => PredefinedType.String,
+                SyntaxKind.CharKeyword => PredefinedType.Char,
+                SyntaxKind.ObjectKeyword => PredefinedType.Object,
+                SyntaxKind.VoidKeyword => PredefinedType.Void,
+                _ => PredefinedType.None,
+            };
         }
 
         public bool IsPredefinedOperator(SyntaxToken token)
@@ -676,8 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsSimpleArgument(SyntaxNode node)
         {
-            var argument = node as ArgumentSyntax;
-            return argument != null &&
+            return node is ArgumentSyntax argument &&
                    argument.RefOrOutKeyword.Kind() == SyntaxKind.None &&
                    argument.NameColon == null;
         }
@@ -776,7 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Kind() == SyntaxKind.PropertyPatternClause;
 
         public bool IsObjectInitializerNamedAssignmentIdentifier(SyntaxNode node)
-            => IsObjectInitializerNamedAssignmentIdentifier(node, out var unused);
+            => IsObjectInitializerNamedAssignmentIdentifier(node, out _);
 
         public bool IsObjectInitializerNamedAssignmentIdentifier(
             SyntaxNode node, out SyntaxNode initializedInstance)
@@ -1243,8 +1218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public IEnumerable<SyntaxNode> GetConstructors(SyntaxNode root, CancellationToken cancellationToken)
         {
-            var compilationUnit = root as CompilationUnitSyntax;
-            if (compilationUnit == null)
+            if (!(root is CompilationUnitSyntax compilationUnit))
             {
                 return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
             }
@@ -1923,15 +1897,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SyntaxList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node)
         {
-            switch (node)
+            return node switch
             {
-                case BlockSyntax block:
-                    return block.Statements;
-                case SwitchSectionSyntax switchSection:
-                    return switchSection.Statements;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(node);
-            }
+                BlockSyntax block => block.Statements,
+                SwitchSectionSyntax switchSection => switchSection.Statements,
+                _ => throw ExceptionUtilities.UnexpectedValue(node),
+            };
         }
 
         public SyntaxNode FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes)
