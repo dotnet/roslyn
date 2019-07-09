@@ -995,16 +995,18 @@ class C : I<int, bool>
         public void Method_ParameterNullableChange()
         {
             var source0 = @"
+using System.Collections.Generic;
 class C
 {
     string c;
-    ref string M(string? s, (string a, dynamic? b) tuple) => ref c;
+    ref string M(string? s, (string a, dynamic? b) tuple, List<string?> list) => ref c;
 }";
             var source1 = @"
+using System.Collections.Generic;
 class C
 {
     string c;
-    ref string? M(string s, (string? a, dynamic b) tuple) => ref c;
+    ref string? M(string s, (string? a, dynamic b) tuple, List<string> list) => ref c;
 }";
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
