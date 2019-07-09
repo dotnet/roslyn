@@ -2001,6 +2001,105 @@ class C
 
         #endregion
 
+        #region Members
+
+        [Fact]
+        public void MemberUpdate_Modifier_ReadOnly_Remove()
+        {
+            var src1 = @"
+using System;
+
+struct S
+{
+    // methods
+    public readonly int M() => 1;
+
+    // properties
+    public readonly int P => 1;
+    public readonly int Q { get; }
+    public int R { readonly get; readonly set; }
+
+    // events
+    public readonly event Action E { add {} remove {} }
+    public event Action F { readonly add {} readonly remove {} }
+}";
+            var src2 = @"
+using System;
+struct S
+{
+    // methods
+    public int M() => 1;
+
+    // properties
+    public int P => 1;
+    public int Q { get; }
+    public int R { get; set; }
+
+    // events
+    public event Action E { add {} remove {} }
+    public event Action F { add {} remove {} }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public int M()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public int P", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public int Q", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "get", CSharpFeaturesResources.property_getter),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "set", CSharpFeaturesResources.property_setter),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "add", FeaturesResources.event_accessor),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "remove", FeaturesResources.event_accessor));
+        }
+
+        [Fact]
+        public void MemberUpdate_Modifier_ReadOnly_Add()
+        {
+            var src1 = @"
+using System;
+
+struct S
+{
+    // methods
+    public int M() => 1;
+
+    // properties
+    public int P => 1;
+    public int Q { get; }
+    public int R { get; set; }
+
+    // events
+    public event Action E { add {} remove {} }
+    public event Action F { add {} remove {} }
+}";
+            var src2 = @"
+using System;
+
+struct S
+{
+    // methods
+    public readonly int M() => 1;
+
+    // properties
+    public readonly int P => 1;
+    public readonly int Q { get; }
+    public int R { readonly get; readonly set; }
+
+    // events
+    public readonly event Action E { add {} remove {} }
+    public event Action F { readonly add {} readonly remove {} }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public readonly int M()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public readonly int P", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public readonly int Q", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "readonly get", CSharpFeaturesResources.property_getter),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "readonly set", CSharpFeaturesResources.property_setter),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "readonly add", FeaturesResources.event_accessor),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "readonly remove", FeaturesResources.event_accessor));
+        }
+
+        #endregion
+
         #region Methods
 
         [Fact]
@@ -2795,7 +2894,7 @@ class C
         }
 
         [Fact]
-        public void MethodUpdate_RemoveAsyncModifier()
+        public void MethodUpdate_Modifier_Async_Remove()
         {
             var src1 = @"
 class Test
@@ -2822,7 +2921,7 @@ class Test
         }
 
         [Fact]
-        public void MethodUpdate_AddAsyncModifier()
+        public void MethodUpdate_Modifier_Async_Add()
         {
             var src1 = @"
 class Test

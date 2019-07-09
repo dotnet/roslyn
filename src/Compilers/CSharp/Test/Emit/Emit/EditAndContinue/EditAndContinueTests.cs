@@ -541,7 +541,7 @@ namespace N
 namespace System.Runtime.CompilerServices { class X { } }
 namespace N
 {
-    class C
+    struct C
     {
         static void Main() 
         { 
@@ -557,7 +557,7 @@ namespace N
 namespace System.Runtime.CompilerServices { class X { } }
 namespace N
 {
-    class C
+    struct C
     {
         static void Main() { Id(in G()); }
 
@@ -571,14 +571,14 @@ namespace N
 namespace System.Runtime.CompilerServices { class X { } }
 namespace N
 {
-    class C
+    struct C
     {
         static void Main() { Id(in G()); }
 
         static ref readonly int Id(in int x) => ref x;
         static ref readonly int G() => ref new int[1] { 2 }[0];
         static void H(string? s) {}
-        static ref readonly string?[]? F() => throw null;
+        readonly ref readonly string?[]? F() => throw null;
     }
 }";
 
@@ -804,7 +804,8 @@ namespace N
                 Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(12, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                 Row(5, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]

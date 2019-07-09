@@ -45,7 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         private static SyntaxTree ParseSource(string source, ParseOptions options = null)
         {
-            return SyntaxFactory.ParseSyntaxTree(ActiveStatementsDescription.ClearTags(source), options: options);
+            return SyntaxFactory.ParseSyntaxTree(
+                ActiveStatementsDescription.ClearTags(source),
+                options: options ?? CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
         }
 
         internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2, ParseOptions options = null)
