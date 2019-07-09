@@ -5011,7 +5011,7 @@ class C
                 state.AssertCompletionItemsContainAll({"Normalize", "★ Normalize"})
                 state.SendCommitUniqueCompletionListItem()
                 Await state.AssertNoCompletionSession()
-                Assert.Contains("s.Normalize()", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("s.Normalize", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -5061,6 +5061,105 @@ class C
                 state.SendCommitUniqueCompletionListItem()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("s.Length", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        ' Implementation for the Modern completion only
+        <InlineData(CompletionImplementation.Modern)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function IntelliCodeItemPreferredAfterCommitingIntelliCodeItem(completionImplementation As CompletionImplementation) As Task
+            Dim provider = New IntelliCodeMockProvider()
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class C
+{
+    void Method()
+    {
+        var s = "";
+        s$$
+    }
+}
+                              </Document>, {provider})
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+
+                state.SendTypeChars(".nor")
+                Await state.AssertCompletionSession()
+                state.AssertCompletionItemsContainAll({"Normalize", "★ Normalize"})
+                Await state.AssertSelectedCompletionItem("★ Normalize", displayTextSuffix:="()")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("s.Normalize", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                For i = 1 To "ze".Length
+                    state.SendBackspace()
+                Next
+                Await state.AssertSelectedCompletionItem("★ Normalize", displayTextSuffix:="()")
+
+                state.SendEscape()
+                For i = 1 To "Normali".Length
+                    state.SendBackspace()
+                Next
+                state.SendEscape()
+                Assert.Contains("s.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("★ Normalize", displayTextSuffix:="()")
+                state.SendEscape()
+
+                state.SendTypeChars("n")
+                Await state.AssertSelectedCompletionItem("★ Normalize", displayTextSuffix:="()")
+            End Using
+        End Function
+
+        ' Implementation for the Modern completion only
+        <InlineData(CompletionImplementation.Modern)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function IntelliCodeItemPreferredAfterCommitingNonIntelliCodeItem(completionImplementation As CompletionImplementation) As Task
+            Dim provider = New IntelliCodeMockProvider()
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class C
+{
+    void Method()
+    {
+        var s = "";
+        s$$
+    }
+}
+                              </Document>, {provider})
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+
+                state.SendTypeChars(".nor")
+                Await state.AssertCompletionSession()
+                state.AssertCompletionItemsContainAll({"Normalize", "★ Normalize"})
+                Await state.AssertSelectedCompletionItem("★ Normalize", displayTextSuffix:="()")
+
+                state.NavigateToDisplayText("Normalize")
+                state.SendTab()
+
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("s.Normalize", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                For i = 1 To "ze".Length
+                    state.SendBackspace()
+                Next
+                Await state.AssertSelectedCompletionItem("★ Normalize", displayTextSuffix:="()")
+
+                state.SendEscape()
+                For i = 1 To "Normali".Length
+                    state.SendBackspace()
+                Next
+                state.SendEscape()
+                Assert.Contains("s.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("★ Normalize", displayTextSuffix:="()")
+                state.SendEscape()
+
+                state.SendTypeChars("n")
+                Await state.AssertSelectedCompletionItem("★ Normalize", displayTextSuffix:="()")
             End Using
         End Function
 
@@ -5463,7 +5562,7 @@ class C
             End Function
 
             Public Overrides Function GetChangeAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of CompletionChange)
-                Dim commitText = item.DisplayText + item.DisplayTextSuffix
+                Dim commitText = item.DisplayText
                 If commitText.StartsWith("★") Then
                     ' remove the star and the following space
                     commitText = commitText.Substring(2)
