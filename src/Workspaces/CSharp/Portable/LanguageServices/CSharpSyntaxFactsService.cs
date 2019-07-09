@@ -1795,8 +1795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var start = typeDecl.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart ??
-                        typeDecl.SpanStart;
+            var start = GetStartOfNodeExcludingAttributes(typeDecl);
             var end = typeDecl.GetTypeParameterList()?.GetLastToken().FullSpan.End ??
                         typeDecl.Identifier.FullSpan.End;
 
@@ -1810,9 +1809,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
-
-            var start = propertyDeclaration.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart ??
-                        propertyDeclaration.SpanStart;
+            var start = GetStartOfNodeExcludingAttributes(propertyDeclaration);
             var end = propertyDeclaration.Identifier.FullSpan.End;
 
             return node.Span.Start >= start && node.Span.End <= end;
@@ -1826,8 +1823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var start = propertyDeclaration.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart ??
-                        propertyDeclaration.SpanStart;
+            var start = GetStartOfNodeExcludingAttributes(propertyDeclaration);
             var end = propertyDeclaration.Identifier.FullSpan.End;
 
             return node.Span.Start >= start && node.Span.End <= end;
@@ -1973,6 +1969,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SyntaxNode GetContainingParameter(SyntaxNode node) => node.GetAncestorOrThis<ParameterSyntax>();
 
-        public SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node) => CSharpSyntaxGenerator.GetAttributeLists(node);
+        public override SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node) => CSharpSyntaxGenerator.GetAttributeLists(node);
     }
 }

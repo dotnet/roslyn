@@ -1746,8 +1746,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Dim start = If(statement.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart,
-                           statement.SpanStart)
+            Dim start = GetStartOfNodeExcludingAttributes(statement)
             Dim _end = If(statement.TypeParameterList?.GetLastToken().FullSpan.End,
                           statement.Identifier.FullSpan.End)
 
@@ -1761,20 +1760,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End If
 
-            Dim start = If(propertyDeclaration.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart, propertyDeclaration.SpanStart)
+            Dim start = GetStartOfNodeExcludingAttributes(propertyDeclaration)
             Dim [end] = If(propertyDeclaration.AsClause?.FullSpan.[End], propertyDeclaration.Identifier.FullSpan.End)
             Return node.Span.Start >= start AndAlso node.Span.[End] <= [end]
         End Function
 
         Public Function IsInParameterHeader(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInParameterHeader
-            Dim propertyDeclaration = node.GetAncestor(Of ParameterSyntax)()
+            Dim parameter = node.GetAncestor(Of ParameterSyntax)()
 
-            If propertyDeclaration Is Nothing Then
+            If parameter Is Nothing Then
                 Return False
             End If
 
-            Dim start = If(propertyDeclaration.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart, propertyDeclaration.SpanStart)
-            Dim [end] = If(propertyDeclaration.AsClause?.FullSpan.[End], propertyDeclaration.Identifier.FullSpan.End)
+            Dim start = GetStartOfNodeExcludingAttributes(parameter)
+            Dim [end] = If(parameter.AsClause?.FullSpan.[End], parameter.Identifier.FullSpan.End)
             Return node.Span.Start >= start AndAlso node.Span.[End] <= [end]
         End Function
 
@@ -1977,7 +1976,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.GetAncestorOrThis(Of ParameterSyntax)
         End Function
 
-        Public Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetAttributeLists
+        Public Overrides Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetAttributeLists
             Return VisualBasicSyntaxGenerator.GetAttributeLists(node)
         End Function
     End Class

@@ -487,5 +487,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         private bool SpansPreprocessorDirective(SyntaxTriviaList list)
             => list.Any(t => IsPreprocessorDirective(t));
+
+        protected int GetStartOfNodeExcludingAttributes(SyntaxNode node)
+        {
+            var attributeLists = GetAttributeLists(node);
+            var start = attributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart ??
+                        node.SpanStart;
+
+            return start;
+        }
+
+        public abstract SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node);
     }
 }
