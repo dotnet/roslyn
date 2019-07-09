@@ -1390,7 +1390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             var modifierTokens = GetModifierTokens(declaration);
-            GetAccessibilityAndModifiers(modifierTokens, out var accessibility, out var modifiers);
+            GetAccessibilityAndModifiers(modifierTokens, out var accessibility, out _);
             return accessibility;
         }
 
@@ -1658,42 +1658,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         break;
 
                     case SyntaxKind.PrivateKeyword:
-                        if (accessibility == Accessibility.Protected)
-                        {
-                            accessibility = Accessibility.ProtectedAndInternal;
-                        }
-                        else
-                        {
-                            accessibility = Accessibility.Private;
-                        }
+                        accessibility = accessibility == Accessibility.Protected
+                            ? Accessibility.ProtectedAndInternal
+                            : Accessibility.Private;
                         break;
 
                     case SyntaxKind.InternalKeyword:
-                        if (accessibility == Accessibility.Protected)
-                        {
-                            accessibility = Accessibility.ProtectedOrInternal;
-                        }
-                        else
-                        {
-                            accessibility = Accessibility.Internal;
-                        }
-
+                        accessibility = accessibility == Accessibility.Protected
+                            ? Accessibility.ProtectedOrInternal
+                            : Accessibility.Internal;
                         break;
 
                     case SyntaxKind.ProtectedKeyword:
-                        if (accessibility == Accessibility.Private)
-                        {
-                            accessibility = Accessibility.ProtectedAndInternal;
-                        }
-                        else if (accessibility == Accessibility.Internal)
-                        {
-                            accessibility = Accessibility.ProtectedOrInternal;
-                        }
-
-                        {
-                            accessibility = Accessibility.Protected;
-                        }
-
+                        accessibility = accessibility == Accessibility.Private
+                            ? Accessibility.ProtectedAndInternal
+                            : accessibility == Accessibility.Internal
+                                ? Accessibility.ProtectedOrInternal
+                                : Accessibility.Protected;
                         break;
 
                     case SyntaxKind.AbstractKeyword:
