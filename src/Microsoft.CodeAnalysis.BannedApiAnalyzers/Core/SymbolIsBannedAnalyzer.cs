@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
                         case IAddressOfOperation addressOf:
                             VerifyType(context.ReportDiagnostic, addressOf.Type, context.Operation.Syntax);
+                            break;
 
                         case IConversionOperation conversion:
                             if (conversion.OperatorMethod != null)
