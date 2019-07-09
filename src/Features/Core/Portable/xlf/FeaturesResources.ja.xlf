@@ -2435,21 +2435,6 @@ This version used in: {2}</source>
         <target state="translated">引数の名前 '{0}' を追加します (末尾の引数を含む)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Using_readonly_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly structs will prevent the debug session from continuing.</source>
-        <target state="translated">読み取り専用の構造体を使用すると、デバッグ セッションを続行できなくなります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_ref_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using ref structs will prevent the debug session from continuing.</source>
-        <target state="translated">ref 構造体を使用すると、デバッグ セッションを続行できなくなります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_readonly_references_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly references will prevent the debug session from continuing.</source>
-        <target state="translated">読み取り専用の参照を使用すると、デバッグ セッションを続行できなくなります。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="local_function">
         <source>local function</source>
         <target state="translated">ローカル関数</target>

@@ -2435,21 +2435,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">Ajouter le nom d'argument '{0}' (ainsi que les arguments de fin)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Using_readonly_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly structs will prevent the debug session from continuing.</source>
-        <target state="translated">L'utilisation de structs en lecture seule va empêcher la session de débogage de se poursuivre.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_ref_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using ref structs will prevent the debug session from continuing.</source>
-        <target state="translated">L'utilisation de structs par référence va empêcher la session de débogage de se poursuivre.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_readonly_references_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly references will prevent the debug session from continuing.</source>
-        <target state="translated">L'utilisation de références en lecture seule va empêcher la session de débogage de se poursuivre.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="local_function">
         <source>local function</source>
         <target state="translated">fonction locale</target>

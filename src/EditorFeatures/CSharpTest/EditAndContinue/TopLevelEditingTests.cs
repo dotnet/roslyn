@@ -687,8 +687,7 @@ public interface I
             edits.VerifyEdits(
                 "Insert [ref struct X { }]@0");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RefStruct, "ref struct X", SyntaxFacts.GetText(SyntaxKind.StructKeyword)));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -702,8 +701,7 @@ public interface I
             edits.VerifyEdits(
                 "Insert [readonly struct X { }]@0");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyStruct, "readonly struct X", SyntaxFacts.GetText(SyntaxKind.StructKeyword)));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -717,8 +715,7 @@ public interface I
             edits.VerifyEdits(
                 "Update [struct X { }]@0 -> [ref struct X { }]@0");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "ref struct X", SyntaxFacts.GetText(SyntaxKind.StructKeyword)));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -1559,8 +1556,7 @@ public class SubClass : BaseClass, IConflict
                 "Insert [(in int b)]@21",
                 "Insert [in int b]@22");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int b", FeaturesResources.parameter));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -1605,8 +1601,7 @@ public class SubClass : BaseClass, IConflict
                 "Insert [public delegate ref readonly int D();]@0",
                 "Insert [()]@34");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "public delegate ref readonly int D()", FeaturesResources.delegate_));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -3504,8 +3499,7 @@ class C
                 "Insert [(in int b)]@18",
                 "Insert [in int b]@19");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int b", FeaturesResources.parameter));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -3550,8 +3544,7 @@ class C
                 "Insert [ref readonly int M() => throw null;]@13",
                 "Insert [()]@31");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int M()", FeaturesResources.method));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -5101,8 +5094,7 @@ public class C
                 "Insert [(in int b)]@17",
                 "Insert [in int b]@18");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int b", FeaturesResources.parameter));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -7565,8 +7557,7 @@ class C
                 "Insert [ref readonly int M() { get; }]@13",
                 "Insert [()]@31");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int M()", FeaturesResources.method));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -8196,8 +8187,7 @@ class SampleCollection<T>
                 "Insert [[in int i]]@21",
                 "Insert [in int i]@22");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int i", FeaturesResources.parameter));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -8228,8 +8218,7 @@ class SampleCollection<T>
                 "Insert [[int i]]@34",
                 "Insert [int i]@35");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int this[int i]", FeaturesResources.indexer_));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]

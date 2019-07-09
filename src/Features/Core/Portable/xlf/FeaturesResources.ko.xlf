@@ -2435,21 +2435,6 @@ This version used in: {2}</source>
         <target state="translated">인수 이름 '{0}' 추가(후행 인수 포함)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Using_readonly_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly structs will prevent the debug session from continuing.</source>
-        <target state="translated">읽기 전용 구조체를 사용하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_ref_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using ref structs will prevent the debug session from continuing.</source>
-        <target state="translated">ref struct를 사용하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_readonly_references_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly references will prevent the debug session from continuing.</source>
-        <target state="translated">읽기 전용 참조를 사용하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="local_function">
         <source>local function</source>
         <target state="translated">로컬 함수</target>

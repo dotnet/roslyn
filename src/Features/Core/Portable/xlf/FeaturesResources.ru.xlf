@@ -2435,21 +2435,6 @@ This version used in: {2}</source>
         <target state="translated">Добавьте имя аргумента "{0}" (включая конечные аргументы)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Using_readonly_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly structs will prevent the debug session from continuing.</source>
-        <target state="translated">Использование структур только для чтения сделает продолжение сеанса отладки невозможным.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_ref_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using ref structs will prevent the debug session from continuing.</source>
-        <target state="translated">Использование ссылочных структур сделает продолжение сеанса отладки невозможным.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_readonly_references_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly references will prevent the debug session from continuing.</source>
-        <target state="translated">Использование ссылок только для чтения сделает продолжение сеанса отладки невозможным.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="local_function">
         <source>local function</source>
         <target state="translated">локальная функция</target>

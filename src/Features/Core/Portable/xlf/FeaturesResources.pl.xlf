@@ -2435,21 +2435,6 @@ Ta wersja jest używana wersja: {2}</target>
         <target state="translated">Dodaj nazwę argumentu „{0}” (w tym końcowe argumenty)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Using_readonly_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly structs will prevent the debug session from continuing.</source>
-        <target state="translated">Używanie struktur tylko do odczytu uniemożliwi kontynuowanie sesji debugowania.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_ref_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using ref structs will prevent the debug session from continuing.</source>
-        <target state="translated">Używanie struktur ref uniemożliwi kontynuowanie sesji debugowania.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_readonly_references_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly references will prevent the debug session from continuing.</source>
-        <target state="translated">Używanie odwołań tylko do odczytu uniemożliwi kontynuowanie sesji debugowania.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="local_function">
         <source>local function</source>
         <target state="translated">funkcja lokalna</target>
