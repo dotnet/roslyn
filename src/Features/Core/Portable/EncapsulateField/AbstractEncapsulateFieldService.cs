@@ -223,8 +223,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 originalField,
                 field.ContainingType,
                 new SyntaxAnnotation(),
-                document,
-                cancellationToken);
+                document);
 
             var solutionWithProperty = await AddPropertyAsync(
                 document, document.Project.Solution, field, generatedProperty, cancellationToken).ConfigureAwait(false);
@@ -302,8 +301,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             IFieldSymbol field,
             INamedTypeSymbol containingSymbol,
             SyntaxAnnotation annotation,
-            Document document,
-            CancellationToken cancellationToken)
+            Document document)
         {
             var factory = document.GetLanguageService<SyntaxGenerator>();
 
@@ -413,14 +411,14 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 Glyph = glyph;
             }
 
-            public Result(Solution solutionWithProperty, string name, Glyph glyph, List<IFieldSymbol> failedFieldSymbols) :
-                this(solutionWithProperty, name, glyph)
+            public Result(Solution solutionWithProperty, string name, Glyph glyph, List<IFieldSymbol> failedFieldSymbols)
+                : this(solutionWithProperty, name, glyph)
             {
                 FailedFields = failedFieldSymbols.ToImmutableArrayOrEmpty();
             }
 
-            public Result(Solution originalSolution, params IFieldSymbol[] fields) :
-                this(originalSolution, string.Empty, Glyph.Error)
+            public Result(Solution originalSolution, params IFieldSymbol[] fields)
+                : this(originalSolution, string.Empty, Glyph.Error)
             {
                 FailedFields = fields.ToImmutableArrayOrEmpty();
             }

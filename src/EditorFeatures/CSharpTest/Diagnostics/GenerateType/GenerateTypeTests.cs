@@ -1438,7 +1438,6 @@ internal class T
         this.s = s;
     }
 }",
-parseOptions: TestOptions.Regular8WithNullableAnalysis,
 index: 1);
         }
 
@@ -1474,7 +1473,6 @@ internal class T
         this.s = s;
     }
 }",
-parseOptions: TestOptions.Regular8WithNullableAnalysis,
 index: 1);
         }
 

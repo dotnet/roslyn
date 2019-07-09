@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitRecursivePattern(BoundRecursivePattern node)
         {
+            Visit(node.DeclaredType);
             VisitAll(node.Deconstruction);
             VisitAll(node.Properties);
             Visit(node.VariableAccess);
@@ -180,6 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var label in node.SwitchLabels)
             {
                 TakeIncrementalSnapshot(label);
+                VisitPatternForRewriting(label.Pattern);
                 VisitLabel(label.Label, node);
             }
 
@@ -505,6 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetState(!arm.Pattern.HasErrors && labelStateMap.TryGetValue(arm.Label, out var labelState) ? labelState.state : UnreachableState());
                 // https://github.com/dotnet/roslyn/issues/35836 Is this where we want to take the snapshot?
                 TakeIncrementalSnapshot(arm);
+                VisitPatternForRewriting(arm.Pattern);
                 (BoundExpression expression, Conversion conversion) = RemoveConversion(arm.Value, includeExplicitConversions: false);
                 SnapshotWalkerThroughConversionGroup(arm.Value, expression);
                 expressions.Add(expression);
@@ -558,6 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
             LearnFromAnyNullPatterns(node.Expression, node.Pattern);
+            VisitPatternForRewriting(node.Pattern);
             var expressionState = VisitRvalueWithState(node.Expression);
             var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, ref this.State);
             var trueState = labelStateMap.TryGetValue(node.WhenTrueLabel, out var s1) ? s1.state : UnreachableState();

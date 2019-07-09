@@ -91,23 +91,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         }
 
         private ImageMoniker MapEffectiveSeverityToIconMoniker(ReportDiagnostic effectiveSeverity)
-        {
-            switch (effectiveSeverity)
+            => effectiveSeverity switch
             {
-                case ReportDiagnostic.Error:
-                    return KnownMonikers.CodeErrorRule;
-                case ReportDiagnostic.Warn:
-                    return KnownMonikers.CodeWarningRule;
-                case ReportDiagnostic.Info:
-                    return KnownMonikers.CodeInformationRule;
-                case ReportDiagnostic.Hidden:
-                    return KnownMonikers.CodeHiddenRule;
-                case ReportDiagnostic.Suppress:
-                    return KnownMonikers.CodeSuppressedRule;
-                default:
-                    return default(ImageMoniker);
-            }
-        }
+                ReportDiagnostic.Error => KnownMonikers.CodeErrorRule,
+                ReportDiagnostic.Warn => KnownMonikers.CodeWarningRule,
+                ReportDiagnostic.Info => KnownMonikers.CodeInformationRule,
+                ReportDiagnostic.Hidden => KnownMonikers.CodeHiddenRule,
+                ReportDiagnostic.Suppress => KnownMonikers.CodeSuppressedRule,
+                _ => default,
+            };
 
         private void NotifyPropertyChanged(string propertyName)
         {

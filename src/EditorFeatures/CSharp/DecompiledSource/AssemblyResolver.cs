@@ -57,8 +57,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         {
             // Primitive implementation to support multi-module assemblies
             // where all modules are located next to the main module.
-            string baseDirectory = Path.GetDirectoryName(mainModule.FileName);
-            string moduleFileName = Path.Combine(baseDirectory, moduleName);
+            var baseDirectory = Path.GetDirectoryName(mainModule.FileName);
+            var moduleFileName = Path.Combine(baseDirectory, moduleName);
             if (!File.Exists(moduleFileName))
             {
                 return null;

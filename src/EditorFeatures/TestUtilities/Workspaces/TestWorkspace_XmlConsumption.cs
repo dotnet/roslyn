@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private class TestDocumentationProvider : DocumentationProvider
         {
-            protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default(CancellationToken))
+            protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
             {
                 return string.Format("<member name='{0}'><summary>{0}</summary></member>", documentationMemberID);
             }
@@ -85,15 +85,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 throw new ArgumentException();
             }
 
-            exportProvider = exportProvider ?? TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
+            exportProvider ??= TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
 
             var workspace = new TestWorkspace(exportProvider, workspaceKind);
 
             var projectNameToTestHostProject = new Dictionary<string, TestHostProject>();
             var projectElementToProjectName = new Dictionary<XElement, string>();
             var filePathToTextBufferMap = new Dictionary<string, ITextBuffer>();
-            int projectIdentifier = 0;
-            int documentIdentifier = 0;
+            var projectIdentifier = 0;
+            var documentIdentifier = 0;
 
             foreach (var projectElement in workspaceElement.Elements(ProjectElementName))
             {
@@ -143,18 +143,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                     var aliases = projectReference.Attributes(AliasAttributeName).Select(a => a.Value).ToImmutableArray();
 
-                    workspace.OnProjectReferenceAdded(fromProject.Id, new ProjectReference(toProject.Id, aliases.Any() ? aliases : default(ImmutableArray<string>)));
+                    workspace.OnProjectReferenceAdded(fromProject.Id, new ProjectReference(toProject.Id, aliases.Any() ? aliases : default));
                 }
             }
 
-            for (int i = 1; i < submissions.Count; i++)
+            for (var i = 1; i < submissions.Count; i++)
             {
                 if (submissions[i].CompilationOptions == null)
                 {
                     continue;
                 }
 
-                for (int j = i - 1; j >= 0; j--)
+                for (var j = i - 1; j >= 0; j--)
                 {
                     if (submissions[j].CompilationOptions != null)
                     {
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             string filePath;
 
-            string projectName = projectElement.Attribute(ProjectNameAttribute)?.Value ?? assemblyName;
+            var projectName = projectElement.Attribute(ProjectNameAttribute)?.Value ?? assemblyName;
 
             if (projectElement.Attribute(FilePathAttributeName) != null)
             {
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private static string GetLanguage(TestWorkspace workspace, XElement projectElement)
         {
-            string languageName = projectElement.Attribute(LanguageAttributeName).Value;
+            var languageName = projectElement.Attribute(LanguageAttributeName).Value;
 
             if (!workspace.Services.SupportedLanguages.Contains(languageName))
             {
@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             string filePath;
 
             var isLinkFileAttribute = documentElement.Attribute(IsLinkFileAttributeName);
-            bool isLinkFile = isLinkFileAttribute != null && ((bool?)isLinkFileAttribute).HasValue && ((bool?)isLinkFileAttribute).Value;
+            var isLinkFile = isLinkFileAttribute != null && ((bool?)isLinkFileAttribute).HasValue && ((bool?)isLinkFileAttribute).Value;
             if (isLinkFile)
             {
                 // This is a linked file. Use the filePath and markup from the referenced document.
@@ -786,9 +786,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var compilation = CreateCompilation(workspace, referencedSource);
 
             var aliasElement = referencedSource.Attribute("Aliases")?.Value;
-            var aliases = aliasElement != null ? aliasElement.Split(',').Select(s => s.Trim()).ToImmutableArray() : default(ImmutableArray<string>);
+            var aliases = aliasElement != null ? aliasElement.Split(',').Select(s => s.Trim()).ToImmutableArray() : default;
 
-            bool includeXmlDocComments = false;
+            var includeXmlDocComments = false;
             var includeXmlDocCommentsAttribute = referencedSource.Attribute(IncludeXmlDocCommentsAttributeName);
             if (includeXmlDocCommentsAttribute != null &&
                 ((bool?)includeXmlDocCommentsAttribute).HasValue &&
@@ -802,9 +802,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private static Compilation CreateCompilation(TestWorkspace workspace, XElement referencedSource)
         {
-            string languageName = GetLanguage(workspace, referencedSource);
+            var languageName = GetLanguage(workspace, referencedSource);
 
-            string assemblyName = "ReferencedAssembly";
+            var assemblyName = "ReferencedAssembly";
             var assemblyNameAttribute = referencedSource.Attribute(AssemblyNameAttributeName);
             if (assemblyNameAttribute != null)
             {

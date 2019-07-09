@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                         CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
                     {
                         var cursorPosition = SplitStringLiteral(
-                            subjectBuffer, document, options, caret, CancellationToken.None);
+                            document, options, caret, CancellationToken.None);
 
                         if (cursorPosition != null)
                         {
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
         }
 
         private int? SplitStringLiteral(
-            ITextBuffer subjectBuffer, Document document, DocumentOptionSet options, int position, CancellationToken cancellationToken)
+            Document document, DocumentOptionSet options, int position, CancellationToken cancellationToken)
         {
             var useTabs = options.GetOption(FormattingOptions.UseTabs);
             var tabSize = options.GetOption(FormattingOptions.TabSize);

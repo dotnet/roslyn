@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToMethod
@@ -41,8 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             }
 
             var cancellationToken = context.CancellationToken;
+            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
 
-            var localFunction = await CodeRefactoringHelpers.TryGetSelectedNodeAsync<LocalFunctionStatementSyntax>(document, context.Span, cancellationToken).ConfigureAwait(false);
+            var localFunction = await refactoringHelperService.TryGetSelectedNodeAsync<LocalFunctionStatementSyntax>(document, context.Span, cancellationToken).ConfigureAwait(false);
             if (localFunction == default)
             {
                 return;

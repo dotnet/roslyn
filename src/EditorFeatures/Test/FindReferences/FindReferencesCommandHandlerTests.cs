@@ -57,27 +57,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public async Task TestFindReferencesAsynchronousCall()
         {
-            using (var workspace = TestWorkspace.CreateCSharp("class C { C() { new C(); } }"))
-            {
-                var context = new MockFindUsagesContext();
-                var presenter = new MockStreamingFindUsagesPresenter(context);
+            using var workspace = TestWorkspace.CreateCSharp("class C { C() { new C(); } }");
+            var context = new MockFindUsagesContext();
+            var presenter = new MockStreamingFindUsagesPresenter(context);
 
-                var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
-                var handler = new FindReferencesCommandHandler(
-                    presenter,
-                    listenerProvider);
+            var handler = new FindReferencesCommandHandler(
+                presenter,
+                listenerProvider);
 
-                var textView = workspace.Documents[0].GetTextView();
-                textView.Caret.MoveTo(new SnapshotPoint(textView.TextSnapshot, 7));
-                handler.ExecuteCommand(new FindReferencesCommandArgs(
-                    textView,
-                    textView.TextBuffer), TestCommandExecutionContext.Create());
+            var textView = workspace.Documents[0].GetTextView();
+            textView.Caret.MoveTo(new SnapshotPoint(textView.TextSnapshot, 7));
+            handler.ExecuteCommand(new FindReferencesCommandArgs(
+                textView,
+                textView.TextBuffer), TestCommandExecutionContext.Create());
 
-                var waiter = listenerProvider.GetWaiter(FeatureAttribute.FindReferences);
-                await waiter.CreateExpeditedWaitTask();
-                AssertResult(context.Result, "C.C()", "class C");
-            }
+            var waiter = listenerProvider.GetWaiter(FeatureAttribute.FindReferences);
+            await waiter.CreateExpeditedWaitTask();
+            AssertResult(context.Result, "C.C()", "class C");
         }
 
         private void AssertResult(

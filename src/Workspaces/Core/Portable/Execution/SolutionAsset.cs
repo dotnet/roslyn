@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.Execution
             private readonly object _value;
             private readonly ISerializerService _serializer;
 
-            public SimpleSolutionAsset(Checksum checksum, object value, ISerializerService serializer) :
-                base(checksum, value.GetWellKnownSynchronizationKind())
+            public SimpleSolutionAsset(Checksum checksum, object value, ISerializerService serializer)
+                : base(checksum, value.GetWellKnownSynchronizationKind())
             {
                 _value = value;
                 _serializer = serializer;
@@ -63,8 +63,8 @@ namespace Microsoft.CodeAnalysis.Execution
             private readonly TextDocumentState _state;
             private readonly ISerializerService _serializer;
 
-            public SourceTextAsset(Checksum checksum, TextDocumentState state, ISerializerService serializer) :
-                base(checksum, WellKnownSynchronizationKind.SourceText)
+            public SourceTextAsset(Checksum checksum, TextDocumentState state, ISerializerService serializer)
+                : base(checksum, WellKnownSynchronizationKind.SourceText)
             {
                 _state = state;
                 _serializer = serializer;

@@ -1028,7 +1028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Append('<');
                 builder.Append(typeParameterList.Parameters[0].Identifier.ValueText);
-                for (int i = 1; i < typeParameterList.Parameters.Count; i++)
+                for (var i = 1; i < typeParameterList.Parameters.Count; i++)
                 {
                     builder.Append(", ");
                     builder.Append(typeParameterList.Parameters[i].Identifier.ValueText);
@@ -1123,7 +1123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(root.SyntaxTree == node.SyntaxTree);
 
-            int currentId = 0;
+            var currentId = 0;
             Contract.ThrowIfFalse(TryGetMethodLevelMember(root, (n, i) => n == node, ref currentId, out var currentNode));
 
             Contract.ThrowIfFalse(currentId >= 0);
@@ -1133,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SyntaxNode GetMethodLevelMember(SyntaxNode root, int memberId)
         {
-            int currentId = 0;
+            var currentId = 0;
             if (!TryGetMethodLevelMember(root, (n, i) => i == memberId, ref currentId, out var currentNode))
             {
                 return null;
@@ -1815,6 +1815,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return position >= start && position <= end;
         }
 
+        public bool IsInPropertyDeclarationHeader(SyntaxNode node)
+        {
+            var propertyDeclaration = node.GetAncestor<PropertyDeclarationSyntax>();
+            if (propertyDeclaration == null)
+            {
+                return false;
+            }
+
+            var start = propertyDeclaration.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart ??
+                        propertyDeclaration.SpanStart;
+            var end = propertyDeclaration.Identifier.FullSpan.End;
+
+            return node.Span.Start >= start && node.Span.End <= end;
+        }
+
         public bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position)
         {
             var token = root.FindToken(position);
@@ -1950,5 +1965,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
         }
+
+        public SyntaxNode GetContainingPropertyDeclaration(SyntaxNode node) => node.GetAncestor<PropertyDeclarationSyntax>();
+
+        public SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node) => CSharpSyntaxGenerator.GetAttributeLists(node);
     }
 }

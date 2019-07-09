@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private bool _isApplyingEdit;
         private string _replacementText;
         private OptionSet _optionSet;
-        private Dictionary<ITextBuffer, OpenTextBufferManager> _openTextBuffers = new Dictionary<ITextBuffer, OpenTextBufferManager>();
+        private readonly Dictionary<ITextBuffer, OpenTextBufferManager> _openTextBuffers = new Dictionary<ITextBuffer, OpenTextBufferManager>();
 
         /// <summary>
         /// If non-null, the current text of the replacement. Linked spans added will automatically be updated with this
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             using (Logger.LogBlock(FunctionId.Rename_CreateOpenTextBufferManagerForAllOpenDocs, CancellationToken.None))
             {
-                HashSet<ITextBuffer> openBuffers = new HashSet<ITextBuffer>();
+                var openBuffers = new HashSet<ITextBuffer>();
                 foreach (var d in _workspace.GetOpenDocumentIds())
                 {
                     var document = _baseSolution.GetDocument(d);
@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _conflictResolutionTask.Wait(waitContext.CancellationToken);
                 waitContext.AllowCancel = false;
 
-                Solution newSolution = _conflictResolutionTask.Result.NewSolution;
+                var newSolution = _conflictResolutionTask.Result.NewSolution;
                 if (previewChanges)
                 {
                     var previewService = _workspace.Services.GetService<IPreviewDialogService>();

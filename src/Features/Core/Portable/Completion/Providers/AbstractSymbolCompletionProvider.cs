@@ -55,7 +55,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return _isTargetTypeCompletionFilterExperimentEnabled == true;
         }
 
-        private bool ShouldIncludeInTargetTypedCompletionList(ISymbol symbol, ImmutableArray<ITypeSymbol> inferredTypes, SemanticModel semanticModel, int position)
+        /// <param name="inferredTypes">Should not inlcude nullability information</param>
+        private bool ShouldIncludeInTargetTypedCompletionList(
+            ISymbol symbol,
+            ImmutableArray<ITypeSymbol> inferredTypes,
+            SemanticModel semanticModel,
+            int position,
+            Dictionary<ITypeSymbol, bool> typeConvertibilityCache)
         {
             // When searching for identifiers of type C, exclude the symbol for the `C` type itself.
             if (symbol.Kind == SymbolKind.NamedType)
@@ -86,9 +92,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return false;
             }
 
-            foreach (var inferredType in inferredTypes)
+            type = type.WithoutNullability();
+
+            if (typeConvertibilityCache.TryGetValue(type, out var isConvertible))
             {
-                if (semanticModel.Compilation.ClassifyCommonConversion(type.WithoutNullability(), inferredType.WithoutNullability()).IsImplicit)
+                return isConvertible;
+            }
+
+            typeConvertibilityCache[type] = IsTypeImplicitlyConvertible(semanticModel.Compilation, type, inferredTypes);
+            return typeConvertibilityCache[type];
+        }
+
+        private bool IsTypeImplicitlyConvertible(Compilation compilation, ITypeSymbol sourceType, ImmutableArray<ITypeSymbol> targetTypes)
+        {
+            foreach (var targetType in targetTypes)
+            {
+                if (compilation.ClassifyCommonConversion(sourceType, targetType).IsImplicit)
                 {
                     return true;
                 }
@@ -115,6 +134,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                                select g;
 
             var itemListBuilder = ImmutableArray.CreateBuilder<CompletionItem>();
+            var typeConvertibilityCache = new Dictionary<ITypeSymbol, bool>();
 
             foreach (var symbolGroup in symbolGroups)
             {
@@ -125,10 +145,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (IsTargetTypeCompletionFilterExperimentEnabled(arbitraryFirstContext.Workspace))
                 {
+                    var inferredTypesWithoutNullability = inferredTypes.SelectAsArray(t => t.WithoutNullability());
+
                     foreach (var symbol in symbolGroup)
                     {
                         var syntaxContext = contextLookup(symbol);
-                        if (ShouldIncludeInTargetTypedCompletionList(symbol, inferredTypes, syntaxContext.SemanticModel, syntaxContext.Position))
+                        if (ShouldIncludeInTargetTypedCompletionList(symbol, inferredTypesWithoutNullability, syntaxContext.SemanticModel, syntaxContext.Position, typeConvertibilityCache))
                         {
                             item = item.AddTag(WellKnownTags.TargetTypeMatch);
                             break;
@@ -334,15 +356,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var result = new Dictionary<ISymbol, SyntaxContext>(LinkedFilesSymbolEquivalenceComparer.Instance);
 
             // We don't care about assembly identity when creating the union.
-            foreach (var linkedContextSymbolList in linkedContextSymbolLists)
+            foreach (var (documentId, syntaxContext, symbols) in linkedContextSymbolLists)
             {
                 // We need to use the SemanticModel any particular symbol came from in order to generate its description correctly.
                 // Therefore, when we add a symbol to set of union symbols, add a mapping from it to its SyntaxContext.
-                foreach (var symbol in linkedContextSymbolList.symbols.GroupBy(s => new { s.Name, s.Kind }).Select(g => g.First()))
+                foreach (var symbol in symbols.GroupBy(s => new { s.Name, s.Kind }).Select(g => g.First()))
                 {
                     if (!result.ContainsKey(symbol))
                     {
-                        result.Add(symbol, linkedContextSymbolList.syntaxContext);
+                        result.Add(symbol, syntaxContext);
                     }
                 }
             }
@@ -407,12 +429,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var missingSymbols = new Dictionary<ISymbol, List<ProjectId>>(LinkedFilesSymbolEquivalenceComparer.Instance);
 
-            foreach (var linkedContextSymbolList in linkedContextSymbolLists)
+            foreach (var (documentId, syntaxContext, symbols) in linkedContextSymbolLists)
             {
-                var symbolsMissingInLinkedContext = symbolToContext.Keys.Except(linkedContextSymbolList.symbols, LinkedFilesSymbolEquivalenceComparer.Instance);
+                var symbolsMissingInLinkedContext = symbolToContext.Keys.Except(symbols, LinkedFilesSymbolEquivalenceComparer.Instance);
                 foreach (var missingSymbol in symbolsMissingInLinkedContext)
                 {
-                    missingSymbols.GetOrAdd(missingSymbol, m => new List<ProjectId>()).Add(linkedContextSymbolList.documentId.ProjectId);
+                    missingSymbols.GetOrAdd(missingSymbol, m => new List<ProjectId>()).Add(documentId.ProjectId);
                 }
             }
 

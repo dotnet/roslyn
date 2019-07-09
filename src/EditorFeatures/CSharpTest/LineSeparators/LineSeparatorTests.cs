@@ -537,7 +537,7 @@ class Program
 
                 Assert.Equal(tokenIndices.Length, spans.Count());
 
-                int i = 0;
+                var i = 0;
                 foreach (var span in spans.OrderBy(t => t.Start))
                 {
                     var expectedToken = tokens.ElementAt(tokenIndices[i]);

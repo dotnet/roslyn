@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     continue;
                 }
 
-                results = results ?? new List<AbstractFormattingResult>();
+                results ??= new List<AbstractFormattingResult>();
                 results.Add(Format(node, options, rules, pair.Item1, pair.Item2, cancellationToken));
             }
 

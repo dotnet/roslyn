@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
         {
             return Task.FromResult(ImmutableArray.Create(
-                Diagnostic.Create(Descriptor, Location.Create(document.FilePath, default(TextSpan), default(LinePositionSpan)))));
+                Diagnostic.Create(Descriptor, Location.Create(document.FilePath, default, default))));
         }
     }
 }
