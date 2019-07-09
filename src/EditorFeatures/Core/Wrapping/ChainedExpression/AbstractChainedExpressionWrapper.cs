@@ -257,15 +257,12 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
 
             if (node != null)
             {
-                if (_syntaxFacts.IsAnyMemberAccessExpression(node) ||
-                    _syntaxFacts.IsInvocationExpression(node) ||
-                    _syntaxFacts.IsElementAccessExpression(node) ||
-                    _syntaxFacts.IsPostfixUnaryExpression(node) ||
-                    _syntaxFacts.IsConditionalAccessExpression(node) ||
-                    _syntaxFacts.IsMemberBindingExpression(node))
-                {
-                    return true;
-                }
+                return _syntaxFacts.IsAnyMemberAccessExpression(node)
+                       || _syntaxFacts.IsInvocationExpression(node)
+                       || _syntaxFacts.IsElementAccessExpression(node)
+                       || _syntaxFacts.IsPostfixUnaryExpression(node)
+                       || _syntaxFacts.IsConditionalAccessExpression(node)
+                       || _syntaxFacts.IsMemberBindingExpression(node);
             }
 
             return false;
