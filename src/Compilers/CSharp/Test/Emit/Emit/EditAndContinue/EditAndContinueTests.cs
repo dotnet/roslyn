@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -5890,11 +5891,11 @@ class C
             // Equivalent to C#, but with unnamed locals.
             // Used to generate initial metadata.
             var ilSource =
-@".assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+@".assembly extern netstandard { .ver 2:0:0:0 .publickeytoken = (cc 7b 13 ff cd 2d dd 51) }
 .assembly '<<GeneratedFileName>>' { }
 .class C
 {
-  .method private static class [mscorlib]System.IDisposable F()
+  .method private static class [netstandard]System.IDisposable F()
   {
     ldnull
     ret
@@ -5930,13 +5931,12 @@ class C
         }
     }
 }";
-            ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            EmitILToArray(ilSource, appendDefaultHeader: false, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+
+            EmitILToArray(ilSource, appendDefaultHeader: false, includePdb: false, assemblyBytes: out var assemblyBytes, pdbBytes: out var pdbBytes);
             var md0 = ModuleMetadata.CreateFromImage(assemblyBytes);
             // Still need a compilation with source for the initial
             // generation - to get a MethodSymbol and syntax map.
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20);
             var compilation1 = compilation0.WithSource(source1);
 
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
@@ -6418,7 +6418,7 @@ class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void MethodSignatureWithNoPIAType()
         {
             var sourcePIA = @"
@@ -6841,14 +6841,14 @@ class C
         return null;
     }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
             var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
-                CheckNames(reader0, reader0.GetAssemblyRefNames(), "mscorlib");
+                CheckNames(reader0, reader0.GetAssemblyRefNames(), "netstandard");
                 var method0F = compilation0.GetMember<MethodSymbol>("C.F");
                 // Use empty LocalVariableNameProvider for original locals and
                 // use preserveLocalVariables: true for the edit so that existing
@@ -6865,7 +6865,7 @@ class C
                 {
                     var reader1 = md1.Reader;
                     var readers = new[] { reader0, reader1 };
-                    CheckNames(readers, reader1.GetAssemblyRefNames(), "mscorlib");
+                    CheckNames(readers, reader1.GetAssemblyRefNames(), "netstandard");
                     CheckNames(readers, reader1.GetTypeDefNames(), "<>f__AnonymousType1`1");
                     CheckNames(readers, reader1.GetTypeRefNames(), "CompilerGeneratedAttribute", "DebuggerDisplayAttribute", "Object", "DebuggerBrowsableState", "DebuggerBrowsableAttribute", "DebuggerHiddenAttribute", "EqualityComparer`1", "String", "IFormatProvider");
                     // Change method updated in generation 1.
@@ -6877,7 +6877,7 @@ class C
                     {
                         var reader2 = md2.Reader;
                         readers = new[] { reader0, reader1, reader2 };
-                        CheckNames(readers, reader2.GetAssemblyRefNames(), "mscorlib");
+                        CheckNames(readers, reader2.GetAssemblyRefNames(), "netstandard");
                         CheckNames(readers, reader2.GetTypeDefNames());
                         CheckNames(readers, reader2.GetTypeRefNames(), "Object");
                     }
@@ -6890,7 +6890,7 @@ class C
                     {
                         var reader2 = md2.Reader;
                         readers = new[] { reader0, reader1, reader2 };
-                        CheckNames(readers, reader2.GetAssemblyRefNames(), "mscorlib");
+                        CheckNames(readers, reader2.GetAssemblyRefNames(), "netstandard");
                         CheckNames(readers, reader2.GetTypeDefNames());
                         CheckNames(readers, reader2.GetTypeRefNames(), "Object");
                     }
