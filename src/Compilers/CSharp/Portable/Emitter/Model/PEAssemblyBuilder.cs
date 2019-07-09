@@ -266,7 +266,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             EmbeddableAttributes needsAttributes = GetNeedsGeneratedAttributes();
 
-            if (needsAttributes == 0)
+            if (ShouldEmitNullablePublicOnlyAttribute() &&
+                Compilation.CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes.NullablePublicOnlyAttribute, diagnostics, Location.None))
+            {
+                needsAttributes |= EmbeddableAttributes.NullablePublicOnlyAttribute;
+            }
+            else if (needsAttributes == 0)
             {
                 return;
             }

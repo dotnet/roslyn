@@ -1115,7 +1115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return declaration;
         }
 
-        private static SyntaxList<AttributeListSyntax> GetAttributeLists(SyntaxNode declaration)
+        internal static SyntaxList<AttributeListSyntax> GetAttributeLists(SyntaxNode declaration)
             => declaration switch
             {
                 MemberDeclarationSyntax memberDecl => memberDecl.AttributeLists,
