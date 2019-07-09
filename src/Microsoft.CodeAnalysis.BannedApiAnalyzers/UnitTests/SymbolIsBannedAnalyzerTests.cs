@@ -243,6 +243,44 @@ T:System.Collections.Generic.List`1";
         }
 
         [Fact]
+        public async Task CSharp_BannedType_AsTypeArgument()
+        {
+            var source = @"
+struct C {}
+
+class G<T>
+{
+    class N<U>
+    { }
+
+    unsafe void M()
+    {
+        var b = new G<C>();
+        var c = new G<C>.N<int>();
+        var d = new G<int>.N<C>();
+        var e = new G<G<int>.N<C>>.N<int>();
+        var f = new G<G<C>.N<int>>.N<int>();
+        var g = new C[42];
+        var h = new G<C[]>();
+        fixed (C* i = &g[0]) { }
+    }
+}";
+
+            var bannedText = @"
+T:C";
+
+            await VerifyCSharpAsync(source, bannedText,
+                GetCSharpResultAt(11, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(12, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(13, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(14, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(15, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(16, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(17, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(18, 23, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
+        }
+
+        [Fact]
         public async Task CSharp_BannedNestedType_Constructor()
         {
             var source = @"
@@ -306,6 +344,39 @@ class C
             var bannedText = @"T:I";
 
             await VerifyCSharpAsync(source, bannedText, GetCSharpResultAt(12, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "I", ""));
+        }
+
+        [Fact]
+        public async Task CSharp_BannedClass_Operators()
+        {
+            var source = @"
+class C
+{
+    public static implicit operator C(int i) => new C();
+    public static explicit operator C(float f) => new C();
+    public static C operator +(C c, int i) => c;
+    public static C operator ++(C c) => c;
+    public static C operator -(C c) => c;
+
+    void M()
+    {
+        C c = 0;        // implicit conversion.
+        c = (C)1.0f;    // Explicit conversion.
+        c = c + 1;      // Binary operator.
+        c++;            // Increment or decrement.
+        c = -c;         // Unary operator.
+    }
+}";
+            var bannedText = @"T:C";
+
+            await VerifyCSharpAsync(source, bannedText,
+                GetCSharpResultAt(4, 49, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(5, 51, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(12, 15, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(13, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(14, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(15, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(16, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
 
         [Fact]
