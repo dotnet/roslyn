@@ -5832,9 +5832,9 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
-                // (6,14): error CS8652: The feature 'unconstrained type parameters in null coalescing operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,14): error CS8652: The feature 'unconstrained type parameters in null coalescing operator' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         t1 = t1 ?? t2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "t1 ?? t2").WithArguments("unconstrained type parameters in null coalescing operator").WithLocation(6, 14));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "t1 ?? t2").WithArguments("unconstrained type parameters in null coalescing operator", "8.0").WithLocation(6, 14));
         }
     }
 }

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyTypeNames
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyGenericName()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 
 class C
@@ -92,7 +92,7 @@ namespace Root
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias00()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"namespace Root
 {
     using MyType = System.IO.File;
@@ -124,7 +124,7 @@ class A
     [|System.Exception|] c;
 }";
 
-            await TestInRegularAndScriptAsync(source,
+            await TestInRegular73AndScriptAsync(source,
 @"using MyType = System.Exception;
 
 class A
@@ -145,7 +145,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"namespace Root
 {
     using MyType = System.Exception;
@@ -169,7 +169,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using MyType = System.Exception;
 
 namespace Root
@@ -193,7 +193,7 @@ namespace Root
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using MyType = System.Exception;
 
 namespace Root
@@ -223,7 +223,7 @@ namespace Root
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using MyType = System.Exception;
 
 class A
@@ -241,7 +241,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias5()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"namespace Root
 {
     using MyType = System.Exception;
@@ -265,7 +265,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias6()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using MyType = System.Exception;
 
 namespace Root
@@ -289,7 +289,7 @@ namespace Root
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias7()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using MyType = System.Exception;
 
 namespace Root
@@ -319,7 +319,7 @@ namespace Root
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias8()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using Goo = System.Int32;
 
 namespace Root
@@ -350,7 +350,7 @@ namespace Root
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task DoNotChangeToAliasInNameOfIfItChangesNameOfName()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"using System;
 using Foo = SimplifyInsideNameof.Program;
 
@@ -383,7 +383,7 @@ namespace SimplifyInsideNameof
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task DoChangeToAliasInNameOfIfItDoesNotAffectName1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 using Goo = SimplifyInsideNameof.Program;
 
@@ -417,7 +417,7 @@ namespace SimplifyInsideNameof
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task DoChangeToAliasInNameOfIfItDoesNotAffectName2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 using Goo = N.Goo;
 
@@ -457,7 +457,7 @@ namespace SimplifyInsideNameof
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TwoAliases()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using MyType1 = System.Exception;
 
 namespace Root
@@ -485,7 +485,7 @@ namespace Root
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TwoAliases2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using MyType1 = System.Exception;
 
 namespace Root
@@ -530,7 +530,7 @@ namespace Root
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TwoAliasesConflict2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using MyType = System.Exception;
 
 namespace Root
@@ -583,7 +583,7 @@ namespace Root
     [|System.Int32|] i;
 }";
             var featureOptions = PreferIntrinsicTypeEverywhere;
-            await TestInRegularAndScriptAsync(source,
+            await TestInRegular73AndScriptAsync(source,
 @"class A
 {
     int i;
@@ -662,7 +662,7 @@ namespace Root
     }
 }";
 
-            await TestInRegularAndScriptAsync(source,
+            await TestInRegular73AndScriptAsync(source,
 @"using System;
 
 namespace Root
@@ -688,7 +688,7 @@ namespace Root
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyTypeName2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"namespace System
 {
     class A
@@ -708,7 +708,7 @@ namespace Root
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyTypeName3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"namespace N1
 {
     public class A1
@@ -743,7 +743,7 @@ namespace Root
         public async Task SimplifyTypeName4()
         {
             // this is failing since we can't speculatively bind namespace yet
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"namespace N1
 {
     namespace N2
@@ -777,7 +777,7 @@ namespace Root
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyTypeName5()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"namespace N1
 {
     class NC1
@@ -847,7 +847,7 @@ namespace Root
     }
 }";
 
-            await TestInRegularAndScriptAsync(source,
+            await TestInRegular73AndScriptAsync(source,
 @"namespace N1
 {
     namespace N2
@@ -893,7 +893,7 @@ namespace N1
     }
 }";
 
-            await TestInRegularAndScriptAsync(source,
+            await TestInRegular73AndScriptAsync(source,
 @"using System;
 
 namespace N1
@@ -911,7 +911,7 @@ namespace N1
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task SimplifyGenericTypeName3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 
 namespace N1
@@ -963,7 +963,7 @@ namespace N1
     }
 }";
 
-            await TestInRegularAndScriptAsync(source,
+            await TestInRegular73AndScriptAsync(source,
 @"using MyHandler = System.EventHandler<System.EventArgs>;
 
 namespace N1
@@ -989,7 +989,7 @@ namespace N1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyGenericTypeName6()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 
 namespace N1
@@ -1032,7 +1032,7 @@ namespace N1
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task SimplifyGenericTypeName7()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 
 namespace N1
@@ -1191,7 +1191,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyToPredefinedTypeNameShouldBeOfferedInsideFunctionCalledNameOf()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 
 class Program
@@ -1225,7 +1225,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyTypeNameInsideNameOf()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 
 class Program
@@ -1250,7 +1250,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyCrefAliasPredefinedType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"namespace N1
 {
     public class C1
@@ -1398,14 +1398,14 @@ namespace N
 {
     using X = Nullable<int>;
 }";
-            await TestInRegularAndScriptAsync(content, result);
+            await TestInRegular73AndScriptAsync(content, result);
         }
 
         [WorkItem(919815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/919815")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyReturnTypeOnMethodCallToAlias()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using alias1 = A;
 
 class A
@@ -1598,7 +1598,7 @@ new TestParameters(Options.Script));
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestConflicts()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"namespace OuterNamespace
 {
     namespace InnerNamespace
@@ -1756,7 +1756,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestPreventSimplificationThatWouldCauseConflict()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"namespace N
 {
     class Program
@@ -1842,7 +1842,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnOpenType2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     public class Inner<T>
@@ -1937,7 +1937,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnNonOpenType1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     public class Inner
@@ -1964,7 +1964,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnNonOpenType2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program<T>
 {
     public class Inner
@@ -1991,7 +1991,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnNonOpenType3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     public class Inner<T>
@@ -2018,7 +2018,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnNonOpenType4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program<X>
 {
     public class Inner<Y>
@@ -2045,7 +2045,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnNonOpenType5()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program<X>
 {
     public class Inner<Y>
@@ -2155,7 +2155,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task ParenthesizeIfParseChanges()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 class C
 {
@@ -2180,7 +2180,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableSimplification1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     static void Main()
@@ -2201,7 +2201,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableSimplification3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     static void Main([|System.Nullable<int>|] i)
@@ -2239,7 +2239,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableSimplification5()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
  
 class Program
@@ -2304,7 +2304,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableInsideCref_AllowedIfReferencingActualTypeParameter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 /// <summary>
 /// <see cref=""C{[|Nullable{T}|]}""/>
@@ -2341,7 +2341,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableInsideCref_AllowedIfReferencingActualType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 /// <summary>
 /// <see cref=""[|Nullable{int}|]""/>
@@ -2362,7 +2362,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableInsideCref_AllowedIfReferencingActualType_AsTypeArgument()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 /// <summary>
 /// <see cref=""C{[|Nullable{int}|]}""/>
@@ -2399,7 +2399,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableSimplificationInsideCref()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"/// <summary>
 /// <see cref=""A.M([|System.Nullable{A}|])""/>
 /// </summary>
@@ -2424,7 +2424,7 @@ struct A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableSimplificationInsideCref2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 /// <summary>
@@ -2453,7 +2453,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableSimplificationInsideCref3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 /// <summary>
@@ -2482,7 +2482,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableSimplificationInsideCref4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 /// <summary>
@@ -2510,7 +2510,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestColorColorCase1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using N;
 
 namespace N
@@ -2620,7 +2620,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 
 class Program
@@ -2662,7 +2662,7 @@ static class M
 		int k = [|Z<float>.Y|];
 	}
 }";
-            await TestInRegularAndScriptAsync(source,
+            await TestInRegular73AndScriptAsync(source,
 @"class Preserve
 {
 	public static int Y;
@@ -2705,7 +2705,7 @@ class M
 		int k = [|Z<float>.X|].Y;
 	}
 }";
-            await TestInRegularAndScriptAsync(source,
+            await TestInRegular73AndScriptAsync(source,
 @"class Preserve
 {
 	public class X
@@ -2785,7 +2785,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestMethodGroups3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 
 class Program
@@ -2810,7 +2810,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task FixAllOccurrences1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using goo = A.B;
 using bar = C.D;
 
@@ -3151,7 +3151,7 @@ class Program
 }
 ");
 
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 using Generic = System.Collections.Generic;
 class Program
@@ -3189,7 +3189,7 @@ class Program
 }
 ");
 
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 using Console = System.Console;
 class Program
@@ -3323,7 +3323,7 @@ class Attribute : System.Attribute
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInLocalDeclarationDefaultValue2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C
 {
@@ -3345,7 +3345,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_Default_1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 using System;
 class C
@@ -3369,7 +3369,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_Default_2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C
 {
@@ -3391,7 +3391,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_Default_3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 using System;
 class C
@@ -3433,7 +3433,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 
 class C
@@ -3475,7 +3475,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 
 class C
@@ -3515,7 +3515,7 @@ options: PreferIntrinsicTypeInMemberAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_6()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     /// <see cref=""System.Collections.Generic.List{T}.CopyTo([|System.Int32|], T[], int, int)""/>
@@ -3585,7 +3585,7 @@ options: PreferIntrinsicTypeInMemberAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInMemberAccess_Default_1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     public void z()
@@ -3606,7 +3606,7 @@ options: PreferIntrinsicTypeInMemberAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInMemberAccess_Default_2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 
 class C
@@ -3682,7 +3682,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyDiagnosticId()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 using System;
 
@@ -3704,7 +3704,7 @@ class C
     }
 }");
 
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"
 using System;
 
@@ -3973,7 +3973,7 @@ class C
         [WorkItem(20377, "https://github.com/dotnet/roslyn/issues/20377")]
         public async Task TestWarningLevel(int warningLevel)
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 
 namespace Root
@@ -3997,7 +3997,7 @@ namespace Root
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestGlobalAliasSimplifiesInUsingDirective()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
                 "using [|global::System.IO|];",
                 "using System.IO;");
         }
@@ -4018,7 +4018,7 @@ namespace Root
         [InlineData("Float64")]
         public async Task TestGlobalAliasSimplifiesInUsingAliasDirective(string typeName)
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
                 $"using My{typeName} = [|global::System.{typeName}|];",
                 $"using My{typeName} = System.{typeName};");
         }
@@ -4026,7 +4026,7 @@ namespace Root
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestGlobalAliasSimplifiesInUsingStaticDirective()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
                 "using static [|global::System.Math|];",
                 "using static System.Math;");
         }
@@ -4034,7 +4034,7 @@ namespace Root
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestGlobalAliasSimplifiesInUsingDirectiveInNamespace()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 namespace N
 {
@@ -4063,7 +4063,7 @@ namespace N
         [InlineData("Float64")]
         public async Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace(string typeName)
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 $@"using System;
 namespace N
 {{
@@ -4079,7 +4079,7 @@ namespace N
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestGlobalAliasSimplifiesInUsingStaticDirectiveInNamespace()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 namespace N
 {
@@ -4142,7 +4142,7 @@ namespace N
 
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
         {
-            await TestInRegularAndScriptAsync(code, expected, index: index, options: PreferIntrinsicTypeEverywhere);
+            await TestInRegular73AndScriptAsync(code, expected, index: index, options: PreferIntrinsicTypeEverywhere);
         }
 
         private IDictionary<OptionKey, object> PreferIntrinsicTypeEverywhere => OptionsSet(

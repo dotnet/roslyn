@@ -56,7 +56,7 @@ class Program
         yield return new object();
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -84,7 +84,7 @@ class Program
         yield return new object();
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -114,7 +114,7 @@ class Program
         yield return new List<T>();
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -144,7 +144,7 @@ class Program
         yield return new object();
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -174,7 +174,7 @@ class Program
         yield return new object();
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -222,7 +222,7 @@ class Program
         yield return default(T);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -252,7 +252,7 @@ class Program
         yield return 0;
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -282,7 +282,7 @@ class Program
         yield return 0;
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -330,7 +330,7 @@ class Program
         yield return new List<DateTime>();
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]

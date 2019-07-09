@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 
         private async Task TestAsync(string initial, string expected, bool offeredWhenRequireForClarityIsEnabled, int index = 0)
         {
-            await TestInRegularAndScriptAsync(initial, expected, options: RemoveAllUnnecessaryParentheses, index: index);
+            await TestInRegular73AndScriptAsync(initial, expected, options: RemoveAllUnnecessaryParentheses, index: index);
 
             if (offeredWhenRequireForClarityIsEnabled)
             {
-                await TestInRegularAndScriptAsync(initial, expected, options: RequireAllParenthesesForClarity, index: index);
+                await TestInRegular73AndScriptAsync(initial, expected, options: RequireAllParenthesesForClarity, index: index);
             }
             else
             {
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestArithmeticRequiredForClarity2()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"class C
 {
     void M()
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestLogicalRequiredForClarity2()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"class C
 {
     void M()
@@ -826,7 +826,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestForOverloadedOperatorOnLeft()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"class C
 {
     void M(C c1, C c2, C c3)
@@ -904,7 +904,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestRemoveShiftIfNotNecessary2()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"class C
 {
     void M()
@@ -963,7 +963,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestRemoveCoalesceIfNotNecessary2()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"class C
 {
     void M()
@@ -2112,7 +2112,7 @@ offeredWhenRequireForClarityIsEnabled: true, index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestForPostIncrement()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"class C
 {
     void M(int x)
@@ -2134,7 +2134,7 @@ offeredWhenRequireForClarityIsEnabled: true, index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestForPostDecrement()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"class C
 {
     void M(int x)
@@ -2156,7 +2156,7 @@ offeredWhenRequireForClarityIsEnabled: true, index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestForPreIncrementInLocalDeclaration()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"class C
 {
     void M(int x)
@@ -2177,7 +2177,7 @@ offeredWhenRequireForClarityIsEnabled: true, index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestForPreIncrementInSimpleAssignment()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"class C
 {
     void M(int x, int v)
@@ -2198,7 +2198,7 @@ offeredWhenRequireForClarityIsEnabled: true, index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestForPreIncrementInArgument()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"class C
 {
     void M(int x)
@@ -2261,7 +2261,7 @@ offeredWhenRequireForClarityIsEnabled: true, index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestConditionalExpressionAsRightHandSideValue()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"class Bar
 {
     void Foo(bool cond, double a, double b)

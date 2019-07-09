@@ -168,7 +168,7 @@ class Program
 {
     System.String _myfield = 5;
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -187,7 +187,7 @@ class Program
 {
     Int32 _myfield;
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -206,7 +206,7 @@ class Program
 {
     String _myfield = 5;
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -225,7 +225,7 @@ class Program
 {
     public delegate Int32 PerformCalculation(int x, int y);
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -244,7 +244,7 @@ class Program
 {
     public Int64 MyProperty { get; set; }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -265,7 +265,7 @@ class Program
 {
     public List<Int64> MyProperty { get; set; }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -284,7 +284,7 @@ class Program
 {
     public List<System.Int64> MyProperty { get; set; }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -303,7 +303,7 @@ class Program
 {
     public Int64 Method() { }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -322,7 +322,7 @@ class Program
 {
     public void Method(Double d) { }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -343,7 +343,7 @@ class Program
     public void Method<T>() { }
     public void Test() { Method<Int32>(); }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -368,7 +368,7 @@ class Program
         Int32 f = 5;
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -393,7 +393,7 @@ class Program
         Console.Write(Int32.MaxValue);
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInMemberAccess);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInMemberAccess);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -418,7 +418,7 @@ class Program
         var x = Int32.Parse(""1"");
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInMemberAccess);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInMemberAccess);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -443,7 +443,7 @@ class Program
     {
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInMemberAccess);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInMemberAccess);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -468,7 +468,7 @@ class Program
         var v = default(Int32);
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -493,7 +493,7 @@ class Program
         var v = typeof(Int32);
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -518,7 +518,7 @@ class Program
         var v = nameof(Int32);
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -543,7 +543,7 @@ class Program
         Func<int, int> func3 = (Int32 z) => z + 1;
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -568,7 +568,7 @@ class Program
         Func<int, int> func7 = delegate (Int32 dx) { return dx + 1; };
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -593,7 +593,7 @@ class Program
         string s2 = new String('c', 1);
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -618,7 +618,7 @@ class Program
         Int32[] k = new int[4];
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -643,7 +643,7 @@ class Program
         int[] k = new Int32[] { 1, 2, 3 };
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -670,7 +670,7 @@ class Program
         List<String[][,][,,,]> a;
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -695,7 +695,7 @@ class Program
         for (Int32 j = 0; j < 4; j++) { }
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -720,7 +720,7 @@ class Program
         foreach (Int32 item in new int[] { 1, 2, 3 }) { }
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -747,7 +747,7 @@ class Program
         Int32 x = 5;
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -772,7 +772,7 @@ class Program
         Int32 /* 2 */ x = 5;
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            await TestInRegular73AndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
     }
 }

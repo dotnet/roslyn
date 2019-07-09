@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
         public async Task TestAllConstructs()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 namespace Outer
 {
@@ -147,7 +147,7 @@ namespace Outer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
         public async Task TestRefStructs()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegular73AndScriptAsync(@"
 namespace Test
 {
     ref struct [|S1|] { }
@@ -161,7 +161,7 @@ namespace Test
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
         public async Task TestReadOnlyStructs()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegular73AndScriptAsync(@"
 namespace Test
 {
     readonly struct [|S1|] { }
@@ -175,7 +175,7 @@ namespace Test
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
         public async Task TestAllConstructsWithOmit()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 namespace Outer
 {
@@ -299,7 +299,7 @@ namespace Outer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
         public async Task TestRefStructsWithOmit()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegular73AndScriptAsync(@"
 namespace Test
 {
     internal ref struct [|S1|] { }
@@ -313,7 +313,7 @@ namespace Test
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
         public async Task TestReadOnlyStructsWithOmit()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegular73AndScriptAsync(@"
 namespace Test
 {
     internal readonly struct [|S1|] { }
@@ -327,7 +327,7 @@ namespace Test
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
         public async Task TestClassOutsideNamespace()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegular73AndScriptAsync(@"
 internal class [|C1|] { }", @"
 class C1 { }", options: OmitDefaultModifiers);
         }

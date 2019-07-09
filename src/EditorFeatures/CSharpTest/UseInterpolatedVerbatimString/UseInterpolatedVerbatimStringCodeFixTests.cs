@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseInterpolatedVerbatim
         [Fact]
         public async Task Simple()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"class C
 {
     void M()
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseInterpolatedVerbatim
         [Fact]
         public async Task InCall()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"class C
 {
     void M(string x)
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseInterpolatedVerbatim
         [Fact]
         public async Task FixAllInDocument()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"class C
 {
     void M()

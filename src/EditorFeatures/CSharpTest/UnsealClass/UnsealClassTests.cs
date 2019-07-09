@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UnsealClass
         [Fact]
         public async Task RemovedFromSealedClass()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegular73AndScriptAsync(@"
 sealed class C
 {
 }
@@ -37,7 +37,7 @@ class D : C
         [Fact]
         public async Task RemovedFromSealedClassWithOtherModifiersPreserved()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegular73AndScriptAsync(@"
 public sealed unsafe class C
 {
 }
@@ -55,7 +55,7 @@ class D : C
         [Fact]
         public async Task RemovedFromSealedClassWithConstructedGeneric()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegular73AndScriptAsync(@"
 sealed class C<T>
 {
 }
@@ -139,7 +139,7 @@ class D : [|System.ApplicationId|]
         [Fact]
         public async Task RemovedFromAllPartialClassDeclarationsInSameFile()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegular73AndScriptAsync(@"
 public sealed partial class C
 {
 }
@@ -169,7 +169,7 @@ class D : C
         [Fact]
         public async Task RemovedFromAllPartialClassDeclarationsAcrossFiles()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegular73AndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"">
         <Document>
@@ -219,7 +219,7 @@ class D : C
         [Fact]
         public async Task RemovedFromClassInVisualBasicProject()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegular73AndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Project1"">
         <ProjectReference>Project2</ProjectReference>

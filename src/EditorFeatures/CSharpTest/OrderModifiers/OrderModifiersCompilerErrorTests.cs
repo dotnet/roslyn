@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
         public async Task PartialAtTheEnd()
         {
             // Verify that the code fix claims it fixes the compiler error (CS0267) in addition to the analyzer diagnostic.
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"[|partial|] public class C { }",
 @"public partial class C { }");
         }

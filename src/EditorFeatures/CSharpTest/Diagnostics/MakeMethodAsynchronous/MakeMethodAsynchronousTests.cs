@@ -43,7 +43,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected, index: 1);
+            await TestInRegular73AndScriptAsync(initial, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -108,7 +108,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected, index: 1);
+            await TestInRegular73AndScriptAsync(initial, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -137,7 +137,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -167,7 +167,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -197,7 +197,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -228,7 +228,7 @@ class Program
         Func<Task> b = async () => await Task.Run(a);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -257,7 +257,7 @@ class Program
         Action a = async () => await Task.Delay(1);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -283,7 +283,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected, index: 1);
+            await TestInRegular73AndScriptAsync(initial, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -309,7 +309,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -335,7 +335,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -360,7 +360,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -384,7 +384,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected, index: 1);
+            await TestInRegular73AndScriptAsync(initial, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -408,7 +408,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -432,7 +432,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -455,7 +455,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -478,7 +478,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -501,7 +501,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -530,7 +530,7 @@ class Program
         await Task.Delay(1);
     }
 }" + IAsyncEnumerable;
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -559,7 +559,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -588,7 +588,7 @@ class Program
         return null;
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -627,7 +627,7 @@ class Program
         }
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -656,7 +656,7 @@ class Program
         return null;
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -685,7 +685,7 @@ class Program
         await Task.Delay(1);
     }
 }" + IAsyncEnumerable;
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -720,7 +720,7 @@ class Program
         }
     }
 }" + IAsyncEnumerable;
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -750,7 +750,7 @@ class Program
         await Task.Delay(1);
     }
 }" + IAsyncEnumerable;
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -780,7 +780,7 @@ class Program
         await Task.Delay(1);
     }
 }" + IAsyncEnumerable;
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         const string IAsyncEnumerable = @"
@@ -822,7 +822,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task AddAsyncInDelegate()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -854,7 +854,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task AddAsyncInDelegate2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -886,7 +886,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task AddAsyncInDelegate3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -977,14 +977,14 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         [WorkItem(14133, "https://github.com/dotnet/roslyn/issues/14133")]
         public async Task AddAsyncInLocalFunction()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Threading.Tasks;
 
 class C
@@ -1026,7 +1026,7 @@ class C
         [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task AddAsyncInLocalFunctionKeepVoidReturn()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Threading.Tasks;
 
 class C
@@ -1074,7 +1074,7 @@ index: 1);
         [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task AddAsyncInLocalFunctionKeepsTrivia(int codeFixIndex, string initialReturn, string expectedReturn, string expectedName)
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 $@"using System.Threading.Tasks;
 
 class C
@@ -1124,7 +1124,7 @@ class C
         [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task AddAsyncKeepsTrivia(string modifiers, int codeFixIndex, string expectedReturn, string expectedName)
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 $@"using System.Threading.Tasks;
 
 class C
@@ -1161,7 +1161,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task MethodWithAwaitUsing()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     void M()
@@ -1200,7 +1200,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task MethodWithAwaitForEach()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     void M()
@@ -1239,7 +1239,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task MethodWithAwaitForEachVariable()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     void M()

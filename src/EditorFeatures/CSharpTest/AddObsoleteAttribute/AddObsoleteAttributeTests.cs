@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddObsoleteAttribute
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
         public async Task TestObsoleteClassNoMessage()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"
 [System.Obsolete]
 class Base {}
@@ -39,7 +39,7 @@ class Derived : Base {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
         public async Task TestObsoleteClassWithMessage()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"
 [System.Obsolete(""message"")]
 class Base {}
@@ -60,7 +60,7 @@ class Derived : Base {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
         public async Task TestObsoleteClassWithMessageAndErrorFalse()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"
 [System.Obsolete(""message"", error: false)]
 class Base {}
@@ -94,7 +94,7 @@ class Derived : [||]Base {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
         public async Task TestObsoleteClassUsedInField()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"
 [System.Obsolete]
 class Base { public static int i; }
@@ -117,7 +117,7 @@ class Derived {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
         public async Task TestObsoleteClassUsedInMethod()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"
 [System.Obsolete]
 class Base { public static int i; }
@@ -144,7 +144,7 @@ class Derived {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
         public async Task TestObsoleteOverride()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"
 class Base { 
     [System.Obsolete]
@@ -171,7 +171,7 @@ class Derived : Base {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
         public async Task TestObsoleteClassFixAll1()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"
 [System.Obsolete]
 class Base { public static int i; }
@@ -200,7 +200,7 @@ class Derived {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
         public async Task TestObsoleteClassFixAll2()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"
 [System.Obsolete]
 class Base { public static int i; }
@@ -229,7 +229,7 @@ class Derived {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
         public async Task TestObsoleteClassFixAll3()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"
 [System.Obsolete]
 class Base { public static int i; }
@@ -265,7 +265,7 @@ class Derived {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
         public async Task TestObsoleteCollectionAddMethod()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"
 class Collection : System.Collections.Generic.IEnumerable<int> {
     [System.Obsolete]
@@ -300,7 +300,7 @@ class Derived {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
         public async Task TestObsoleteCollectionAddMethodWithMessage()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"
 class Collection : System.Collections.Generic.IEnumerable<int> {
     [System.Obsolete(""message"")]
@@ -335,7 +335,7 @@ class Derived {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
         public async Task TestObsoleteCollectionAddMethodWithMessageAndErrorFalse()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"
 class Collection : System.Collections.Generic.IEnumerable<int> {
     [System.Obsolete(""message"", error: false)]

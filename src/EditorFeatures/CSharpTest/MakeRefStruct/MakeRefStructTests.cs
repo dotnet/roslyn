@@ -48,7 +48,7 @@ ref struct S
     Span<int> m;
 }
 ");
-            await TestInRegularAndScriptAsync(text, expected, parseOptions: s_parseOptions);
+            await TestInRegular73AndScriptAsync(text, expected, parseOptions: s_parseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
@@ -95,7 +95,7 @@ ref struct S
     static Span<int> m;
 }
 ");
-            await TestInRegularAndScriptAsync(text, expected, parseOptions: s_parseOptions);
+            await TestInRegular73AndScriptAsync(text, expected, parseOptions: s_parseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
@@ -113,7 +113,7 @@ ref struct S
     Span<int> M { get; }
 }
 ");
-            await TestInRegularAndScriptAsync(text, expected, parseOptions: s_parseOptions);
+            await TestInRegular73AndScriptAsync(text, expected, parseOptions: s_parseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
@@ -161,7 +161,7 @@ ref struct S
     static Span<int> M { get; }
 }
 ");
-            await TestInRegularAndScriptAsync(text, expected, parseOptions: s_parseOptions);
+            await TestInRegular73AndScriptAsync(text, expected, parseOptions: s_parseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
@@ -203,7 +203,7 @@ ref partial struct S
     Span<int>[||] M { get; }
 }
 ");
-            await TestInRegularAndScriptAsync(text, expected, parseOptions: s_parseOptions);
+            await TestInRegular73AndScriptAsync(text, expected, parseOptions: s_parseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
@@ -229,7 +229,7 @@ readonly ref partial struct S
     Span<int>[||] M { get; }
 }
 ");
-            await TestInRegularAndScriptAsync(text, expected, parseOptions: s_parseOptions);
+            await TestInRegular73AndScriptAsync(text, expected, parseOptions: s_parseOptions);
         }
 
         private static string CreateTestSource(string testSource) => SpanDeclarationSourceText + testSource;

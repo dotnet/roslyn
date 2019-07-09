@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MakeMethodS
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestTaskReturnType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 using System.Threading.Tasks;
 
@@ -42,7 +42,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestTaskOfTReturnType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 using System.Threading.Tasks;
 
@@ -66,7 +66,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestSecondModifier()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 using System.Threading.Tasks;
 
@@ -90,7 +90,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestFirstModifier()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 using System.Threading.Tasks;
 
@@ -114,7 +114,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestTrailingTrivia()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 using System.Threading.Tasks;
 
@@ -139,7 +139,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestRenameMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 using System.Threading.Tasks;
 
@@ -163,7 +163,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestRenameMethod1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 using System.Threading.Tasks;
 
@@ -197,7 +197,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestParenthesizedLambda()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 using System.Threading.Tasks;
 
@@ -225,7 +225,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestSimpleLambda()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 using System.Threading.Tasks;
 
@@ -253,7 +253,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestLambdaWithExpressionBody()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 using System.Threading.Tasks;
 
@@ -281,7 +281,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestAnonymousMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 using System.Threading.Tasks;
 
@@ -309,7 +309,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestFixAll()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Threading.Tasks;
 
 public class Class1
@@ -344,7 +344,7 @@ public class Class1
         [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
         public async Task TestRemoveAwaitFromCaller1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Threading.Tasks;
 
 public class Class1
@@ -377,7 +377,7 @@ public class Class1
         [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
         public async Task TestRemoveAwaitFromCaller2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Threading.Tasks;
 
 public class Class1
@@ -410,7 +410,7 @@ public class Class1
         [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
         public async Task TestRemoveAwaitFromCaller3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Threading.Tasks;
 
 public class Class1
@@ -443,7 +443,7 @@ public class Class1
         [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
         public async Task TestRemoveAwaitFromCaller4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Threading.Tasks;
 
 public class Class1
@@ -476,7 +476,7 @@ public class Class1
         [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
         public async Task TestRemoveAwaitFromCallerNested1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Threading.Tasks;
 
 public class Class1
@@ -509,7 +509,7 @@ public class Class1
         [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
         public async Task TestRemoveAwaitFromCallerNested()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Threading.Tasks;
 
 public class Class1
@@ -542,7 +542,7 @@ public class Class1
         [WorkItem(14133, "https://github.com/dotnet/roslyn/issues/14133")]
         public async Task RemoveAsyncInLocalFunction()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Threading.Tasks;
 
 class C
@@ -576,7 +576,7 @@ class C
         [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
         public async Task RemoveAsyncInLocalFunctionKeepsTrivia(string asyncReturn, string expectedReturn)
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 $@"using System;
 using System.Threading.Tasks;
 
@@ -621,7 +621,7 @@ class C
         [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
         public async Task RemoveAsyncKeepsTrivia(string modifiers, string asyncReturn, string expectedReturn)
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 $@"using System;
 using System.Threading.Tasks;
 
@@ -664,7 +664,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task MethodWithUsingNoAwait()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     async System.Threading.Tasks.Task [|MAsync|]()
@@ -703,7 +703,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task MethodWithForEachNoAwait()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     async System.Threading.Tasks.Task [|MAsync|]()
@@ -742,7 +742,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task MethodWithForEachVariableNoAwait()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     async System.Threading.Tasks.Task [|MAsync|]()
@@ -766,7 +766,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestIAsyncEnumerableReturnType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -794,7 +794,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestIAsyncEnumeratorReturnTypeOnLocalFunction()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 using System.Threading.Tasks;
 using System.Collections.Generic;

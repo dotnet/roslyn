@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestVar()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     void M()
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestUpdateReference()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     void M()
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestTupleType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     void M()
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestVarInForEach()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Collections.Generic;
 
 class C
@@ -161,7 +161,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestTupleTypeInForEach()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Collections.Generic;
 
 class C
@@ -191,7 +191,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestFixAll1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     void M()
@@ -217,7 +217,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestFixAll2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     void M()
@@ -251,7 +251,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestFixAll3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     void M()
@@ -277,7 +277,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestFixAll4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     void M()
@@ -318,7 +318,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestWithUserNamesThatMatchDefaultTupleNameWithVar1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     void M()
@@ -342,7 +342,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestWithUserNamesThatMatchDefaultTupleNameWithVar2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     void M()
@@ -447,7 +447,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestTrivia1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     void M()
@@ -488,7 +488,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestWithDefaultExpressionInitializer()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     void M()
@@ -529,7 +529,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestWithExplicitImplicitConversionFromNonTuple()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     class Person
@@ -580,7 +580,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestWithExplicitImplicitConversionFromNonTupleInForEach()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Linq;
 class C
 {
@@ -614,7 +614,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestWithTupleLiteralConversion()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     void M()
@@ -636,7 +636,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestWithImplicitTupleConversion()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     void M()
@@ -662,7 +662,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestWithImplicitTupleConversionInForEach()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Collections.Generic;
 class C
 {
@@ -691,7 +691,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestEscapedContextualKeywordAsTupleName()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Collections.Generic;
 class C
 {

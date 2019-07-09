@@ -88,7 +88,7 @@ class D
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
                 initialMarkup: input,
                 expectedMarkup: expected,
                 options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Suggestion));

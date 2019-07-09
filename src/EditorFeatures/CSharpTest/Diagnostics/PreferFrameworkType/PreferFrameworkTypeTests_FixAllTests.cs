@@ -113,7 +113,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere);
+            await TestInRegular73AndScriptAsync(input, expected, options: FrameworkTypeEverywhere);
         }
 
         [Fact]
@@ -221,7 +221,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere);
+            await TestInRegular73AndScriptAsync(input, expected, options: FrameworkTypeEverywhere);
         }
 
         [Fact]
@@ -329,7 +329,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere);
+            await TestInRegular73AndScriptAsync(input, expected, options: FrameworkTypeEverywhere);
         }
 
         [Fact]
@@ -472,7 +472,7 @@ class ProgramA3
         </Document>
     </Project>
 </Workspace>";
-            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere);
+            await TestInRegular73AndScriptAsync(input, expected, options: FrameworkTypeEverywhere);
         }
     }
 }

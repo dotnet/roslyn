@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.HideBase
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
         public async Task TestAddNewToProperty()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Application
 {
     public static Application Current { get; }
@@ -42,7 +42,7 @@ class App : Application
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
         public async Task TestAddNewToMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Application
 {
     public static void Method()
@@ -74,7 +74,7 @@ class App : Application
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
         public async Task TestAddNewToMember()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Application
 {
     public string Test;
@@ -99,7 +99,7 @@ class App : Application
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
         public async Task TestAddNewToConstant()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Application
 {
     public const int Test = 1;
@@ -124,7 +124,7 @@ class App : Application
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
         public async Task TestAddNewToConstantInternalFields()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class A { internal const int i = 0; }
 class B : A { [|internal const int i = 1;|] }
 ",

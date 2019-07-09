@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
             => TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: options));
 
         private Task TestAsync(string initialMarkup, string expected, IDictionary<OptionKey, object> options)
-            => TestInRegularAndScript1Async(initialMarkup, expected, parameters: new TestParameters(options: options));
+            => TestInRegular73AndScript1Async(initialMarkup, expected, parameters: new TestParameters(options: options));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
         public async Task TestArithmeticPrecedence()
@@ -665,7 +665,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
         public async Task TestFixAll2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     void M()
@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
         public async Task TestSeams1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     void M()

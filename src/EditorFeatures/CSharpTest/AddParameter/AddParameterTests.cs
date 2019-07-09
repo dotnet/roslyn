@@ -42,7 +42,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestOnEmptyConstructor()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C
 {
@@ -74,7 +74,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestNamedArg()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C
 {
@@ -125,7 +125,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestAddBeforeMatchingArg()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C
 {
@@ -157,7 +157,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestAddAfterMatchingConstructorParam()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C
 {
@@ -189,7 +189,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestParams1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C
 {
@@ -241,7 +241,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestMultiLineParameters1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C
 {
@@ -277,7 +277,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestMultiLineParameters2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C
 {
@@ -313,7 +313,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestMultiLineParameters3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C
 {
@@ -349,7 +349,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestMultiLineParameters4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C
 {
@@ -387,7 +387,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestMultiLineParameters5()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C
 {
@@ -425,7 +425,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestMultiLineParameters6()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C
 {
@@ -463,7 +463,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestNullArg1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C
 {
@@ -496,7 +496,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestNullArg2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C
 {
@@ -529,7 +529,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestDefaultArg1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C
 {
@@ -562,7 +562,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestDefaultArg2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C
 {
@@ -595,7 +595,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestInvocationInstanceMethod1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C
 {
@@ -628,7 +628,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestInvocationInheritedMethodGetFixed()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class Base
 {
@@ -681,7 +681,7 @@ class C1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestInvocationLocalFunction()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C1
 {
@@ -725,7 +725,7 @@ class C1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestInvocationStaticMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C1
 {
@@ -786,7 +786,7 @@ class C1
         new object().ExtensionM1(1);
     }
 }}";
-            await TestInRegularAndScriptAsync(code, fix);
+            await TestInRegular73AndScriptAsync(code, fix);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -826,7 +826,7 @@ class C1
         Extensions.ExtensionM1(new object(), 1);
     }
 }}";
-            await TestInRegularAndScriptAsync(code, fix);
+            await TestInRegular73AndScriptAsync(code, fix);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -872,8 +872,8 @@ class C1 : Base
         M1(1);
     }
 }";
-            await TestInRegularAndScriptAsync(code, fix_DeclarationOnly, index: 0);
-            await TestInRegularAndScriptAsync(code, fix_All, index: 1);
+            await TestInRegular73AndScriptAsync(code, fix_DeclarationOnly, index: 0);
+            await TestInRegular73AndScriptAsync(code, fix_All, index: 1);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -919,8 +919,8 @@ class C1 : I1
         ((I1)this).M1(1);
     }
 }";
-            await TestInRegularAndScriptAsync(code, fix_DeclarationOnly, index: 0);
-            await TestInRegularAndScriptAsync(code, fix_All, index: 1);
+            await TestInRegular73AndScriptAsync(code, fix_DeclarationOnly, index: 0);
+            await TestInRegular73AndScriptAsync(code, fix_All, index: 1);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -967,8 +967,8 @@ class C1 : I1
         M1(1);
     }
 }";
-            await TestInRegularAndScriptAsync(code, fix_DeclarationOnly, index: 0);
-            await TestInRegularAndScriptAsync(code, fix_All, index: 1);
+            await TestInRegular73AndScriptAsync(code, fix_DeclarationOnly, index: 0);
+            await TestInRegular73AndScriptAsync(code, fix_All, index: 1);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1027,8 +1027,8 @@ class C1 : I1, I2
         M1(1);
     }
 }";
-            await TestInRegularAndScriptAsync(code, fix_DeclarationOnly, index: 0);
-            await TestInRegularAndScriptAsync(code, fix_All, index: 1);
+            await TestInRegular73AndScriptAsync(code, fix_DeclarationOnly, index: 0);
+            await TestInRegular73AndScriptAsync(code, fix_All, index: 1);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1036,7 +1036,7 @@ class C1 : I1, I2
         [Trait("TODO", "Fix broken")]
         public async Task TestInvocationGenericMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C1
 {
@@ -1062,7 +1062,7 @@ class C1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestInvocationRecursion()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 class C1
 {
@@ -1118,8 +1118,8 @@ class C1
         M1(1, 2);
     }
 }";
-            await TestInRegularAndScriptAsync(code, fix0, 0);
-            await TestInRegularAndScriptAsync(code, fix1, 1);
+            await TestInRegular73AndScriptAsync(code, fix0, 0);
+            await TestInRegular73AndScriptAsync(code, fix1, 1);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1162,8 +1162,8 @@ class C1
         M1(1, 2);
     }
 }";
-            await TestInRegularAndScriptAsync(code, fix0, 0);
-            await TestInRegularAndScriptAsync(code, fix1, 1);
+            await TestInRegular73AndScriptAsync(code, fix0, 0);
+            await TestInRegular73AndScriptAsync(code, fix1, 1);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1194,7 +1194,7 @@ class C1
         M1((0, 0), (1, ""1""));
     }
 }";
-            await TestInRegularAndScriptAsync(code, fix0, 0);
+            await TestInRegular73AndScriptAsync(code, fix0, 0);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1227,7 +1227,7 @@ class C1
         M1((0, 0), tup);
     }
 }";
-            await TestInRegularAndScriptAsync(code, fix0, 0);
+            await TestInRegular73AndScriptAsync(code, fix0, 0);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1260,7 +1260,7 @@ class C1
         M1((0, 0), tup);
     }
 }";
-            await TestInRegularAndScriptAsync(code, fix0, 0);
+            await TestInRegular73AndScriptAsync(code, fix0, 0);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1351,7 +1351,7 @@ class C1 : I1
         }
     }
 ";
-            await TestInRegularAndScriptAsync(code, fix0);
+            await TestInRegular73AndScriptAsync(code, fix0);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1383,7 +1383,7 @@ class C1 : I1
         }
     }
 ";
-            await TestInRegularAndScriptAsync(code, fix);
+            await TestInRegular73AndScriptAsync(code, fix);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1413,7 +1413,7 @@ class C1 : I1
         }
     }
 ";
-            await TestInRegularAndScriptAsync(code, fix);
+            await TestInRegular73AndScriptAsync(code, fix);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1480,7 +1480,7 @@ class C1 : I1
         }
     }
 ";
-            await TestInRegularAndScriptAsync(code, fix0);
+            await TestInRegular73AndScriptAsync(code, fix0);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1510,7 +1510,7 @@ class C1 : I1
         }
     }
 ";
-            await TestInRegularAndScriptAsync(code, fix0);
+            await TestInRegular73AndScriptAsync(code, fix0);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1572,8 +1572,8 @@ class C1 : I1
         }
     }
 ";
-            await TestInRegularAndScriptAsync(code, fix_DeclarationOnly, index: 0);
-            await TestInRegularAndScriptAsync(code, fix_All, index: 1);
+            await TestInRegular73AndScriptAsync(code, fix_DeclarationOnly, index: 0);
+            await TestInRegular73AndScriptAsync(code, fix_All, index: 1);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1636,7 +1636,7 @@ namespace N1
         </Document>
     </Project>
 </Workspace>";
-            await TestInRegularAndScriptAsync(code, fix0);
+            await TestInRegular73AndScriptAsync(code, fix0);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1677,7 +1677,7 @@ namespace N1
         }
     }
 }";
-            await TestInRegularAndScriptAsync(code, fix0);
+            await TestInRegular73AndScriptAsync(code, fix0);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1787,8 +1787,8 @@ namespace N
     }
 }
         ";
-            await TestInRegularAndScriptAsync(code, fixedDocumentWithoutConflictAnnotation, index: 0);
-            await TestInRegularAndScriptAsync(code, fixedDocumentWithConflictAnnotation, index: 1);
+            await TestInRegular73AndScriptAsync(code, fixedDocumentWithoutConflictAnnotation, index: 0);
+            await TestInRegular73AndScriptAsync(code, fixedDocumentWithConflictAnnotation, index: 1);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1902,7 +1902,7 @@ namespace N
         </Document>
     </Project>
 </Workspace>";
-            await TestInRegularAndScriptAsync(code, fix_All, index: 1);
+            await TestInRegular73AndScriptAsync(code, fix_All, index: 1);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1955,8 +1955,8 @@ namespace N
         }
     }
 ";
-            await TestInRegularAndScriptAsync(code, fix_DeclarationOnly, index: 0);
-            await TestInRegularAndScriptAsync(code, fix_All, index: 1);
+            await TestInRegular73AndScriptAsync(code, fix_DeclarationOnly, index: 0);
+            await TestInRegular73AndScriptAsync(code, fix_All, index: 1);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -2027,7 +2027,7 @@ namespace N
         </Document>
     </Project>
 </Workspace>";
-            await TestInRegularAndScriptAsync(code, fix, index: 1);
+            await TestInRegular73AndScriptAsync(code, fix, index: 1);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -2055,7 +2055,7 @@ class C
     }
 }";
             await TestActionCountAsync(code, 1);
-            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+            await TestInRegular73AndScriptAsync(code, fix0, index: 0);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -2083,7 +2083,7 @@ class C
         M(1, 2);
     }
 }";
-            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+            await TestInRegular73AndScriptAsync(code, fix0, index: 0);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -2111,7 +2111,7 @@ class C
         M(1, i2: 2, i3: 3);
     }
 }";
-            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+            await TestInRegular73AndScriptAsync(code, fix0, index: 0);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -2139,7 +2139,7 @@ class C
         M(""text"");
     }
 }";
-            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+            await TestInRegular73AndScriptAsync(code, fix0, index: 0);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -2185,7 +2185,7 @@ class C
         M(1, s: ""text"", i2: 0);
     }
 }";
-            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+            await TestInRegular73AndScriptAsync(code, fix0, index: 0);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -2232,7 +2232,7 @@ class C
         M(1
     }
 }";
-            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+            await TestInRegular73AndScriptAsync(code, fix0, index: 0);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -2258,7 +2258,7 @@ class C
     {
         M(""text"", 1
 ";
-            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+            await TestInRegular73AndScriptAsync(code, fix0, index: 0);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -2290,7 +2290,7 @@ class C
     }
 }
 ";
-            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+            await TestInRegular73AndScriptAsync(code, fix0, index: 0);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -2322,7 +2322,7 @@ class C
     }
 }
 ";
-            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+            await TestInRegular73AndScriptAsync(code, fix0, index: 0);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -2352,7 +2352,7 @@ class C
     }
 }
 ";
-            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+            await TestInRegular73AndScriptAsync(code, fix0, index: 0);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -2382,7 +2382,7 @@ class C
     }
 }
 ";
-            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+            await TestInRegular73AndScriptAsync(code, fix0, index: 0);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -2446,7 +2446,7 @@ class C
     public C(): this(1, 1)
     { }
 }";
-            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+            await TestInRegular73AndScriptAsync(code, fix0, index: 0);
             await TestActionCountAsync(code, 1);
         }
 
@@ -2475,7 +2475,7 @@ public class C : B
 {
     public C(int i) : base(i) { }
 }";
-            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+            await TestInRegular73AndScriptAsync(code, fix0, index: 0);
             await TestActionCountAsync(code, 1);
         }
 
@@ -2510,7 +2510,7 @@ class Rsrp
     }
   }
 }";
-            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+            await TestInRegular73AndScriptAsync(code, fix0, index: 0);
         }
 
         [WorkItem(29752, "https://github.com/dotnet/roslyn/issues/29752")]
@@ -2546,7 +2546,7 @@ class Rsrp
     }
 }
 ";
-            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+            await TestInRegular73AndScriptAsync(code, fix0, index: 0);
         }
     }
 }

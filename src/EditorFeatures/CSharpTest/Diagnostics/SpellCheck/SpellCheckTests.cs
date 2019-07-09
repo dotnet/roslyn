@@ -138,7 +138,7 @@ public class Class1
     }
 }";
 
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestInRegular73AndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -160,7 +160,7 @@ public class Class1
     }
 }";
 
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestInRegular73AndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -195,7 +195,7 @@ class c
     private Goo<T> x;
 }";
 
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestInRegular73AndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -211,7 +211,7 @@ class c
     private Goo x;
 }";
 
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestInRegular73AndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -241,7 +241,7 @@ class Goo
     }
 }";
 
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestInRegular73AndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -271,7 +271,7 @@ class Goo
     }
 }";
 
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestInRegular73AndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -303,7 +303,7 @@ class c
     public int member { get; }
 }";
 
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestInRegular73AndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -357,7 +357,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestInRegular73AndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -389,7 +389,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(text, expected, index: 1);
+            await TestInRegular73AndScriptAsync(text, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -421,13 +421,13 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestInRegular73AndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         public async Task TestTestObjectConstruction()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class AwesomeClass
 {
     void M()
@@ -475,14 +475,14 @@ class C
   }
 }";
 
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestInRegular73AndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         [WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]
         public async Task TestNotMissingOnKeywordWhichIsAlsoASnippet()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     void M()
@@ -505,7 +505,7 @@ class C
         [WorkItem(18626, "https://github.com/dotnet/roslyn/issues/18626")]
         public async Task TestForExplicitInterfaceTypeName()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"interface IProjectConfigurationsService
 {
     void Method();
@@ -570,7 +570,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         public async Task TestUnmanagedConstraint()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C<T> where T : [|umanaged|]
 {
 }",
@@ -583,7 +583,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         public async Task TestMisspelledConstructor()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"public class SomeClass
 {
     public [|SomeClss|]() { }

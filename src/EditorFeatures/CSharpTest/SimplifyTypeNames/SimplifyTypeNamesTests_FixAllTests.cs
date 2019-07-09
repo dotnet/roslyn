@@ -119,7 +119,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: PreferIntrinsicTypeEverywhere);
+            await TestInRegular73AndScriptAsync(input, expected, options: PreferIntrinsicTypeEverywhere);
         }
 
         [Fact]
@@ -227,7 +227,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: PreferIntrinsicTypeEverywhere);
+            await TestInRegular73AndScriptAsync(input, expected, options: PreferIntrinsicTypeEverywhere);
         }
 
         [Fact]
@@ -335,7 +335,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: PreferIntrinsicTypeEverywhere);
+            await TestInRegular73AndScriptAsync(input, expected, options: PreferIntrinsicTypeEverywhere);
         }
 
         [Fact]
@@ -587,7 +587,7 @@ class ProgramB3
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected);
+            await TestInRegular73AndScriptAsync(input, expected);
         }
 
         #endregion

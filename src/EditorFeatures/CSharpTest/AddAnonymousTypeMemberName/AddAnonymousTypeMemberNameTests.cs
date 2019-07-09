@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAnonymousTypeMemberN
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)]
         public async Task Test1()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"
 class C
 {
@@ -40,7 +40,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)]
         public async Task TestExistingName()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"
 class C
 {
@@ -62,7 +62,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)]
         public async Task TestFixAll1()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"
 class C
 {
@@ -84,7 +84,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)]
         public async Task TestFixAll2()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"
 class C
 {
@@ -106,7 +106,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)]
         public async Task TestFixAll3()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"
 class C
 {

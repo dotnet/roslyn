@@ -41,7 +41,7 @@ class Program
         yield return 0;
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
@@ -70,7 +70,7 @@ class Program
         yield return 0;
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
@@ -99,7 +99,7 @@ class Program
         yield return 0;
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
@@ -191,7 +191,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
         public async Task TestChangeToIEnumerableProperty()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 
@@ -270,7 +270,7 @@ namespace Asdf
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
         public async Task TestChangeToIEnumerableOperator()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -305,7 +305,7 @@ namespace Asdf
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
         public async Task TestChangeToIEnumerableIndexer()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;

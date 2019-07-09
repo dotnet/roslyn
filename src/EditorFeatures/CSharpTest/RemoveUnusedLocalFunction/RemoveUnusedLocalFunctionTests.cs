@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedLocalFuncti
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedLocalFunction)]
         public async Task RemoveUnusedLocalFunction()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void Method()
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedLocalFuncti
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedLocalFunction)]
         public async Task RemoveUnusedLocalFunctionFixAll1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void Method()
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedLocalFuncti
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedLocalFunction)]
         public async Task RemoveUnusedLocalFunctionFixAll2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void Method()
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedLocalFuncti
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedLocalFunction)]
         public async Task RemoveUnusedLocalFunctionFixAll3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void Method()
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedLocalFuncti
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedLocalFunction)]
         public async Task RemoveUnusedLocalFunctionFixAll4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void Method()

@@ -32,6 +32,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
+        internal Task TestAllOptionsOff73Async(
+            string initialMarkup,
+            string expectedMarkup,
+            int index = 0,
+            IDictionary<OptionKey, object> options = null,
+            ParseOptions parseOptions = null)
+        {
+            options = options ?? new Dictionary<OptionKey, object>();
+            foreach (var kvp in AllOptionsOff)
+            {
+                options.Add(kvp);
+            }
+
+            return TestInRegular73AndScriptAsync(
+                initialMarkup,
+                expectedMarkup,
+                index: index,
+                options: options,
+                parseOptions: parseOptions);
+        }
+
         internal Task TestAllOptionsOffAsync(
             string initialMarkup,
             string expectedMarkup,
@@ -56,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestSimpleMethods()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"abstract class Goo
 {
     protected abstract string GooMethod();
@@ -115,7 +136,7 @@ class Program : Goo
         [WorkItem(16434, "https://github.com/dotnet/roslyn/issues/16434")]
         public async Task TestMethodWithTupleNames()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"abstract class Base
 {
     protected abstract (int a, int b) Method((string, string d) x);
@@ -156,7 +177,7 @@ struct [|Program|] : Goo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalIntParameter()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"abstract class d
 {
     public abstract void goo(int x = 3);
@@ -182,7 +203,7 @@ class b : d
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalCharParameter()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"abstract class d
 {
     public abstract void goo(char x = 'a');
@@ -208,7 +229,7 @@ class b : d
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalStringParameter()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"abstract class d
 {
     public abstract void goo(string x = ""x"");
@@ -234,7 +255,7 @@ class b : d
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalShortParameter()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"abstract class d
 {
     public abstract void goo(short x = 3);
@@ -260,7 +281,7 @@ class b : d
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalDecimalParameter()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"abstract class d
 {
     public abstract void goo(decimal x = 3);
@@ -286,7 +307,7 @@ class b : d
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalDoubleParameter()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"abstract class d
 {
     public abstract void goo(double x = 3);
@@ -312,7 +333,7 @@ class b : d
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalLongParameter()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"abstract class d
 {
     public abstract void goo(long x = 3);
@@ -338,7 +359,7 @@ class b : d
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalFloatParameter()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"abstract class d
 {
     public abstract void goo(float x = 3);
@@ -364,7 +385,7 @@ class b : d
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalUshortParameter()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"abstract class d
 {
     public abstract void goo(ushort x = 3);
@@ -390,7 +411,7 @@ class b : d
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalUintParameter()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"abstract class d
 {
     public abstract void goo(uint x = 3);
@@ -416,7 +437,7 @@ class b : d
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalUlongParameter()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"abstract class d
 {
     public abstract void goo(ulong x = 3);
@@ -477,7 +498,7 @@ class c : d
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalStructParameter()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"struct b
 {
 }
@@ -512,7 +533,7 @@ class c : d
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalNullableStructParameter()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"struct b
 {
 }
@@ -547,7 +568,7 @@ class c : d
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalNullableIntParameter()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"abstract class d
 {
     public abstract void m(int? x = 5, int? y = default(int?));
@@ -573,7 +594,7 @@ class c : d
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalObjectParameter()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"class b
 {
 }
@@ -608,7 +629,7 @@ class c : d
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestDifferentAccessorAccessibility()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"abstract class c1
 {
     public abstract c1 this[c1 x] { get; internal set; }
@@ -642,7 +663,7 @@ class c2 : c1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestEvent1()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"using System;
 
 abstract class C
@@ -669,7 +690,7 @@ class D : C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestIndexer1()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"using System;
 
 abstract class C
@@ -743,7 +764,7 @@ class [|Program|] : Goo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestGenerateIntoNonHiddenPart()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"using System;
 
 abstract class Goo { public abstract void F(); }
@@ -778,7 +799,7 @@ partial class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestGenerateIfLocationAvailable()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"#line default
 using System;
 
@@ -818,7 +839,7 @@ partial class Program : Goo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOnlyGenerateUnimplementedAccessors()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"using System;
 
 abstract class A
@@ -874,7 +895,7 @@ class C : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestParamsArray()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"class A
 {
     public virtual void Goo(int x, params int[] y)
@@ -915,7 +936,7 @@ class C : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestNullPointerType()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"abstract class C
 {
     unsafe public abstract void Goo(int* x = null);
@@ -942,7 +963,7 @@ class D : C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestErrorTypeCalledVar()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"extern alias var;
 
 abstract class C
@@ -973,7 +994,7 @@ class D : C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task Bugfix_581500()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"abstract class A<T>
 {
     public abstract void M(T x);
@@ -1006,7 +1027,7 @@ class D : C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task Bugfix_625442()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"abstract class A<T>
 {
     public abstract void M(T x);
@@ -1037,7 +1058,7 @@ class D : C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task ImplementClassWithInaccessibleMembers()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"using System;
 using System.Globalization;
 
@@ -1123,7 +1144,7 @@ public class x : EastAsianLunisolarCalendar
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestPartialClass1()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"using System;
 
 public abstract class Base
@@ -1162,7 +1183,7 @@ partial class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestPartialClass2()
         {
-            await TestAllOptionsOffAsync(
+            await TestAllOptionsOff73Async(
 @"using System;
 
 public abstract class Base
@@ -1201,7 +1222,7 @@ partial class A : Base
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Method1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"abstract class A
 {
     public abstract void M(int x);
@@ -1225,7 +1246,7 @@ class T : A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Property1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"abstract class A
 {
     public abstract int M { get; }
@@ -1249,7 +1270,7 @@ class T : A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Property3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"abstract class A
 {
     public abstract int M { set; }
@@ -1281,7 +1302,7 @@ class T : A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Property4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"abstract class A
 {
     public abstract int M { get; set; }
@@ -1318,7 +1339,7 @@ class T : A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Indexers1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"abstract class A
 {
     public abstract int this[int i] { get; }
@@ -1342,7 +1363,7 @@ class T : A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Indexer3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"abstract class A
 {
     public abstract int this[int i] { set; }
@@ -1374,7 +1395,7 @@ class T : A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Indexer4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"abstract class A
 {
     public abstract int this[int i] { get; set; }
@@ -1411,7 +1432,7 @@ class T : A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Accessor1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"abstract class A
 {
     public abstract int M { get; }
@@ -1437,7 +1458,7 @@ class T : A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Accessor3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"abstract class A
 {
     public abstract int M { set; }
@@ -1461,7 +1482,7 @@ class T : A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Accessor4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"abstract class A
 {
     public abstract int M { get; set; }
@@ -1485,7 +1506,7 @@ class T : A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestWithGroupingOff1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"abstract class Base
 {
     public abstract int Prop { get; }
@@ -1512,7 +1533,7 @@ class Derived : Base
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestAddedUsingWithBanner1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"// Copyright ...
 
 using Microsoft.Win32;
@@ -1623,7 +1644,7 @@ sealed class D : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestNullableOptionalParameters()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"struct V { }
 abstract class B
 {
@@ -1658,7 +1679,7 @@ sealed class D : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestAutoProperties()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 @"abstract class AbstractClass
 {
     public abstract int ReadOnlyProp { get; }
@@ -1689,7 +1710,7 @@ class C : AbstractClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestInWithMethod_Parameters()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"abstract class TestParent
 {
     public abstract void Method(in int p);
@@ -1713,7 +1734,7 @@ public class Test : TestParent
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestRefReadOnlyWithMethod_ReturnType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"abstract class TestParent
 {
     public abstract ref readonly int Method();
@@ -1737,7 +1758,7 @@ public class Test : TestParent
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestRefReadOnlyWithProperty()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"abstract class TestParent
 {
     public abstract ref readonly int Property { get; }
@@ -1758,7 +1779,7 @@ public class Test : TestParent
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestInWithIndexer_Parameters()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"abstract class TestParent
 {
     public abstract int this[in int p] { set; }
@@ -1779,7 +1800,7 @@ public class Test : TestParent
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestRefReadOnlyWithIndexer_ReturnType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"abstract class TestParent
 {
     public abstract ref readonly int this[int p] { get; }
@@ -1800,7 +1821,7 @@ public class Test : TestParent
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnmanagedConstraint()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"public abstract class ParentTest
 {
     public abstract void M<T>() where T : unmanaged;

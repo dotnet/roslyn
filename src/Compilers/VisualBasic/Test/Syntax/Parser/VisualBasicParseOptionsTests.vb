@@ -81,11 +81,9 @@ Public Class VisualBasicParseOptionsTests
         Dim highest = System.Enum.
             GetValues(GetType(LanguageVersion)).
             Cast(Of LanguageVersion).
-            Where(Function(x) x <> LanguageVersion.Latest AndAlso x <> LanguageVersion.VisualBasic16).
+            Where(Function(x) x <> LanguageVersion.Latest).
             Max().
             ToDisplayString()
-
-        ' https//github.com/dotnet/roslyn/issues/29819 Once we are ready to remove the beta tag from VB 16 we should update Default/Latest accordingly
 
         Assert.Equal(highest, PredefinedPreprocessorSymbols.CurrentVersionNumber.ToString(CultureInfo.InvariantCulture))
     End Sub

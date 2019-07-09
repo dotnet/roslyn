@@ -45,7 +45,7 @@ gt()
     {
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestInRegular73AndScriptAsync(initial, expected);
         }
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)

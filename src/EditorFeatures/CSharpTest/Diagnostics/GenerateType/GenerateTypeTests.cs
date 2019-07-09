@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateTypeParameterFromArgumentInferT()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -56,7 +56,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromTypeParameter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     System.Action<[|Employee|]> employees;
@@ -75,7 +75,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateInternalClassFromASingleConstraintClause()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class EmployeeList<T> where T : [|Employee|], new()
 {
 }",
@@ -93,7 +93,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGeneratePublicClassFromASingleConstraintClause()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"public class EmployeeList<T> where T : [|Employee|], new()
 {
 }",
@@ -120,7 +120,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateInternalClassFromMultipleTypeConstraintClauses()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Derived<T, U>
     where U : struct
     where T : [|Base|], new()
@@ -141,7 +141,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGeneratePublicClassFromMultipleTypeConstraintClauses()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"public class Derived<T, U>
     where U : struct
     where T : [|Base|], new()
@@ -185,7 +185,7 @@ parameters: new TestParameters(Options.Regular));
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateInternalClassFromASingleConstraintClauseInterface()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"interface IEmployeeList<T> where T : [|Employee|], new()
 {
 }",
@@ -203,7 +203,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGeneratePublicClassFromASingleConstraintClausePublicInterface()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"public interface IEmployeeList<T> where T : [|Employee|], new()
 {
 }",
@@ -221,7 +221,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateInternalClassFromASingleConstraintClauseInternalDelegate()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Employee
 {
     internal delegate void Action<T>() where T : [|Command|];
@@ -241,7 +241,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateInternalClassFromASingleConstraintClausePublicDelegate()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Employee
 {
     public delegate void Action<T>() where T : [|Command|];
@@ -261,7 +261,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateInternalClassFromASingleConstraintClauseInternalMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Employee
 {
     internal void Action<T>() where T : [|Command|] {}
@@ -281,7 +281,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateInternalClassFromASingleConstraintClausePublicMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Employee
 {
     public void Action<T>() where T : [|Command|] {}
@@ -301,7 +301,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateInternalClassFromASingleConstraintClauseMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Employee
 {
     void Action<T>() where T : [|Command|] {}
@@ -321,7 +321,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateInternalClassFromASingleConstraintClauseMethodInInterface()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"interface Employee
 {
     void Action<T>() where T : [|Command|] {}
@@ -349,7 +349,7 @@ index: 1);
         [InlineData("protected private", "protected", "internal")]
         public async Task TestGenerateInternalClassFromASingleConstraintClauseNestedClass(string middleAccessibility, string accessibility, string generatedAccessibility)
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 $@"public class A
 {{
     {middleAccessibility} class B
@@ -384,7 +384,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromParenthesizedLambdaExpressionsParameter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     Func<Employee, int, bool> l = ([|Employee|] e, int age) => e.Age > age;
@@ -403,7 +403,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromParenthesizedLambdaExpressionsBody()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     System.Action<Class, int> l = (Class e, int age) => {
@@ -428,7 +428,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromFieldDeclarationIntoSameType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     [|Goo|] f;
@@ -447,7 +447,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromNullableFieldDeclarationIntoSameType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"#nullable enable
 class Class
 {
@@ -495,7 +495,7 @@ expectedDocumentName: "Goo.cs");
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromFieldDeclarationIntoSameNamespace()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     [|Goo|] f;
@@ -514,7 +514,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassWithCtorFromObjectCreation()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     Goo f = new [|Goo|]();
@@ -536,7 +536,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassWithCtorFromObjectCreationWithTuple()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     var f = new [|Generated|]((1, 2));
@@ -561,7 +561,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassWithCtorFromObjectCreationWithTupleWithNames()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     var f = new [|Generated|]((a: 1, b: 2, 3));
@@ -586,7 +586,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromBaseList()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class : [|BaseClass|]
 {
 }",
@@ -603,7 +603,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromMethodParameters()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void Method([|Goo|] f)
@@ -626,7 +626,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromMethodReturnType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     [|Goo|] Method()
@@ -649,7 +649,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromAttribute()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     [[|Obsolete|]]
@@ -676,7 +676,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromExpandedAttribute()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     [[|ObsoleteAttribute|]]
@@ -703,7 +703,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromCatchClause()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void Method()
@@ -757,7 +757,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromThrowStatement()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void Method()
@@ -801,7 +801,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromThrowStatementWithDifferentArg()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void Method()
@@ -852,7 +852,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromThrowStatementWithMatchingArg()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void Method()
@@ -907,7 +907,7 @@ parameters: new TestParameters(Options.Regular));
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromUsingStatement()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void Method()
@@ -936,7 +936,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromForeachStatement()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void Method()
@@ -966,7 +966,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassWhereKeywordBecomesTypeName()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     [|@class|] c;
@@ -985,7 +985,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task NegativeTestGenerateClassOnContextualKeyword()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     [|@Goo|] c;
@@ -1036,7 +1036,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateIntoRightPart()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"partial class Class
 {
 }
@@ -1064,7 +1064,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeIntoCompilationUnit()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     [|C|] c;
@@ -1092,7 +1092,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeIntoNamespace()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"namespace N
 {
     class Class
@@ -1126,7 +1126,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithPreprocessor()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
 #if true 
@@ -1152,7 +1152,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeIntoContainingNamespace()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"namespace N
 {
     class Class
@@ -1317,7 +1317,7 @@ parseOptions: null);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateSimpleConstructor()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M()
@@ -1345,7 +1345,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithValueParameter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M()
@@ -1376,7 +1376,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithTwoValueParameters()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M()
@@ -1409,7 +1409,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithNullableParameter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"#nullable enable
 class Class
 {
@@ -1444,7 +1444,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithNullableParameterThatIsNotNull()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"#nullable enable
 class Class
 {
@@ -1479,7 +1479,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithNamedParameter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M()
@@ -1510,7 +1510,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithRefParameter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -1541,7 +1541,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithOutParameter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i, bool b)
@@ -1575,7 +1575,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithOutParameters1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(string s)
@@ -1638,7 +1638,7 @@ parseOptions: TestOptions.Regular7);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithOutParameters2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 
 class Class
@@ -1671,7 +1671,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithOutParameters3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Collections.Generic;
 
 class Class
@@ -1704,7 +1704,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithOutParameters4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int? d)
@@ -1733,7 +1733,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithOutParameters5()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class<X>
 {
     void M(X d)
@@ -1792,7 +1792,7 @@ parseOptions: TestOptions.Regular7);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithOutParameters6()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class<X>
 {
     void M(X d)
@@ -1821,7 +1821,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithOutParameters7()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class<X> where X : class
 {
     void M(X d)
@@ -1850,7 +1850,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithOutParameters8()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class<X> where X : class
 {
     void M(X d)
@@ -1879,7 +1879,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     string M(int i)
@@ -1912,7 +1912,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithLambda()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     string M(int i)
@@ -1945,7 +1945,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithDelegatingConstructor1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -1987,7 +1987,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithDelegatingConstructor2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -2029,7 +2029,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithDelegatingConstructor3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Collections.Generic;
 
 class Class
@@ -2075,7 +2075,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithDelegatingConstructor4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -2117,7 +2117,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithDelegatingConstructor5()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -2161,7 +2161,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithDelegatingConstructor6()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -2203,7 +2203,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithDelegatingConstructorAssigningToNullableField()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"#nullable enable
 class Class
 {
@@ -2238,7 +2238,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithNonDelegatingConstructor1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -2283,7 +2283,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithNonDelegatingConstructor2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -2328,7 +2328,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithNonDelegatingConstructor3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i, bool f)
@@ -2372,7 +2372,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithNonDelegatingConstructor4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M()
@@ -2417,7 +2417,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithCallToField1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -2456,7 +2456,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithCallToField2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(string i)
@@ -2495,7 +2495,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithCallToField3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(string i)
@@ -2536,7 +2536,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithCallToField4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(bool i)
@@ -2577,7 +2577,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithCallToField5()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(bool i)
@@ -2618,7 +2618,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithCallToField6()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(bool i)
@@ -2659,7 +2659,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithCallToField7()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -2698,7 +2698,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithCallToField7WithQualification()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -2738,7 +2738,7 @@ options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Er
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithCallToField8()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -2779,7 +2779,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithCallToField9()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -2820,7 +2820,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithCallToField10()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -2867,7 +2867,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithCallToProperty1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -2908,7 +2908,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithCallToProperty2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -2947,7 +2947,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithCallToProperty2WithQualification()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -2987,7 +2987,7 @@ options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithCallToProperty3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -3026,7 +3026,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithCallToProperty3WithQualification()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -3067,7 +3067,7 @@ options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithPreferIntrinsicPredefinedKeywordFalse()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class {
     void M(int i) 
     {
@@ -3101,7 +3101,7 @@ options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclarati
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateInterfaceFromTypeConstraint()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class EmployeeList<T> where T : Employee, [|IEmployee|], new()
 {
 }",
@@ -3118,7 +3118,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateInterfaceFromTypeConstraints()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class EmployeeList<T> where T : Employee, IEmployee, [|IComparable<T>|], new()
 {
 }",
@@ -3146,7 +3146,7 @@ class EmployeeList<T> where T : Employee, IEmployee, [|IComparable<T>|], new()
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateInterfaceFromBaseList1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"interface A : [|B|]
 {
 }",
@@ -3164,7 +3164,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateInterfaceFromBaseList2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Test : [|ITest|]
 {
 }",
@@ -3182,7 +3182,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateInterfaceFromTypeConstraints2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Test<T> where T : [|ITest|]
 {
 }",
@@ -3199,7 +3199,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateInterfaceFromBaseList3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class A : object, [|B|]
 {
 }",
@@ -3233,7 +3233,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task InLeftSideOfAssignment()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -3273,7 +3273,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task InRightSideOfAssignment()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -3299,7 +3299,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestEscapedName()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     [|@Goo|] f;
@@ -3319,7 +3319,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestEscapedKeyword()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     [|@int|] f;
@@ -3398,7 +3398,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestInUsing()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3469,7 +3469,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestElideDefaultConstructor()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class A
 {
     void M()
@@ -3533,7 +3533,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestDefaultConstructorInTypeDerivingFromInterface()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -3566,7 +3566,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateWithThrow()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 
 class C
@@ -3612,7 +3612,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateInTryCatch()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 
 class C
@@ -3686,7 +3686,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestInStructBaseList()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"struct S : [|A|]
 {
 }",
@@ -3704,7 +3704,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenericWhenNonGenericExists()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     void Goo()
@@ -3738,7 +3738,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestInheritedTypeParameters()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C<T, R>
 {
     void M()
@@ -3772,7 +3772,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestDoNotUseOuterTypeParameters()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C<T1, T2>
 {
     public void Goo()
@@ -3798,7 +3798,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestReferencingTypeParameters1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class M<T, R>
 {
     public void Goo()
@@ -3832,7 +3832,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestReferencingTypeParameters2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class M<T, R>
 {
     public void Goo()
@@ -3866,7 +3866,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestReferencingTypeParameters3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C<T1, T2>
 {
     public void Goo(T1 t1, T2 t2)
@@ -3900,7 +3900,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestReferencingTypeParameters4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C<T1, T2>
 {
     public void Goo(T1 t1, T2 t2)
@@ -3949,7 +3949,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateWithVoidArg()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void M()
@@ -4007,7 +4007,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestDoNotInferTypeWithWrongArity()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C<T1>
 {
     public void Test()
@@ -4049,7 +4049,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestAccessibilityConstraint()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"public static class MyExtension
 {
     public static int ExtensionMethod(this String s, [|D|] d)
@@ -4074,7 +4074,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestBaseTypeAccessibilityConstraint()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"public class C : [|D|]
 {
 }",
@@ -4091,7 +4091,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestBaseInterfaceAccessibilityConstraint1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"public class C : X, [|IGoo|]
 {
 }",
@@ -4108,7 +4108,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestAccessibilityConstraint2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"public interface C : [|IBar|], IGoo
 {
 }",
@@ -4125,7 +4125,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestAccessibilityConstraint3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"public interface C : IBar, [|IGoo|]
 {
 }",
@@ -4142,7 +4142,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestDelegateReturnTypeAccessibilityConstraint()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"public delegate [|D|] Goo();",
 @"public delegate D Goo();
 
@@ -4155,7 +4155,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestDelegateParameterAccessibilityConstraint()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"public delegate D Goo([|S|] d);",
 @"public delegate D Goo(S d);
 
@@ -4168,7 +4168,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestMethodParameterAccessibilityConstraint()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"public class C
 {
     public void Goo([|F|] f);
@@ -4187,7 +4187,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestMethodReturnTypeAccessibilityConstraint()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"public class C
 {
     public [|F|] Goo(Bar f);
@@ -4206,7 +4206,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestPropertyTypeAccessibilityConstraint()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"public class C
 {
     public [|F|] Goo { get; }
@@ -4225,7 +4225,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestFieldEventTypeAccessibilityConstraint()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"public class C
 {
     public event [|F|] E;
@@ -4244,7 +4244,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestEventTypeAccessibilityConstraint()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"public class C
 {
     public event [|F|] E
@@ -4282,7 +4282,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateVarType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     public static void Main()
@@ -4308,7 +4308,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestOnBadAttribute()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"[[|AttClass|]()]
 class C
 {
@@ -4338,7 +4338,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateStruct1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 
 class A<T> where T : struct
@@ -4376,7 +4376,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestCopyConstraints1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class A<T> where T : class
 {
 }
@@ -4410,7 +4410,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateStruct2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 
 class A<T> where T : struct
@@ -4447,7 +4447,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateStruct3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 
 class Program
@@ -4484,7 +4484,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateOpenType1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     static void Main()
@@ -4527,7 +4527,7 @@ count: 6);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestNestedGenericAccessibility()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Collections.Generic;
 
 public class C
@@ -4582,7 +4582,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestAttributeSuffixOnAttributeSubclasses()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Runtime.CompilerServices;
 
 class Program
@@ -4634,7 +4634,7 @@ ImmutableArray<string>.Empty,
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestVerbatimAttribute()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"[[|@X|]]
 class Class3
 {
@@ -4656,7 +4656,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task CompareIncompleteMembersToEqual()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     X.X,X class X
@@ -4726,7 +4726,7 @@ class Program
                     FeaturesResources.Generate_new_type
                 });
 
-            await TestInRegularAndScriptAsync(code,
+            await TestInRegular73AndScriptAsync(code,
 @"
 #line hidden
 #line 1 ""Default.aspx""
@@ -4792,7 +4792,7 @@ namespace A
 }
 ";
 
-            await TestInRegularAndScriptAsync(code, expected);
+            await TestInRegular73AndScriptAsync(code, expected);
         }
 
         [WorkItem(932602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
@@ -4866,7 +4866,7 @@ internal class Base
 {
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1);
+            await TestInRegular73AndScriptAsync(code, expected, index: 1);
         }
 
         [WorkItem(940003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")]
@@ -4908,7 +4908,7 @@ internal class Customer
     public DateTime Age { get; set; }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1);
+            await TestInRegular73AndScriptAsync(code, expected, index: 1);
         }
 
         [WorkItem(940003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")]
@@ -4950,7 +4950,7 @@ internal class Customer
     public DateTime Age { get; set; }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1);
+            await TestInRegular73AndScriptAsync(code, expected, index: 1);
         }
 
         [WorkItem(940003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")]
@@ -4992,7 +4992,7 @@ internal class Customer
     public DateTime Age { get; set; }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1);
+            await TestInRegular73AndScriptAsync(code, expected, index: 1);
         }
 
         [WorkItem(1082031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1082031")]
@@ -5025,7 +5025,7 @@ internal class Customer
     public DateTime Age { get; set; }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1);
+            await TestInRegular73AndScriptAsync(code, expected, index: 1);
         }
 
         [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
@@ -5053,7 +5053,7 @@ internal class Z
 {
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1);
+            await TestInRegular73AndScriptAsync(code, expected, index: 1);
         }
 
         [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
@@ -5080,13 +5080,13 @@ internal class Z
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected);
+            await TestInRegular73AndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestWithUsingStatic()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using static [|Sample|];",
 @"using static Sample;
 
@@ -5107,7 +5107,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestAccessibilityForPublicFields()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class A
 {
     public B b = new [|B|]();
@@ -5124,7 +5124,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestAccessibilityForPublicFields2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class A
 {
     public B b = new [|B|]();
@@ -5147,7 +5147,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestAccessibilityForPublicFields3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class A
 {
     public B b = new [|B|]();
@@ -5170,7 +5170,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestAccessibilityForPublicFields4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class A
 {
     public B<int> b = new [|B|]<int>();
@@ -5187,7 +5187,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestAccessibilityForPublicFields5()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class A
 {
     public B<int> b = new [|B|]<int>();
@@ -5210,7 +5210,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestAccessibilityForPublicFields6()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class A
 {
     public B<int> b = new [|B|]<int>();
@@ -5309,7 +5309,7 @@ internal class Goo
         [InlineData("int")]
         public async Task TestMethodGroupWithMissingSystemActionAndFunc(string returnType)
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
     $@"
 <Workspace>
     <Project Language=""C#"" CommonReferences=""false"">
@@ -5367,7 +5367,7 @@ internal class Class
         [WorkItem(13211, "https://github.com/dotnet/roslyn/issues/13211")]
         public async Task TestGenerateOffOfIncompleteMember()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     public [|Goo|]

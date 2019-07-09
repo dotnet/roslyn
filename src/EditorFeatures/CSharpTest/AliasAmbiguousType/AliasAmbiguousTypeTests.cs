@@ -78,8 +78,8 @@ namespace Test
         }
     }
 }";
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup0, index: 0);
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup1, index: 1);
+            await TestInRegular73AndScriptAsync(initialMarkup, expectedMarkup0, index: 0);
+            await TestInRegular73AndScriptAsync(initialMarkup, expectedMarkup1, index: 1);
             await TestSmartTagTextAsync(initialMarkup, "using Ambiguous = N1.Ambiguous;");
         }
 
@@ -87,7 +87,7 @@ namespace Test
         public async Task TestAmbiguousClassObjectCreationUsingsInCompilationUnit()
         {
             var classDef = GetAmbiguousDefinition("public class Ambiguous { }");
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegular73AndScriptAsync(@"
 using N1;
 using N2;
 " + classDef + @"
@@ -141,7 +141,7 @@ namespace Test
         public async Task TestAmbiguousAttribute()
         {
             var classDef = GetAmbiguousDefinition("public class AmbiguousAttribute: System.Attribute { }");
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegular73AndScriptAsync(@"
 using N1;
 using N2;
 " + classDef + @"
@@ -290,8 +290,8 @@ class D
         c.M();
     }
 }";
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup0, index: 0);
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup1, index: 1);
+            await TestInRegular73AndScriptAsync(initialMarkup, expectedMarkup0, index: 0);
+            await TestInRegular73AndScriptAsync(initialMarkup, expectedMarkup1, index: 1);
             await TestSmartTagTextAsync(initialMarkup, "using Nested = Static<string>.Nested;");
         }
 
@@ -318,7 +318,7 @@ namespace NTest
     public class Test : AmbiguousClass { }
 }
 ";
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
+            await TestInRegular73AndScriptAsync(initialMarkup, expectedMarkup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
@@ -344,7 +344,7 @@ namespace NTest
     public class Test<T> where T : AmbiguousClass { }
 }
 ";
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
+            await TestInRegular73AndScriptAsync(initialMarkup, expectedMarkup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
@@ -376,7 +376,7 @@ namespace NTest
     }
 }
 ";
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
+            await TestInRegular73AndScriptAsync(initialMarkup, expectedMarkup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
@@ -408,7 +408,7 @@ namespace NTest
     }
 }
 ";
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
+            await TestInRegular73AndScriptAsync(initialMarkup, expectedMarkup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
@@ -446,7 +446,7 @@ namespace NTest
     }
 }
 ";
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
+            await TestInRegular73AndScriptAsync(initialMarkup, expectedMarkup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
@@ -484,7 +484,7 @@ namespace NTest
     }
 }
 ";
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
+            await TestInRegular73AndScriptAsync(initialMarkup, expectedMarkup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
@@ -520,7 +520,7 @@ namespace NTest
     }
 }
 ";
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
+            await TestInRegular73AndScriptAsync(initialMarkup, expectedMarkup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
@@ -562,7 +562,7 @@ namespace NTest
     }
 }
 ";
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
+            await TestInRegular73AndScriptAsync(initialMarkup, expectedMarkup);
         }
     }
 }

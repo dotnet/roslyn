@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestTypeFromMultipleNamespaces1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     [|IDictionary|] Method()
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestTypeFromMultipleNamespaces2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     [|IDictionary|] Method()
@@ -65,7 +65,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenericWithNoArgs()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     [|List|] Method()
@@ -85,7 +85,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenericWithCorrectArgs()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     [|List<int>|] Method()
@@ -170,7 +170,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenericInLocalDeclaration()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void Goo()
@@ -190,7 +190,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenericItemType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Collections.Generic;
 
 class Class
@@ -208,7 +208,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenerateWithExistingUsings()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 
 class Class
@@ -232,7 +232,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenerateInNamespace()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"namespace N
 {
     class Class
@@ -258,7 +258,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenerateInNamespaceWithUsings()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"namespace N
 {
     using System;
@@ -300,7 +300,7 @@ class Class
 }",
 count: 1);
 
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Collections.Generic;
 
 class Class
@@ -354,7 +354,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestOnEnum()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void Goo()
@@ -394,7 +394,7 @@ namespace A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestOnClassInheritance()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class : [|Class2|]
 {
 }
@@ -420,7 +420,7 @@ namespace A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestOnImplementedInterface()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class : [|IGoo|]
 {
 }
@@ -446,7 +446,7 @@ namespace A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestAllInBaseList()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class : [|IGoo|], Class2
 {
 }
@@ -482,7 +482,7 @@ namespace B
     }
 }");
 
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class : B.IGoo, [|Class2|]
 {
 }
@@ -522,7 +522,7 @@ namespace B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestAttributeUnexpanded()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"[[|Obsolete|]]
 class Class
 {
@@ -536,7 +536,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestAttributeExpanded()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"[[|ObsoleteAttribute|]]
 class Class
 {
@@ -568,7 +568,7 @@ class Goo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestAfterNew()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void Goo()
@@ -590,7 +590,7 @@ class Goo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestArgumentsInMethodCall()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void Test()
@@ -610,7 +610,7 @@ class Goo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestCallSiteArgs()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void Test([|DateTime|] dt)
@@ -628,7 +628,7 @@ class Goo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestUsePartialClass()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"namespace A
 {
     public class Class
@@ -662,7 +662,7 @@ namespace B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenericClassInNestedNamespace()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"namespace A
 {
     namespace B
@@ -702,7 +702,7 @@ namespace C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestBeforeStaticMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     void Test()
@@ -721,7 +721,7 @@ namespace C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestBeforeNamespace()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"namespace A
 {
     class Class
@@ -762,7 +762,7 @@ namespace B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestSimpleNameWithLeadingTrivia()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class { void Test() { /*goo*/[|Int32|] i; } }",
 @"class Class { void Test() { /*goo*/System.Int32 i; } }");
         }
@@ -771,7 +771,7 @@ namespace B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenericNameWithLeadingTrivia()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class { void Test() { /*goo*/[|List<int>|] l; } }",
 @"class Class { void Test() { /*goo*/System.Collections.Generic.List<int> l; } }");
         }
@@ -780,7 +780,7 @@ namespace B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestFullyQualifyTypeName()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"public class Program
 {
     public class Inner
@@ -809,7 +809,7 @@ class Test
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestFullyQualifyUnboundIdentifier3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"public class Program
 {
     public class Inner
@@ -856,7 +856,7 @@ class Test
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestFullyQualifyThroughAlias()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using Alias = System;
 
 class C
@@ -875,7 +875,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestFullyQualifyPrioritizeTypesOverNamespaces1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"namespace Outer
 {
     namespace C
@@ -910,7 +910,7 @@ class Test
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestFullyQualifyPrioritizeTypesOverNamespaces2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"namespace Outer
 {
     namespace C
@@ -990,7 +990,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestAssemblyAttribute()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"[assembly: [|InternalsVisibleTo|](""Project"")]",
 @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project"")]");
         }
@@ -1054,7 +1054,7 @@ class Program
             var input = @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ";
             await TestActionCountAsync(input, 2);
 
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 input,
 @"[ assembly : System.Runtime.InteropServices.Guid( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ");
         }
@@ -1082,7 +1082,7 @@ class D
         public async Task ShouldTriggerOnCS0308()
         {
             // CS0308: The non-generic type 'A' cannot be used with type arguments
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Collections;
 
 class Test
@@ -1107,7 +1107,7 @@ class Test
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task AmbiguousTypeFix()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using n1;
 using n2;
 
@@ -1162,7 +1162,7 @@ namespace n2
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task NonPublicNamespaces()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"namespace MS.Internal.Xaml
 {
     private class A
@@ -1206,7 +1206,7 @@ public class Program
     }
 }");
 
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"namespace MS.Internal.Xaml
 {
     public class A
@@ -1255,7 +1255,7 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task AmbiguousFixOrdering()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using n1;
 using n2;
 
@@ -1309,7 +1309,7 @@ namespace n2
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TupleTest()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     ([|IDictionary|], string) Method()
@@ -1329,7 +1329,7 @@ namespace n2
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TupleWithOneName()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     ([|IDictionary|] a, string) Method()
@@ -1396,7 +1396,7 @@ class C
 }";
             await TestActionCountAsync(code, count: 1);
 
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 code,
 @"
 class C

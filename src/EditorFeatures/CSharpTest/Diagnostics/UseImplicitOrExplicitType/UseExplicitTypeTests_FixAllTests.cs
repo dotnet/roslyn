@@ -122,7 +122,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere());
+            await TestInRegular73AndScriptAsync(input, expected, options: ExplicitTypeEverywhere());
         }
 
         [Fact]
@@ -236,7 +236,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere());
+            await TestInRegular73AndScriptAsync(input, expected, options: ExplicitTypeEverywhere());
         }
 
         [Fact]
@@ -350,7 +350,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere());
+            await TestInRegular73AndScriptAsync(input, expected, options: ExplicitTypeEverywhere());
         }
 
         [Fact]
@@ -400,7 +400,7 @@ class Program
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeExceptWhereApparent());
+            await TestInRegular73AndScriptAsync(input, expected, options: ExplicitTypeExceptWhereApparent());
         }
 
         #endregion

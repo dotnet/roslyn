@@ -149,7 +149,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsUnused()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -162,7 +162,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MethodIsUnused()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private int [|M()|] => 0;
@@ -175,7 +175,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task GenericMethodIsUnused()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private int [|M|]<T>() => 0;
@@ -188,7 +188,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MethodInGenericTypeIsUnused()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass<T>
 {
     private int [|M|]() => 0;
@@ -212,7 +212,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task InstanceConstructorIsUnused_WithArguments()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private [|MyClass(int i)|] { }
@@ -245,7 +245,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task PropertyIsUnused()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private int [|P|] { get; set; }
@@ -258,7 +258,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsUnused()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private int [|this|][int x] { get { return 0; } set { } }
@@ -271,7 +271,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task EventIsUnused()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private event System.EventHandler [|e|];
@@ -343,7 +343,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsUnused_ReadOnly()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private readonly int [|_goo|];
@@ -356,7 +356,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task PropertyIsUnused_ReadOnly()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private int [|P|] { get; }
@@ -369,7 +369,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task EventIsUnused_ReadOnly()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private readonly event System.EventHandler [|E|];
@@ -382,7 +382,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsUnused_Static()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private static int [|_goo|];
@@ -395,7 +395,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MethodIsUnused_Static()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private static void [|M|] { }
@@ -408,7 +408,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task PropertyIsUnused_Static()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private static int [|P|] { get { return 0; } }
@@ -421,7 +421,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsUnused_Static()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private static int [|this|][int x] { get { return 0; } set { } }
@@ -434,7 +434,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task EventIsUnused_Static()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private static event System.EventHandler [|e1|];
@@ -531,7 +531,7 @@ class C : I
         [WorkItem(30894, "https://github.com/dotnet/roslyn/issues/30894")]
         public async Task WriteOnlyProperty_NotWritten()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     int [|P|] { set { } }
@@ -556,7 +556,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsUnused_Const()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private const int [|_goo|] = 0;
@@ -1560,7 +1560,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MultipleFields_AllUnused()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private int [|_goo|] = 0, _bar = 0;
@@ -1574,7 +1574,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MultipleFields_AllUnused_02()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private int _goo = 0, [|_bar|];
@@ -1588,7 +1588,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MultipleFields_SomeUnused()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private int [|_goo|] = 0, _bar = 0;
@@ -1645,7 +1645,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldOfNestedTypeIsUnused()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     class NestedType
@@ -1679,7 +1679,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsUnused_PartialClass()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"partial class MyClass
 {
     private int [|_goo|];
@@ -1799,7 +1799,7 @@ partial class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldInTypeWithGeneratedCode()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     private int [|i|];
@@ -1878,7 +1878,7 @@ partial class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsUnusedInType_SemanticErrorInDifferentType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     private int [|i|];
@@ -2142,7 +2142,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FixAllFields_Document()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private int {|FixAllInDocument:_goo|} = 0, _bar;
@@ -2162,7 +2162,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FixAllMethods_Document()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private int {|FixAllInDocument:M1|}() => 0;
@@ -2184,7 +2184,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FixAllProperties_Document()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class MyClass
 {
     private int {|FixAllInDocument:P1|} => 0;
@@ -2200,7 +2200,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FixAllEvents_Document()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 
 class MyClass
@@ -2234,7 +2234,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FixAllMembers_Project()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">

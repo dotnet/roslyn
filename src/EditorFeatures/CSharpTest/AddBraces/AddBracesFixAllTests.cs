@@ -37,7 +37,7 @@ class Program1
 }
 ";
 
-            await TestInRegularAndScriptAsync(input, expected);
+            await TestInRegular73AndScriptAsync(input, expected);
         }
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -70,7 +70,7 @@ class Program1
 }
 ";
 
-            await TestInRegularAndScriptAsync(input, expected);
+            await TestInRegular73AndScriptAsync(input, expected);
         }
 
         [Fact]
@@ -157,7 +157,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected);
+            await TestInRegular73AndScriptAsync(input, expected);
         }
 
         [Fact]
@@ -241,7 +241,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected);
+            await TestInRegular73AndScriptAsync(input, expected);
         }
 
         [Fact]
@@ -328,7 +328,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected);
+            await TestInRegular73AndScriptAsync(input, expected);
         }
     }
 }

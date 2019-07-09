@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestEmptyEnum()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -47,7 +47,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithSingleMember()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -78,7 +78,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithExistingComma()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -109,7 +109,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithMultipleMembers()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -142,7 +142,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithZero()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -173,7 +173,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithIntegralValue()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -204,7 +204,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithSingleBitIntegral()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -235,7 +235,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateIntoGeometricSequence()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -270,7 +270,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithSimpleSequence1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -303,7 +303,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithSimpleSequence2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -338,7 +338,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithNonZeroInteger()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -369,7 +369,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithLeftShift0()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -400,7 +400,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithLeftShift5()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -431,7 +431,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithDifferentStyles()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -464,7 +464,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestBinary()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -495,7 +495,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestHex1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -526,7 +526,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestHex9()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -557,7 +557,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestHexF()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -588,7 +588,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterEnumWithIntegerMaxValue()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -619,7 +619,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestUnsigned16BitEnums()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -650,7 +650,7 @@ enum Color : ushort
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateEnumMemberOfTypeLong()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -681,7 +681,7 @@ enum Color : long
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterEnumWithLongMaxValueInBinary()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -712,7 +712,7 @@ enum Color : long
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterEnumWithLongMaxValueInHex()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -744,7 +744,7 @@ enum Color : long
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterEnumWithLongMinValueInHex()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -776,7 +776,7 @@ enum Color : long
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterPositiveLongInHex()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -809,7 +809,7 @@ enum Color : long
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterPositiveLongExprInHex()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -840,7 +840,7 @@ enum Color : long
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterEnumWithULongMaxValue()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -871,7 +871,7 @@ enum Color : ulong
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestNegativeRangeIn64BitSignedEnums()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -902,7 +902,7 @@ enum Color : long
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateWithImplicitValues()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -937,7 +937,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateWithImplicitValues2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -972,7 +972,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestNoExtraneousStatementTerminatorBeforeCommentedMember()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -1005,7 +1005,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestNoExtraneousStatementTerminatorBeforeCommentedMember2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -1038,7 +1038,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterEnumWithMinValue()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -1069,7 +1069,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterEnumWithMinValuePlusConstant()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -1100,7 +1100,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterEnumWithByteMaxValue()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -1131,7 +1131,7 @@ enum Color : byte
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateIntoBitshiftEnum1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -1164,7 +1164,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateIntoBitshiftEnum2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -1195,7 +1195,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestStandaloneReference()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -1228,7 +1228,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestCircularEnumsForErrorTolerance()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -1261,7 +1261,7 @@ enum Circular
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestEnumWithIncorrectValueForErrorTolerance()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -1292,7 +1292,7 @@ enum Circular : byte
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateIntoNewEnum()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class B : A
 {
     void Main()
@@ -1341,7 +1341,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateIntoDerivedEnumMissingNewKeyword()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class B : A
 {
     void Main()
@@ -1390,7 +1390,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateIntoBaseEnum()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class B : A
 {
     void Main()
@@ -1429,7 +1429,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerationWhenMembersShareValues()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -1464,7 +1464,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestInvokeFromAddAssignmentStatement()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     void Main()
@@ -1501,7 +1501,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestFormatting()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -1531,7 +1531,7 @@ enum Weekday
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestKeyword()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -1629,7 +1629,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestNoOctal()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"enum E
 {
     A = 007,
@@ -1655,7 +1655,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestLastValueDoesNotHaveInitializer()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"enum E
 {
     A = 1,

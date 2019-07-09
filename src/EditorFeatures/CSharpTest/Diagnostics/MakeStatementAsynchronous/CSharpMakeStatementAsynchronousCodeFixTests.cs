@@ -44,7 +44,7 @@ namespace System
         [Fact]
         public async Task FixAllForeach()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 AsyncStreams + @"
 class Program
 {
@@ -68,7 +68,7 @@ class Program
         [Fact]
         public async Task FixAllForeachDeconstruction()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 AsyncStreams + @"
 class Program
 {
@@ -92,7 +92,7 @@ class Program
         [Fact]
         public async Task FixAllUsingStatement()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 AsyncStreams + @"
 class Program
 {
@@ -116,7 +116,7 @@ class Program
         [Fact]
         public async Task FixAllUsingDeclaration()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 AsyncStreams + @"
 class Program
 {
@@ -140,7 +140,7 @@ class Program
         [Fact]
         public async Task FixForeach()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 AsyncStreams + @"
 class Program
 {
@@ -166,7 +166,7 @@ class Program
         [Fact]
         public async Task FixForeachDeconstruction()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 AsyncStreams + @"
 class Program
 {
@@ -192,7 +192,7 @@ class Program
         [Fact]
         public async Task FixUsingStatement()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 AsyncStreams + @"
 class Program
 {
@@ -218,7 +218,7 @@ class Program
         [Fact]
         public async Task FixUsingDeclaration()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegular73AndScript1Async(
 AsyncStreams + @"
 class Program
 {

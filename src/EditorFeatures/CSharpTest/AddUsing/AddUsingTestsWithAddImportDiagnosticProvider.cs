@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
              bool systemSpecialCase,
              int index = 0)
         {
-            return TestInRegularAndScriptAsync(initialMarkup, expected, index: index, options: new Dictionary<OptionKey, object>
+            return TestInRegular73AndScriptAsync(initialMarkup, expected, index: index, options: new Dictionary<OptionKey, object>
                 {
                     { new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemSpecialCase }
                 });
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestIncompleteLambda1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Linq;
 
 class C
@@ -60,7 +60,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestIncompleteLambda2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Linq;
 
 class C
@@ -85,7 +85,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestIncompleteSimpleLambdaExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System.Linq;
 
 class Program
@@ -113,7 +113,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestUnknownIdentifierGenericName()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     private [|List<int>|]
@@ -130,7 +130,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestUnknownIdentifierInAttributeSyntaxWithoutTarget()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     [[|Extension|]]
@@ -146,7 +146,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestOutsideOfMethodWithMalformedGenericParameters()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"using System;
 
 class Program
@@ -164,7 +164,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestUnknownIdentifierWithSyntaxError()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class C
 {
     [|Directory|] private int i;
@@ -181,7 +181,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestGenericNameWithBrackets()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     [|List|]
@@ -193,7 +193,7 @@ class Class
     List
 }");
 
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     [|List<>|]
@@ -205,7 +205,7 @@ class Class
     List<>
 }");
 
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     List[|<>|]
@@ -222,7 +222,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestMalformedGenericParameters()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     [|List<|] }",
@@ -232,7 +232,7 @@ class Class
 {
     List< }");
 
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"class Class
 {
     [|List<Y x;|] }",
@@ -247,7 +247,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestIncompleteMemberWithAsyncTaskReturnType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegular73AndScriptAsync(
 @"
 using System.Collections.Generic;
 using System.Threading.Tasks;

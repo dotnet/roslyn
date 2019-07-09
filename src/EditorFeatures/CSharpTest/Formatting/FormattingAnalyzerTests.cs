@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                 "class X" + Environment.NewLine +
                 "{" + Environment.NewLine +
                 "}" + Environment.NewLine;
-            await TestInRegularAndScriptAsync(testCode, expected);
+            await TestInRegular73AndScriptAsync(testCode, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -52,7 +52,7 @@ class TypeName
 }
 ";
 
-            await TestInRegularAndScriptAsync(testCode, expected);
+            await TestInRegular73AndScriptAsync(testCode, expected);
         }
     }
 }
