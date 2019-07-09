@@ -935,7 +935,7 @@ struct C
 
     // matching
     public ref readonly int S() => throw null;
-    public ref int() T() => throw null;
+    public ref int T() => throw null;
 }";
             var source1 = @"
 struct C
@@ -969,7 +969,7 @@ struct C
             var t1 = compilation1.GetMember<MethodSymbol>("C.T");
 
             Assert.Null(matcher.MapDefinition(p1));
-            Assert.Null(matcher.MapDefinition(r1));
+            Assert.Null(matcher.MapDefinition(q1));
             Assert.Null(matcher.MapDefinition(r1));
 
             Assert.Same(s0, matcher.MapDefinition(s1));
@@ -1023,7 +1023,7 @@ struct C
             var t1 = compilation1.GetMember<PropertySymbol>("C.T");
 
             Assert.Null(matcher.MapDefinition(p1));
-            Assert.Null(matcher.MapDefinition(r1));
+            Assert.Null(matcher.MapDefinition(q1));
             Assert.Null(matcher.MapDefinition(r1));
 
             Assert.Same(s0, matcher.MapDefinition(s1));

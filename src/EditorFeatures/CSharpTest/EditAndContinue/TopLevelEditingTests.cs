@@ -371,6 +371,66 @@ namespace N
         }
 
         [Fact]
+        public void Struct_Modifiers_Ref_Update1()
+        {
+            var src1 = "public struct C { }";
+            var src2 = "public ref struct C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [public struct C { }]@0 -> [public ref struct C { }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public ref struct C", CSharpFeaturesResources.struct_));
+        }
+
+        [Fact]
+        public void Struct_Modifiers_Ref_Update2()
+        {
+            var src1 = "public ref struct C { }";
+            var src2 = "public struct C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [public ref struct C { }]@0 -> [public struct C { }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public struct C", CSharpFeaturesResources.struct_));
+        }
+
+        [Fact]
+        public void Struct_Modifiers_Readonly_Update1()
+        {
+            var src1 = "public struct C { }";
+            var src2 = "public readonly struct C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [public struct C { }]@0 -> [public readonly struct C { }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public readonly struct C", CSharpFeaturesResources.struct_));
+        }
+
+        [Fact]
+        public void Struct_Modifiers_Readonly_Update2()
+        {
+            var src1 = "public readonly struct C { }";
+            var src2 = "public struct C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [public readonly struct C { }]@0 -> [public struct C { }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public struct C", CSharpFeaturesResources.struct_));
+        }
+
+        [Fact]
         public void Interface_Modifiers_Update()
         {
             var src1 = "public interface C { }";
@@ -715,7 +775,8 @@ public interface I
             edits.VerifyEdits(
                 "Update [struct X { }]@0 -> [ref struct X { }]@0");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "ref struct X", CSharpFeaturesResources.struct_));
         }
 
         [Fact]
