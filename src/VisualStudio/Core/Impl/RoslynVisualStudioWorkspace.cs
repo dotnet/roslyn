@@ -38,19 +38,9 @@ namespace Microsoft.VisualStudio.LanguageServices
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories,
             [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
-            : base(exportProvider, asyncServiceProvider)
+            : base(exportProvider, asyncServiceProvider, documentOptionsProviderFactories)
         {
             _streamingPresenters = streamingPresenters;
-
-            foreach (var providerFactory in documentOptionsProviderFactories)
-            {
-                var optionsProvider = providerFactory.TryCreate(this);
-
-                if (optionsProvider != null)
-                {
-                    Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(optionsProvider);
-                }
-            }
         }
 
         internal override IInvisibleEditor OpenInvisibleEditor(DocumentId documentId)
