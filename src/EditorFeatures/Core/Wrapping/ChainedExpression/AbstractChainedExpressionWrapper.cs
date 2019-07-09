@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
                 }
             }
 
-            // Looks good.  Crate the action computer which will actually determine
+            // Looks good.  Create the action computer which will actually determine
             // the set of wrapping options to provide.
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
