@@ -9,8 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Shared ReadOnly Instance As New VisualBasicSyntaxKindsService()
 
-        <ImportingConstructor>
-        Public Sub New()
+        Private Sub New()
         End Sub
 
         Public Overrides ReadOnly Property DotToken As Integer = SyntaxKind.DotToken
