@@ -155,54 +155,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            int firstNullInTypeArgs = -1;
-
-            // For the purpose of constraint checks we use error type symbol in place of type arguments that we couldn't infer from the first argument.
-            // This prevents constraint checking from failing for corresponding type parameters. 
-            var notInferredTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
-            var typeParams = method.TypeParameters;
-            var typeArgsForConstraintsCheck = typeArgs;
-            for (int i = 0; i < typeArgsForConstraintsCheck.Length; i++)
+            // For the purpose of construction we use original type parameters in place of type arguments that we couldn't infer from the first argument.
+            ImmutableArray<TypeWithAnnotations> typeArgsForConstruct = default;
+            for (int i = 0; i < typeArgs.Length; i++)
             {
-                if (!typeArgsForConstraintsCheck[i].HasType)
+                if (!typeArgs[i].HasType)
                 {
-                    firstNullInTypeArgs = i;
-                    var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                    builder.AddRange(typeArgsForConstraintsCheck, firstNullInTypeArgs);
+                    var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(typeArgs.Length);
+                    builder.AddRange(typeArgs, i);
 
-                    for (; i < typeArgsForConstraintsCheck.Length; i++)
+                    for (; i < typeArgs.Length; i++)
                     {
-                        var typeArg = typeArgsForConstraintsCheck[i];
-                        if (!typeArg.HasType)
-                        {
-                            notInferredTypeParameters.Add(typeParams[i]);
-                            builder.Add(TypeWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType));
-                        }
-                        else
-                        {
-                            builder.Add(typeArg);
-                        }
+                        var typeArgForConstruct = typeArgs[i];
+                        builder.Add(typeArgForConstruct.HasType ? typeArgForConstruct : TypeWithAnnotations.Create(method.TypeParameters[i]));
                     }
 
-                    typeArgsForConstraintsCheck = builder.ToImmutableAndFree();
-                    break;
+                    typeArgsForConstruct = builder.ToImmutableAndFree();
                 }
             }
 
-            // For the purpose of construction we use original type parameters in place of type arguments that we couldn't infer from the first argument.
-            var typeArgsForConstruct = typeArgs;
-            if (firstNullInTypeArgs != -1)
+            if (typeArgsForConstruct.IsDefault)
             {
-                var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                builder.AddRange(typeArgs, firstNullInTypeArgs);
-
-                for (int i = firstNullInTypeArgs; i < typeArgsForConstruct.Length; i++)
-                {
-                    var typeArgForConstruct = typeArgsForConstruct[i];
-                    builder.Add(typeArgForConstruct.HasType ? typeArgForConstruct : TypeWithAnnotations.Create(typeParams[i]));
-                }
-
-                typeArgsForConstruct = builder.ToImmutableAndFree();
+                typeArgsForConstruct = typeArgs;
             }
 
             return method.Construct(typeArgsForConstruct);
