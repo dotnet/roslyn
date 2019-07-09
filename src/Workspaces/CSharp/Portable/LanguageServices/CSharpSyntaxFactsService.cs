@@ -50,28 +50,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
 
-        public bool IsAwaitKeyword(SyntaxToken token)
-        {
-            return token.IsKind(SyntaxKind.AwaitKeyword);
-        }
+        public bool IsAwaitKeyword(SyntaxToken token) => token.IsKind(SyntaxKind.AwaitKeyword);
 
-        public bool IsIdentifier(SyntaxToken token)
-        {
-            return token.IsKind(SyntaxKind.IdentifierToken);
-        }
+        public bool IsIdentifier(SyntaxToken token) => token.IsKind(SyntaxKind.IdentifierToken);
 
         // In C# parameter's identifier can only be Token, never Node
         public bool IsParametersIdentifier(SyntaxNode node) => false;
 
-        public bool IsGlobalNamespaceKeyword(SyntaxToken token)
-        {
-            return token.IsKind(SyntaxKind.GlobalKeyword);
-        }
+        public bool IsGlobalNamespaceKeyword(SyntaxToken token) => token.IsKind(SyntaxKind.GlobalKeyword);
 
-        public bool IsVerbatimIdentifier(SyntaxToken token)
-        {
-            return token.IsVerbatimIdentifier();
-        }
+        public bool IsVerbatimIdentifier(SyntaxToken token) => token.IsVerbatimIdentifier();
 
         public bool IsOperator(SyntaxToken token)
         {
