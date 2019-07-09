@@ -47,6 +47,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 @"class C {
     void Bar() {
         the.quick.brown().fox
+            .jumped();
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown().fox
                  .jumped();
     }
 }");
@@ -59,6 +65,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 @"class C {
     void Bar() {
         [||]the.quick.brown<int>().fox.jumped<string, bool>();
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown<int>().fox
+            .jumped<string, bool>();
     }
 }",
 @"class C {
@@ -81,6 +93,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 @"class C {
     void Bar() {
         the.quick.brown[1, 2, 3].fox
+            .jumped[1][2][3];
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown[1, 2, 3].fox
                  .jumped[1][2][3];
     }
 }");
@@ -94,6 +112,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
     void Bar() {
         [||]the.quick.brown[1, 2, 3].fox
                  .jumped[1][2][3];
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown[1, 2, 3].fox
+            .jumped[1][2][3];
     }
 }",
 @"class C {
@@ -112,6 +136,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         [||]the.quick.
                 brown[1, 2, 3]
            .fox.jumped[1][2][3];
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown[1, 2, 3].fox
+            .jumped[1][2][3];
     }
 }",
 @"class C {
@@ -139,6 +169,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 @"class C {
     void Bar() {
         the().quick.brown[1, 2, 3].fox
+            .jumped[1][2][3];
+    }
+}",
+@"class C {
+    void Bar() {
+        the().quick.brown[1, 2, 3].fox
                    .jumped[1][2][3];
     }
 }");
@@ -151,6 +187,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 @"class C {
     void Bar() {
         [||]the.quick.brown().fox.jumped().over;
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown().fox
+            .jumped().over;
     }
 }",
 @"class C {
@@ -174,10 +216,26 @@ GetIndentionColumn(35),
 @"class C {
     void Bar() {
         the.quick.brown().fox
+            .jumped().over
+            .the()
+            .lazy()
+            .dog();
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown().fox
                  .jumped().over
                  .the()
                  .lazy()
                  .dog();
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown().fox
+            .jumped().over.the()
+            .lazy().dog();
     }
 }",
 @"class C {
@@ -203,10 +261,26 @@ GetIndentionColumn(40),
 @"class C {
     void Bar() {
         the.quick.brown().fox
+            .jumped().over
+            .the()
+            .lazy()
+            .dog();
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown().fox
                  .jumped().over
                  .the()
                  .lazy()
                  .dog();
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown().fox
+            .jumped().over.the().lazy()
+            .dog();
     }
 }",
 @"class C {
@@ -231,10 +305,25 @@ GetIndentionColumn(60),
 @"class C {
     void Bar() {
         the.quick.brown().fox
+            .jumped().over
+            .the()
+            .lazy()
+            .dog();
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown().fox
                  .jumped().over
                  .the()
                  .lazy()
                  .dog();
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown().fox.jumped().over.the().lazy()
+            .dog();
     }
 }",
 @"class C {
@@ -257,6 +346,12 @@ GetIndentionColumn(60),
 @"class C {
     void Bar() {
         the?.quick.brown().fox
+            .jumped();
+    }
+}",
+@"class C {
+    void Bar() {
+        the?.quick.brown().fox
                   .jumped();
     }
 }");
@@ -274,6 +369,12 @@ GetIndentionColumn(60),
 @"class C {
     void Bar() {
         the?.quick.brown()?.fox
+            .jumped();
+    }
+}",
+@"class C {
+    void Bar() {
+        the?.quick.brown()?.fox
                   .jumped();
     }
 }");
@@ -286,6 +387,12 @@ GetIndentionColumn(60),
 @"class C {
     void Bar() {
         the?.[||]quick.brown()?.fox().jumped();
+    }
+}",
+@"class C {
+    void Bar() {
+        the?.quick.brown()?.fox()
+            .jumped();
     }
 }",
 @"class C {

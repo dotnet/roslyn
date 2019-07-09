@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,22 +12,22 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
     /// Finds and wraps 'chained' expressions.  For the purpose of this feature, a chained
     /// expression is built out of 'chunks' where each chunk is of the form
     ///
-    /// <c>
+    /// <code>
     ///     . name (arglist) remainder
-    /// </c>
+    /// </code>
     /// 
     /// So, if there are two or more of these like:
     /// 
-    /// <c>
+    /// <code>
     ///     . name1 (arglist1) remainder1 . name2 (arglist2) remainder2
-    /// </c>
+    /// </code>
     /// 
     /// Then this will be wrapped such that the dots align like so:
     /// 
-    /// <c>
+    /// <code>
     ///     . name1 (arglist1) remainder1
     ///     . name2 (arglist2) remainder2
-    /// </c>
+    /// </code>
     /// 
     /// Note: for the sake of simplicity, (arglist) is used both for the argument list of
     /// an InvocationExpression and an ElementAccessExpression.
@@ -152,20 +151,20 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             // Note: the only way to get the `.Foo().Bar().Baz()` case today is in VB in
             // a 'with' statement.  if we have that, we don't want to wrap it into:
             //
-            //  <c>
+            //  <code>
             //  with ...
             //      .Foo()
             //      .Bar()
             //      .Baz()
-            //  <c>
+            //  </code>
             //
             // Instead, we want to create
             //
-            //  <c>
+            //  <code>
             //  with ...
             //      .Foo().Bar()
             //            .Baz()
-            //  <c>
+            //  </code>
             var currentChunkStart = FindNextChunkStart(pieces, firstChunk: true, index: 1);
             if (currentChunkStart < 0)
             {
