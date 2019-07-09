@@ -10,14 +10,17 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 {
-    internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider
+    internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider<TPropertyDeclarationNode, TTypeDeclarationNode>
         : CodeRefactoringProvider
+        where TPropertyDeclarationNode : SyntaxNode
+        where TTypeDeclarationNode : SyntaxNode
     {
-        internal abstract SyntaxNode GetProperty(SyntaxToken token);
         internal abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, CancellationToken cancellationToken);
         internal abstract (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
             DocumentOptionSet options, SyntaxNode property, string fieldName, SyntaxGenerator generator);
@@ -31,9 +34,8 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(context.Span.Start);
 
-            var property = GetProperty(token);
+            var property = await GetPropertyAsync(document, context.Span, cancellationToken).ConfigureAwait(false);
             if (property == null)
             {
                 return;
@@ -62,6 +64,19 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             var fields = propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>();
             var field = fields.FirstOrDefault(f => propertySymbol.Equals(f.AssociatedSymbol));
             return field != null;
+        }
+
+        private async Task<SyntaxNode> GetPropertyAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        {
+            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
+
+            var containingProperty = await refactoringHelperService.TryGetSelectedNodeAsync<TPropertyDeclarationNode>(document, span, cancellationToken).ConfigureAwait(false);
+            if (!(containingProperty?.Parent is TTypeDeclarationNode))
+            {
+                return null;
+            }
+
+            return containingProperty;
         }
 
         private async Task<Document> ExpandToFullPropertyAsync(
