@@ -46,7 +46,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                                             GetType(CPSProjectFactory),
                                             GetType(VisualStudioRuleSetManagerFactory),
                                             GetType(VsMetadataServiceFactory),
-                                            GetType(VisualStudioMetadataReferenceManagerFactory))
+                                            GetType(VisualStudioMetadataReferenceManagerFactory),
+                                            GetType(MockWorkspaceEventListenerProvider))
                 Return ExportProviderCache.GetOrCreateExportProviderFactory(catalog)
             End Function)
 

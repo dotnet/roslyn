@@ -255,18 +255,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         _state.SpinWaitComplete(CompletionPart.FinishValidatingReferencedAssemblies, cancellationToken);
                         break;
 
-                    case CompletionPart.StartMemberChecks:
-                    case CompletionPart.FinishMemberChecks:
-                        if (_state.NotePartComplete(CompletionPart.StartMemberChecks))
-                        {
-                            var diagnostics = DiagnosticBag.GetInstance();
-                            AfterMembersChecks(diagnostics);
-                            AddDeclarationDiagnostics(diagnostics);
-                            diagnostics.Free();
-                            _state.NotePartComplete(CompletionPart.FinishMemberChecks);
-                        }
-                        break;
-
                     case CompletionPart.MembersCompleted:
                         this.GlobalNamespace.ForceComplete(locationOpt, cancellationToken);
 
@@ -533,24 +521,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private bool EmitNullablePublicOnlyAttribute
-        {
-            get
-            {
-                var compilation = DeclaringCompilation;
-                return compilation.EmitNullablePublicOnly &&
-                    compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-            }
-        }
-
-        private void AfterMembersChecks(DiagnosticBag diagnostics)
-        {
-            if (EmitNullablePublicOnlyAttribute)
-            {
-                DeclaringCompilation.EnsureNullablePublicOnlyAttributeExists(diagnostics, location: NoLocation.Singleton, modifyCompilation: true);
-            }
-        }
-
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
@@ -566,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (EmitNullablePublicOnlyAttribute)
+            if (moduleBuilder.ShouldEmitNullablePublicOnlyAttribute())
             {
                 var includesInternals = ImmutableArray.Create(
                     new TypedConstant(compilation.GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, _assemblySymbol.InternalsAreVisible));

@@ -253,6 +253,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsAttribute(SyntaxNode node);
         bool IsAttributeName(SyntaxNode node);
+        SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node);
 
         bool IsAttributeNamedArgumentIdentifier(SyntaxNode node);
         bool IsObjectInitializerNamedAssignmentIdentifier(SyntaxNode node);
@@ -301,7 +302,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsThrowExpression(SyntaxNode node);
         bool IsElementAccessExpression(SyntaxNode node);
         bool IsIndexerMemberCRef(SyntaxNode node);
-
+        SyntaxNode GetContainingPropertyDeclaration(SyntaxNode node);
         bool IsIdentifierStartCharacter(char c);
         bool IsIdentifierPartCharacter(char c);
         bool IsIdentifierEscapeCharacter(char c);
@@ -411,6 +412,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         ImmutableArray<SyntaxNode> GetSelectedFieldsAndProperties(SyntaxNode root, TextSpan textSpan, bool allowPartialSelection);
         bool IsOnTypeHeader(SyntaxNode root, int position);
+        bool IsInPropertyDeclarationHeader(SyntaxNode node);
         bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position);
 
         // Walks the tree, starting from contextNode, looking for the first construct

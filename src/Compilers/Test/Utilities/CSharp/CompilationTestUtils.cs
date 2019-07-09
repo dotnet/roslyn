@@ -286,12 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// </summary>
         internal static void VerifyTypes(this CSharpCompilation compilation, SyntaxTree tree = null)
         {
-            // When nullable analysis does not require a feature flag, this can be removed so that we
-            // don't need to create an extra compilation
-            if (compilation.Feature("run-nullable-analysis") != "true")
-            {
-                compilation = compilation.WithAdditionalFeatures(("run-nullable-analysis", "true"));
-            }
+            Assert.True(compilation.NullableSemanticAnalysisEnabled);
 
             if (tree == null)
             {

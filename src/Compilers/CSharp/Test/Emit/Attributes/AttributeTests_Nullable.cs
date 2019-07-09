@@ -155,6 +155,75 @@ class C
         }
 
         [Fact]
+        public void AttributeFromInternalsVisibleTo_01()
+        {
+            var sourceA =
+@"using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo(""B"")]
+#nullable enable
+class A
+{
+    object? F = null;
+}";
+            var options = TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All);
+            var comp = CreateCompilation(sourceA, assemblyName: "A", options: options);
+            CompileAndVerify(comp, symbolValidator: m => CheckAttribute(m.GlobalNamespace.GetMember("A.F").GetAttributes().Single(), "A"));
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"#nullable enable
+class B
+{
+    object? G = new A();
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, assemblyName: "B", options: options);
+            CompileAndVerify(comp, symbolValidator: m => CheckAttribute(m.GlobalNamespace.GetMember("B.G").GetAttributes().Single(), "B"));
+        }
+
+        [Fact]
+        public void AttributeFromInternalsVisibleTo_02()
+        {
+            var sourceAttribute =
+@"namespace System.Runtime.CompilerServices
+{
+    internal sealed class NullableAttribute : Attribute
+    {
+        public NullableAttribute(byte b) { }
+        public NullableAttribute(byte[] b) { }
+    }
+}";
+            var sourceA =
+@"using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo(""B"")]
+#nullable enable
+class A
+{
+    object? F = null;
+}";
+            var options = TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All);
+            var comp = CreateCompilation(new[] { sourceAttribute, sourceA }, assemblyName: "A", options: options);
+            CompileAndVerify(comp, symbolValidator: m => CheckAttribute(m.GlobalNamespace.GetMember("A.F").GetAttributes().Single(), "A"));
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"#nullable enable
+class B
+{
+    object? G = new A();
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, assemblyName: "B", options: options);
+            CompileAndVerify(comp, symbolValidator: m => CheckAttribute(m.GlobalNamespace.GetMember("B.G").GetAttributes().Single(), "A"));
+        }
+
+        private static void CheckAttribute(CSharpAttributeData attribute, string assemblyName)
+        {
+            var attributeType = attribute.AttributeClass;
+            Assert.Equal("System.Runtime.CompilerServices", attributeType.ContainingNamespace.QualifiedName);
+            Assert.Equal("NullableAttribute", attributeType.Name);
+            Assert.Equal(assemblyName, attributeType.ContainingAssembly.Name);
+        }
+
+        [Fact]
         public void NullableAttribute_MissingByte()
         {
             var source0 =
