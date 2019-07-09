@@ -3229,6 +3229,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (method is object && (method.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn)
+            {
+                SetUnreachable();
+            }
+
             return (method, results);
         }
 
@@ -3255,7 +3260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
             var savedState = (argument.Kind == BoundKind.Lambda) ? this.State.Clone() : default(Optional<LocalState>);
-            // Note: AssertsTrue/AssertsFalse are ineffective on ref/out parameters
+            // Note: DoesNotReturnIf is ineffective on ref/out parameters
 
             switch (refKind)
             {
@@ -3265,22 +3270,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case RefKind.None:
                 case RefKind.In:
-                    switch (annotations & (FlowAnalysisAnnotations.AssertsTrue | FlowAnalysisAnnotations.AssertsFalse))
+                    switch (annotations & (FlowAnalysisAnnotations.DoesNotReturnIfTrue | FlowAnalysisAnnotations.DoesNotReturnIfFalse))
                     {
-                        case FlowAnalysisAnnotations.AssertsTrue:
-                        case FlowAnalysisAnnotations.AssertsTrue | FlowAnalysisAnnotations.AssertsFalse:
-                            Visit(argument);
-                            if (IsConditionalState)
-                            {
-                                SetState(StateWhenTrue);
-                            }
-                            break;
-
-                        case FlowAnalysisAnnotations.AssertsFalse:
+                        case FlowAnalysisAnnotations.DoesNotReturnIfTrue:
                             Visit(argument);
                             if (IsConditionalState)
                             {
                                 SetState(StateWhenFalse);
+                            }
+                            break;
+
+                        case FlowAnalysisAnnotations.DoesNotReturnIfFalse:
+                            Visit(argument);
+                            if (IsConditionalState)
+                            {
+                                SetState(StateWhenTrue);
                             }
                             break;
 

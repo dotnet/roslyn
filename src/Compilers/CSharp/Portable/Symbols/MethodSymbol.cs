@@ -217,6 +217,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations { get; }
 
         /// <summary>
+        /// Flow analysis annotations on the method itself (ie. DoesNotReturn)
+        /// </summary>
+        public abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
+
+        /// <summary>
         /// Returns the type arguments that have been substituted for the type parameters.
         /// If nothing has been substituted for a given type parameter,
         /// then the type parameter itself is consider the type argument.
