@@ -61,9 +61,9 @@ class B
                 var matcher = new CSharpSymbolMatcher(
                     null,
                     compilation1.SourceAssembly,
-                    default(EmitContext),
+                    default,
                     compilation0.SourceAssembly,
-                    default(EmitContext),
+                    default,
                     null);
 
                 var tasks = new Task[10];
@@ -118,9 +118,9 @@ class B
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
             var members = compilation1.GetMember<NamedTypeSymbol>("A.B").GetMembers("M");
             Assert.Equal(members.Length, 2);
@@ -150,9 +150,9 @@ class C
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
             var member = compilation1.GetMember<MethodSymbol>("C.M");
             var other = matcher.MapDefinition(member);
@@ -169,7 +169,7 @@ class C
   .method public abstract virtual instance object modopt(A) [] F(int32 modopt(object) *p) { }
 }";
             var metadataRef = CompileIL(ilSource);
-            const string source =
+            var source =
 @"unsafe class B : A
 {
     public override object[] F(int* p) { return null; }
@@ -184,11 +184,12 @@ class C
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
-            var other = (MethodSymbol)matcher.MapDefinition((Cci.IMethodDefinition)member1);
+
+            var other = (MethodSymbol)matcher.MapDefinition(member1);
             Assert.NotNull(other);
             Assert.Equal(((PointerTypeSymbol)other.Parameters[0].Type).PointedAtTypeWithAnnotations.CustomModifiers.Length, 1);
             Assert.Equal(((ArrayTypeSymbol)other.ReturnType).ElementTypeWithAnnotations.CustomModifiers.Length, 1);
@@ -216,9 +217,9 @@ public class C
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
@@ -256,13 +257,13 @@ class C
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
             var elementType = compilation1.GetMember<TypeSymbol>("C.D");
             var member = compilation1.CreateArrayTypeSymbol(elementType);
-            var other = matcher.MapReference((Cci.ITypeReference)member);
+            var other = matcher.MapReference(member);
             Assert.NotNull(other);
         }
 
@@ -293,13 +294,13 @@ class C
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
             var elementType = compilation1.GetMember<TypeSymbol>("C.D");
             var member = compilation1.CreateArrayTypeSymbol(elementType);
-            var other = matcher.MapReference((Cci.ITypeReference)member);
+            var other = matcher.MapReference(member);
             // For a newly added type, there is no match in the previous generation.
             Assert.Null(other);
         }
@@ -331,13 +332,13 @@ class C
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
             var elementType = compilation1.GetMember<TypeSymbol>("C.D");
             var member = compilation1.CreatePointerTypeSymbol(elementType);
-            var other = matcher.MapReference((Cci.ITypeReference)member);
+            var other = matcher.MapReference(member);
             // For a newly added type, there is no match in the previous generation.
             Assert.Null(other);
         }
@@ -372,9 +373,9 @@ class C
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
             var member = compilation1.GetMember<FieldSymbol>("C.y");
             var other = matcher.MapReference((Cci.ITypeReference)member.Type);
@@ -539,9 +540,9 @@ class C
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<FieldSymbol>("C.x");
@@ -569,9 +570,9 @@ class C
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<FieldSymbol>("C.x");
@@ -599,9 +600,9 @@ class C
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<MethodSymbol>("C.X");
@@ -629,9 +630,9 @@ class C
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<MethodSymbol>("C.X");
@@ -659,9 +660,9 @@ class C
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<PropertySymbol>("C.X");
@@ -689,9 +690,9 @@ class C
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<PropertySymbol>("C.X");
@@ -719,9 +720,9 @@ public struct Vector
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<FieldSymbol>("Vector.Coordinates");
@@ -749,9 +750,9 @@ public struct Vector
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<FieldSymbol>("Vector.Coordinates");
@@ -779,9 +780,9 @@ public class C
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<SourceNamedTypeSymbol>("C.F");
@@ -809,9 +810,9 @@ public class C
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<SourceNamedTypeSymbol>("C.F");
@@ -839,9 +840,9 @@ class C
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<MethodSymbol>("C.GetFirst");
@@ -869,9 +870,9 @@ class C
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<MethodSymbol>("C.GetFirst");
@@ -903,9 +904,9 @@ struct S
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<PropertySymbol>("S.X");
@@ -935,9 +936,9 @@ struct S
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<PropertySymbol>("S.X");
