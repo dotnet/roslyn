@@ -99,16 +99,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return isConvertible;
             }
 
-            foreach (var inferredType in inferredTypes)
+            typeConvertibilityCache[type] = IsTypeImplicitlyConvertible(semanticModel.Compilation, type, inferredTypes);
+            return typeConvertibilityCache[type];
+        }
+
+        private bool IsTypeImplicitlyConvertible(Compilation compilation, ITypeSymbol sourceType, ImmutableArray<ITypeSymbol> targetTypes)
+        {
+            foreach (var targetType in targetTypes)
             {
-                if (semanticModel.Compilation.ClassifyCommonConversion(type, inferredType).IsImplicit)
+                if (compilation.ClassifyCommonConversion(sourceType, targetType).IsImplicit)
                 {
-                    typeConvertibilityCache[type] = true;
                     return true;
                 }
             }
 
-            typeConvertibilityCache[type] = false;
             return false;
         }
 
@@ -130,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                                select g;
 
             var itemListBuilder = ImmutableArray.CreateBuilder<CompletionItem>();
-            var typeConvertibilityCache = new Dictionary<ITypeSymbol, bool>(AllNullabilityIgnoringSymbolComparer.Instance);
+            var typeConvertibilityCache = new Dictionary<ITypeSymbol, bool>();
 
             foreach (var symbolGroup in symbolGroups)
             {
@@ -141,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (IsTargetTypeCompletionFilterExperimentEnabled(arbitraryFirstContext.Workspace))
                 {
-                    var inferredTypesWithoutNullability = inferredTypes.Select(t => t.WithoutNullability()).ToImmutableArray();
+                    var inferredTypesWithoutNullability = inferredTypes.SelectAsArray(t => t.WithoutNullability());
 
                     foreach (var symbol in symbolGroup)
                     {
