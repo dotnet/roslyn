@@ -23,6 +23,7 @@ Imports Microsoft.VisualStudio.Shell.Interop
 Imports Moq
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 
@@ -78,7 +79,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
             <ImportingConstructor>
             Public Sub New(exportProvider As Composition.ExportProvider)
-                MyBase.New(exportProvider, exportProvider.GetExportedValue(Of MockServiceProvider))
+                MyBase.New(exportProvider,
+                           exportProvider.GetExportedValue(Of MockServiceProvider),
+                           exportProvider.GetExportedValues(Of IDocumentOptionsProviderFactory))
             End Sub
 
             Public Overrides Sub DisplayReferencedSymbols(solution As Microsoft.CodeAnalysis.Solution, referencedSymbols As IEnumerable(Of ReferencedSymbol))
