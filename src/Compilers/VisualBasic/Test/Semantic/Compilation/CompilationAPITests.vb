@@ -1660,30 +1660,30 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         <Fact()>
         <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
         Public Sub CreateAnonymousType_DefaultArgs()
-            Dim comp = DirectCast(VisualBasicCompilation.Create(""), Compilation)
+            Dim comp = DirectCast(CreateCompilation(""), Compilation)
             Dim memberTypes = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
             Dim memberNames = ImmutableArray.Create("P", "Q")
 
             Dim type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames)
-            Assert.Equal("<anonymous type: Key P As Object, Key Q As String>", type.ToTestDisplayString())
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
 
             type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, Nothing)
-            Assert.Equal("<anonymous type: Key P As Object, Key Q As String>", type.ToTestDisplayString())
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
 
             type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, Nothing, Nothing)
-            Assert.Equal("<anonymous type: Key P As Object, Key Q As String>", type.ToTestDisplayString())
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
 
             type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, Nothing, Nothing, Nothing)
-            Assert.Equal("<anonymous type: Key P As Object, Key Q As String>", type.ToTestDisplayString())
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
 
             type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberIsReadOnly:=Nothing)
-            Assert.Equal("<anonymous type: Key P As Object, Key Q As String>", type.ToTestDisplayString())
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
 
             type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberLocations:=Nothing)
-            Assert.Equal("<anonymous type: Key P As Object, Key Q As String>", type.ToTestDisplayString())
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
 
             type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberNullableAnnotations:=Nothing)
-            Assert.Equal("<anonymous type: Key P As Object, Key Q As String>", type.ToTestDisplayString())
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
         End Sub
 
         <Fact()>
@@ -1698,19 +1698,19 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         <Fact()>
         <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
         Public Sub CreateAnonymousType_MemberNullableAnnotations()
-            Dim comp = DirectCast(VisualBasicCompilation.Create(""), Compilation)
+            Dim comp = DirectCast(CreateCompilation(""), Compilation)
             Dim memberTypes = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
             Dim memberNames = ImmutableArray.Create("P", "Q")
 
             Dim type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames)
-            Assert.Equal("<anonymous type: Key P As Object, Key Q As String>", type.ToTestDisplayString())
-            AssertEx.Equal({CodeAnalysis.NullableAnnotation.Disabled, CodeAnalysis.NullableAnnotation.Disabled}, GetAnonymousTypeNullableAnnotations(type))
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+            AssertEx.Equal({CodeAnalysis.NullableAnnotation.NotApplicable, CodeAnalysis.NullableAnnotation.NotApplicable}, GetAnonymousTypeNullableAnnotations(type))
 
             Assert.Throws(Of ArgumentException)(Function() comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberNullableAnnotations:=ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated)))
 
             type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberNullableAnnotations:=ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableAnnotation.Annotated))
-            Assert.Equal("<anonymous type: Key P As Object, Key Q As String>", type.ToTestDisplayString())
-            AssertEx.Equal({CodeAnalysis.NullableAnnotation.Disabled, CodeAnalysis.NullableAnnotation.Disabled}, GetAnonymousTypeNullableAnnotations(type))
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+            AssertEx.Equal({CodeAnalysis.NullableAnnotation.NotApplicable, CodeAnalysis.NullableAnnotation.NotApplicable}, GetAnonymousTypeNullableAnnotations(type))
         End Sub
 
         Private Shared Function GetAnonymousTypeNullableAnnotations(type As ITypeSymbol) As ImmutableArray(Of CodeAnalysis.NullableAnnotation)
