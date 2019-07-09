@@ -1783,24 +1783,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
-            var start = GetStartOfNodeExcludingAttributes(propertyDeclaration);
-            var end = propertyDeclaration.Identifier.FullSpan.End;
 
-            return node.Span.Start >= start && node.Span.End <= end;
+            return IsInHeader(node, propertyDeclaration, propertyDeclaration.Identifier);
         }
 
         public bool IsInParameterHeader(SyntaxNode node)
         {
-            var propertyDeclaration = node.GetAncestorOrThis<ParameterSyntax>();
-            if (propertyDeclaration == null)
+            var parameter = node.GetAncestorOrThis<ParameterSyntax>();
+            if (parameter == null)
             {
                 return false;
             }
 
-            var start = GetStartOfNodeExcludingAttributes(propertyDeclaration);
-            var end = propertyDeclaration.Identifier.FullSpan.End;
-
-            return node.Span.Start >= start && node.Span.End <= end;
+            return IsInHeader(node, parameter, parameter.Identifier);
         }
 
         public bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position)

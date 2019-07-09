@@ -1760,9 +1760,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End If
 
-            Dim start = GetStartOfNodeExcludingAttributes(propertyDeclaration)
-            Dim [end] = If(propertyDeclaration.AsClause?.FullSpan.[End], propertyDeclaration.Identifier.FullSpan.End)
-            Return node.Span.Start >= start AndAlso node.Span.[End] <= [end]
+            If propertyDeclaration.AsClause Is Nothing Then
+                Return IsInHeader(node, propertyDeclaration, propertyDeclaration.AsClause)
+            End If
+
+            Return IsInHeader(node, propertyDeclaration, propertyDeclaration.Identifier)
         End Function
 
         Public Function IsInParameterHeader(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInParameterHeader
@@ -1772,9 +1774,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End If
 
-            Dim start = GetStartOfNodeExcludingAttributes(parameter)
-            Dim [end] = If(parameter.AsClause?.FullSpan.[End], parameter.Identifier.FullSpan.End)
-            Return node.Span.Start >= start AndAlso node.Span.[End] <= [end]
+            If parameter.AsClause Is Nothing Then
+                Return IsInHeader(node, parameter, parameter.AsClause)
+            End If
+
+            Return IsInHeader(node, parameter, parameter.Identifier)
         End Function
 
         Public Function IsBetweenTypeMembers(sourceText As SourceText, root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsBetweenTypeMembers
