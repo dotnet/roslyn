@@ -199,7 +199,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
         {
             // Check if the symbol belongs to an assembly to which this compilation has restricted internals access
             // and it is an internal symbol.
-            if (!restrictedInternalsVisibleToMap.TryGetValue(symbol.ContainingAssembly, out var allowedNamespaces) ||
+            if (symbol.ContainingAssembly == null ||
+                !restrictedInternalsVisibleToMap.TryGetValue(symbol.ContainingAssembly, out var allowedNamespaces) ||
                 symbol.GetResultantVisibility() != SymbolVisibility.Internal)
             {
                 return false;
