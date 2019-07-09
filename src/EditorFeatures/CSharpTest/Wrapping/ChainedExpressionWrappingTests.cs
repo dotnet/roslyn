@@ -278,8 +278,9 @@ GetIndentionColumn(40),
 }",
 @"class C {
     void Bar() {
-        the.quick.brown().fox.jumped().over
-            .the().lazy().dog();
+        the.quick.brown().fox
+            .jumped().over.the().lazy()
+            .dog();
     }
 }",
 @"class C {
@@ -322,7 +323,7 @@ GetIndentionColumn(60),
 @"class C {
     void Bar() {
         the.quick.brown().fox.jumped().over.the().lazy()
-                 .dog();
+            .dog();
     }
 }",
 @"class C {

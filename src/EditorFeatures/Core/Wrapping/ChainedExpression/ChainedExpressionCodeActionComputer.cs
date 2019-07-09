@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
 
             /// <summary>
             /// The indent trivia to insert if we are trying to align wrapped chunks with the 
-            /// start of the original chunk.
+            /// first period of the original chunk.
             /// </summary>
-            private readonly SyntaxTriviaList _indentAndAlignTrivia;
+            private readonly SyntaxTriviaList _firstPeriodIndentationTrivia;
 
             /// <summary>
             /// The indent trivia to insert if we are trying to simply smart-indent all wrapped
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
                 // (i.e. <c>. name (arglist)</c>).
                 var firstPeriod = chunks[0][0];
 
-                _indentAndAlignTrivia = new SyntaxTriviaList(generator.Whitespace(
+                _firstPeriodIndentationTrivia = new SyntaxTriviaList(generator.Whitespace(
                     OriginalSourceText.GetOffset(firstPeriod.SpanStart).CreateIndentationString(UseTabs, TabSize)));
 
                 _smartIndentTrivia = new SyntaxTriviaList(generator.Whitespace(
@@ -128,8 +128,12 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
                 var firstChunk = _chunks[0];
                 DeleteAllSpacesInChunk(result, firstChunk);
 
-                var indentationTrivia = align ? _indentAndAlignTrivia : _smartIndentTrivia;
-                var position = indentationTrivia.FullSpan.Length + NormalizedWidth(firstChunk);
+                var indentationTrivia = align ? _firstPeriodIndentationTrivia : _smartIndentTrivia;
+
+                // Our starting position is at the end of the first chunk.  That position
+                // is effectively the start of the first period, plus the length of the 
+                // normalized first chuck.
+                var position = _firstPeriodIndentationTrivia.FullSpan.Length + NormalizedWidth(firstChunk);
 
                 // Now, go to each subsequent chunk.  If keeping it on the current line would
                 // cause us to go past the requested wrapping column, then wrap it and proceed.
