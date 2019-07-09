@@ -77,6 +77,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var selectionTrimmed = await CodeRefactoringHelpers.GetTrimmedTextSpan(document, selectionRaw, cancellationToken).ConfigureAwait(false);
 
+            // If user selected only whitespace we don't want to return anything. We could do following:
+            //  1) Consider token that owns (as its trivia) the whitespace.
+            //  2) Consider start/beginning of whitespace as location (empty selection)
+            // Option 1) can't be used all the time and 2) can be confusing for users. Therefore bailing out is the
+            // most consistent option.
+            if (selectionTrimmed.IsEmpty && !selectionRaw.IsEmpty)
+            {
+                return null;
+            }
+
             // Every time a Node is considered by following algorithm (and tested with predicate) and the predicate fails
             // extractNode is called on the node and the result is tested with predicate again. If any of those succeed
             // a respective Node gets returned.
@@ -288,9 +298,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// Can extract both nodes above and under given <paramref name="node"/>.
         /// </para>
         /// <para>
-        /// E.g. extracts expressions from assignment statement (`a = b;` -> `b`) or lambda node for its body.
-        /// </para>
-        /// <para>
         /// The rationale is that when user selects e.g. entire local declaration statement [|var a = b;|] it is reasonable
         /// to provide refactoring for `b` node. Similarly for other types of refactorings.
         /// </para>
@@ -336,12 +343,25 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 return rightSide;
             }
 
+            // VB's arguments can have identifiers nested in ModifiedArgument -> we want
+            // indentifiers to represent parent node -> need to extract.
+            if (syntaxFacts.IsParametersIdentifier(node))
+            {
+                return node.Parent;
+            }
+
             if (extractParentsOfHeader)
             {
-                // Header: [TestAttribute] `public int a` { get; set; }
+                // Header: [Test] `public int a` { get; set; }
                 if (syntaxFacts.IsInPropertyDeclarationHeader(node))
                 {
                     return syntaxFacts.GetContainingPropertyDeclaration(node);
+                }
+
+                // Header: public C([Test]`int a` = 42) {}
+                if (syntaxFacts.IsInParameterHeader(node))
+                {
+                    return syntaxFacts.GetContainingParameter(node);
                 }
             }
 

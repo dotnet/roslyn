@@ -60,6 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return token.IsKind(SyntaxKind.IdentifierToken);
         }
 
+        // In C# parameter's identifier can only be Token, never Node
+        public bool IsParametersIdentifier(SyntaxNode node) => false;
+
         public bool IsGlobalNamespaceKeyword(SyntaxToken token)
         {
             return token.IsKind(SyntaxKind.GlobalKeyword);
@@ -1817,7 +1820,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsInPropertyDeclarationHeader(SyntaxNode node)
         {
-            var propertyDeclaration = node.GetAncestor<PropertyDeclarationSyntax>();
+            var propertyDeclaration = node.GetAncestorOrThis<PropertyDeclarationSyntax>();
+            if (propertyDeclaration == null)
+            {
+                return false;
+            }
+
+            var start = propertyDeclaration.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart ??
+                        propertyDeclaration.SpanStart;
+            var end = propertyDeclaration.Identifier.FullSpan.End;
+
+            return node.Span.Start >= start && node.Span.End <= end;
+        }
+
+        public bool IsInParameterHeader(SyntaxNode node)
+        {
+            var propertyDeclaration = node.GetAncestorOrThis<ParameterSyntax>();
             if (propertyDeclaration == null)
             {
                 return false;
@@ -1966,7 +1984,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public SyntaxNode GetContainingPropertyDeclaration(SyntaxNode node) => node.GetAncestor<PropertyDeclarationSyntax>();
+        public SyntaxNode GetContainingPropertyDeclaration(SyntaxNode node) => node.GetAncestorOrThis<PropertyDeclarationSyntax>();
+
+        public SyntaxNode GetContainingParameter(SyntaxNode node) => node.GetAncestorOrThis<ParameterSyntax>();
 
         public SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node) => CSharpSyntaxGenerator.GetAttributeLists(node);
     }

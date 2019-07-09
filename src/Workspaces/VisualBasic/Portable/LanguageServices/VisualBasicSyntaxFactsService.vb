@@ -87,6 +87,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function IsIdentifier(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsIdentifier
             Return token.Kind = SyntaxKind.IdentifierToken
         End Function
+        Public Function IsParametersIdentifier(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsParametersIdentifier
+            Return (TypeOf node Is ModifiedIdentifierSyntax) AndAlso (TypeOf node.Parent Is ParameterSyntax) AndAlso (CType(node.Parent, ParameterSyntax).Identifier Is node)
+        End Function
 
         Public Function IsGlobalNamespaceKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsGlobalNamespaceKeyword
             Return token.Kind = SyntaxKind.GlobalKeyword
@@ -1755,7 +1758,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsInPropertyDeclarationHeader(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInPropertyDeclarationHeader
-            Dim propertyDeclaration = node.GetAncestor(Of PropertyStatementSyntax)()
+            Dim propertyDeclaration = node.GetAncestorOrThis(Of PropertyStatementSyntax)()
+
+            If propertyDeclaration Is Nothing Then
+                Return False
+            End If
+
+            Dim start = If(propertyDeclaration.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart, propertyDeclaration.SpanStart)
+            Dim [end] = If(propertyDeclaration.AsClause?.FullSpan.[End], propertyDeclaration.Identifier.FullSpan.End)
+            Return node.Span.Start >= start AndAlso node.Span.[End] <= [end]
+        End Function
+
+        Public Function IsInParameterHeader(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInParameterHeader
+            Dim propertyDeclaration = node.GetAncestor(Of ParameterSyntax)()
 
             If propertyDeclaration Is Nothing Then
                 Return False
@@ -1958,7 +1973,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetContainingPropertyDeclaration(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetContainingPropertyDeclaration
-            Return node.GetAncestor(Of PropertyStatementSyntax)
+            Return node.GetAncestorOrThis(Of PropertyStatementSyntax)
+        End Function
+
+        Public Function GetContainingParameter(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetContainingParameter
+            Return node.GetAncestorOrThis(Of ParameterSyntax)
         End Function
 
         Public Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetAttributeLists

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -743,6 +742,191 @@ class C
     [Test] public int a { [||]get; set; }
 }";
             await TestMissingAsync<PropertyDeclarationSyntax>(testText);
+        }
+
+        #endregion
+
+        #region Test arguments
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingArgumentsExtractionsInInitializer()
+        {
+            var testText = @"
+using System;
+class C
+{
+    class TestAttribute : Attribute { }
+    public C([Test]int a = [||]42, int b = 41) {}
+}";
+            await TestMissingAsync<ParameterSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingArgumentsExtractionsSelectInitializer()
+        {
+            var testText = @"
+using System;
+class C
+{
+    class TestAttribute : Attribute { }
+    public C([Test]int a = [|42|], int b = 41) {}
+}";
+            await TestMissingAsync<ParameterSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingArgumentsExtractionsSelectComma()
+        {
+            var testText = @"
+using System;
+class C
+{
+    class TestAttribute : Attribute { }
+    public C([Test]int a = 42[|,|] int b = 41) {}
+}";
+            await TestMissingAsync<ParameterSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingArgumentsExtractionsInAttributes()
+        {
+            var testText = @"
+using System;
+class C
+{
+    class TestAttribute : Attribute { }
+    public C([[||]Test]int a = 42, int b = 41) {}
+}";
+            await TestMissingAsync<ParameterSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingArgumentsExtractionsSelectType1()
+        {
+            var testText = @"
+using System;
+class C
+{
+    class TestAttribute : Attribute { }
+    public C([Test][|int|] a = 42, int b = 41) {}
+}";
+            await TestMissingAsync<ParameterSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingArgumentsExtractionsSelectType2()
+        {
+            var testText = @"
+using System;
+class C
+{
+    class TestAttribute : Attribute { }
+    public C([Test][|C|] a = null, int b = 41) {}
+}";
+            await TestMissingAsync<ParameterSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestArgumentsExtractionsAtTheEnd()
+        {
+            var testText = @"
+using System;
+class C
+{
+    class TestAttribute : Attribute { }
+    public C({|result:[Test]int a = 42[||]|}, int b = 41) {}
+}";
+            await TestAsync<ParameterSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestArgumentsExtractionsBefore()
+        {
+            var testText = @"
+using System;
+class C
+{
+    class TestAttribute : Attribute { }
+    public C([||]{|result:[Test]int a = 42|}, int b = 41) {}
+}";
+            await TestAsync<ParameterSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestArgumentsExtractionsSelectParamName()
+        {
+            var testText = @"
+using System;
+class C
+{
+    class TestAttribute : Attribute { }
+    public C({|result:[Test]int [|a|] = 42|}, int b = 41) {}
+}";
+            await TestAsync<ParameterSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestArgumentsExtractionsSelectParam1()
+        {
+            var testText = @"
+using System;
+class C
+{
+    class TestAttribute : Attribute { }
+    public C({|result:[Test][|int a|] = 42|}, int b = 41) {}
+}";
+            await TestAsync<ParameterSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestArgumentsExtractionsSelectParam2()
+        {
+            var testText = @"
+using System;
+class C
+{
+    class TestAttribute : Attribute { }
+    public C([|{|result:[Test]int a = 42|}|], int b = 41) {}
+}";
+            await TestAsync<ParameterSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestArgumentsExtractionsSelectParam3()
+        {
+            var testText = @"
+using System;
+class C
+{
+    class TestAttribute : Attribute { }
+    public C({|result:[Test][|int a = 42|]|}, int b = 41) {}
+}";
+            await TestAsync<ParameterSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestArgumentsExtractionsInHeader()
+        {
+            var testText = @"
+using System;
+class CC
+{
+    class TestAttribute : Attribute { }
+    public CC({|result:[Test]C[||]C a = 42|}, int b = 41) {}
+}";
+            await TestAsync<ParameterSyntax>(testText);
         }
 
         #endregion
