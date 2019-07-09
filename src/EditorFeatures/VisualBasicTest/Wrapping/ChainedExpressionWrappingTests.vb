@@ -42,6 +42,12 @@ end class",
 "class C
     sub Bar()
         the.quick.brown().fox _
+            .jumped()
+    end sub
+end class",
+"class C
+    sub Bar()
+        the.quick.brown().fox _
                  .jumped()
     end sub
 end class")
@@ -53,6 +59,12 @@ end class")
 "class C
     sub Bar()
         [||]the.quick.brown().fox.jumped(,)
+    end sub
+end class",
+"class C
+    sub Bar()
+        the.quick.brown().fox _
+            .jumped(,)
     end sub
 end class",
 "class C
@@ -74,6 +86,12 @@ end class")
 end class",
 "class C
     sub Bar()
+        the.quick.brown(1, 2, 3).fox _
+            .jumped(1)(2)(3)
+    end sub
+end class",
+"class C
+    sub Bar()
         the.quick.brown(1, 2, 3).fox.jumped(1)(2)(3)
     end sub
 end class")
@@ -87,6 +105,12 @@ end class")
         [||]the.quick.
                 brown(1, 2, 3) _
            .fox.jumped(1)(2)(3)
+    end sub
+end class",
+"class C
+    sub Bar()
+        the.quick.brown(1, 2, 3).fox _
+            .jumped(1)(2)(3)
     end sub
 end class",
 "class C
@@ -113,6 +137,12 @@ end class",
 "class C
     sub Bar()
         the().quick.brown(1, 2, 3).fox _
+            .jumped(1)(2)(3)
+    end sub
+end class",
+"class C
+    sub Bar()
+        the().quick.brown(1, 2, 3).fox _
                    .jumped(1)(2)(3)
     end sub
 end class")
@@ -124,6 +154,12 @@ end class")
 "class C
     sub Bar()
         dim y = [||]the.quick.brown().fox.jumped().over
+    end sub
+end class",
+"class C
+    sub Bar()
+        dim y = the.quick.brown().fox _
+            .jumped().over
     end sub
 end class",
 "class C
@@ -146,10 +182,26 @@ GetIndentionColumn(35),
 "class C
     sub Bar()
         the.quick.brown().fox _
+            .jumped().over _
+            .the() _
+            .lazy() _
+            .dog()
+    end sub
+end class",
+"class C
+    sub Bar()
+        the.quick.brown().fox _
                  .jumped().over _
                  .the() _
                  .lazy() _
                  .dog()
+    end sub
+end class",
+"class C
+    sub Bar()
+        the.quick.brown().fox _
+            .jumped().over.the() _
+            .lazy().dog()
     end sub
 end class",
 "class C
@@ -174,10 +226,26 @@ GetIndentionColumn(40),
 "class C
     sub Bar()
         the.quick.brown().fox _
+            .jumped().over _
+            .the() _
+            .lazy() _
+            .dog()
+    end sub
+end class",
+"class C
+    sub Bar()
+        the.quick.brown().fox _
                  .jumped().over _
                  .the() _
                  .lazy() _
                  .dog()
+    end sub
+end class",
+"class C
+    sub Bar()
+        the.quick.brown().fox _
+            .jumped().over.the().lazy() _
+            .dog()
     end sub
 end class",
 "class C
@@ -201,10 +269,25 @@ GetIndentionColumn(60),
 "class C
     sub Bar()
         the.quick.brown().fox _
+            .jumped().over _
+            .the() _
+            .lazy() _
+            .dog()
+    end sub
+end class",
+"class C
+    sub Bar()
+        the.quick.brown().fox _
                  .jumped().over _
                  .the() _
                  .lazy() _
                  .dog()
+    end sub
+end class",
+"class C
+    sub Bar()
+        the.quick.brown().fox.jumped().over.the().lazy() _
+            .dog()
     end sub
 end class",
 "class C
@@ -229,6 +312,14 @@ end class",
     sub Bar()
         with goo
             .the().quick.brown().fox _
+                .jumped(,)
+        end with
+    end sub
+end class",
+"class C
+    sub Bar()
+        with goo
+            .the().quick.brown().fox _
                         .jumped(,)
         end with
     end sub
@@ -242,6 +333,14 @@ end class")
     sub Bar()
         with goo
             [||].the.quick.brown().fox.jumped(,)
+        end with
+    end sub
+end class",
+"class C
+    sub Bar()
+        with goo
+            .the.quick.brown().fox _
+                .jumped(,)
         end with
     end sub
 end class",
