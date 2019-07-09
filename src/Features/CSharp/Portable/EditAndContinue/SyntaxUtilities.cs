@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
     {
         public static SyntaxNode TryGetMethodDeclarationBody(SyntaxNode node)
         {
-            SyntaxNode BlockOrExpression(BlockSyntax blockBodyOpt, ArrowExpressionClauseSyntax expressionBodyOpt)
+            static SyntaxNode BlockOrExpression(BlockSyntax blockBodyOpt, ArrowExpressionClauseSyntax expressionBodyOpt)
                 => (SyntaxNode)blockBodyOpt ?? expressionBodyOpt?.Expression;
 
             SyntaxNode result;
@@ -154,10 +154,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             Debug.Assert(leftNode.FullSpan.Length > 0);
             Debug.Assert(leftNode.SyntaxTree == leftRoot.SyntaxTree);
 
-            SyntaxNode originalLeftNode = leftNode;
-            int leftPosition = leftNode.SpanStart;
+            var originalLeftNode = leftNode;
+            var leftPosition = leftNode.SpanStart;
             leftNode = leftRoot;
-            SyntaxNode rightNode = rightRoot;
+            var rightNode = rightRoot;
 
             while (leftNode != originalLeftNode)
             {

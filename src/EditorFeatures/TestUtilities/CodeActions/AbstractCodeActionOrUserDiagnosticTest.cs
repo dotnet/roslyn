@@ -378,10 +378,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
-                // Currently, OOP diagnostics don't work with code action tests.
-                workspace.Options = workspace.Options.WithChangedOption(
-                    RemoteFeatureOptions.DiagnosticsEnabled, false);
-
                 var (_, action) = await GetCodeActionsAsync(workspace, parameters);
                 await TestActionAsync(
                     workspace, expected, action,
@@ -503,17 +499,39 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                         var root = await doc.GetSyntaxRootAsync();
                         var expectedDocument = expectedProject.Documents.Single(d => d.Name == doc.Name);
                         var expectedRoot = await expectedDocument.GetSyntaxRootAsync();
-
-                        var expected = expectedRoot.ToFullString();
-                        if (expected == "")
-                        {
-                            Assert.Equal((object)expected, root.ToFullString());
-                        }
-                        else
-                        {
-                            Assert.Equal(expected, root.ToFullString());
-                        }
+                        VerifyExpectedDocumentText(expectedRoot.ToFullString(), root.ToFullString());
                     }
+
+                    foreach (var additionalDoc in project.AdditionalDocuments)
+                    {
+                        var root = await additionalDoc.GetTextAsync();
+                        var expectedDocument = expectedProject.AdditionalDocuments.Single(d => d.Name == additionalDoc.Name);
+                        var expectedRoot = await expectedDocument.GetTextAsync();
+                        VerifyExpectedDocumentText(expectedRoot.ToString(), root.ToString());
+                    }
+
+                    foreach (var analyzerConfigDoc in project.AnalyzerConfigDocuments)
+                    {
+                        var root = await analyzerConfigDoc.GetTextAsync();
+                        var expectedDocument = expectedProject.AnalyzerConfigDocuments.Single(d => d.FilePath == analyzerConfigDoc.FilePath);
+                        var expectedRoot = await expectedDocument.GetTextAsync();
+                        VerifyExpectedDocumentText(expectedRoot.ToString(), root.ToString());
+                    }
+                }
+            }
+
+            return;
+
+            // Local functions.
+            static void VerifyExpectedDocumentText(string expected, string actual)
+            {
+                if (expected == "")
+                {
+                    Assert.Equal((object)expected, actual);
+                }
+                else
+                {
+                    Assert.Equal(expected, actual);
                 }
             }
         }
@@ -645,7 +663,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestParameters parameters,
             params string[] outputs)
         {
-            for (int index = 0; index < outputs.Length; index++)
+            for (var index = 0; index < outputs.Length; index++)
             {
                 var output = outputs[index];
                 await TestInRegularAndScript1Async(input, output, index, parameters: parameters);

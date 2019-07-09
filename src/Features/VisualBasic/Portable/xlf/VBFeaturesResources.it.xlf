@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Make_0_inheritable">
         <source>Make '{0}' inheritable</source>
-        <target state="new">Make '{0}' inheritable</target>
+        <target state="translated">Imposta '{0}' come ereditabile</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
@@ -95,6 +95,11 @@
       <trans-unit id="Remove_Unnecessary_Imports">
         <source>Remove Unnecessary Imports</source>
         <target state="translated">Rimuovi Import non necessari</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Imports">
+        <source>&amp;Sort Imports</source>
+        <target state="new">&amp;Sort Imports</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -984,7 +989,7 @@ Case {&lt;expression&gt;|&lt;expression1&gt; To &lt;expression2&gt;|[Is] &lt;com
       <trans-unit id="Sets_the_default_comparison_method_to_use_when_comparing_string_data_When_set_to_Text_uses_a_text_sort_order_that_is_not_case_sensitive_When_set_to_Binary_uses_a_strict_binary_sort_order_Option_Compare_Binary_Text">
         <source>Sets the default comparison method to use when comparing string data. When set to Text, uses a text sort order that is not case sensitive. When set to Binary, uses a strict binary sort order.
 Option Compare {Binary | Text}</source>
-        <target state="translated">Imposta il metodo di confronto predefinito da usare per il confronto di dati stringa. Se impostata su Text, usa un ordinamento testo che rileva la distinzione tra maiuscole e minuscole. Se impostata su Binary, usa un ordinamento binario ridotto.
+        <target state="translated">Imposta il metodo di confronto predefinito da usare per il confronto di dati stringa. Se impostata su Text, usa un ordinamento testo che non rileva la distinzione tra maiuscole e minuscole. Se impostata su Binary, usa un ordinamento binario ridotto.
 Option Compare {Binary | Text}</target>
         <note />
       </trans-unit>

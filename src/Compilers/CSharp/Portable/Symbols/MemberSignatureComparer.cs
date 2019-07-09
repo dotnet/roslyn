@@ -477,8 +477,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var isVoid1 = unsubstitutedReturnType1.IsVoid;
-            var isVoid2 = unsubstitutedReturnType2.IsVoid;
+            var isVoid1 = unsubstitutedReturnType1.IsVoidType();
+            var isVoid2 = unsubstitutedReturnType2.IsVoidType();
 
             if (isVoid1 != isVoid2)
             {
@@ -599,10 +599,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (!typeParameter1.IsValueType)
             {
-                bool? isNotNullableIfReferenceType1 = typeParameter1.IsNotNullableIfReferenceType;
-                bool? isNotNullableIfReferenceType2 = typeParameter2.IsNotNullableIfReferenceType;
-                if (isNotNullableIfReferenceType1.HasValue && isNotNullableIfReferenceType2.HasValue &&
-                    isNotNullableIfReferenceType1.GetValueOrDefault() != isNotNullableIfReferenceType2.GetValueOrDefault())
+                bool? isNotNullable1 = typeParameter1.IsNotNullable;
+                bool? isNotNullable2 = typeParameter2.IsNotNullable;
+                if (isNotNullable1.HasValue && isNotNullable2.HasValue &&
+                    isNotNullable1.GetValueOrDefault() != isNotNullable2.GetValueOrDefault())
                 {
                     return false;
                 }

@@ -109,6 +109,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        protected override CodeAnalysis.NullableAnnotation ReceiverNullableAnnotation =>
+            _reducedFrom.Parameters[0].TypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
+
         public override TypeSymbol GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
         {
             if ((object)reducedFromTypeParameter == null)
@@ -340,6 +343,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return _typeMap.SubstituteType(_reducedFrom.ReturnTypeWithAnnotations); }
         }
+
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => _reducedFrom.ReturnTypeFlowAnalysisAnnotations;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {

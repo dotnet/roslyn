@@ -5,7 +5,6 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 using EnvDTE;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -26,50 +25,63 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     /// </summary>
     internal abstract class InProcComponent : MarshalByRefObject
     {
-        private JoinableTaskFactory _joinableTaskFactory;
+        private static JoinableTaskFactory _joinableTaskFactory;
 
         protected InProcComponent() { }
 
         private static Dispatcher CurrentApplicationDispatcher
             => Application.Current.Dispatcher;
 
-        protected JoinableTaskFactory JoinableTaskFactory
+        protected static JoinableTaskFactory JoinableTaskFactory
         {
             get
             {
                 if (_joinableTaskFactory is null)
                 {
-                    var threadingContext = GetComponentModelService<IThreadingContext>();
-                    Interlocked.CompareExchange(ref _joinableTaskFactory, threadingContext.JoinableTaskFactory.WithPriority(CurrentApplicationDispatcher, DispatcherPriority.Background), null);
+                    Interlocked.CompareExchange(ref _joinableTaskFactory, ThreadHelper.JoinableTaskFactory.WithPriority(CurrentApplicationDispatcher, DispatcherPriority.Background), null);
                 }
 
                 return _joinableTaskFactory;
             }
         }
 
-        protected static void BeginInvokeOnUIThread(Action action)
-#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
-            => CurrentApplicationDispatcher.BeginInvoke(action, DispatcherPriority.Background);
-#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
+        protected static void InvokeOnUIThread(Action<CancellationToken> action)
+        {
+            using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+            var operation = JoinableTaskFactory.RunAsync(async () =>
+            {
+                await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
+                cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
-        protected static void InvokeOnUIThread(Action action)
-#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
-            => CurrentApplicationDispatcher.Invoke(action, DispatcherPriority.Background);
-#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
+                action(cancellationTokenSource.Token);
+            });
 
-        protected static T InvokeOnUIThread<T>(Func<T> action)
-#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
-            => CurrentApplicationDispatcher.Invoke(action, DispatcherPriority.Background);
-#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
+            operation.Task.Wait(cancellationTokenSource.Token);
+        }
+
+        protected static T InvokeOnUIThread<T>(Func<CancellationToken, T> action)
+        {
+            using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+            var operation = JoinableTaskFactory.RunAsync(async () =>
+            {
+                await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
+                cancellationTokenSource.Token.ThrowIfCancellationRequested();
+
+                return action(cancellationTokenSource.Token);
+            });
+
+            operation.Task.Wait(cancellationTokenSource.Token);
+            return operation.Task.Result;
+        }
 
         protected static TInterface GetGlobalService<TService, TInterface>()
             where TService : class
             where TInterface : class
-        => InvokeOnUIThread(() => (TInterface)ServiceProvider.GlobalProvider.GetService(typeof(TService)));
+        => InvokeOnUIThread(cancellationToken => (TInterface)ServiceProvider.GlobalProvider.GetService(typeof(TService)));
 
         protected static TService GetComponentModelService<TService>()
             where TService : class
-         => InvokeOnUIThread(() => GetComponentModel().GetService<TService>());
+         => InvokeOnUIThread(cancellationToken => GetComponentModel().GetService<TService>());
 
         protected static DTE GetDTE()
             => GetGlobalService<SDTE, DTE>();
@@ -89,9 +101,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// <summary>
         /// Waiting for the application to 'idle' means that it is done pumping messages (including WM_PAINT).
         /// </summary>
-        protected static void WaitForApplicationIdle()
+        protected static void WaitForApplicationIdle(TimeSpan timeout)
 #pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
-            => CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+            => CurrentApplicationDispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle).Wait(timeout);
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
 
         protected static void WaitForSystemIdle()

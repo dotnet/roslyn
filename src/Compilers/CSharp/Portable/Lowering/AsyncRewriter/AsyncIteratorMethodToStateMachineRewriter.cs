@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -66,6 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // ... _exprReturnLabel: ...
             // ... this.state = FinishedState; ...
 
+            // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
             // this.promiseOfValueOrEnd.SetResult(false);
             // return;
             // _exprReturnLabelTrue:
@@ -74,13 +76,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             // ... _exitLabel: ...
             // ... return; ...
 
-            return F.Block(
+            var builder = ArrayBuilder<BoundStatement>.GetInstance();
+
+            // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
+            AddDisposeCombinedTokensIfNeeded(builder);
+
+            builder.AddRange(
                 // this.promiseOfValueOrEnd.SetResult(false);
                 generateSetResultOnPromise(false),
                 F.Return(),
                 F.Label(_exprReturnLabelTrue),
                 // this.promiseOfValueOrEnd.SetResult(true);
                 generateSetResultOnPromise(true));
+
+            return F.Block(builder.ToImmutableAndFree());
 
             BoundExpressionStatement generateSetResultOnPromise(bool result)
             {
@@ -91,13 +100,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private void AddDisposeCombinedTokensIfNeeded(ArrayBuilder<BoundStatement> builder)
+        {
+            // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
+            if (_asyncIteratorInfo.CombinedTokensField is object)
+            {
+                var combinedTokens = F.Field(F.This(), _asyncIteratorInfo.CombinedTokensField);
+                TypeSymbol combinedTokensType = combinedTokens.Type;
+
+                builder.Add(
+                    F.If(F.ObjectNotEqual(combinedTokens, F.Null(combinedTokensType)),
+                        thenClause: F.Block(
+                            F.ExpressionStatement(F.Call(combinedTokens, F.WellKnownMethod(WellKnownMember.System_Threading_CancellationTokenSource__Dispose))),
+                            F.Assignment(combinedTokens, F.Null(combinedTokensType)))));
+            }
+        }
+
         protected override BoundStatement GenerateSetExceptionCall(LocalSymbol exceptionLocal)
         {
+            var builder = ArrayBuilder<BoundStatement>.GetInstance();
+
+            // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
+            AddDisposeCombinedTokensIfNeeded(builder);
+
             // _promiseOfValueOrEnd.SetException(ex);
-            return F.ExpressionStatement(F.Call(
+            builder.Add(F.ExpressionStatement(F.Call(
                 F.InstanceField(_asyncIteratorInfo.PromiseOfValueOrEndField),
                 _asyncIteratorInfo.SetExceptionMethod,
-                F.Local(exceptionLocal)));
+                F.Local(exceptionLocal))));
+
+            return F.Block(builder.ToImmutableAndFree());
         }
 
         private BoundStatement GenerateJumpToCurrentFinallyOrExit()

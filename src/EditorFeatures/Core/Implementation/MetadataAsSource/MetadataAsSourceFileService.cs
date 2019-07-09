@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         private string _rootTemporaryPathWithGuid;
         private readonly string _rootTemporaryPath;
 
+        [ImportingConstructor]
         public MetadataAsSourceFileService()
         {
             _rootTemporaryPath = Path.Combine(Path.GetTempPath(), "MetadataAsSource");

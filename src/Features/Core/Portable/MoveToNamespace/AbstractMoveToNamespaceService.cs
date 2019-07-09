@@ -3,15 +3,16 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
@@ -21,6 +22,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         Task<MoveToNamespaceAnalysisResult> AnalyzeTypeAtPositionAsync(Document document, int position, CancellationToken cancellationToken);
         Task<MoveToNamespaceResult> MoveToNamespaceAsync(MoveToNamespaceAnalysisResult analysisResult, string targetNamespace, CancellationToken cancellationToken);
         MoveToNamespaceOptionsResult GetChangeNamespaceOptions(Document document, string defaultNamespace, ImmutableArray<string> namespaces);
+        IMoveToNamespaceOptionsService OptionsService { get; }
     }
 
     internal abstract class AbstractMoveToNamespaceService<TNamespaceDeclarationSyntax, TNamedTypeDeclarationSyntax>
@@ -33,16 +35,28 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         protected abstract string GetNamespaceName(TNamedTypeDeclarationSyntax namedTypeSyntax);
         protected abstract bool IsContainedInNamespaceDeclaration(TNamespaceDeclarationSyntax namespaceSyntax, int position);
 
+        public IMoveToNamespaceOptionsService OptionsService { get; }
+
+        protected AbstractMoveToNamespaceService(IMoveToNamespaceOptionsService moveToNamespaceOptionsService)
+        {
+            OptionsService = moveToNamespaceOptionsService;
+        }
+
         public async Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(
             Document document,
             TextSpan span,
             CancellationToken cancellationToken)
         {
-            var typeAnalysisResult = await AnalyzeTypeAtPositionAsync(document, span.Start, cancellationToken).ConfigureAwait(false);
-
-            if (typeAnalysisResult.CanPerform)
+            // Code actions cannot be completed without the options needed
+            // to fill in missing information.
+            if (OptionsService != null)
             {
-                return ImmutableArray.Create(AbstractMoveToNamespaceCodeAction.Generate(this, typeAnalysisResult));
+                var typeAnalysisResult = await AnalyzeTypeAtPositionAsync(document, span.Start, cancellationToken).ConfigureAwait(false);
+
+                if (typeAnalysisResult.CanPerform)
+                {
+                    return ImmutableArray.Create(AbstractMoveToNamespaceCodeAction.Generate(this, typeAnalysisResult));
+                }
             }
 
             return ImmutableArray<AbstractMoveToNamespaceCodeAction>.Empty;
@@ -145,11 +159,20 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             string targetNamespace,
             CancellationToken cancellationToken)
         {
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var containerSymbol = (INamespaceSymbol)semanticModel.GetDeclaredSymbol(container);
+            var members = containerSymbol.GetMembers();
+            var newNameOriginalSymbolMapping = members
+                .ToImmutableDictionary(symbol => GetNewSymbolName(symbol, targetNamespace), symbol => (ISymbol)symbol);
+
             var changeNamespaceService = document.GetLanguageService<IChangeNamespaceService>();
             if (changeNamespaceService == null)
             {
                 return MoveToNamespaceResult.Failed;
             }
+
+            var originalSolution = document.Project.Solution;
+            var typeDeclarationsInContainer = container.DescendantNodes(syntaxNode => syntaxNode is TNamedTypeDeclarationSyntax).ToImmutableArray();
 
             var changedSolution = await changeNamespaceService.ChangeNamespaceAsync(
                 document,
@@ -157,7 +180,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 targetNamespace,
                 cancellationToken).ConfigureAwait(false);
 
-            return new MoveToNamespaceResult(changedSolution, document.Id);
+            return new MoveToNamespaceResult(originalSolution, changedSolution, document.Id, newNameOriginalSymbolMapping);
         }
 
         private static async Task<MoveToNamespaceResult> MoveTypeToNamespaceAsync(
@@ -198,7 +221,13 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private static SymbolDisplayFormat QualifiedNamespaceFormat = new SymbolDisplayFormat(
+        private static string GetNewSymbolName(ISymbol symbol, string targetNamespace)
+        {
+            Debug.Assert(symbol != null);
+            return targetNamespace + symbol.ToDisplayString().Substring(symbol.ContainingNamespace.ToDisplayString().Length);
+        }
+
+        private static readonly SymbolDisplayFormat QualifiedNamespaceFormat = new SymbolDisplayFormat(
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
@@ -220,14 +249,8 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             ImmutableArray<string> namespaces)
         {
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-            var moveToNamespaceOptionsService = document.Project.Solution.Workspace.Services.GetService<IMoveToNamespaceOptionsService>();
 
-            if (moveToNamespaceOptionsService == null)
-            {
-                return MoveToNamespaceOptionsResult.Cancelled;
-            }
-
-            return moveToNamespaceOptionsService.GetChangeNamespaceOptions(
+            return OptionsService.GetChangeNamespaceOptions(
                 defaultNamespace,
                 namespaces,
                 syntaxFactsService);

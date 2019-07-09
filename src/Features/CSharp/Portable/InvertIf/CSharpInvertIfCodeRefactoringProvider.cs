@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertIf), Shared]
     internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCodeRefactoringProvider<IfStatementSyntax, StatementSyntax, StatementSyntax>
     {
+        [ImportingConstructor]
+        public CSharpInvertIfCodeRefactoringProvider()
+        {
+        }
+
         protected override string GetTitle()
             => CSharpFeaturesResources.Invert_if;
 
@@ -241,13 +246,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
                 return false;
             }
 
-            return isSingleStatement(statementRange.FirstStatement);
+            return IsSingleStatement(statementRange.FirstStatement);
 
-            bool isSingleStatement(StatementSyntax statement)
+            static bool IsSingleStatement(StatementSyntax statement)
             {
                 if (statement is BlockSyntax block)
                 {
-                    return block.Statements.Count == 1 && isSingleStatement(block.Statements[0]);
+                    return block.Statements.Count == 1 && IsSingleStatement(block.Statements[0]);
                 }
 
                 return true;

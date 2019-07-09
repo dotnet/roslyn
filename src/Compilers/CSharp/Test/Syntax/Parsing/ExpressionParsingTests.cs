@@ -4136,7 +4136,7 @@ select t";
         public void RangeExpression_Binary_WithAHigherPrecedenceOperator()
         {
             UsingExpression("1+2..3-4");
-            N(SyntaxKind.RangeExpression);
+            N(SyntaxKind.SubtractExpression);
             {
                 N(SyntaxKind.AddExpression);
                 {
@@ -4145,23 +4145,301 @@ select t";
                         N(SyntaxKind.NumericLiteralToken, "1");
                     }
                     N(SyntaxKind.PlusToken);
-                    N(SyntaxKind.NumericLiteralExpression);
+                    N(SyntaxKind.RangeExpression);
                     {
-                        N(SyntaxKind.NumericLiteralToken, "2");
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                        N(SyntaxKind.DotDotToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "3");
+                        }
                     }
                 }
-                N(SyntaxKind.DotDotToken);
-                N(SyntaxKind.SubtractExpression);
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.NumericLiteralExpression);
                 {
-                    N(SyntaxKind.NumericLiteralExpression);
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_UnaryBadLeft()
+        {
+            UsingExpression("a*..b");
+            N(SyntaxKind.MultiplyExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.AsteriskToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.DotDotToken);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.NumericLiteralToken, "3");
+                        N(SyntaxKind.IdentifierToken, "b");
                     }
-                    N(SyntaxKind.MinusToken);
-                    N(SyntaxKind.NumericLiteralExpression);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_BinaryLeftPlus()
+        {
+            UsingExpression("a + b..c");
+            N(SyntaxKind.AddExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.NumericLiteralToken, "4");
+                        N(SyntaxKind.IdentifierToken, "b");
                     }
+                    N(SyntaxKind.DotDotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_UnaryLeftPlus()
+        {
+            UsingExpression("a + b..");
+            N(SyntaxKind.AddExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.DotDotToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_UnaryRightMult()
+        {
+            UsingExpression("a.. && b");
+            N(SyntaxKind.LogicalAndExpression);
+            {
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.DotDotToken);
+                }
+                N(SyntaxKind.AmpersandAmpersandToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_UnaryRightMult2()
+        {
+            UsingExpression("..a && b");
+            N(SyntaxKind.LogicalAndExpression);
+            {
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.DotDotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                }
+                N(SyntaxKind.AmpersandAmpersandToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Ambiguity1()
+        {
+            UsingExpression(".. ..");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.DotDotToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Ambiguity2()
+        {
+            UsingExpression(".. .. e");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.DotDotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36514")]
+        public void RangeExpression_Ambiguity3()
+        {
+            UsingExpression(".. e ..");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.DotDotToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Ambiguity4()
+        {
+            UsingExpression("a .. .. b");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.DotDotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36514")]
+        public void RangeExpression_Ambiguity5()
+        {
+            UsingExpression("a .. b ..");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.DotDotToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36514")]
+        public void RangeExpression_Ambiguity6()
+        {
+            UsingExpression("a .. b .. c");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.DotDotToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(36122, "https://github.com/dotnet/roslyn/issues/36122")]
+        public void RangeExpression_NotCast()
+        {
+            UsingExpression("(Offset)..(Offset + Count)");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Offset");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.AddExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Offset");
+                        }
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Count");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
                 }
             }
             EOF();
@@ -4388,145 +4666,6 @@ select t";
             N(SyntaxKind.BaseExpression);
             {
                 N(SyntaxKind.BaseKeyword);
-            }
-            EOF();
-        }
-
-        [Fact]
-        public void BaseExpression_02()
-        {
-            UsingExpression("base(",
-                // (1,6): error CS1031: Type expected
-                // base(
-                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 6),
-                // (1,6): error CS1026: ) expected
-                // base(
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 6)
-                );
-            N(SyntaxKind.BaseExpression);
-            {
-                N(SyntaxKind.BaseKeyword);
-                N(SyntaxKind.BaseExpressionTypeClause);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    M(SyntaxKind.IdentifierName);
-                    {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CloseParenToken);
-                }
-            }
-            EOF();
-        }
-
-        [Fact]
-        public void BaseExpression_03()
-        {
-            UsingExpression("base()",
-                // (1,6): error CS1031: Type expected
-                // base()
-                Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(1, 6)
-                );
-            N(SyntaxKind.BaseExpression);
-            {
-                N(SyntaxKind.BaseKeyword);
-                N(SyntaxKind.BaseExpressionTypeClause);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    M(SyntaxKind.IdentifierName);
-                    {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    N(SyntaxKind.CloseParenToken);
-                }
-            }
-            EOF();
-        }
-
-        [Fact]
-        public void BaseExpression_04()
-        {
-            UsingExpression("base(SomeType",
-                // (1,14): error CS1026: ) expected
-                // base(SomeType
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 14)
-                );
-            N(SyntaxKind.BaseExpression);
-            {
-                N(SyntaxKind.BaseKeyword);
-                N(SyntaxKind.BaseExpressionTypeClause);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "SomeType");
-                    }
-                    M(SyntaxKind.CloseParenToken);
-                }
-            }
-            EOF();
-        }
-
-        [Fact]
-        public void BaseExpression_05()
-        {
-            UsingExpression("base(SomeType)");
-            N(SyntaxKind.BaseExpression);
-            {
-                N(SyntaxKind.BaseKeyword);
-                N(SyntaxKind.BaseExpressionTypeClause);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "SomeType");
-                    }
-                    N(SyntaxKind.CloseParenToken);
-                }
-            }
-            EOF();
-        }
-
-        [Fact]
-        public void BaseExpression_06()
-        {
-            UsingExpression("base(object)");
-            N(SyntaxKind.BaseExpression);
-            {
-                N(SyntaxKind.BaseKeyword);
-                N(SyntaxKind.BaseExpressionTypeClause);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.ObjectKeyword);
-                    }
-                    N(SyntaxKind.CloseParenToken);
-                }
-            }
-            EOF();
-        }
-
-        [Fact]
-        public void BaseExpression_07()
-        {
-            UsingExpression("base(SomeType)", TestOptions.Regular7_3,
-                // (1,5): error CS8652: The feature 'specifying base type in base expression' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // base(SomeType)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(").WithArguments("specifying base type in base expression").WithLocation(1, 5)
-                );
-            N(SyntaxKind.BaseExpression);
-            {
-                N(SyntaxKind.BaseKeyword);
-                N(SyntaxKind.BaseExpressionTypeClause);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "SomeType");
-                    }
-                    N(SyntaxKind.CloseParenToken);
-                }
             }
             EOF();
         }

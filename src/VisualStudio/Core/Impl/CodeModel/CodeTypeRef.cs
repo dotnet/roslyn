@@ -45,9 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal ITypeSymbol LookupTypeSymbol()
         {
-            var typeSymbol = CodeModelService.ResolveSymbol(this.State.Workspace, _projectId, _symbolId) as ITypeSymbol;
-
-            if (typeSymbol == null)
+            if (!(CodeModelService.ResolveSymbol(this.State.Workspace, _projectId, _symbolId) is ITypeSymbol typeSymbol))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -112,9 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             get
             {
-                var namedTypeSymbol = LookupTypeSymbol() as INamedTypeSymbol;
-
-                return namedTypeSymbol != null
+                return LookupTypeSymbol() is INamedTypeSymbol namedTypeSymbol
                     && namedTypeSymbol.GetAllTypeArguments().Any();
             }
         }

@@ -2125,12 +2125,6 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (4,16): error CS0073: An add or remove accessor must have a body
-                //     int P1 {add; remove;} => 0;
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(4, 16),
-                // (4,24): error CS0073: An add or remove accessor must have a body
-                //     int P1 {add; remove;} => 0;
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(4, 24),
                 // (4,13): error CS1014: A get or set accessor expected
                 //     int P1 {add; remove;} => 0;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "add").WithLocation(4, 13),
@@ -2196,21 +2190,15 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
-                // (4,16): error CS0073: An add or remove accessor must have a body
-                //     int P1 {add; remove;} = 0;
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(4, 16),
-                // (4,24): error CS0073: An add or remove accessor must have a body
-                //     int P1 {add; remove;} = 0;
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(4, 24),
                 // (4,13): error CS1014: A get or set accessor expected
                 //     int P1 {add; remove;} = 0;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "add").WithLocation(4, 13),
                 // (4,18): error CS1014: A get or set accessor expected
                 //     int P1 {add; remove;} = 0;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "remove").WithLocation(4, 18),
-                // (4,9): error CS8052: Instance auto-implemented properties inside interfaces cannot have initializers.
+                // (4,9): error CS8050: Only auto-implemented properties can have initializers.
                 //     int P1 {add; remove;} = 0;
-                Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P1").WithArguments("I1.P1").WithLocation(4, 9),
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I1.P1").WithLocation(4, 9),
                 // (4,9): error CS0548: 'I1.P1': property or indexer must have at least one accessor
                 //     int P1 {add; remove;} = 0;
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 9)
@@ -2239,9 +2227,9 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
-                // (4,9): error CS8052: Instance auto-implemented properties inside interfaces cannot have initializers.
+                // (4,9): error CS8050: Only auto-implemented properties can have initializers.
                 //     int P1 {get; set;} = 0;
-                Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P1").WithArguments("I1.P1").WithLocation(4, 9)
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I1.P1").WithLocation(4, 9)
                 );
 
             var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
@@ -3500,12 +3488,6 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (4,25): error CS0073: An add or remove accessor must have a body
-                //     int this[int i] {add; remove;} => 0;
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(4, 25),
-                // (4,33): error CS0073: An add or remove accessor must have a body
-                //     int this[int i] {add; remove;} => 0;
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(4, 33),
                 // (4,22): error CS1014: A get or set accessor expected
                 //     int this[int i] {add; remove;} => 0;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "add").WithLocation(4, 22),
@@ -3571,12 +3553,6 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (4,25): error CS0073: An add or remove accessor must have a body
-                //     int this[int i] {add; remove;} = 0;
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(4, 25),
-                // (4,33): error CS0073: An add or remove accessor must have a body
-                //     int this[int i] {add; remove;} = 0;
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(4, 33),
                 // (4,36): error CS1519: Invalid token '=' in class, struct, or interface member declaration
                 //     int this[int i] {add; remove;} = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(4, 36),
@@ -8134,15 +8110,18 @@ class Test2 : I1
                 // (11,25): error CS0238: 'I1.M3()' cannot be sealed because it is not an override
                 //     virtual sealed void M3() 
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, "M3").WithArguments("I1.M3()").WithLocation(11, 25),
-                // (26,15): error CS0535: 'Test2' does not implement interface member 'I1.M2()'
-                // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.M2()").WithLocation(26, 15),
                 // (23,13): error CS0539: 'Test1.M4()' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     void I1.M4() {}
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M4").WithArguments("Test1.M4()").WithLocation(23, 13),
                 // (20,13): error CS0539: 'Test1.M1()' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     void I1.M1() {}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("Test1.M1()").WithLocation(20, 13)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("Test1.M1()").WithLocation(20, 13),
+                // (21,13): error CS0539: 'Test1.M2()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I1.M2() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("Test1.M2()").WithLocation(21, 13),
+                // (22,13): error CS0539: 'Test1.M3()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I1.M3() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M3").WithArguments("Test1.M3()").WithLocation(22, 13)
                 );
 
             var test1 = compilation1.GetTypeByMetadataName("Test1");
@@ -8173,7 +8152,7 @@ class Test2 : I1
             Assert.False(m2.IsAsync);
             Assert.False(m2.IsOverride);
             Assert.Equal(Accessibility.Public, m2.DeclaredAccessibility);
-            Assert.Same(test1.GetMember("I1.M2"), test1.FindImplementationForInterfaceMember(m2));
+            Assert.Null(test1.FindImplementationForInterfaceMember(m2));
             Assert.Null(test2.FindImplementationForInterfaceMember(m2));
 
             var m3 = i1.GetMember<MethodSymbol>("M3");
@@ -8187,8 +8166,8 @@ class Test2 : I1
             Assert.False(m3.IsAsync);
             Assert.False(m3.IsOverride);
             Assert.Equal(Accessibility.Public, m3.DeclaredAccessibility);
-            Assert.Same(test1.GetMember("I1.M3"), test1.FindImplementationForInterfaceMember(m3));
-            Assert.Same(m3, test2.FindImplementationForInterfaceMember(m3));
+            Assert.Null(test1.FindImplementationForInterfaceMember(m3));
+            Assert.Null(test2.FindImplementationForInterfaceMember(m3));
 
             var m4 = i1.GetMember<MethodSymbol>("M4");
 
@@ -9515,9 +9494,9 @@ public partial interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
             compilation1.VerifyDiagnostics(
-                // (5,25): error CS0761: Partial method declarations of 'I1.M1<T>()' have inconsistent type parameter constraints
+                // (5,25): error CS0761: Partial method declarations of 'I1.M1<T>()' have inconsistent constraints for type parameter 'T'
                 //     static partial void M1<T>() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("I1.M1<T>()").WithLocation(5, 25),
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("I1.M1<T>()", "T").WithLocation(5, 25),
                 // (8,25): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
                 //     static partial void M2(int[] x) {}
                 Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "M2").WithLocation(8, 25),
@@ -10035,7 +10014,8 @@ class Test1 : I1
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular);
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.StandardLatest);
 
                 compilation3.VerifyDiagnostics();
 
@@ -10095,7 +10075,8 @@ class Test1 : I1
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular);
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.StandardLatest);
 
                 compilation3.VerifyDiagnostics();
 
@@ -10155,7 +10136,8 @@ class Test1 : I1
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular);
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.StandardLatest);
 
                 compilation3.VerifyDiagnostics(
                     // (10,13): error CS0122: 'I1.M1()' is inaccessible due to its protection level
@@ -11601,9 +11583,9 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
-                // (4,24): error CS8052: Instance auto-implemented properties inside interfaces cannot have initializers.
+                // (4,24): error CS8050: Only auto-implemented properties can have initializers.
                 //     public virtual int P1 { get; } = 0; 
-                Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P1").WithArguments("I1.P1").WithLocation(4, 24),
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I1.P1").WithLocation(4, 24),
                 // (4,29): error CS0501: 'I1.P1.get' must declare a body because it is not marked abstract, extern, or partial
                 //     public virtual int P1 { get; } = 0; 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P1.get").WithLocation(4, 29)
@@ -12412,9 +12394,9 @@ class Test1 : I1
                 // (8,24): error CS0238: 'I1.P3' cannot be sealed because it is not an override
                 //     sealed private int P3 
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, "P3").WithArguments("I1.P3").WithLocation(8, 24),
-                // (14,17): error CS8052: Instance auto-implemented properties inside interfaces cannot have initializers.
+                // (14,17): error CS8050: Only auto-implemented properties can have initializers.
                 //     private int P4 {get;} = 0;
-                Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P4").WithArguments("I1.P4").WithLocation(14, 17),
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P4").WithArguments("I1.P4").WithLocation(14, 17),
                 // (14,21): error CS0501: 'I1.P4.get' must declare a body because it is not marked abstract, extern, or partial
                 //     private int P4 {get;} = 0;
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P4.get").WithLocation(14, 21),
@@ -13777,9 +13759,9 @@ class Test2 : I1, I2, I3
 {}
 ";
             ValidatePropertyModifiers_14(source1,
-                // (4,23): error CS8052: Instance auto-implemented properties inside interfaces cannot have initializers.
+                // (4,23): error CS8050: Only auto-implemented properties can have initializers.
                 //     public sealed int P1 {get;} = 0; 
-                Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P1").WithArguments("I1.P1").WithLocation(4, 23),
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I1.P1").WithLocation(4, 23),
                 // (4,27): error CS0501: 'I1.P1.get' must declare a body because it is not marked abstract, extern, or partial
                 //     public sealed int P1 {get;} = 0; 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P1.get").WithLocation(4, 27),
@@ -13792,9 +13774,12 @@ class Test2 : I1, I2, I3
                 // (20,12): error CS0539: 'Test1.P1' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     int I1.P1 { get => throw null; }
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("Test1.P1").WithLocation(20, 12),
-                // (25,19): error CS0535: 'Test2' does not implement interface member 'I2.P2'
-                // class Test2 : I1, I2, I3
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test2", "I2.P2").WithLocation(25, 19)
+                // (21,12): error CS0539: 'Test1.P2' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     int I2.P2 { get => throw null; }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P2").WithArguments("Test1.P2").WithLocation(21, 12),
+                // (22,12): error CS0539: 'Test1.P3' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     int I3.P3 { set => throw null; }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P3").WithArguments("Test1.P3").WithLocation(22, 12)
                 );
         }
 
@@ -13844,7 +13829,7 @@ class Test2 : I1, I2, I3
             Assert.False(p2.IsExtern);
             Assert.False(p2.IsOverride);
             Assert.Equal(Accessibility.Public, p2.DeclaredAccessibility);
-            Assert.Same(test1P2, test1.FindImplementationForInterfaceMember(p2));
+            Assert.Null(test1.FindImplementationForInterfaceMember(p2));
             Assert.Null(test2.FindImplementationForInterfaceMember(p2));
 
             Assert.True(p2get.IsAbstract);
@@ -13856,7 +13841,7 @@ class Test2 : I1, I2, I3
             Assert.False(p2get.IsAsync);
             Assert.False(p2get.IsOverride);
             Assert.Equal(Accessibility.Public, p2get.DeclaredAccessibility);
-            Assert.Same(test1P2.GetMethod, test1.FindImplementationForInterfaceMember(p2get));
+            Assert.Null(test1.FindImplementationForInterfaceMember(p2get));
             Assert.Null(test2.FindImplementationForInterfaceMember(p2get));
 
             var p3 = GetSingleProperty(compilation1, "I3");
@@ -13870,8 +13855,8 @@ class Test2 : I1, I2, I3
             Assert.False(p3.IsExtern);
             Assert.False(p3.IsOverride);
             Assert.Equal(Accessibility.Public, p3.DeclaredAccessibility);
-            Assert.Same(test1P3, test1.FindImplementationForInterfaceMember(p3));
-            Assert.Same(p3, test2.FindImplementationForInterfaceMember(p3));
+            Assert.Null(test1.FindImplementationForInterfaceMember(p3));
+            Assert.Null(test2.FindImplementationForInterfaceMember(p3));
 
             Assert.False(p3set.IsAbstract);
             Assert.True(p3set.IsVirtual);
@@ -13882,8 +13867,8 @@ class Test2 : I1, I2, I3
             Assert.False(p3set.IsAsync);
             Assert.False(p3set.IsOverride);
             Assert.Equal(Accessibility.Public, p3set.DeclaredAccessibility);
-            Assert.Same(test1P3.SetMethod, test1.FindImplementationForInterfaceMember(p3set));
-            Assert.Same(p3set, test2.FindImplementationForInterfaceMember(p3set));
+            Assert.Null(test1.FindImplementationForInterfaceMember(p3set));
+            Assert.Null(test2.FindImplementationForInterfaceMember(p3set));
         }
 
         [Fact]
@@ -14037,9 +14022,9 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
                 // (44,26): error CS0503: The abstract property 'I8.P8' cannot be marked virtual
                 //     abstract virtual int P8 {get;} = 0;
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P8").WithArguments("property", "I8.P8").WithLocation(44, 26),
-                // (44,26): error CS8052: Instance auto-implemented properties inside interfaces cannot have initializers.
+                // (44,26): error CS8050: Only auto-implemented properties can have initializers.
                 //     abstract virtual int P8 {get;} = 0;
-                Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P8").WithArguments("I8.P8").WithLocation(44, 26),
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P8").WithArguments("I8.P8").WithLocation(44, 26),
                 // (90,15): error CS0535: 'Test2' does not implement interface member 'I0.P0'
                 // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0").WithArguments("Test2", "I0.P0").WithLocation(90, 15),
@@ -14485,9 +14470,9 @@ class Test2 : I1, I2, I3, I4, I5
                 // (16,47): error CS0179: 'I4.P4.set' cannot be extern and declare a body
                 //     private extern int P4 { get {throw null;} set {throw null;}}
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "set").WithArguments("I4.P4.set").WithLocation(16, 47),
-                // (20,23): error CS8052: Instance auto-implemented properties inside interfaces cannot have initializers.
+                // (20,23): error CS8050: Only auto-implemented properties can have initializers.
                 //     extern sealed int P5 {get;} = 0;
-                Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P5").WithArguments("I5.P5").WithLocation(20, 23),
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P5").WithArguments("I5.P5").WithLocation(20, 23),
                 // (23,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I1, I2, I3, I4, I5
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.P1").WithLocation(23, 15),
@@ -14717,9 +14702,9 @@ class Test2 : I1, I2, I3, I4, I5
                 // (20,25): error CS0106: The modifier 'override' is not valid for this item
                 //     override sealed int P5 {get;} = 0;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P5").WithArguments("override").WithLocation(20, 25),
-                // (20,25): error CS8052: Instance auto-implemented properties inside interfaces cannot have initializers.
+                // (20,25): error CS8050: Only auto-implemented properties can have initializers.
                 //     override sealed int P5 {get;} = 0;
-                Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P5").WithArguments("I5.P5").WithLocation(20, 25),
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P5").WithArguments("I5.P5").WithLocation(20, 25),
                 // (20,29): error CS0501: 'I5.P5.get' must declare a body because it is not marked abstract, extern, or partial
                 //     override sealed int P5 {get;} = 0;
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I5.P5.get").WithLocation(20, 29),
@@ -20699,9 +20684,12 @@ class Test2 : I1, I2, I3
                 // (20,12): error CS0539: 'Test1.this[int]' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     int I1.this[int x] { get => throw null; }
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "this").WithArguments("Test1.this[int]").WithLocation(20, 12),
-                // (25,19): error CS0535: 'Test2' does not implement interface member 'I2.this[int]'
-                // class Test2 : I1, I2, I3
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test2", "I2.this[int]")
+                // (21,12): error CS0539: 'Test1.this[int]' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     int I2.this[int x] { get => throw null; }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "this").WithArguments("Test1.this[int]").WithLocation(21, 12),
+                // (22,12): error CS0539: 'Test1.this[int]' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     int I3.this[int x] { set => throw null; }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "this").WithArguments("Test1.this[int]").WithLocation(22, 12)
                 );
         }
 
@@ -23380,9 +23368,9 @@ public interface I1
                 // (12,34): error CS0106: The modifier 'override' is not valid for this item
                 //     override event System.Action P09 {remove{}}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P09").WithArguments("override").WithLocation(12, 34),
-                // (13,39): error CS0500: 'I1.P10.add' cannot declare a body because it is marked abstract
+                // (13,38): error CS8712: 'I1.P10': abstract event cannot use event accessor syntax
                 //     abstract event System.Action P10 {add{}}
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I1.P10.add").WithLocation(13, 39),
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.P10").WithLocation(13, 38),
                 // (14,37): error CS0179: 'I1.P11.add' cannot be extern and declare a body
                 //     extern event System.Action P11 {add{} remove{}}
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("I1.P11.add").WithLocation(14, 37),
@@ -23747,9 +23735,9 @@ public interface I1
                 // (13,39): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     abstract event System.Action P10 {add{}}
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(13, 39),
-                // (13,39): error CS0500: 'I1.P10.add' cannot declare a body because it is marked abstract
+                // (13,38): error CS8712: 'I1.P10': abstract event cannot use event accessor syntax
                 //     abstract event System.Action P10 {add{}}
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I1.P10.add").WithLocation(13, 39),
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.P10").WithLocation(13, 38),
                 // (14,37): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     extern event System.Action P11 {add{} remove{}}
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(14, 37),
@@ -23843,9 +23831,9 @@ public interface I1
                 // (13,39): error CS8701: Target runtime doesn't support default interface implementation.
                 //     abstract event System.Action P10 {add{}}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(13, 39),
-                // (13,39): error CS0500: 'I1.P10.add' cannot declare a body because it is marked abstract
+                // (13,38): error CS8712: 'I1.P10': abstract event cannot use event accessor syntax
                 //     abstract event System.Action P10 {add{}}
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I1.P10.add").WithLocation(13, 39),
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.P10").WithLocation(13, 38),
                 // (14,37): error CS8701: Target runtime doesn't support default interface implementation.
                 //     extern event System.Action P11 {add{} remove{}}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(14, 37),
@@ -26064,21 +26052,21 @@ class Test2 : I1, I2, I3
                 // (8,41): error CS0238: 'I2.P2' cannot be sealed because it is not an override
                 //     abstract sealed event System.Action P2 {add; remove;} 
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, "P2").WithArguments("I2.P2").WithLocation(8, 41),
-                // (8,48): error CS0073: An add or remove accessor must have a body
+                // (8,44): error CS8712: 'I2.P2': abstract event cannot use event accessor syntax
                 //     abstract sealed event System.Action P2 {add; remove;} 
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(8, 48),
-                // (8,56): error CS0073: An add or remove accessor must have a body
-                //     abstract sealed event System.Action P2 {add; remove;} 
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(8, 56),
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.P2").WithLocation(8, 44),
                 // (12,40): error CS0238: 'I3.P3' cannot be sealed because it is not an override
                 //     virtual sealed event System.Action P3 
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, "P3").WithArguments("I3.P3").WithLocation(12, 40),
                 // (21,28): error CS0539: 'Test1.P1' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     event System.Action I1.P1 { add => throw null; remove => throw null; }
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("Test1.P1").WithLocation(21, 28),
-                // (26,19): error CS0535: 'Test2' does not implement interface member 'I2.P2'
-                // class Test2 : I1, I2, I3
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test2", "I2.P2").WithLocation(26, 19),
+                // (22,28): error CS0539: 'Test1.P2' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     event System.Action I2.P2 { add => throw null; remove => throw null; }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P2").WithArguments("Test1.P2").WithLocation(22, 28),
+                // (23,28): error CS0539: 'Test1.P3' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     event System.Action I3.P3 { add => throw null; remove => throw null; }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P3").WithArguments("Test1.P3").WithLocation(23, 28),
                 // (4,39): warning CS0067: The event 'I1.P1' is never used
                 //     public sealed event System.Action P1 = null; 
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "P1").WithArguments("I1.P1").WithLocation(4, 39)
@@ -26134,12 +26122,12 @@ class Test2 : I1, I2, I3
             Assert.False(p2.IsExtern);
             Assert.False(p2.IsOverride);
             Assert.Equal(Accessibility.Public, p2.DeclaredAccessibility);
-            Assert.Same(test1P2, test1.FindImplementationForInterfaceMember(p2));
+            Assert.Null(test1.FindImplementationForInterfaceMember(p2));
             Assert.Null(test2.FindImplementationForInterfaceMember(p2));
 
-            Validate2(p2.AddMethod, test1P2.AddMethod);
-            Validate2(p2.RemoveMethod, test1P2.RemoveMethod);
-            void Validate2(MethodSymbol accessor, MethodSymbol implementation)
+            Validate2(p2.AddMethod);
+            Validate2(p2.RemoveMethod);
+            void Validate2(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -26150,7 +26138,7 @@ class Test2 : I1, I2, I3
                 Assert.False(accessor.IsAsync);
                 Assert.False(accessor.IsOverride);
                 Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
-                Assert.Same(implementation, test1.FindImplementationForInterfaceMember(accessor));
+                Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
                 Assert.Null(test2.FindImplementationForInterfaceMember(accessor));
             }
 
@@ -26164,12 +26152,12 @@ class Test2 : I1, I2, I3
             Assert.False(p3.IsExtern);
             Assert.False(p3.IsOverride);
             Assert.Equal(Accessibility.Public, p3.DeclaredAccessibility);
-            Assert.Same(test1P3, test1.FindImplementationForInterfaceMember(p3));
-            Assert.Same(p3, test2.FindImplementationForInterfaceMember(p3));
+            Assert.Null(test1.FindImplementationForInterfaceMember(p3));
+            Assert.Null(test2.FindImplementationForInterfaceMember(p3));
 
-            Validate3(p3.AddMethod, test1P3.AddMethod);
-            Validate3(p3.RemoveMethod, test1P3.RemoveMethod);
-            void Validate3(MethodSymbol accessor, MethodSymbol implementation)
+            Validate3(p3.AddMethod);
+            Validate3(p3.RemoveMethod);
+            void Validate3(MethodSymbol accessor)
             {
                 Assert.False(accessor.IsAbstract);
                 Assert.True(accessor.IsVirtual);
@@ -26180,8 +26168,8 @@ class Test2 : I1, I2, I3
                 Assert.False(accessor.IsAsync);
                 Assert.False(accessor.IsOverride);
                 Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
-                Assert.Same(implementation, test1.FindImplementationForInterfaceMember(accessor));
-                Assert.Same(accessor, test2.FindImplementationForInterfaceMember(accessor));
+                Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+                Assert.Null(test2.FindImplementationForInterfaceMember(accessor));
             }
         }
 
@@ -26285,78 +26273,54 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
                 // (4,42): error CS0503: The abstract event 'I0.P0' cannot be marked virtual
                 //     abstract virtual event System.Action P0;
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P0").WithArguments("event", "I0.P0").WithLocation(4, 42),
-                // (8,42): error CS0065: 'I1.P1': event property must have both add and remove accessors
-                //     abstract virtual event System.Action P1 { add { throw null; } }
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(8, 42),
                 // (8,42): error CS0503: The abstract event 'I1.P1' cannot be marked virtual
                 //     abstract virtual event System.Action P1 { add { throw null; } }
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P1").WithArguments("event", "I1.P1").WithLocation(8, 42),
-                // (8,47): error CS0500: 'I1.P1.add' cannot declare a body because it is marked abstract
+                // (8,45): error CS8712: 'I1.P1': abstract event cannot use event accessor syntax
                 //     abstract virtual event System.Action P1 { add { throw null; } }
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I1.P1.add").WithLocation(8, 47),
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.P1").WithLocation(8, 45),
                 // (12,42): error CS0503: The abstract event 'I2.P2' cannot be marked virtual
                 //     virtual abstract event System.Action P2 
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P2").WithArguments("event", "I2.P2").WithLocation(12, 42),
-                // (14,9): error CS0500: 'I2.P2.add' cannot declare a body because it is marked abstract
-                //         add { throw null; }
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I2.P2.add").WithLocation(14, 9),
-                // (15,9): error CS0500: 'I2.P2.remove' cannot declare a body because it is marked abstract
-                //         remove { throw null; }
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "remove").WithArguments("I2.P2.remove").WithLocation(15, 9),
-                // (20,42): error CS0065: 'I3.P3': event property must have both add and remove accessors
-                //     abstract virtual event System.Action P3 { remove { throw null; } }
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P3").WithArguments("I3.P3").WithLocation(20, 42),
+                // (13,5): error CS8712: 'I2.P2': abstract event cannot use event accessor syntax
+                //     {
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.P2").WithLocation(13, 5),
                 // (20,42): error CS0503: The abstract event 'I3.P3' cannot be marked virtual
                 //     abstract virtual event System.Action P3 { remove { throw null; } }
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P3").WithArguments("event", "I3.P3").WithLocation(20, 42),
-                // (20,47): error CS0500: 'I3.P3.remove' cannot declare a body because it is marked abstract
+                // (20,45): error CS8712: 'I3.P3': abstract event cannot use event accessor syntax
                 //     abstract virtual event System.Action P3 { remove { throw null; } }
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "remove").WithArguments("I3.P3.remove").WithLocation(20, 47),
-                // (24,42): error CS0065: 'I4.P4': event property must have both add and remove accessors
-                //     abstract virtual event System.Action P4 { add => throw null; }
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P4").WithArguments("I4.P4").WithLocation(24, 42),
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I3.P3").WithLocation(20, 45),
                 // (24,42): error CS0503: The abstract event 'I4.P4' cannot be marked virtual
                 //     abstract virtual event System.Action P4 { add => throw null; }
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P4").WithArguments("event", "I4.P4").WithLocation(24, 42),
-                // (24,47): error CS0500: 'I4.P4.add' cannot declare a body because it is marked abstract
+                // (24,45): error CS8712: 'I4.P4': abstract event cannot use event accessor syntax
                 //     abstract virtual event System.Action P4 { add => throw null; }
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I4.P4.add").WithLocation(24, 47),
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I4.P4").WithLocation(24, 45),
                 // (28,42): error CS0503: The abstract event 'I5.P5' cannot be marked virtual
                 //     abstract virtual event System.Action P5 
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P5").WithArguments("event", "I5.P5").WithLocation(28, 42),
-                // (30,9): error CS0500: 'I5.P5.add' cannot declare a body because it is marked abstract
-                //         add => throw null;
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I5.P5.add").WithLocation(30, 9),
-                // (31,9): error CS0500: 'I5.P5.remove' cannot declare a body because it is marked abstract
-                //         remove => throw null;
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "remove").WithArguments("I5.P5.remove").WithLocation(31, 9),
-                // (36,42): error CS0065: 'I6.P6': event property must have both add and remove accessors
-                //     abstract virtual event System.Action P6 { remove => throw null; }
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P6").WithArguments("I6.P6").WithLocation(36, 42),
+                // (29,5): error CS8712: 'I5.P5': abstract event cannot use event accessor syntax
+                //     {
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I5.P5").WithLocation(29, 5),
                 // (36,42): error CS0503: The abstract event 'I6.P6' cannot be marked virtual
                 //     abstract virtual event System.Action P6 { remove => throw null; }
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P6").WithArguments("event", "I6.P6").WithLocation(36, 42),
-                // (36,47): error CS0500: 'I6.P6.remove' cannot declare a body because it is marked abstract
+                // (36,45): error CS8712: 'I6.P6': abstract event cannot use event accessor syntax
                 //     abstract virtual event System.Action P6 { remove => throw null; }
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "remove").WithArguments("I6.P6.remove").WithLocation(36, 47),
-                // (40,42): error CS0065: 'I7.P7': event property must have both add and remove accessors
-                //     abstract virtual event System.Action P7 { add; }
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P7").WithArguments("I7.P7").WithLocation(40, 42),
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I6.P6").WithLocation(36, 45),
                 // (40,42): error CS0503: The abstract event 'I7.P7' cannot be marked virtual
                 //     abstract virtual event System.Action P7 { add; }
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P7").WithArguments("event", "I7.P7").WithLocation(40, 42),
-                // (40,50): error CS0073: An add or remove accessor must have a body
+                // (40,45): error CS8712: 'I7.P7': abstract event cannot use event accessor syntax
                 //     abstract virtual event System.Action P7 { add; }
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(40, 50),
-                // (44,42): error CS0065: 'I8.P8': event property must have both add and remove accessors
-                //     abstract virtual event System.Action P8 { remove; }
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P8").WithArguments("I8.P8").WithLocation(44, 42),
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I7.P7").WithLocation(40, 45),
                 // (44,42): error CS0503: The abstract event 'I8.P8' cannot be marked virtual
                 //     abstract virtual event System.Action P8 { remove; } 
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P8").WithArguments("event", "I8.P8").WithLocation(44, 42),
-                // (44,53): error CS0073: An add or remove accessor must have a body
+                // (44,45): error CS8712: 'I8.P8': abstract event cannot use event accessor syntax
                 //     abstract virtual event System.Action P8 { remove; } 
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(44, 53),
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I8.P8").WithLocation(44, 45),
                 // (54,28): error CS0065: 'Test1.I1.P1': event property must have both add and remove accessors
                 //     event System.Action I1.P1 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("Test1.I1.P1").WithLocation(54, 28),
@@ -27051,24 +27015,18 @@ class Test2 : I1, I2, I3, I4, I5
 }
 ";
             ValidateEventModifiers_18(source1,
-                // (4,38): error CS0500: 'I1.P1.add' cannot declare a body because it is marked abstract
+                // (4,37): error CS8712: 'I1.P1': abstract event cannot use event accessor syntax
                 //     abstract event System.Action P1 {add => throw null; remove => throw null;} 
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I1.P1.add").WithLocation(4, 38),
-                // (4,57): error CS0500: 'I1.P1.remove' cannot declare a body because it is marked abstract
-                //     abstract event System.Action P1 {add => throw null; remove => throw null;} 
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "remove").WithArguments("I1.P1.remove").WithLocation(4, 57),
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.P1").WithLocation(4, 37),
                 // (8,42): error CS0068: 'I2.P2': instance event in interface cannot have initializer
                 //     abstract private event System.Action P2 = null; 
                 Diagnostic(ErrorCode.ERR_InterfaceEventInitializer, "P2").WithArguments("I2.P2").WithLocation(8, 42),
                 // (8,42): error CS0621: 'I2.P2': virtual or abstract members cannot be private
                 //     abstract private event System.Action P2 = null; 
                 Diagnostic(ErrorCode.ERR_VirtualPrivate, "P2").WithArguments("I2.P2").WithLocation(8, 42),
-                // (16,46): error CS0500: 'I4.P4.add' cannot declare a body because it is marked abstract
+                // (16,44): error CS8712: 'I4.P4': abstract event cannot use event accessor syntax
                 //     abstract static event System.Action P4 { add {throw null;} remove {throw null;}}
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I4.P4.add").WithLocation(16, 46),
-                // (16,64): error CS0500: 'I4.P4.remove' cannot declare a body because it is marked abstract
-                //     abstract static event System.Action P4 { add {throw null;} remove {throw null;}}
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "remove").WithArguments("I4.P4.remove").WithLocation(16, 64),
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I4.P4").WithLocation(16, 44),
                 // (16,41): error CS0112: A static member 'I4.P4' cannot be marked as override, virtual, or abstract
                 //     abstract static event System.Action P4 { add {throw null;} remove {throw null;}}
                 Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P4").WithArguments("I4.P4").WithLocation(16, 41),
@@ -29105,6 +29063,11 @@ I4.M1
 
         private static void ValidateMethodImplementationInDerived_01(ModuleSymbol m)
         {
+            ValidateMethodImplementationInDerived_01(m, i4M1IsAbstract: false);
+        }
+
+        private static void ValidateMethodImplementationInDerived_01(ModuleSymbol m, bool i4M1IsAbstract)
+        {
             var test1 = m.GlobalNamespace.GetTypeMember("Test1");
             var i1 = test1.InterfacesNoUseSiteDiagnostics().Where(i => i.Name == "I1").Single();
             var i1i2m1 = i1.GetMember<MethodSymbol>("I2.M1");
@@ -29119,38 +29082,38 @@ I4.M1
             Assert.True(i1.IsMetadataAbstract);
 
             ValidateExplicitImplementation(i1i2m1);
-            ValidateExplicitImplementation(i1i4m1);
+            ValidateExplicitImplementation(i1i4m1, i4M1IsAbstract);
 
             Assert.Null(test1.FindImplementationForInterfaceMember(i1i2m1));
             Assert.Null(test1.FindImplementationForInterfaceMember(i1i4m1));
             Assert.Same(i1i2m1, test1.FindImplementationForInterfaceMember(i2m1));
-            Assert.Same(i1i4m1, test1.FindImplementationForInterfaceMember(i4m1));
+            Assert.Same(i4M1IsAbstract ? null : i1i4m1, test1.FindImplementationForInterfaceMember(i4m1));
 
             Assert.Null(i1.FindImplementationForInterfaceMember(i1i2m1));
             Assert.Null(i1.FindImplementationForInterfaceMember(i1i4m1));
             Assert.Same(i1i2m1, i1.FindImplementationForInterfaceMember(i2m1));
-            Assert.Same(i1i4m1, i1.FindImplementationForInterfaceMember(i4m1));
+            Assert.Same(i4M1IsAbstract ? null : i1i4m1, i1.FindImplementationForInterfaceMember(i4m1));
 
             Assert.Null(i2.FindImplementationForInterfaceMember(i2m1));
             Assert.Null(i4.FindImplementationForInterfaceMember(i4m1));
 
             Assert.Same(i1i2m1, i3.FindImplementationForInterfaceMember(i2m1));
-            Assert.Same(i1i4m1, i3.FindImplementationForInterfaceMember(i4m1));
+            Assert.Same(i4M1IsAbstract ? null : i1i4m1, i3.FindImplementationForInterfaceMember(i4m1));
         }
 
-        private static void ValidateExplicitImplementation(MethodSymbol m1)
+        private static void ValidateExplicitImplementation(MethodSymbol m1, bool isAbstract = false)
         {
             Assert.True(m1.IsMetadataVirtual());
             Assert.True(m1.IsMetadataFinal);
             Assert.False(m1.IsMetadataNewSlot());
-            Assert.False(m1.IsAbstract);
+            Assert.Equal(isAbstract, m1.IsAbstract);
             Assert.False(m1.IsVirtual);
-            Assert.False(m1.IsSealed);
+            Assert.Equal(isAbstract, m1.IsSealed);
             Assert.False(m1.IsStatic);
             Assert.False(m1.IsExtern);
             Assert.False(m1.IsAsync);
             Assert.False(m1.IsOverride);
-            Assert.Equal(Accessibility.Protected, m1.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
 
             if (m1.ContainingModule is PEModuleSymbol peModule)
             {
@@ -29500,15 +29463,18 @@ class Test1 : I1
                 // (14,28): error CS0106: The modifier 'private' is not valid for this item
                 //     private sealed void I2.M1() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private").WithLocation(14, 28),
-                // (18,32): error CS0106: The modifier 'abstract' is not valid for this item
-                //     protected abstract void I4.M1() 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("abstract").WithLocation(18, 32),
                 // (18,32): error CS0106: The modifier 'protected' is not valid for this item
                 //     protected abstract void I4.M1() 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected").WithLocation(18, 32)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected").WithLocation(18, 32),
+                // (18,32): error CS0500: 'I1.I4.M1()' cannot declare a body because it is marked abstract
+                //     protected abstract void I4.M1() 
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "M1").WithArguments("I1.I4.M1()").WithLocation(18, 32),
+                // (28,15): error CS0535: 'Test1' does not implement interface member 'I4.M1()'
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I4.M1()").WithLocation(28, 15)
                 );
 
-            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
+            ValidateMethodImplementationInDerived_01(compilation1.SourceModule, i4M1IsAbstract: true);
         }
 
         [Fact]
@@ -29703,7 +29669,7 @@ class Test1 : I1
             Assert.NotEqual(m1.OriginalDefinition is PEMethodSymbol, m1.IsExtern);
             Assert.False(m1.IsAsync);
             Assert.False(m1.IsOverride);
-            Assert.Equal(Accessibility.Protected, m1.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
 
             if (m1.ContainingModule is PEModuleSymbol peModule)
             {
@@ -29750,7 +29716,7 @@ class Test1 : I1
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest,
-                                                 references: new[] { TestReferences.NetStandard30.SystemThreadingTasksRef });
+                                                 references: new[] { TestReferences.NetCoreApp30.SystemThreadingTasksRef });
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -29793,7 +29759,7 @@ class Test1 : I1
                 Assert.False(m1.IsExtern);
                 Assert.NotEqual(m1 is PEMethodSymbol, m1.IsAsync);
                 Assert.False(m1.IsOverride);
-                Assert.Equal(Accessibility.Protected, m1.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
 
                 if (m1.ContainingModule is PEModuleSymbol peModule)
                 {
@@ -32020,6 +31986,49 @@ I4.M1
         }
 
         [Fact]
+        public void MethodImplementationInDerived_31()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1(); 
+    void M2(); 
+}
+
+public interface I2 : I1
+{
+    public virtual void M1()
+    {}
+    new public virtual void M2()
+    {}
+}
+
+public interface I3 : I1, I2
+{
+}
+
+class Test1 : I1, I2
+{}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (10,25): warning CS0108: 'I2.M1()' hides inherited member 'I1.M1()'. Use the new keyword if hiding was intended.
+                //     public virtual void M1()
+                Diagnostic(ErrorCode.WRN_NewRequired, "M1").WithArguments("I2.M1()", "I1.M1()").WithLocation(10, 25),
+                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.M2()'
+                // class Test1 : I1, I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.M2()").WithLocation(20, 15),
+                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
+                // class Test1 : I1, I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.M1()").WithLocation(20, 15)
+                );
+        }
+
+        [Fact]
         [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
         public void PropertyImplementationInDerived_01()
         {
@@ -32131,6 +32140,11 @@ I4.M1
 
         private static void ValidatePropertyImplementationInDerived_01(ModuleSymbol m)
         {
+            ValidatePropertyImplementationInDerived_01(m, i4M1IsAbstract: false);
+        }
+
+        private static void ValidatePropertyImplementationInDerived_01(ModuleSymbol m, bool i4M1IsAbstract)
+        {
             var test1 = m.GlobalNamespace.GetTypeMember("Test1");
             var i1 = test1.InterfacesNoUseSiteDiagnostics().Where(i => i.Name == "I1").Single();
             var i1i2m1 = i1.GetMembers().OfType<PropertySymbol>().Where(p => p.Name.StartsWith("I2.")).Single();
@@ -32145,24 +32159,24 @@ I4.M1
             Assert.True(i1.IsMetadataAbstract);
 
             ValidateExplicitImplementation(i1i2m1);
-            ValidateExplicitImplementation(i1i4m1);
+            ValidateExplicitImplementation(i1i4m1, i4M1IsAbstract);
 
             VerifyFindImplementationForInterfaceMemberSame(null, test1, i1i2m1);
             VerifyFindImplementationForInterfaceMemberSame(null, test1, i1i4m1);
 
             VerifyFindImplementationForInterfaceMemberSame(i1i2m1, test1, i2m1);
-            VerifyFindImplementationForInterfaceMemberSame(i1i4m1, test1, i4m1);
+            VerifyFindImplementationForInterfaceMemberSame(i4M1IsAbstract ? null : i1i4m1, test1, i4m1);
 
             VerifyFindImplementationForInterfaceMemberSame(null, i1, i1i2m1);
             VerifyFindImplementationForInterfaceMemberSame(null, i1, i1i4m1);
             VerifyFindImplementationForInterfaceMemberSame(i1i2m1, i1, i2m1);
-            VerifyFindImplementationForInterfaceMemberSame(i1i4m1, i1, i4m1);
+            VerifyFindImplementationForInterfaceMemberSame(i4M1IsAbstract ? null : i1i4m1, i1, i4m1);
 
             VerifyFindImplementationForInterfaceMemberSame(i2m1.IsAbstract ? null : i2m1, i2, i2m1);
             VerifyFindImplementationForInterfaceMemberSame(i4m1.IsAbstract ? null : i4m1, i4, i4m1);
 
             VerifyFindImplementationForInterfaceMemberSame(i1i2m1, i3, i2m1);
-            VerifyFindImplementationForInterfaceMemberSame(i1i4m1, i3, i4m1);
+            VerifyFindImplementationForInterfaceMemberSame(i4M1IsAbstract ? null : i1i4m1, i3, i4m1);
         }
 
         private static void VerifyFindImplementationForInterfaceMemberSame(PropertySymbol expected, NamedTypeSymbol implementingType, PropertySymbol interfaceProperty)
@@ -32203,24 +32217,24 @@ I4.M1
             }
         }
 
-        private static void ValidateExplicitImplementation(PropertySymbol m1)
+        private static void ValidateExplicitImplementation(PropertySymbol m1, bool isAbstract = false)
         {
-            Assert.False(m1.IsAbstract);
+            Assert.Equal(isAbstract, m1.IsAbstract);
             Assert.False(m1.IsVirtual);
-            Assert.False(m1.IsSealed);
+            Assert.Equal(isAbstract, m1.IsSealed);
             Assert.False(m1.IsStatic);
             Assert.False(m1.IsExtern);
             Assert.False(m1.IsOverride);
-            Assert.Equal(Accessibility.Protected, m1.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
 
-            ValidateAccessor(m1.GetMethod);
-            ValidateAccessor(m1.SetMethod);
+            ValidateAccessor(m1.GetMethod, isAbstract);
+            ValidateAccessor(m1.SetMethod, isAbstract);
 
-            void ValidateAccessor(MethodSymbol accessor)
+            static void ValidateAccessor(MethodSymbol accessor, bool isAbstract)
             {
                 if ((object)accessor != null)
                 {
-                    ValidateExplicitImplementation(accessor);
+                    ValidateExplicitImplementation(accessor, isAbstract);
                 }
             }
         }
@@ -32458,13 +32472,18 @@ class Test1 : I1
 
         private void ValidatePropertyImplementationInDerived_04(string source1, params DiagnosticDescription[] expected)
         {
+            ValidatePropertyImplementationInDerived_04(source1, i4M1IsAbstract: false, expected);
+        }
+
+        private void ValidatePropertyImplementationInDerived_04(string source1, bool i4M1IsAbstract, params DiagnosticDescription[] expected)
+        {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
-            ValidatePropertyImplementationInDerived_01(compilation1.SourceModule);
+            ValidatePropertyImplementationInDerived_01(compilation1.SourceModule, i4M1IsAbstract);
         }
 
         [Fact]
@@ -32604,7 +32623,7 @@ class Test1 : I1
 {}
 ";
 
-            ValidatePropertyImplementationInDerived_04(source1,
+            ValidatePropertyImplementationInDerived_04(source1, i4M1IsAbstract: true,
                 // (14,27): error CS0106: The modifier 'sealed' is not valid for this item
                 //     private sealed int I2.M1 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("sealed").WithLocation(14, 27),
@@ -32614,15 +32633,21 @@ class Test1 : I1
                 // (16,17): error CS0106: The modifier 'private' is not valid for this item
                 //         private get => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("private").WithLocation(16, 17),
-                // (19,31): error CS0106: The modifier 'abstract' is not valid for this item
-                //     protected abstract int I4.M1
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("abstract").WithLocation(19, 31),
                 // (19,31): error CS0106: The modifier 'protected' is not valid for this item
                 //     protected abstract int I4.M1
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected").WithLocation(19, 31),
+                // (21,9): error CS0500: 'I1.I4.M1.get' cannot declare a body because it is marked abstract
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.I4.M1.get").WithLocation(21, 9),
                 // (22,19): error CS0106: The modifier 'protected' is not valid for this item
                 //         protected set => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("protected").WithLocation(22, 19)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("protected").WithLocation(22, 19),
+                // (22,19): error CS0500: 'I1.I4.M1.set' cannot declare a body because it is marked abstract
+                //         protected set => throw null;
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I1.I4.M1.set").WithLocation(22, 19),
+                // (30,15): error CS0535: 'Test1' does not implement interface member 'I4.M1'
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I4.M1").WithLocation(30, 15)
                 );
         }
 
@@ -32829,7 +32854,7 @@ class Test1 : I1
             Assert.False(m1.IsStatic);
             Assert.NotEqual(m1.OriginalDefinition is PEPropertySymbol, m1.IsExtern);
             Assert.False(m1.IsOverride);
-            Assert.Equal(Accessibility.Protected, m1.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
 
             ValidateAccessor(m1.GetMethod);
             ValidateAccessor(m1.SetMethod);
@@ -32922,9 +32947,9 @@ class Test2 : I4
                 // (43,21): error CS0501: 'I4.I3.M3.set' must declare a body because it is not marked abstract, extern, or partial
                 //     int I3.M3 {get; set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I4.I3.M3.set").WithLocation(43, 21),
-                // (44,12): error CS8052: Instance auto-implemented properties inside interfaces cannot have initializers.
+                // (44,12): error CS8050: Only auto-implemented properties can have initializers.
                 //     int I3.M4 {get; set;} = 0;
-                Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "M4").WithArguments("I4.I3.M4").WithLocation(44, 12),
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "M4").WithArguments("I4.I3.M4").WithLocation(44, 12),
                 // (44,16): error CS0501: 'I4.I3.M4.get' must declare a body because it is not marked abstract, extern, or partial
                 //     int I3.M4 {get; set;} = 0;
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I4.I3.M4.get").WithLocation(44, 16),
@@ -34346,6 +34371,11 @@ I4.M1.remove
 
         private static void ValidateEventImplementationInDerived_01(ModuleSymbol m)
         {
+            ValidateEventImplementationInDerived_01(m, i4M1IsAbstract: false);
+        }
+
+        private static void ValidateEventImplementationInDerived_01(ModuleSymbol m, bool i4M1IsAbstract)
+        {
             var test1 = m.GlobalNamespace.GetTypeMember("Test1");
             var i1 = test1.InterfacesNoUseSiteDiagnostics().Where(i => i.Name == "I1").Single();
             var i1i2m1 = i1.GetMembers().OfType<EventSymbol>().Where(p => p.Name.StartsWith("I2.")).Single();
@@ -34360,24 +34390,24 @@ I4.M1.remove
             Assert.True(i1.IsMetadataAbstract);
 
             ValidateExplicitImplementation(i1i2m1);
-            ValidateExplicitImplementation(i1i4m1);
+            ValidateExplicitImplementation(i1i4m1, i4M1IsAbstract);
 
             VerifyFindImplementationForInterfaceMemberSame(null, test1, i1i2m1);
             VerifyFindImplementationForInterfaceMemberSame(null, test1, i1i4m1);
 
             VerifyFindImplementationForInterfaceMemberSame(i1i2m1, test1, i2m1);
-            VerifyFindImplementationForInterfaceMemberSame(i1i4m1, test1, i4m1);
+            VerifyFindImplementationForInterfaceMemberSame(i4M1IsAbstract ? null : i1i4m1, test1, i4m1);
 
             VerifyFindImplementationForInterfaceMemberSame(null, i1, i1i2m1);
             VerifyFindImplementationForInterfaceMemberSame(null, i1, i1i4m1);
             VerifyFindImplementationForInterfaceMemberSame(i1i2m1, i1, i2m1);
-            VerifyFindImplementationForInterfaceMemberSame(i1i4m1, i1, i4m1);
+            VerifyFindImplementationForInterfaceMemberSame(i4M1IsAbstract ? null : i1i4m1, i1, i4m1);
 
             VerifyFindImplementationForInterfaceMemberSame(null, i2, i2m1);
             VerifyFindImplementationForInterfaceMemberSame(null, i4, i4m1);
 
             VerifyFindImplementationForInterfaceMemberSame(i1i2m1, i3, i2m1);
-            VerifyFindImplementationForInterfaceMemberSame(i1i4m1, i3, i4m1);
+            VerifyFindImplementationForInterfaceMemberSame(i4M1IsAbstract ? null : i1i4m1, i3, i4m1);
         }
 
         private static void VerifyFindImplementationForInterfaceMemberSame(EventSymbol expected, NamedTypeSymbol implementingType, EventSymbol interfaceEvent)
@@ -34418,24 +34448,24 @@ I4.M1.remove
             }
         }
 
-        private static void ValidateExplicitImplementation(EventSymbol m1)
+        private static void ValidateExplicitImplementation(EventSymbol m1, bool isAbstract = false)
         {
-            Assert.False(m1.IsAbstract);
+            Assert.Equal(isAbstract, m1.IsAbstract);
             Assert.False(m1.IsVirtual);
-            Assert.False(m1.IsSealed);
+            Assert.Equal(isAbstract, m1.IsSealed);
             Assert.False(m1.IsStatic);
             Assert.False(m1.IsExtern);
             Assert.False(m1.IsOverride);
-            Assert.Equal(Accessibility.Protected, m1.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
 
-            ValidateAccessor(m1.AddMethod);
-            ValidateAccessor(m1.RemoveMethod);
+            ValidateAccessor(m1.AddMethod, isAbstract);
+            ValidateAccessor(m1.RemoveMethod, isAbstract);
 
-            void ValidateAccessor(MethodSymbol accessor)
+            static void ValidateAccessor(MethodSymbol accessor, bool isAbstract)
             {
                 if ((object)accessor != null)
                 {
-                    ValidateExplicitImplementation(accessor);
+                    ValidateExplicitImplementation(accessor, isAbstract);
                 }
             }
         }
@@ -34814,15 +34844,18 @@ class Test1 : I1
                 // (14,43): error CS0106: The modifier 'private' is not valid for this item
                 //     private sealed event System.Action I2.M1 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private").WithLocation(14, 43),
-                // (19,47): error CS0106: The modifier 'abstract' is not valid for this item
-                //     protected abstract event System.Action I4.M1
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("abstract").WithLocation(19, 47),
                 // (19,47): error CS0106: The modifier 'protected' is not valid for this item
                 //     protected abstract event System.Action I4.M1
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected").WithLocation(19, 47)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected").WithLocation(19, 47),
+                // (20,5): error CS8712: 'I1.I4.M1': abstract event cannot use event accessor syntax
+                //     {
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.I4.M1").WithLocation(20, 5),
+                // (30,15): error CS0535: 'Test1' does not implement interface member 'I4.M1'
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I4.M1").WithLocation(30, 15)
                 );
 
-            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
+            ValidateEventImplementationInDerived_01(compilation1.SourceModule, i4M1IsAbstract: true);
         }
 
         [Fact]
@@ -34922,6 +34955,14 @@ public interface I4 : I3
 
 class Test2 : I4
 {}
+
+public interface I5 : I3
+{
+    event System.Action I3.M1
+}
+
+class Test3 : I5
+{}
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -34929,15 +34970,9 @@ class Test2 : I4
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (30,27): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+                // (30,28): error CS0071: An explicit interface implementation of an event must use event accessor syntax
                 //     event System.Action I3.M1;
-                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(30, 27),
-                // (30,30): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-                //     event System.Action I3.M1;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(30, 30),
-                // (30,28): error CS0065: 'I4.I3.M1': event property must have both add and remove accessors
-                //     event System.Action I3.M1;
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "M1").WithArguments("I4.I3.M1").WithLocation(30, 28),
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "M1").WithLocation(30, 28),
                 // (10,28): error CS0065: 'I2.I1.M1': event property must have both add and remove accessors
                 //     event System.Action I1.M1
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "M1").WithArguments("I2.I1.M1").WithLocation(10, 28),
@@ -34955,7 +34990,16 @@ class Test2 : I4
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1.remove").WithLocation(20, 15),
                 // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.M2.add'
                 // class Test1 : I2
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M2.add").WithLocation(20, 15)
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M2.add").WithLocation(20, 15),
+                // (38,27): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+                //     event System.Action I3.M1
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(38, 27),
+                // (41,15): error CS0535: 'Test3' does not implement interface member 'I3.M1.remove'
+                // class Test3 : I5
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I5").WithArguments("Test3", "I3.M1.remove").WithLocation(41, 15),
+                // (41,15): error CS0535: 'Test3' does not implement interface member 'I3.M1.add'
+                // class Test3 : I5
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I5").WithArguments("Test3", "I3.M1.add").WithLocation(41, 15)
                 );
         }
 
@@ -36531,7 +36575,7 @@ class Test1 : I1
 {}
 ";
 
-            ValidatePropertyImplementationInDerived_04(source1,
+            ValidatePropertyImplementationInDerived_04(source1, i4M1IsAbstract: true,
                 // (14,27): error CS0106: The modifier 'sealed' is not valid for this item
                 //     private sealed int I2.this[int x] 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("sealed").WithLocation(14, 27),
@@ -36541,15 +36585,21 @@ class Test1 : I1
                 // (16,17): error CS0106: The modifier 'private' is not valid for this item
                 //         private get => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("private").WithLocation(16, 17),
-                // (19,31): error CS0106: The modifier 'abstract' is not valid for this item
-                //     protected abstract int I4.this[int x]
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("abstract").WithLocation(19, 31),
                 // (19,31): error CS0106: The modifier 'protected' is not valid for this item
                 //     protected abstract int I4.this[int x]
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("protected").WithLocation(19, 31),
+                // (21,9): error CS0500: 'I1.I4.this[int].get' cannot declare a body because it is marked abstract
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.I4.this[int].get").WithLocation(21, 9),
                 // (22,19): error CS0106: The modifier 'protected' is not valid for this item
                 //         protected set => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("protected").WithLocation(22, 19)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("protected").WithLocation(22, 19),
+                // (22,19): error CS0500: 'I1.I4.this[int].set' cannot declare a body because it is marked abstract
+                //         protected set => throw null;
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I1.I4.this[int].set").WithLocation(22, 19),
+                // (30,15): error CS0535: 'Test1' does not implement interface member 'I4.this[int]'
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I4.this[int]").WithLocation(30, 15)
                 );
         }
 
@@ -38566,9 +38616,9 @@ public interface I1
                 // (4,26): error CS0501: 'I1.F1.set' must declare a body because it is not marked abstract, extern, or partial
                 //     private int F1 {get; set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.F1.set").WithLocation(4, 26),
-                // (5,17): error CS8052: Instance auto-implemented properties inside interfaces cannot have initializers.
+                // (5,17): error CS8050: Only auto-implemented properties can have initializers.
                 //     private int F5 {get;} = 5;
-                Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "F5").WithArguments("I1.F5").WithLocation(5, 17),
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "F5").WithArguments("I1.F5").WithLocation(5, 17),
                 // (5,21): error CS0501: 'I1.F5.get' must declare a body because it is not marked abstract, extern, or partial
                 //     private int F5 {get;} = 5;
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.F5.get").WithLocation(5, 21)
@@ -39503,21 +39553,6 @@ class Test4 : Test1
         i1.E400 -= new D1(i1.M300);
         i1[""500""] = default;
     }
-
-    void BaseTest()
-    {
-        System.Console.WriteLine(base(I1).P200);
-        base(I1).M300();
-        base(I1).E400 += base(I1).M300;
-        base(I1).E400 -= new D1(base(I1).M300);
-        base(I1)[""500""] = default;
-
-        System.Console.WriteLine(base(I1).P20);
-        base(I1).M30();
-        base(I1).E40 += base(I1).M30;
-        base(I1).E40 -= new D1(base(I1).M30);
-        base(I1)[50] = default;
-    }
 }
 ";
 
@@ -39525,7 +39560,8 @@ class Test4 : Test1
                                          (comp0:compilation0.EmitToImageReference(), comp1:compilation1.EmitToImageReference()) })
             {
                 var compilation2 = CreateCompilation(source2, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular);
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.StandardLatest);
                 compilation2 = compilation2.AddReferences(refs.comp0);
 
                 CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -39542,7 +39578,8 @@ C6.M
 ");
 
                 var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular);
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.StandardLatest);
                 compilation3 = compilation3.AddReferences(refs.comp1);
 
                 CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -39581,49 +39618,7 @@ P50
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.M300").WithLocation(10, 27),
                     // (11,9): error CS8701: Target runtime doesn't support default interface implementation.
                     //         i1["500"] = default;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, @"i1[""500""]").WithLocation(11, 9),
-                    // (16,34): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         System.Console.WriteLine(base(I1).P200);
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P200").WithLocation(16, 34),
-                    // (17,9): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).M300();
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M300").WithLocation(17, 9),
-                    // (18,9): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).E400 += base(I1).M300;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).E400 += base(I1).M300").WithLocation(18, 9),
-                    // (18,26): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).E400 += base(I1).M300;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M300").WithLocation(18, 26),
-                    // (19,9): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).E400 -= new D1(base(I1).M300);
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).E400 -= new D1(base(I1).M300)").WithLocation(19, 9),
-                    // (19,33): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).E400 -= new D1(base(I1).M300);
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M300").WithLocation(19, 33),
-                    // (20,9): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1)["500"] = default;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, @"base(I1)[""500""]").WithLocation(20, 9),
-                    // (22,34): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         System.Console.WriteLine(base(I1).P20);
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P20").WithLocation(22, 34),
-                    // (23,9): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).M30();
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M30").WithLocation(23, 9),
-                    // (24,9): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).E40 += base(I1).M30;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).E40 += base(I1).M30").WithLocation(24, 9),
-                    // (24,25): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).E40 += base(I1).M30;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M30").WithLocation(24, 25),
-                    // (25,9): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).E40 -= new D1(base(I1).M30);
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).E40 -= new D1(base(I1).M30)").WithLocation(25, 9),
-                    // (25,32): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).E40 -= new D1(base(I1).M30);
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M30").WithLocation(25, 32),
-                    // (26,9): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1)[50] = default;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1)[50]").WithLocation(26, 9)
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, @"i1[""500""]").WithLocation(11, 9)
                     );
             }
         }
@@ -39818,30 +39813,6 @@ interface Test4 : I1
         i1.P500 = 12;
         i1.P600 = 13;
     }
-
-    void BaseTest()
-    {
-        System.Console.WriteLine(base(I1).P200);
-        base(I1).M300();
-        base(I1).E400 += base(I1).M300;
-        base(I1).E400 -= new D1(base(I1).M300);
-        base(I1)[""500""] = default;
-
-        System.Console.WriteLine(base(I1).P20);
-        base(I1).M30();
-        base(I1).E40 += base(I1).M30;
-        base(I1).E40 -= new D1(base(I1).M30);
-        base(I1)[50] = default;
-
-        _ = base(I1).P500;
-        _ = base(I1).P600;
-        base(I1).P500 = 12;
-        base(I1).P600 = 13;
-        _ = base(I1).P50;
-        _ = base(I1).P60;
-        base(I1).P50 = 12;
-        base(I1).P60 = 13;
-    }
 }
 ";
 
@@ -39927,76 +39898,95 @@ interface Test4 : I1
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.P500").WithLocation(14, 9),
                     // (15,9): error CS8701: Target runtime doesn't support default interface implementation.
                     //         i1.P600 = 13;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.P600").WithLocation(15, 9),
-                    // (18,10): error CS8701: Target runtime doesn't support default interface implementation.
-                    //     void BaseTest()
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "BaseTest").WithLocation(18, 10),
-                    // (20,34): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         System.Console.WriteLine(base(I1).P200);
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P200").WithLocation(20, 34),
-                    // (21,9): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).M300();
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M300").WithLocation(21, 9),
-                    // (22,9): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).E400 += base(I1).M300;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).E400 += base(I1).M300").WithLocation(22, 9),
-                    // (22,26): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).E400 += base(I1).M300;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M300").WithLocation(22, 26),
-                    // (23,9): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).E400 -= new D1(base(I1).M300);
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).E400 -= new D1(base(I1).M300)").WithLocation(23, 9),
-                    // (23,33): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).E400 -= new D1(base(I1).M300);
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M300").WithLocation(23, 33),
-                    // (24,9): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1)["500"] = default;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, @"base(I1)[""500""]").WithLocation(24, 9),
-                    // (26,34): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         System.Console.WriteLine(base(I1).P20);
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P20").WithLocation(26, 34),
-                    // (27,9): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).M30();
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M30").WithLocation(27, 9),
-                    // (28,9): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).E40 += base(I1).M30;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).E40 += base(I1).M30").WithLocation(28, 9),
-                    // (28,25): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).E40 += base(I1).M30;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M30").WithLocation(28, 25),
-                    // (29,9): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).E40 -= new D1(base(I1).M30);
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).E40 -= new D1(base(I1).M30)").WithLocation(29, 9),
-                    // (29,32): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).E40 -= new D1(base(I1).M30);
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M30").WithLocation(29, 32),
-                    // (30,9): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1)[50] = default;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1)[50]").WithLocation(30, 9),
-                    // (32,13): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         _ = base(I1).P500;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P500").WithLocation(32, 13),
-                    // (33,13): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         _ = base(I1).P600;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P600").WithLocation(33, 13),
-                    // (34,9): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).P500 = 12;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P500").WithLocation(34, 9),
-                    // (35,9): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).P600 = 13;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P600").WithLocation(35, 9),
-                    // (36,13): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         _ = base(I1).P50;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P50").WithLocation(36, 13),
-                    // (37,13): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         _ = base(I1).P60;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P60").WithLocation(37, 13),
-                    // (38,9): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).P50 = 12;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P50").WithLocation(38, 9),
-                    // (39,9): error CS8701: Target runtime doesn't support default interface implementation.
-                    //         base(I1).P60 = 13;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P60").WithLocation(39, 9)
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.P600").WithLocation(15, 9)
+                    );
+            }
+        }
+
+        [Fact]
+        public void UnsupportedMemberAccess_04()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected interface I2 {}
+    protected internal interface I3 {}
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            var source3 =
+@"
+interface Test3 : I1
+{
+    class C
+    {
+        static void M1(I1.I2 x)
+        {
+            System.Console.WriteLine(""M1"");
+        }
+
+        static void M2(I1.I3 x)
+        {
+            System.Console.WriteLine(""M2"");
+        }
+
+        static void Main()
+        {
+            M1(null);
+            M2(null);
+        }
+    }
+}
+";
+
+            var source4 =
+@"
+class Test4 : I1
+{
+    interface Test5 : I1.I2
+    {
+    }
+
+    interface Test6 : I1.I3
+    {
+    }
+}
+";
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe,
+                                                     targetFramework: TargetFramework.DesktopLatestExtended,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular);
+
+                compilation3.VerifyDiagnostics(
+                    // (6,27): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         static void M1(I1.I2 x)
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I2").WithLocation(6, 27),
+                    // (11,27): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         static void M2(I1.I3 x)
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I3").WithLocation(11, 27)
+                    );
+
+                var compilation4 = CreateCompilation(source4, options: TestOptions.DebugDll,
+                                                     targetFramework: TargetFramework.DesktopLatestExtended,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular);
+
+                compilation4.VerifyDiagnostics(
+                    // (4,26): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //     interface Test5 : I1.I2
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I2").WithLocation(4, 26),
+                    // (8,26): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //     interface Test6 : I1.I3
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I3").WithLocation(8, 26)
                     );
             }
         }
@@ -42941,7 +42931,7 @@ I2.-
         public void RuntimeFeature_02()
         {
             var compilation1 = CreateCompilation("", options: TestOptions.DebugDll,
-                                                 references: new[] { TestReferences.NetStandard30.SystemRuntimeRef },
+                                                 references: new[] { TestReferences.NetCoreApp30.SystemRuntimeRef },
                                                  targetFramework: TargetFramework.Empty);
 
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -43244,14563 +43234,6 @@ namespace System
 
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Assert.False(compilation1.Assembly.CorLibrary.RuntimeSupportsDefaultInterfaceImplementation);
-        }
-
-        [Fact]
-        public void ExplicitBase_001()
-        {
-            var source = @"
-class A
-{
-    void Test()
-    {
-        base(SomeType).GetHashCode();
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-
-            compilation1.VerifyDiagnostics(
-                // (6,14): error CS0246: The type or namespace name 'SomeType' could not be found (are you missing a using directive or an assembly reference?)
-                //         base(SomeType).GetHashCode();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SomeType").WithArguments("SomeType").WithLocation(6, 14)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_002()
-        {
-            var source = @"
-class A
-{
-    void Test()
-    {
-        base(int[]).GetHashCode();
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-
-            compilation1.VerifyDiagnostics(
-                // (6,14): error CS8708: 'int[]' is not base type or interface of A.
-                //         base(int[]).GetHashCode();
-                Diagnostic(ErrorCode.ERR_NotBaseOrImplementedInterface, "int[]").WithArguments("int[]", "A").WithLocation(6, 14)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_003()
-        {
-            var source = @"
-class A
-{
-    void Test()
-    {
-        base(B).GetHashCode();
-    }
-}
-
-class B {}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-
-            compilation1.VerifyDiagnostics(
-                // (6,14): error CS8708: 'B' is not base type or interface of A.
-                //         base(B).GetHashCode();
-                Diagnostic(ErrorCode.ERR_NotBaseOrImplementedInterface, "B").WithArguments("B", "A").WithLocation(6, 14)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_004()
-        {
-            var source = @"
-class A
-{
-    void Test()
-    {
-        base(B).GetHashCode();
-    }
-}
-
-interface B {}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-
-            compilation1.VerifyDiagnostics(
-                // (6,14): error CS8708: 'B' is not base type or interface of A.
-                //         base(B).GetHashCode();
-                Diagnostic(ErrorCode.ERR_NotBaseOrImplementedInterface, "B").WithArguments("B", "A").WithLocation(6, 14)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_005()
-        {
-            var source = @"
-[module:A(base(A).GetHashCode())]
-
-class A : System.Attribute
-{
-    public A (object x) {}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-
-            compilation1.VerifyDiagnostics(
-                // (2,11): error CS1512: Keyword 'base' is not available in the current context
-                // [module:A(base(A).GetHashCode())]
-                Diagnostic(ErrorCode.ERR_BaseInBadContext, "base").WithLocation(2, 11)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_006()
-        {
-            var source = @"
-class A : B
-{
-    static void Test()
-    {
-        base(B).GetHashCode();
-    }
-}
-
-class B {}
-
-struct C
-{
-    static void Test()
-    {
-        base(object).GetHashCode();
-    }
-}
-
-interface D
-{
-}
-
-interface E : D
-{
-    static void Test()
-    {
-        base(D).GetHashCode();
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-
-            compilation1.VerifyDiagnostics(
-                // (6,9): error CS1511: Keyword 'base' is not available in a static method
-                //         base(B).GetHashCode();
-                Diagnostic(ErrorCode.ERR_BaseInStaticMeth, "base").WithLocation(6, 9),
-                // (16,9): error CS1511: Keyword 'base' is not available in a static method
-                //         base(object).GetHashCode();
-                Diagnostic(ErrorCode.ERR_BaseInStaticMeth, "base").WithLocation(16, 9),
-                // (28,9): error CS1511: Keyword 'base' is not available in a static method
-                //         base(D).GetHashCode();
-                Diagnostic(ErrorCode.ERR_BaseInStaticMeth, "base").WithLocation(28, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_007()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B);
-    }
-}
-
-class B {}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0175: Use of keyword 'base' is not valid in this context
-                //         _ = base(B);
-                Diagnostic(ErrorCode.ERR_BaseIllegal, "base").WithLocation(6, 13)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_008()
-        {
-            var source = @"
-struct A
-{
-    void Test()
-    {
-        System.Func<int> x = () => base(object).GetHashCode();
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-
-            compilation1.VerifyDiagnostics(
-                // (6,36): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
-                //         System.Func<int> x = () => base(object).GetHashCode();
-                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "base").WithLocation(6, 36)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_009()
-        {
-            var source = @"
-class A : B
-{
-    new char F1 = 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(F1);
-        System.Console.WriteLine(base(B).F1);
-        System.Console.WriteLine(base(C).F1);
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-
-class B : C
-{
-    new protected char F1 = 'B';
-}
-
-class C
-{
-    protected char F1 = 'C';
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput:
-@"
-A
-B
-C
-");
-        }
-
-        [Fact]
-        public void ExplicitBase_010()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1;
-        _ = base(C).F1;
-    }
-}
-#pragma warning disable CS0414
-class B : C
-{
-    private char F1 = 'B';
-}
-
-class C
-{
-    private char F1 = 'C';
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,21): error CS0122: 'B.F1' is inaccessible due to its protection level
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("B.F1").WithLocation(6, 21),
-                // (7,21): error CS0122: 'C.F1' is inaccessible due to its protection level
-                //         _ = base(C).F1;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(7, 21)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_011()
-        {
-            var source1 = @"
-class A : B
-{
-    void Test()
-    {
-        System.Console.WriteLine(base(C).F1);
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var source0 = @"
-#pragma warning disable CS0414
-class B : C
-{
-    new private char F1 = 'B';
-}
-
-class C
-{
-    protected char F1 = 'C';
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput:
-@"
-C
-");
-            var source2 = @"
-class A : B
-{
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics(
-                // (6,34): error CS8710: 'C.F1' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B).F1);
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1", "B").WithLocation(6, 34)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_012()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(C).F1;
-    }
-}
-#pragma warning disable CS0414
-class B : C
-{
-    protected char F1 = 'B';
-}
-
-class C
-{
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,21): error CS0117: 'C' does not contain a definition for 'F1'
-                //         _ = base(C).F1;
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("C", "F1").WithLocation(6, 21)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_013()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1;
-    }
-}
-
-class B
-{
-    protected static char F1 = 'B';
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0176: Member 'B.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1").WithLocation(6, 13)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_014()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).C.F1;
-    }
-}
-
-class B
-{
-    public class C
-    {
-        public char F1 = 'B';
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0120: An object reference is required for the non-static field, method, or property 'B.C.F1'
-                //         _ = base(B).C.F1;
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "base(B).C.F1").WithArguments("B.C.F1").WithLocation(6, 13),
-                // (6,21): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         _ = base(B).C.F1;
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(6, 21)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_015()
-        {
-            var source = @"
-class A : B
-{
-    new char F1() => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(F1());
-        System.Console.WriteLine(base(B).F1());
-        System.Console.WriteLine(base(C).F1());
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new D().Test();
-    }
-}
-
-class B : C
-{
-    new protected char F1() => 'B';
-}
-
-class C
-{
-    protected char F1() => 'C';
-}
-
-struct D
-{
-    new public object MemberwiseClone() => throw null;
-
-    public void Test()
-    {
-        base(object).MemberwiseClone();
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(compilation1, expectedOutput:
-@"
-A
-B
-C
-");
-            verifier.VerifyIL("D.Test",
-@"
-{
-  // Code size       19 (0x13)
-  .maxstack  1
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""D""
-  IL_0007:  box        ""D""
-  IL_000c:  call       ""object object.MemberwiseClone()""
-  IL_0011:  pop
-  IL_0012:  ret
-}
-");
-        }
-
-        [Fact]
-        public void ExplicitBase_015_Delegate()
-        {
-            var source = @"
-class A : B
-{
-    new char F1() => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(new System.Func<char>(F1)());
-        System.Console.WriteLine(new System.Func<char>(base(B).F1)());
-        System.Console.WriteLine(new System.Func<char>(base(C).F1)());
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new D().Test();
-    }
-}
-
-class B : C
-{
-    new protected char F1() => 'B';
-}
-
-class C
-{
-    protected char F1() => 'C';
-}
-
-struct D
-{
-    new public object MemberwiseClone() => throw null;
-
-    public void Test()
-    {
-        new System.Func<object>(base(object).MemberwiseClone)();
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(compilation1, expectedOutput:
-@"
-A
-B
-C
-");
-            verifier.VerifyIL("D.Test",
-@"
-{
-  // Code size       30 (0x1e)
-  .maxstack  2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""D""
-  IL_0007:  box        ""D""
-  IL_000c:  ldftn      ""object object.MemberwiseClone()""
-  IL_0012:  newobj     ""System.Func<object>..ctor(object, System.IntPtr)""
-  IL_0017:  callvirt   ""object System.Func<object>.Invoke()""
-  IL_001c:  pop
-  IL_001d:  ret
-}
-");
-        }
-
-        [Fact]
-        public void ExplicitBase_016()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1();
-        _ = base(C).F1();
-    }
-}
-
-class B : C
-{
-    private char F1() => 'B';
-}
-
-class C
-{
-    private char F1() => 'C';
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,21): error CS0122: 'B.F1()' is inaccessible due to its protection level
-                //         _ = base(B).F1();
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("B.F1()").WithLocation(6, 21),
-                // (7,21): error CS0122: 'C.F1()' is inaccessible due to its protection level
-                //         _ = base(C).F1();
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1()").WithLocation(7, 21)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_017()
-        {
-            var source1 = @"
-class A : B
-{
-    void Test()
-    {
-        System.Console.WriteLine(base(C).F1());
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var source0 = @"
-class B : C
-{
-    new private char F1() => 'B';
-}
-
-class C
-{
-    protected char F1() => 'C';
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput:
-@"
-C
-");
-            var source2 = @"
-class A : B
-{
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1());
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics(
-                // (6,34): error CS8710: 'C.F1()' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B).F1());
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1()", "B").WithLocation(6, 34)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_018()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(C).F1();
-    }
-}
-
-class B : C
-{
-    protected char F1() => 'B';
-}
-
-class C
-{
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,21): error CS0117: 'C' does not contain a definition for 'F1'
-                //         _ = base(C).F1();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("C", "F1").WithLocation(6, 21)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_019()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1();
-    }
-}
-
-class B
-{
-    protected static char F1() => 'B';
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0176: Member 'B.F1()' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = base(B).F1();
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1()").WithLocation(6, 13)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_020()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).C.F1();
-    }
-}
-
-class B
-{
-    public class C
-    {
-        public char F1() => 'B';
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0120: An object reference is required for the non-static field, method, or property 'B.C.F1()'
-                //         _ = base(B).C.F1();
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "base(B).C.F1").WithArguments("B.C.F1()").WithLocation(6, 13),
-                // (6,21): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         _ = base(B).C.F1();
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(6, 21)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_021()
-        {
-            var source = @"
-class A : B
-{
-    new char F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(F1);
-        F1 = 'x';
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-        System.Console.WriteLine(base(C).F1);
-        base(C).F1 = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-
-class B : C
-{
-    new protected char F1 { get => 'B'; set => System.Console.WriteLine(""set B"");}
-}
-
-class C
-{
-    protected char F1 { get => 'C'; set => System.Console.WriteLine(""set C"");}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput:
-@"
-A
-set A
-B
-set B
-C
-set C
-");
-        }
-
-        [Fact]
-        public void ExplicitBase_022()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1;
-       base(B).F1 = 'x';
-        _ = base(C).F1;
-       base(C).F1 = 'y';
-    }
-}
-
-class B : C
-{
-    private char F1 {get;set;}
-}
-
-class C
-{
-    private char F1 {get;set;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,21): error CS0122: 'B.F1' is inaccessible due to its protection level
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("B.F1").WithLocation(6, 21),
-                // (7,16): error CS0122: 'B.F1' is inaccessible due to its protection level
-                //        base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("B.F1").WithLocation(7, 16),
-                // (8,21): error CS0122: 'C.F1' is inaccessible due to its protection level
-                //         _ = base(C).F1;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(8, 21),
-                // (9,16): error CS0122: 'C.F1' is inaccessible due to its protection level
-                //        base(C).F1 = 'y';
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(9, 16)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_023()
-        {
-            var source1 = @"
-class A : B
-{
-    void Test()
-    {
-        System.Console.WriteLine(base(C).F1);
-        base(C).F1 = 'y';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var source0 = @"
-class B : C
-{
-    new private char F1 { get => 'B'; set => System.Console.WriteLine(""set B"");}
-}
-
-class C
-{
-    protected char F1 { get => 'C'; set => System.Console.WriteLine(""set C"");}
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput:
-@"
-C
-set C
-");
-            var source2 = @"
-class A : B
-{
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics(
-                // (6,34): error CS8710: 'C.F1.get' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B).F1);
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1.get", "B").WithLocation(6, 34),
-                // (7,9): error CS8710: 'C.F1.set' is not an immediate member of B.
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1.set", "B").WithLocation(7, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_024()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(C).F1;
-        base(C).F1 = 'x';
-    }
-}
-
-class B : C
-{
-    protected char F1 {get; set;}
-}
-
-class C
-{
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,21): error CS0117: 'C' does not contain a definition for 'F1'
-                //         _ = base(C).F1;
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("C", "F1").WithLocation(6, 21),
-                // (7,17): error CS0117: 'C' does not contain a definition for 'F1'
-                //         base(C).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("C", "F1").WithLocation(7, 17)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_025()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-
-class B : C
-{
-    new protected char F1 {get => throw null;}
-}
-
-class C
-{
-    protected char F1 {set => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (7,9): error CS0200: Property or indexer 'B.F1' cannot be assigned to -- it is read only
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "base(B).F1").WithArguments("B.F1").WithLocation(7, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_026()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-
-class B : C
-{
-    new protected char F1 {set => throw null;}
-}
-
-class C
-{
-    protected char F1 {get => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0154: The property or indexer 'B.F1' cannot be used in this context because it lacks the get accessor
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "base(B).F1").WithArguments("B.F1").WithLocation(6, 13)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_027()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-
-class B : C
-{
-    new protected char F1 {get => throw null; private set => throw null;}
-}
-
-class C
-{
-    protected char F1 {set => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (7,9): error CS0272: The property or indexer 'B.F1' cannot be used in this context because the set accessor is inaccessible
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "base(B).F1").WithArguments("B.F1").WithLocation(7, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_028()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-
-class B : C
-{
-    new protected char F1 {set => throw null; private get => throw null;}
-}
-
-class C
-{
-    protected char F1 {get => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0271: The property or indexer 'B.F1' cannot be used in this context because the get accessor is inaccessible
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_InaccessibleGetter, "base(B).F1").WithArguments("B.F1").WithLocation(6, 13)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_029()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'z';
-    }
-}
-
-class B
-{
-    protected static char F1 {get; set;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0176: Member 'B.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1").WithLocation(6, 13),
-                // (7,9): error CS0176: Member 'B.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         base(B).F1 = 'z';
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1").WithLocation(7, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_030()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).C.F1;
-        base(B).C.F1 = 'z';
-    }
-}
-
-class B
-{
-    public class C
-    {
-        public char F1 {get; set;}
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0120: An object reference is required for the non-static field, method, or property 'B.C.F1'
-                //         _ = base(B).C.F1;
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "base(B).C.F1").WithArguments("B.C.F1").WithLocation(6, 13),
-                // (6,21): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         _ = base(B).C.F1;
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(6, 21),
-                // (7,9): error CS0120: An object reference is required for the non-static field, method, or property 'B.C.F1'
-                //         base(B).C.F1 = 'z';
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "base(B).C.F1").WithArguments("B.C.F1").WithLocation(7, 9),
-                // (7,17): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         base(B).C.F1 = 'z';
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(7, 17)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_031()
-        {
-            var source = @"
-class A : B
-{
-    new char this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(this[1]);
-        this[2] = 'x';
-        System.Console.WriteLine(base(B)[3]);
-        base(B)[4] = 'x';
-        System.Console.WriteLine(base(C)[5]);
-        base(C)[6] = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-
-class B : C
-{
-    new protected char this[int i] { get => 'B'; set => System.Console.WriteLine(""set B"");}
-}
-
-class C
-{
-    protected char this[int i] { get => 'C'; set => System.Console.WriteLine(""set C"");}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput:
-@"
-A
-set A
-B
-set B
-C
-set C
-");
-        }
-
-        [Fact]
-        public void ExplicitBase_032()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B)[0];
-       base(B)[0] = 'x';
-        _ = base(C)[0];
-       base(C)[0] = 'y';
-    }
-}
-
-class B : C
-{
-    private char this[int i] {get => throw null; set => throw null;}
-}
-
-class C
-{
-    private char this[int i] {get => throw null; set => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0122: 'B.this[int]' is inaccessible due to its protection level
-                //         _ = base(B)[0];
-                Diagnostic(ErrorCode.ERR_BadAccess, "base(B)[0]").WithArguments("B.this[int]").WithLocation(6, 13),
-                // (7,8): error CS0122: 'B.this[int]' is inaccessible due to its protection level
-                //        base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_BadAccess, "base(B)[0]").WithArguments("B.this[int]").WithLocation(7, 8),
-                // (8,13): error CS0122: 'C.this[int]' is inaccessible due to its protection level
-                //         _ = base(C)[0];
-                Diagnostic(ErrorCode.ERR_BadAccess, "base(C)[0]").WithArguments("C.this[int]").WithLocation(8, 13),
-                // (9,8): error CS0122: 'C.this[int]' is inaccessible due to its protection level
-                //        base(C)[0] = 'y';
-                Diagnostic(ErrorCode.ERR_BadAccess, "base(C)[0]").WithArguments("C.this[int]").WithLocation(9, 8)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_033()
-        {
-            var source1 = @"
-class A : B
-{
-    void Test()
-    {
-        System.Console.WriteLine(base(C)[0]);
-        base(C)[0] = 'y';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var source0 = @"
-class B : C
-{
-    new private char this[int i] { get => 'B'; set => System.Console.WriteLine(""set B"");}
-}
-
-class C
-{
-    protected char this[int i] { get => 'C'; set => System.Console.WriteLine(""set C"");}
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput:
-@"
-C
-set C
-");
-            var source2 = @"
-class A : B
-{
-    void Test()
-    {
-        System.Console.WriteLine(base(B)[0]);
-        base(B)[0] = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics(
-                // (6,34): error CS8710: 'C.this[int].get' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B)[0]);
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("C.this[int].get", "B").WithLocation(6, 34),
-                // (7,9): error CS8710: 'C.this[int].set' is not an immediate member of B.
-                //         base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("C.this[int].set", "B").WithLocation(7, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_034()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(C)[0];
-        base(C)[0] = 'x';
-    }
-}
-
-class B : C
-{
-    protected char this[int i] {get => throw null; set => throw null;}
-}
-
-class C
-{
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-                //         _ = base(C)[0];
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "base(C)[0]").WithArguments("C").WithLocation(6, 13),
-                // (7,9): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-                //         base(C)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "base(C)[0]").WithArguments("C").WithLocation(7, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_035()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'x';
-    }
-}
-
-class B : C
-{
-    new protected char this[int i] {get => throw null;}
-}
-
-class C
-{
-    protected char this[int i] {set => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (7,9): error CS0200: Property or indexer 'B.this[int]' cannot be assigned to -- it is read only
-                //         base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "base(B)[0]").WithArguments("B.this[int]").WithLocation(7, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_036()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'x';
-    }
-}
-
-class B : C
-{
-    new protected char this[int i] {set => throw null;}
-}
-
-class C
-{
-    protected char this[int i] {get => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0154: The property or indexer 'B.this[int]' cannot be used in this context because it lacks the get accessor
-                //         _ = base(B)[0];
-                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "base(B)[0]").WithArguments("B.this[int]").WithLocation(6, 13)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_037()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'x';
-    }
-}
-
-class B : C
-{
-    new protected char this[int i] {get => throw null; private set => throw null;}
-}
-
-class C
-{
-    protected char this[int i] {set => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (7,9): error CS0272: The property or indexer 'B.this[int]' cannot be used in this context because the set accessor is inaccessible
-                //         base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "base(B)[0]").WithArguments("B.this[int]").WithLocation(7, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_038()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'x';
-    }
-}
-
-class B : C
-{
-    new protected char this[int i] {set => throw null; private get => throw null;}
-}
-
-class C
-{
-    protected char this[int i] {get => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0271: The property or indexer 'B.this[int]' cannot be used in this context because the get accessor is inaccessible
-                //         _ = base(B)[0];
-                Diagnostic(ErrorCode.ERR_InaccessibleGetter, "base(B)[0]").WithArguments("B.this[int]").WithLocation(6, 13)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_039()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'z';
-    }
-}
-
-class B
-{
-    protected static char this[int i] {get => throw null; set => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (13,27): error CS0106: The modifier 'static' is not valid for this item
-                //     protected static char this[int i] {get => throw null; set => throw null;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(13, 27)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_040()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).C[0];
-        base(B).C[0] = 'z';
-    }
-}
-
-class B
-{
-    public class C
-    {
-        public char this[int i] {get => throw null; set => throw null;}
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0119: 'B.C' is a type, which is not valid in the given context
-                //         _ = base(B).C[0];
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "base(B).C").WithArguments("B.C", "type").WithLocation(6, 13),
-                // (6,21): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         _ = base(B).C[0];
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(6, 21),
-                // (7,9): error CS0119: 'B.C' is a type, which is not valid in the given context
-                //         base(B).C[0] = 'z';
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "base(B).C").WithArguments("B.C", "type").WithLocation(7, 9),
-                // (7,17): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         base(B).C[0] = 'z';
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(7, 17)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_041()
-        {
-            var source = @"
-class A : B
-{
-    new event System.Action F1 { add => System.Console.WriteLine(""add A""); remove => System.Console.WriteLine(""remove A"");}
-
-    void Test()
-    {
-        F1 += null;
-        F1 -= null;
-        base(B).F1 += null;
-        base(B).F1 -= null;
-        base(C).F1 += null;
-        base(C).F1 -= null;
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-
-class B : C
-{
-    new protected event System.Action F1 { add => System.Console.WriteLine(""add B""); remove => System.Console.WriteLine(""remove B"");}
-}
-
-class C
-{
-    protected event System.Action F1 { add => System.Console.WriteLine(""add C""); remove => System.Console.WriteLine(""remove C"");}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput:
-@"
-add A
-remove A
-add B
-remove B
-add C
-remove C
-");
-        }
-
-        [Fact]
-        public void ExplicitBase_042()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-       base(B).F1 += null;
-       base(B).F1 -= null;
-       base(C).F1 += null;
-       base(C).F1 -= null;
-    }
-}
-#pragma warning disable CS0067
-class B : C
-{
-    private event System.Action F1;
-}
-
-class C
-{
-    private event System.Action F1;
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,16): error CS0122: 'B.F1' is inaccessible due to its protection level
-                //        base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("B.F1").WithLocation(6, 16),
-                // (7,16): error CS0122: 'B.F1' is inaccessible due to its protection level
-                //        base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("B.F1").WithLocation(7, 16),
-                // (8,16): error CS0122: 'C.F1' is inaccessible due to its protection level
-                //        base(C).F1 += null;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(8, 16),
-                // (9,16): error CS0122: 'C.F1' is inaccessible due to its protection level
-                //        base(C).F1 -= null;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(9, 16)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_043()
-        {
-            var source1 = @"
-class A : B
-{
-    void Test()
-    {
-        base(C).F1 += null;
-        base(C).F1 -= null;
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var source0 = @"
-class B : C
-{
-    new private event System.Action F1 { add => System.Console.WriteLine(""add B""); remove => System.Console.WriteLine(""remove B"");}
-}
-
-class C
-{
-    protected event System.Action F1 { add => System.Console.WriteLine(""add C""); remove => System.Console.WriteLine(""remove C"");}
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput:
-@"
-add C
-remove C
-");
-            var source2 = @"
-class A : B
-{
-    void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics(
-                // (6,9): error CS8710: 'C.F1.add' is not an immediate member of B.
-                //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1 += null").WithArguments("C.F1.add", "B").WithLocation(6, 9),
-                // (7,9): error CS8710: 'C.F1.remove' is not an immediate member of B.
-                //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1 -= null").WithArguments("C.F1.remove", "B").WithLocation(7, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_044()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        base(C).F1 += null;
-        base(C).F1 -= null;
-    }
-}
-#pragma warning disable CS0067
-class B : C
-{
-    protected event System.Action F1;
-}
-
-class C
-{
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,17): error CS0117: 'C' does not contain a definition for 'F1'
-                //         base(C).F1 += null;
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("C", "F1").WithLocation(6, 17),
-                // (7,17): error CS0117: 'C' does not contain a definition for 'F1'
-                //         base(C).F1 -= null;
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("C", "F1").WithLocation(7, 17)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_045()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-#pragma warning disable CS0067
-class B
-{
-    protected static event System.Action F1;
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,9): error CS0176: Member 'B.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1").WithLocation(6, 9),
-                // (7,9): error CS0176: Member 'B.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1").WithLocation(7, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_046()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        base(B).C.F1 += null;
-        base(B).C.F1 -= null;
-    }
-}
-#pragma warning disable CS0067
-class B
-{
-    public class C
-    {
-        public event System.Action F1;
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (6,9): error CS0120: An object reference is required for the non-static field, method, or property 'B.C.F1'
-                //         base(B).C.F1 += null;
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "base(B).C.F1").WithArguments("B.C.F1").WithLocation(6, 9),
-                // (6,17): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         base(B).C.F1 += null;
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(6, 17),
-                // (7,9): error CS0120: An object reference is required for the non-static field, method, or property 'B.C.F1'
-                //         base(B).C.F1 -= null;
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "base(B).C.F1").WithArguments("B.C.F1").WithLocation(7, 9),
-                // (7,17): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         base(B).C.F1 -= null;
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(7, 17)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_047()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1;
-    }
-}
-
-interface C : B
-{
-    sealed void Test()
-    {
-        _ = base(B).F1;
-    }
-}
-
-interface B
-{
-    static char F1 = 'B';
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0176: Member 'B.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1").WithLocation(6, 13),
-                // (14,13): error CS0176: Member 'B.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1").WithLocation(14, 13)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_048()
-        {
-            var source0 = @"
-interface I1
-{
-    static char F1 = 'B';
-}
-
-interface I2
-{
-    static char F1 = 'B';
-}
-
-interface B : I1, I2
-{
-}
-";
-
-            var source1 = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1;
-    }
-}
-
-interface C : B
-{
-    sealed void Test()
-    {
-        _ = base(B).F1;
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,21): error CS0229: Ambiguity between 'I1.F1' and 'I2.F1'
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "F1").WithArguments("I1.F1", "I2.F1").WithLocation(6, 21),
-                // (14,21): error CS0229: Ambiguity between 'I1.F1' and 'I2.F1'
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "F1").WithArguments("I1.F1", "I2.F1").WithLocation(14, 21)
-                );
-
-            var source2 = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(I1).F1;
-        base(I2).F1 = 'x';
-    }
-}
-
-interface C : B
-{
-    sealed void Test()
-    {
-        _ = base(I1).F1;
-        base(I2).F1 = 'x';
-    }
-}
-";
-
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics(
-                // (6,13): error CS0176: Member 'I1.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = base(I1).F1;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(I1).F1").WithArguments("I1.F1").WithLocation(6, 13),
-                // (7,9): error CS0176: Member 'I2.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         base(I2).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(I2).F1").WithArguments("I2.F1").WithLocation(7, 9),
-                // (15,13): error CS0176: Member 'I1.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = base(I1).F1;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(I1).F1").WithArguments("I1.F1").WithLocation(15, 13),
-                // (16,9): error CS0176: Member 'I2.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         base(I2).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(I2).F1").WithArguments("I2.F1").WithLocation(16, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_049()
-        {
-            var source = @"
-class A : B
-{
-    char F1() => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(F1());
-        System.Console.WriteLine(base(B).F1());
-        System.Console.WriteLine(base(C).F1());
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new D().Test();
-        ((E)new F()).Test();
-    }
-}
-
-struct D : B
-{
-    char F1() => 'D';
-
-    public void Test()
-    {
-        System.Console.WriteLine(F1());
-        System.Console.WriteLine(base(B).F1());
-        System.Console.WriteLine(base(C).F1());
-    }
-}
-
-interface E : B
-{
-    new sealed char F1() => 'E';
-
-    sealed void Test()
-    {
-        System.Console.WriteLine(F1());
-        System.Console.WriteLine(base(B).F1());
-        System.Console.WriteLine(base(C).F1());
-    }
-}
-
-class F : E
-{}
-
-interface B : C
-{
-    new sealed char F1() => 'B';
-}
-
-interface C
-{
-    sealed char F1() => 'C';
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-A
-B
-C
-D
-B
-C
-E
-B
-C
-", verify: VerifyOnMonoOrCoreClr);
-            verifier.VerifyIL("D.Test",
-@"
-{
-  // Code size       58 (0x3a)
-  .maxstack  1
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  call       ""char D.F1()""
-  IL_0007:  call       ""void System.Console.WriteLine(char)""
-  IL_000c:  nop
-  IL_000d:  ldarg.0
-  IL_000e:  ldobj      ""D""
-  IL_0013:  box        ""D""
-  IL_0018:  call       ""char B.F1()""
-  IL_001d:  call       ""void System.Console.WriteLine(char)""
-  IL_0022:  nop
-  IL_0023:  ldarg.0
-  IL_0024:  ldobj      ""D""
-  IL_0029:  box        ""D""
-  IL_002e:  call       ""char C.F1()""
-  IL_0033:  call       ""void System.Console.WriteLine(char)""
-  IL_0038:  nop
-  IL_0039:  ret
-}
-");
-        }
-
-        [Fact]
-        [WorkItem(33083, "https://github.com/dotnet/roslyn/issues/33083")]
-        public void ExplicitBase_049_Delegate()
-        {
-            var source = @"
-class A : B
-{
-    char F1() => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(new System.Func<char>(F1)());
-        System.Console.WriteLine(new System.Func<char>(base(B).F1)());
-        System.Console.WriteLine(new System.Func<char>(base(C).F1)());
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new D().Test();
-        ((E)new F()).Test();
-    }
-}
-
-struct D : B
-{
-    char F1() => 'D';
-
-    public void Test()
-    {
-        System.Console.WriteLine(new System.Func<char>(F1)());
-        System.Console.WriteLine(new System.Func<char>(base(B).F1)());
-        System.Console.WriteLine(new System.Func<char>(base(C).F1)());
-    }
-}
-
-interface E : B
-{
-    new sealed char F1() => 'E';
-
-    sealed void Test()
-    {
-        System.Console.WriteLine(new System.Func<char>(F1)());
-        System.Console.WriteLine(new System.Func<char>(base(B).F1)());
-        System.Console.WriteLine(new System.Func<char>(base(C).F1)());
-    }
-}
-
-class F : E
-{}
-
-interface B : C
-{
-    new sealed char F1() => 'B';
-}
-
-interface C
-{
-    sealed char F1() => 'C';
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-A
-B
-C
-D
-B
-C
-E
-B
-C
-"
-, verify: VerifyOnMonoOrCoreClr);
-            verifier.VerifyIL("D.Test",
-@"
-{
-  // Code size      101 (0x65)
-  .maxstack  2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""D""
-  IL_0007:  box        ""D""
-  IL_000c:  ldftn      ""char D.F1()""
-  IL_0012:  newobj     ""System.Func<char>..ctor(object, System.IntPtr)""
-  IL_0017:  callvirt   ""char System.Func<char>.Invoke()""
-  IL_001c:  call       ""void System.Console.WriteLine(char)""
-  IL_0021:  nop
-  IL_0022:  ldarg.0
-  IL_0023:  ldobj      ""D""
-  IL_0028:  box        ""D""
-  IL_002d:  ldftn      ""char B.F1()""
-  IL_0033:  newobj     ""System.Func<char>..ctor(object, System.IntPtr)""
-  IL_0038:  callvirt   ""char System.Func<char>.Invoke()""
-  IL_003d:  call       ""void System.Console.WriteLine(char)""
-  IL_0042:  nop
-  IL_0043:  ldarg.0
-  IL_0044:  ldobj      ""D""
-  IL_0049:  box        ""D""
-  IL_004e:  ldftn      ""char C.F1()""
-  IL_0054:  newobj     ""System.Func<char>..ctor(object, System.IntPtr)""
-  IL_0059:  callvirt   ""char System.Func<char>.Invoke()""
-  IL_005e:  call       ""void System.Console.WriteLine(char)""
-  IL_0063:  nop
-  IL_0064:  ret
-}
-");
-        }
-
-        [Fact]
-        public void ExplicitBase_050()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1();
-        _ = base(C).F1();
-    }
-}
-
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(B).F1();
-        _ = base(C).F1();
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(B).F1();
-        _ = base(C).F1();
-    }
-}
-
-interface B : C
-{
-    private char F1() => 'B';
-}
-
-interface C
-{
-    private char F1() => 'C';
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,21): error CS0122: 'B.F1()' is inaccessible due to its protection level
-                //         _ = base(B).F1();
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("B.F1()").WithLocation(6, 21),
-                // (7,21): error CS0122: 'C.F1()' is inaccessible due to its protection level
-                //         _ = base(C).F1();
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1()").WithLocation(7, 21),
-                // (16,21): error CS0122: 'B.F1()' is inaccessible due to its protection level
-                //         _ = base(B).F1();
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("B.F1()").WithLocation(16, 21),
-                // (17,21): error CS0122: 'C.F1()' is inaccessible due to its protection level
-                //         _ = base(C).F1();
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1()").WithLocation(17, 21),
-                // (25,21): error CS0122: 'B.F1()' is inaccessible due to its protection level
-                //         _ = base(B).F1();
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("B.F1()").WithLocation(25, 21),
-                // (26,21): error CS0122: 'C.F1()' is inaccessible due to its protection level
-                //         _ = base(C).F1();
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1()").WithLocation(26, 21)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_051()
-        {
-            var source1 = @"
-class A : B
-{
-    void Test()
-    {
-        System.Console.WriteLine(base(C).F1());
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new D().Test();
-        ((E)new F()).Test();
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        System.Console.WriteLine(base(C).F1());
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(C).F1());
-    }
-}
-
-class F : E
-{}
-";
-            var source0 = @"
-interface B : C
-{
-    new private char F1() => 'B';
-}
-
-interface C
-{
-    sealed char F1() => 'C';
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-C
-C
-C
-", verify: VerifyOnMonoOrCoreClr);
-
-            var source2 = @"
-class A : B
-{
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1());
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new D().Test();
-        ((E)new F()).Test();
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        System.Console.WriteLine(base(B).F1());
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(B).F1());
-    }
-}
-
-class F : E
-{}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics(
-                // (6,34): error CS8710: 'C.F1()' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B).F1());
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1()", "B").WithLocation(6, 34),
-                // (21,34): error CS8710: 'C.F1()' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B).F1());
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1()", "B").WithLocation(21, 34),
-                // (29,34): error CS8710: 'C.F1()' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B).F1());
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1()", "B").WithLocation(29, 34)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_052()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(C).F1();
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(C).F1();
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(C).F1();
-    }
-}
-
-interface B : C
-{
-    sealed char F1() => 'B';
-}
-
-interface C
-{
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,21): error CS0117: 'C' does not contain a definition for 'F1'
-                //         _ = base(C).F1();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("C", "F1").WithLocation(6, 21),
-                // (14,21): error CS0117: 'C' does not contain a definition for 'F1'
-                //         _ = base(C).F1();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("C", "F1").WithLocation(14, 21),
-                // (22,21): error CS0117: 'C' does not contain a definition for 'F1'
-                //         _ = base(C).F1();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("C", "F1").WithLocation(22, 21)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_053()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1();
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(B).F1();
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(B).F1();
-    }
-}
-
-interface B
-{
-    static char F1() => 'B';
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0176: Member 'B.F1()' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = base(B).F1();
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1()").WithLocation(6, 13),
-                // (14,13): error CS0176: Member 'B.F1()' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = base(B).F1();
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1()").WithLocation(14, 13),
-                // (22,13): error CS0176: Member 'B.F1()' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = base(B).F1();
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1()").WithLocation(22, 13)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_054()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).C.F1();
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(B).C.F1();
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(B).C.F1();
-    }
-}
-
-interface B
-{
-    public interface C
-    {
-        sealed char F1() => 'B';
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0120: An object reference is required for the non-static field, method, or property 'B.C.F1()'
-                //         _ = base(B).C.F1();
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "base(B).C.F1").WithArguments("B.C.F1()").WithLocation(6, 13),
-                // (6,21): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         _ = base(B).C.F1();
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(6, 21),
-                // (14,13): error CS0120: An object reference is required for the non-static field, method, or property 'B.C.F1()'
-                //         _ = base(B).C.F1();
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "base(B).C.F1").WithArguments("B.C.F1()").WithLocation(14, 13),
-                // (14,21): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         _ = base(B).C.F1();
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(14, 21),
-                // (22,13): error CS0120: An object reference is required for the non-static field, method, or property 'B.C.F1()'
-                //         _ = base(B).C.F1();
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "base(B).C.F1").WithArguments("B.C.F1()").WithLocation(22, 13),
-                // (22,21): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         _ = base(B).C.F1();
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(22, 21)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_055()
-        {
-            var source0 = @"
-interface I1
-{
-    sealed char F1() => '1';
-}
-
-interface I2
-{
-    sealed char F1() => '2';
-}
-
-interface B : I1, I2
-{
-}
-";
-            var source1 = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1();
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(B).F1();
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(B).F1();
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,21): error CS0121: The call is ambiguous between the following methods or properties: 'I1.F1()' and 'I2.F1()'
-                //         _ = base(B).F1();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments("I1.F1()", "I2.F1()").WithLocation(6, 21),
-                // (14,21): error CS0121: The call is ambiguous between the following methods or properties: 'I1.F1()' and 'I2.F1()'
-                //         _ = base(B).F1();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments("I1.F1()", "I2.F1()").WithLocation(14, 21),
-                // (22,21): error CS0121: The call is ambiguous between the following methods or properties: 'I1.F1()' and 'I2.F1()'
-                //         _ = base(B).F1();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments("I1.F1()", "I2.F1()").WithLocation(22, 21)
-                );
-
-            var source2 = @"
-class A : B
-{
-    void Test()
-    {
-        System.Console.WriteLine(base(I1).F1());
-        System.Console.WriteLine(base(I2).F1());
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new D().Test();
-        ((E)new F()).Test();
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        System.Console.WriteLine(base(I1).F1());
-        System.Console.WriteLine(base(I2).F1());
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(I1).F1());
-        System.Console.WriteLine(base(I2).F1());
-    }
-}
-
-class F : E
-{}
-";
-
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics();
-
-            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-1
-2
-1
-2
-1
-2
-", verify: VerifyOnMonoOrCoreClr);
-
-            var source3 = @"
-class A : B
-{
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(B).F1(""1""));
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new D().Test();
-        ((E)new F()).Test();
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(B).F1(""1""));
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(B).F1(""1""));
-    }
-}
-
-class F : E
-{}
-
-interface I1
-{
-    sealed char F1(int x) => '1';
-}
-
-interface I2
-{
-    sealed char F1(string x) => '2';
-}
-
-interface B : I1, I2
-{
-}
-";
-
-            var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation3.VerifyDiagnostics(
-                // (6,34): error CS8710: 'I1.F1(int)' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B).F1(1));
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("I1.F1(int)", "B").WithLocation(6, 34),
-                // (7,34): error CS8710: 'I2.F1(string)' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B).F1("1"));
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("I2.F1(string)", "B").WithLocation(7, 34),
-                // (22,34): error CS8710: 'I1.F1(int)' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B).F1(1));
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("I1.F1(int)", "B").WithLocation(22, 34),
-                // (23,34): error CS8710: 'I2.F1(string)' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B).F1("1"));
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("I2.F1(string)", "B").WithLocation(23, 34),
-                // (31,34): error CS8710: 'I1.F1(int)' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B).F1(1));
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("I1.F1(int)", "B").WithLocation(31, 34),
-                // (32,34): error CS8710: 'I2.F1(string)' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B).F1("1"));
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("I2.F1(string)", "B").WithLocation(32, 34)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_056()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).MemberwiseClone();
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(B).MemberwiseClone();
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(B).MemberwiseClone();
-    }
-}
-
-interface B
-{
-}
-
-interface C
-{
-    sealed void Test()
-    {
-        _ = base(object).MemberwiseClone();
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,21): error CS0117: 'B' does not contain a definition for 'MemberwiseClone'
-                //         _ = base(B).MemberwiseClone();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "MemberwiseClone").WithArguments("B", "MemberwiseClone").WithLocation(6, 21),
-                // (14,21): error CS0117: 'B' does not contain a definition for 'MemberwiseClone'
-                //         _ = base(B).MemberwiseClone();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "MemberwiseClone").WithArguments("B", "MemberwiseClone").WithLocation(14, 21),
-                // (22,21): error CS0117: 'B' does not contain a definition for 'MemberwiseClone'
-                //         _ = base(B).MemberwiseClone();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "MemberwiseClone").WithArguments("B", "MemberwiseClone").WithLocation(22, 21),
-                // (34,18): error CS8708: 'object' is not base type or interface of C.
-                //         _ = base(object).MemberwiseClone();
-                Diagnostic(ErrorCode.ERR_NotBaseOrImplementedInterface, "object").WithArguments("object", "C").WithLocation(34, 18)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_057()
-        {
-            var source = @"
-class A : B
-{
-    char F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(F1);
-        F1 = 'x';
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-        System.Console.WriteLine(base(C).F1);
-        base(C).F1 = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new D().Test();
-        ((E)new F()).Test();
-    }
-}
-
-struct D : B
-{
-    char F1 { get => 'D'; set => System.Console.WriteLine(""set D"");}
-
-    public void Test()
-    {
-        System.Console.WriteLine(F1);
-        F1 = 'x';
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-        System.Console.WriteLine(base(C).F1);
-        base(C).F1 = 'x';
-    }
-}
-
-interface E : B
-{
-    new sealed char F1 { get => 'E'; set => System.Console.WriteLine(""set E"");}
-
-    sealed void Test()
-    {
-        System.Console.WriteLine(F1);
-        F1 = 'x';
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-        System.Console.WriteLine(base(C).F1);
-        base(C).F1 = 'x';
-    }
-}
-
-class F : E
-{}
-
-interface B : C
-{
-    new sealed char F1 { get => 'B'; set => System.Console.WriteLine(""set B"");}
-}
-
-interface C
-{
-    sealed char F1 { get => 'C'; set => System.Console.WriteLine(""set C"");}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-A
-set A
-B
-set B
-C
-set C
-D
-set D
-B
-set B
-C
-set C
-E
-set E
-B
-set B
-C
-set C
-", verify: VerifyOnMonoOrCoreClr);
-        }
-
-        [Fact]
-        public void ExplicitBase_058()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1;
-       base(B).F1 = 'x';
-        _ = base(C).F1;
-       base(C).F1 = 'y';
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(B).F1;
-       base(B).F1 = 'x';
-        _ = base(C).F1;
-       base(C).F1 = 'y';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(B).F1;
-       base(B).F1 = 'x';
-        _ = base(C).F1;
-       base(C).F1 = 'y';
-    }
-}
-
-interface B : C
-{
-    private char F1 {get => throw null; set => throw null;}
-}
-
-interface C
-{
-    private char F1 {get => throw null; set => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,21): error CS0122: 'B.F1' is inaccessible due to its protection level
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("B.F1").WithLocation(6, 21),
-                // (7,16): error CS0122: 'B.F1' is inaccessible due to its protection level
-                //        base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("B.F1").WithLocation(7, 16),
-                // (8,21): error CS0122: 'C.F1' is inaccessible due to its protection level
-                //         _ = base(C).F1;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(8, 21),
-                // (9,16): error CS0122: 'C.F1' is inaccessible due to its protection level
-                //        base(C).F1 = 'y';
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(9, 16),
-                // (17,21): error CS0122: 'B.F1' is inaccessible due to its protection level
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("B.F1").WithLocation(17, 21),
-                // (18,16): error CS0122: 'B.F1' is inaccessible due to its protection level
-                //        base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("B.F1").WithLocation(18, 16),
-                // (19,21): error CS0122: 'C.F1' is inaccessible due to its protection level
-                //         _ = base(C).F1;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(19, 21),
-                // (20,16): error CS0122: 'C.F1' is inaccessible due to its protection level
-                //        base(C).F1 = 'y';
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(20, 16),
-                // (28,21): error CS0122: 'B.F1' is inaccessible due to its protection level
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("B.F1").WithLocation(28, 21),
-                // (29,16): error CS0122: 'B.F1' is inaccessible due to its protection level
-                //        base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("B.F1").WithLocation(29, 16),
-                // (30,21): error CS0122: 'C.F1' is inaccessible due to its protection level
-                //         _ = base(C).F1;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(30, 21),
-                // (31,16): error CS0122: 'C.F1' is inaccessible due to its protection level
-                //        base(C).F1 = 'y';
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(31, 16)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_059()
-        {
-            var source1 = @"
-class A : B
-{
-    void Test()
-    {
-        System.Console.WriteLine(base(C).F1);
-        base(C).F1 = 'y';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new D().Test();
-        ((E)new F()).Test();
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        System.Console.WriteLine(base(C).F1);
-        base(C).F1 = 'y';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(C).F1);
-        base(C).F1 = 'y';
-    }
-}
-
-class F : E
-{}
-";
-            var source0 = @"
-interface B : C
-{
-    new private char F1 { get => 'B'; set => System.Console.WriteLine(""set B"");}
-}
-
-interface C
-{
-    sealed char F1 { get => 'C'; set => System.Console.WriteLine(""set C"");}
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-C
-set C
-C
-set C
-C
-set C
-", verify: VerifyOnMonoOrCoreClr);
-
-            var source2 = @"
-class A : B
-{
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new D().Test();
-        ((E)new F()).Test();
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-    }
-}
-
-class F : E
-{}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics(
-                // (6,34): error CS8710: 'C.F1.get' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B).F1);
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1.get", "B").WithLocation(6, 34),
-                // (7,9): error CS8710: 'C.F1.set' is not an immediate member of B.
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1.set", "B").WithLocation(7, 9),
-                // (22,34): error CS8710: 'C.F1.get' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B).F1);
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1.get", "B").WithLocation(22, 34),
-                // (23,9): error CS8710: 'C.F1.set' is not an immediate member of B.
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1.set", "B").WithLocation(23, 9),
-                // (31,34): error CS8710: 'C.F1.get' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B).F1);
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1.get", "B").WithLocation(31, 34),
-                // (32,9): error CS8710: 'C.F1.set' is not an immediate member of B.
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1.set", "B").WithLocation(32, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_060()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(C).F1;
-        base(C).F1 = 'x';
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(C).F1;
-        base(C).F1 = 'x';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(C).F1;
-        base(C).F1 = 'x';
-    }
-}
-
-interface B : C
-{
-    sealed char F1 {get => throw null; set => throw null;}
-}
-
-interface C
-{
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,21): error CS0117: 'C' does not contain a definition for 'F1'
-                //         _ = base(C).F1;
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("C", "F1").WithLocation(6, 21),
-                // (7,17): error CS0117: 'C' does not contain a definition for 'F1'
-                //         base(C).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("C", "F1").WithLocation(7, 17),
-                // (15,21): error CS0117: 'C' does not contain a definition for 'F1'
-                //         _ = base(C).F1;
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("C", "F1").WithLocation(15, 21),
-                // (16,17): error CS0117: 'C' does not contain a definition for 'F1'
-                //         base(C).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("C", "F1").WithLocation(16, 17),
-                // (24,21): error CS0117: 'C' does not contain a definition for 'F1'
-                //         _ = base(C).F1;
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("C", "F1").WithLocation(24, 21),
-                // (25,17): error CS0117: 'C' does not contain a definition for 'F1'
-                //         base(C).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("C", "F1").WithLocation(25, 17)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_061()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-
-interface B : C
-{
-    new sealed char F1 {get => throw null;}
-}
-
-interface C
-{
-    sealed char F1 {set => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (7,9): error CS0200: Property or indexer 'B.F1' cannot be assigned to -- it is read only
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "base(B).F1").WithArguments("B.F1").WithLocation(7, 9),
-                // (16,9): error CS0200: Property or indexer 'B.F1' cannot be assigned to -- it is read only
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "base(B).F1").WithArguments("B.F1").WithLocation(16, 9),
-                // (25,9): error CS0200: Property or indexer 'B.F1' cannot be assigned to -- it is read only
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "base(B).F1").WithArguments("B.F1").WithLocation(25, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_062()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-
-interface B : C
-{
-    new sealed char F1 {set => throw null;}
-}
-
-interface C
-{
-    sealed char F1 {get => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0154: The property or indexer 'B.F1' cannot be used in this context because it lacks the get accessor
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "base(B).F1").WithArguments("B.F1").WithLocation(6, 13),
-                // (15,13): error CS0154: The property or indexer 'B.F1' cannot be used in this context because it lacks the get accessor
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "base(B).F1").WithArguments("B.F1").WithLocation(15, 13),
-                // (24,13): error CS0154: The property or indexer 'B.F1' cannot be used in this context because it lacks the get accessor
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "base(B).F1").WithArguments("B.F1").WithLocation(24, 13)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_063()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-
-interface B : C
-{
-    new sealed char F1 {get => throw null; private set => throw null;}
-}
-
-interface C
-{
-    sealed char F1 {set => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (7,9): error CS0272: The property or indexer 'B.F1' cannot be used in this context because the set accessor is inaccessible
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "base(B).F1").WithArguments("B.F1").WithLocation(7, 9),
-                // (16,9): error CS0272: The property or indexer 'B.F1' cannot be used in this context because the set accessor is inaccessible
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "base(B).F1").WithArguments("B.F1").WithLocation(16, 9),
-                // (25,9): error CS0272: The property or indexer 'B.F1' cannot be used in this context because the set accessor is inaccessible
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "base(B).F1").WithArguments("B.F1").WithLocation(25, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_064()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-
-interface B : C
-{
-    new sealed char F1 {set => throw null; private get => throw null;}
-}
-
-interface C
-{
-    sealed char F1 {get => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0271: The property or indexer 'B.F1' cannot be used in this context because the get accessor is inaccessible
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_InaccessibleGetter, "base(B).F1").WithArguments("B.F1").WithLocation(6, 13),
-                // (15,13): error CS0271: The property or indexer 'B.F1' cannot be used in this context because the get accessor is inaccessible
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_InaccessibleGetter, "base(B).F1").WithArguments("B.F1").WithLocation(15, 13),
-                // (24,13): error CS0271: The property or indexer 'B.F1' cannot be used in this context because the get accessor is inaccessible
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_InaccessibleGetter, "base(B).F1").WithArguments("B.F1").WithLocation(24, 13)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_065()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'z';
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'z';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'z';
-    }
-}
-
-interface B
-{
-    static char F1 {get; set;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0176: Member 'B.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1").WithLocation(6, 13),
-                // (7,9): error CS0176: Member 'B.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         base(B).F1 = 'z';
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1").WithLocation(7, 9),
-                // (15,13): error CS0176: Member 'B.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1").WithLocation(15, 13),
-                // (16,9): error CS0176: Member 'B.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         base(B).F1 = 'z';
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1").WithLocation(16, 9),
-                // (24,13): error CS0176: Member 'B.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1").WithLocation(24, 13),
-                // (25,9): error CS0176: Member 'B.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         base(B).F1 = 'z';
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1").WithLocation(25, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_066()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).C.F1;
-        base(B).C.F1 = 'z';
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(B).C.F1;
-        base(B).C.F1 = 'z';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(B).C.F1;
-        base(B).C.F1 = 'z';
-    }
-}
-
-interface B
-{
-    public interface C
-    {
-        sealed char F1 {get => throw null; set => throw null;}
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0120: An object reference is required for the non-static field, method, or property 'B.C.F1'
-                //         _ = base(B).C.F1;
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "base(B).C.F1").WithArguments("B.C.F1").WithLocation(6, 13),
-                // (6,21): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         _ = base(B).C.F1;
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(6, 21),
-                // (7,9): error CS0120: An object reference is required for the non-static field, method, or property 'B.C.F1'
-                //         base(B).C.F1 = 'z';
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "base(B).C.F1").WithArguments("B.C.F1").WithLocation(7, 9),
-                // (7,17): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         base(B).C.F1 = 'z';
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(7, 17),
-                // (15,13): error CS0120: An object reference is required for the non-static field, method, or property 'B.C.F1'
-                //         _ = base(B).C.F1;
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "base(B).C.F1").WithArguments("B.C.F1").WithLocation(15, 13),
-                // (15,21): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         _ = base(B).C.F1;
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(15, 21),
-                // (16,9): error CS0120: An object reference is required for the non-static field, method, or property 'B.C.F1'
-                //         base(B).C.F1 = 'z';
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "base(B).C.F1").WithArguments("B.C.F1").WithLocation(16, 9),
-                // (16,17): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         base(B).C.F1 = 'z';
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(16, 17),
-                // (24,13): error CS0120: An object reference is required for the non-static field, method, or property 'B.C.F1'
-                //         _ = base(B).C.F1;
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "base(B).C.F1").WithArguments("B.C.F1").WithLocation(24, 13),
-                // (24,21): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         _ = base(B).C.F1;
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(24, 21),
-                // (25,9): error CS0120: An object reference is required for the non-static field, method, or property 'B.C.F1'
-                //         base(B).C.F1 = 'z';
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "base(B).C.F1").WithArguments("B.C.F1").WithLocation(25, 9),
-                // (25,17): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         base(B).C.F1 = 'z';
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(25, 17)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_067()
-        {
-            var source0 = @"
-interface I1
-{
-    sealed char F1 {get => '1';}
-}
-
-interface I2
-{
-    sealed char F1 {set => System.Console.WriteLine(""set 2"");}
-}
-
-interface B : I1, I2
-{}
-";
-
-            var source1 = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,21): error CS0229: Ambiguity between 'I1.F1' and 'I2.F1'
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "F1").WithArguments("I1.F1", "I2.F1").WithLocation(6, 21),
-                // (7,17): error CS0229: Ambiguity between 'I1.F1' and 'I2.F1'
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_AmbigMember, "F1").WithArguments("I1.F1", "I2.F1").WithLocation(7, 17),
-                // (15,21): error CS0229: Ambiguity between 'I1.F1' and 'I2.F1'
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "F1").WithArguments("I1.F1", "I2.F1").WithLocation(15, 21),
-                // (16,17): error CS0229: Ambiguity between 'I1.F1' and 'I2.F1'
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_AmbigMember, "F1").WithArguments("I1.F1", "I2.F1").WithLocation(16, 17),
-                // (24,21): error CS0229: Ambiguity between 'I1.F1' and 'I2.F1'
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "F1").WithArguments("I1.F1", "I2.F1").WithLocation(24, 21),
-                // (25,17): error CS0229: Ambiguity between 'I1.F1' and 'I2.F1'
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_AmbigMember, "F1").WithArguments("I1.F1", "I2.F1").WithLocation(25, 17)
-                );
-
-            var source2 = @"
-class A : B
-{
-    void Test()
-    {
-        System.Console.WriteLine(base(I1).F1);
-        base(I2).F1 = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new D().Test();
-        ((E)new F()).Test();
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        System.Console.WriteLine(base(I1).F1);
-        base(I2).F1 = 'x';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(I1).F1);
-        base(I2).F1 = 'x';
-    }
-}
-
-class F : E
-{}
-";
-
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics();
-
-            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-1
-set 2
-1
-set 2
-1
-set 2
-", verify: VerifyOnMonoOrCoreClr);
-        }
-
-        [Fact]
-        public void ExplicitBase_068()
-        {
-            var source = @"
-class A : B
-{
-    char this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(this[1]);
-        this[2] = 'x';
-        System.Console.WriteLine(base(B)[3]);
-        base(B)[4] = 'x';
-        System.Console.WriteLine(base(C)[5]);
-        base(C)[6] = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new D().Test();
-        ((E)new F()).Test();
-    }
-}
-
-struct D : B
-{
-    char this[int i] { get => 'D'; set => System.Console.WriteLine(""set D"");}
-
-    public void Test()
-    {
-        System.Console.WriteLine(this[1]);
-        this[2] = 'x';
-        System.Console.WriteLine(base(B)[3]);
-        base(B)[4] = 'x';
-        System.Console.WriteLine(base(C)[5]);
-        base(C)[6] = 'x';
-    }
-}
-
-interface E : B
-{
-    new sealed char this[int i] { get => 'E'; set => System.Console.WriteLine(""set E"");}
-
-    sealed void Test()
-    {
-        System.Console.WriteLine(this[1]);
-        this[2] = 'x';
-        System.Console.WriteLine(base(B)[3]);
-        base(B)[4] = 'x';
-        System.Console.WriteLine(base(C)[5]);
-        base(C)[6] = 'x';
-    }
-}
-
-class F : E
-{}
-
-interface B : C
-{
-    new sealed char this[int i] { get => 'B'; set => System.Console.WriteLine(""set B"");}
-}
-
-interface C
-{
-    sealed char this[int i] { get => 'C'; set => System.Console.WriteLine(""set C"");}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-A
-set A
-B
-set B
-C
-set C
-D
-set D
-B
-set B
-C
-set C
-E
-set E
-B
-set B
-C
-set C
-", verify: VerifyOnMonoOrCoreClr);
-        }
-
-        [Fact]
-        public void ExplicitBase_069()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B)[0];
-       base(B)[0] = 'x';
-        _ = base(C)[0];
-       base(C)[0] = 'y';
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(B)[0];
-       base(B)[0] = 'x';
-        _ = base(C)[0];
-       base(C)[0] = 'y';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(B)[0];
-       base(B)[0] = 'x';
-        _ = base(C)[0];
-       base(C)[0] = 'y';
-    }
-}
-
-interface B : C
-{
-    private char this[int i] {get => throw null; set => throw null;}
-}
-
-interface C
-{
-    private char this[int i] {get => throw null; set => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0122: 'B.this[int]' is inaccessible due to its protection level
-                //         _ = base(B)[0];
-                Diagnostic(ErrorCode.ERR_BadAccess, "base(B)[0]").WithArguments("B.this[int]").WithLocation(6, 13),
-                // (7,8): error CS0122: 'B.this[int]' is inaccessible due to its protection level
-                //        base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_BadAccess, "base(B)[0]").WithArguments("B.this[int]").WithLocation(7, 8),
-                // (8,13): error CS0122: 'C.this[int]' is inaccessible due to its protection level
-                //         _ = base(C)[0];
-                Diagnostic(ErrorCode.ERR_BadAccess, "base(C)[0]").WithArguments("C.this[int]").WithLocation(8, 13),
-                // (9,8): error CS0122: 'C.this[int]' is inaccessible due to its protection level
-                //        base(C)[0] = 'y';
-                Diagnostic(ErrorCode.ERR_BadAccess, "base(C)[0]").WithArguments("C.this[int]").WithLocation(9, 8),
-                // (17,13): error CS0122: 'B.this[int]' is inaccessible due to its protection level
-                //         _ = base(B)[0];
-                Diagnostic(ErrorCode.ERR_BadAccess, "base(B)[0]").WithArguments("B.this[int]").WithLocation(17, 13),
-                // (18,8): error CS0122: 'B.this[int]' is inaccessible due to its protection level
-                //        base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_BadAccess, "base(B)[0]").WithArguments("B.this[int]").WithLocation(18, 8),
-                // (19,13): error CS0122: 'C.this[int]' is inaccessible due to its protection level
-                //         _ = base(C)[0];
-                Diagnostic(ErrorCode.ERR_BadAccess, "base(C)[0]").WithArguments("C.this[int]").WithLocation(19, 13),
-                // (20,8): error CS0122: 'C.this[int]' is inaccessible due to its protection level
-                //        base(C)[0] = 'y';
-                Diagnostic(ErrorCode.ERR_BadAccess, "base(C)[0]").WithArguments("C.this[int]").WithLocation(20, 8),
-                // (28,13): error CS0122: 'B.this[int]' is inaccessible due to its protection level
-                //         _ = base(B)[0];
-                Diagnostic(ErrorCode.ERR_BadAccess, "base(B)[0]").WithArguments("B.this[int]").WithLocation(28, 13),
-                // (29,8): error CS0122: 'B.this[int]' is inaccessible due to its protection level
-                //        base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_BadAccess, "base(B)[0]").WithArguments("B.this[int]").WithLocation(29, 8),
-                // (30,13): error CS0122: 'C.this[int]' is inaccessible due to its protection level
-                //         _ = base(C)[0];
-                Diagnostic(ErrorCode.ERR_BadAccess, "base(C)[0]").WithArguments("C.this[int]").WithLocation(30, 13),
-                // (31,8): error CS0122: 'C.this[int]' is inaccessible due to its protection level
-                //        base(C)[0] = 'y';
-                Diagnostic(ErrorCode.ERR_BadAccess, "base(C)[0]").WithArguments("C.this[int]").WithLocation(31, 8)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_070()
-        {
-            var source1 = @"
-class A : B
-{
-    void Test()
-    {
-        System.Console.WriteLine(base(C)[0]);
-        base(C)[0] = 'y';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new D().Test();
-        ((E)new F()).Test();
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        System.Console.WriteLine(base(C)[0]);
-        base(C)[0] = 'y';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(C)[0]);
-        base(C)[0] = 'y';
-    }
-}
-
-class F : E
-{}
-";
-            var source0 = @"
-interface B : C
-{
-    new private char this[int i] { get => 'B'; set => System.Console.WriteLine(""set B"");}
-}
-
-interface C
-{
-    sealed char this[int i] { get => 'C'; set => System.Console.WriteLine(""set C"");}
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-C
-set C
-C
-set C
-C
-set C
-", verify: VerifyOnMonoOrCoreClr);
-
-            var source2 = @"
-class A : B
-{
-    void Test()
-    {
-        System.Console.WriteLine(base(B)[0]);
-        base(B)[0] = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new D().Test();
-        ((E)new F()).Test();
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        System.Console.WriteLine(base(B)[0]);
-        base(B)[0] = 'x';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(B)[0]);
-        base(B)[0] = 'x';
-    }
-}
-
-class F : E
-{}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics(
-                // (6,34): error CS8710: 'C.this[int].get' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B)[0]);
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("C.this[int].get", "B").WithLocation(6, 34),
-                // (7,9): error CS8710: 'C.this[int].set' is not an immediate member of B.
-                //         base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("C.this[int].set", "B").WithLocation(7, 9),
-                // (22,34): error CS8710: 'C.this[int].get' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B)[0]);
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("C.this[int].get", "B").WithLocation(22, 34),
-                // (23,9): error CS8710: 'C.this[int].set' is not an immediate member of B.
-                //         base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("C.this[int].set", "B").WithLocation(23, 9),
-                // (31,34): error CS8710: 'C.this[int].get' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B)[0]);
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("C.this[int].get", "B").WithLocation(31, 34),
-                // (32,9): error CS8710: 'C.this[int].set' is not an immediate member of B.
-                //         base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("C.this[int].set", "B").WithLocation(32, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_071()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(C)[0];
-        base(C)[0] = 'x';
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(C)[0];
-        base(C)[0] = 'x';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(C)[0];
-        base(C)[0] = 'x';
-    }
-}
-
-interface B : C
-{
-    sealed char this[int i] {get => throw null; set => throw null;}
-}
-
-interface C
-{
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-                //         _ = base(C)[0];
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "base(C)[0]").WithArguments("C").WithLocation(6, 13),
-                // (7,9): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-                //         base(C)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "base(C)[0]").WithArguments("C").WithLocation(7, 9),
-                // (15,13): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-                //         _ = base(C)[0];
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "base(C)[0]").WithArguments("C").WithLocation(15, 13),
-                // (16,9): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-                //         base(C)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "base(C)[0]").WithArguments("C").WithLocation(16, 9),
-                // (24,13): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-                //         _ = base(C)[0];
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "base(C)[0]").WithArguments("C").WithLocation(24, 13),
-                // (25,9): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-                //         base(C)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "base(C)[0]").WithArguments("C").WithLocation(25, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_072()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'x';
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'x';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'x';
-    }
-}
-
-interface B : C
-{
-    new sealed char this[int i] {get => throw null;}
-}
-
-interface C
-{
-    sealed char this[int i] {set => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (7,9): error CS0200: Property or indexer 'B.this[int]' cannot be assigned to -- it is read only
-                //         base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "base(B)[0]").WithArguments("B.this[int]").WithLocation(7, 9),
-                // (16,9): error CS0200: Property or indexer 'B.this[int]' cannot be assigned to -- it is read only
-                //         base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "base(B)[0]").WithArguments("B.this[int]").WithLocation(16, 9),
-                // (25,9): error CS0200: Property or indexer 'B.this[int]' cannot be assigned to -- it is read only
-                //         base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "base(B)[0]").WithArguments("B.this[int]").WithLocation(25, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_073()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'x';
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'x';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'x';
-    }
-}
-
-interface B : C
-{
-    new sealed char this[int i] {set => throw null;}
-}
-
-interface C
-{
-    sealed char this[int i] {get => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0154: The property or indexer 'B.this[int]' cannot be used in this context because it lacks the get accessor
-                //         _ = base(B)[0];
-                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "base(B)[0]").WithArguments("B.this[int]").WithLocation(6, 13),
-                // (15,13): error CS0154: The property or indexer 'B.this[int]' cannot be used in this context because it lacks the get accessor
-                //         _ = base(B)[0];
-                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "base(B)[0]").WithArguments("B.this[int]").WithLocation(15, 13),
-                // (24,13): error CS0154: The property or indexer 'B.this[int]' cannot be used in this context because it lacks the get accessor
-                //         _ = base(B)[0];
-                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "base(B)[0]").WithArguments("B.this[int]").WithLocation(24, 13)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_074()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'x';
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'x';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'x';
-    }
-}
-
-interface B : C
-{
-    new sealed char this[int i] {get => throw null; private set => throw null;}
-}
-
-interface C
-{
-    sealed char this[int i] {set => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (7,9): error CS0272: The property or indexer 'B.this[int]' cannot be used in this context because the set accessor is inaccessible
-                //         base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "base(B)[0]").WithArguments("B.this[int]").WithLocation(7, 9),
-                // (16,9): error CS0272: The property or indexer 'B.this[int]' cannot be used in this context because the set accessor is inaccessible
-                //         base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "base(B)[0]").WithArguments("B.this[int]").WithLocation(16, 9),
-                // (25,9): error CS0272: The property or indexer 'B.this[int]' cannot be used in this context because the set accessor is inaccessible
-                //         base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "base(B)[0]").WithArguments("B.this[int]").WithLocation(25, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_075()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'x';
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'x';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'x';
-    }
-}
-
-interface B : C
-{
-    new sealed char this[int i] {set => throw null; private get => throw null;}
-}
-
-interface C
-{
-    sealed char this[int i] {get => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0271: The property or indexer 'B.this[int]' cannot be used in this context because the get accessor is inaccessible
-                //         _ = base(B)[0];
-                Diagnostic(ErrorCode.ERR_InaccessibleGetter, "base(B)[0]").WithArguments("B.this[int]").WithLocation(6, 13),
-                // (15,13): error CS0271: The property or indexer 'B.this[int]' cannot be used in this context because the get accessor is inaccessible
-                //         _ = base(B)[0];
-                Diagnostic(ErrorCode.ERR_InaccessibleGetter, "base(B)[0]").WithArguments("B.this[int]").WithLocation(15, 13),
-                // (24,13): error CS0271: The property or indexer 'B.this[int]' cannot be used in this context because the get accessor is inaccessible
-                //         _ = base(B)[0];
-                Diagnostic(ErrorCode.ERR_InaccessibleGetter, "base(B)[0]").WithArguments("B.this[int]").WithLocation(24, 13)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_076()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'z';
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'z';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'z';
-    }
-}
-
-interface B
-{
-    static char this[int i] {get => throw null; set => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (31,17): error CS0106: The modifier 'static' is not valid for this item
-                //     static char this[int i] {get => throw null; set => throw null;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(31, 17)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_077()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).C[0];
-        base(B).C[0] = 'z';
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(B).C[0];
-        base(B).C[0] = 'z';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(B).C[0];
-        base(B).C[0] = 'z';
-    }
-}
-
-interface B
-{
-    interface C
-    {
-        sealed char this[int i] {get => throw null; set => throw null;}
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0119: 'B.C' is a type, which is not valid in the given context
-                //         _ = base(B).C[0];
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "base(B).C").WithArguments("B.C", "type").WithLocation(6, 13),
-                // (6,21): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         _ = base(B).C[0];
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(6, 21),
-                // (7,9): error CS0119: 'B.C' is a type, which is not valid in the given context
-                //         base(B).C[0] = 'z';
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "base(B).C").WithArguments("B.C", "type").WithLocation(7, 9),
-                // (7,17): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         base(B).C[0] = 'z';
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(7, 17),
-                // (15,13): error CS0119: 'B.C' is a type, which is not valid in the given context
-                //         _ = base(B).C[0];
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "base(B).C").WithArguments("B.C", "type").WithLocation(15, 13),
-                // (15,21): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         _ = base(B).C[0];
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(15, 21),
-                // (16,9): error CS0119: 'B.C' is a type, which is not valid in the given context
-                //         base(B).C[0] = 'z';
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "base(B).C").WithArguments("B.C", "type").WithLocation(16, 9),
-                // (16,17): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         base(B).C[0] = 'z';
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(16, 17),
-                // (24,13): error CS0119: 'B.C' is a type, which is not valid in the given context
-                //         _ = base(B).C[0];
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "base(B).C").WithArguments("B.C", "type").WithLocation(24, 13),
-                // (24,21): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         _ = base(B).C[0];
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(24, 21),
-                // (25,9): error CS0119: 'B.C' is a type, which is not valid in the given context
-                //         base(B).C[0] = 'z';
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "base(B).C").WithArguments("B.C", "type").WithLocation(25, 9),
-                // (25,17): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         base(B).C[0] = 'z';
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(25, 17)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_078()
-        {
-            var source0 = @"
-interface I1
-{
-    sealed char this[int i] {get => '1';}
-}
-
-interface I2
-{
-    sealed char this[int i] {set => System.Console.WriteLine(""set 2"");}
-}
-
-interface B : I1, I2
-{}
-";
-
-            var source1 = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'x';
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'x';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'x';
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0121: The call is ambiguous between the following methods or properties: 'I1.this[int]' and 'I2.this[int]'
-                //         _ = base(B)[0];
-                Diagnostic(ErrorCode.ERR_AmbigCall, "base(B)[0]").WithArguments("I1.this[int]", "I2.this[int]").WithLocation(6, 13),
-                // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'I1.this[int]' and 'I2.this[int]'
-                //         base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_AmbigCall, "base(B)[0]").WithArguments("I1.this[int]", "I2.this[int]").WithLocation(7, 9),
-                // (15,13): error CS0121: The call is ambiguous between the following methods or properties: 'I1.this[int]' and 'I2.this[int]'
-                //         _ = base(B)[0];
-                Diagnostic(ErrorCode.ERR_AmbigCall, "base(B)[0]").WithArguments("I1.this[int]", "I2.this[int]").WithLocation(15, 13),
-                // (16,9): error CS0121: The call is ambiguous between the following methods or properties: 'I1.this[int]' and 'I2.this[int]'
-                //         base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_AmbigCall, "base(B)[0]").WithArguments("I1.this[int]", "I2.this[int]").WithLocation(16, 9),
-                // (24,13): error CS0121: The call is ambiguous between the following methods or properties: 'I1.this[int]' and 'I2.this[int]'
-                //         _ = base(B)[0];
-                Diagnostic(ErrorCode.ERR_AmbigCall, "base(B)[0]").WithArguments("I1.this[int]", "I2.this[int]").WithLocation(24, 13),
-                // (25,9): error CS0121: The call is ambiguous between the following methods or properties: 'I1.this[int]' and 'I2.this[int]'
-                //         base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_AmbigCall, "base(B)[0]").WithArguments("I1.this[int]", "I2.this[int]").WithLocation(25, 9)
-                );
-
-            var source2 = @"
-class A : B
-{
-    void Test()
-    {
-        System.Console.WriteLine(base(I1)[0]);
-        base(I2)[0] = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new D().Test();
-        ((E)new F()).Test();
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        System.Console.WriteLine(base(I1)[0]);
-        base(I2)[0] = 'x';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(I1)[0]);
-        base(I2)[0] = 'x';
-    }
-}
-
-class F : E
-{}
-";
-
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics();
-
-            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-1
-set 2
-1
-set 2
-1
-set 2
-", verify: VerifyOnMonoOrCoreClr);
-
-
-            var source3 = @"
-class A : B
-{
-    void Test()
-    {
-        System.Console.WriteLine(base(B)[0]);
-        base(B)[""0""] = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new D().Test();
-        ((E)new F()).Test();
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        System.Console.WriteLine(base(B)[0]);
-        base(B)[""0""] = 'x';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(B)[0]);
-        base(B)[""0""] = 'x';
-    }
-}
-
-class F : E
-{}
-
-interface I1
-{
-    sealed char this[int i] {get => '1';}
-}
-
-interface I2
-{
-    sealed char this[string i] {set => System.Console.WriteLine(""set 2"");}
-}
-
-interface B : I1, I2
-{}
-
-";
-
-            var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation3.VerifyDiagnostics(
-                // (6,34): error CS8710: 'I1.this[int].get' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B)[0]);
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("I1.this[int].get", "B").WithLocation(6, 34),
-                // (7,9): error CS8710: 'I2.this[string].set' is not an immediate member of B.
-                //         base(B)["0"] = 'x';
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, @"base(B)[""0""]").WithArguments("I2.this[string].set", "B").WithLocation(7, 9),
-                // (22,34): error CS8710: 'I1.this[int].get' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B)[0]);
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("I1.this[int].get", "B").WithLocation(22, 34),
-                // (23,9): error CS8710: 'I2.this[string].set' is not an immediate member of B.
-                //         base(B)["0"] = 'x';
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, @"base(B)[""0""]").WithArguments("I2.this[string].set", "B").WithLocation(23, 9),
-                // (31,34): error CS8710: 'I1.this[int].get' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B)[0]);
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("I1.this[int].get", "B").WithLocation(31, 34),
-                // (32,9): error CS8710: 'I2.this[string].set' is not an immediate member of B.
-                //         base(B)["0"] = 'x';
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, @"base(B)[""0""]").WithArguments("I2.this[string].set", "B").WithLocation(32, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_079()
-        {
-            var source = @"
-class A : B
-{
-    event System.Action F1 { add => System.Console.WriteLine(""add A""); remove => System.Console.WriteLine(""remove A"");}
-
-    void Test()
-    {
-        F1 += null;
-        F1 -= null;
-        base(B).F1 += null;
-        base(B).F1 -= null;
-        base(C).F1 += null;
-        base(C).F1 -= null;
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new D().Test();
-        ((E)new F()).Test();
-    }
-}
-
-struct D : B
-{
-    event System.Action F1 { add => System.Console.WriteLine(""add D""); remove => System.Console.WriteLine(""remove D"");}
-
-    public void Test()
-    {
-        F1 += null;
-        F1 -= null;
-        base(B).F1 += null;
-        base(B).F1 -= null;
-        base(C).F1 += null;
-        base(C).F1 -= null;
-    }
-}
-
-interface E : B
-{
-    new sealed event System.Action F1 { add => System.Console.WriteLine(""add E""); remove => System.Console.WriteLine(""remove E"");}
-
-    sealed void Test()
-    {
-        F1 += null;
-        F1 -= null;
-        base(B).F1 += null;
-        base(B).F1 -= null;
-        base(C).F1 += null;
-        base(C).F1 -= null;
-    }
-}
-
-class F : E
-{}
-
-interface B : C
-{
-    new sealed event System.Action F1 { add => System.Console.WriteLine(""add B""); remove => System.Console.WriteLine(""remove B"");}
-}
-
-interface C
-{
-    sealed event System.Action F1 { add => System.Console.WriteLine(""add C""); remove => System.Console.WriteLine(""remove C"");}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-add A
-remove A
-add B
-remove B
-add C
-remove C
-add D
-remove D
-add B
-remove B
-add C
-remove C
-add E
-remove E
-add B
-remove B
-add C
-remove C
-", verify: VerifyOnMonoOrCoreClr);
-        }
-
-        [Fact]
-        public void ExplicitBase_080()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-        base(C).F1 += null;
-        base(C).F1 -= null;
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-        base(C).F1 += null;
-        base(C).F1 -= null;
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-        base(C).F1 += null;
-        base(C).F1 -= null;
-    }
-}
-
-interface B : C
-{
-    private event System.Action F1 { add => throw null; remove => throw null;}
-}
-
-interface C
-{
-    private event System.Action F1 { add => throw null; remove => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,17): error CS0122: 'B.F1' is inaccessible due to its protection level
-                //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("B.F1").WithLocation(6, 17),
-                // (7,17): error CS0122: 'B.F1' is inaccessible due to its protection level
-                //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("B.F1").WithLocation(7, 17),
-                // (8,17): error CS0122: 'C.F1' is inaccessible due to its protection level
-                //         base(C).F1 += null;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(8, 17),
-                // (9,17): error CS0122: 'C.F1' is inaccessible due to its protection level
-                //         base(C).F1 -= null;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(9, 17),
-                // (17,17): error CS0122: 'B.F1' is inaccessible due to its protection level
-                //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("B.F1").WithLocation(17, 17),
-                // (18,17): error CS0122: 'B.F1' is inaccessible due to its protection level
-                //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("B.F1").WithLocation(18, 17),
-                // (19,17): error CS0122: 'C.F1' is inaccessible due to its protection level
-                //         base(C).F1 += null;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(19, 17),
-                // (20,17): error CS0122: 'C.F1' is inaccessible due to its protection level
-                //         base(C).F1 -= null;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(20, 17),
-                // (28,17): error CS0122: 'B.F1' is inaccessible due to its protection level
-                //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("B.F1").WithLocation(28, 17),
-                // (29,17): error CS0122: 'B.F1' is inaccessible due to its protection level
-                //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("B.F1").WithLocation(29, 17),
-                // (30,17): error CS0122: 'C.F1' is inaccessible due to its protection level
-                //         base(C).F1 += null;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(30, 17),
-                // (31,17): error CS0122: 'C.F1' is inaccessible due to its protection level
-                //         base(C).F1 -= null;
-                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(31, 17)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_081()
-        {
-            var source1 = @"
-class A : B
-{
-    void Test()
-    {
-        base(C).F1 += null;
-        base(C).F1 -= null;
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new D().Test();
-        ((E)new F()).Test();
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        base(C).F1 += null;
-        base(C).F1 -= null;
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        base(C).F1 += null;
-        base(C).F1 -= null;
-    }
-}
-
-class F : E
-{}
-";
-            var source0 = @"
-interface B : C
-{
-    new private event System.Action F1 { add => System.Console.WriteLine(""add B""); remove => System.Console.WriteLine(""remove B"");}
-}
-
-interface C
-{
-    sealed event System.Action F1 { add => System.Console.WriteLine(""add C""); remove => System.Console.WriteLine(""remove C"");}
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-add C
-remove C
-add C
-remove C
-add C
-remove C
-", verify: VerifyOnMonoOrCoreClr);
-
-            var source2 = @"
-class A : B
-{
-    void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new D().Test();
-        ((E)new F()).Test();
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-
-class F : E
-{}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics(
-                // (6,9): error CS8710: 'C.F1.add' is not an immediate member of B.
-                //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1 += null").WithArguments("C.F1.add", "B").WithLocation(6, 9),
-                // (7,9): error CS8710: 'C.F1.remove' is not an immediate member of B.
-                //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1 -= null").WithArguments("C.F1.remove", "B").WithLocation(7, 9),
-                // (22,9): error CS8710: 'C.F1.add' is not an immediate member of B.
-                //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1 += null").WithArguments("C.F1.add", "B").WithLocation(22, 9),
-                // (23,9): error CS8710: 'C.F1.remove' is not an immediate member of B.
-                //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1 -= null").WithArguments("C.F1.remove", "B").WithLocation(23, 9),
-                // (31,9): error CS8710: 'C.F1.add' is not an immediate member of B.
-                //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1 += null").WithArguments("C.F1.add", "B").WithLocation(31, 9),
-                // (32,9): error CS8710: 'C.F1.remove' is not an immediate member of B.
-                //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1 -= null").WithArguments("C.F1.remove", "B").WithLocation(32, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_082()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        base(C).F1 += null;
-        base(C).F1 -= null;
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        base(C).F1 += null;
-        base(C).F1 -= null;
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        base(C).F1 += null;
-        base(C).F1 -= null;
-    }
-}
-
-interface B : C
-{
-    sealed event System.Action F1 { add => throw null; remove => throw null;}
-}
-
-interface C
-{
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,17): error CS0117: 'C' does not contain a definition for 'F1'
-                //         base(C).F1 += null;
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("C", "F1").WithLocation(6, 17),
-                // (7,17): error CS0117: 'C' does not contain a definition for 'F1'
-                //         base(C).F1 -= null;
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("C", "F1").WithLocation(7, 17),
-                // (15,17): error CS0117: 'C' does not contain a definition for 'F1'
-                //         base(C).F1 += null;
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("C", "F1").WithLocation(15, 17),
-                // (16,17): error CS0117: 'C' does not contain a definition for 'F1'
-                //         base(C).F1 -= null;
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("C", "F1").WithLocation(16, 17),
-                // (24,17): error CS0117: 'C' does not contain a definition for 'F1'
-                //         base(C).F1 += null;
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("C", "F1").WithLocation(24, 17),
-                // (25,17): error CS0117: 'C' does not contain a definition for 'F1'
-                //         base(C).F1 -= null;
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("C", "F1").WithLocation(25, 17)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_083()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-
-interface B
-{
-    static event System.Action F1 { add => throw null; remove => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,9): error CS0176: Member 'B.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1").WithLocation(6, 9),
-                // (7,9): error CS0176: Member 'B.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1").WithLocation(7, 9),
-                // (15,9): error CS0176: Member 'B.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1").WithLocation(15, 9),
-                // (16,9): error CS0176: Member 'B.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1").WithLocation(16, 9),
-                // (24,9): error CS0176: Member 'B.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1").WithLocation(24, 9),
-                // (25,9): error CS0176: Member 'B.F1' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "base(B).F1").WithArguments("B.F1").WithLocation(25, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_084()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        base(B).C.F1 += null;
-        base(B).C.F1 -= null;
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        base(B).C.F1 += null;
-        base(B).C.F1 -= null;
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        base(B).C.F1 += null;
-        base(B).C.F1 -= null;
-    }
-}
-
-interface B
-{
-    public interface C
-    {
-        sealed event System.Action F1 { add => throw null; remove => throw null;}
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,9): error CS0120: An object reference is required for the non-static field, method, or property 'B.C.F1'
-                //         base(B).C.F1 += null;
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "base(B).C.F1").WithArguments("B.C.F1").WithLocation(6, 9),
-                // (6,17): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         base(B).C.F1 += null;
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(6, 17),
-                // (7,9): error CS0120: An object reference is required for the non-static field, method, or property 'B.C.F1'
-                //         base(B).C.F1 -= null;
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "base(B).C.F1").WithArguments("B.C.F1").WithLocation(7, 9),
-                // (7,17): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         base(B).C.F1 -= null;
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(7, 17),
-                // (15,9): error CS0120: An object reference is required for the non-static field, method, or property 'B.C.F1'
-                //         base(B).C.F1 += null;
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "base(B).C.F1").WithArguments("B.C.F1").WithLocation(15, 9),
-                // (15,17): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         base(B).C.F1 += null;
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(15, 17),
-                // (16,9): error CS0120: An object reference is required for the non-static field, method, or property 'B.C.F1'
-                //         base(B).C.F1 -= null;
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "base(B).C.F1").WithArguments("B.C.F1").WithLocation(16, 9),
-                // (16,17): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         base(B).C.F1 -= null;
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(16, 17),
-                // (24,9): error CS0120: An object reference is required for the non-static field, method, or property 'B.C.F1'
-                //         base(B).C.F1 += null;
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "base(B).C.F1").WithArguments("B.C.F1").WithLocation(24, 9),
-                // (24,17): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         base(B).C.F1 += null;
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(24, 17),
-                // (25,9): error CS0120: An object reference is required for the non-static field, method, or property 'B.C.F1'
-                //         base(B).C.F1 -= null;
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "base(B).C.F1").WithArguments("B.C.F1").WithLocation(25, 9),
-                // (25,17): error CS0572: 'C': cannot reference a type through an expression; try 'B.C' instead
-                //         base(B).C.F1 -= null;
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "B.C").WithLocation(25, 17)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_085()
-        {
-            var source0 = @"
-interface I1
-{
-    sealed event System.Action F1 { add => System.Console.WriteLine(""add 1""); remove => throw null;}
-}
-
-interface I2
-{
-    sealed event System.Action F1 { add => throw null; remove => System.Console.WriteLine(""remove 2"");}
-}
-
-interface B : I1, I2
-{
-}
-";
-
-            var source1 = @"
-class A : B
-{
-    void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,17): error CS0229: Ambiguity between 'I1.F1' and 'I2.F1'
-                //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "F1").WithArguments("I1.F1", "I2.F1").WithLocation(6, 17),
-                // (7,17): error CS0229: Ambiguity between 'I1.F1' and 'I2.F1'
-                //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "F1").WithArguments("I1.F1", "I2.F1").WithLocation(7, 17),
-                // (15,17): error CS0229: Ambiguity between 'I1.F1' and 'I2.F1'
-                //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "F1").WithArguments("I1.F1", "I2.F1").WithLocation(15, 17),
-                // (16,17): error CS0229: Ambiguity between 'I1.F1' and 'I2.F1'
-                //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "F1").WithArguments("I1.F1", "I2.F1").WithLocation(16, 17),
-                // (24,17): error CS0229: Ambiguity between 'I1.F1' and 'I2.F1'
-                //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "F1").WithArguments("I1.F1", "I2.F1").WithLocation(24, 17),
-                // (25,17): error CS0229: Ambiguity between 'I1.F1' and 'I2.F1'
-                //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "F1").WithArguments("I1.F1", "I2.F1").WithLocation(25, 17)
-                );
-
-            var source2 = @"
-class A : B
-{
-    void Test()
-    {
-        base(I1).F1 += null;
-        base(I2).F1 -= null;
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new D().Test();
-        ((E)new F()).Test();
-    }
-}
-
-struct D : B
-{
-    public void Test()
-    {
-        base(I1).F1 += null;
-        base(I2).F1 -= null;
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        base(I1).F1 += null;
-        base(I2).F1 -= null;
-    }
-}
-
-class F : E
-{}
-";
-
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics();
-
-            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-add 1
-remove 2
-add 1
-remove 2
-add 1
-remove 2
-", verify: VerifyOnMonoOrCoreClr);
-        }
-
-        [Fact]
-        public void ExplicitBase_086()
-        {
-            var source1 = @"
-class A : B
-{
-    protected override char F1(int pA) => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(F1(1));
-        System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(D).F1(1));
-        System.Console.WriteLine(base(B).F1(pB: 1));
-        System.Console.WriteLine(base(D).F1(pD: 1));
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-    }
-}
-";
-            var source0 = @"
-class B : C
-{
-    protected override char F1(int pB) => 'B';
-}
-
-class C : D
-{
-}
-
-class D : E
-{
-    protected override char F1(int pD) => 'D';
-}
-
-abstract class E
-{
-    protected abstract char F1(int pE);
-}
-
-struct F
-{
-    public override string ToString() => ""E.ToString"";
-
-    public void Test()
-    {
-        System.Console.WriteLine(base(object).ToString());
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(compilation1, expectedOutput:
-@"
-A
-B
-D
-B
-D
-F
-");
-            verifier.VerifyIL("F.Test",
-@"
-{
-  // Code size       24 (0x18)
-  .maxstack  1
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""F""
-  IL_0007:  box        ""F""
-  IL_000c:  call       ""string object.ToString()""
-  IL_0011:  call       ""void System.Console.WriteLine(string)""
-  IL_0016:  nop
-  IL_0017:  ret
-}
-");
-            var source2 = @"
-class A : B
-{
-    protected override char F1(int pA) => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(base(C).F1(1));
-        System.Console.WriteLine(base(C).F1(pD: 1));
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics(
-                // (8,34): error CS8710: 'D.F1(int)' is not an immediate member of C.
-                //         System.Console.WriteLine(base(C).F1(1));
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(8, 34),
-                // (9,34): error CS8710: 'D.F1(int)' is not an immediate member of C.
-                //         System.Console.WriteLine(base(C).F1(pD: 1));
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(9, 34)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_086_Delegate()
-        {
-            var source1 = @"
-class A : B
-{
-    protected override char F1(int pA) => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(new System.Func<int, char>(F1)(1));
-        System.Console.WriteLine(new System.Func<int, char>(base(B).F1)(1));
-        System.Console.WriteLine(new System.Func<int, char>(base(D).F1)(1));
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-    }
-}
-";
-            var source0 = @"
-class B : C
-{
-    protected override char F1(int pB) => 'B';
-}
-
-class C : D
-{
-}
-
-class D : E
-{
-    protected override char F1(int pD) => 'D';
-}
-
-abstract class E
-{
-    protected abstract char F1(int pE);
-}
-
-struct F
-{
-    public override string ToString() => ""E.ToString"";
-
-    public void Test()
-    {
-        System.Console.WriteLine(new System.Func<string>(base(object).ToString)());
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(compilation1, expectedOutput:
-@"
-A
-B
-D
-F
-");
-            verifier.VerifyIL("F.Test",
-@"
-{
-  // Code size       35 (0x23)
-  .maxstack  2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""F""
-  IL_0007:  box        ""F""
-  IL_000c:  ldftn      ""string object.ToString()""
-  IL_0012:  newobj     ""System.Func<string>..ctor(object, System.IntPtr)""
-  IL_0017:  callvirt   ""string System.Func<string>.Invoke()""
-  IL_001c:  call       ""void System.Console.WriteLine(string)""
-  IL_0021:  nop
-  IL_0022:  ret
-}
-");
-            var source2 = @"
-class A : B
-{
-    protected override char F1(int pA) => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(new System.Func<int, char>(base(C).F1)(1));
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics(
-                // (8,61): error CS8710: 'D.F1(int)' is not an immediate member of C.
-                //         System.Console.WriteLine(new System.Func<int, char>(base(C).F1)(1));
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(8, 61)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_087()
-        {
-            var source = @"
-class A : B
-{
-    protected override char F1(int pA) => 'A';
-
-    void Test()
-    {
-        base(B).F1(pC: 1);
-        base(B).F1(pD: 1);
-        base(C).F1(pB: 1);
-        base(C).F1(pD: 1);
-        base(D).F1(1);
-    }
-}
-
-class B : C
-{
-    protected override char F1(int pB) => 'B';
-}
-
-class C : D
-{
-    protected override char F1(int pC) => 'C';
-}
-
-abstract class D
-{
-    protected abstract char F1(int pD);
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (8,20): error CS1739: The best overload for 'F1' does not have a parameter named 'pC'
-                //         base(B).F1(pC: 1);
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "pC").WithArguments("F1", "pC").WithLocation(8, 20),
-                // (9,20): error CS1739: The best overload for 'F1' does not have a parameter named 'pD'
-                //         base(B).F1(pD: 1);
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "pD").WithArguments("F1", "pD").WithLocation(9, 20),
-                // (10,20): error CS1739: The best overload for 'F1' does not have a parameter named 'pB'
-                //         base(C).F1(pB: 1);
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "pB").WithArguments("F1", "pB").WithLocation(10, 20),
-                // (11,20): error CS1739: The best overload for 'F1' does not have a parameter named 'pD'
-                //         base(C).F1(pD: 1);
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "pD").WithArguments("F1", "pD").WithLocation(11, 20),
-                // (12,9): error CS0205: Cannot call an abstract base member: 'D.F1(int)'
-                //         base(D).F1(1);
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(D).F1").WithArguments("D.F1(int)").WithLocation(12, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_088()
-        {
-            var source = @"
-class A : B
-{
-    protected override char F1(int pA) => 'A';
-
-    void Test()
-    {
-        base(B).F1(1);
-    }
-}
-
-abstract class B : C
-{
-    protected override abstract char F1(int pB);
-}
-
-class C : D
-{
-    protected override char F1(int pC) => 'C';
-}
-
-abstract class D
-{
-    protected abstract char F1(int pD);
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (8,9): error CS0205: Cannot call an abstract base member: 'B.F1(int)'
-                //         base(B).F1(1);
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1").WithArguments("B.F1(int)").WithLocation(8, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_089()
-        {
-            var source1 = @"
-class A : B
-{
-    protected override char F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(F1);
-        F1 = 'x';
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-        System.Console.WriteLine(base(D).F1);
-        base(D).F1 = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var source0 = @"
-class B : C
-{
-    protected override char F1 { get => 'B'; set => System.Console.WriteLine(""set B"");}
-}
-
-class C : D
-{
-}
-
-class D : E
-{
-    protected override char F1 { get => 'D'; set => System.Console.WriteLine(""set D"");}
-}
-
-abstract class E
-{
-    protected abstract char F1 { get; set;}
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput:
-@"
-A
-set A
-B
-set B
-D
-set D
-");
-            var source2 = @"
-class A : B
-{
-    protected override char F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(C).F1);
-        base(C).F1 = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics(
-                // (8,34): error CS8710: 'D.F1.get' is not an immediate member of C.
-                //         System.Console.WriteLine(base(C).F1);
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1").WithArguments("D.F1.get", "C").WithLocation(8, 34),
-                // (9,9): error CS8710: 'D.F1.set' is not an immediate member of C.
-                //         base(C).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1").WithArguments("D.F1.set", "C").WithLocation(9, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_090()
-        {
-            var source = @"
-class A : B
-{
-    protected override char F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-        _ = base(D).F1;
-        base(D).F1 = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-
-abstract class B : C
-{
-    protected override abstract char F1 { get; set;}
-}
-
-class C : D
-{
-    protected override char F1 { get => 'C'; set => System.Console.WriteLine(""set C"");}
-}
-
-abstract class D
-{
-    protected abstract char F1 { get; set;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics(
-                // (8,13): error CS0205: Cannot call an abstract base member: 'B.F1'
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1").WithArguments("B.F1").WithLocation(8, 13),
-                // (9,9): error CS0205: Cannot call an abstract base member: 'B.F1'
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1").WithArguments("B.F1").WithLocation(9, 9),
-                // (10,13): error CS0205: Cannot call an abstract base member: 'D.F1'
-                //         _ = base(D).F1;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(D).F1").WithArguments("D.F1").WithLocation(10, 13),
-                // (11,9): error CS0205: Cannot call an abstract base member: 'D.F1'
-                //         base(D).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(D).F1").WithArguments("D.F1").WithLocation(11, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_091()
-        {
-            var source1 = @"
-class A : B
-{
-    protected override char F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var source0 = @"
-class B : C
-{
-    protected override char F1 { get => 'B';}
-}
-
-abstract class C : D
-{
-    protected override char F1 { set => System.Console.WriteLine(""set C"");}
-}
-
-abstract class D
-{
-    protected abstract char F1 { get; set;}
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput:
-@"
-B
-");
-            var source2 = @"
-class A : B
-{
-    protected override char F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        base(B).F1 = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics(
-                // (8,9): error CS8710: 'C.F1.set' is not an immediate member of B.
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1.set", "B").WithLocation(8, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_092()
-        {
-            var source1 = @"
-class A : B
-{
-    protected override char F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        base(B).F1 = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var source0 = @"
-class B : C
-{
-    protected override char F1 { set => System.Console.WriteLine(""set B"");}
-}
-
-abstract class C : D
-{
-    protected override char F1 { get => 'C';}
-}
-
-abstract class D
-{
-    protected abstract char F1 { get; set;}
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput:
-@"
-set B
-");
-            var source2 = @"
-class A : B
-{
-    protected override char F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics(
-                // (8,34): error CS8710: 'C.F1.get' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B).F1);
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1.get", "B").WithLocation(8, 34)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_093()
-        {
-            var source = @"
-class A : C
-{
-    protected override char F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        _ = base(C).F1;
-        base(C).F1 = 'x';
-        _ = base(D).F1;
-        base(D).F1 = 'x';
-    }
-}
-
-abstract class C : D
-{
-    protected override char F1 { set => System.Console.WriteLine(""set C"");}
-}
-
-abstract class D
-{
-    protected abstract char F1 { get; set;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (8,13): error CS8710: 'D.F1.get' is not an immediate member of C.
-                //         _ = base(C).F1;
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1").WithArguments("D.F1.get", "C").WithLocation(8, 13),
-                // (10,13): error CS0205: Cannot call an abstract base member: 'D.F1'
-                //         _ = base(D).F1;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(D).F1").WithArguments("D.F1").WithLocation(10, 13),
-                // (11,9): error CS0205: Cannot call an abstract base member: 'D.F1'
-                //         base(D).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(D).F1").WithArguments("D.F1").WithLocation(11, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_094()
-        {
-            var source = @"
-class A : C
-{
-    protected override char F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        _ = base(C).F1;
-        base(C).F1 = 'x';
-    }
-}
-
-abstract class C : D
-{
-    protected override char F1 { get => 'C';}
-}
-
-abstract class D
-{
-    protected abstract char F1 { get; set;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (9,9): error CS8710: 'D.F1.set' is not an immediate member of C.
-                //         base(C).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1").WithArguments("D.F1.set", "C").WithLocation(9, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_095()
-        {
-            var source = @"
-class A : C
-{
-    protected override char F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        _ = base(C).F1;
-        base(C).F1 = 'x';
-    }
-}
-
-abstract class C : D
-{
-    protected override abstract char F1 { set;}
-}
-
-abstract class D
-{
-    protected virtual char F1 { get; set;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (8,13): error CS8710: 'D.F1.get' is not an immediate member of C.
-                //         _ = base(C).F1;
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1").WithArguments("D.F1.get", "C").WithLocation(8, 13),
-                // (9,9): error CS0205: Cannot call an abstract base member: 'C.F1'
-                //         base(C).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(C).F1").WithArguments("C.F1").WithLocation(9, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_096()
-        {
-            var source = @"
-class A : C
-{
-    protected override char F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        _ = base(C).F1;
-        base(C).F1 = 'x';
-    }
-}
-
-abstract class C : D
-{
-    protected override abstract char F1 { get;}
-}
-
-abstract class D
-{
-    protected virtual char F1 { get; set;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (8,13): error CS0205: Cannot call an abstract base member: 'C.F1'
-                //         _ = base(C).F1;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(C).F1").WithArguments("C.F1").WithLocation(8, 13),
-                // (9,9): error CS8710: 'D.F1.set' is not an immediate member of C.
-                //         base(C).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1").WithArguments("D.F1.set", "C").WithLocation(9, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_097()
-        {
-            var source1 = @"
-class A : B
-{
-    protected override char this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(this[0]);
-        this[0] = 'x';
-        System.Console.WriteLine(base(B)[0]);
-        base(B)[0] = 'x';
-        System.Console.WriteLine(base(D)[0]);
-        base(D)[0] = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var source0 = @"
-class B : C
-{
-    protected override char this[int i] { get => 'B'; set => System.Console.WriteLine(""set B"");}
-}
-
-class C : D
-{
-}
-
-class D : E
-{
-    protected override char this[int i] { get => 'D'; set => System.Console.WriteLine(""set D"");}
-}
-
-abstract class E
-{
-    protected abstract char this[int i] { get; set;}
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput:
-@"
-A
-set A
-B
-set B
-D
-set D
-");
-            var source2 = @"
-class A : B
-{
-    protected override char this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(C)[0]);
-        base(C)[0] = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics(
-                // (8,34): error CS8710: 'D.this[int].get' is not an immediate member of C.
-                //         System.Console.WriteLine(base(C)[0]);
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C)[0]").WithArguments("D.this[int].get", "C").WithLocation(8, 34),
-                // (9,9): error CS8710: 'D.this[int].set' is not an immediate member of C.
-                //         base(C)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C)[0]").WithArguments("D.this[int].set", "C").WithLocation(9, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_098()
-        {
-            var source = @"
-class A : B
-{
-    protected override char this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'x';
-        _ = base(D)[0];
-        base(D)[0] = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-
-abstract class B : C
-{
-    protected override abstract char this[int i] { get; set;}
-}
-
-class C : D
-{
-    protected override char this[int i] { get => 'C'; set => System.Console.WriteLine(""set C"");}
-}
-
-abstract class D
-{
-    protected abstract char this[int i] { get; set;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics(
-                // (8,13): error CS0205: Cannot call an abstract base member: 'B.this[int]'
-                //         _ = base(B)[0];
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B)[0]").WithArguments("B.this[int]").WithLocation(8, 13),
-                // (9,9): error CS0205: Cannot call an abstract base member: 'B.this[int]'
-                //         base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B)[0]").WithArguments("B.this[int]").WithLocation(9, 9),
-                // (10,13): error CS0205: Cannot call an abstract base member: 'D.this[int]'
-                //         _ = base(D)[0];
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(D)[0]").WithArguments("D.this[int]").WithLocation(10, 13),
-                // (11,9): error CS0205: Cannot call an abstract base member: 'D.this[int]'
-                //         base(D)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(D)[0]").WithArguments("D.this[int]").WithLocation(11, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_099()
-        {
-            var source1 = @"
-class A : B
-{
-    protected override char this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B)[0]);
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var source0 = @"
-class B : C
-{
-    protected override char this[int i] { get => 'B';}
-}
-
-abstract class C : D
-{
-    protected override char this[int i] { set => System.Console.WriteLine(""set C"");}
-}
-
-abstract class D
-{
-    protected abstract char this[int i] { get; set;}
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput:
-@"
-B
-");
-            var source2 = @"
-class A : B
-{
-    protected override char this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        base(B)[0] = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics(
-                // (8,9): error CS8710: 'C.this[int].set' is not an immediate member of B.
-                //         base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("C.this[int].set", "B").WithLocation(8, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_100()
-        {
-            var source1 = @"
-class A : B
-{
-    protected override char this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        base(B)[0] = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var source0 = @"
-class B : C
-{
-    protected override char this[int i] { set => System.Console.WriteLine(""set B"");}
-}
-
-abstract class C : D
-{
-    protected override char this[int i] { get => 'C';}
-}
-
-abstract class D
-{
-    protected abstract char this[int i] { get; set;}
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput:
-@"
-set B
-");
-            var source2 = @"
-class A : B
-{
-    protected override char this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B)[0]);
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics(
-                // (8,34): error CS8710: 'C.this[int].get' is not an immediate member of B.
-                //         System.Console.WriteLine(base(B)[0]);
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("C.this[int].get", "B").WithLocation(8, 34)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_101()
-        {
-            var source = @"
-class A : C
-{
-    protected override char this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        _ = base(C)[0];
-        base(C)[0] = 'x';
-        _ = base(D)[0];
-        base(D)[0] = 'x';
-    }
-}
-
-abstract class C : D
-{
-    protected override char this[int i] { set => System.Console.WriteLine(""set C"");}
-}
-
-abstract class D
-{
-    protected abstract char this[int i] { get; set;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (8,13): error CS8710: 'D.this[int].get' is not an immediate member of C.
-                //         _ = base(C)[0];
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C)[0]").WithArguments("D.this[int].get", "C").WithLocation(8, 13),
-                // (10,13): error CS0205: Cannot call an abstract base member: 'D.this[int]'
-                //         _ = base(D)[0];
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(D)[0]").WithArguments("D.this[int]").WithLocation(10, 13),
-                // (11,9): error CS0205: Cannot call an abstract base member: 'D.this[int]'
-                //         base(D)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(D)[0]").WithArguments("D.this[int]").WithLocation(11, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_102()
-        {
-            var source = @"
-class A : C
-{
-    protected override char this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        _ = base(C)[0];
-        base(C)[0] = 'x';
-    }
-}
-
-abstract class C : D
-{
-    protected override char this[int i] { get => 'C';}
-}
-
-abstract class D
-{
-    protected abstract char this[int i] { get; set;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (9,9): error CS8710: 'D.this[int].set' is not an immediate member of C.
-                //         base(C)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C)[0]").WithArguments("D.this[int].set", "C").WithLocation(9, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_103()
-        {
-            var source = @"
-class A : C
-{
-    protected override char this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        _ = base(C)[0];
-        base(C)[0] = 'x';
-    }
-}
-
-abstract class C : D
-{
-    protected override abstract char this[int i] { set;}
-}
-
-abstract class D
-{
-    protected virtual char this[int i] { get => throw null; set => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (8,13): error CS8710: 'D.this[int].get' is not an immediate member of C.
-                //         _ = base(C)[0];
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C)[0]").WithArguments("D.this[int].get", "C").WithLocation(8, 13),
-                // (9,9): error CS0205: Cannot call an abstract base member: 'C.this[int]'
-                //         base(C)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(C)[0]").WithArguments("C.this[int]").WithLocation(9, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_104()
-        {
-            var source = @"
-class A : C
-{
-    protected override char this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        _ = base(C)[0];
-        base(C)[0] = 'x';
-    }
-}
-
-abstract class C : D
-{
-    protected override abstract char this[int i] { get;}
-}
-
-abstract class D
-{
-    protected virtual char this[int i] { get => throw null; set => throw null;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (8,13): error CS0205: Cannot call an abstract base member: 'C.this[int]'
-                //         _ = base(C)[0];
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(C)[0]").WithArguments("C.this[int]").WithLocation(8, 13),
-                // (9,9): error CS8710: 'D.this[int].set' is not an immediate member of C.
-                //         base(C)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C)[0]").WithArguments("D.this[int].set", "C").WithLocation(9, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_105()
-        {
-            var source1 = @"
-class A : B
-{
-    protected override event System.Action F1 { add => System.Console.WriteLine(""add A""); remove => System.Console.WriteLine(""remove A"");}
-
-    void Test()
-    {
-        F1 += null;
-        F1 -= null;
-        base(B).F1 += null;
-        base(B).F1 -= null;
-        base(D).F1 += null;
-        base(D).F1 -= null;
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var source0 = @"
-class B : C
-{
-    protected override event System.Action F1 { add => System.Console.WriteLine(""add B""); remove => System.Console.WriteLine(""remove B"");}
-}
-
-class C : D
-{
-}
-
-class D : E
-{
-    protected override event System.Action F1 { add => System.Console.WriteLine(""add D""); remove => System.Console.WriteLine(""remove D"");}
-}
-
-abstract class E
-{
-    protected abstract event System.Action F1;
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput:
-@"
-add A
-remove A
-add B
-remove B
-add D
-remove D
-");
-            var source2 = @"
-class A : B
-{
-    protected override event System.Action F1 { add => System.Console.WriteLine(""add A""); remove => System.Console.WriteLine(""remove A"");}
-
-    void Test()
-    {
-        base(C).F1 += null;
-        base(C).F1 -= null;
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics(
-                // (8,9): error CS8710: 'D.F1.add' is not an immediate member of C.
-                //         base(C).F1 += null;
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1 += null").WithArguments("D.F1.add", "C").WithLocation(8, 9),
-                // (9,9): error CS8710: 'D.F1.remove' is not an immediate member of C.
-                //         base(C).F1 -= null;
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1 -= null").WithArguments("D.F1.remove", "C").WithLocation(9, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_106()
-        {
-            var source = @"
-class A : B
-{
-    protected override event System.Action F1 { add => System.Console.WriteLine(""add A""); remove => System.Console.WriteLine(""remove A"");}
-
-    void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-        base(D).F1 += null;
-        base(D).F1 -= null;
-    }
-}
-
-abstract class B : C
-{
-    protected override abstract event System.Action F1;
-}
-
-class C : D
-{
-    protected override event System.Action F1 { add => System.Console.WriteLine(""add C""); remove => System.Console.WriteLine(""remove C"");}
-}
-
-abstract class D
-{
-    protected abstract event System.Action F1;
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-            compilation1.VerifyDiagnostics(
-                // (8,9): error CS0205: Cannot call an abstract base member: 'B.F1'
-                //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1 += null").WithArguments("B.F1").WithLocation(8, 9),
-                // (9,9): error CS0205: Cannot call an abstract base member: 'B.F1'
-                //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1 -= null").WithArguments("B.F1").WithLocation(9, 9),
-                // (10,9): error CS0205: Cannot call an abstract base member: 'D.F1'
-                //         base(D).F1 += null;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(D).F1 += null").WithArguments("D.F1").WithLocation(10, 9),
-                // (11,9): error CS0205: Cannot call an abstract base member: 'D.F1'
-                //         base(D).F1 -= null;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(D).F1 -= null").WithArguments("D.F1").WithLocation(11, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_107()
-        {
-            var source1 = @"
-class A : B
-{
-    char B.F1(int pA) => 'A';
-    char D.F1(int pA) => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(D).F1(1));
-        System.Console.WriteLine(base(B).F1(pB: 1));
-        System.Console.WriteLine(base(D).F1(pD: 1));
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    char B.F1(int pA) => 'F';
-    char D.F1(int pA) => 'F';
-
-    public void Test()
-    {
-        System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(D).F1(1));
-        System.Console.WriteLine(base(B).F1(pB: 1));
-        System.Console.WriteLine(base(D).F1(pD: 1));
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(D).F1(1));
-        System.Console.WriteLine(base(B).F1(pB: 1));
-        System.Console.WriteLine(base(D).F1(pD: 1));
-    }
-}
-";
-            var source0 = @"
-class G : E
-{
-    char B.F1(int pA) => 'G';
-    char D.F1(int pA) => 'G';
-}
-
-interface B : C
-{
-    new virtual char F1(int pB) => 'B';
-}
-
-interface C : D
-{
-}
-
-interface D
-{
-    virtual char F1(int pD) => 'D';
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-B
-D
-B
-D
-B
-D
-B
-D
-B
-D
-B
-D
-", verify: VerifyOnMonoOrCoreClr);
-
-            verifier.VerifyIL("F.Test",
-@"
-{
-  // Code size       94 (0x5e)
-  .maxstack  2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""F""
-  IL_0007:  box        ""F""
-  IL_000c:  ldc.i4.1
-  IL_000d:  call       ""char B.F1(int)""
-  IL_0012:  call       ""void System.Console.WriteLine(char)""
-  IL_0017:  nop
-  IL_0018:  ldarg.0
-  IL_0019:  ldobj      ""F""
-  IL_001e:  box        ""F""
-  IL_0023:  ldc.i4.1
-  IL_0024:  call       ""char D.F1(int)""
-  IL_0029:  call       ""void System.Console.WriteLine(char)""
-  IL_002e:  nop
-  IL_002f:  ldarg.0
-  IL_0030:  ldobj      ""F""
-  IL_0035:  box        ""F""
-  IL_003a:  ldc.i4.1
-  IL_003b:  call       ""char B.F1(int)""
-  IL_0040:  call       ""void System.Console.WriteLine(char)""
-  IL_0045:  nop
-  IL_0046:  ldarg.0
-  IL_0047:  ldobj      ""F""
-  IL_004c:  box        ""F""
-  IL_0051:  ldc.i4.1
-  IL_0052:  call       ""char D.F1(int)""
-  IL_0057:  call       ""void System.Console.WriteLine(char)""
-  IL_005c:  nop
-  IL_005d:  ret
-}
-");
-            var source2 = @"
-class A : B
-{
-    char B.F1(int pA) => 'A';
-    char D.F1(int pA) => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(base(C).F1(1));
-        System.Console.WriteLine(base(C).F1(pD: 1));
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    char B.F1(int pA) => 'F';
-    char D.F1(int pA) => 'F';
-
-    public void Test()
-    {
-        System.Console.WriteLine(base(C).F1(1));
-        System.Console.WriteLine(base(C).F1(pD: 1));
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(C).F1(1));
-        System.Console.WriteLine(base(C).F1(pD: 1));
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics(
-                // (9,34): error CS8709: 'D.F1(int)' is not implemented in base interface C.
-                //         System.Console.WriteLine(base(C).F1(1));
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(9, 34),
-                // (10,34): error CS8709: 'D.F1(int)' is not implemented in base interface C.
-                //         System.Console.WriteLine(base(C).F1(pD: 1));
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(10, 34),
-                // (28,34): error CS8709: 'D.F1(int)' is not implemented in base interface C.
-                //         System.Console.WriteLine(base(C).F1(1));
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(28, 34),
-                // (29,34): error CS8709: 'D.F1(int)' is not implemented in base interface C.
-                //         System.Console.WriteLine(base(C).F1(pD: 1));
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(29, 34),
-                // (37,34): error CS8709: 'D.F1(int)' is not implemented in base interface C.
-                //         System.Console.WriteLine(base(C).F1(1));
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(37, 34),
-                // (38,34): error CS8709: 'D.F1(int)' is not implemented in base interface C.
-                //         System.Console.WriteLine(base(C).F1(pD: 1));
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(38, 34)
-                );
-        }
-
-        [Fact]
-        [WorkItem(33083, "https://github.com/dotnet/roslyn/issues/33083")]
-        [WorkItem(33535, "https://github.com/dotnet/roslyn/issues/33535")]
-        public void ExplicitBase_107_Delegate()
-        {
-            var source1 = @"
-class A : B
-{
-    char B.F1(int pA) => 'A';
-    char D.F1(int pA) => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(new System.Func<int, char>(base(B).F1)(1));
-        System.Console.WriteLine(new System.Func<int, char>(base(D).F1)(1));
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    char B.F1(int pA) => 'F';
-    char D.F1(int pA) => 'F';
-
-    public void Test()
-    {
-        System.Console.WriteLine(new System.Func<int, char>(base(B).F1)(1));
-        System.Console.WriteLine(new System.Func<int, char>(base(D).F1)(1));
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(new System.Func<int, char>(base(B).F1)(1));
-        System.Console.WriteLine(new System.Func<int, char>(base(D).F1)(1));
-    }
-}
-";
-            var source0 = @"
-class G : E
-{
-    char B.F1(int pA) => 'G';
-    char D.F1(int pA) => 'G';
-}
-
-interface B : C
-{
-    new virtual char F1(int pB) => 'B';
-}
-
-interface C : D
-{
-}
-
-interface D
-{
-    virtual char F1(int pD) => 'D';
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(compilation1, expectedOutput:
-#if Issue33535_Is_Fixed // https://github.com/dotnet/roslyn/issues/33535
-                !ExecutionConditionUtil.IsMonoOrCoreClr
-#else
-                !ExecutionConditionUtil.IsMono
-#endif
-                    ? null :
-@"
-B
-D
-B
-D
-B
-D
-"
-, verify: VerifyOnMonoOrCoreClr);
-
-            verifier.VerifyIL("F.Test",
-@"
-{
-  // Code size       70 (0x46)
-  .maxstack  2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""F""
-  IL_0007:  box        ""F""
-  IL_000c:  ldftn      ""char B.F1(int)""
-  IL_0012:  newobj     ""System.Func<int, char>..ctor(object, System.IntPtr)""
-  IL_0017:  ldc.i4.1
-  IL_0018:  callvirt   ""char System.Func<int, char>.Invoke(int)""
-  IL_001d:  call       ""void System.Console.WriteLine(char)""
-  IL_0022:  nop
-  IL_0023:  ldarg.0
-  IL_0024:  ldobj      ""F""
-  IL_0029:  box        ""F""
-  IL_002e:  ldftn      ""char D.F1(int)""
-  IL_0034:  newobj     ""System.Func<int, char>..ctor(object, System.IntPtr)""
-  IL_0039:  ldc.i4.1
-  IL_003a:  callvirt   ""char System.Func<int, char>.Invoke(int)""
-  IL_003f:  call       ""void System.Console.WriteLine(char)""
-  IL_0044:  nop
-  IL_0045:  ret
-}
-");
-            var source2 = @"
-class A : B
-{
-    char B.F1(int pA) => 'A';
-    char D.F1(int pA) => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(new System.Func<int, char>(base(C).F1)(1));
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    char B.F1(int pA) => 'F';
-    char D.F1(int pA) => 'F';
-
-    public void Test()
-    {
-        System.Console.WriteLine(new System.Func<int, char>(base(C).F1)(1));
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(new System.Func<int, char>(base(C).F1)(1));
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics(
-                // (9,61): error CS8709: 'D.F1(int)' is not implemented in base interface C.
-                //         System.Console.WriteLine(new System.Func<int, char>(base(C).F1)(1));
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(9, 61),
-                // (27,61): error CS8709: 'D.F1(int)' is not implemented in base interface C.
-                //         System.Console.WriteLine(new System.Func<int, char>(base(C).F1)(1));
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(27, 61),
-                // (35,61): error CS8709: 'D.F1(int)' is not implemented in base interface C.
-                //         System.Console.WriteLine(new System.Func<int, char>(base(C).F1)(1));
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(35, 61)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_108()
-        {
-            var source = @"
-class A : B
-{
-    public char F1(int pA) => 'A';
-
-    void Test()
-    {
-        base(B).F1(1);
-    }
-}
-
-interface B
-{
-    char F1(int pB);
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (8,9): error CS0205: Cannot call an abstract base member: 'B.F1(int)'
-                //         base(B).F1(1);
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1").WithArguments("B.F1(int)").WithLocation(8, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_109()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1(1));
-    }
-}
-
-interface I1
-{
-    virtual char F1(int pB) => '1';
-}
-
-interface I2
-{
-    virtual char F1(int pD) => '2';
-}
-
-interface B : I1, I2
-{
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,42): error CS0121: The call is ambiguous between the following methods or properties: 'I1.F1(int)' and 'I2.F1(int)'
-                //         System.Console.WriteLine(base(B).F1(1));
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments("I1.F1(int)", "I2.F1(int)").WithLocation(6, 42)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_110()
-        {
-            var source1 = @"
-class A : B
-{
-    char I1.F1(int pA) => 'A';
-    char I2.F1(int pA) => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(base(I1).F1(1));
-        System.Console.WriteLine(base(I2).F1(1));
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var source0 = @"
-interface I1
-{
-    virtual char F1(int pB) => '1';
-}
-
-interface I2
-{
-    virtual char F1(int pD) => '2';
-}
-
-interface B : I1, I2
-{
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-1
-2
-", verify: VerifyOnMonoOrCoreClr);
-
-            var source2 = @"
-class A : B
-{
-    char I1.F1(int pA) => 'A';
-    char I2.F1(int pA) => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1(pB: 1));
-        System.Console.WriteLine(base(B).F1(pD: 1));
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics(
-                // (9,34): error CS8709: 'I1.F1(int)' is not implemented in base interface B.
-                //         System.Console.WriteLine(base(B).F1(pB: 1));
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("I1.F1(int)", "B").WithLocation(9, 34),
-                // (10,34): error CS8709: 'I2.F1(int)' is not implemented in base interface B.
-                //         System.Console.WriteLine(base(B).F1(pD: 1));
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("I2.F1(int)", "B").WithLocation(10, 34)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_111()
-        {
-            var source = @"
-class A : B
-{
-    char I1.F1(int p) => 'A';
-    char I2.F1(string p) => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(B).F1(""1""));
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-
-interface I1
-{
-    virtual char F1(int p) => '1';
-}
-
-interface I2
-{
-    virtual char F1(string p) => '2';
-}
-
-interface B : I1, I2
-{
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (9,34): error CS8709: 'I1.F1(int)' is not implemented in base interface B.
-                //         System.Console.WriteLine(base(B).F1(1));
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("I1.F1(int)", "B").WithLocation(9, 34),
-                // (10,34): error CS8709: 'I2.F1(string)' is not implemented in base interface B.
-                //         System.Console.WriteLine(base(B).F1("1"));
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("I2.F1(string)", "B").WithLocation(10, 34)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_112()
-        {
-            var source1 = @"
-class A : B
-{
-    char B.F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-    char D.F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-        System.Console.WriteLine(base(D).F1);
-        base(D).F1 = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    char B.F1 { get => 'F'; set => System.Console.WriteLine(""set F"");}
-    char D.F1 { get => 'F'; set => System.Console.WriteLine(""set F"");}
-
-    public void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-        System.Console.WriteLine(base(D).F1);
-        base(D).F1 = 'x';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-        System.Console.WriteLine(base(D).F1);
-        base(D).F1 = 'x';
-    }
-}
-";
-            var source0 = @"
-class G : E
-{
-    char B.F1 { get => 'G'; set => System.Console.WriteLine(""set G"");}
-    char D.F1 { get => 'G'; set => System.Console.WriteLine(""set G"");}
-}
-
-interface B : C
-{
-    new virtual char F1 { get => 'B'; set => System.Console.WriteLine(""set B"");}
-}
-
-interface C : D
-{
-}
-
-interface D
-{
-    virtual char F1 { get => 'D'; set => System.Console.WriteLine(""set D"");}
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-B
-set B
-D
-set D
-B
-set B
-D
-set D
-B
-set B
-D
-set D
-", verify: VerifyOnMonoOrCoreClr);
-
-            var source2 = @"
-class A : B
-{
-    char B.F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-    char D.F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(C).F1);
-        base(C).F1 = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    char B.F1 { get => 'F'; set => System.Console.WriteLine(""set F"");}
-    char D.F1 { get => 'F'; set => System.Console.WriteLine(""set F"");}
-
-    public void Test()
-    {
-        System.Console.WriteLine(base(C).F1);
-        base(C).F1 = 'x';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(C).F1);
-        base(C).F1 = 'x';
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics(
-                // (9,34): error CS8709: 'D.F1.get' is not implemented in base interface C.
-                //         System.Console.WriteLine(base(C).F1);
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1.get", "C").WithLocation(9, 34),
-                // (10,9): error CS8709: 'D.F1.set' is not implemented in base interface C.
-                //         base(C).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1.set", "C").WithLocation(10, 9),
-                // (28,34): error CS8709: 'D.F1.get' is not implemented in base interface C.
-                //         System.Console.WriteLine(base(C).F1);
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1.get", "C").WithLocation(28, 34),
-                // (29,9): error CS8709: 'D.F1.set' is not implemented in base interface C.
-                //         base(C).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1.set", "C").WithLocation(29, 9),
-                // (37,34): error CS8709: 'D.F1.get' is not implemented in base interface C.
-                //         System.Console.WriteLine(base(C).F1);
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1.get", "C").WithLocation(37, 34),
-                // (38,9): error CS8709: 'D.F1.set' is not implemented in base interface C.
-                //         base(C).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1.set", "C").WithLocation(38, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_113()
-        {
-            var source = @"
-class A : B
-{
-    public char F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        base(B).F1 = 'x';
-        _ = base(B).F1;
-    }
-}
-
-interface B
-{
-    char F1 {get; set;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (8,9): error CS0205: Cannot call an abstract base member: 'B.F1.set'
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1").WithArguments("B.F1.set").WithLocation(8, 9),
-                // (9,13): error CS0205: Cannot call an abstract base member: 'B.F1.get'
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1").WithArguments("B.F1.get").WithLocation(9, 13)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_114()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-
-interface I1
-{
-    virtual char F1 { get => throw null; set => throw null;}
-}
-
-interface I2
-{
-    virtual char F1 { get => throw null; set => throw null;}
-}
-
-interface B : I1, I2
-{
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,21): error CS0229: Ambiguity between 'I1.F1' and 'I2.F1'
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "F1").WithArguments("I1.F1", "I2.F1").WithLocation(6, 21),
-                // (7,17): error CS0229: Ambiguity between 'I1.F1' and 'I2.F1'
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_AmbigMember, "F1").WithArguments("I1.F1", "I2.F1").WithLocation(7, 17)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_115()
-        {
-            var source = @"
-class A : B
-{
-    char I1.F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-    char I2.F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(I1).F1);
-        base(I1).F1 = 'x';
-        System.Console.WriteLine(base(I2).F1);
-        base(I2).F1 = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-
-interface I1
-{
-    virtual char F1 { get => '1'; set => System.Console.WriteLine(""set 1"");}
-}
-
-interface I2
-{
-    virtual char F1 { get => '2'; set => System.Console.WriteLine(""set 2"");}
-}
-
-interface B : I1, I2
-{
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-1
-set 1
-2
-set 2
-", verify: VerifyOnMonoOrCoreClr);
-        }
-
-        [Fact]
-        public void ExplicitBase_116()
-        {
-            var source1 = @"
-class A : B
-{
-    char B.this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-    char D.this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B)[0]);
-        base(B)[0] = 'x';
-        System.Console.WriteLine(base(D)[0]);
-        base(D)[0] = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    char B.this[int i] { get => 'F'; set => System.Console.WriteLine(""set F"");}
-    char D.this[int i] { get => 'F'; set => System.Console.WriteLine(""set F"");}
-
-    public void Test()
-    {
-        System.Console.WriteLine(base(B)[0]);
-        base(B)[0] = 'x';
-        System.Console.WriteLine(base(D)[0]);
-        base(D)[0] = 'x';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(B)[0]);
-        base(B)[0] = 'x';
-        System.Console.WriteLine(base(D)[0]);
-        base(D)[0] = 'x';
-    }
-}
-";
-            var source0 = @"
-class G : E
-{
-    char B.this[int i] { get => 'G'; set => System.Console.WriteLine(""set G"");}
-    char D.this[int i] { get => 'G'; set => System.Console.WriteLine(""set G"");}
-}
-
-interface B : C
-{
-    new virtual char this[int i] { get => 'B'; set => System.Console.WriteLine(""set B"");}
-}
-
-interface C : D
-{
-}
-
-interface D
-{
-    virtual char this[int i] { get => 'D'; set => System.Console.WriteLine(""set D"");}
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-B
-set B
-D
-set D
-B
-set B
-D
-set D
-B
-set B
-D
-set D
-", verify: VerifyOnMonoOrCoreClr);
-
-            var source2 = @"
-class A : B
-{
-    char B.this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-    char D.this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(C)[0]);
-        base(C)[0] = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    char B.this[int i] { get => 'F'; set => System.Console.WriteLine(""set F"");}
-    char D.this[int i] { get => 'F'; set => System.Console.WriteLine(""set F"");}
-
-    public void Test()
-    {
-        System.Console.WriteLine(base(C)[0]);
-        base(C)[0] = 'x';
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(C)[0]);
-        base(C)[0] = 'x';
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics(
-                // (9,34): error CS8709: 'D.this[int].get' is not implemented in base interface C.
-                //         System.Console.WriteLine(base(C)[0]);
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C)[0]").WithArguments("D.this[int].get", "C").WithLocation(9, 34),
-                // (10,9): error CS8709: 'D.this[int].set' is not implemented in base interface C.
-                //         base(C)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C)[0]").WithArguments("D.this[int].set", "C").WithLocation(10, 9),
-                // (28,34): error CS8709: 'D.this[int].get' is not implemented in base interface C.
-                //         System.Console.WriteLine(base(C)[0]);
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C)[0]").WithArguments("D.this[int].get", "C").WithLocation(28, 34),
-                // (29,9): error CS8709: 'D.this[int].set' is not implemented in base interface C.
-                //         base(C)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C)[0]").WithArguments("D.this[int].set", "C").WithLocation(29, 9),
-                // (37,34): error CS8709: 'D.this[int].get' is not implemented in base interface C.
-                //         System.Console.WriteLine(base(C)[0]);
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C)[0]").WithArguments("D.this[int].get", "C").WithLocation(37, 34),
-                // (38,9): error CS8709: 'D.this[int].set' is not implemented in base interface C.
-                //         base(C)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C)[0]").WithArguments("D.this[int].set", "C").WithLocation(38, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_117()
-        {
-            var source = @"
-class A : B
-{
-    public char this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        base(B)[0] = 'x';
-        _ = base(B)[0];
-    }
-}
-
-interface B
-{
-    char this[int i] {get; set;}
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (8,9): error CS0205: Cannot call an abstract base member: 'B.this[int].set'
-                //         base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B)[0]").WithArguments("B.this[int].set").WithLocation(8, 9),
-                // (9,13): error CS0205: Cannot call an abstract base member: 'B.this[int].get'
-                //         _ = base(B)[0];
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B)[0]").WithArguments("B.this[int].get").WithLocation(9, 13)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_118()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B)[0];
-        base(B)[0] = 'x';
-    }
-}
-
-interface I1
-{
-    virtual char this[int i] { get => throw null; set => throw null;}
-}
-
-interface I2
-{
-    virtual char this[int i] { get => throw null; set => throw null;}
-}
-
-interface B : I1, I2
-{
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,13): error CS0121: The call is ambiguous between the following methods or properties: 'I1.this[int]' and 'I2.this[int]'
-                //         _ = base(B)[0];
-                Diagnostic(ErrorCode.ERR_AmbigCall, "base(B)[0]").WithArguments("I1.this[int]", "I2.this[int]").WithLocation(6, 13),
-                // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'I1.this[int]' and 'I2.this[int]'
-                //         base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_AmbigCall, "base(B)[0]").WithArguments("I1.this[int]", "I2.this[int]").WithLocation(7, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_119()
-        {
-            var source = @"
-class A : B
-{
-    char I1.this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-    char I2.this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(I1)[0]);
-        base(I1)[0] = 'x';
-        System.Console.WriteLine(base(I2)[0]);
-        base(I2)[0] = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-
-interface I1
-{
-    virtual char this[int i] { get => '1'; set => System.Console.WriteLine(""set 1"");}
-}
-
-interface I2
-{
-    virtual char this[int i] { get => '2'; set => System.Console.WriteLine(""set 2"");}
-}
-
-interface B : I1, I2
-{
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-1
-set 1
-2
-set 2
-", verify: VerifyOnMonoOrCoreClr);
-        }
-
-        [Fact]
-        public void ExplicitBase_120()
-        {
-            var source = @"
-class A : B
-{
-    char I1.this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-    char I2.this[string i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B)[0]);
-        base(B)[0] = 'x';
-        System.Console.WriteLine(base(B)[""0""]);
-        base(B)[""0""] = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-
-interface I1
-{
-    virtual char this[int i] { get => '1'; set => System.Console.WriteLine(""set 1"");}
-}
-
-interface I2
-{
-    virtual char this[string i] { get => '2'; set => System.Console.WriteLine(""set 2"");}
-}
-
-interface B : I1, I2
-{
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (9,34): error CS8709: 'I1.this[int].get' is not implemented in base interface B.
-                //         System.Console.WriteLine(base(B)[0]);
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B)[0]").WithArguments("I1.this[int].get", "B").WithLocation(9, 34),
-                // (10,9): error CS8709: 'I1.this[int].set' is not implemented in base interface B.
-                //         base(B)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B)[0]").WithArguments("I1.this[int].set", "B").WithLocation(10, 9),
-                // (11,34): error CS8709: 'I2.this[string].get' is not implemented in base interface B.
-                //         System.Console.WriteLine(base(B)["0"]);
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, @"base(B)[""0""]").WithArguments("I2.this[string].get", "B").WithLocation(11, 34),
-                // (12,9): error CS8709: 'I2.this[string].set' is not implemented in base interface B.
-                //         base(B)["0"] = 'x';
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, @"base(B)[""0""]").WithArguments("I2.this[string].set", "B").WithLocation(12, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_121()
-        {
-            var source1 = @"
-class A : B
-{
-    event System.Action B.F1 { add => System.Console.WriteLine(""add A""); remove => System.Console.WriteLine(""remove A"");}
-    event System.Action D.F1 { add => System.Console.WriteLine(""add A""); remove => System.Console.WriteLine(""remove A"");}
-
-    void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-        base(D).F1 += null;
-        base(D).F1 -= null;
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    event System.Action B.F1 { add => System.Console.WriteLine(""add F""); remove => System.Console.WriteLine(""remove F"");}
-    event System.Action D.F1 { add => System.Console.WriteLine(""add F""); remove => System.Console.WriteLine(""remove F"");}
-
-    public void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-        base(D).F1 += null;
-        base(D).F1 -= null;
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-        base(D).F1 += null;
-        base(D).F1 -= null;
-    }
-}
-";
-            var source0 = @"
-class G : E
-{
-    event System.Action B.F1 { add => System.Console.WriteLine(""add G""); remove => System.Console.WriteLine(""remove G"");}
-    event System.Action D.F1 { add => System.Console.WriteLine(""add G""); remove => System.Console.WriteLine(""remove G"");}
-}
-
-interface B : C
-{
-    new virtual event System.Action F1 { add => System.Console.WriteLine(""add B""); remove => System.Console.WriteLine(""remove B"");}
-}
-
-interface C : D
-{
-}
-
-interface D
-{
-    virtual event System.Action F1 { add => System.Console.WriteLine(""add D""); remove => System.Console.WriteLine(""remove D"");}
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-add B
-remove B
-add D
-remove D
-add B
-remove B
-add D
-remove D
-add B
-remove B
-add D
-remove D
-", verify: VerifyOnMonoOrCoreClr);
-
-            var source2 = @"
-class A : B
-{
-    event System.Action B.F1 { add => System.Console.WriteLine(""add A""); remove => System.Console.WriteLine(""remove A"");}
-    event System.Action D.F1 { add => System.Console.WriteLine(""add A""); remove => System.Console.WriteLine(""remove A"");}
-
-    void Test()
-    {
-        base(C).F1 += null;
-        base(C).F1 -= null;
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    event System.Action B.F1 { add => System.Console.WriteLine(""add F""); remove => System.Console.WriteLine(""remove F"");}
-    event System.Action D.F1 { add => System.Console.WriteLine(""add F""); remove => System.Console.WriteLine(""remove F"");}
-
-    public void Test()
-    {
-        base(C).F1 += null;
-        base(C).F1 -= null;
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        base(C).F1 += null;
-        base(C).F1 -= null;
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics(
-                // (9,9): error CS8709: 'D.F1.add' is not implemented in base interface C.
-                //         base(C).F1 += null;
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1 += null").WithArguments("D.F1.add", "C").WithLocation(9, 9),
-                // (10,9): error CS8709: 'D.F1.remove' is not implemented in base interface C.
-                //         base(C).F1 -= null;
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1 -= null").WithArguments("D.F1.remove", "C").WithLocation(10, 9),
-                // (28,9): error CS8709: 'D.F1.add' is not implemented in base interface C.
-                //         base(C).F1 += null;
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1 += null").WithArguments("D.F1.add", "C").WithLocation(28, 9),
-                // (29,9): error CS8709: 'D.F1.remove' is not implemented in base interface C.
-                //         base(C).F1 -= null;
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1 -= null").WithArguments("D.F1.remove", "C").WithLocation(29, 9),
-                // (37,9): error CS8709: 'D.F1.add' is not implemented in base interface C.
-                //         base(C).F1 += null;
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1 += null").WithArguments("D.F1.add", "C").WithLocation(37, 9),
-                // (38,9): error CS8709: 'D.F1.remove' is not implemented in base interface C.
-                //         base(C).F1 -= null;
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1 -= null").WithArguments("D.F1.remove", "C").WithLocation(38, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_122()
-        {
-            var source = @"
-class A : B
-{
-    public event System.Action F1 { add => System.Console.WriteLine(""add A""); remove => System.Console.WriteLine(""remove A"");}
-
-    void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-
-interface B
-{
-    event System.Action F1;
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (8,9): error CS0205: Cannot call an abstract base member: 'B.F1.add'
-                //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1 += null").WithArguments("B.F1.add").WithLocation(8, 9),
-                // (9,9): error CS0205: Cannot call an abstract base member: 'B.F1.remove'
-                //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1 -= null").WithArguments("B.F1.remove").WithLocation(9, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_123()
-        {
-            var source = @"
-class A : B
-{
-    void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-
-interface I1
-{
-    virtual event System.Action F1 { add => throw null; remove => throw null;}
-}
-
-interface I2
-{
-    virtual event System.Action F1 { add => throw null; remove => throw null;}
-}
-
-interface B : I1, I2
-{
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (6,17): error CS0229: Ambiguity between 'I1.F1' and 'I2.F1'
-                //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "F1").WithArguments("I1.F1", "I2.F1").WithLocation(6, 17),
-                // (7,17): error CS0229: Ambiguity between 'I1.F1' and 'I2.F1'
-                //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "F1").WithArguments("I1.F1", "I2.F1").WithLocation(7, 17)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_124()
-        {
-            var source = @"
-class A : B
-{
-    event System.Action I1.F1 { add => System.Console.WriteLine(""add A""); remove => System.Console.WriteLine(""remove A"");}
-    event System.Action I2.F1 { add => System.Console.WriteLine(""add A""); remove => System.Console.WriteLine(""remove A"");}
-
-    void Test()
-    {
-        base(I1).F1 += null;
-        base(I1).F1 -= null;
-        base(I2).F1 += null;
-        base(I2).F1 -= null;
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-
-interface I1
-{
-    virtual event System.Action F1 { add => System.Console.WriteLine(""add 1""); remove => System.Console.WriteLine(""remove 1"");}
-}
-
-interface I2
-{
-    virtual event System.Action F1 { add => System.Console.WriteLine(""add 2""); remove => System.Console.WriteLine(""remove 2"");}
-}
-
-interface B : I1, I2
-{
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-add 1
-remove 1
-add 2
-remove 2
-", verify: VerifyOnMonoOrCoreClr);
-        }
-
-        [Fact]
-        public void ExplicitBase_125()
-        {
-            var source0 = @"
-public interface B : C
-{
-    char C.F1(int pB) => 'B';
-}
-
-public interface C
-{
-    char F1(int pC);
-}
-";
-
-            var source1 = @"
-class A : B
-{
-    char C.F1(int pA) => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(B).F1(pC: 1));
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    char C.F1(int pA) => 'F';
-
-    public void Test()
-    {
-        System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(B).F1(pC: 1));
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(B).F1(pC: 1));
-    }
-}
-
-class G : E
-{
-    char C.F1(int pA) => 'G';
-}
-";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation0.VerifyDiagnostics();
-
-            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
-            {
-                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics();
-
-                var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-B
-B
-B
-B
-B
-B
-", verify: VerifyOnMonoOrCoreClr);
-
-                verifier.VerifyIL("F.Test",
-@"
-{
-  // Code size       48 (0x30)
-  .maxstack  2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""F""
-  IL_0007:  box        ""F""
-  IL_000c:  ldc.i4.1
-  IL_000d:  call       ""char B.F1(int)""
-  IL_0012:  call       ""void System.Console.WriteLine(char)""
-  IL_0017:  nop
-  IL_0018:  ldarg.0
-  IL_0019:  ldobj      ""F""
-  IL_001e:  box        ""F""
-  IL_0023:  ldc.i4.1
-  IL_0024:  call       ""char B.F1(int)""
-  IL_0029:  call       ""void System.Console.WriteLine(char)""
-  IL_002e:  nop
-  IL_002f:  ret
-}
-");
-            }
-        }
-
-        [Fact]
-        [WorkItem(33083, "https://github.com/dotnet/roslyn/issues/33083")]
-        public void ExplicitBase_125_Delegate()
-        {
-            var source0 = @"
-public interface B : C
-{
-    char C.F1(int pB) => 'B';
-}
-
-public interface C
-{
-    char F1(int pC);
-}
-";
-
-            var source1 = @"
-class A : B
-{
-    char C.F1(int pA) => 'A';
-
-    void Test()
-    {
-        A.Test(base(B).F1);
-        A.Test(new System.Func<int, char>(base(B).F1));
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-
-    public static void Test(System.Func<int, char> d)
-    {
-        System.Console.WriteLine(d(1));
-    }
-}
-
-struct F : B
-{
-    char C.F1(int pA) => 'F';
-
-    public void Test()
-    {
-        A.Test(base(B).F1);
-        A.Test(new System.Func<int, char>(base(B).F1));
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        A.Test(base(B).F1);
-        A.Test(new System.Func<int, char>(base(B).F1));
-    }
-}
-
-class G : E
-{
-    char C.F1(int pA) => 'G';
-}
-";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation0.VerifyDiagnostics();
-
-            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
-            {
-                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics();
-
-                var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-B
-B
-B
-B
-B
-B
-"
-, verify: VerifyOnMonoOrCoreClr);
-
-                verifier.VerifyIL("F.Test",
- @"
-{
-  // Code size       58 (0x3a)
-  .maxstack  2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""F""
-  IL_0007:  box        ""F""
-  IL_000c:  ldftn      ""char B.F1(int)""
-  IL_0012:  newobj     ""System.Func<int, char>..ctor(object, System.IntPtr)""
-  IL_0017:  call       ""void A.Test(System.Func<int, char>)""
-  IL_001c:  nop
-  IL_001d:  ldarg.0
-  IL_001e:  ldobj      ""F""
-  IL_0023:  box        ""F""
-  IL_0028:  ldftn      ""char B.F1(int)""
-  IL_002e:  newobj     ""System.Func<int, char>..ctor(object, System.IntPtr)""
-  IL_0033:  call       ""void A.Test(System.Func<int, char>)""
-  IL_0038:  nop
-  IL_0039:  ret
-}
-");
-            }
-        }
-
-        [Fact]
-        public void ExplicitBase_126()
-        {
-            var source0 = @"
-public interface B : C
-{
-    char C.F1(int pB) => 'B';
-}
-
-public interface C
-{
-    char F1(int pC);
-}
-";
-
-            var source1 = @"
-class A : B
-{
-    char C.F1(int pA) => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1(pB: 1));
-    }
-}
-";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation0.VerifyDiagnostics();
-
-            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
-            {
-                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics(
-                    // (8,45): error CS1739: The best overload for 'F1' does not have a parameter named 'pB'
-                    //         System.Console.WriteLine(base(B).F1(pB: 1));
-                    Diagnostic(ErrorCode.ERR_BadNamedArgument, "pB").WithArguments("F1", "pB").WithLocation(8, 45)
-                    );
-            }
-        }
-
-        [Fact]
-        public void ExplicitBase_127()
-        {
-            var source0 = @"
-public interface B : I1, I2
-{
-}
-
-public interface I1 : C
-{
-    char C.F1() => '1';
-}
-
-public interface I2 : C
-{
-    char C.F1() => '2';
-}
-
-public interface C
-{
-    char F1();
-}
-";
-
-            var source1 = @"
-class A : B
-{
-    char C.F1() => 'A';
-
-    void Test()
-    {
-        _ = base(B).F1();
-    }
-}
-";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation0.VerifyDiagnostics();
-
-            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
-            {
-                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics(
-                    // (8,13): error CS8709: 'C.F1()' is not implemented in base interface B.
-                    //         _ = base(B).F1();
-                    Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1()", "B").WithLocation(8, 13)
-                    );
-            }
-        }
-
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void ExplicitBase_128()
-        {
-            var source1 = @"
-class A : B
-{
-    char C.F1() => 'A';
-
-    void Test()
-    {
-        _ = base(B).F1();
-    }
-}
-";
-
-            foreach (string accessibility in new[] { "private", "famandassem", "assembly" })
-            {
-                var ilSource = @"
-.assembly ExplicitBase_128
-{
-  .hash algorithm 0x00008004
-  .ver 0:0:0:0
-}
-.module ExplicitBase_128.dll
-// MVID: {22493430-1D63-4B15-9B42-F868AA6D50D5}
-.imagebase 0x10000000
-.file alignment 0x00000200
-.stackreserve 0x00100000
-.subsystem 0x0003       // WINDOWS_CUI
-.corflags 0x00000001    //  ILONLY
-// Image base: 0x00AD0000
-
-
-// =============== CLASS MEMBERS DECLARATION ===================
-
-.class interface public abstract auto ansi B
-       implements C
-{
-  .method " + accessibility + @" hidebysig virtual final 
-          instance char  C.F1() cil managed
-  {
-    .override C::F1
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   66
-    IL_0002:  ret
-  } // end of method B::C.F1
-
-} // end of class B
-
-.class interface public abstract auto ansi C
-{
-  .method public hidebysig newslot abstract virtual 
-          instance char  F1() cil managed
-  {
-  } // end of method C::F1
-
-} // end of class C
-";
-                var compilation1 = CreateCompilation(source1, references: new[] { CompileIL(ilSource, prependDefaultHeader: false) },
-                                                     options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics(
-                    // (8,13): error CS0122: 'B.C.F1()' is inaccessible due to its protection level
-                    //         _ = base(B).F1();
-                    Diagnostic(ErrorCode.ERR_BadAccess, "base(B).F1").WithArguments("B.C.F1()").WithLocation(8, 13)
-                    );
-            }
-        }
-
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void ExplicitBase_129()
-        {
-            var source1 = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1();
-    }
-}
-";
-
-            var ilSource = @"
-.assembly ExplicitBase_129
-{
-.hash algorithm 0x00008004
-.ver 0:0:0:0
-}
-.module ExplicitBase_129.dll
-// MVID: {22493430-1D63-4B15-9B42-F868AA6D50D5}
-.imagebase 0x10000000
-.file alignment 0x00000200
-.stackreserve 0x00100000
-.subsystem 0x0003       // WINDOWS_CUI
-.corflags 0x00000001    //  ILONLY
-// Image base: 0x00AD0000
-
-
-// =============== CLASS MEMBERS DECLARATION ===================
-
-.class interface public abstract auto ansi B
-    implements C
-{
-.method public hidebysig abstract virtual 
-        instance char  C.F1() cil managed
-{
-.override C::F1
-} // end of method B::C.F1
-
-} // end of class B
-
-.class interface public abstract auto ansi C
-{
-.method public hidebysig newslot abstract virtual 
-        instance char  F1() cil managed
-{
-} // end of method C::F1
-
-} // end of class C
-";
-            var compilation1 = CreateCompilation(source1, references: new[] { CompileIL(ilSource, prependDefaultHeader: false) },
-                                                    options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (2,11): error CS0535: 'A' does not implement interface member 'B.C.F1()'
-                // class A : B
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "B").WithArguments("A", "B.C.F1()").WithLocation(2, 11),
-                // (6,13): error CS0205: Cannot call an abstract base member: 'B.C.F1()'
-                //         _ = base(B).F1();
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1").WithArguments("B.C.F1()").WithLocation(6, 13)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_130()
-        {
-            var source0 = @"
-public interface B : C
-{
-    char C.F1 { get { System.Console.WriteLine(""B""); return 'B';} set => System.Console.WriteLine(""set B"");}
-}
-
-public interface C
-{
-    char F1 {get; set;}
-}
-";
-
-            var source1 = @"
-class A : B
-{
-    char C.F1 { get { System.Console.WriteLine(""A""); return 'A';} set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-        base(B).F1 += 'y';
-        base(B).F1++;
-        ++base(B).F1;
-        System.Console.WriteLine(base(B).F1 = 'z');
-        System.Console.WriteLine(base(B).F1 += (char)10);
-        System.Console.WriteLine(base(B).F1++);
-        System.Console.WriteLine(++base(B).F1);
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    char C.F1 { get { System.Console.WriteLine(""F""); return 'F';} set => System.Console.WriteLine(""set F"");}
-
-    public void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-        base(B).F1 += 'y';
-        base(B).F1++;
-        ++base(B).F1;
-        System.Console.WriteLine(base(B).F1 = 'z');
-        System.Console.WriteLine(base(B).F1 += (char)10);
-        System.Console.WriteLine(base(B).F1++);
-        System.Console.WriteLine(++base(B).F1);
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-        base(B).F1 += 'y';
-        base(B).F1++;
-        ++base(B).F1;
-        System.Console.WriteLine(base(B).F1 = 'z');
-        System.Console.WriteLine(base(B).F1 += (char)10);
-        System.Console.WriteLine(base(B).F1++);
-        System.Console.WriteLine(++base(B).F1);
-    }
-}
-
-class G : E
-{
-    char C.F1 { get { System.Console.WriteLine(""G""); return 'G';} set => System.Console.WriteLine(""set G"");}
-}
-";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation0.VerifyDiagnostics();
-
-            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
-            {
-                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics();
-
-                var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-B
-B
-set B
-B
-set B
-B
-set B
-B
-set B
-set B
-z
-B
-set B
-L
-B
-set B
-B
-B
-set B
-C
-B
-B
-set B
-B
-set B
-B
-set B
-B
-set B
-set B
-z
-B
-set B
-L
-B
-set B
-B
-B
-set B
-C
-B
-B
-set B
-B
-set B
-B
-set B
-B
-set B
-set B
-z
-B
-set B
-L
-B
-set B
-B
-B
-set B
-C
-", verify: VerifyOnMonoOrCoreClr);
-
-                verifier.VerifyIL("F.Test",
-@"
-{
-  // Code size      320 (0x140)
-  .maxstack  3
-  .locals init (char V_0)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""F""
-  IL_0007:  box        ""F""
-  IL_000c:  call       ""char B.F1.get""
-  IL_0011:  call       ""void System.Console.WriteLine(char)""
-  IL_0016:  nop
-  IL_0017:  ldarg.0
-  IL_0018:  ldobj      ""F""
-  IL_001d:  box        ""F""
-  IL_0022:  ldc.i4.s   120
-  IL_0024:  call       ""void B.F1.set""
-  IL_0029:  nop
-  IL_002a:  ldarg.0
-  IL_002b:  ldobj      ""F""
-  IL_0030:  box        ""F""
-  IL_0035:  ldarg.0
-  IL_0036:  ldobj      ""F""
-  IL_003b:  box        ""F""
-  IL_0040:  call       ""char B.F1.get""
-  IL_0045:  ldc.i4.s   121
-  IL_0047:  add
-  IL_0048:  conv.u2
-  IL_0049:  call       ""void B.F1.set""
-  IL_004e:  nop
-  IL_004f:  ldarg.0
-  IL_0050:  ldobj      ""F""
-  IL_0055:  box        ""F""
-  IL_005a:  call       ""char B.F1.get""
-  IL_005f:  stloc.0
-  IL_0060:  ldarg.0
-  IL_0061:  ldobj      ""F""
-  IL_0066:  box        ""F""
-  IL_006b:  ldloc.0
-  IL_006c:  ldc.i4.1
-  IL_006d:  add
-  IL_006e:  conv.u2
-  IL_006f:  call       ""void B.F1.set""
-  IL_0074:  nop
-  IL_0075:  ldarg.0
-  IL_0076:  ldobj      ""F""
-  IL_007b:  box        ""F""
-  IL_0080:  call       ""char B.F1.get""
-  IL_0085:  ldc.i4.1
-  IL_0086:  add
-  IL_0087:  conv.u2
-  IL_0088:  stloc.0
-  IL_0089:  ldarg.0
-  IL_008a:  ldobj      ""F""
-  IL_008f:  box        ""F""
-  IL_0094:  ldloc.0
-  IL_0095:  call       ""void B.F1.set""
-  IL_009a:  nop
-  IL_009b:  ldarg.0
-  IL_009c:  ldobj      ""F""
-  IL_00a1:  box        ""F""
-  IL_00a6:  ldc.i4.s   122
-  IL_00a8:  dup
-  IL_00a9:  stloc.0
-  IL_00aa:  call       ""void B.F1.set""
-  IL_00af:  nop
-  IL_00b0:  ldloc.0
-  IL_00b1:  call       ""void System.Console.WriteLine(char)""
-  IL_00b6:  nop
-  IL_00b7:  ldarg.0
-  IL_00b8:  ldobj      ""F""
-  IL_00bd:  box        ""F""
-  IL_00c2:  ldarg.0
-  IL_00c3:  ldobj      ""F""
-  IL_00c8:  box        ""F""
-  IL_00cd:  call       ""char B.F1.get""
-  IL_00d2:  ldc.i4.s   10
-  IL_00d4:  add
-  IL_00d5:  conv.u2
-  IL_00d6:  dup
-  IL_00d7:  stloc.0
-  IL_00d8:  call       ""void B.F1.set""
-  IL_00dd:  nop
-  IL_00de:  ldloc.0
-  IL_00df:  call       ""void System.Console.WriteLine(char)""
-  IL_00e4:  nop
-  IL_00e5:  ldarg.0
-  IL_00e6:  ldobj      ""F""
-  IL_00eb:  box        ""F""
-  IL_00f0:  call       ""char B.F1.get""
-  IL_00f5:  stloc.0
-  IL_00f6:  ldarg.0
-  IL_00f7:  ldobj      ""F""
-  IL_00fc:  box        ""F""
-  IL_0101:  ldloc.0
-  IL_0102:  ldc.i4.1
-  IL_0103:  add
-  IL_0104:  conv.u2
-  IL_0105:  call       ""void B.F1.set""
-  IL_010a:  nop
-  IL_010b:  ldloc.0
-  IL_010c:  call       ""void System.Console.WriteLine(char)""
-  IL_0111:  nop
-  IL_0112:  ldarg.0
-  IL_0113:  ldobj      ""F""
-  IL_0118:  box        ""F""
-  IL_011d:  call       ""char B.F1.get""
-  IL_0122:  ldc.i4.1
-  IL_0123:  add
-  IL_0124:  conv.u2
-  IL_0125:  stloc.0
-  IL_0126:  ldarg.0
-  IL_0127:  ldobj      ""F""
-  IL_012c:  box        ""F""
-  IL_0131:  ldloc.0
-  IL_0132:  call       ""void B.F1.set""
-  IL_0137:  nop
-  IL_0138:  ldloc.0
-  IL_0139:  call       ""void System.Console.WriteLine(char)""
-  IL_013e:  nop
-  IL_013f:  ret
-}
-");
-            }
-        }
-
-        [Fact]
-        public void ExplicitBase_131()
-        {
-            var source0 = @"
-public interface B : I1, I2
-{
-}
-
-public interface I1 : C
-{
-    char C.F1 { get => '1'; set => System.Console.WriteLine(""set 1"");}
-}
-
-public interface I2 : C
-{
-    char C.F1 { get => '2'; set => System.Console.WriteLine(""set 2"");}
-}
-
-public interface C
-{
-    char F1 {get; set;}
-}
-";
-
-            var source1 = @"
-class A : B
-{
-    char C.F1 { get; set; }
-
-    void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'z';
-    }
-}
-";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation0.VerifyDiagnostics();
-
-            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
-            {
-                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics(
-                    // (8,13): error CS8709: 'C.F1.get' is not implemented in base interface B.
-                    //         _ = base(B).F1;
-                    Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1.get", "B").WithLocation(8, 13),
-                    // (9,9): error CS8709: 'C.F1.set' is not implemented in base interface B.
-                    //         base(B).F1 = 'z';
-                    Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1.set", "B").WithLocation(9, 9)
-                    );
-            }
-        }
-
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void ExplicitBase_132()
-        {
-            var source1 = @"
-class A : B
-{
-    char C.F1 {get; set;}
-
-    void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-";
-
-            foreach (string accessibility in new[] { "private", "famandassem", "assembly" })
-            {
-                var ilSource = @"
-.assembly ExplicitBase_132
-{
-  .hash algorithm 0x00008004
-  .ver 0:0:0:0
-}
-.module ExplicitBase_132.dll
-// MVID: {22493430-1D63-4B15-9B42-F868AA6D50D5}
-.imagebase 0x10000000
-.file alignment 0x00000200
-.stackreserve 0x00100000
-.subsystem 0x0003       // WINDOWS_CUI
-.corflags 0x00000001    //  ILONLY
-// Image base: 0x00AD0000
-
-
-// =============== CLASS MEMBERS DECLARATION ===================
-
-.class interface public abstract auto ansi B
-       implements C
-{
-  .method " + accessibility + @" hidebysig specialname virtual final 
-          instance char  C.get_F1() cil managed
-  {
-    .override C::get_F1
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   66
-    IL_0002:  ret
-  } // end of method B::C.get_F1
-
-  .method " + accessibility + @" hidebysig specialname virtual final 
-          instance void  C.set_F1(char 'value') cil managed
-  {
-    .override C::set_F1
-    // Code size       2 (0x2)
-    .maxstack  8
-    IL_0000:  nop
-    IL_0001:  ret
-  } // end of method B::C.set_F1
-
-  .property instance char C.F1()
-  {
-    .get instance char B::C.get_F1()
-    .set instance void B::C.set_F1(char)
-  } // end of property B::C.F1
-} // end of class B
-
-.class interface public abstract auto ansi C
-{
-  .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
-  {
-  } // end of method C::get_F1
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
-  {
-  } // end of method C::set_F1
-
-  .property instance char F1()
-  {
-    .get instance char C::get_F1()
-    .set instance void C::set_F1(char)
-  } // end of property C::F1
-} // end of class C
-
-";
-                var compilation1 = CreateCompilation(source1, references: new[] { CompileIL(ilSource, prependDefaultHeader: false) },
-                                                     options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics(
-                    // (8,13): error CS0122: 'B.C.F1.get' is inaccessible due to its protection level
-                    //         _ = base(B).F1;
-                    Diagnostic(ErrorCode.ERR_BadAccess, "base(B).F1").WithArguments("B.C.F1.get").WithLocation(8, 13),
-                    // (9,9): error CS0122: 'B.C.F1.set' is inaccessible due to its protection level
-                    //         base(B).F1 = 'x';
-                    Diagnostic(ErrorCode.ERR_BadAccess, "base(B).F1").WithArguments("B.C.F1.set").WithLocation(9, 9)
-                    );
-            }
-        }
-
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void ExplicitBase_133()
-        {
-            var source1 = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-";
-
-            var ilSource = @"
-.assembly ExplicitBase_133
-{
-  .hash algorithm 0x00008004
-  .ver 0:0:0:0
-}
-.module ExplicitBase_133.dll
-// MVID: {22493430-1D63-4B15-9B42-F868AA6D50D5}
-.imagebase 0x10000000
-.file alignment 0x00000200
-.stackreserve 0x00100000
-.subsystem 0x0003       // WINDOWS_CUI
-.corflags 0x00000001    //  ILONLY
-// Image base: 0x00AD0000
-
-
-// =============== CLASS MEMBERS DECLARATION ===================
-
-.class interface public abstract auto ansi B
-       implements C
-{
-  .method public hidebysig specialname abstract virtual 
-          instance char  C.get_F1() cil managed
-  {
-    .override C::get_F1
-  } // end of method B::C.get_F1
-
-  .method public hidebysig specialname abstract virtual
-          instance void  C.set_F1(char 'value') cil managed
-  {
-    .override C::set_F1
-  } // end of method B::C.set_F1
-
-  .property instance char C.F1()
-  {
-    .get instance char B::C.get_F1()
-    .set instance void B::C.set_F1(char)
-  } // end of property B::C.F1
-} // end of class B
-
-.class interface public abstract auto ansi C
-{
-  .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
-  {
-  } // end of method C::get_F1
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
-  {
-  } // end of method C::set_F1
-
-  .property instance char F1()
-  {
-    .get instance char C::get_F1()
-    .set instance void C::set_F1(char)
-  } // end of property C::F1
-} // end of class C
-
-";
-            var compilation1 = CreateCompilation(source1, references: new[] { CompileIL(ilSource, prependDefaultHeader: false) },
-                                                    options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (2,11): error CS0535: 'A' does not implement interface member 'B.C.F1'
-                // class A : B
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "B").WithArguments("A", "B.C.F1").WithLocation(2, 11),
-                // (6,13): error CS0205: Cannot call an abstract base member: 'B.C.F1.get'
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1").WithArguments("B.C.F1.get").WithLocation(6, 13),
-                // (7,9): error CS0205: Cannot call an abstract base member: 'B.C.F1.set'
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1").WithArguments("B.C.F1.set").WithLocation(7, 9)
-                );
-        }
-
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        [WorkItem(33256, "https://github.com/dotnet/roslyn/issues/33256")]
-        public void ExplicitBase_134()
-        {
-            var ilSource = @"
-.assembly extern System.Runtime
-{
-  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )                         // .?_....:
-  .ver 4:2:1:0
-}
-.assembly extern System.Console
-{
-  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )                         // .?_....:
-  .ver 4:1:1:0
-}
-
-.assembly ExplicitBase_134
-{
-  .hash algorithm 0x00008004
-  .ver 0:0:0:0
-}
-.module ExplicitBase_134.dll
-// MVID: {22493430-1D63-4B15-9B42-F868AA6D50D5}
-.imagebase 0x10000000
-.file alignment 0x00000200
-.stackreserve 0x00100000
-.subsystem 0x0003       // WINDOWS_CUI
-.corflags 0x00000001    //  ILONLY
-// Image base: 0x00AD0000
-
-
-// =============== CLASS MEMBERS DECLARATION ===================
-
-.class interface public abstract auto ansi B
-       implements I1,
-                  C,
-                  I2
-{
-} // end of class B
-
-.class interface public abstract auto ansi I1
-       implements C
-{
-  .method public hidebysig specialname virtual final 
-          instance char  C.get_F1() cil managed
-  {
-    .override C::get_F1
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   49
-    IL_0002:  ret
-  } // end of method I1::C.get_F1
-
-  .property instance char C.F1()
-  {
-    .get instance char I1::C.get_F1()
-  } // end of property I1::C.F1
-} // end of class I1
-
-.class interface public abstract auto ansi I2
-       implements C
-{
-  .method public hidebysig specialname virtual final 
-          instance void  C.set_F1(char 'value') cil managed
-  {
-    .override C::set_F1
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set 2""
-    IL_0005:  call       void [System.Console]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method I2::C.set_F1
-
-  .property instance char C.F1()
-  {
-    .set instance void I2::C.set_F1(char)
-  } // end of property I2::C.F1
-} // end of class I2
-
-.class interface public abstract auto ansi C
-{
-  .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
-  {
-  } // end of method C::get_F1
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
-  {
-  } // end of method C::set_F1
-
-  .property instance char F1()
-  {
-    .get instance char C::get_F1()
-    .set instance void C::set_F1(char)
-  } // end of property C::F1
-} // end of class C
-
-.class public auto ansi beforefieldinit D
-       extends [System.Runtime]System.Object
-       implements B,
-                  I1,
-                  C,
-                  I2
-{
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void [System.Runtime]System.Object::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method A::.ctor
-} // end of class A
-";
-
-            var source1 = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-";
-
-            var reference = CompileIL(ilSource, prependDefaultHeader: false);
-
-            var compilation1 = CreateCompilation(source1, references: new[] { reference },
-                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (2,11): error CS0535: 'A' does not implement interface member 'C.F1'
-                // class A : B
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "B").WithArguments("A", "C.F1").WithLocation(2, 11),
-                // (6,13): error CS8709: 'C.F1.get' is not implemented in base interface B.
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1.get", "B").WithLocation(6, 13),
-                // (7,9): error CS8709: 'C.F1.set' is not implemented in base interface B.
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1.set", "B").WithLocation(7, 9)
-                );
-
-            var source2 = @"
-class A : D, C
-{
-    char C.F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(I1).F1);
-        base(I2).F1 = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        C d = new D();
-        System.Console.WriteLine(d.F1);
-        d.F1 = 'x';
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2, references: new[] { reference },
-                                                 options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics();
-
-            var c = compilation2.GetTypeByMetadataName("C");
-            var f1 = c.GetMember<PropertySymbol>("F1");
-            var d = compilation2.GetTypeByMetadataName("D");
-
-            Assert.Null(d.FindImplementationForInterfaceMember(f1));
-            Assert.Equal("System.Char I1.F1.get", d.FindImplementationForInterfaceMember(f1.GetMethod).ToTestDisplayString());
-            Assert.Equal("void I2.F1.set", d.FindImplementationForInterfaceMember(f1.SetMethod).ToTestDisplayString());
-
-            CompileAndVerify(compilation2, expectedOutput:
-@"
-1
-set 2
-1
-set 2
-"
-);
-
-            var source3 = @"
-class A : D, B
-{
-    static void Main()
-    {
-        C a = new A();
-        System.Console.WriteLine(a.F1);
-        a.F1 = 'x';
-    }
-}
-";
-            var compilation3 = CreateCompilation(source3, references: new[] { reference },
-                                                 options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3, expectedOutput:
-@"
-1
-set 2
-"
-);
-        }
-
-        [Fact]
-        [WorkItem(33226, "https://github.com/dotnet/roslyn/issues/33226")]
-        public void ExplicitBase_134_Class_01()
-        {
-            var ilSource = @"
-.class interface public abstract auto ansi I1
-{
-  .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
-  {
-  } // end of method I1::get_F1
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
-  {
-  } // end of method I1::set_F1
-
-  .property instance char F1()
-  {
-    .get instance char I1::get_F1()
-    .set instance void I1::set_F1(char)
-  } // end of property I1::F1
-} // end of class I1
-
-.class public auto ansi beforefieldinit A
-       extends System.Object
-       implements I1
-{
-  .method private hidebysig newslot specialname virtual final 
-          instance char  I1.get_F1() cil managed
-  {
-    .override I1::get_F1
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   65
-    IL_0002:  ret
-  } // end of method A::I1.get_F1
-
-  .method private hidebysig newslot specialname virtual final 
-          instance void  I1.set_F1(char 'value') cil managed
-  {
-    .override I1::set_F1
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set A""
-    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method A::I1.set_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void System.Object::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method A::.ctor
-
-  .property instance char I1.F1()
-  {
-    .get instance char A::I1.get_F1()
-    .set instance void A::I1.set_F1(char)
-  } // end of property A::I1.F1
-} // end of class A
-
-.class public auto ansi beforefieldinit B
-       extends A
-       implements I1
-{
-  .method private hidebysig newslot specialname virtual final 
-          instance char  I1.get_F1() cil managed
-  {
-    .override I1::get_F1
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   66
-    IL_0002:  ret
-  } // end of method B::I1.get_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void A::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method B::.ctor
-
-  .property instance char I1.F1()
-  {
-    .get instance char B::I1.get_F1()
-  } // end of property B::I1.F1
-} // end of class B
-
-.class public auto ansi beforefieldinit C
-       extends B
-       implements I1
-{
-  .method private hidebysig newslot specialname virtual final 
-          instance void  I1.set_F1(char 'value') cil managed
-  {
-    .override I1::set_F1
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set C""
-    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method C::I1.set_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void B::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method C::.ctor
-
-  .property instance char I1.F1()
-  {
-    .set instance void C::I1.set_F1(char)
-  } // end of property C::I1.F1
-} // end of class C
-";
-
-            var source1 =
-@"
-class Test2 : C, I1
-{
-    static void Main()
-    {
-        I1 x = new Test2();
-
-        System.Console.WriteLine(x.F1);
-        x.F1 = 'x';
-    }
-}
-";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            var i1 = compilation1.GetTypeByMetadataName("I1");
-            var i1F1 = i1.GetMember<PropertySymbol>("F1");
-            var test2 = compilation1.GetTypeByMetadataName("Test2");
-
-            Assert.Equal("System.Char C.F1 { set; }", test2.FindImplementationForInterfaceMember(i1F1).ToTestDisplayString());
-            Assert.Equal("void C.F1.set", test2.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
-            Assert.Equal("System.Char B.F1.get", test2.FindImplementationForInterfaceMember(i1F1.GetMethod).ToTestDisplayString());
-
-            CompileAndVerify(compilation1, expectedOutput: @"
-B
-set C
-");
-
-            var source2 =
-@"
-class Test2 : C
-{
-    static void Main()
-    {
-        I1 x = new Test2();
-
-        System.Console.WriteLine(x.F1);
-        x.F1 = 'x';
-    }
-}
-";
-            var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics();
-
-            i1 = compilation2.GetTypeByMetadataName("I1");
-            i1F1 = i1.GetMember<PropertySymbol>("F1");
-            var c = compilation2.GetTypeByMetadataName("C");
-
-            Assert.Equal("System.Char C.F1 { set; }", c.FindImplementationForInterfaceMember(i1F1).ToTestDisplayString());
-            Assert.Equal("void C.F1.set", c.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
-            Assert.Equal("System.Char B.F1.get", c.FindImplementationForInterfaceMember(i1F1.GetMethod).ToTestDisplayString());
-
-            CompileAndVerify(compilation2, expectedOutput: @"
-B
-set C
-");
-        }
-
-        [Fact]
-        [WorkItem(33226, "https://github.com/dotnet/roslyn/issues/33226")]
-        public void ExplicitBase_134_Class_02()
-        {
-            var ilSource = @"
-.class interface public abstract auto ansi I1
-{
-  .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
-  {
-  } // end of method I1::get_F1
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
-  {
-  } // end of method I1::set_F1
-
-  .property instance char F1()
-  {
-    .get instance char I1::get_F1()
-    .set instance void I1::set_F1(char)
-  } // end of property I1::F1
-} // end of class I1
-
-.class public auto ansi beforefieldinit A
-       extends System.Object
-{
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void System.Object::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method A::.ctor
-} // end of class A
-
-.class public auto ansi beforefieldinit B
-       extends A
-{
-  .method public hidebysig newslot specialname virtual final 
-          instance char  get_F1() cil managed
-  {
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   66
-    IL_0002:  ret
-  } // end of method B::I1.get_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void A::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method B::.ctor
-
-  .property instance char F1()
-  {
-    .get instance char B::get_F1()
-  } // end of property B::I1.F1
-} // end of class B
-
-.class public auto ansi beforefieldinit C
-       extends B
-       implements I1
-{
-  .method public hidebysig newslot specialname virtual final 
-          instance void  set_F1(char 'value') cil managed
-  {
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set C""
-    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method C::I1.set_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void B::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method C::.ctor
-
-  .property instance char F1()
-  {
-    .set instance void C::set_F1(char)
-  } // end of property C::I1.F1
-} // end of class C
-";
-
-            var source =
-@"
-class Test2 : C, I1
-{
-    static void Main()
-    {
-        I1 x = new Test2();
-
-        System.Console.WriteLine(x.F1);
-        x.F1 = 'x';
-    }
-}
-";
-            var compilation1 = CreateCompilationWithIL(source, ilSource, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            var i1 = compilation1.GetTypeByMetadataName("I1");
-            var i1F1 = i1.GetMember<PropertySymbol>("F1");
-            var test2 = compilation1.GetTypeByMetadataName("Test2");
-
-            Assert.Equal("System.Char C.F1 { set; }", test2.FindImplementationForInterfaceMember(i1F1).ToTestDisplayString());
-            Assert.Equal("void C.F1.set", test2.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
-            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.GetMethod));
-            Assert.Null(compilation1.GetTypeByMetadataName("B").FindImplementationForInterfaceMember(i1F1.GetMethod));
-
-            CompileAndVerify(compilation1, expectedOutput: @"
-B
-set C
-");
-
-            var source2 =
-@"
-class Test2 : C
-{
-    static void Main()
-    {
-        I1 x = new Test2();
-
-        System.Console.WriteLine(x.F1);
-        x.F1 = 'x';
-    }
-}
-";
-            var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics();
-
-            i1 = compilation2.GetTypeByMetadataName("I1");
-            i1F1 = i1.GetMember<PropertySymbol>("F1");
-            var c = compilation2.GetTypeByMetadataName("C");
-
-            Assert.Equal("System.Char C.F1 { set; }", c.FindImplementationForInterfaceMember(i1F1).ToTestDisplayString());
-            Assert.Equal("void C.F1.set", c.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
-            Assert.Null(c.FindImplementationForInterfaceMember(i1F1.GetMethod));
-
-            CompileAndVerify(compilation2, expectedOutput: @"
-B
-set C
-");
-        }
-
-        [Fact]
-        [WorkItem(33226, "https://github.com/dotnet/roslyn/issues/33226")]
-        public void ExplicitBase_134_Class_03()
-        {
-            var ilSource = @"
-.class interface public abstract auto ansi I1
-{
-  .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
-  {
-  } // end of method I1::get_F1
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
-  {
-  } // end of method I1::set_F1
-
-  .property instance char F1()
-  {
-    .get instance char I1::get_F1()
-    .set instance void I1::set_F1(char)
-  } // end of property I1::F1
-} // end of class I1
-
-.class public auto ansi beforefieldinit A
-       extends System.Object
-       implements I1
-{
-  .method private hidebysig newslot specialname virtual final 
-          instance char  I1.get_F1() cil managed
-  {
-    .override I1::get_F1
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   65
-    IL_0002:  ret
-  } // end of method A::I1.get_F1
-
-  .method private hidebysig newslot specialname virtual final 
-          instance void  I1.set_F1(char 'value') cil managed
-  {
-    .override I1::set_F1
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set A""
-    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method A::I1.set_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void System.Object::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method A::.ctor
-
-  .property instance char I1.F1()
-  {
-    .get instance char A::I1.get_F1()
-    .set instance void A::I1.set_F1(char)
-  } // end of property A::I1.F1
-} // end of class A
-
-.class public auto ansi beforefieldinit B
-       extends A
-{
-  .method public hidebysig newslot specialname virtual final 
-          instance char  get_F1() cil managed
-  {
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   66
-    IL_0002:  ret
-  } // end of method B::I1.get_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void A::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method B::.ctor
-
-  .property instance char F1()
-  {
-    .get instance char B::get_F1()
-  } // end of property B::I1.F1
-} // end of class B
-
-.class public auto ansi beforefieldinit C
-       extends B
-       implements I1
-{
-  .method public hidebysig newslot specialname virtual final 
-          instance void  set_F1(char 'value') cil managed
-  {
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set C""
-    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method C::I1.set_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void B::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method C::.ctor
-
-  .property instance char F1()
-  {
-    .set instance void C::set_F1(char)
-  } // end of property C::I1.F1
-} // end of class C
-";
-
-            var source =
-@"
-class Test2 : C, I1
-{
-    static void Main()
-    {
-        I1 x = new Test2();
-
-        System.Console.WriteLine(x.F1);
-        x.F1 = 'x';
-    }
-}
-";
-            var compilation1 = CreateCompilationWithIL(source, ilSource, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            var i1 = compilation1.GetTypeByMetadataName("I1");
-            var i1F1 = i1.GetMember<PropertySymbol>("F1");
-            var test2 = compilation1.GetTypeByMetadataName("Test2");
-
-            Assert.Equal("System.Char C.F1 { set; }", test2.FindImplementationForInterfaceMember(i1F1).ToTestDisplayString());
-            Assert.Equal("void C.F1.set", test2.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
-            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.GetMethod));
-
-            CompileAndVerify(compilation1, expectedOutput: @"
-A
-set C
-");
-
-            var source2 =
-@"
-class Test2 : C
-{
-    static void Main()
-    {
-        I1 x = new Test2();
-
-        System.Console.WriteLine(x.F1);
-        x.F1 = 'x';
-    }
-}
-";
-            var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics();
-
-            i1 = compilation2.GetTypeByMetadataName("I1");
-            i1F1 = i1.GetMember<PropertySymbol>("F1");
-            var c = compilation2.GetTypeByMetadataName("C");
-
-            Assert.Equal("System.Char C.F1 { set; }", c.FindImplementationForInterfaceMember(i1F1).ToTestDisplayString());
-            Assert.Equal("void C.F1.set", c.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
-            Assert.Null(c.FindImplementationForInterfaceMember(i1F1.GetMethod));
-
-            CompileAndVerify(compilation2, expectedOutput: @"
-A
-set C
-");
-        }
-
-        [Fact]
-        [WorkItem(33226, "https://github.com/dotnet/roslyn/issues/33226")]
-        public void ExplicitBase_134_Class_04()
-        {
-            var ilSource = @"
-.class interface public abstract auto ansi I1
-{
-  .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
-  {
-  } // end of method I1::get_F1
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
-  {
-  } // end of method I1::set_F1
-
-  .property instance char F1()
-  {
-    .get instance char I1::get_F1()
-    .set instance void I1::set_F1(char)
-  } // end of property I1::F1
-} // end of class I1
-
-.class public auto ansi beforefieldinit A
-       extends System.Object
-       implements I1
-{
-  .method public hidebysig newslot specialname virtual final 
-          instance char  get_F1() cil managed
-  {
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   65
-    IL_0002:  ret
-  } // end of method A::I1.get_F1
-
-  .method public hidebysig newslot specialname virtual final 
-          instance void  set_F1(char 'value') cil managed
-  {
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set A""
-    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method A::I1.set_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void System.Object::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method A::.ctor
-
-  .property instance char F1()
-  {
-    .get instance char A::get_F1()
-    .set instance void A::set_F1(char)
-  } // end of property A::I1.F1
-} // end of class A
-
-.class public auto ansi beforefieldinit B
-       extends A
-{
-  .method public hidebysig newslot specialname virtual final 
-          instance char  get_F1() cil managed
-  {
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   66
-    IL_0002:  ret
-  } // end of method B::I1.get_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void A::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method B::.ctor
-
-  .property instance char F1()
-  {
-    .get instance char B::get_F1()
-  } // end of property B::I1.F1
-} // end of class B
-
-.class public auto ansi beforefieldinit C
-       extends B
-       implements I1
-{
-  .method public hidebysig newslot specialname virtual final 
-          instance void  set_F1(char 'value') cil managed
-  {
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set C""
-    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method C::I1.set_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void B::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method C::.ctor
-
-  .property instance char F1()
-  {
-    .set instance void C::set_F1(char)
-  } // end of property C::I1.F1
-} // end of class C
-";
-
-            var source =
-@"
-class Test2 : C, I1
-{
-    static void Main()
-    {
-        I1 x = new Test2();
-
-        System.Console.WriteLine(x.F1);
-        x.F1 = 'x';
-    }
-}
-";
-            var compilation1 = CreateCompilationWithIL(source, ilSource, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            var i1 = compilation1.GetTypeByMetadataName("I1");
-            var i1F1 = i1.GetMember<PropertySymbol>("F1");
-            var test2 = compilation1.GetTypeByMetadataName("Test2");
-
-            Assert.Equal("System.Char C.F1 { set; }", test2.FindImplementationForInterfaceMember(i1F1).ToTestDisplayString());
-            Assert.Equal("void C.F1.set", test2.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
-            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.GetMethod));
-
-            CompileAndVerify(compilation1, expectedOutput: @"
-A
-set C
-");
-
-            var source2 =
-@"
-class Test2 : C
-{
-    static void Main()
-    {
-        I1 x = new Test2();
-
-        System.Console.WriteLine(x.F1);
-        x.F1 = 'x';
-    }
-}
-";
-            var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics();
-
-            i1 = compilation2.GetTypeByMetadataName("I1");
-            i1F1 = i1.GetMember<PropertySymbol>("F1");
-            var c = compilation2.GetTypeByMetadataName("C");
-
-            Assert.Equal("System.Char C.F1 { set; }", c.FindImplementationForInterfaceMember(i1F1).ToTestDisplayString());
-            Assert.Equal("void C.F1.set", c.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
-            Assert.Null(c.FindImplementationForInterfaceMember(i1F1.GetMethod));
-
-            CompileAndVerify(compilation2, expectedOutput: @"
-A
-set C
-");
-        }
-
-        [Fact]
-        [WorkItem(33226, "https://github.com/dotnet/roslyn/issues/33226")]
-        public void ExplicitBase_134_Class_05()
-        {
-            var ilSource = @"
-.class interface public abstract auto ansi I1
-{
-  .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
-  {
-  } // end of method I1::get_F1
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
-  {
-  } // end of method I1::set_F1
-
-  .property instance char F1()
-  {
-    .get instance char I1::get_F1()
-    .set instance void I1::set_F1(char)
-  } // end of property I1::F1
-} // end of class I1
-
-.class public auto ansi beforefieldinit A
-       extends System.Object
-       implements I1
-{
-  .method public hidebysig newslot specialname virtual final 
-          instance char  get_F1() cil managed
-  {
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   65
-    IL_0002:  ret
-  } // end of method A::I1.get_F1
-
-  .method public hidebysig newslot specialname virtual final 
-          instance void  set_F1(char 'value') cil managed
-  {
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set A""
-    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method A::I1.set_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void System.Object::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method A::.ctor
-
-  .property instance char F1()
-  {
-    .get instance char A::get_F1()
-    .set instance void A::set_F1(char)
-  } // end of property A::I1.F1
-} // end of class A
-
-.class public auto ansi beforefieldinit B
-       extends A
-       implements I1
-{
-  .method private hidebysig newslot specialname virtual final 
-          instance char  I1.get_F1() cil managed
-  {
-    .override I1::get_F1
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   66
-    IL_0002:  ret
-  } // end of method B::I1.get_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void A::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method B::.ctor
-
-  .property instance char I1.F1()
-  {
-    .get instance char B::I1.get_F1()
-  } // end of property B::I1.F1
-} // end of class B
-
-.class public auto ansi beforefieldinit C
-       extends B
-       implements I1
-{
-  .method private hidebysig newslot specialname virtual final 
-          instance void  I1.set_F1(char 'value') cil managed
-  {
-    .override I1::set_F1
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set C""
-    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method C::I1.set_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void B::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method C::.ctor
-
-  .property instance char I1.F1()
-  {
-    .set instance void C::I1.set_F1(char)
-  } // end of property C::I1.F1
-} // end of class C
-";
-
-            var source =
-@"
-class Test2 : C, I1
-{
-    static void Main()
-    {
-        I1 x = new Test2();
-
-        System.Console.WriteLine(x.F1);
-        x.F1 = 'x';
-    }
-}
-";
-            var compilation1 = CreateCompilationWithIL(source, ilSource, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            var i1 = compilation1.GetTypeByMetadataName("I1");
-            var i1F1 = i1.GetMember<PropertySymbol>("F1");
-            var test2 = compilation1.GetTypeByMetadataName("Test2");
-
-            Assert.Equal("System.Char C.F1 { set; }", test2.FindImplementationForInterfaceMember(i1F1).ToTestDisplayString());
-            Assert.Equal("void C.F1.set", test2.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
-            Assert.Equal("System.Char B.F1.get", test2.FindImplementationForInterfaceMember(i1F1.GetMethod).ToTestDisplayString());
-
-            CompileAndVerify(compilation1, expectedOutput: @"
-B
-set C
-");
-
-            var source2 =
-@"
-class Test2 : C
-{
-    static void Main()
-    {
-        I1 x = new Test2();
-
-        System.Console.WriteLine(x.F1);
-        x.F1 = 'x';
-    }
-}
-";
-            var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics();
-
-            i1 = compilation2.GetTypeByMetadataName("I1");
-            i1F1 = i1.GetMember<PropertySymbol>("F1");
-            var c = compilation2.GetTypeByMetadataName("C");
-
-            Assert.Equal("System.Char C.F1 { set; }", c.FindImplementationForInterfaceMember(i1F1).ToTestDisplayString());
-            Assert.Equal("void C.F1.set", c.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
-            Assert.Equal("System.Char B.F1.get", c.FindImplementationForInterfaceMember(i1F1.GetMethod).ToTestDisplayString());
-
-            CompileAndVerify(compilation2, expectedOutput: @"
-B
-set C
-");
-        }
-
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        [WorkItem(33256, "https://github.com/dotnet/roslyn/issues/33256")]
-        public void ExplicitBase_135()
-        {
-            var ilSource = @"
-.assembly extern System.Runtime
-{
-  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )                         // .?_....:
-  .ver 4:2:1:0
-}
-.assembly extern System.Console
-{
-  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )                         // .?_....:
-  .ver 4:1:1:0
-}
-
-.assembly ExplicitBase_135
-{
-  .hash algorithm 0x00008004
-  .ver 0:0:0:0
-}
-.module ExplicitBase_135.dll
-// MVID: {22493430-1D63-4B15-9B42-F868AA6D50D5}
-.imagebase 0x10000000
-.file alignment 0x00000200
-.stackreserve 0x00100000
-.subsystem 0x0003       // WINDOWS_CUI
-.corflags 0x00000001    //  ILONLY
-// Image base: 0x00AD0000
-
-
-// =============== CLASS MEMBERS DECLARATION ===================
-
-.class interface public abstract auto ansi B
-       implements I1,
-                  C,
-                  I2
-{
-} // end of class B
-
-.class interface public abstract auto ansi I1
-       implements C
-{
-  .method public hidebysig specialname virtual final 
-          instance char  C.get_F1() cil managed
-  {
-    .override C::get_F1
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   49
-    IL_0002:  ret
-  } // end of method I1::C.get_F1
-} // end of class I1
-
-.class interface public abstract auto ansi I2
-       implements C
-{
-  .method public hidebysig specialname virtual final 
-          instance void  C.set_F1(char 'value') cil managed
-  {
-    .override C::set_F1
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set 2""
-    IL_0005:  call       void [System.Console]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method I2::C.set_F1
-} // end of class I2
-
-.class interface public abstract auto ansi C
-{
-  .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
-  {
-  } // end of method C::get_F1
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
-  {
-  } // end of method C::set_F1
-
-  .property instance char F1()
-  {
-    .get instance char C::get_F1()
-    .set instance void C::set_F1(char)
-  } // end of property C::F1
-} // end of class C
-
-.class public auto ansi beforefieldinit D
-       extends [System.Runtime]System.Object
-       implements B,
-                  I1,
-                  C,
-                  I2
-{
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void [System.Runtime]System.Object::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method A::.ctor
-} // end of class A
-";
-
-            var source1 = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B).F1;
-        base(B).F1 = 'x';
-    }
-}
-";
-            var reference = CompileIL(ilSource, prependDefaultHeader: false);
-
-            var compilation1 = CreateCompilation(source1, references: new[] { reference },
-                                                    options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (2,11): error CS0535: 'A' does not implement interface member 'C.F1'
-                // class A : B
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "B").WithArguments("A", "C.F1").WithLocation(2, 11),
-                // (6,13): error CS8709: 'C.F1.get' is not implemented in base interface B.
-                //         _ = base(B).F1;
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1.get", "B").WithLocation(6, 13),
-                // (7,9): error CS8709: 'C.F1.set' is not implemented in base interface B.
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1.set", "B").WithLocation(7, 9)
-                );
-
-            var source2 = @"
-class A : D, C
-{
-    char C.F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(I1).F1);
-        base(I2).F1 = 'x';
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        C d = new D();
-        System.Console.WriteLine(d.F1);
-        d.F1 = 'x';
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2, references: new[] { reference },
-                                                 options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics();
-
-            var c = compilation2.GetTypeByMetadataName("C");
-            var f1 = c.GetMember<PropertySymbol>("F1");
-            var d = compilation2.GetTypeByMetadataName("D");
-
-            Assert.Null(d.FindImplementationForInterfaceMember(f1));
-            Assert.Equal("System.Char I1.C.get_F1()", d.FindImplementationForInterfaceMember(f1.GetMethod).ToTestDisplayString());
-            Assert.Equal("void I2.C.set_F1(System.Char value)", d.FindImplementationForInterfaceMember(f1.SetMethod).ToTestDisplayString());
-
-            CompileAndVerify(compilation2, expectedOutput:
-@"
-1
-set 2
-1
-set 2
-"
-);
-
-            var source3 = @"
-class A : D, B
-{
-    static void Main()
-    {
-        C a = new A();
-        System.Console.WriteLine(a.F1);
-        a.F1 = 'x';
-    }
-}
-";
-            var compilation3 = CreateCompilation(source3, references: new[] { reference },
-                                                 options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3, expectedOutput:
-@"
-1
-set 2
-"
-);
-        }
-
-        [Fact]
-        public void ExplicitBase_135_Class_01()
-        {
-            var ilSource = @"
-.class interface public abstract auto ansi I1
-{
-  .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
-  {
-  } // end of method I1::get_F1
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
-  {
-  } // end of method I1::set_F1
-
-  .property instance char F1()
-  {
-    .get instance char I1::get_F1()
-    .set instance void I1::set_F1(char)
-  } // end of property I1::F1
-} // end of class I1
-
-.class public auto ansi beforefieldinit A
-       extends System.Object
-       implements I1
-{
-  .method private hidebysig newslot specialname virtual final 
-          instance char  I1.get_F1() cil managed
-  {
-    .override I1::get_F1
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   65
-    IL_0002:  ret
-  } // end of method A::I1.get_F1
-
-  .method private hidebysig newslot specialname virtual final 
-          instance void  I1.set_F1(char 'value') cil managed
-  {
-    .override I1::set_F1
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set A""
-    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method A::I1.set_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void System.Object::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method A::.ctor
-
-  .property instance char I1.F1()
-  {
-    .get instance char A::I1.get_F1()
-    .set instance void A::I1.set_F1(char)
-  } // end of property A::I1.F1
-} // end of class A
-
-.class public auto ansi beforefieldinit B
-       extends A
-       implements I1
-{
-  .method private hidebysig newslot specialname virtual final 
-          instance char  I1.get_F1() cil managed
-  {
-    .override I1::get_F1
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   66
-    IL_0002:  ret
-  } // end of method B::I1.get_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void A::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method B::.ctor
-} // end of class B
-
-.class public auto ansi beforefieldinit C
-       extends B
-       implements I1
-{
-  .method private hidebysig newslot specialname virtual final 
-          instance void  I1.set_F1(char 'value') cil managed
-  {
-    .override I1::set_F1
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set C""
-    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method C::I1.set_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void B::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method C::.ctor
-} // end of class C
-";
-
-            var source =
-@"
-class Test2 : C, I1
-{
-    static void Main()
-    {
-        I1 x = new Test2();
-
-        System.Console.WriteLine(x.F1);
-        x.F1 = 'x';
-    }
-}
-";
-            var compilation1 = CreateCompilationWithIL(source, ilSource, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            var i1 = compilation1.GetTypeByMetadataName("I1");
-            var i1F1 = i1.GetMember<PropertySymbol>("F1");
-            var test2 = compilation1.GetTypeByMetadataName("Test2");
-
-            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1));
-            Assert.Equal("void C.I1.set_F1(System.Char value)", test2.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
-            Assert.Equal("System.Char B.I1.get_F1()", test2.FindImplementationForInterfaceMember(i1F1.GetMethod).ToTestDisplayString());
-
-            CompileAndVerify(compilation1, expectedOutput: @"
-B
-set C
-");
-
-            var source2 =
-@"
-class Test2 : C
-{
-    static void Main()
-    {
-        I1 x = new Test2();
-
-        System.Console.WriteLine(x.F1);
-        x.F1 = 'x';
-    }
-}
-";
-            var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics();
-
-            i1 = compilation2.GetTypeByMetadataName("I1");
-            i1F1 = i1.GetMember<PropertySymbol>("F1");
-            var c = compilation2.GetTypeByMetadataName("C");
-
-            Assert.Null(c.FindImplementationForInterfaceMember(i1F1));
-            Assert.Equal("void C.I1.set_F1(System.Char value)", c.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
-            Assert.Equal("System.Char B.I1.get_F1()", c.FindImplementationForInterfaceMember(i1F1.GetMethod).ToTestDisplayString());
-
-            CompileAndVerify(compilation2, expectedOutput: @"
-B
-set C
-");
-        }
-
-        [Fact]
-        [WorkItem(33226, "https://github.com/dotnet/roslyn/issues/33226")]
-        public void ExplicitBase_135_Class_02()
-        {
-            var ilSource = @"
-.class interface public abstract auto ansi I1
-{
-  .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
-  {
-  } // end of method I1::get_F1
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
-  {
-  } // end of method I1::set_F1
-
-  .property instance char F1()
-  {
-    .get instance char I1::get_F1()
-    .set instance void I1::set_F1(char)
-  } // end of property I1::F1
-} // end of class I1
-
-.class public auto ansi beforefieldinit A
-       extends System.Object
-{
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void System.Object::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method A::.ctor
-} // end of class A
-
-.class public auto ansi beforefieldinit B
-       extends A
-{
-  .method public hidebysig newslot specialname virtual final 
-          instance char  get_F1() cil managed
-  {
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   66
-    IL_0002:  ret
-  } // end of method B::I1.get_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void A::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method B::.ctor
-} // end of class B
-
-.class public auto ansi beforefieldinit C
-       extends B
-       implements I1
-{
-  .method public hidebysig newslot specialname virtual final 
-          instance void  set_F1(char 'value') cil managed
-  {
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set C""
-    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method C::I1.set_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void B::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method C::.ctor
-} // end of class C
-";
-
-            var source1 =
-@"
-class Test2 : C, I1
-{
-    static void Main()
-    {
-        I1 x = new Test2();
-
-        System.Console.WriteLine(x.F1);
-        x.F1 = 'x';
-    }
-}
-";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics(
-                // (2,18): error CS0470: Method 'C.set_F1(char)' cannot implement interface accessor 'I1.F1.set' for type 'Test2'. Use an explicit interface implementation.
-                // class Test2 : C, I1
-                Diagnostic(ErrorCode.ERR_MethodImplementingAccessor, "I1").WithArguments("C.set_F1(char)", "I1.F1.set", "Test2").WithLocation(2, 18),
-                // (2,18): error CS0470: Method 'B.get_F1()' cannot implement interface accessor 'I1.F1.get' for type 'Test2'. Use an explicit interface implementation.
-                // class Test2 : C, I1
-                Diagnostic(ErrorCode.ERR_MethodImplementingAccessor, "I1").WithArguments("B.get_F1()", "I1.F1.get", "Test2").WithLocation(2, 18)
-                );
-
-            var i1 = compilation1.GetTypeByMetadataName("I1");
-            var i1F1 = i1.GetMember<PropertySymbol>("F1");
-            var test2 = compilation1.GetTypeByMetadataName("Test2");
-
-            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1));
-            Assert.Equal("void C.set_F1(System.Char value)", test2.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
-            Assert.Equal("System.Char B.get_F1()", test2.FindImplementationForInterfaceMember(i1F1.GetMethod).ToTestDisplayString());
-            Assert.Null(compilation1.GetTypeByMetadataName("B").FindImplementationForInterfaceMember(i1F1.GetMethod));
-
-            var source2 =
-@"
-class Test2 : C
-{
-    static void Main()
-    {
-        I1 x = new Test2();
-
-        System.Console.WriteLine(x.F1);
-        x.F1 = 'x';
-    }
-}
-";
-            var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics();
-
-            i1 = compilation2.GetTypeByMetadataName("I1");
-            i1F1 = i1.GetMember<PropertySymbol>("F1");
-            var c = compilation2.GetTypeByMetadataName("C");
-
-            Assert.Null(c.FindImplementationForInterfaceMember(i1F1));
-            Assert.Equal("void C.set_F1(System.Char value)", c.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
-            Assert.Equal("System.Char B.get_F1()", c.FindImplementationForInterfaceMember(i1F1.GetMethod).ToTestDisplayString());
-            Assert.Null(compilation2.GetTypeByMetadataName("B").FindImplementationForInterfaceMember(i1F1.GetMethod));
-
-            CompileAndVerify(compilation2, expectedOutput: @"
-B
-set C
-");
-        }
-
-        [Fact]
-        [WorkItem(33226, "https://github.com/dotnet/roslyn/issues/33226")]
-        public void ExplicitBase_135_Class_03()
-        {
-            var ilSource = @"
-.class interface public abstract auto ansi I1
-{
-  .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
-  {
-  } // end of method I1::get_F1
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
-  {
-  } // end of method I1::set_F1
-
-  .property instance char F1()
-  {
-    .get instance char I1::get_F1()
-    .set instance void I1::set_F1(char)
-  } // end of property I1::F1
-} // end of class I1
-
-.class public auto ansi beforefieldinit A
-       extends System.Object
-       implements I1
-{
-  .method private hidebysig newslot specialname virtual final 
-          instance char  I1.get_F1() cil managed
-  {
-    .override I1::get_F1
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   65
-    IL_0002:  ret
-  } // end of method A::I1.get_F1
-
-  .method private hidebysig newslot specialname virtual final 
-          instance void  I1.set_F1(char 'value') cil managed
-  {
-    .override I1::set_F1
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set A""
-    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method A::I1.set_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void System.Object::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method A::.ctor
-
-  .property instance char I1.F1()
-  {
-    .get instance char A::I1.get_F1()
-    .set instance void A::I1.set_F1(char)
-  } // end of property A::I1.F1
-} // end of class A
-
-.class public auto ansi beforefieldinit B
-       extends A
-{
-  .method public hidebysig newslot specialname virtual final 
-          instance char  get_F1() cil managed
-  {
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   66
-    IL_0002:  ret
-  } // end of method B::I1.get_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void A::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method B::.ctor
-} // end of class B
-
-.class public auto ansi beforefieldinit C
-       extends B
-       implements I1
-{
-  .method public hidebysig newslot specialname virtual final 
-          instance void  set_F1(char 'value') cil managed
-  {
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set C""
-    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method C::I1.set_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void B::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method C::.ctor
-} // end of class C
-";
-
-            var source1 =
-@"
-class Test2 : C, I1
-{
-    static void Main()
-    {
-        I1 x = new Test2();
-
-        System.Console.WriteLine(x.F1);
-        x.F1 = 'x';
-    }
-}
-";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics(
-                // (2,18): error CS0470: Method 'C.set_F1(char)' cannot implement interface accessor 'I1.F1.set' for type 'Test2'. Use an explicit interface implementation.
-                // class Test2 : C, I1
-                Diagnostic(ErrorCode.ERR_MethodImplementingAccessor, "I1").WithArguments("C.set_F1(char)", "I1.F1.set", "Test2").WithLocation(2, 18),
-                // (2,18): error CS0470: Method 'B.get_F1()' cannot implement interface accessor 'I1.F1.get' for type 'Test2'. Use an explicit interface implementation.
-                // class Test2 : C, I1
-                Diagnostic(ErrorCode.ERR_MethodImplementingAccessor, "I1").WithArguments("B.get_F1()", "I1.F1.get", "Test2").WithLocation(2, 18)
-                );
-
-            var i1 = compilation1.GetTypeByMetadataName("I1");
-            var i1F1 = i1.GetMember<PropertySymbol>("F1");
-            var test2 = compilation1.GetTypeByMetadataName("Test2");
-
-            Assert.Equal("System.Char A.I1.F1 { get; set; }", test2.FindImplementationForInterfaceMember(i1F1).ToTestDisplayString());
-            Assert.Equal("void C.set_F1(System.Char value)", test2.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
-            Assert.Equal("System.Char B.get_F1()", test2.FindImplementationForInterfaceMember(i1F1.GetMethod).ToTestDisplayString());
-
-            var source2 =
-@"
-class Test2 : C
-{
-    static void Main()
-    {
-        I1 x = new Test2();
-
-        System.Console.WriteLine(x.F1);
-        x.F1 = 'x';
-    }
-}
-";
-            var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics();
-
-            i1 = compilation2.GetTypeByMetadataName("I1");
-            i1F1 = i1.GetMember<PropertySymbol>("F1");
-            var c = compilation2.GetTypeByMetadataName("C");
-
-            Assert.Equal("System.Char A.I1.F1 { get; set; }", c.FindImplementationForInterfaceMember(i1F1).ToTestDisplayString());
-            Assert.Equal("void C.set_F1(System.Char value)", c.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
-            Assert.Equal("System.Char B.get_F1()", c.FindImplementationForInterfaceMember(i1F1.GetMethod).ToTestDisplayString());
-
-            CompileAndVerify(compilation2, expectedOutput: @"
-A
-set C
-");
-        }
-
-        [Fact]
-        [WorkItem(33226, "https://github.com/dotnet/roslyn/issues/33226")]
-        public void ExplicitBase_135_Class_04()
-        {
-            var ilSource = @"
-.class interface public abstract auto ansi I1
-{
-  .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
-  {
-  } // end of method I1::get_F1
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
-  {
-  } // end of method I1::set_F1
-
-  .property instance char F1()
-  {
-    .get instance char I1::get_F1()
-    .set instance void I1::set_F1(char)
-  } // end of property I1::F1
-} // end of class I1
-
-.class public auto ansi beforefieldinit A
-       extends System.Object
-       implements I1
-{
-  .method public hidebysig newslot specialname virtual final 
-          instance char  get_F1() cil managed
-  {
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   65
-    IL_0002:  ret
-  } // end of method A::I1.get_F1
-
-  .method public hidebysig newslot specialname virtual final 
-          instance void  set_F1(char 'value') cil managed
-  {
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set A""
-    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method A::I1.set_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void System.Object::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method A::.ctor
-
-  .property instance char F1()
-  {
-    .get instance char A::get_F1()
-    .set instance void A::set_F1(char)
-  } // end of property A::I1.F1
-} // end of class A
-
-.class public auto ansi beforefieldinit B
-       extends A
-{
-  .method public hidebysig newslot specialname virtual final 
-          instance char  get_F1() cil managed
-  {
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   66
-    IL_0002:  ret
-  } // end of method B::I1.get_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void A::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method B::.ctor
-} // end of class B
-
-.class public auto ansi beforefieldinit C
-       extends B
-       implements I1
-{
-  .method public hidebysig newslot specialname virtual final 
-          instance void  set_F1(char 'value') cil managed
-  {
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set C""
-    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method C::I1.set_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void B::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method C::.ctor
-} // end of class C
-";
-
-            var source1 =
-@"
-class Test2 : C, I1
-{
-    static void Main()
-    {
-        I1 x = new Test2();
-
-        System.Console.WriteLine(x.F1);
-        x.F1 = 'x';
-    }
-}
-";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics(
-                // (2,18): error CS0470: Method 'C.set_F1(char)' cannot implement interface accessor 'I1.F1.set' for type 'Test2'. Use an explicit interface implementation.
-                // class Test2 : C, I1
-                Diagnostic(ErrorCode.ERR_MethodImplementingAccessor, "I1").WithArguments("C.set_F1(char)", "I1.F1.set", "Test2").WithLocation(2, 18),
-                // (2,18): error CS0470: Method 'B.get_F1()' cannot implement interface accessor 'I1.F1.get' for type 'Test2'. Use an explicit interface implementation.
-                // class Test2 : C, I1
-                Diagnostic(ErrorCode.ERR_MethodImplementingAccessor, "I1").WithArguments("B.get_F1()", "I1.F1.get", "Test2").WithLocation(2, 18)
-                );
-
-            var i1 = compilation1.GetTypeByMetadataName("I1");
-            var i1F1 = i1.GetMember<PropertySymbol>("F1");
-            var test2 = compilation1.GetTypeByMetadataName("Test2");
-
-            Assert.Equal("System.Char A.F1 { get; set; }", test2.FindImplementationForInterfaceMember(i1F1).ToTestDisplayString());
-            Assert.Equal("void C.set_F1(System.Char value)", test2.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
-            Assert.Equal("System.Char B.get_F1()", test2.FindImplementationForInterfaceMember(i1F1.GetMethod).ToTestDisplayString());
-
-            var source2 =
-@"
-class Test2 : C
-{
-    static void Main()
-    {
-        I1 x = new Test2();
-
-        System.Console.WriteLine(x.F1);
-        x.F1 = 'x';
-    }
-}
-";
-            var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics();
-
-            i1 = compilation2.GetTypeByMetadataName("I1");
-            i1F1 = i1.GetMember<PropertySymbol>("F1");
-            var c = compilation2.GetTypeByMetadataName("C");
-
-            Assert.Equal("System.Char A.F1 { get; set; }", c.FindImplementationForInterfaceMember(i1F1).ToTestDisplayString());
-            Assert.Equal("void C.set_F1(System.Char value)", c.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
-            Assert.Equal("System.Char B.get_F1()", c.FindImplementationForInterfaceMember(i1F1.GetMethod).ToTestDisplayString());
-
-            CompileAndVerify(compilation2, expectedOutput: @"
-A
-set C
-");
-        }
-
-        [Fact]
-        public void ExplicitBase_135_Class_05()
-        {
-            var ilSource = @"
-.class interface public abstract auto ansi I1
-{
-  .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
-  {
-  } // end of method I1::get_F1
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
-  {
-  } // end of method I1::set_F1
-
-  .property instance char F1()
-  {
-    .get instance char I1::get_F1()
-    .set instance void I1::set_F1(char)
-  } // end of property I1::F1
-} // end of class I1
-
-.class public auto ansi beforefieldinit A
-       extends System.Object
-       implements I1
-{
-  .method public hidebysig newslot specialname virtual final 
-          instance char  get_F1() cil managed
-  {
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   65
-    IL_0002:  ret
-  } // end of method A::I1.get_F1
-
-  .method public hidebysig newslot specialname virtual final 
-          instance void  set_F1(char 'value') cil managed
-  {
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set A""
-    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method A::I1.set_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void System.Object::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method A::.ctor
-
-  .property instance char F1()
-  {
-    .get instance char A::get_F1()
-    .set instance void A::set_F1(char)
-  } // end of property A::I1.F1
-} // end of class A
-
-.class public auto ansi beforefieldinit B
-       extends A
-       implements I1
-{
-  .method private hidebysig newslot specialname virtual final 
-          instance char  I1.get_F1() cil managed
-  {
-    .override I1::get_F1
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   66
-    IL_0002:  ret
-  } // end of method B::I1.get_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void A::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method B::.ctor
-} // end of class B
-
-.class public auto ansi beforefieldinit C
-       extends B
-       implements I1
-{
-  .method private hidebysig newslot specialname virtual final 
-          instance void  I1.set_F1(char 'value') cil managed
-  {
-    .override I1::set_F1
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set C""
-    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method C::I1.set_F1
-
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void B::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method C::.ctor
-} // end of class C
-";
-
-            var source =
-@"
-class Test2 : C, I1
-{
-    static void Main()
-    {
-        I1 x = new Test2();
-
-        System.Console.WriteLine(x.F1);
-        x.F1 = 'x';
-    }
-}
-";
-            var compilation1 = CreateCompilationWithIL(source, ilSource, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            var i1 = compilation1.GetTypeByMetadataName("I1");
-            var i1F1 = i1.GetMember<PropertySymbol>("F1");
-            var test2 = compilation1.GetTypeByMetadataName("Test2");
-
-            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1));
-            Assert.Equal("void C.I1.set_F1(System.Char value)", test2.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
-            Assert.Equal("System.Char B.I1.get_F1()", test2.FindImplementationForInterfaceMember(i1F1.GetMethod).ToTestDisplayString());
-
-            CompileAndVerify(compilation1, expectedOutput: @"
-B
-set C
-");
-
-            var source2 =
-@"
-class Test2 : C
-{
-    static void Main()
-    {
-        I1 x = new Test2();
-
-        System.Console.WriteLine(x.F1);
-        x.F1 = 'x';
-    }
-}
-";
-            var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugExe);
-            compilation2.VerifyDiagnostics();
-
-            i1 = compilation2.GetTypeByMetadataName("I1");
-            i1F1 = i1.GetMember<PropertySymbol>("F1");
-            var c = compilation2.GetTypeByMetadataName("C");
-
-            Assert.Null(c.FindImplementationForInterfaceMember(i1F1));
-            Assert.Equal("void C.I1.set_F1(System.Char value)", c.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
-            Assert.Equal("System.Char B.I1.get_F1()", c.FindImplementationForInterfaceMember(i1F1.GetMethod).ToTestDisplayString());
-
-            CompileAndVerify(compilation2, expectedOutput: @"
-B
-set C
-");
-        }
-
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void ExplicitBase_136()
-        {
-            var ilSource = @"
-.assembly extern System.Console
-{
-  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )                         // .?_....:
-  .ver 4:1:1:0
-}
-
-.assembly ExplicitBase_136
-{
-  .hash algorithm 0x00008004
-  .ver 0:0:0:0
-}
-.module ExplicitBase_136.dll
-// MVID: {22493430-1D63-4B15-9B42-F868AA6D50D5}
-.imagebase 0x10000000
-.file alignment 0x00000200
-.stackreserve 0x00100000
-.subsystem 0x0003       // WINDOWS_CUI
-.corflags 0x00000001    //  ILONLY
-// Image base: 0x00AD0000
-
-
-// =============== CLASS MEMBERS DECLARATION ===================
-
-.class interface public abstract auto ansi B
-       implements I1,
-                  C,
-                  I2,
-                  I0
-{
-} // end of class B
-
-.class interface public abstract auto ansi I0
-       implements C
-{
-  .method public hidebysig specialname virtual final 
-          instance char  C.get_F1() cil managed
-  {
-    .override C::get_F1
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   48
-    IL_0002:  ret
-  } // end of method I1::C.get_F1
-
-  .method public hidebysig specialname virtual final 
-          instance void  C.set_F1(char 'value') cil managed
-  {
-    .override C::set_F1
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set 0""
-    IL_0005:  call       void [System.Console]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method I2::C.set_F1
-
-  .property instance char C.F1()
-  {
-    .get instance char I0::C.get_F1()
-    .set instance void I0::C.set_F1(char)
-  } // end of property I1::C.F1
-} // end of class I1
-
-.class interface public abstract auto ansi I1
-       implements C
-{
-  .method public hidebysig specialname virtual final 
-          instance char  C.get_F1() cil managed
-  {
-    .override C::get_F1
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   49
-    IL_0002:  ret
-  } // end of method I1::C.get_F1
-
-  .property instance char C.F1()
-  {
-    .get instance char I1::C.get_F1()
-  } // end of property I1::C.F1
-} // end of class I1
-
-.class interface public abstract auto ansi I2
-       implements C
-{
-  .method public hidebysig specialname virtual final 
-          instance void  C.set_F1(char 'value') cil managed
-  {
-    .override C::set_F1
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set 2""
-    IL_0005:  call       void [System.Console]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method I2::C.set_F1
-
-  .property instance char C.F1()
-  {
-    .set instance void I2::C.set_F1(char)
-  } // end of property I2::C.F1
-} // end of class I2
-
-.class interface public abstract auto ansi C
-{
-  .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
-  {
-  } // end of method C::get_F1
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
-  {
-  } // end of method C::set_F1
-
-  .property instance char F1()
-  {
-    .get instance char C::get_F1()
-    .set instance void C::set_F1(char)
-  } // end of property C::F1
-} // end of class C
-";
-
-            var source1 = @"
-class A : B
-{
-}
-";
-
-            var reference = CompileIL(ilSource, prependDefaultHeader: false);
-
-            var compilation1 = CreateCompilation(source1, references: new[] { reference },
-                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (2,11): error CS8705: Interface member 'C.F1.set' does not have a most specific implementation. Neither 'I2.F1.set', nor 'I0.C.F1.set' are most specific.
-                // class A : B
-                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "B").WithArguments("C.F1.set", "I2.F1.set", "I0.C.F1.set").WithLocation(2, 11),
-                // (2,11): error CS8705: Interface member 'C.F1.get' does not have a most specific implementation. Neither 'I1.F1.get', nor 'I0.C.F1.get' are most specific.
-                // class A : B
-                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "B").WithArguments("C.F1.get", "I1.F1.get", "I0.C.F1.get").WithLocation(2, 11)
-                );
-
-
-            var c = compilation1.GetTypeByMetadataName("C");
-            var f1 = c.GetMember<PropertySymbol>("F1");
-            var a = compilation1.GetTypeByMetadataName("A");
-
-            Assert.Equal("System.Char I0.C.F1 { get; set; }", a.FindImplementationForInterfaceMember(f1).ToTestDisplayString());
-            Assert.Null(a.FindImplementationForInterfaceMember(f1.GetMethod));
-            Assert.Null(a.FindImplementationForInterfaceMember(f1.SetMethod));
-
-            var source2 = @"
-class A : B
-{
-    char C.F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2, references: new[] { reference },
-                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics(
-                // (8,34): error CS8709: 'C.F1.get' is not implemented in base interface B.
-                //         System.Console.WriteLine(base(B).F1);
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1.get", "B").WithLocation(8, 34),
-                // (9,9): error CS8709: 'C.F1.set' is not implemented in base interface B.
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1.set", "B").WithLocation(9, 9)
-                );
-        }
-
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void ExplicitBase_137()
-        {
-            var ilSource = @"
-.assembly extern System.Console
-{
-  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )                         // .?_....:
-  .ver 4:1:1:0
-}
-
-.assembly ExplicitBase_137
-{
-  .hash algorithm 0x00008004
-  .ver 0:0:0:0
-}
-.module ExplicitBase_137.dll
-// MVID: {22493430-1D63-4B15-9B42-F868AA6D50D5}
-.imagebase 0x10000000
-.file alignment 0x00000200
-.stackreserve 0x00100000
-.subsystem 0x0003       // WINDOWS_CUI
-.corflags 0x00000001    //  ILONLY
-// Image base: 0x00AD0000
-
-
-// =============== CLASS MEMBERS DECLARATION ===================
-
-.class interface public abstract auto ansi B
-       implements I1,
-                  C,
-                  I2,
-                  I0
-{
-} // end of class B
-
-.class interface public abstract auto ansi I0
-       implements C
-{
-  .method public hidebysig specialname virtual final 
-          instance char  C.get_F1() cil managed
-  {
-    .override C::get_F1
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   48
-    IL_0002:  ret
-  } // end of method I1::C.get_F1
-
-  .method public hidebysig specialname virtual final 
-          instance void  C.set_F1(char 'value') cil managed
-  {
-    .override C::set_F1
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set 0""
-    IL_0005:  call       void [System.Console]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method I2::C.set_F1
-
-  .property instance char C.F1()
-  {
-    .get instance char I0::C.get_F1()
-    .set instance void I0::C.set_F1(char)
-  } // end of property I1::C.F1
-} // end of class I1
-
-.class interface public abstract auto ansi I1
-       implements C
-{
-  .method public hidebysig specialname virtual final 
-          instance char  C.get_F1() cil managed
-  {
-    .override C::get_F1
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   49
-    IL_0002:  ret
-  } // end of method I1::C.get_F1
-} // end of class I1
-
-.class interface public abstract auto ansi I2
-       implements C
-{
-  .method public hidebysig specialname virtual final 
-          instance void  C.set_F1(char 'value') cil managed
-  {
-    .override C::set_F1
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""set 2""
-    IL_0005:  call       void [System.Console]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method I2::C.set_F1
-} // end of class I2
-
-.class interface public abstract auto ansi C
-{
-  .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
-  {
-  } // end of method C::get_F1
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
-  {
-  } // end of method C::set_F1
-
-  .property instance char F1()
-  {
-    .get instance char C::get_F1()
-    .set instance void C::set_F1(char)
-  } // end of property C::F1
-} // end of class C
-";
-
-            var source1 = @"
-class A : B
-{
-}
-";
-
-            var reference = CompileIL(ilSource, prependDefaultHeader: false);
-
-            var compilation1 = CreateCompilation(source1, references: new[] { reference },
-                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (2,11): error CS8705: Interface member 'C.F1.set' does not have a most specific implementation. Neither 'I2.C.set_F1(char)', nor 'I0.C.F1.set' are most specific.
-                // class A : B
-                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "B").WithArguments("C.F1.set", "I2.C.set_F1(char)", "I0.C.F1.set").WithLocation(2, 11),
-                // (2,11): error CS8705: Interface member 'C.F1.get' does not have a most specific implementation. Neither 'I1.C.get_F1()', nor 'I0.C.F1.get' are most specific.
-                // class A : B
-                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "B").WithArguments("C.F1.get", "I1.C.get_F1()", "I0.C.F1.get").WithLocation(2, 11)
-                );
-
-
-            var c = compilation1.GetTypeByMetadataName("C");
-            var f1 = c.GetMember<PropertySymbol>("F1");
-            var a = compilation1.GetTypeByMetadataName("A");
-
-            Assert.Equal("System.Char I0.C.F1 { get; set; }", a.FindImplementationForInterfaceMember(f1).ToTestDisplayString());
-            Assert.Null(a.FindImplementationForInterfaceMember(f1.GetMethod));
-            Assert.Null(a.FindImplementationForInterfaceMember(f1.SetMethod));
-
-            var source2 = @"
-class A : B
-{
-    char C.F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2, references: new[] { reference },
-                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics(
-                // (8,34): error CS8709: 'C.F1.get' is not implemented in base interface B.
-                //         System.Console.WriteLine(base(B).F1);
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1.get", "B").WithLocation(8, 34),
-                // (9,9): error CS8709: 'C.F1.set' is not implemented in base interface B.
-                //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1.set", "B").WithLocation(9, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_138()
-        {
-            var source0 = @"
-public interface B : C
-{
-    char C.this[int pB] { get { System.Console.WriteLine(""B""); return 'B';} set => System.Console.WriteLine(""set B"");}
-}
-
-public interface C
-{
-    char this[int pC] {get; set;}
-}
-";
-
-            var source1 = @"
-class A : B
-{
-    char C.this[int pA] { get { System.Console.WriteLine(""A""); return 'A';} set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B)[1]);
-        base(B)[1] = 'x';
-        base(B)[pC: 1] += 'y';
-        base(B)[1]++;
-        ++base(B)[1];
-        System.Console.WriteLine(base(B)[pC: 1] = 'z');
-        System.Console.WriteLine(base(B)[1] += (char)10);
-        System.Console.WriteLine(base(B)[1]++);
-        System.Console.WriteLine(++base(B)[1]);
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    char C.this[int pF] { get { System.Console.WriteLine(""F""); return 'F';} set => System.Console.WriteLine(""set F"");}
-
-    public void Test()
-    {
-        System.Console.WriteLine(base(B)[1]);
-        base(B)[1] = 'x';
-        base(B)[pC: 1] += 'y';
-        base(B)[1]++;
-        ++base(B)[1];
-        System.Console.WriteLine(base(B)[pC: 1] = 'z');
-        System.Console.WriteLine(base(B)[1] += (char)10);
-        System.Console.WriteLine(base(B)[1]++);
-        System.Console.WriteLine(++base(B)[1]);
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(B)[1]);
-        base(B)[1] = 'x';
-        base(B)[pC: 1] += 'y';
-        base(B)[1]++;
-        ++base(B)[1];
-        System.Console.WriteLine(base(B)[pC: 1] = 'z');
-        System.Console.WriteLine(base(B)[1] += (char)10);
-        System.Console.WriteLine(base(B)[1]++);
-        System.Console.WriteLine(++base(B)[1]);
-    }
-}
-
-class G : E
-{
-    char C.this[int pG] { get { System.Console.WriteLine(""G""); return 'G';} set => System.Console.WriteLine(""set G"");}
-}
-";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation0.VerifyDiagnostics();
-
-            foreach (var i in new[] { 0, 1 })
-            {
-                MetadataReference reference = (i == 0) ? compilation0.ToMetadataReference() : compilation0.EmitToImageReference();
-                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics();
-
-                var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-B
-B
-set B
-B
-set B
-B
-set B
-B
-set B
-set B
-z
-B
-set B
-L
-B
-set B
-B
-B
-set B
-C
-B
-B
-set B
-B
-set B
-B
-set B
-B
-set B
-set B
-z
-B
-set B
-L
-B
-set B
-B
-B
-set B
-C
-B
-B
-set B
-B
-set B
-B
-set B
-B
-set B
-set B
-z
-B
-set B
-L
-B
-set B
-B
-B
-set B
-C
-", verify: VerifyOnMonoOrCoreClr);
-
-                if (i == 0)
-                {
-                    verifier.VerifyIL("F.Test",
-@"
-{
-  // Code size      335 (0x14f)
-  .maxstack  4
-  .locals init (char V_0)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""F""
-  IL_0007:  box        ""F""
-  IL_000c:  ldc.i4.1
-  IL_000d:  call       ""char B.this[int].get""
-  IL_0012:  call       ""void System.Console.WriteLine(char)""
-  IL_0017:  nop
-  IL_0018:  ldarg.0
-  IL_0019:  ldobj      ""F""
-  IL_001e:  box        ""F""
-  IL_0023:  ldc.i4.1
-  IL_0024:  ldc.i4.s   120
-  IL_0026:  call       ""void B.this[int].set""
-  IL_002b:  nop
-  IL_002c:  ldarg.0
-  IL_002d:  ldobj      ""F""
-  IL_0032:  box        ""F""
-  IL_0037:  ldc.i4.1
-  IL_0038:  ldarg.0
-  IL_0039:  ldobj      ""F""
-  IL_003e:  box        ""F""
-  IL_0043:  ldc.i4.1
-  IL_0044:  call       ""char B.this[int].get""
-  IL_0049:  ldc.i4.s   121
-  IL_004b:  add
-  IL_004c:  conv.u2
-  IL_004d:  call       ""void B.this[int].set""
-  IL_0052:  nop
-  IL_0053:  ldarg.0
-  IL_0054:  ldobj      ""F""
-  IL_0059:  box        ""F""
-  IL_005e:  ldc.i4.1
-  IL_005f:  call       ""char B.this[int].get""
-  IL_0064:  stloc.0
-  IL_0065:  ldarg.0
-  IL_0066:  ldobj      ""F""
-  IL_006b:  box        ""F""
-  IL_0070:  ldc.i4.1
-  IL_0071:  ldloc.0
-  IL_0072:  ldc.i4.1
-  IL_0073:  add
-  IL_0074:  conv.u2
-  IL_0075:  call       ""void B.this[int].set""
-  IL_007a:  nop
-  IL_007b:  ldarg.0
-  IL_007c:  ldobj      ""F""
-  IL_0081:  box        ""F""
-  IL_0086:  ldc.i4.1
-  IL_0087:  call       ""char B.this[int].get""
-  IL_008c:  ldc.i4.1
-  IL_008d:  add
-  IL_008e:  conv.u2
-  IL_008f:  stloc.0
-  IL_0090:  ldarg.0
-  IL_0091:  ldobj      ""F""
-  IL_0096:  box        ""F""
-  IL_009b:  ldc.i4.1
-  IL_009c:  ldloc.0
-  IL_009d:  call       ""void B.this[int].set""
-  IL_00a2:  nop
-  IL_00a3:  ldarg.0
-  IL_00a4:  ldobj      ""F""
-  IL_00a9:  box        ""F""
-  IL_00ae:  ldc.i4.1
-  IL_00af:  ldc.i4.s   122
-  IL_00b1:  dup
-  IL_00b2:  stloc.0
-  IL_00b3:  call       ""void B.this[int].set""
-  IL_00b8:  nop
-  IL_00b9:  ldloc.0
-  IL_00ba:  call       ""void System.Console.WriteLine(char)""
-  IL_00bf:  nop
-  IL_00c0:  ldarg.0
-  IL_00c1:  ldobj      ""F""
-  IL_00c6:  box        ""F""
-  IL_00cb:  ldc.i4.1
-  IL_00cc:  ldarg.0
-  IL_00cd:  ldobj      ""F""
-  IL_00d2:  box        ""F""
-  IL_00d7:  ldc.i4.1
-  IL_00d8:  call       ""char B.this[int].get""
-  IL_00dd:  ldc.i4.s   10
-  IL_00df:  add
-  IL_00e0:  conv.u2
-  IL_00e1:  dup
-  IL_00e2:  stloc.0
-  IL_00e3:  call       ""void B.this[int].set""
-  IL_00e8:  nop
-  IL_00e9:  ldloc.0
-  IL_00ea:  call       ""void System.Console.WriteLine(char)""
-  IL_00ef:  nop
-  IL_00f0:  ldarg.0
-  IL_00f1:  ldobj      ""F""
-  IL_00f6:  box        ""F""
-  IL_00fb:  ldc.i4.1
-  IL_00fc:  call       ""char B.this[int].get""
-  IL_0101:  stloc.0
-  IL_0102:  ldarg.0
-  IL_0103:  ldobj      ""F""
-  IL_0108:  box        ""F""
-  IL_010d:  ldc.i4.1
-  IL_010e:  ldloc.0
-  IL_010f:  ldc.i4.1
-  IL_0110:  add
-  IL_0111:  conv.u2
-  IL_0112:  call       ""void B.this[int].set""
-  IL_0117:  nop
-  IL_0118:  ldloc.0
-  IL_0119:  call       ""void System.Console.WriteLine(char)""
-  IL_011e:  nop
-  IL_011f:  ldarg.0
-  IL_0120:  ldobj      ""F""
-  IL_0125:  box        ""F""
-  IL_012a:  ldc.i4.1
-  IL_012b:  call       ""char B.this[int].get""
-  IL_0130:  ldc.i4.1
-  IL_0131:  add
-  IL_0132:  conv.u2
-  IL_0133:  stloc.0
-  IL_0134:  ldarg.0
-  IL_0135:  ldobj      ""F""
-  IL_013a:  box        ""F""
-  IL_013f:  ldc.i4.1
-  IL_0140:  ldloc.0
-  IL_0141:  call       ""void B.this[int].set""
-  IL_0146:  nop
-  IL_0147:  ldloc.0
-  IL_0148:  call       ""void System.Console.WriteLine(char)""
-  IL_014d:  nop
-  IL_014e:  ret
-}
-");
-                }
-            }
-        }
-
-        [Fact]
-        public void ExplicitBase_139()
-        {
-            var source0 = @"
-public interface B : I1, I2
-{
-}
-
-public interface I1 : C
-{
-    char C.this[int i] { get => '1'; set => System.Console.WriteLine(""set 1"");}
-}
-
-public interface I2 : C
-{
-    char C.this[int i] { get => '2'; set => System.Console.WriteLine(""set 2"");}
-}
-
-public interface C
-{
-    char this[int i] {get; set;}
-}
-";
-
-            var source1 = @"
-class A : B
-{
-    char C.this[int i] { get => throw null; set => throw null; }
-
-    void Test()
-    {
-        _ = base(B)[0];
-        base(B)[1] = 'z';
-    }
-}
-";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation0.VerifyDiagnostics();
-
-            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
-            {
-                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics(
-                    // (8,13): error CS8709: 'C.this[int].get' is not implemented in base interface B.
-                    //         _ = base(B)[0];
-                    Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B)[0]").WithArguments("C.this[int].get", "B").WithLocation(8, 13),
-                    // (9,9): error CS8709: 'C.this[int].set' is not implemented in base interface B.
-                    //         base(B)[1] = 'z';
-                    Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B)[1]").WithArguments("C.this[int].set", "B").WithLocation(9, 9)
-                    );
-            }
-        }
-
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void ExplicitBase_140()
-        {
-            var source1 = @"
-class A : B
-{
-    char C.this[int i] {get => throw null; set => throw null;}
-
-    void Test()
-    {
-        _ = base(B)[0];
-        base(B)[1] = 'x';
-    }
-}
-";
-
-            foreach (string accessibility in new[] { "private", "famandassem", "assembly" })
-            {
-                var ilSource = @"
-.assembly extern System.Runtime
-{
-  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )                         // .?_....:
-  .ver 4:2:1:0
-}
-
-.assembly ExplicitBase_140
-{
-  .hash algorithm 0x00008004
-  .ver 0:0:0:0
-}
-.module ExplicitBase_140.dll
-// MVID: {22493430-1D63-4B15-9B42-F868AA6D50D5}
-.imagebase 0x10000000
-.file alignment 0x00000200
-.stackreserve 0x00100000
-.subsystem 0x0003       // WINDOWS_CUI
-.corflags 0x00000001    //  ILONLY
-// Image base: 0x00AD0000
-
-
-// =============== CLASS MEMBERS DECLARATION ===================
-
-.class interface public abstract auto ansi B
-       implements C
-{
-  .method " + accessibility + @" hidebysig specialname virtual final 
-          instance char  C.get_Item(int32 i) cil managed
-  {
-    .override C::get_Item
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   66
-    IL_0002:  ret
-  } // end of method B::C.get_Item
-
-  .method " + accessibility + @" hidebysig specialname virtual final 
-          instance void  C.set_Item(int32 i,
-                                    char 'value') cil managed
-  {
-    .override C::set_Item
-    // Code size       2 (0x2)
-    .maxstack  8
-    IL_0000:  nop
-    IL_0001:  ret
-  } // end of method B::C.set_Item
-
-  .property instance char C.Item(int32)
-  {
-    .get instance char B::C.get_Item(int32)
-    .set instance void B::C.set_Item(int32,
-                                     char)
-  } // end of property B::C.Item
-} // end of class B
-
-.class interface public abstract auto ansi C
-{
-  .custom instance void [System.Runtime]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6D 00 00 )                      // ...Item..
-  .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_Item(int32 i) cil managed
-  {
-  } // end of method C::get_Item
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_Item(int32 i,
-                                  char 'value') cil managed
-  {
-  } // end of method C::set_Item
-
-  .property instance char Item(int32)
-  {
-    .get instance char C::get_Item(int32)
-    .set instance void C::set_Item(int32,
-                                   char)
-  } // end of property C::Item
-} // end of class C
-";
-                var compilation1 = CreateCompilation(source1, references: new[] { CompileIL(ilSource, prependDefaultHeader: false) },
-                                                     options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics(
-                    // (8,13): error CS0122: 'B.C.get_Item(int)' is inaccessible due to its protection level
-                    //         _ = base(B)[0];
-                    Diagnostic(ErrorCode.ERR_BadAccess, "base(B)[0]").WithArguments("B.C.get_Item(int)").WithLocation(8, 13),
-                    // (9,9): error CS0122: 'B.C.set_Item(int, char)' is inaccessible due to its protection level
-                    //         base(B)[1] = 'x';
-                    Diagnostic(ErrorCode.ERR_BadAccess, "base(B)[1]").WithArguments("B.C.set_Item(int, char)").WithLocation(9, 9)
-                    );
-            }
-        }
-
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void ExplicitBase_141()
-        {
-            var source1 = @"
-class A : B
-{
-    void Test()
-    {
-        _ = base(B)[0];
-        base(B)[1] = 'x';
-    }
-}
-";
-
-            var ilSource = @"
-.assembly extern System.Runtime
-{
-  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )                         // .?_....:
-  .ver 4:2:1:0
-}
-
-.assembly ExplicitBase_141
-{
-  .hash algorithm 0x00008004
-  .ver 0:0:0:0
-}
-.module ExplicitBase_141.dll
-// MVID: {22493430-1D63-4B15-9B42-F868AA6D50D5}
-.imagebase 0x10000000
-.file alignment 0x00000200
-.stackreserve 0x00100000
-.subsystem 0x0003       // WINDOWS_CUI
-.corflags 0x00000001    //  ILONLY
-// Image base: 0x00AD0000
-
-
-// =============== CLASS MEMBERS DECLARATION ===================
-
-.class interface public abstract auto ansi B
-       implements C
-{
-  .method public hidebysig specialname abstract virtual 
-          instance char  C.get_Item(int32 i) cil managed
-  {
-    .override C::get_Item
-  } // end of method B::C.get_Item
-
-  .method public hidebysig specialname abstract virtual 
-          instance void  C.set_Item(int32 i,
-                                    char 'value') cil managed
-  {
-    .override C::set_Item
-  } // end of method B::C.set_Item
-
-  .property instance char C.Item(int32)
-  {
-    .get instance char B::C.get_Item(int32)
-    .set instance void B::C.set_Item(int32,
-                                     char)
-  } // end of property B::C.Item
-} // end of class B
-
-.class interface public abstract auto ansi C
-{
-  .custom instance void [System.Runtime]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6D 00 00 )                      // ...Item..
-  .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_Item(int32 i) cil managed
-  {
-  } // end of method C::get_Item
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_Item(int32 i,
-                                  char 'value') cil managed
-  {
-  } // end of method C::set_Item
-
-  .property instance char Item(int32)
-  {
-    .get instance char C::get_Item(int32)
-    .set instance void C::set_Item(int32,
-                                   char)
-  } // end of property C::Item
-} // end of class C
-";
-            var compilation1 = CreateCompilation(source1, references: new[] { CompileIL(ilSource, prependDefaultHeader: false) },
-                                                    options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (2,11): error CS0535: 'A' does not implement interface member 'B.C.set_Item(int, char)'
-                // class A : B
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "B").WithArguments("A", "B.C.set_Item(int, char)").WithLocation(2, 11),
-                // (2,11): error CS0535: 'A' does not implement interface member 'B.C.get_Item(int)'
-                // class A : B
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "B").WithArguments("A", "B.C.get_Item(int)").WithLocation(2, 11),
-                // (6,13): error CS0205: Cannot call an abstract base member: 'B.C.get_Item(int)'
-                //         _ = base(B)[0];
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B)[0]").WithArguments("B.C.get_Item(int)").WithLocation(6, 13),
-                // (7,9): error CS0205: Cannot call an abstract base member: 'B.C.set_Item(int, char)'
-                //         base(B)[1] = 'x';
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B)[1]").WithArguments("B.C.set_Item(int, char)").WithLocation(7, 9)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_142()
-        {
-            var source0 = @"
-public interface B : C
-{
-    event System.Action C.F1 { add => System.Console.WriteLine(""add B""); remove => System.Console.WriteLine(""remove B"");}
-}
-
-public interface C
-{
-    event System.Action F1;
-}
-";
-
-            var source1 = @"
-class A : B
-{
-    event System.Action C.F1 { add => System.Console.WriteLine(""add A""); remove => System.Console.WriteLine(""remove A"");}
-
-    void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    event System.Action C.F1 { add => System.Console.WriteLine(""add F""); remove => System.Console.WriteLine(""remove F"");}
-
-    public void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-
-class G : E
-{
-    event System.Action C.F1 { add => System.Console.WriteLine(""add G""); remove => System.Console.WriteLine(""remove G"");}
-}
-";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation0.VerifyDiagnostics();
-
-            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
-            {
-                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics();
-
-                var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-add B
-remove B
-add B
-remove B
-add B
-remove B
-", verify: VerifyOnMonoOrCoreClr);
-
-                verifier.VerifyIL("F.Test",
-@"
-{
-  // Code size       38 (0x26)
-  .maxstack  2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""F""
-  IL_0007:  box        ""F""
-  IL_000c:  ldnull
-  IL_000d:  call       ""void B.F1.add""
-  IL_0012:  nop
-  IL_0013:  ldarg.0
-  IL_0014:  ldobj      ""F""
-  IL_0019:  box        ""F""
-  IL_001e:  ldnull
-  IL_001f:  call       ""void B.F1.remove""
-  IL_0024:  nop
-  IL_0025:  ret
-}
-");
-            }
-        }
-
-        [Fact]
-        public void ExplicitBase_143()
-        {
-            var source0 = @"
-public interface B : I1, I2
-{
-}
-
-public interface I1 : C
-{
-    event System.Action C.F1 { add => System.Console.WriteLine(""add 1""); remove => System.Console.WriteLine(""remove 1"");}
-}
-
-public interface I2 : C
-{
-    event System.Action C.F1 { add => System.Console.WriteLine(""add 2""); remove => System.Console.WriteLine(""remove 2"");}
-}
-
-public interface C
-{
-    event System.Action F1;
-}
-";
-
-            var source1 = @"
-class A : B
-{
-    event System.Action C.F1 { add => System.Console.WriteLine(""add A""); remove => System.Console.WriteLine(""remove A"");}
-
-    void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation0.VerifyDiagnostics();
-
-            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
-            {
-                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics(
-                    // (8,9): error CS8709: 'C.F1.add' is not implemented in base interface B.
-                    //         base(B).F1 += null;
-                    Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1 += null").WithArguments("C.F1.add", "B").WithLocation(8, 9),
-                    // (9,9): error CS8709: 'C.F1.remove' is not implemented in base interface B.
-                    //         base(B).F1 -= null;
-                    Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1 -= null").WithArguments("C.F1.remove", "B").WithLocation(9, 9)
-                    );
-            }
-        }
-
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void ExplicitBase_144()
-        {
-            var source1 = @"
-class A : B
-{
-    event System.Action C.F1 { add {} remove {}}
-
-    void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-";
-
-            foreach (string accessibility in new[] { "private", "famandassem", "assembly" })
-            {
-                var ilSource = @"
-.assembly extern System.Runtime
-{
-  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )                         // .?_....:
-  .ver 4:2:1:0
-}
-
-.assembly ExplicitBase_144
-{
-  .hash algorithm 0x00008004
-  .ver 0:0:0:0
-}
-.module ExplicitBase_144.dll
-// MVID: {22493430-1D63-4B15-9B42-F868AA6D50D5}
-.imagebase 0x10000000
-.file alignment 0x00000200
-.stackreserve 0x00100000
-.subsystem 0x0003       // WINDOWS_CUI
-.corflags 0x00000001    //  ILONLY
-// Image base: 0x00AD0000
-
-
-// =============== CLASS MEMBERS DECLARATION ===================
-
-.class interface public abstract auto ansi B
-       implements C
-{
-  .method " + accessibility + @" hidebysig specialname virtual final 
-          instance void  C.add_F1(class [System.Runtime]System.Action 'value') cil managed
-  {
-    .override C::add_F1
-    // Code size       2 (0x2)
-    .maxstack  8
-    IL_0000:  nop
-    IL_0001:  ret
-  } // end of method B::C.add_F1
-
-  .method " + accessibility + @" hidebysig specialname virtual final 
-          instance void  C.remove_F1(class [System.Runtime]System.Action 'value') cil managed
-  {
-    .override C::remove_F1
-    // Code size       2 (0x2)
-    .maxstack  8
-    IL_0000:  nop
-    IL_0001:  ret
-  } // end of method B::C.remove_F1
-
-  .event [System.Runtime]System.Action C.F1
-  {
-    .addon instance void B::C.add_F1(class [System.Runtime]System.Action)
-    .removeon instance void B::C.remove_F1(class [System.Runtime]System.Action)
-  } // end of event B::C.F1
-} // end of class B
-
-.class interface public abstract auto ansi C
-{
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  add_F1(class [System.Runtime]System.Action 'value') cil managed
-  {
-    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
-  } // end of method C::add_F1
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  remove_F1(class [System.Runtime]System.Action 'value') cil managed
-  {
-    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
-  } // end of method C::remove_F1
-
-  .event [System.Runtime]System.Action F1
-  {
-    .addon instance void C::add_F1(class [System.Runtime]System.Action)
-    .removeon instance void C::remove_F1(class [System.Runtime]System.Action)
-  } // end of event C::F1
-} // end of class C
-";
-                var compilation1 = CreateCompilation(source1, references: new[] { CompileIL(ilSource, prependDefaultHeader: false) },
-                                                     options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics(
-                    // (8,9): error CS0122: 'B.C.F1.add' is inaccessible due to its protection level
-                    //         base(B).F1 += null;
-                    Diagnostic(ErrorCode.ERR_BadAccess, "base(B).F1 += null").WithArguments("B.C.F1.add").WithLocation(8, 9),
-                    // (9,9): error CS0122: 'B.C.F1.remove' is inaccessible due to its protection level
-                    //         base(B).F1 -= null;
-                    Diagnostic(ErrorCode.ERR_BadAccess, "base(B).F1 -= null").WithArguments("B.C.F1.remove").WithLocation(9, 9)
-                    );
-            }
-        }
-
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void ExplicitBase_145()
-        {
-            var source1 = @"
-class A : B
-{
-    void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-";
-
-            var ilSource = @"
-.assembly extern System.Runtime
-{
-  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )                         // .?_....:
-  .ver 4:2:1:0
-}
-
-.assembly ExplicitBase_145
-{
-  .hash algorithm 0x00008004
-  .ver 0:0:0:0
-}
-.module ExplicitBase_145.dll
-// MVID: {22493430-1D63-4B15-9B42-F868AA6D50D5}
-.imagebase 0x10000000
-.file alignment 0x00000200
-.stackreserve 0x00100000
-.subsystem 0x0003       // WINDOWS_CUI
-.corflags 0x00000001    //  ILONLY
-// Image base: 0x00AD0000
-
-
-// =============== CLASS MEMBERS DECLARATION ===================
-
-.class interface public abstract auto ansi B
-       implements C
-{
-  .method public hidebysig specialname abstract virtual 
-          instance void  C.add_F1(class [System.Runtime]System.Action 'value') cil managed
-  {
-    .override C::add_F1
-  } // end of method B::C.add_F1
-
-  .method public hidebysig specialname abstract virtual 
-          instance void  C.remove_F1(class [System.Runtime]System.Action 'value') cil managed
-  {
-    .override C::remove_F1
-  } // end of method B::C.remove_F1
-
-  .event [System.Runtime]System.Action C.F1
-  {
-    .addon instance void B::C.add_F1(class [System.Runtime]System.Action)
-    .removeon instance void B::C.remove_F1(class [System.Runtime]System.Action)
-  } // end of event B::C.F1
-} // end of class B
-
-.class interface public abstract auto ansi C
-{
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  add_F1(class [System.Runtime]System.Action 'value') cil managed
-  {
-    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
-  } // end of method C::add_F1
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  remove_F1(class [System.Runtime]System.Action 'value') cil managed
-  {
-    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
-  } // end of method C::remove_F1
-
-  .event [System.Runtime]System.Action F1
-  {
-    .addon instance void C::add_F1(class [System.Runtime]System.Action)
-    .removeon instance void C::remove_F1(class [System.Runtime]System.Action)
-  } // end of event C::F1
-} // end of class C
-";
-            var compilation1 = CreateCompilation(source1, references: new[] { CompileIL(ilSource, prependDefaultHeader: false) },
-                                                    options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (2,11): error CS0535: 'A' does not implement interface member 'B.C.F1'
-                // class A : B
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "B").WithArguments("A", "B.C.F1").WithLocation(2, 11),
-                // (6,9): error CS0205: Cannot call an abstract base member: 'B.C.F1.add'
-                //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1 += null").WithArguments("B.C.F1.add").WithLocation(6, 9),
-                // (7,9): error CS0205: Cannot call an abstract base member: 'B.C.F1.remove'
-                //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1 -= null").WithArguments("B.C.F1.remove").WithLocation(7, 9)
-                );
-        }
-
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        [WorkItem(33256, "https://github.com/dotnet/roslyn/issues/33256")]
-        public void ExplicitBase_146()
-        {
-            var ilSource = @"
-.assembly extern System.Runtime
-{
-  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )                         // .?_....:
-  .ver 4:2:1:0
-}
-.assembly extern System.Console
-{
-  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )                         // .?_....:
-  .ver 4:1:1:0
-}
-
-.assembly ExplicitBase_146
-{
-  .hash algorithm 0x00008004
-  .ver 0:0:0:0
-}
-.module ExplicitBase_146.dll
-// MVID: {22493430-1D63-4B15-9B42-F868AA6D50D5}
-.imagebase 0x10000000
-.file alignment 0x00000200
-.stackreserve 0x00100000
-.subsystem 0x0003       // WINDOWS_CUI
-.corflags 0x00000001    //  ILONLY
-// Image base: 0x00AD0000
-
-
-// =============== CLASS MEMBERS DECLARATION ===================
-
-.class interface public abstract auto ansi B
-       implements I1,
-                  C,
-                  I2
-{
-} // end of class B
-
-.class interface public abstract auto ansi I1
-       implements C
-{
-  .method public hidebysig specialname virtual final 
-          instance void  C.add_F1(class [System.Runtime]System.Action 'value') cil managed
-  {
-    .override C::add_F1
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""add 1""
-    IL_0005:  call       void [System.Console]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method I1::C.add_F1
-} // end of class I1
-
-.class interface public abstract auto ansi I2
-       implements C
-{
-  .method public hidebysig specialname virtual final 
-          instance void  C.remove_F1(class [System.Runtime]System.Action 'value') cil managed
-  {
-    .override C::remove_F1
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""remove 2""
-    IL_0005:  call       void [System.Console]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method I2::C.remove_F1
-} // end of class I2
-
-.class interface public abstract auto ansi C
-{
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  add_F1(class [System.Runtime]System.Action 'value') cil managed
-  {
-  } // end of method C::add_F1
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  remove_F1(class [System.Runtime]System.Action 'value') cil managed
-  {
-  } // end of method C::remove_F1
-
-  .event [System.Runtime]System.Action F1
-  {
-    .addon instance void C::add_F1(class [System.Runtime]System.Action)
-    .removeon instance void C::remove_F1(class [System.Runtime]System.Action)
-  } // end of event C::F1
-} // end of class C
-
-.class public auto ansi beforefieldinit D
-       extends [System.Runtime]System.Object
-       implements B,
-                  I1,
-                  C,
-                  I2
-{
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    // Code size       8 (0x8)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       instance void [System.Runtime]System.Object::.ctor()
-    IL_0006:  nop
-    IL_0007:  ret
-  } // end of method A::.ctor
-} // end of class A
-";
-
-            var source1 = @"
-class A : B
-{
-    void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-";
-            var reference = CompileIL(ilSource, prependDefaultHeader: false);
-
-            var compilation1 = CreateCompilation(source1, references: new[] { reference },
-                                                    options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (2,11): error CS0535: 'A' does not implement interface member 'C.F1'
-                // class A : B
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "B").WithArguments("A", "C.F1").WithLocation(2, 11),
-                // (6,9): error CS8709: 'C.F1.add' is not implemented in base interface B.
-                //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1 += null").WithArguments("C.F1.add", "B").WithLocation(6, 9),
-                // (7,9): error CS8709: 'C.F1.remove' is not implemented in base interface B.
-                //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1 -= null").WithArguments("C.F1.remove", "B").WithLocation(7, 9)
-                );
-
-            var source2 = @"
-class A : D, C
-{
-    event System.Action C.F1 { add => System.Console.WriteLine(""add A""); remove => System.Console.WriteLine(""remove A"");}
-
-    void Test()
-    {
-        base(I1).F1 += null;
-        base(I2).F1 -= null;
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        C d = new D();
-        d.F1 += null;
-        d.F1 -= null;
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2, references: new[] { reference },
-                                                 options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics();
-
-            var c = compilation2.GetTypeByMetadataName("C");
-            var f1 = c.GetMember<EventSymbol>("F1");
-            var d = compilation2.GetTypeByMetadataName("D");
-
-            Assert.Null(d.FindImplementationForInterfaceMember(f1));
-            Assert.Equal("void I1.C.add_F1(System.Action value)", d.FindImplementationForInterfaceMember(f1.AddMethod).ToTestDisplayString());
-            Assert.Equal("void I2.C.remove_F1(System.Action value)", d.FindImplementationForInterfaceMember(f1.RemoveMethod).ToTestDisplayString());
-
-            CompileAndVerify(compilation2, expectedOutput:
-@"
-add 1
-remove 2
-add 1
-remove 2
-"
-);
-
-            var source3 = @"
-class A : D, B
-{
-    static void Main()
-    {
-        C a = new A();
-        a.F1 += null;
-        a.F1 -= null;
-    }
-}
-";
-            var compilation3 = CreateCompilation(source3, references: new[] { reference },
-                                                 options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3, expectedOutput:
-@"
-add 1
-remove 2
-"
-);
-        }
-
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void ExplicitBase_147()
-        {
-            var ilSource = @"
-.assembly extern System.Runtime
-{
-  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )                         // .?_....:
-  .ver 4:2:1:0
-}
-.assembly extern System.Console
-{
-  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )                         // .?_....:
-  .ver 4:1:1:0
-}
-
-.assembly ExplicitBase_147
-{
-  .hash algorithm 0x00008004
-  .ver 0:0:0:0
-}
-.module ExplicitBase_147.dll
-// MVID: {22493430-1D63-4B15-9B42-F868AA6D50D5}
-.imagebase 0x10000000
-.file alignment 0x00000200
-.stackreserve 0x00100000
-.subsystem 0x0003       // WINDOWS_CUI
-.corflags 0x00000001    //  ILONLY
-// Image base: 0x00AD0000
-
-
-// =============== CLASS MEMBERS DECLARATION ===================
-
-.class interface public abstract auto ansi B
-       implements I1,
-                  C,
-                  I2,
-                  I0
-{
-} // end of class B
-
-.class interface public abstract auto ansi I0
-       implements C
-{
-  .method public hidebysig specialname virtual final 
-          instance void  C.add_F1(class [System.Runtime]System.Action 'value') cil managed
-  {
-    .override C::add_F1
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""add 0""
-    IL_0005:  call       void [System.Console]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method I1::C.add_F1
-
-  .method public hidebysig specialname virtual final 
-          instance void  C.remove_F1(class [System.Runtime]System.Action 'value') cil managed
-  {
-    .override C::remove_F1
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""remove 0""
-    IL_0005:  call       void [System.Console]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method I1::C.remove_F1
-
-  .event [System.Runtime]System.Action C.F1
-  {
-    .addon instance void I0::C.add_F1(class [System.Runtime]System.Action)
-    .removeon instance void I0::C.remove_F1(class [System.Runtime]System.Action)
-  } // end of event I1::C.F1
-} // end of class I1
-
-.class interface public abstract auto ansi I1
-       implements C
-{
-  .method public hidebysig specialname virtual final 
-          instance void  C.add_F1(class [System.Runtime]System.Action 'value') cil managed
-  {
-    .override C::add_F1
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""add 1""
-    IL_0005:  call       void [System.Console]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method I1::C.add_F1
-} // end of class I1
-
-.class interface public abstract auto ansi I2
-       implements C
-{
-  .method public hidebysig specialname virtual final 
-          instance void  C.remove_F1(class [System.Runtime]System.Action 'value') cil managed
-  {
-    .override C::remove_F1
-    // Code size       12 (0xc)
-    .maxstack  8
-    IL_0000:  ldstr      ""remove 2""
-    IL_0005:  call       void [System.Console]System.Console::WriteLine(string)
-    IL_000a:  nop
-    IL_000b:  ret
-  } // end of method I2::C.remove_F1
-} // end of class I2
-
-.class interface public abstract auto ansi C
-{
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  add_F1(class [System.Runtime]System.Action 'value') cil managed
-  {
-  } // end of method C::add_F1
-
-  .method public hidebysig newslot specialname abstract virtual 
-          instance void  remove_F1(class [System.Runtime]System.Action 'value') cil managed
-  {
-  } // end of method C::remove_F1
-
-  .event [System.Runtime]System.Action F1
-  {
-    .addon instance void C::add_F1(class [System.Runtime]System.Action)
-    .removeon instance void C::remove_F1(class [System.Runtime]System.Action)
-  } // end of event C::F1
-} // end of class C
-";
-
-            var source1 = @"
-class A : B
-{
-}
-";
-
-            var reference = CompileIL(ilSource, prependDefaultHeader: false);
-
-            var compilation1 = CreateCompilation(source1, references: new[] { reference },
-                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (2,11): error CS8705: Interface member 'C.F1.remove' does not have a most specific implementation. Neither 'I2.C.remove_F1(Action)', nor 'I0.C.F1.remove' are most specific.
-                // class A : B
-                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "B").WithArguments("C.F1.remove", "I2.C.remove_F1(System.Action)", "I0.C.F1.remove").WithLocation(2, 11),
-                // (2,11): error CS8705: Interface member 'C.F1.add' does not have a most specific implementation. Neither 'I1.C.add_F1(Action)', nor 'I0.C.F1.add' are most specific.
-                // class A : B
-                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "B").WithArguments("C.F1.add", "I1.C.add_F1(System.Action)", "I0.C.F1.add").WithLocation(2, 11)
-                );
-
-
-            var c = compilation1.GetTypeByMetadataName("C");
-            var f1 = c.GetMember<EventSymbol>("F1");
-            var a = compilation1.GetTypeByMetadataName("A");
-
-            Assert.Equal("event System.Action I0.C.F1", a.FindImplementationForInterfaceMember(f1).ToTestDisplayString());
-            Assert.Null(a.FindImplementationForInterfaceMember(f1.AddMethod));
-            Assert.Null(a.FindImplementationForInterfaceMember(f1.RemoveMethod));
-
-            var source2 = @"
-class A : B
-{
-    event System.Action C.F1 { add => System.Console.WriteLine(""add A""); remove => System.Console.WriteLine(""remove A"");}
-
-    void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2, references: new[] { reference },
-                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics(
-                // (8,9): error CS8709: 'C.F1.add' is not implemented in base interface B.
-                //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1 += null").WithArguments("C.F1.add", "B").WithLocation(8, 9),
-                // (9,9): error CS8709: 'C.F1.remove' is not implemented in base interface B.
-                //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1 -= null").WithArguments("C.F1.remove", "B").WithLocation(9, 9)
-                );
-        }
-
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void ExplicitBase_148()
-        {
-            var ilSource = @"
-.assembly ExplicitBase_148
-{
-  .hash algorithm 0x00008004
-  .ver 0:0:0:0
-}
-.module ExplicitBase_148.dll
-// MVID: {22493430-1D63-4B15-9B42-F868AA6D50D5}
-.imagebase 0x10000000
-.file alignment 0x00000200
-.stackreserve 0x00100000
-.subsystem 0x0003       // WINDOWS_CUI
-.corflags 0x00000001    //  ILONLY
-// Image base: 0x00AD0000
-
-
-// =============== CLASS MEMBERS DECLARATION ===================
-
-.class interface public abstract auto ansi D
-       implements B,
-                  C
-{
-  .method public hidebysig virtual final 
-          instance char  C.F1(int32 pD) cil managed
-  {
-    .override C::F1
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   68
-    IL_0002:  ret
-  } // end of method D::C.F1
-
-} // end of class D
-
-.class interface public abstract auto ansi B
-       implements C
-{
-  .method public hidebysig virtual final 
-          instance char  F1(int32 pB) cil managed
-  {
-    .override C::F1
-    // Code size       3 (0x3)
-    .maxstack  8
-    IL_0000:  ldc.i4.s   66
-    IL_0002:  ret
-  } // end of method B::C.F1
-
-} // end of class B
-
-.class interface public abstract auto ansi C
-{
-  .method public hidebysig newslot abstract virtual 
-          instance char  F1(int32 pC) cil managed
-  {
-  } // end of method C::F1
-
-} // end of class C
-";
-
-            var source2 = @"
-class A : D
-{
-    char C.F1(int pA) => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(B).F1(pC: 1));
-        System.Console.WriteLine(base(B).F1(pB: 1));
-        System.Console.WriteLine(base(D).F1(pC: 1));
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        D d = new A();
-        System.Console.WriteLine(d.F1(1));
-        System.Console.WriteLine(d.F1(pC: 1));
-        System.Console.WriteLine(d.F1(pB: 1));
-    }
-}
-";
-            var reference = CompileIL(ilSource, prependDefaultHeader: false);
-            var compilation2 = CreateCompilation(source2, references: new[] { reference },
-                                                 options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics();
-
-            CompileAndVerify(compilation2, expectedOutput:
-@"
-B
-B
-B
-D
-B
-A
-B
-"
-);
-            var source3 = @"
-class A : D
-{
-    char C.F1(int pA) => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1(pD: 1));
-        System.Console.WriteLine(base(D).F1(pD: 1));
-    }
-}
-";
-            var compilation3 = CreateCompilation(source3, references: new[] { reference },
-                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation3.VerifyDiagnostics(
-                // (8,45): error CS1739: The best overload for 'F1' does not have a parameter named 'pD'
-                //         System.Console.WriteLine(base(B).F1(pD: 1));
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "pD").WithArguments("F1", "pD").WithLocation(8, 45),
-                // (9,45): error CS1739: The best overload for 'F1' does not have a parameter named 'pD'
-                //         System.Console.WriteLine(base(D).F1(pD: 1));
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "pD").WithArguments("F1", "pD").WithLocation(9, 45)
-                );
-
-            var source4 = @"
-class A : D
-{
-    char C.F1(int pA) => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(base(D).F1(1));
-        System.Console.WriteLine(base(D).F1(pB: 1));
-    }
-
-    static void Main()
-    {
-        new A().Test();
-    }
-}
-";
-            var compilation4 = CreateCompilation(source4, references: new[] { reference },
-                                                 options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation4.VerifyDiagnostics(
-                // (8,34): error CS8710: 'B.F1(int)' is not an immediate member of D.
-                //         System.Console.WriteLine(base(D).F1(1));
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(D).F1").WithArguments("B.F1(int)", "D").WithLocation(8, 34),
-                // (9,34): error CS8710: 'B.F1(int)' is not an immediate member of D.
-                //         System.Console.WriteLine(base(D).F1(pB: 1));
-                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(D).F1").WithArguments("B.F1(int)", "D").WithLocation(9, 34)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_149()
-        {
-            var source0 = @"
-public interface B : C
-{
-    I1 C.F1() => null;
-    void C.F2(I1 x) => throw null;
-    I1 C.P1 => null;
-    I1 C.P2
-    { 
-        set => throw null;
-    }
-    I1 C.P3
-    { 
-        get => null;
-        set => throw null;
-    }
-    event System.Action<I1> C.E1
-    { 
-        add => throw null;
-        remove => throw null;
-    }
-    int C.this[I1 x] => 0;
-    I1 C.this[int x]
-    { 
-        set => throw null;
-    }
-}
-
-internal interface I1
-{}
-
-internal interface C
-{
-    I1 F1();
-    void F2(I1 x);
-    I1 P1 {get;}
-    I1 P2 {set;}
-    I1 P3 {get; set;}
-    event System.Action<I1> E1;
-    int this[I1 x] {get;}
-    I1 this[int x] {set;}
-}
-";
-
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation0.VerifyDiagnostics(
-                // (2,18): error CS0061: Inconsistent accessibility: base interface 'C' is less accessible than interface 'B'
-                // public interface B : C
-                Diagnostic(ErrorCode.ERR_BadVisBaseInterface, "B").WithArguments("B", "C").WithLocation(2, 18)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_150()
-        {
-            var source1 = @"
-class A : B
-{
-    char D.F1() => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1());
-        System.Console.WriteLine(base(D).F1());
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    char D.F1() => 'F';
-
-    public void Test()
-    {
-        System.Console.WriteLine(base(B).F1());
-        System.Console.WriteLine(base(D).F1());
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(B).F1());
-        System.Console.WriteLine(base(D).F1());
-    }
-}
-";
-            var source0 = @"
-class G : E
-{
-    char D.F1() => 'G';
-}
-
-interface B : C
-{
-    char D.F1() => 'B';
-}
-
-interface C : D
-{
-}
-
-interface D
-{
-    virtual char F1() => 'D';
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-B
-D
-B
-D
-B
-D
-", verify: VerifyOnMonoOrCoreClr);
-
-            verifier.VerifyIL("F.Test",
-@"
-{
-  // Code size       46 (0x2e)
-  .maxstack  1
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""F""
-  IL_0007:  box        ""F""
-  IL_000c:  call       ""char B.F1()""
-  IL_0011:  call       ""void System.Console.WriteLine(char)""
-  IL_0016:  nop
-  IL_0017:  ldarg.0
-  IL_0018:  ldobj      ""F""
-  IL_001d:  box        ""F""
-  IL_0022:  call       ""char D.F1()""
-  IL_0027:  call       ""void System.Console.WriteLine(char)""
-  IL_002c:  nop
-  IL_002d:  ret
-}
-");
-            var source2 = @"
-class A : B
-{
-    char D.F1() => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(base(C).F1());
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    char D.F1() => 'F';
-
-    public void Test()
-    {
-        System.Console.WriteLine(base(C).F1());
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(C).F1());
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics(
-                // (8,34): error CS8709: 'D.F1()' is not implemented in base interface C.
-                //         System.Console.WriteLine(base(C).F1());
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1()", "C").WithLocation(8, 34),
-                // (25,34): error CS8709: 'D.F1()' is not implemented in base interface C.
-                //         System.Console.WriteLine(base(C).F1());
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1()", "C").WithLocation(25, 34),
-                // (33,34): error CS8709: 'D.F1()' is not implemented in base interface C.
-                //         System.Console.WriteLine(base(C).F1());
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1()", "C").WithLocation(33, 34)
-                );
-        }
-
-        [Fact]
-        [WorkItem(33083, "https://github.com/dotnet/roslyn/issues/33083")]
-        [WorkItem(33535, "https://github.com/dotnet/roslyn/issues/33535")]
-        public void ExplicitBase_150_Delegate()
-        {
-            var source1 = @"
-class A : B
-{
-    char D.F1() => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(new System.Func<char>(base(B).F1)());
-        System.Console.WriteLine(new System.Func<char>(base(D).F1)());
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    char D.F1() => 'F';
-
-    public void Test()
-    {
-        System.Console.WriteLine(new System.Func<char>(base(B).F1)());
-        System.Console.WriteLine(new System.Func<char>(base(D).F1)());
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(new System.Func<char>(base(B).F1)());
-        System.Console.WriteLine(new System.Func<char>(base(D).F1)());
-    }
-}
-";
-            var source0 = @"
-class G : E
-{
-    char D.F1() => 'G';
-}
-
-interface B : C
-{
-    char D.F1() => 'B';
-}
-
-interface C : D
-{
-}
-
-interface D
-{
-    virtual char F1() => 'D';
-}
-";
-
-            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(compilation1, expectedOutput:
-#if Issue33535_Is_Fixed // https://github.com/dotnet/roslyn/issues/33535
-                !ExecutionConditionUtil.IsMonoOrCoreClr
-#else
-                !ExecutionConditionUtil.IsMono
-#endif
-                    ? null :
-@"
-B
-D
-B
-D
-B
-D
-"
-, verify: VerifyOnMonoOrCoreClr);
-
-            verifier.VerifyIL("F.Test",
-@"
-{
-  // Code size       68 (0x44)
-  .maxstack  2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""F""
-  IL_0007:  box        ""F""
-  IL_000c:  ldftn      ""char B.F1()""
-  IL_0012:  newobj     ""System.Func<char>..ctor(object, System.IntPtr)""
-  IL_0017:  callvirt   ""char System.Func<char>.Invoke()""
-  IL_001c:  call       ""void System.Console.WriteLine(char)""
-  IL_0021:  nop
-  IL_0022:  ldarg.0
-  IL_0023:  ldobj      ""F""
-  IL_0028:  box        ""F""
-  IL_002d:  ldftn      ""char D.F1()""
-  IL_0033:  newobj     ""System.Func<char>..ctor(object, System.IntPtr)""
-  IL_0038:  callvirt   ""char System.Func<char>.Invoke()""
-  IL_003d:  call       ""void System.Console.WriteLine(char)""
-  IL_0042:  nop
-  IL_0043:  ret
-}
-");
-            var source2 = @"
-class A : B
-{
-    char D.F1() => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(new System.Func<char>(base(C).F1)());
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    char D.F1() => 'F';
-
-    public void Test()
-    {
-        System.Console.WriteLine(new System.Func<char>(base(C).F1)());
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(new System.Func<char>(base(C).F1)());
-    }
-}
-";
-            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics(
-                // (8,56): error CS8709: 'D.F1()' is not implemented in base interface C.
-                //         System.Console.WriteLine(new System.Func<char>(base(C).F1)());
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1()", "C").WithLocation(8, 56),
-                // (25,56): error CS8709: 'D.F1()' is not implemented in base interface C.
-                //         System.Console.WriteLine(new System.Func<char>(base(C).F1)());
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1()", "C").WithLocation(25, 56),
-                // (33,56): error CS8709: 'D.F1()' is not implemented in base interface C.
-                //         System.Console.WriteLine(new System.Func<char>(base(C).F1)());
-                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1()", "C").WithLocation(33, 56)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_151()
-        {
-            var source1 =
-@"
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ExplicitBase_151_lib2"")]
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ExplicitBase_151_lib3"")]
-
-public interface C
-{
-    internal void F1() => System.Console.WriteLine(""C"");
-}
-";
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest, assemblyName: "ExplicitBase_151_lib1");
-            compilation1.VerifyDiagnostics();
-
-            var source2 =
-@"
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ExplicitBase_151_lib3"")]
-public interface B : C
-{
-    void C.F1() => System.Console.WriteLine(""B"");
-}
-";
-
-            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest, assemblyName: "ExplicitBase_151_lib2",
-                                                 references: new[] { compilation1.ToMetadataReference() });
-            compilation2.VerifyDiagnostics();
-
-            var source3 = @"
-class A : B
-{
-    void C.F1() => System.Console.WriteLine(""A"");
-
-    void Test()
-    {
-        base(B).F1();
-        base(C).F1();
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    void C.F1() => System.Console.WriteLine(""F"");
-
-    public void Test()
-    {
-        base(B).F1();
-        base(C).F1();
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        base(B).F1();
-        base(C).F1();
-    }
-}
-
-class G : E
-{
-    void C.F1() => System.Console.WriteLine(""G"");
-}
-";
-
-            foreach (var references in new[] { new[] { compilation1.ToMetadataReference(), compilation2.ToMetadataReference()},
-                                               new[] { compilation1.EmitToImageReference(), compilation2.EmitToImageReference()}})
-            {
-                var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest, assemblyName: "ExplicitBase_151_lib3",
-                                                     references: references);
-                compilation3.VerifyDiagnostics();
-
-                CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-B
-C
-B
-C
-B
-C
-", verify: VerifyOnMonoOrCoreClr);
-            }
-        }
-
-        [Fact]
-        public void ExplicitBase_152()
-        {
-            var source1 =
-@"
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ExplicitBase_151_lib2"")]
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ExplicitBase_151_lib3"")]
-
-public interface C
-{
-    internal void F1() => System.Console.WriteLine(""C"");
-}
-";
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest, assemblyName: "ExplicitBase_151_lib1");
-            compilation1.VerifyDiagnostics();
-
-            var source2 =
-@"
-public interface B : C
-{
-    void C.F1() => System.Console.WriteLine(""B"");
-}
-";
-
-            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest, assemblyName: "ExplicitBase_151_lib2",
-                                                 references: new[] { compilation1.ToMetadataReference() });
-            compilation2.VerifyDiagnostics();
-
-            var source3 = @"
-class A : B
-{
-    void C.F1() => System.Console.WriteLine(""A"");
-
-    void Test()
-    {
-        base(B).F1();
-        base(C).F1();
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    void C.F1() => System.Console.WriteLine(""F"");
-
-    public void Test()
-    {
-        base(B).F1();
-        base(C).F1();
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        base(B).F1();
-        base(C).F1();
-    }
-}
-
-class G : E
-{
-    void C.F1() => System.Console.WriteLine(""G"");
-}
-";
-
-            foreach (var references in new[] { new[] { compilation1.ToMetadataReference(), compilation2.ToMetadataReference()},
-                                               new[] { compilation1.EmitToImageReference(), compilation2.EmitToImageReference()}})
-            {
-                var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest, assemblyName: "ExplicitBase_151_lib3",
-                                                     references: references);
-                compilation3.VerifyDiagnostics();
-
-                CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-B
-C
-B
-C
-B
-C
-", verify: VerifyOnMonoOrCoreClr);
-            }
-        }
-
-        [Fact]
-        public void ExplicitBase_153()
-        {
-            var source = @"
-class A
-{
-    void Test()
-    {
-        base(A).Test();
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
-
-            compilation1.VerifyDiagnostics(
-                // (6,14): error CS8708: 'A' is not base type or interface of A.
-                //         base(A).Test();
-                Diagnostic(ErrorCode.ERR_NotBaseOrImplementedInterface, "A").WithArguments("A", "A").WithLocation(6, 14)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_154()
-        {
-            var source = @"
-interface A
-{
-    void Test()
-    {
-        base(A).Test();
-    }
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-
-            compilation1.VerifyDiagnostics(
-                // (6,14): error CS8708: 'A' is not base type or interface of A.
-                //         base(A).Test();
-                Diagnostic(ErrorCode.ERR_NotBaseOrImplementedInterface, "A").WithArguments("A", "A").WithLocation(6, 14)
-                );
-        }
-
-        [Fact]
-        public void ExplicitBase_155()
-        {
-            var source = @"
-class B : C
-{
-    new private char F1() => 'B';
-
-    class A : B
-    {
-        void Test()
-        {
-            System.Console.WriteLine(base(B).F1());
-            System.Console.WriteLine(base(C).F1());
-        }
-
-        static void Main()
-        {
-            new A().Test();
-        }
-    }
-}
-
-class C
-{
-    protected char F1() => 'C';
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput:
-@"
-B
-C
-");
-        }
-
-        [Fact]
-        public void ExplicitBase_156()
-        {
-            var source = @"
-interface B : C
-{
-    new private char F1() => 'B';
-
-    class A : B
-    {
-        void Test()
-        {
-            System.Console.WriteLine(base(B).F1());
-            System.Console.WriteLine(base(C).F1());
-        }
-
-        static void Main()
-        {
-            new A().Test();
-        }
-    }
-}
-
-interface C
-{
-    char F1() => 'C';
-}
-";
-
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-B
-C
-", verify: VerifyOnMonoOrCoreClr);
-        }
-
-        [Fact]
-        public void ExplicitBase_157()
-        {
-            var source0 = @"
-public interface B : C
-{
-    char C.F1(int pB) => 'B';
-}
-
-public interface C
-{
-    protected char F1(int pC);
-}
-";
-
-            var source1 = @"
-class A : B
-{
-    char C.F1(int pA) => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(B).F1(pC: 1));
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    char C.F1(int pA) => 'F';
-
-    public void Test()
-    {
-        System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(B).F1(pC: 1));
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(B).F1(pC: 1));
-    }
-}
-
-class G : E
-{
-    char C.F1(int pA) => 'G';
-}
-";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation0.VerifyDiagnostics();
-
-            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
-            {
-                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics();
-
-                CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-B
-B
-B
-B
-B
-B
-", verify: VerifyOnMonoOrCoreClr);
-            }
-        }
-
-        [Fact]
-        public void ExplicitBase_158()
-        {
-            var source0 = @"
-public interface B : C
-{
-    char C.F1(int pB) => 'B';
-}
-
-public interface C
-{
-    protected internal char F1(int pC);
-}
-";
-
-            var source1 = @"
-class A : B
-{
-    char C.F1(int pA) => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(B).F1(pC: 1));
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    char C.F1(int pA) => 'F';
-
-    public void Test()
-    {
-        System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(B).F1(pC: 1));
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(B).F1(pC: 1));
-    }
-}
-
-class G : E
-{
-    char C.F1(int pA) => 'G';
-}
-";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation0.VerifyDiagnostics();
-
-            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
-            {
-                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics();
-
-                CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-B
-B
-B
-B
-B
-B
-", verify: VerifyOnMonoOrCoreClr);
-            }
-        }
-
-        [Fact]
-        public void ExplicitBase_159()
-        {
-            var source0 = @"
-public interface B : C
-{
-    char C.F1(int pB) => 'B';
-}
-
-public interface C
-{
-    private protected char F1(int pC);
-}
-";
-
-            var source1 = @"
-class A : B
-{
-    char C.F1(int pA) => 'A';
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(B).F1(pC: 1));
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    char C.F1(int pA) => 'F';
-
-    public void Test()
-    {
-        System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(B).F1(pC: 1));
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(B).F1(pC: 1));
-    }
-}
-
-class G : E
-{
-    char C.F1(int pA) => 'G';
-}
-";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation0.VerifyDiagnostics();
-
-            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
-            {
-                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics(
-                    // (4,12): error CS0122: 'C.F1(int)' is inaccessible due to its protection level
-                    //     char C.F1(int pA) => 'A';
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1(int)").WithLocation(4, 12),
-                    // (8,42): error CS0122: 'C.F1(int)' is inaccessible due to its protection level
-                    //         System.Console.WriteLine(base(B).F1(1));
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1(int)").WithLocation(8, 42),
-                    // (9,42): error CS0122: 'C.F1(int)' is inaccessible due to its protection level
-                    //         System.Console.WriteLine(base(B).F1(pC: 1));
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1(int)").WithLocation(9, 42),
-                    // (22,12): error CS0122: 'C.F1(int)' is inaccessible due to its protection level
-                    //     char C.F1(int pA) => 'F';
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1(int)").WithLocation(22, 12),
-                    // (26,42): error CS0122: 'C.F1(int)' is inaccessible due to its protection level
-                    //         System.Console.WriteLine(base(B).F1(1));
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1(int)").WithLocation(26, 42),
-                    // (27,42): error CS0122: 'C.F1(int)' is inaccessible due to its protection level
-                    //         System.Console.WriteLine(base(B).F1(pC: 1));
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1(int)").WithLocation(27, 42),
-                    // (35,42): error CS0122: 'C.F1(int)' is inaccessible due to its protection level
-                    //         System.Console.WriteLine(base(B).F1(1));
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1(int)").WithLocation(35, 42),
-                    // (36,42): error CS0122: 'C.F1(int)' is inaccessible due to its protection level
-                    //         System.Console.WriteLine(base(B).F1(pC: 1));
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1(int)").WithLocation(36, 42),
-                    // (42,12): error CS0122: 'C.F1(int)' is inaccessible due to its protection level
-                    //     char C.F1(int pA) => 'G';
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1(int)").WithLocation(42, 12)
-                    );
-            }
-
-            var compilation2 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics();
-
-            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-B
-B
-B
-B
-B
-B
-", verify: VerifyOnMonoOrCoreClr);
-        }
-
-        [Fact]
-        public void ExplicitBase_160()
-        {
-            var source0 = @"
-public interface B : C
-{
-    char C.F1 { get { System.Console.WriteLine(""B""); return 'B';} set => System.Console.WriteLine(""set B"");}
-}
-
-public interface C
-{
-    protected char F1 {get; set;}
-}
-";
-
-            var source1 = @"
-class A : B
-{
-    char C.F1 { get { System.Console.WriteLine(""A""); return 'A';} set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-        base(B).F1 += 'y';
-        base(B).F1++;
-        ++base(B).F1;
-        System.Console.WriteLine(base(B).F1 = 'z');
-        System.Console.WriteLine(base(B).F1 += (char)10);
-        System.Console.WriteLine(base(B).F1++);
-        System.Console.WriteLine(++base(B).F1);
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    char C.F1 { get { System.Console.WriteLine(""F""); return 'F';} set => System.Console.WriteLine(""set F"");}
-
-    public void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-        base(B).F1 += 'y';
-        base(B).F1++;
-        ++base(B).F1;
-        System.Console.WriteLine(base(B).F1 = 'z');
-        System.Console.WriteLine(base(B).F1 += (char)10);
-        System.Console.WriteLine(base(B).F1++);
-        System.Console.WriteLine(++base(B).F1);
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-        base(B).F1 += 'y';
-        base(B).F1++;
-        ++base(B).F1;
-        System.Console.WriteLine(base(B).F1 = 'z');
-        System.Console.WriteLine(base(B).F1 += (char)10);
-        System.Console.WriteLine(base(B).F1++);
-        System.Console.WriteLine(++base(B).F1);
-    }
-}
-
-class G : E
-{
-    char C.F1 { get { System.Console.WriteLine(""G""); return 'G';} set => System.Console.WriteLine(""set G"");}
-}
-";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation0.VerifyDiagnostics();
-
-            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
-            {
-                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics();
-
-                CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-B
-B
-set B
-B
-set B
-B
-set B
-B
-set B
-set B
-z
-B
-set B
-L
-B
-set B
-B
-B
-set B
-C
-B
-B
-set B
-B
-set B
-B
-set B
-B
-set B
-set B
-z
-B
-set B
-L
-B
-set B
-B
-B
-set B
-C
-B
-B
-set B
-B
-set B
-B
-set B
-B
-set B
-set B
-z
-B
-set B
-L
-B
-set B
-B
-B
-set B
-C
-", verify: VerifyOnMonoOrCoreClr);
-            }
-        }
-
-        [Fact]
-        public void ExplicitBase_161()
-        {
-            var source0 = @"
-public interface B : C
-{
-    char C.F1 { get { System.Console.WriteLine(""B""); return 'B';} set => System.Console.WriteLine(""set B"");}
-}
-
-public interface C
-{
-    protected internal char F1 {get; set;}
-}
-";
-
-            var source1 = @"
-class A : B
-{
-    char C.F1 { get { System.Console.WriteLine(""A""); return 'A';} set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-        base(B).F1 += 'y';
-        base(B).F1++;
-        ++base(B).F1;
-        System.Console.WriteLine(base(B).F1 = 'z');
-        System.Console.WriteLine(base(B).F1 += (char)10);
-        System.Console.WriteLine(base(B).F1++);
-        System.Console.WriteLine(++base(B).F1);
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    char C.F1 { get { System.Console.WriteLine(""F""); return 'F';} set => System.Console.WriteLine(""set F"");}
-
-    public void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-        base(B).F1 += 'y';
-        base(B).F1++;
-        ++base(B).F1;
-        System.Console.WriteLine(base(B).F1 = 'z');
-        System.Console.WriteLine(base(B).F1 += (char)10);
-        System.Console.WriteLine(base(B).F1++);
-        System.Console.WriteLine(++base(B).F1);
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-        base(B).F1 += 'y';
-        base(B).F1++;
-        ++base(B).F1;
-        System.Console.WriteLine(base(B).F1 = 'z');
-        System.Console.WriteLine(base(B).F1 += (char)10);
-        System.Console.WriteLine(base(B).F1++);
-        System.Console.WriteLine(++base(B).F1);
-    }
-}
-
-class G : E
-{
-    char C.F1 { get { System.Console.WriteLine(""G""); return 'G';} set => System.Console.WriteLine(""set G"");}
-}
-";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation0.VerifyDiagnostics();
-
-            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
-            {
-                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics();
-
-                CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-B
-B
-set B
-B
-set B
-B
-set B
-B
-set B
-set B
-z
-B
-set B
-L
-B
-set B
-B
-B
-set B
-C
-B
-B
-set B
-B
-set B
-B
-set B
-B
-set B
-set B
-z
-B
-set B
-L
-B
-set B
-B
-B
-set B
-C
-B
-B
-set B
-B
-set B
-B
-set B
-B
-set B
-set B
-z
-B
-set B
-L
-B
-set B
-B
-B
-set B
-C
-", verify: VerifyOnMonoOrCoreClr);
-            }
-        }
-
-        [Fact]
-        public void ExplicitBase_162()
-        {
-            var source0 = @"
-public interface B : C
-{
-    char C.F1 { get { System.Console.WriteLine(""B""); return 'B';} set => System.Console.WriteLine(""set B"");}
-}
-
-public interface C
-{
-    private protected char F1 {get; set;}
-}
-";
-
-            var source1 = @"
-class A : B
-{
-    char C.F1 { get { System.Console.WriteLine(""A""); return 'A';} set => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-        base(B).F1 += 'y';
-        base(B).F1++;
-        ++base(B).F1;
-        System.Console.WriteLine(base(B).F1 = 'z');
-        System.Console.WriteLine(base(B).F1 += (char)10);
-        System.Console.WriteLine(base(B).F1++);
-        System.Console.WriteLine(++base(B).F1);
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    char C.F1 { get { System.Console.WriteLine(""F""); return 'F';} set => System.Console.WriteLine(""set F"");}
-
-    public void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-        base(B).F1 += 'y';
-        base(B).F1++;
-        ++base(B).F1;
-        System.Console.WriteLine(base(B).F1 = 'z');
-        System.Console.WriteLine(base(B).F1 += (char)10);
-        System.Console.WriteLine(base(B).F1++);
-        System.Console.WriteLine(++base(B).F1);
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
-        base(B).F1 += 'y';
-        base(B).F1++;
-        ++base(B).F1;
-        System.Console.WriteLine(base(B).F1 = 'z');
-        System.Console.WriteLine(base(B).F1 += (char)10);
-        System.Console.WriteLine(base(B).F1++);
-        System.Console.WriteLine(++base(B).F1);
-    }
-}
-
-class G : E
-{
-    char C.F1 { get { System.Console.WriteLine(""G""); return 'G';} set => System.Console.WriteLine(""set G"");}
-}
-";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation0.VerifyDiagnostics();
-
-            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
-            {
-                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics(
-                    // (4,12): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //     char C.F1 { get { System.Console.WriteLine("A"); return 'A';} set => System.Console.WriteLine("set A");}
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(4, 12),
-                    // (8,42): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         System.Console.WriteLine(base(B).F1);
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(8, 42),
-                    // (9,17): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         base(B).F1 = 'x';
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(9, 17),
-                    // (10,17): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         base(B).F1 += 'y';
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(10, 17),
-                    // (11,17): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         base(B).F1++;
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(11, 17),
-                    // (12,19): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         ++base(B).F1;
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(12, 19),
-                    // (13,42): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         System.Console.WriteLine(base(B).F1 = 'z');
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(13, 42),
-                    // (14,42): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         System.Console.WriteLine(base(B).F1 += (char)10);
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(14, 42),
-                    // (15,42): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         System.Console.WriteLine(base(B).F1++);
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(15, 42),
-                    // (16,44): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         System.Console.WriteLine(++base(B).F1);
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(16, 44),
-                    // (29,12): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //     char C.F1 { get { System.Console.WriteLine("F"); return 'F';} set => System.Console.WriteLine("set F");}
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(29, 12),
-                    // (33,42): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         System.Console.WriteLine(base(B).F1);
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(33, 42),
-                    // (34,17): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         base(B).F1 = 'x';
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(34, 17),
-                    // (35,17): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         base(B).F1 += 'y';
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(35, 17),
-                    // (36,17): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         base(B).F1++;
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(36, 17),
-                    // (37,19): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         ++base(B).F1;
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(37, 19),
-                    // (38,42): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         System.Console.WriteLine(base(B).F1 = 'z');
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(38, 42),
-                    // (39,42): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         System.Console.WriteLine(base(B).F1 += (char)10);
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(39, 42),
-                    // (40,42): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         System.Console.WriteLine(base(B).F1++);
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(40, 42),
-                    // (41,44): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         System.Console.WriteLine(++base(B).F1);
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(41, 44),
-                    // (49,42): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         System.Console.WriteLine(base(B).F1);
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(49, 42),
-                    // (50,17): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         base(B).F1 = 'x';
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(50, 17),
-                    // (51,17): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         base(B).F1 += 'y';
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(51, 17),
-                    // (52,17): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         base(B).F1++;
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(52, 17),
-                    // (53,19): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         ++base(B).F1;
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(53, 19),
-                    // (54,42): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         System.Console.WriteLine(base(B).F1 = 'z');
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(54, 42),
-                    // (55,42): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         System.Console.WriteLine(base(B).F1 += (char)10);
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(55, 42),
-                    // (56,42): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         System.Console.WriteLine(base(B).F1++);
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(56, 42),
-                    // (57,44): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         System.Console.WriteLine(++base(B).F1);
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(57, 44),
-                    // (63,12): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //     char C.F1 { get { System.Console.WriteLine("G"); return 'G';} set => System.Console.WriteLine("set G");}
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(63, 12)
-                    );
-            }
-
-            var compilation2 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics();
-
-            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-B
-B
-set B
-B
-set B
-B
-set B
-B
-set B
-set B
-z
-B
-set B
-L
-B
-set B
-B
-B
-set B
-C
-B
-B
-set B
-B
-set B
-B
-set B
-B
-set B
-set B
-z
-B
-set B
-L
-B
-set B
-B
-B
-set B
-C
-B
-B
-set B
-B
-set B
-B
-set B
-B
-set B
-set B
-z
-B
-set B
-L
-B
-set B
-B
-B
-set B
-C
-", verify: VerifyOnMonoOrCoreClr);
-        }
-
-        [Fact]
-        public void ExplicitBase_163()
-        {
-            var source0 = @"
-public interface B : C
-{
-    event System.Action C.F1 { add { System.Console.WriteLine(""B"");} remove => System.Console.WriteLine(""set B"");}
-}
-
-public interface C
-{
-    protected event System.Action F1;
-}
-";
-
-            var source1 = @"
-class A : B
-{
-    event System.Action C.F1 { add { System.Console.WriteLine(""A"");} remove => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    event System.Action C.F1 { add { System.Console.WriteLine(""F"");} remove => System.Console.WriteLine(""set F"");}
-
-    public void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-
-class G : E
-{
-    event System.Action C.F1 { add { System.Console.WriteLine(""G"");} remove => System.Console.WriteLine(""set G"");}
-}
-";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation0.VerifyDiagnostics();
-
-            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
-            {
-                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics();
-
-                CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-B
-set B
-B
-set B
-B
-set B
-", verify: VerifyOnMonoOrCoreClr);
-            }
-        }
-
-        [Fact]
-        public void ExplicitBase_164()
-        {
-            var source0 = @"
-public interface B : C
-{
-    event System.Action C.F1 { add { System.Console.WriteLine(""B"");} remove => System.Console.WriteLine(""set B"");}
-}
-
-public interface C
-{
-    protected internal event System.Action F1;
-}
-";
-
-            var source1 = @"
-class A : B
-{
-    event System.Action C.F1 { add { System.Console.WriteLine(""A"");} remove => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    event System.Action C.F1 { add { System.Console.WriteLine(""F"");} remove => System.Console.WriteLine(""set F"");}
-
-    public void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-
-class G : E
-{
-    event System.Action C.F1 { add { System.Console.WriteLine(""G"");} remove => System.Console.WriteLine(""set G"");}
-}
-";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation0.VerifyDiagnostics();
-
-            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
-            {
-                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics();
-
-                CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-B
-set B
-B
-set B
-B
-set B
-", verify: VerifyOnMonoOrCoreClr);
-            }
-        }
-
-        [Fact]
-        public void ExplicitBase_165()
-        {
-            var source0 = @"
-public interface B : C
-{
-    event System.Action C.F1 { add { System.Console.WriteLine(""B"");} remove => System.Console.WriteLine(""set B"");}
-}
-
-public interface C
-{
-    private protected event System.Action F1;
-}
-";
-
-            var source1 = @"
-class A : B
-{
-    event System.Action C.F1 { add { System.Console.WriteLine(""A"");} remove => System.Console.WriteLine(""set A"");}
-
-    void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-
-    static void Main()
-    {
-        new A().Test();
-        new F().Test();
-        ((E)new G()).Test();
-    }
-}
-
-struct F : B
-{
-    event System.Action C.F1 { add { System.Console.WriteLine(""F"");} remove => System.Console.WriteLine(""set F"");}
-
-    public void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-
-interface E : B
-{
-    sealed void Test()
-    {
-        base(B).F1 += null;
-        base(B).F1 -= null;
-    }
-}
-
-class G : E
-{
-    event System.Action C.F1 { add { System.Console.WriteLine(""G"");} remove => System.Console.WriteLine(""set G"");}
-}
-";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation0.VerifyDiagnostics();
-
-            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
-            {
-                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-                compilation1.VerifyDiagnostics(
-                    // (4,27): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //     event System.Action C.F1 { add { System.Console.WriteLine("A");} remove => System.Console.WriteLine("set A");}
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(4, 27),
-                    // (8,17): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         base(B).F1 += null;
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(8, 17),
-                    // (9,17): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         base(B).F1 -= null;
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(9, 17),
-                    // (22,27): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //     event System.Action C.F1 { add { System.Console.WriteLine("F");} remove => System.Console.WriteLine("set F");}
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(22, 27),
-                    // (26,17): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         base(B).F1 += null;
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(26, 17),
-                    // (27,17): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         base(B).F1 -= null;
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(27, 17),
-                    // (35,17): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         base(B).F1 += null;
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(35, 17),
-                    // (36,17): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //         base(B).F1 -= null;
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(36, 17),
-                    // (42,27): error CS0122: 'C.F1' is inaccessible due to its protection level
-                    //     event System.Action C.F1 { add { System.Console.WriteLine("G");} remove => System.Console.WriteLine("set G");}
-                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(42, 27)
-                    );
-            }
-
-            var compilation2 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics();
-
-            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-B
-set B
-B
-set B
-B
-set B
-", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -58696,13 +44129,69 @@ public interface ITest33
 
             foreach (var reference1 in new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), piaCompilation.EmitToImageReference(embedInteropTypes: true) })
             {
-                var compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseDll, references: new[] { reference1, attributesRef });
+                var compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseDll, references: new[] { reference1, attributesRef }, targetFramework: TargetFramework.StandardLatest);
 
                 foreach (var reference2 in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
                 {
-                    var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe, references: new[] { reference2, pia2Refernce });
+                    var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe, references: new[] { reference2, pia2Refernce }, targetFramework: TargetFramework.StandardLatest);
                     CompileAndVerify(compilation2, expectedOutput: "Test.M1");
                 }
+            }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/35911")]
+        [WorkItem(35911, "https://github.com/dotnet/roslyn/issues/35911")]
+        public void NoPia_10()
+        {
+            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetStandardLatest);
+            var attributesRef = attributes.EmitToImageReference();
+
+            string pia = @"
+using System;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+
+[assembly: PrimaryInteropAssemblyAttribute(1,1)]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
+public interface ITest33
+{
+    void M1();
+}
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58280"")]
+public interface ITest44 : ITest33
+{
+    abstract void ITest33.M1();
+}
+";
+
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(piaCompilation, verify: VerifyOnMonoOrCoreClr);
+
+            string consumer = @"
+class UsePia
+{
+    public static void Main(ITest44 x)
+    {
+        x.M1();
+    }
+} 
+";
+
+            foreach (var reference in new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), piaCompilation.EmitToImageReference(embedInteropTypes: true) })
+            {
+                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+
+                compilation1.VerifyEmitDiagnostics(
+                    // (4,29): error CS8711: Type 'ITest44' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
+                    //     public static void Main(ITest44 x)
+                    Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationInNoPIAType, "ITest44").WithArguments("ITest44").WithLocation(4, 29)
+                    );
             }
         }
 
@@ -58860,104 +44349,6 @@ class A : I1
         }
 
         [Fact]
-        public void BaseAccessWrapper_01()
-        {
-            var source0 = @"
-interface I1
-{
-    void M1(int i)
-    {
-        System.Console.WriteLine(""I1.M1"");
-        System.Console.WriteLine(i);
-    }
-}
-
-interface I2 : I1
-{
-    void I1.M1(int i)
-    {
-        M2(() =>
-           {
-               base(I1).M1(i);
-           });
-    }
-
-    static void M2(System.Action d)
-    {
-        System.Console.WriteLine(""I2.M2"");
-        d();
-    }
-}
-
-class A : I2
-{
-    static void Main()
-    {
-        ((I1)new A()).M1(123);
-    }
-}
-";
-
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation0.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"I2.M2
-I1.M1
-123", verify: VerifyOnMonoOrCoreClr);
-
-            verifier.VerifyIL("I2.I1.M1",
-@"
-{
-  // Code size       40 (0x28)
-  .maxstack  2
-  .locals init (I2.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
-  IL_0000:  newobj     ""I2.<>c__DisplayClass0_0..ctor()""
-  IL_0005:  stloc.0
-  IL_0006:  ldloc.0
-  IL_0007:  ldarg.0
-  IL_0008:  stfld      ""I2 I2.<>c__DisplayClass0_0.<>4__this""
-  IL_000d:  ldloc.0
-  IL_000e:  ldarg.1
-  IL_000f:  stfld      ""int I2.<>c__DisplayClass0_0.i""
-  IL_0014:  nop
-  IL_0015:  ldloc.0
-  IL_0016:  ldftn      ""void I2.<>c__DisplayClass0_0.<I1.M1>b__0()""
-  IL_001c:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_0021:  call       ""void I2.M2(System.Action)""
-  IL_0026:  nop
-  IL_0027:  ret
-}
-");
-            verifier.VerifyIL("I2.<>c__DisplayClass0_0.<I1.M1>b__0",
-@"
-{
-  // Code size       20 (0x14)
-  .maxstack  2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldfld      ""I2 I2.<>c__DisplayClass0_0.<>4__this""
-  IL_0007:  ldarg.0
-  IL_0008:  ldfld      ""int I2.<>c__DisplayClass0_0.i""
-  IL_000d:  call       ""void I2.<>n__0(int)""
-  IL_0012:  nop
-  IL_0013:  ret
-}
-");
-            verifier.VerifyIL("I2.<>n__0",
-@"
-{
-  // Code size        8 (0x8)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  call       ""void I1.M1(int)""
-  IL_0007:  ret
-}
-");
-        }
-
-        [Fact]
         public void MemberwiseClone_01()
         {
             var source0 = @"
@@ -58995,6 +44386,9782 @@ interface I3 : I1
                 // (9,27): error CS0122: 'object.MemberwiseClone()' is inaccessible due to its protection level
                 //         return ((I1)this).MemberwiseClone();
                 Diagnostic(ErrorCode.ERR_BadAccess, "MemberwiseClone").WithArguments("object.MemberwiseClone()").WithLocation(9, 27)
+                );
+        }
+
+        [Fact]
+        public void MethodReAbstraction_01()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1();
+}
+
+public interface I2 : I1
+{
+    abstract void I1.M1();
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+}
+";
+            ValidateMethodReAbstraction_01(source1, source2);
+        }
+
+        private static void ValidateMethodReAbstraction_01(string source1, string source2)
+        {
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+
+            var expected = new DiagnosticDescription[]
+                {
+                    // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
+                    // class Test1 : I2
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1()").WithLocation(2, 15)
+                };
+
+            compilation1.VerifyDiagnostics(expected);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation3.SourceModule);
+                compilation3.VerifyDiagnostics(expected);
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I2", i2.Name);
+                var i2m1 = i2.GetMember<MethodSymbol>("I1.M1");
+
+                ValidateReabstraction(i2m1);
+
+                var i1m1 = i2m1.ExplicitInterfaceImplementations.Single();
+                Assert.Equal("void I1.M1()", i1m1.ToTestDisplayString());
+
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1m1));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1m1));
+            }
+        }
+
+        private static void ValidateReabstraction(MethodSymbol m)
+        {
+            Assert.True(m.IsMetadataVirtual());
+            Assert.True(m.IsMetadataFinal);
+            Assert.False(m.IsMetadataNewSlot());
+            Assert.True(m.IsAbstract);
+            Assert.False(m.IsVirtual);
+            Assert.True(m.IsSealed);
+            Assert.False(m.IsStatic);
+            Assert.False(m.IsExtern);
+            Assert.False(m.IsAsync);
+            Assert.False(m.IsOverride);
+            Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
+        }
+
+        [Fact]
+        public void MethodReAbstraction_02()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1() {} 
+}
+
+public interface I2 : I1
+{
+    abstract void I1.M1();
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+}
+";
+
+            ValidateMethodReAbstraction_01(source1, source2);
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void MethodReAbstraction_03()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1();
+}
+
+public interface I2 : I1
+{
+    abstract void I1.M1();
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.M1();
+    }
+
+    void I1.M1()
+    {
+        System.Console.WriteLine(""Test1.M1"");
+    }
+}
+";
+            ValidateMethodReAbstraction_03(source1, source2);
+        }
+
+        private void ValidateMethodReAbstraction_03(string source1, string source2)
+        {
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1,
+                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Test1.M1" : null,
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation3.SourceModule);
+                compilation3.VerifyDiagnostics();
+
+                CompileAndVerify(compilation1,
+                                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Test1.M1" : null,
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I2", i2.Name);
+                var i2m1 = i2.GetMember<MethodSymbol>("I1.M1");
+
+                var i1m1 = i2m1.ExplicitInterfaceImplementations.Single();
+                Assert.Equal("void I1.M1()", i1m1.ToTestDisplayString());
+
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1m1));
+                Assert.Equal("void Test1.I1.M1()", test1.FindImplementationForInterfaceMember(i1m1).ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void MethodReAbstraction_04()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1() {}
+}
+
+public interface I2 : I1
+{
+    abstract void I1.M1();
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.M1();
+    }
+
+    void I1.M1()
+    {
+        System.Console.WriteLine(""Test1.M1"");
+    }
+}
+";
+
+            ValidateMethodReAbstraction_03(source1, source2);
+        }
+
+        [Fact]
+        public void MethodReAbstraction_05()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1();
+}
+
+public interface I2 : I1
+{
+    abstract void I1.M1();
+}
+
+public interface I3 : I2 {}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+}
+";
+            ValidateMethodReAbstraction_05(source1, source2);
+        }
+
+        private static void ValidateMethodReAbstraction_05(string source1, string source2)
+        {
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+
+            var expected = new DiagnosticDescription[]
+                {
+                    // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
+                    // class Test1 : I3
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1.M1()").WithLocation(2, 15)
+                };
+
+            compilation1.VerifyDiagnostics(expected);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation3.SourceModule);
+                compilation3.VerifyDiagnostics(expected);
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i3 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I3", i3.Name);
+                var i1m1 = i3.ContainingNamespace.GetTypeMember("I1").GetMember<MethodSymbol>("M1");
+                Assert.Equal("void I1.M1()", i1m1.ToTestDisplayString());
+
+                Assert.Null(i3.FindImplementationForInterfaceMember(i1m1));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1m1));
+            }
+        }
+
+        [Fact]
+        public void MethodReAbstraction_06()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1() {} 
+}
+
+public interface I2 : I1
+{
+    abstract void I1.M1();
+}
+
+public interface I3 : I2 {}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+}
+";
+
+            ValidateMethodReAbstraction_05(source1, source2);
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void MethodReAbstraction_07()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1();
+}
+
+public interface I2 : I1
+{
+    abstract void I1.M1();
+}
+
+public interface I3 : I2
+{
+    void I1.M1()
+    {
+        System.Console.WriteLine(""I3.M1"");
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.M1();
+    }
+}
+";
+            ValidateMethodReAbstraction_07(source1, source2);
+        }
+
+        private void ValidateMethodReAbstraction_07(string source1, string source2)
+        {
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1,
+                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "I3.M1" : null,
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation3.SourceModule);
+                compilation3.VerifyDiagnostics();
+
+                CompileAndVerify(compilation1,
+                                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "I3.M1" : null,
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i3 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I3", i3.Name);
+                var i1m1 = i3.ContainingNamespace.GetTypeMember("I1").GetMember<MethodSymbol>("M1");
+                Assert.Equal("void I1.M1()", i1m1.ToTestDisplayString());
+
+                Assert.Equal("void I3.I1.M1()", i3.FindImplementationForInterfaceMember(i1m1).ToTestDisplayString());
+                Assert.Equal("void I3.I1.M1()", test1.FindImplementationForInterfaceMember(i1m1).ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void MethodReAbstraction_08()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1() {}
+}
+
+public interface I2 : I1
+{
+    abstract void I1.M1();
+}
+
+public interface I3 : I2
+{
+    void I1.M1()
+    {
+        System.Console.WriteLine(""I3.M1"");
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.M1();
+    }
+}
+";
+            ValidateMethodReAbstraction_07(source1, source2);
+        }
+
+        [Fact]
+        public void MethodReAbstraction_09()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1() {} 
+}
+
+public interface I2 : I1
+{
+    abstract void I1.M1();
+}
+
+public interface I3 : I1
+{
+    abstract void I1.M1();
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidateMethodReAbstraction_09(source1, source2);
+        }
+
+        private void ValidateMethodReAbstraction_09(string source1, string source2)
+        {
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+
+            var expected = new DiagnosticDescription[]
+                {
+                    // (2,15): error CS8705: Interface member 'I1.M1()' does not have a most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
+                    // class Test1 : I2, I3
+                    Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.M1()", "I2.I1.M1()", "I3.I1.M1()").WithLocation(2, 15)
+                };
+
+            compilation1.VerifyDiagnostics(expected);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation3.SourceModule);
+                compilation3.VerifyDiagnostics(expected);
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1m1 = test1.InterfacesNoUseSiteDiagnostics().First().ContainingNamespace.GetTypeMember("I1").GetMember<MethodSymbol>("M1");
+                Assert.Equal("void I1.M1()", i1m1.ToTestDisplayString());
+
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1m1));
+            }
+        }
+
+        [Fact]
+        public void MethodReAbstraction_10()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1() {} 
+}
+
+public interface I2 : I1
+{
+    void I1.M1() {}
+}
+
+public interface I3 : I1
+{
+    abstract void I1.M1();
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidateMethodReAbstraction_09(source1, source2);
+        }
+
+        [Fact]
+        public void MethodReAbstraction_11()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1() {} 
+}
+
+public interface I2 : I1
+{
+    abstract void I1.M1();
+}
+
+public interface I3 : I1
+{
+    void I1.M1() {}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidateMethodReAbstraction_09(source1, source2);
+        }
+
+        [Fact]
+        public void MethodReAbstraction_12()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1() {} 
+}
+
+public interface I2 : I1
+{
+    abstract void I1.M1();
+}
+
+public interface I3 : I1
+{
+    abstract void I1.M1();
+}
+
+public interface I4 : I2, I3 {}
+";
+
+            var source2 =
+@"
+class Test1 : I4
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+
+            var expected = new DiagnosticDescription[]
+                {
+                    // (2,15): error CS8705: Interface member 'I1.M1()' does not have a most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
+                    // class Test1 : I4
+                    Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I4").WithArguments("I1.M1()", "I2.I1.M1()", "I3.I1.M1()").WithLocation(2, 15)
+                };
+
+            compilation1.VerifyDiagnostics(expected);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation3.SourceModule);
+                compilation3.VerifyDiagnostics(expected);
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i4 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I4", i4.Name);
+                var i1m1 = i4.ContainingNamespace.GetTypeMember("I1").GetMember<MethodSymbol>("M1");
+                Assert.Equal("void I1.M1()", i1m1.ToTestDisplayString());
+
+                Assert.Null(i4.FindImplementationForInterfaceMember(i1m1));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1m1));
+            }
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void MethodReAbstraction_13()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1() {}
+}
+
+public interface I2 : I1
+{
+    abstract void I1.M1();
+}
+
+public interface I3 : I1
+{
+    abstract void I1.M1();
+}
+
+public interface I4 : I2, I3
+{
+    void I1.M1()
+    {
+        System.Console.WriteLine(""I4.M1"");
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I4
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1,
+                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "I4.M1" : null,
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation3.SourceModule);
+                compilation3.VerifyDiagnostics();
+
+                CompileAndVerify(compilation1,
+                                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "I4.M1" : null,
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i4 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I4", i4.Name);
+                var i1m1 = i4.ContainingNamespace.GetTypeMember("I1").GetMember<MethodSymbol>("M1");
+                Assert.Equal("void I1.M1()", i1m1.ToTestDisplayString());
+
+                Assert.Equal("void I4.I1.M1()", i4.FindImplementationForInterfaceMember(i1m1).ToTestDisplayString());
+                Assert.Equal("void I4.I1.M1()", test1.FindImplementationForInterfaceMember(i1m1).ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void MethodReAbstraction_14()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1();
+}
+
+public interface I2 : I1
+{
+    abstract void I1.M1() {}
+}
+
+class Test1 : I2
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+
+            compilation1.VerifyDiagnostics(
+                    // (9,22): error CS0500: 'I2.I1.M1()' cannot declare a body because it is marked abstract
+                    //     abstract void I1.M1() {}
+                    Diagnostic(ErrorCode.ERR_AbstractHasBody, "M1").WithArguments("I2.I1.M1()").WithLocation(9, 22),
+                    // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
+                    // class Test1 : I2
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1()").WithLocation(12, 15)
+                );
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I2", i2.Name);
+                var i2m1 = i2.GetMember<MethodSymbol>("I1.M1");
+
+                ValidateReabstraction(i2m1);
+
+                var i1m1 = i2m1.ExplicitInterfaceImplementations.Single();
+                Assert.Equal("void I1.M1()", i1m1.ToTestDisplayString());
+
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1m1));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1m1));
+            }
+        }
+
+        [Fact]
+        public void MethodReAbstraction_15()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1();
+}
+
+public interface I2 : I1
+{
+    abstract extern void I1.M1();
+}
+
+class Test1 : I2
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+
+            compilation1.VerifyDiagnostics(
+                // (9,29): error CS0180: 'I2.I1.M1()' cannot be both extern and abstract
+                //     abstract extern void I1.M1();
+                Diagnostic(ErrorCode.ERR_AbstractAndExtern, "M1").WithArguments("I2.I1.M1()").WithLocation(9, 29),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1()").WithLocation(12, 15)
+                );
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I2", i2.Name);
+                var i2m1 = i2.GetMember<MethodSymbol>("I1.M1");
+
+                Assert.True(i2m1.IsMetadataVirtual());
+                Assert.True(i2m1.IsMetadataFinal);
+                Assert.False(i2m1.IsMetadataNewSlot());
+                Assert.True(i2m1.IsAbstract);
+                Assert.False(i2m1.IsVirtual);
+                Assert.True(i2m1.IsSealed);
+                Assert.False(i2m1.IsStatic);
+                Assert.True(i2m1.IsExtern);
+                Assert.False(i2m1.IsAsync);
+                Assert.False(i2m1.IsOverride);
+                Assert.Equal(Accessibility.Private, i2m1.DeclaredAccessibility);
+
+                var i1m1 = i2m1.ExplicitInterfaceImplementations.Single();
+                Assert.Equal("void I1.M1()", i1m1.ToTestDisplayString());
+
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1m1));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1m1));
+            }
+        }
+
+        [Fact]
+        public void MethodReAbstraction_16()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1();
+}
+
+public partial interface I2 : I1
+{
+    abstract partial void I1.M1();
+}
+
+class Test1 : I2
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+
+            compilation1.VerifyDiagnostics(
+                // (9,30): error CS0754: A partial method may not explicitly implement an interface method
+                //     abstract partial void I1.M1();
+                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M1").WithLocation(9, 30),
+                // (9,30): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                //     abstract partial void I1.M1();
+                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M1").WithLocation(9, 30),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1()").WithLocation(12, 15)
+                );
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I2", i2.Name);
+                var i2m1 = i2.GetMember<MethodSymbol>("I1.M1");
+
+                ValidateReabstraction(i2m1);
+
+                var i1m1 = i2m1.ExplicitInterfaceImplementations.Single();
+                Assert.Equal("void I1.M1()", i1m1.ToTestDisplayString());
+
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1m1));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1m1));
+            }
+        }
+
+        [Fact]
+        public void MethodReAbstraction_17()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1();
+}
+
+public partial interface I2 : I1
+{
+    abstract async void I1.M1();
+}
+
+class Test1 : I2
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+
+            compilation1.VerifyDiagnostics(
+                // (9,28): error CS1994: The 'async' modifier can only be used in methods that have a body.
+                //     abstract async void I1.M1();
+                Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M1").WithLocation(9, 28),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1()").WithLocation(12, 15)
+                );
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I2", i2.Name);
+                var i2m1 = i2.GetMember<MethodSymbol>("I1.M1");
+
+                Assert.True(i2m1.IsMetadataVirtual());
+                Assert.True(i2m1.IsMetadataFinal);
+                Assert.False(i2m1.IsMetadataNewSlot());
+                Assert.True(i2m1.IsAbstract);
+                Assert.False(i2m1.IsVirtual);
+                Assert.True(i2m1.IsSealed);
+                Assert.False(i2m1.IsStatic);
+                Assert.False(i2m1.IsExtern);
+                Assert.True(i2m1.IsAsync);
+                Assert.False(i2m1.IsOverride);
+                Assert.Equal(Accessibility.Private, i2m1.DeclaredAccessibility);
+
+                var i1m1 = i2m1.ExplicitInterfaceImplementations.Single();
+                Assert.Equal("void I1.M1()", i1m1.ToTestDisplayString());
+
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1m1));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1m1));
+            }
+        }
+
+        [Fact]
+        public void MethodReAbstraction_18()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1();
+}
+
+public partial interface I2 : I1
+{
+    abstract public void I1.M1();
+}
+
+class Test1 : I2
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+
+            compilation1.VerifyDiagnostics(
+                // (9,29): error CS0106: The modifier 'public' is not valid for this item
+                //     abstract public void I1.M1();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("public").WithLocation(9, 29),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1()").WithLocation(12, 15)
+                );
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I2", i2.Name);
+                var i2m1 = i2.GetMember<MethodSymbol>("I1.M1");
+
+                ValidateReabstraction(i2m1);
+
+                var i1m1 = i2m1.ExplicitInterfaceImplementations.Single();
+                Assert.Equal("void I1.M1()", i1m1.ToTestDisplayString());
+
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1m1));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1m1));
+            }
+        }
+
+        [Fact]
+        public void MethodReAbstraction_19()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1();
+}
+
+public class C2 : I1
+{
+    abstract void I1.M1();
+}
+";
+            ValidateMethodReAbstraction_19(source1);
+        }
+
+        private static void ValidateMethodReAbstraction_19(string source1)
+        {
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+
+            compilation1.VerifyDiagnostics(
+                // (9,22): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract void I1.M1();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("abstract").WithLocation(9, 22),
+                // (9,22): error CS0501: 'C2.I1.M1()' must declare a body because it is not marked abstract, extern, or partial
+                //     abstract void I1.M1();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M1").WithArguments("C2.I1.M1()").WithLocation(9, 22)
+                );
+
+            static void validate(ModuleSymbol m)
+            {
+                var c2 = m.GlobalNamespace.GetTypeMember("C2");
+                var c2m1 = c2.GetMember<MethodSymbol>("I1.M1");
+
+                Assert.False(c2m1.IsAbstract);
+                Assert.False(c2m1.IsSealed);
+
+                var i1m1 = c2m1.ExplicitInterfaceImplementations.Single();
+                Assert.Equal("void I1.M1()", i1m1.ToTestDisplayString());
+
+                Assert.Same(c2m1, c2.FindImplementationForInterfaceMember(i1m1));
+            }
+        }
+
+        [Fact]
+        public void MethodReAbstraction_20()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1();
+}
+
+public struct C2 : I1
+{
+    abstract void I1.M1();
+}
+";
+            ValidateMethodReAbstraction_19(source1);
+        }
+
+        [Fact]
+        public void MethodReAbstraction_21()
+        {
+            var source1 =
+@"
+public interface I1
+{
+}
+
+public interface I2 : I1
+{
+    abstract void I1.M1();
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidateMethodReAbstraction_21(source1,
+                // (8,22): error CS0539: 'I2.M1()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract void I1.M1();
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("I2.M1()").WithLocation(8, 22)
+                );
+        }
+
+        private static void ValidateMethodReAbstraction_21(string source1, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+
+            compilation1.VerifyDiagnostics(expected);
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I2", i2.Name);
+                var i2m1 = i2.GetMember<MethodSymbol>("I1.M1");
+
+                ValidateReabstraction(i2m1);
+
+                Assert.Empty(i2m1.ExplicitInterfaceImplementations);
+            }
+        }
+
+        [Fact]
+        public void MethodReAbstraction_22()
+        {
+            var source1 =
+@"
+public interface I2 : I1
+{
+    abstract void I1.M1();
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidateMethodReAbstraction_21(source1,
+                // (2,23): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
+                // public interface I2 : I1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(2, 23),
+                // (4,19): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
+                //     abstract void I1.M1();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(4, 19),
+                // (4,19): error CS0538: 'I1' in explicit interface declaration is not an interface
+                //     abstract void I1.M1();
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I1").WithArguments("I1").WithLocation(4, 19)
+                );
+        }
+
+        [Fact]
+        public void MethodReAbstraction_23()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1();
+}
+
+public interface I2 : I1
+{
+    abstract void I1.M1();
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular7_3,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (9,22): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     abstract void I1.M1();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("default interface implementation").WithLocation(9, 22)
+                );
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+            compilation2.VerifyDiagnostics(
+                // (9,22): error CS8701: Target runtime doesn't support default interface implementation.
+                //     abstract void I1.M1();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M1").WithLocation(9, 22)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_001()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get; set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_001(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        private static void ValidatePropertyReAbstraction_001(string source1, string source2, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+            compilation1.VerifyDiagnostics(expected);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation3.SourceModule);
+                compilation3.VerifyDiagnostics(expected);
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I2", i2.Name);
+                var i2p1 = i2.GetMembers().OfType<PropertySymbol>().Single();
+
+                ValidateReabstraction(i2p1);
+
+                var i1p1 = i2p1.ExplicitInterfaceImplementations.Single();
+
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1p1));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1));
+
+                if (i1p1.GetMethod is object)
+                {
+                    Assert.Same(i1p1.GetMethod, i2p1.GetMethod.ExplicitInterfaceImplementations.Single());
+                    Assert.Null(i2.FindImplementationForInterfaceMember(i1p1.GetMethod));
+                    Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.GetMethod));
+                }
+                else if (i2p1.GetMethod is object)
+                {
+                    Assert.Empty(i2p1.GetMethod.ExplicitInterfaceImplementations);
+                }
+
+                if (i1p1.SetMethod is object)
+                {
+                    Assert.Same(i1p1.SetMethod, i2p1.SetMethod.ExplicitInterfaceImplementations.Single());
+                    Assert.Null(i2.FindImplementationForInterfaceMember(i1p1.SetMethod));
+                    Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.SetMethod));
+                }
+                else if (i2p1.SetMethod is object)
+                {
+                    Assert.Empty(i2p1.SetMethod.ExplicitInterfaceImplementations);
+                }
+            }
+        }
+
+        private static void ValidateReabstraction(PropertySymbol reabstracting)
+        {
+            Assert.True(reabstracting.IsAbstract);
+            Assert.False(reabstracting.IsVirtual);
+            Assert.True(reabstracting.IsSealed);
+            Assert.False(reabstracting.IsStatic);
+            Assert.False(reabstracting.IsExtern);
+            Assert.False(reabstracting.IsOverride);
+            Assert.Equal(Accessibility.Private, reabstracting.DeclaredAccessibility);
+
+            if (reabstracting.GetMethod is object)
+            {
+                ValidateReabstraction(reabstracting.GetMethod);
+            }
+
+            if (reabstracting.SetMethod is object)
+            {
+                ValidateReabstraction(reabstracting.SetMethod);
+            }
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_002()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { get => throw null; set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get; set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_001(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void PropertyReAbstraction_003()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get; set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1.P1;
+        i1.P1 = 1;
+    }
+
+    int I1.P1
+    {
+        get
+        {
+            System.Console.WriteLine(""Test1.get_P1"");
+            return 0;
+        }
+        set => System.Console.WriteLine(""Test1.set_P1"");
+    }
+}
+";
+            ValidatePropertyReAbstraction_003(source1, source2,
+@"
+Test1.get_P1
+Test1.set_P1
+");
+        }
+
+        private void ValidatePropertyReAbstraction_003(string source1, string source2, string expected)
+        {
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1,
+                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation3.SourceModule);
+                compilation3.VerifyDiagnostics();
+
+                CompileAndVerify(compilation1,
+                                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var test12p1 = test1.GetMembers().OfType<PropertySymbol>().Single();
+                var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I2", i2.Name);
+                var i2p1 = i2.GetMembers().OfType<PropertySymbol>().Single();
+
+                var i1p1 = i2p1.ExplicitInterfaceImplementations.Single();
+
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1p1));
+                Assert.Same(test12p1, test1.FindImplementationForInterfaceMember(i1p1));
+
+                if (i1p1.GetMethod is object)
+                {
+                    Assert.Null(i2.FindImplementationForInterfaceMember(i1p1.GetMethod));
+                    Assert.Same(test12p1.GetMethod, test1.FindImplementationForInterfaceMember(i1p1.GetMethod));
+                }
+
+                if (i1p1.SetMethod is object)
+                {
+                    Assert.Null(i2.FindImplementationForInterfaceMember(i1p1.SetMethod));
+                    Assert.Same(test12p1.SetMethod, test1.FindImplementationForInterfaceMember(i1p1.SetMethod));
+                }
+            }
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void PropertyReAbstraction_004()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { get => throw null; set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get; set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1.P1;
+        i1.P1 = 1;
+    }
+
+    int I1.P1
+    {
+        get
+        {
+            System.Console.WriteLine(""Test1.get_P1"");
+            return 0;
+        }
+        set => System.Console.WriteLine(""Test1.set_P1"");
+    }
+}
+";
+            ValidatePropertyReAbstraction_003(source1, source2,
+@"
+Test1.get_P1
+Test1.set_P1
+");
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_005()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get; set;}
+}
+
+public interface I3 : I2 {}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+}
+";
+            ValidatePropertyReAbstraction_005(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        private static void ValidatePropertyReAbstraction_005(string source1, string source2, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+            compilation1.VerifyDiagnostics(expected);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation3.SourceModule);
+                compilation3.VerifyDiagnostics(expected);
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i3 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I3", i3.Name);
+
+                var i1p1 = i3.ContainingNamespace.GetTypeMember("I1").GetMembers().OfType<PropertySymbol>().Single();
+
+                Assert.Null(i3.FindImplementationForInterfaceMember(i1p1));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1));
+
+                if (i1p1.GetMethod is object)
+                {
+                    Assert.Null(i3.FindImplementationForInterfaceMember(i1p1.GetMethod));
+                    Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.GetMethod));
+                }
+
+                if (i1p1.SetMethod is object)
+                {
+                    Assert.Null(i3.FindImplementationForInterfaceMember(i1p1.SetMethod));
+                    Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.SetMethod));
+                }
+            }
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_006()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { get => throw null; set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get; set;}
+}
+
+public interface I3 : I2 {}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+}
+";
+            ValidatePropertyReAbstraction_005(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void PropertyReAbstraction_007()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get; set;}
+}
+
+public interface I3 : I2
+{
+    int I1.P1
+    {
+        get
+        {
+            System.Console.WriteLine(""I3.get_P1"");
+            return 0;
+        }
+        set => System.Console.WriteLine(""I3.set_P1"");
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1.P1;
+        i1.P1 = 1;
+    }
+}
+";
+            ValidatePropertyReAbstraction_007(source1, source2,
+@"
+I3.get_P1
+I3.set_P1
+");
+        }
+
+        private void ValidatePropertyReAbstraction_007(string source1, string source2, string expected)
+        {
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1,
+                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation3.SourceModule);
+                compilation3.VerifyDiagnostics();
+
+                CompileAndVerify(compilation1,
+                                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i3 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I3", i3.Name);
+
+                var i3p1 = i3.GetMembers().OfType<PropertySymbol>().Single();
+                var i1p1 = i3.ContainingNamespace.GetTypeMember("I1").GetMembers().OfType<PropertySymbol>().Single();
+
+                Assert.Same(i3p1, i3.FindImplementationForInterfaceMember(i1p1));
+                Assert.Same(i3p1, test1.FindImplementationForInterfaceMember(i1p1));
+
+                if (i1p1.GetMethod is object)
+                {
+                    Assert.Same(i3p1.GetMethod, i3.FindImplementationForInterfaceMember(i1p1.GetMethod));
+                    Assert.Same(i3p1.GetMethod, test1.FindImplementationForInterfaceMember(i1p1.GetMethod));
+                }
+
+                if (i1p1.SetMethod is object)
+                {
+                    Assert.Same(i3p1.SetMethod, i3.FindImplementationForInterfaceMember(i1p1.SetMethod));
+                    Assert.Same(i3p1.SetMethod, test1.FindImplementationForInterfaceMember(i1p1.SetMethod));
+                }
+            }
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void PropertyReAbstraction_008()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { get => throw null; set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get; set;}
+}
+
+public interface I3 : I2
+{
+    int I1.P1
+    {
+        get
+        {
+            System.Console.WriteLine(""I3.get_P1"");
+            return 0;
+        }
+        set => System.Console.WriteLine(""I3.set_P1"");
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1.P1;
+        i1.P1 = 1;
+    }
+}
+";
+            ValidatePropertyReAbstraction_007(source1, source2,
+@"
+I3.get_P1
+I3.set_P1
+");
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_009()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { get => throw null; set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get; set;}
+}
+
+public interface I3 : I1
+{
+    abstract int I1.P1 {get; set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidatePropertyReAbstraction_009(source1, source2,
+                // (2,15): error CS8705: Interface member 'I1.P1' does not have a most specific implementation. Neither 'I2.I1.P1', nor 'I3.I1.P1' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.P1", "I2.I1.P1", "I3.I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        private static void ValidatePropertyReAbstraction_009(string source1, string source2, params DiagnosticDescription[] expected)
+        {
+            ValidatePropertyReAbstraction_009(source1, source2, expected, expected);
+        }
+
+        private static void ValidatePropertyReAbstraction_009(string source1, string source2, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
+        {
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+            compilation1.VerifyDiagnostics(expected1);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            var expected = expected1;
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation3.SourceModule);
+                compilation3.VerifyDiagnostics(expected);
+                expected = expected2;
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1p1 = test1.InterfacesNoUseSiteDiagnostics().First().ContainingNamespace.GetTypeMember("I1").GetMembers().OfType<PropertySymbol>().Single();
+
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1));
+                if (i1p1.GetMethod is object)
+                {
+                    Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.GetMethod));
+                }
+                if (i1p1.SetMethod is object)
+                {
+                    Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.SetMethod));
+                }
+            }
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_010()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { get => throw null; set => throw null; }
+}
+
+public interface I2 : I1
+{
+    int I1.P1 { get => throw null; set => throw null; }
+}
+
+public interface I3 : I1
+{
+    abstract int I1.P1 {get; set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidatePropertyReAbstraction_009(source1, source2,
+                // (2,15): error CS8705: Interface member 'I1.P1' does not have a most specific implementation. Neither 'I2.I1.P1', nor 'I3.I1.P1' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.P1", "I2.I1.P1", "I3.I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_011()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { get => throw null; set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get; set;}
+}
+
+public interface I3 : I1
+{
+    int I1.P1 { get => throw null; set => throw null; }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidatePropertyReAbstraction_009(source1, source2,
+                // (2,15): error CS8705: Interface member 'I1.P1' does not have a most specific implementation. Neither 'I2.I1.P1', nor 'I3.I1.P1' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.P1", "I2.I1.P1", "I3.I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_012()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { get => throw null; set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get; set;}
+}
+
+public interface I3 : I1
+{
+    abstract int I1.P1 {get; set;}
+}
+
+public interface I4 : I2, I3 {}
+";
+
+            var source2 =
+@"
+class Test1 : I4
+{
+}
+";
+            ValidatePropertyReAbstraction_012(source1, source2,
+                // (2,15): error CS8705: Interface member 'I1.P1' does not have a most specific implementation. Neither 'I2.I1.P1', nor 'I3.I1.P1' are most specific.
+                // class Test1 : I4
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I4").WithArguments("I1.P1", "I2.I1.P1", "I3.I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        private static void ValidatePropertyReAbstraction_012(string source1, string source2, params DiagnosticDescription[] expected)
+        {
+            ValidatePropertyReAbstraction_012(source1, source2, expected, expected);
+        }
+
+        private static void ValidatePropertyReAbstraction_012(string source1, string source2, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
+        {
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+            compilation1.VerifyDiagnostics(expected1);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            var expected = expected1;
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation3.SourceModule);
+                compilation3.VerifyDiagnostics(expected);
+                expected = expected2;
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i4 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I4", i4.Name);
+                var i1p1 = i4.ContainingNamespace.GetTypeMember("I1").GetMembers().OfType<PropertySymbol>().Single();
+
+                Assert.Null(i4.FindImplementationForInterfaceMember(i1p1));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1));
+                if (i1p1.GetMethod is object)
+                {
+                    Assert.Null(i4.FindImplementationForInterfaceMember(i1p1.GetMethod));
+                    Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.GetMethod));
+                }
+                if (i1p1.SetMethod is object)
+                {
+                    Assert.Null(i4.FindImplementationForInterfaceMember(i1p1.SetMethod));
+                    Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.SetMethod));
+                }
+            }
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void PropertyReAbstraction_013()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { get => throw null; set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get; set;}
+}
+
+public interface I3 : I1
+{
+    abstract int I1.P1 {get; set;}
+}
+
+public interface I4 : I2, I3
+{
+    int I1.P1
+    {
+        get
+        {
+            System.Console.WriteLine(""I4.get_P1"");
+            return 0;
+        }
+        set => System.Console.WriteLine(""I4.set_P1"");
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I4
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1.P1;
+        i1.P1 = 1;
+    }
+}
+";
+            ValidatePropertyReAbstraction_013(source1, source2,
+@"
+I4.get_P1
+I4.set_P1
+");
+        }
+
+        private void ValidatePropertyReAbstraction_013(string source1, string source2, string expected)
+        {
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1,
+                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation3.SourceModule);
+                compilation3.VerifyDiagnostics();
+
+                CompileAndVerify(compilation1,
+                                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i4 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I4", i4.Name);
+
+                var i4p1 = i4.GetMembers().OfType<PropertySymbol>().Single();
+                var i1p1 = i4.ContainingNamespace.GetTypeMember("I1").GetMembers().OfType<PropertySymbol>().Single();
+
+                Assert.Same(i4p1, i4.FindImplementationForInterfaceMember(i1p1));
+                Assert.Same(i4p1, test1.FindImplementationForInterfaceMember(i1p1));
+
+                if (i1p1.GetMethod is object)
+                {
+                    Assert.Same(i4p1.GetMethod, i4.FindImplementationForInterfaceMember(i1p1.GetMethod));
+                    Assert.Same(i4p1.GetMethod, test1.FindImplementationForInterfaceMember(i1p1.GetMethod));
+                }
+
+                if (i1p1.SetMethod is object)
+                {
+                    Assert.Same(i4p1.SetMethod, i4.FindImplementationForInterfaceMember(i1p1.SetMethod));
+                    Assert.Same(i4p1.SetMethod, test1.FindImplementationForInterfaceMember(i1p1.SetMethod));
+                }
+            }
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_014()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1
+    {
+        get
+        {
+            throw null;
+        }
+        set
+        {
+            throw null;
+        }
+    }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (11,9): error CS0500: 'I2.I1.P1.get' cannot declare a body because it is marked abstract
+                //         get
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I2.I1.P1.get").WithLocation(11, 9),
+                // (15,9): error CS0500: 'I2.I1.P1.set' cannot declare a body because it is marked abstract
+                //         set
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I2.I1.P1.set").WithLocation(15, 9),
+                // (22,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(22, 15)
+                );
+        }
+
+        private static void ValidatePropertyReAbstraction_014(string source1, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+
+            compilation1.VerifyDiagnostics(expected);
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I2", i2.Name);
+                var i2p1 = i2.GetMembers().OfType<PropertySymbol>().Single();
+                var i1p1 = i2p1.ExplicitInterfaceImplementations.Single();
+
+                ValidateReabstraction(i2p1);
+
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1p1));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1));
+
+                if (i1p1.GetMethod is object)
+                {
+                    if (i2p1.GetMethod is object)
+                    {
+                        Assert.Same(i1p1.GetMethod, i2p1.GetMethod.ExplicitInterfaceImplementations.Single());
+                    }
+
+                    Assert.Null(i2.FindImplementationForInterfaceMember(i1p1.GetMethod));
+                    Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.GetMethod));
+                }
+                else if (i2p1.GetMethod is object)
+                {
+                    Assert.Empty(i2p1.GetMethod.ExplicitInterfaceImplementations);
+                }
+
+                if (i1p1.SetMethod is object)
+                {
+                    if (i2p1.SetMethod is object)
+                    {
+                        Assert.Same(i1p1.SetMethod, i2p1.SetMethod.ExplicitInterfaceImplementations.Single());
+                    }
+
+                    Assert.Null(i2.FindImplementationForInterfaceMember(i1p1.SetMethod));
+                    Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.SetMethod));
+                }
+                else if (i2p1.SetMethod is object)
+                {
+                    Assert.Empty(i2p1.SetMethod.ExplicitInterfaceImplementations);
+                }
+            }
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_015()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                    // (11,9): error CS0500: 'I2.I1.P1.get' cannot declare a body because it is marked abstract
+                    //         get => throw null;
+                    Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I2.I1.P1.get").WithLocation(11, 9),
+                    // (12,9): error CS0500: 'I2.I1.P1.set' cannot declare a body because it is marked abstract
+                    //         set => throw null;
+                    Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I2.I1.P1.set").WithLocation(12, 9),
+                    // (16,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                    // class Test1 : I2
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(16, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_016()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get; set;}
+}
+
+public interface I2 : I1
+{
+    extern abstract int I1.P1 {get; set;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_016(source1,
+                // (9,28): error CS0180: 'I2.I1.P1' cannot be both extern and abstract
+                //     extern abstract int I1.P1 {get; set;}
+                Diagnostic(ErrorCode.ERR_AbstractAndExtern, "P1").WithArguments("I2.I1.P1").WithLocation(9, 28),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        private static void ValidatePropertyReAbstraction_016(string source1, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+
+            compilation1.VerifyDiagnostics(expected);
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I2", i2.Name);
+                var i2p1 = i2.GetMembers().OfType<PropertySymbol>().Single();
+
+                Assert.True(i2p1.IsAbstract);
+                Assert.False(i2p1.IsVirtual);
+                Assert.True(i2p1.IsSealed);
+                Assert.False(i2p1.IsStatic);
+                Assert.True(i2p1.IsExtern);
+                Assert.False(i2p1.IsOverride);
+                Assert.Equal(Accessibility.Private, i2p1.DeclaredAccessibility);
+
+                var i2p1Get = i2p1.GetMethod;
+
+                if (i2p1Get is object)
+                {
+                    Assert.True(i2p1Get.IsMetadataVirtual());
+                    Assert.True(i2p1Get.IsMetadataFinal);
+                    Assert.False(i2p1Get.IsMetadataNewSlot());
+                    Assert.True(i2p1Get.IsAbstract);
+                    Assert.False(i2p1Get.IsVirtual);
+                    Assert.True(i2p1Get.IsSealed);
+                    Assert.False(i2p1Get.IsStatic);
+                    Assert.True(i2p1Get.IsExtern);
+                    Assert.False(i2p1Get.IsAsync);
+                    Assert.False(i2p1Get.IsOverride);
+                    Assert.Equal(Accessibility.Private, i2p1Get.DeclaredAccessibility);
+                }
+
+                var i2p1Set = i2p1.SetMethod;
+
+                if (i2p1Set is object)
+                {
+                    Assert.True(i2p1Set.IsMetadataVirtual());
+                    Assert.True(i2p1Set.IsMetadataFinal);
+                    Assert.False(i2p1Set.IsMetadataNewSlot());
+                    Assert.True(i2p1Set.IsAbstract);
+                    Assert.False(i2p1Set.IsVirtual);
+                    Assert.True(i2p1Set.IsSealed);
+                    Assert.False(i2p1Set.IsStatic);
+                    Assert.True(i2p1Set.IsExtern);
+                    Assert.False(i2p1Set.IsAsync);
+                    Assert.False(i2p1Set.IsOverride);
+                    Assert.Equal(Accessibility.Private, i2p1Set.DeclaredAccessibility);
+                }
+
+                var i1p1 = i2p1.ExplicitInterfaceImplementations.Single();
+
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1p1));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1));
+
+                if (i1p1.GetMethod is object)
+                {
+                    Assert.Same(i1p1.GetMethod, i2p1.GetMethod.ExplicitInterfaceImplementations.Single());
+                    Assert.Null(i2.FindImplementationForInterfaceMember(i1p1.GetMethod));
+                    Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.GetMethod));
+                }
+                else if (i2p1.GetMethod is object)
+                {
+                    Assert.Empty(i2p1.GetMethod.ExplicitInterfaceImplementations);
+                }
+
+                if (i1p1.SetMethod is object)
+                {
+                    Assert.Same(i1p1.SetMethod, i2p1.SetMethod.ExplicitInterfaceImplementations.Single());
+                    Assert.Null(i2.FindImplementationForInterfaceMember(i1p1.SetMethod));
+                    Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.SetMethod));
+                }
+                else if (i2p1.SetMethod is object)
+                {
+                    Assert.Empty(i2p1.SetMethod.ExplicitInterfaceImplementations);
+                }
+            }
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_017()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract public int I1.P1 { get; set; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,28): error CS0106: The modifier 'public' is not valid for this item
+                //     abstract public int I1.P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("public").WithLocation(9, 28),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_018()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get; set;}
+}
+
+public class C2 : I1
+{
+    abstract int I1.P1 { get; set; }
+}
+";
+            ValidatePropertyReAbstraction_018(source1,
+                // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract int I1.P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21)
+                );
+        }
+
+        private static void ValidatePropertyReAbstraction_018(string source1, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+
+            compilation1.VerifyDiagnostics(expected);
+
+            static void validate(ModuleSymbol m)
+            {
+                var c2 = m.GlobalNamespace.GetTypeMember("C2");
+                var c2p1 = c2.GetMembers().OfType<PropertySymbol>().Single();
+
+                Assert.False(c2p1.IsAbstract);
+                Assert.False(c2p1.IsSealed);
+
+                var c2p1Get = c2p1.GetMethod;
+
+                if (c2p1Get is object)
+                {
+                    Assert.False(c2p1Get.IsAbstract);
+                    Assert.False(c2p1Get.IsSealed);
+                }
+
+                var c2p1Set = c2p1.SetMethod;
+
+                if (c2p1Set is object)
+                {
+                    Assert.False(c2p1Set.IsAbstract);
+                    Assert.False(c2p1Set.IsSealed);
+                }
+
+                var i1p1 = c2p1.ExplicitInterfaceImplementations.Single();
+
+                Assert.Same(c2p1, c2.FindImplementationForInterfaceMember(i1p1));
+                if (i1p1.GetMethod is object)
+                {
+                    Assert.Same(i1p1.GetMethod, c2p1.GetMethod.ExplicitInterfaceImplementations.Single());
+                    Assert.Same(c2p1Get, c2.FindImplementationForInterfaceMember(i1p1.GetMethod));
+                }
+                else if (c2p1.GetMethod is object)
+                {
+                    Assert.Empty(c2p1.GetMethod.ExplicitInterfaceImplementations);
+                }
+
+                if (i1p1.SetMethod is object)
+                {
+                    Assert.Same(i1p1.SetMethod, c2p1.SetMethod.ExplicitInterfaceImplementations.Single());
+                    Assert.Same(c2p1Set, c2.FindImplementationForInterfaceMember(i1p1.SetMethod));
+                }
+                else if (c2p1.SetMethod is object)
+                {
+                    Assert.Empty(c2p1.SetMethod.ExplicitInterfaceImplementations);
+                }
+            }
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_019()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get; set;}
+}
+
+public struct C2 : I1
+{
+    abstract int I1.P1 { get; set; }
+}
+";
+            ValidatePropertyReAbstraction_018(source1,
+                // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract int I1.P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_020()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 { get; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,21): error CS0551: Explicit interface implementation 'I2.I1.P1' is missing accessor 'I1.P1.set'
+                //     abstract int I1.P1 { get; }
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "P1").WithArguments("I2.I1.P1", "I1.P1.set").WithLocation(9, 21),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_021()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 { set; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,21): error CS0551: Explicit interface implementation 'I2.I1.P1' is missing accessor 'I1.P1.get'
+                //     abstract int I1.P1 { set; }
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "P1").WithArguments("I2.I1.P1", "I1.P1.get").WithLocation(9, 21),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_022()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 { get; set; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,31): error CS0550: 'I2.I1.P1.set' adds an accessor not found in interface member 'I1.P1'
+                //     abstract int I1.P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("I2.I1.P1.set", "I1.P1").WithLocation(9, 31),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_023()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 { get; set; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,26): error CS0550: 'I2.I1.P1.get' adds an accessor not found in interface member 'I1.P1'
+                //     abstract int I1.P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("I2.I1.P1.get", "I1.P1").WithLocation(9, 26),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_024()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get => throw null; private set => throw null;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 { get; set; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,31): error CS0550: 'I2.I1.P1.set' adds an accessor not found in interface member 'I1.P1'
+                //     abstract int I1.P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("I2.I1.P1.set", "I1.P1").WithLocation(9, 31),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_025()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {private get => throw null; set => throw null;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 { get; set; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,26): error CS0550: 'I2.I1.P1.get' adds an accessor not found in interface member 'I1.P1'
+                //     abstract int I1.P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("I2.I1.P1.get", "I1.P1").WithLocation(9, 26),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_026()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    internal int P1 {get => throw null; set => throw null;}
+}
+";
+            var source2 =
+@"
+public interface I2 : I1
+{
+    abstract int I1.P1 { get; set; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_026(source1, source2,
+                // (4,21): error CS0122: 'I1.P1' is inaccessible due to its protection level
+                //     abstract int I1.P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(4, 21),
+                // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(7, 15)
+                );
+        }
+
+        private static void ValidatePropertyReAbstraction_026(string source1, string source2, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.Regular,
+                                                     references: new[] { reference },
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation2.SourceModule);
+                compilation2.VerifyDiagnostics(expected);
+            }
+
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I2", i2.Name);
+                var i2p1 = i2.GetMembers().OfType<PropertySymbol>().Single();
+                var i1p1 = i2p1.ExplicitInterfaceImplementations.Single();
+
+                ValidateReabstraction(i2p1);
+
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1p1));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1));
+
+                if (i1p1.GetMethod is object)
+                {
+                    Assert.Same(i1p1.GetMethod, i2p1.GetMethod.ExplicitInterfaceImplementations.Single());
+                    Assert.Null(i2.FindImplementationForInterfaceMember(i1p1.GetMethod));
+                    Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.GetMethod));
+                }
+                else if (i2p1.GetMethod is object)
+                {
+                    Assert.Empty(i2p1.GetMethod.ExplicitInterfaceImplementations);
+                }
+
+                if (i1p1.SetMethod is object)
+                {
+                    Assert.Same(i1p1.SetMethod, i2p1.SetMethod.ExplicitInterfaceImplementations.Single());
+                    Assert.Null(i2.FindImplementationForInterfaceMember(i1p1.SetMethod));
+                    Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.SetMethod));
+                }
+                else if (i2p1.SetMethod is object)
+                {
+                    Assert.Empty(i2p1.SetMethod.ExplicitInterfaceImplementations);
+                }
+            }
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_027()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {internal get => throw null; set => throw null;}
+}
+";
+            var source2 =
+@"
+public interface I2 : I1
+{
+    abstract int I1.P1 { get; set; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_026(source1, source2,
+                // (4,21): error CS0122: 'I1.P1.get' is inaccessible due to its protection level
+                //     abstract int I1.P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1.get").WithLocation(4, 21),
+                // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(7, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_028()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get => throw null; internal set => throw null;}
+}
+";
+            var source2 =
+@"
+public interface I2 : I1
+{
+    abstract int I1.P1 { get; set; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_026(source1, source2,
+                // (4,21): error CS0122: 'I1.P1.set' is inaccessible due to its protection level
+                //     abstract int I1.P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1.set").WithLocation(4, 21),
+                // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(7, 15)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void PropertyReAbstraction_029()
+        {
+            var ilSource = @"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot specialname abstract virtual 
+          instance char  get_F1() cil managed
+  {
+  } // end of method I1::get_F1
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  set_F1(char 'value') cil managed
+  {
+  } // end of method I1::set_F1
+
+  .property instance char F1()
+  {
+    .get instance char I1::get_F1()
+    .set instance void I1::set_F1(char)
+  } // end of property I1::F1
+} // end of class I1
+
+.class interface public abstract auto ansi I2
+       implements I1
+{
+  .method private hidebysig specialname virtual final 
+          instance char  I1.get_F1() cil managed
+  {
+    .override I1::get_F1
+    // Code size       3 (0x3)
+    .maxstack  8
+    IL_0000:  ldc.i4.s   65
+    IL_0002:  ret
+  } // end of method I2::I1.get_F1
+
+  .method private hidebysig specialname abstract virtual final 
+          instance void  I1.set_F1(char 'value') cil managed
+  {
+    .override I1::set_F1
+  } // end of method I2::I1.set_F1
+
+  .property instance char I1.F1()
+  {
+    .get instance char I2::I1.get_F1()
+    .set instance void I2::I1.set_F1(char)
+  } // end of property I2::I1.F1
+} // end of class I2
+";
+
+            var source1 =
+@"
+class Test2 : I2
+{
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.F1'
+                // class Test2 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test2", "I1.F1").WithLocation(2, 15)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i1F1 = i1.GetMember<PropertySymbol>("F1");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.SetMethod));
+            Assert.Equal("System.Char I2.I1.get_F1()", test2.FindImplementationForInterfaceMember(i1F1.GetMethod).ToTestDisplayString());
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void PropertyReAbstraction_030()
+        {
+            var ilSource = @"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot specialname abstract virtual 
+          instance char  get_F1() cil managed
+  {
+  } // end of method I1::get_F1
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  set_F1(char 'value') cil managed
+  {
+  } // end of method I1::set_F1
+
+  .property instance char F1()
+  {
+    .get instance char I1::get_F1()
+    .set instance void I1::set_F1(char)
+  } // end of property I1::F1
+} // end of class I1
+
+.class interface public abstract auto ansi I2
+       implements I1
+{
+  .method private hidebysig specialname abstract virtual final 
+          instance char  I1.get_F1() cil managed
+  {
+    .override I1::get_F1
+  } // end of method I2::I1.get_F1
+
+  .method private hidebysig specialname virtual final 
+          instance void  I1.set_F1(char 'value') cil managed
+  {
+    .override I1::set_F1
+    IL_0002:  ret
+  } // end of method I2::I1.set_F1
+
+  .property instance char I1.F1()
+  {
+    .get instance char I2::I1.get_F1()
+    .set instance void I2::I1.set_F1(char)
+  } // end of property I2::I1.F1
+} // end of class I2
+";
+
+            var source1 =
+@"
+class Test2 : I2
+{
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.F1'
+                // class Test2 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test2", "I1.F1").WithLocation(2, 15)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i1F1 = i1.GetMember<PropertySymbol>("F1");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1));
+            Assert.Equal("void I2.I1.set_F1(System.Char value)", test2.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.GetMethod));
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void PropertyReAbstraction_031()
+        {
+            var ilSource = @"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot specialname abstract virtual 
+          instance char  get_F1() cil managed
+  {
+  } // end of method I1::get_F1
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  set_F1(char 'value') cil managed
+  {
+  } // end of method I1::set_F1
+
+  .property instance char F1()
+  {
+    .get instance char I1::get_F1()
+    .set instance void I1::set_F1(char)
+  } // end of property I1::F1
+} // end of class I1
+
+.class interface public abstract auto ansi I2
+       implements I1
+{
+  .method private hidebysig specialname virtual final 
+          instance char  I1.get_F1() cil managed
+  {
+    .override I1::get_F1
+    // Code size       3 (0x3)
+    .maxstack  8
+    IL_0000:  ldc.i4.s   65
+    IL_0002:  ret
+  } // end of method I2::I1.get_F1
+
+  .method private hidebysig specialname abstract virtual final 
+          instance void  I1.set_F1(char 'value') cil managed
+  {
+    .override I1::set_F1
+  } // end of method I2::I1.set_F1
+
+  .property instance char I1.F1()
+  {
+    .get instance char I2::I1.get_F1()
+    .set instance void I2::I1.set_F1(char)
+  } // end of property I2::I1.F1
+} // end of class I2
+
+.class interface public abstract auto ansi I3
+       implements I1
+{
+  .method private hidebysig specialname abstract virtual final 
+          instance char  I1.get_F1() cil managed
+  {
+    .override I1::get_F1
+  } // end of method I3::I1.get_F1
+
+  .method private hidebysig specialname virtual final 
+          instance void  I1.set_F1(char 'value') cil managed
+  {
+    .override I1::set_F1
+    IL_0002:  ret
+  } // end of method I3::I1.set_F1
+
+  .property instance char I1.F1()
+  {
+    .get instance char I3::I1.get_F1()
+    .set instance void I3::I1.set_F1(char)
+  } // end of property I3::I1.F1
+} // end of class I3
+";
+
+            var source1 =
+@"
+class Test2 : I2, I3
+{
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (2,15): error CS8705: Interface member 'I1.F1' does not have a most specific implementation. Neither 'I2.I1.F1', nor 'I3.I1.F1' are most specific.
+                // class Test2 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.F1", "I2.I1.F1", "I3.I1.F1").WithLocation(2, 15)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i1F1 = i1.GetMember<PropertySymbol>("F1");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.SetMethod));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.GetMethod));
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void PropertyReAbstraction_032()
+        {
+            var ilSource = @"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot specialname abstract virtual 
+          instance char  get_F1() cil managed
+  {
+  } // end of method I1::get_F1
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  set_F1(char 'value') cil managed
+  {
+  } // end of method I1::set_F1
+
+  .property instance char F1()
+  {
+    .get instance char I1::get_F1()
+    .set instance void I1::set_F1(char)
+  } // end of property I1::F1
+} // end of class I1
+
+.class interface public abstract auto ansi I2
+       implements I1
+{
+  .method private hidebysig specialname virtual final 
+          instance char  I1.get_F1() cil managed
+  {
+    .override I1::get_F1
+    // Code size       3 (0x3)
+    .maxstack  8
+    IL_0000:  ldc.i4.s   65
+    IL_0002:  ret
+  } // end of method I2::I1.get_F1
+
+  .method private hidebysig specialname abstract virtual final 
+          instance void  I1.set_F1(char 'value') cil managed
+  {
+    .override I1::set_F1
+  } // end of method I2::I1.set_F1
+} // end of class I2
+";
+
+            var source1 =
+@"
+class Test2 : I2
+{
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.F1'
+                // class Test2 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test2", "I1.F1").WithLocation(2, 15)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i1F1 = i1.GetMember<PropertySymbol>("F1");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.SetMethod));
+            Assert.Equal("System.Char I2.I1.get_F1()", test2.FindImplementationForInterfaceMember(i1F1.GetMethod).ToTestDisplayString());
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void PropertyReAbstraction_033()
+        {
+            var ilSource = @"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot specialname abstract virtual 
+          instance char  get_F1() cil managed
+  {
+  } // end of method I1::get_F1
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  set_F1(char 'value') cil managed
+  {
+  } // end of method I1::set_F1
+
+  .property instance char F1()
+  {
+    .get instance char I1::get_F1()
+    .set instance void I1::set_F1(char)
+  } // end of property I1::F1
+} // end of class I1
+
+.class interface public abstract auto ansi I2
+       implements I1
+{
+  .method private hidebysig specialname abstract virtual final 
+          instance char  I1.get_F1() cil managed
+  {
+    .override I1::get_F1
+  } // end of method I2::I1.get_F1
+
+  .method private hidebysig specialname virtual final 
+          instance void  I1.set_F1(char 'value') cil managed
+  {
+    .override I1::set_F1
+    IL_0002:  ret
+  } // end of method I2::I1.set_F1
+} // end of class I2
+";
+
+            var source1 =
+@"
+class Test2 : I2
+{
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.F1'
+                // class Test2 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test2", "I1.F1").WithLocation(2, 15)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i1F1 = i1.GetMember<PropertySymbol>("F1");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1));
+            Assert.Equal("void I2.I1.set_F1(System.Char value)", test2.FindImplementationForInterfaceMember(i1F1.SetMethod).ToTestDisplayString());
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.GetMethod));
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void PropertyReAbstraction_034()
+        {
+            var ilSource = @"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot specialname abstract virtual 
+          instance char  get_F1() cil managed
+  {
+  } // end of method I1::get_F1
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  set_F1(char 'value') cil managed
+  {
+  } // end of method I1::set_F1
+
+  .property instance char F1()
+  {
+    .get instance char I1::get_F1()
+    .set instance void I1::set_F1(char)
+  } // end of property I1::F1
+} // end of class I1
+
+.class interface public abstract auto ansi I2
+       implements I1
+{
+  .method private hidebysig specialname virtual final 
+          instance char  I1.get_F1() cil managed
+  {
+    .override I1::get_F1
+    // Code size       3 (0x3)
+    .maxstack  8
+    IL_0000:  ldc.i4.s   65
+    IL_0002:  ret
+  } // end of method I2::I1.get_F1
+
+  .method private hidebysig specialname abstract virtual final 
+          instance void  I1.set_F1(char 'value') cil managed
+  {
+    .override I1::set_F1
+  } // end of method I2::I1.set_F1
+} // end of class I2
+
+.class interface public abstract auto ansi I3
+       implements I1
+{
+  .method private hidebysig specialname abstract virtual final 
+          instance char  I1.get_F1() cil managed
+  {
+    .override I1::get_F1
+  } // end of method I3::I1.get_F1
+
+  .method private hidebysig specialname virtual final 
+          instance void  I1.set_F1(char 'value') cil managed
+  {
+    .override I1::set_F1
+    IL_0002:  ret
+  } // end of method I3::I1.set_F1
+
+  .property instance char I1.F1()
+  {
+    .get instance char I3::I1.get_F1()
+    .set instance void I3::I1.set_F1(char)
+  } // end of property I3::I1.F1
+} // end of class I3
+";
+
+            var source1 =
+@"
+class Test2 : I2, I3
+{
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.F1'
+                // class Test2 : I2, I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test2", "I1.F1").WithLocation(2, 15)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i1F1 = i1.GetMember<PropertySymbol>("F1");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.SetMethod));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.GetMethod));
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void PropertyReAbstraction_035()
+        {
+            var ilSource = @"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot specialname abstract virtual 
+          instance char  get_F1() cil managed
+  {
+  } // end of method I1::get_F1
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  set_F1(char 'value') cil managed
+  {
+  } // end of method I1::set_F1
+
+  .property instance char F1()
+  {
+    .get instance char I1::get_F1()
+    .set instance void I1::set_F1(char)
+  } // end of property I1::F1
+} // end of class I1
+
+.class interface public abstract auto ansi I2
+       implements I1
+{
+  .method private hidebysig specialname virtual final 
+          instance char  I1.get_F1() cil managed
+  {
+    .override I1::get_F1
+    // Code size       3 (0x3)
+    .maxstack  8
+    IL_0000:  ldc.i4.s   65
+    IL_0002:  ret
+  } // end of method I2::I1.get_F1
+
+  .method private hidebysig specialname abstract virtual final 
+          instance void  I1.set_F1(char 'value') cil managed
+  {
+    .override I1::set_F1
+  } // end of method I2::I1.set_F1
+
+  .property instance char I1.F1()
+  {
+    .get instance char I2::I1.get_F1()
+    .set instance void I2::I1.set_F1(char)
+  } // end of property I2::I1.F1
+} // end of class I2
+
+.class interface public abstract auto ansi I3
+       implements I1
+{
+  .method private hidebysig specialname abstract virtual final 
+          instance char  I1.get_F1() cil managed
+  {
+    .override I1::get_F1
+  } // end of method I3::I1.get_F1
+
+  .method private hidebysig specialname virtual final 
+          instance void  I1.set_F1(char 'value') cil managed
+  {
+    .override I1::set_F1
+    IL_0002:  ret
+  } // end of method I3::I1.set_F1
+} // end of class I3
+";
+
+            var source1 =
+@"
+class Test2 : I2, I3
+{
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.F1'
+                // class Test2 : I2, I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test2", "I1.F1").WithLocation(2, 15)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i1F1 = i1.GetMember<PropertySymbol>("F1");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.SetMethod));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.GetMethod));
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void PropertyReAbstraction_036()
+        {
+            var ilSource = @"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot specialname abstract virtual 
+          instance char  get_F1() cil managed
+  {
+  } // end of method I1::get_F1
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  set_F1(char 'value') cil managed
+  {
+  } // end of method I1::set_F1
+
+  .property instance char F1()
+  {
+    .get instance char I1::get_F1()
+    .set instance void I1::set_F1(char)
+  } // end of property I1::F1
+} // end of class I1
+
+.class interface public abstract auto ansi I2
+       implements I1
+{
+  .method private hidebysig specialname virtual final 
+          instance char  I1.get_F1() cil managed
+  {
+    .override I1::get_F1
+    // Code size       3 (0x3)
+    .maxstack  8
+    IL_0000:  ldc.i4.s   65
+    IL_0002:  ret
+  } // end of method I2::I1.get_F1
+
+  .method private hidebysig specialname abstract virtual final 
+          instance void  I1.set_F1(char 'value') cil managed
+  {
+    .override I1::set_F1
+  } // end of method I2::I1.set_F1
+} // end of class I2
+
+.class interface public abstract auto ansi I3
+       implements I1
+{
+  .method private hidebysig specialname abstract virtual final 
+          instance char  I1.get_F1() cil managed
+  {
+    .override I1::get_F1
+  } // end of method I3::I1.get_F1
+
+  .method private hidebysig specialname virtual final 
+          instance void  I1.set_F1(char 'value') cil managed
+  {
+    .override I1::set_F1
+    IL_0002:  ret
+  } // end of method I3::I1.set_F1
+} // end of class I3
+";
+
+            var source1 =
+@"
+class Test2 : I2, I3
+{
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.F1'
+                // class Test2 : I2, I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test2", "I1.F1").WithLocation(2, 15)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i1F1 = i1.GetMember<PropertySymbol>("F1");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.SetMethod));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.GetMethod));
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_037()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_001(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_038()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { get => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_001(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void PropertyReAbstraction_039()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1.P1;
+    }
+
+    int I1.P1
+    {
+        get
+        {
+            System.Console.WriteLine(""Test1.get_P1"");
+            return 0;
+        }
+    }
+}
+";
+            ValidatePropertyReAbstraction_003(source1, source2, "Test1.get_P1");
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void PropertyReAbstraction_040()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { get => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1.P1;
+    }
+
+    int I1.P1
+    {
+        get
+        {
+            System.Console.WriteLine(""Test1.get_P1"");
+            return 0;
+        }
+    }
+}
+";
+            ValidatePropertyReAbstraction_003(source1, source2, "Test1.get_P1");
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_041()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get;}
+}
+
+public interface I3 : I2 {}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+}
+";
+            ValidatePropertyReAbstraction_005(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_042()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { get => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get;}
+}
+
+public interface I3 : I2 {}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+}
+";
+            ValidatePropertyReAbstraction_005(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void PropertyReAbstraction_043()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get;}
+}
+
+public interface I3 : I2
+{
+    int I1.P1
+    {
+        get
+        {
+            System.Console.WriteLine(""I3.get_P1"");
+            return 0;
+        }
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1.P1;
+    }
+}
+";
+            ValidatePropertyReAbstraction_007(source1, source2, "I3.get_P1");
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void PropertyReAbstraction_044()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { get => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get;}
+}
+
+public interface I3 : I2
+{
+    int I1.P1
+    {
+        get
+        {
+            System.Console.WriteLine(""I3.get_P1"");
+            return 0;
+        }
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1.P1;
+    }
+}
+";
+            ValidatePropertyReAbstraction_007(source1, source2, "I3.get_P1");
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_045()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { get => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get;}
+}
+
+public interface I3 : I1
+{
+    abstract int I1.P1 {get;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidatePropertyReAbstraction_009(source1, source2,
+                // (2,15): error CS8705: Interface member 'I1.P1' does not have a most specific implementation. Neither 'I2.I1.P1', nor 'I3.I1.P1' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.P1", "I2.I1.P1", "I3.I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_046()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { get => throw null; }
+}
+
+public interface I2 : I1
+{
+    int I1.P1 { get => throw null; }
+}
+
+public interface I3 : I1
+{
+    abstract int I1.P1 {get;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidatePropertyReAbstraction_009(source1, source2,
+                // (2,15): error CS8705: Interface member 'I1.P1' does not have a most specific implementation. Neither 'I2.I1.P1', nor 'I3.I1.P1' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.P1", "I2.I1.P1", "I3.I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_047()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { get => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get;}
+}
+
+public interface I3 : I1
+{
+    int I1.P1 { get => throw null; }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidatePropertyReAbstraction_009(source1, source2,
+                // (2,15): error CS8705: Interface member 'I1.P1' does not have a most specific implementation. Neither 'I2.I1.P1', nor 'I3.I1.P1' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.P1", "I2.I1.P1", "I3.I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_048()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { get => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get;}
+}
+
+public interface I3 : I1
+{
+    abstract int I1.P1 {get;}
+}
+
+public interface I4 : I2, I3 {}
+";
+
+            var source2 =
+@"
+class Test1 : I4
+{
+}
+";
+            ValidatePropertyReAbstraction_012(source1, source2,
+                // (2,15): error CS8705: Interface member 'I1.P1' does not have a most specific implementation. Neither 'I2.I1.P1', nor 'I3.I1.P1' are most specific.
+                // class Test1 : I4
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I4").WithArguments("I1.P1", "I2.I1.P1", "I3.I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void PropertyReAbstraction_049()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { get => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get;}
+}
+
+public interface I3 : I1
+{
+    abstract int I1.P1 {get;}
+}
+
+public interface I4 : I2, I3
+{
+    int I1.P1
+    {
+        get
+        {
+            System.Console.WriteLine(""I4.get_P1"");
+            return 0;
+        }
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I4
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1.P1;
+    }
+}
+";
+            ValidatePropertyReAbstraction_013(source1, source2, "I4.get_P1");
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_050()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1
+    {
+        get
+        {
+            throw null;
+        }
+    }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (11,9): error CS0500: 'I2.I1.P1.get' cannot declare a body because it is marked abstract
+                //         get
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I2.I1.P1.get").WithLocation(11, 9),
+                // (18,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(18, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_051()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1
+    {
+        get => throw null;
+    }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (11,9): error CS0500: 'I2.I1.P1.get' cannot declare a body because it is marked abstract
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I2.I1.P1.get").WithLocation(11, 9),
+                // (15,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(15, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_052()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 => throw null;
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,27): error CS0500: 'I2.I1.P1.get' cannot declare a body because it is marked abstract
+                //     abstract int I1.P1 => throw null;
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "throw null").WithArguments("I2.I1.P1.get").WithLocation(9, 27),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_053()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get;}
+}
+
+public interface I2 : I1
+{
+    extern abstract int I1.P1 {get;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_016(source1,
+                // (9,28): error CS0180: 'I2.I1.P1' cannot be both extern and abstract
+                //     extern abstract int I1.P1 {get; set;}
+                Diagnostic(ErrorCode.ERR_AbstractAndExtern, "P1").WithArguments("I2.I1.P1").WithLocation(9, 28),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_054()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get;}
+}
+
+public interface I2 : I1
+{
+    abstract public int I1.P1 { get;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,28): error CS0106: The modifier 'public' is not valid for this item
+                //     abstract public int I1.P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("public").WithLocation(9, 28),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_055()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get;}
+}
+
+public class C2 : I1
+{
+    abstract int I1.P1 { get; }
+}
+";
+            ValidatePropertyReAbstraction_018(source1,
+                // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract int I1.P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_056()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get;}
+}
+
+public struct C2 : I1
+{
+    abstract int I1.P1 { get; }
+}
+";
+            ValidatePropertyReAbstraction_018(source1,
+                // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract int I1.P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_057()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 { get; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,21): error CS0551: Explicit interface implementation 'I2.I1.P1' is missing accessor 'I1.P1.set'
+                //     abstract int I1.P1 { get; }
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "P1").WithArguments("I2.I1.P1", "I1.P1.set").WithLocation(9, 21),
+                // (9,26): error CS0550: 'I2.I1.P1.get' adds an accessor not found in interface member 'I1.P1'
+                //     abstract int I1.P1 { get; }
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("I2.I1.P1.get", "I1.P1").WithLocation(9, 26),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_058()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    internal int P1 {get => throw null;}
+}
+";
+            var source2 =
+@"
+public interface I2 : I1
+{
+    abstract int I1.P1 { get;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_026(source1, source2,
+                // (4,21): error CS0122: 'I1.P1' is inaccessible due to its protection level
+                //     abstract int I1.P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(4, 21),
+                // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(7, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_059()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_001(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_060()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_001(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void PropertyReAbstraction_061()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.P1 = 1;
+    }
+
+    int I1.P1
+    {
+        set
+        {
+            System.Console.WriteLine(""Test1.set_P1"");
+        }
+    }
+}
+";
+            ValidatePropertyReAbstraction_003(source1, source2, "Test1.set_P1");
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void PropertyReAbstraction_062()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.P1 = 1;
+    }
+
+    int I1.P1
+    {
+        set
+        {
+            System.Console.WriteLine(""Test1.set_P1"");
+        }
+    }
+}
+";
+            ValidatePropertyReAbstraction_003(source1, source2, "Test1.set_P1");
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_063()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {set;}
+}
+
+public interface I3 : I2 {}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+}
+";
+            ValidatePropertyReAbstraction_005(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_064()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {set;}
+}
+
+public interface I3 : I2 {}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+}
+";
+            ValidatePropertyReAbstraction_005(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void PropertyReAbstraction_065()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {set;}
+}
+
+public interface I3 : I2
+{
+    int I1.P1
+    {
+        set
+        {
+            System.Console.WriteLine(""I3.set_P1"");
+        }
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.P1 = 1;
+    }
+}
+";
+            ValidatePropertyReAbstraction_007(source1, source2, "I3.set_P1");
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void PropertyReAbstraction_066()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {set;}
+}
+
+public interface I3 : I2
+{
+    int I1.P1
+    {
+        set
+        {
+            System.Console.WriteLine(""I3.set_P1"");
+        }
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.P1 = 1;
+    }
+}
+";
+            ValidatePropertyReAbstraction_007(source1, source2, "I3.set_P1");
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_067()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {set;}
+}
+
+public interface I3 : I1
+{
+    abstract int I1.P1 {set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidatePropertyReAbstraction_009(source1, source2,
+                // (2,15): error CS8705: Interface member 'I1.P1' does not have a most specific implementation. Neither 'I2.I1.P1', nor 'I3.I1.P1' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.P1", "I2.I1.P1", "I3.I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_068()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { set => throw null; }
+}
+
+public interface I2 : I1
+{
+    int I1.P1 { set => throw null; }
+}
+
+public interface I3 : I1
+{
+    abstract int I1.P1 {set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidatePropertyReAbstraction_009(source1, source2,
+                // (2,15): error CS8705: Interface member 'I1.P1' does not have a most specific implementation. Neither 'I2.I1.P1', nor 'I3.I1.P1' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.P1", "I2.I1.P1", "I3.I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_069()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {set;}
+}
+
+public interface I3 : I1
+{
+    int I1.P1 { set => throw null; }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidatePropertyReAbstraction_009(source1, source2,
+                // (2,15): error CS8705: Interface member 'I1.P1' does not have a most specific implementation. Neither 'I2.I1.P1', nor 'I3.I1.P1' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.P1", "I2.I1.P1", "I3.I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_070()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {set;}
+}
+
+public interface I3 : I1
+{
+    abstract int I1.P1 {set;}
+}
+
+public interface I4 : I2, I3 {}
+";
+
+            var source2 =
+@"
+class Test1 : I4
+{
+}
+";
+            ValidatePropertyReAbstraction_012(source1, source2,
+                // (2,15): error CS8705: Interface member 'I1.P1' does not have a most specific implementation. Neither 'I2.I1.P1', nor 'I3.I1.P1' are most specific.
+                // class Test1 : I4
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I4").WithArguments("I1.P1", "I2.I1.P1", "I3.I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void PropertyReAbstraction_071()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 { set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {set;}
+}
+
+public interface I3 : I1
+{
+    abstract int I1.P1 {set;}
+}
+
+public interface I4 : I2, I3
+{
+    int I1.P1
+    {
+        set
+        {
+            System.Console.WriteLine(""I4.set_P1"");
+        }
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I4
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.P1 = 1;
+    }
+}
+";
+            ValidatePropertyReAbstraction_013(source1, source2, "I4.set_P1");
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_072()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1
+    {
+        set
+        {
+            throw null;
+        }
+    }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (11,9): error CS0500: 'I2.I1.P1.set' cannot declare a body because it is marked abstract
+                //         set
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I2.I1.P1.set").WithLocation(11, 9),
+                // (18,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(18, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_073()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1
+    {
+        set => throw null;
+    }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (11,9): error CS0500: 'I2.I1.P1.set' cannot declare a body because it is marked abstract
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I2.I1.P1.set").WithLocation(11, 9),
+                // (15,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(15, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_074()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {set;}
+}
+
+public interface I2 : I1
+{
+    extern abstract int I1.P1 {set;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_016(source1,
+                // (9,28): error CS0180: 'I2.I1.P1' cannot be both extern and abstract
+                //     extern abstract int I1.P1 {get; set;}
+                Diagnostic(ErrorCode.ERR_AbstractAndExtern, "P1").WithArguments("I2.I1.P1").WithLocation(9, 28),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_075()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {set;}
+}
+
+public interface I2 : I1
+{
+    abstract public int I1.P1 { set;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,28): error CS0106: The modifier 'public' is not valid for this item
+                //     abstract public int I1.P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("public").WithLocation(9, 28),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_076()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {set;}
+}
+
+public class C2 : I1
+{
+    abstract int I1.P1 { set; }
+}
+";
+            ValidatePropertyReAbstraction_018(source1,
+                // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract int I1.P1 { set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21),
+                // (9,26): error CS8051: Auto-implemented properties must have get accessors.
+                //     abstract int I1.P1 { set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C2.I1.P1.set").WithLocation(9, 26)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_077()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {set;}
+}
+
+public struct C2 : I1
+{
+    abstract int I1.P1 { set; }
+}
+";
+            ValidatePropertyReAbstraction_018(source1,
+                // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract int I1.P1 { set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21),
+                // (9,26): error CS8051: Auto-implemented properties must have get accessors.
+                //     abstract int I1.P1 { set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C2.I1.P1.set").WithLocation(9, 26)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_078()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 { set; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,21): error CS0551: Explicit interface implementation 'I2.I1.P1' is missing accessor 'I1.P1.get'
+                //     abstract int I1.P1 { set; }
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "P1").WithArguments("I2.I1.P1", "I1.P1.get").WithLocation(9, 21),
+                // (9,26): error CS0550: 'I2.I1.P1.set' adds an accessor not found in interface member 'I1.P1'
+                //     abstract int I1.P1 { set; }
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("I2.I1.P1.set", "I1.P1").WithLocation(9, 26),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_079()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    internal int P1 {set => throw null;}
+}
+";
+            var source2 =
+@"
+public interface I2 : I1
+{
+    abstract int I1.P1 { set;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_026(source1, source2,
+                // (4,21): error CS0122: 'I1.P1' is inaccessible due to its protection level
+                //     abstract int I1.P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(4, 21),
+                // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(7, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_080()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 { get; set; } = 0;
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,21): error CS8050: Only auto-implemented properties can have initializers.
+                //     abstract int I1.P1 { get; set; } = 0;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I2.I1.P1").WithLocation(9, 21),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_081()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 { get; } = 0;
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,21): error CS8050: Only auto-implemented properties can have initializers.
+                //     abstract int I1.P1 { get; } = 0;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I2.I1.P1").WithLocation(9, 21),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_082()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 { set; } = 0;
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,21): error CS8050: Only auto-implemented properties can have initializers.
+                //     abstract int I1.P1 { set; } = 0;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I2.I1.P1").WithLocation(9, 21),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_083()
+        {
+            var source1 =
+@"
+public interface I1
+{
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get; set;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_083(source1,
+                // (8,21): error CS0539: 'I2.P1' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract int I1.P1 {get; set;}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("I2.P1").WithLocation(8, 21)
+                );
+        }
+
+        private static void ValidatePropertyReAbstraction_083(string source1, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+            compilation1.VerifyDiagnostics(expected);
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I2", i2.Name);
+                var i2p1 = i2.GetMembers().OfType<PropertySymbol>().Single();
+
+                ValidateReabstraction(i2p1);
+
+                Assert.Empty(i2p1.ExplicitInterfaceImplementations);
+                if (i2p1.GetMethod is object)
+                {
+                    Assert.Empty(i2p1.GetMethod.ExplicitInterfaceImplementations);
+                }
+
+                if (i2p1.SetMethod is object)
+                {
+                    Assert.Empty(i2p1.SetMethod.ExplicitInterfaceImplementations);
+                }
+            }
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_084()
+        {
+            var source1 =
+@"
+public interface I2 : I1
+{
+    abstract int I1.P1 {get; set;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_083(source1,
+                // (2,23): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
+                // public interface I2 : I1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(2, 23),
+                // (4,18): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
+                //     abstract int I1.P1 {get; set;}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(4, 18),
+                // (4,18): error CS0538: 'I1' in explicit interface declaration is not an interface
+                //     abstract int I1.P1 {get; set;}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I1").WithArguments("I1").WithLocation(4, 18)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_085()
+        {
+            var source1 =
+@"
+public interface I1
+{
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_083(source1,
+                // (8,21): error CS0539: 'I2.P1' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract int I1.P1 {get; set;}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("I2.P1").WithLocation(8, 21)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_086()
+        {
+            var source1 =
+@"
+public interface I2 : I1
+{
+    abstract int I1.P1 {get;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_083(source1,
+                // (2,23): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
+                // public interface I2 : I1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(2, 23),
+                // (4,18): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
+                //     abstract int I1.P1 {get;}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(4, 18),
+                // (4,18): error CS0538: 'I1' in explicit interface declaration is not an interface
+                //     abstract int I1.P1 {get;}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I1").WithArguments("I1").WithLocation(4, 18)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_087()
+        {
+            var source1 =
+@"
+public interface I1
+{
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {set;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_083(source1,
+                // (8,21): error CS0539: 'I2.P1' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract int I1.P1 {get; set;}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("I2.P1").WithLocation(8, 21)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_088()
+        {
+            var source1 =
+@"
+public interface I2 : I1
+{
+    abstract int I1.P1 {set;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_083(source1,
+                // (2,23): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
+                // public interface I2 : I1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(2, 23),
+                // (4,18): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
+                //     abstract int I1.P1 {set;}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(4, 18),
+                // (4,18): error CS0538: 'I1' in explicit interface declaration is not an interface
+                //     abstract int I1.P1 {set;}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I1").WithArguments("I1").WithLocation(4, 18)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_089()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get; set;}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular7_3,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (9,25): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     abstract int I1.P1 {get; set;}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("default interface implementation").WithLocation(9, 25),
+                // (9,30): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     abstract int I1.P1 {get; set;}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("default interface implementation").WithLocation(9, 30)
+                );
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+            compilation2.VerifyDiagnostics(
+                // (9,25): error CS8701: Target runtime doesn't support default interface implementation.
+                //     abstract int I1.P1 {get; set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(9, 25),
+                // (9,30): error CS8701: Target runtime doesn't support default interface implementation.
+                //     abstract int I1.P1 {get; set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(9, 30)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_090()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {get;}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular7_3,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (9,25): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     abstract int I1.P1 {get;}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("default interface implementation").WithLocation(9, 25)
+                );
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+            compilation2.VerifyDiagnostics(
+                // (9,25): error CS8701: Target runtime doesn't support default interface implementation.
+                //     abstract int I1.P1 {get;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(9, 25)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_091()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int P1 {set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.P1 {set;}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular7_3,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (9,25): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     abstract int I1.P1 {set;}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("default interface implementation").WithLocation(9, 25)
+                );
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+            compilation2.VerifyDiagnostics(
+                // (9,25): error CS8701: Target runtime doesn't support default interface implementation.
+                //     abstract int I1.P1 {set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(9, 25)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_001()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1;
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1;
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+}
+";
+            ValidateEventReAbstraction_001(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        private static void ValidateEventReAbstraction_001(string source1, string source2, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+            compilation1.VerifyDiagnostics(expected);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation3.SourceModule);
+                compilation3.VerifyDiagnostics(expected);
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I2", i2.Name);
+                var i2p1 = i2.GetMembers().OfType<EventSymbol>().Single();
+
+                ValidateReabstraction(i2p1);
+
+                var i1p1 = i2p1.ExplicitInterfaceImplementations.Single();
+
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1p1));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1));
+
+                Assert.Same(i1p1.AddMethod, i2p1.AddMethod.ExplicitInterfaceImplementations.Single());
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1p1.AddMethod));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.AddMethod));
+
+                Assert.Same(i1p1.RemoveMethod, i2p1.RemoveMethod.ExplicitInterfaceImplementations.Single());
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1p1.RemoveMethod));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.RemoveMethod));
+            }
+        }
+
+        private static void ValidateReabstraction(EventSymbol reabstracting)
+        {
+            Assert.True(reabstracting.IsAbstract);
+            Assert.False(reabstracting.IsVirtual);
+            Assert.True(reabstracting.IsSealed);
+            Assert.False(reabstracting.IsStatic);
+            Assert.False(reabstracting.IsExtern);
+            Assert.False(reabstracting.IsOverride);
+            Assert.Equal(Accessibility.Private, reabstracting.DeclaredAccessibility);
+
+            if (reabstracting.AddMethod is object)
+            {
+                ValidateReabstraction(reabstracting.AddMethod);
+            }
+
+            if (reabstracting.RemoveMethod is object)
+            {
+                ValidateReabstraction(reabstracting.RemoveMethod);
+            }
+        }
+
+        [Fact]
+        public void EventReAbstraction_002()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1 { add => throw null; remove => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1;
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+}
+";
+            ValidateEventReAbstraction_001(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void EventReAbstraction_003()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1;
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1;
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.P1 += null;
+        i1.P1 -= null;
+    }
+
+    event System.Action I1.P1
+    {
+        add
+        {
+            System.Console.WriteLine(""Test1.add_P1"");
+        }
+        remove => System.Console.WriteLine(""Test1.remove_P1"");
+    }
+}
+";
+            ValidateEventReAbstraction_003(source1, source2,
+@"
+Test1.add_P1
+Test1.remove_P1
+");
+        }
+
+        private void ValidateEventReAbstraction_003(string source1, string source2, string expected)
+        {
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1,
+                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation3.SourceModule);
+                compilation3.VerifyDiagnostics();
+
+                CompileAndVerify(compilation1,
+                                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var test12p1 = test1.GetMembers().OfType<EventSymbol>().Single();
+                var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I2", i2.Name);
+                var i2p1 = i2.GetMembers().OfType<EventSymbol>().Single();
+
+                var i1p1 = i2p1.ExplicitInterfaceImplementations.Single();
+
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1p1));
+                Assert.Same(test12p1, test1.FindImplementationForInterfaceMember(i1p1));
+
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1p1.AddMethod));
+                Assert.Same(test12p1.AddMethod, test1.FindImplementationForInterfaceMember(i1p1.AddMethod));
+
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1p1.RemoveMethod));
+                Assert.Same(test12p1.RemoveMethod, test1.FindImplementationForInterfaceMember(i1p1.RemoveMethod));
+            }
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void EventReAbstraction_004()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1 { add => throw null; remove => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1;
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.P1 += null;
+        i1.P1 -= null;
+    }
+
+    event System.Action I1.P1
+    {
+        add
+        {
+            System.Console.WriteLine(""Test1.add_P1"");
+        }
+        remove => System.Console.WriteLine(""Test1.remove_P1"");
+    }
+}
+";
+            ValidateEventReAbstraction_003(source1, source2,
+@"
+Test1.add_P1
+Test1.remove_P1
+");
+        }
+
+        [Fact]
+        public void EventReAbstraction_005()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1;
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1;
+}
+
+public interface I3 : I2 {}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+}
+";
+            ValidateEventReAbstraction_005(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        private static void ValidateEventReAbstraction_005(string source1, string source2, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+            compilation1.VerifyDiagnostics(expected);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation3.SourceModule);
+                compilation3.VerifyDiagnostics(expected);
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i3 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I3", i3.Name);
+
+                var i1p1 = i3.ContainingNamespace.GetTypeMember("I1").GetMembers().OfType<EventSymbol>().Single();
+
+                Assert.Null(i3.FindImplementationForInterfaceMember(i1p1));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1));
+
+                Assert.Null(i3.FindImplementationForInterfaceMember(i1p1.AddMethod));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.AddMethod));
+
+                Assert.Null(i3.FindImplementationForInterfaceMember(i1p1.RemoveMethod));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.RemoveMethod));
+            }
+        }
+
+        [Fact]
+        public void EventReAbstraction_006()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1 { add => throw null; remove => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1;
+}
+
+public interface I3 : I2 {}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+}
+";
+            ValidateEventReAbstraction_005(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void EventReAbstraction_007()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1;
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1;
+}
+
+public interface I3 : I2
+{
+    event System.Action I1.P1
+    {
+        add
+        {
+            System.Console.WriteLine(""I3.add_P1"");
+        }
+        remove => System.Console.WriteLine(""I3.remove_P1"");
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.P1 += null;
+        i1.P1 -= null;
+    }
+}
+";
+            ValidateEventReAbstraction_007(source1, source2,
+@"
+I3.add_P1
+I3.remove_P1
+");
+        }
+
+        private void ValidateEventReAbstraction_007(string source1, string source2, string expected)
+        {
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1,
+                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation3.SourceModule);
+                compilation3.VerifyDiagnostics();
+
+                CompileAndVerify(compilation1,
+                                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i3 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I3", i3.Name);
+
+                var i3p1 = i3.GetMembers().OfType<EventSymbol>().Single();
+                var i1p1 = i3.ContainingNamespace.GetTypeMember("I1").GetMembers().OfType<EventSymbol>().Single();
+
+                Assert.Same(i3p1, i3.FindImplementationForInterfaceMember(i1p1));
+                Assert.Same(i3p1, test1.FindImplementationForInterfaceMember(i1p1));
+
+                Assert.Same(i3p1.AddMethod, i3.FindImplementationForInterfaceMember(i1p1.AddMethod));
+                Assert.Same(i3p1.AddMethod, test1.FindImplementationForInterfaceMember(i1p1.AddMethod));
+
+                Assert.Same(i3p1.RemoveMethod, i3.FindImplementationForInterfaceMember(i1p1.RemoveMethod));
+                Assert.Same(i3p1.RemoveMethod, test1.FindImplementationForInterfaceMember(i1p1.RemoveMethod));
+            }
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void EventReAbstraction_008()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1 { add => throw null; remove => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1;
+}
+
+public interface I3 : I2
+{
+    event System.Action I1.P1
+    {
+        add
+        {
+            System.Console.WriteLine(""I3.add_P1"");
+        }
+        remove => System.Console.WriteLine(""I3.remove_P1"");
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.P1 += null;
+        i1.P1 -= null;
+    }
+}
+";
+            ValidateEventReAbstraction_007(source1, source2,
+@"
+I3.add_P1
+I3.remove_P1
+");
+        }
+
+        [Fact]
+        public void EventReAbstraction_009()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1 { add => throw null; remove => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1;
+}
+
+public interface I3 : I1
+{
+    abstract event System.Action I1.P1;
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidateEventReAbstraction_009(source1, source2,
+                // (2,15): error CS8705: Interface member 'I1.P1' does not have a most specific implementation. Neither 'I2.I1.P1', nor 'I3.I1.P1' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.P1", "I2.I1.P1", "I3.I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        private static void ValidateEventReAbstraction_009(string source1, string source2, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+            compilation1.VerifyDiagnostics(expected);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation3.SourceModule);
+                compilation3.VerifyDiagnostics(expected);
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1p1 = test1.InterfacesNoUseSiteDiagnostics().First().ContainingNamespace.GetTypeMember("I1").GetMembers().OfType<EventSymbol>().Single();
+
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.AddMethod));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.RemoveMethod));
+            }
+        }
+
+        [Fact]
+        public void EventReAbstraction_010()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1 { add => throw null; remove => throw null; }
+}
+
+public interface I2 : I1
+{
+    event System.Action I1.P1 { add => throw null; remove => throw null; }
+}
+
+public interface I3 : I1
+{
+    abstract event System.Action I1.P1;
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidateEventReAbstraction_009(source1, source2,
+                // (2,15): error CS8705: Interface member 'I1.P1' does not have a most specific implementation. Neither 'I2.I1.P1', nor 'I3.I1.P1' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.P1", "I2.I1.P1", "I3.I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_011()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1 { add => throw null; remove => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1;
+}
+
+public interface I3 : I1
+{
+    event System.Action I1.P1 { add => throw null; remove => throw null; }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidateEventReAbstraction_009(source1, source2,
+                // (2,15): error CS8705: Interface member 'I1.P1' does not have a most specific implementation. Neither 'I2.I1.P1', nor 'I3.I1.P1' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.P1", "I2.I1.P1", "I3.I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_012()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1 { add => throw null; remove => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1;
+}
+
+public interface I3 : I1
+{
+    abstract event System.Action I1.P1;
+}
+
+public interface I4 : I2, I3 {}
+";
+
+            var source2 =
+@"
+class Test1 : I4
+{
+}
+";
+            ValidateEventReAbstraction_012(source1, source2,
+                // (2,15): error CS8705: Interface member 'I1.P1' does not have a most specific implementation. Neither 'I2.I1.P1', nor 'I3.I1.P1' are most specific.
+                // class Test1 : I4
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I4").WithArguments("I1.P1", "I2.I1.P1", "I3.I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        private static void ValidateEventReAbstraction_012(string source1, string source2, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+            compilation1.VerifyDiagnostics(expected);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation3.SourceModule);
+                compilation3.VerifyDiagnostics(expected);
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i4 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I4", i4.Name);
+                var i1p1 = i4.ContainingNamespace.GetTypeMember("I1").GetMembers().OfType<EventSymbol>().Single();
+
+                Assert.Null(i4.FindImplementationForInterfaceMember(i1p1));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1));
+
+                Assert.Null(i4.FindImplementationForInterfaceMember(i1p1.AddMethod));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.AddMethod));
+
+                Assert.Null(i4.FindImplementationForInterfaceMember(i1p1.RemoveMethod));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.RemoveMethod));
+            }
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void EventReAbstraction_013()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1 { add => throw null; remove => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1;
+}
+
+public interface I3 : I1
+{
+    abstract event System.Action I1.P1;
+}
+
+public interface I4 : I2, I3
+{
+    event System.Action I1.P1
+    {
+        add
+        {
+            System.Console.WriteLine(""I4.add_P1"");
+        }
+        remove => System.Console.WriteLine(""I4.remove_P1"");
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I4
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.P1 += null;
+        i1.P1 -= null;
+    }
+}
+";
+            ValidateEventReAbstraction_013(source1, source2,
+@"
+I4.add_P1
+I4.remove_P1
+");
+        }
+
+        private void ValidateEventReAbstraction_013(string source1, string source2, string expected)
+        {
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1,
+                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation3.SourceModule);
+                compilation3.VerifyDiagnostics();
+
+                CompileAndVerify(compilation1,
+                                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i4 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I4", i4.Name);
+
+                var i4p1 = i4.GetMembers().OfType<EventSymbol>().Single();
+                var i1p1 = i4.ContainingNamespace.GetTypeMember("I1").GetMembers().OfType<EventSymbol>().Single();
+
+                Assert.Same(i4p1, i4.FindImplementationForInterfaceMember(i1p1));
+                Assert.Same(i4p1, test1.FindImplementationForInterfaceMember(i1p1));
+
+                Assert.Same(i4p1.AddMethod, i4.FindImplementationForInterfaceMember(i1p1.AddMethod));
+                Assert.Same(i4p1.AddMethod, test1.FindImplementationForInterfaceMember(i1p1.AddMethod));
+
+                Assert.Same(i4p1.RemoveMethod, i4.FindImplementationForInterfaceMember(i1p1.RemoveMethod));
+                Assert.Same(i4p1.RemoveMethod, test1.FindImplementationForInterfaceMember(i1p1.RemoveMethod));
+            }
+        }
+
+        [Fact]
+        public void EventReAbstraction_014()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1;
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1
+    {
+        add
+        {
+            throw null;
+        }
+        remove
+        {
+            throw null;
+        }
+    }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidateEventReAbstraction_014(source1,
+                // (10,5): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                //     {
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(10, 5),
+                // (22,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(22, 15)
+                );
+        }
+
+        private static void ValidateEventReAbstraction_014(string source1, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+
+            compilation1.VerifyDiagnostics(expected);
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I2", i2.Name);
+                var i2p1 = i2.GetMembers().OfType<EventSymbol>().Single();
+                var i1p1 = i2p1.ExplicitInterfaceImplementations.Single();
+
+                ValidateReabstraction(i2p1);
+
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1p1));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1));
+
+                if (i1p1.AddMethod is object)
+                {
+                    if (i2p1.AddMethod is object)
+                    {
+                        Assert.Same(i1p1.AddMethod, i2p1.AddMethod.ExplicitInterfaceImplementations.Single());
+                    }
+
+                    Assert.Null(i2.FindImplementationForInterfaceMember(i1p1.AddMethod));
+                    Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.AddMethod));
+                }
+                else if (i2p1.AddMethod is object)
+                {
+                    Assert.Empty(i2p1.AddMethod.ExplicitInterfaceImplementations);
+                }
+
+                if (i1p1.RemoveMethod is object)
+                {
+                    if (i2p1.RemoveMethod is object)
+                    {
+                        Assert.Same(i1p1.RemoveMethod, i2p1.RemoveMethod.ExplicitInterfaceImplementations.Single());
+                    }
+
+                    Assert.Null(i2.FindImplementationForInterfaceMember(i1p1.RemoveMethod));
+                    Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.RemoveMethod));
+                }
+                else if (i2p1.RemoveMethod is object)
+                {
+                    Assert.Empty(i2p1.RemoveMethod.ExplicitInterfaceImplementations);
+                }
+            }
+        }
+
+        [Fact]
+        public void EventReAbstraction_015()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1;
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidateEventReAbstraction_014(source1,
+                // (10,5): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                //     {
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(10, 5),
+                // (16,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(16, 15)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_016()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1;
+}
+
+public interface I2 : I1
+{
+    extern abstract event System.Action I1.P1;
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidateEventReAbstraction_014(source1,
+                // (9,44): error CS0106: The modifier 'extern' is not valid for this item
+                //     extern abstract event System.Action I1.P1;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("extern").WithLocation(9, 44),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_017()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1;
+}
+
+public interface I2 : I1
+{
+    abstract public event System.Action I1.P1;
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidateEventReAbstraction_014(source1,
+                // (9,44): error CS0106: The modifier 'public' is not valid for this item
+                //     abstract public event System.Action I1.P1;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("public").WithLocation(9, 44),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_018()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1;
+}
+
+public class C2 : I1
+{
+    abstract event System.Action I1.P1;
+}
+";
+            ValidateEventReAbstraction_018(source1,
+                // (7,19): error CS0535: 'C2' does not implement interface member 'I1.P1.remove'
+                // public class C2 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C2", "I1.P1.remove").WithLocation(7, 19),
+                // (7,19): error CS0535: 'C2' does not implement interface member 'I1.P1.add'
+                // public class C2 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C2", "I1.P1.add").WithLocation(7, 19),
+                // (9,37): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+                //     abstract event System.Action I1.P1;
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "P1").WithLocation(9, 37),
+                // (9,37): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract event System.Action I1.P1;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 37)
+                );
+        }
+
+        private static void ValidateEventReAbstraction_018(string source1, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+
+            compilation1.VerifyDiagnostics(expected);
+
+            static void validate(ModuleSymbol m)
+            {
+                var c2 = m.GlobalNamespace.GetTypeMember("C2");
+                var c2p1 = c2.GetMembers().OfType<EventSymbol>().Single();
+
+                Assert.False(c2p1.IsAbstract);
+                Assert.False(c2p1.IsSealed);
+
+                var i1p1 = c2p1.ExplicitInterfaceImplementations.Single();
+
+                Assert.Same(c2p1, c2.FindImplementationForInterfaceMember(i1p1));
+
+                var c2p1Add = c2p1.AddMethod;
+
+                if (c2p1Add is object)
+                {
+                    Assert.False(c2p1Add.IsAbstract);
+                    Assert.False(c2p1Add.IsSealed);
+
+                    Assert.Same(i1p1.AddMethod, c2p1Add.ExplicitInterfaceImplementations.Single());
+                    Assert.Same(c2p1Add, c2.FindImplementationForInterfaceMember(i1p1.AddMethod));
+                }
+                else
+                {
+                    Assert.Null(c2.FindImplementationForInterfaceMember(i1p1.AddMethod));
+                }
+
+                var c2p1Remove = c2p1.RemoveMethod;
+
+                if (c2p1Remove is object)
+                {
+                    Assert.False(c2p1Remove.IsAbstract);
+                    Assert.False(c2p1Remove.IsSealed);
+
+                    Assert.Same(i1p1.RemoveMethod, c2p1Remove.ExplicitInterfaceImplementations.Single());
+                    Assert.Same(c2p1Remove, c2.FindImplementationForInterfaceMember(i1p1.RemoveMethod));
+                }
+                else
+                {
+                    Assert.Null(c2.FindImplementationForInterfaceMember(i1p1.RemoveMethod));
+                }
+            }
+        }
+
+        [Fact]
+        public void EventReAbstraction_019()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1;
+}
+
+public class C2 : I1
+{
+    abstract event System.Action I1.P1
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+";
+            ValidateEventReAbstraction_018(source1,
+                // (9,37): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract event System.Action I1.P1
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 37)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_020()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1;
+}
+
+public struct C2 : I1
+{
+    abstract event System.Action I1.P1;
+}
+";
+            ValidateEventReAbstraction_018(source1,
+                // (7,20): error CS0535: 'C2' does not implement interface member 'I1.P1.remove'
+                // public struct C2 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C2", "I1.P1.remove").WithLocation(7, 20),
+                // (7,20): error CS0535: 'C2' does not implement interface member 'I1.P1.add'
+                // public struct C2 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C2", "I1.P1.add").WithLocation(7, 20),
+                // (9,37): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+                //     abstract event System.Action I1.P1;
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "P1").WithLocation(9, 37),
+                // (9,37): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract event System.Action I1.P1;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 37)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_021()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1;
+}
+
+public struct C2 : I1
+{
+    abstract event System.Action I1.P1
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+";
+            ValidateEventReAbstraction_018(source1,
+                // (9,37): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract event System.Action I1.P1
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 37)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_022()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1;
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1 { add => throw null; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidateEventReAbstraction_014(source1,
+                // (9,40): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                //     abstract event System.Action I1.P1 { add => throw null; }
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_023()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1;
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1 { add; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidateEventReAbstraction_014(source1,
+                // (9,40): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                //     abstract event System.Action I1.P1 { add; }
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_024()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1;
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1 { remove => throw null; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidateEventReAbstraction_014(source1,
+                // (9,40): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                //     abstract event System.Action I1.P1 { remove => throw null; }
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_025()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1;
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1 { remove; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidateEventReAbstraction_014(source1,
+                // (9,40): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                //     abstract event System.Action I1.P1 { remove; }
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_026()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1;
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1 { add; remove; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidateEventReAbstraction_014(source1,
+                // (9,40): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                //     abstract event System.Action I1.P1 { add; remove; }
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_027()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1;
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1 {}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidateEventReAbstraction_014(source1,
+                // (9,40): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                //     abstract event System.Action I1.P1 {}
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_028()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1;
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1 { add => throw null; remove => throw null; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidateEventReAbstraction_014(source1,
+                // (9,40): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                //     abstract event System.Action I1.P1 { add => throw null; remove => throw null; }
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_029()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1 {add => throw null;}
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1;
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidateEventReAbstraction_014(source1,
+                // (4,25): error CS0065: 'I1.P1': event property must have both add and remove accessors
+                //     event System.Action P1 {add => throw null;}
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 25),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_030()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1 {add => throw null;}
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1
+    {
+        add {}
+        remove {}
+    }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidateEventReAbstraction_014(source1,
+                // (4,25): error CS0065: 'I1.P1': event property must have both add and remove accessors
+                //     event System.Action P1 {add => throw null;}
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 25),
+                // (10,5): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                //     {
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(10, 5),
+                // (16,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(16, 15)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_031()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1 {remove => throw null;}
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1;
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidateEventReAbstraction_014(source1,
+                // (4,25): error CS0065: 'I1.P1': event property must have both add and remove accessors
+                //     event System.Action P1 {remove => throw null;}
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 25),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_032()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1 {remove => throw null;}
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1
+    {
+        add {}
+        remove {}
+    }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidateEventReAbstraction_014(source1,
+                // (4,25): error CS0065: 'I1.P1': event property must have both add and remove accessors
+                //     event System.Action P1 {remove => throw null;}
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 25),
+                // (10,5): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                //     {
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(10, 5),
+                // (16,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(16, 15)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_033()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    internal event System.Action P1 {add => throw null; remove => throw null;}
+}
+";
+            var source2 =
+@"
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1;
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidateEventReAbstraction_033(source1, source2,
+                // (4,37): error CS0122: 'I1.P1' is inaccessible due to its protection level
+                //     abstract event System.Action I1.P1;
+                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(4, 37),
+                // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(7, 15)
+                );
+        }
+
+        private static void ValidateEventReAbstraction_033(string source1, string source2, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.Regular,
+                                                     references: new[] { reference },
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                validate(compilation2.SourceModule);
+                compilation2.VerifyDiagnostics(expected);
+            }
+
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I2", i2.Name);
+                var i2p1 = i2.GetMembers().OfType<EventSymbol>().Single();
+                var i1p1 = i2p1.ExplicitInterfaceImplementations.Single();
+
+                ValidateReabstraction(i2p1);
+
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1p1));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1));
+
+                Assert.Same(i1p1.AddMethod, i2p1.AddMethod.ExplicitInterfaceImplementations.Single());
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1p1.AddMethod));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.AddMethod));
+
+                Assert.Same(i1p1.RemoveMethod, i2p1.RemoveMethod.ExplicitInterfaceImplementations.Single());
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1p1.RemoveMethod));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1p1.RemoveMethod));
+            }
+        }
+
+        [Fact]
+        public void EventReAbstraction_034()
+        {
+            var source1 =
+@"
+public interface I1
+{
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1;
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidateEventReAbstraction_034(source1,
+                // (8,37): error CS0539: 'I2.P1' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract event System.Action I1.P1;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("I2.P1").WithLocation(8, 37)
+                );
+        }
+
+        private static void ValidateEventReAbstraction_034(string source1, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            validate(compilation1.SourceModule);
+            compilation1.VerifyDiagnostics(expected);
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I2", i2.Name);
+                var i2p1 = i2.GetMembers().OfType<EventSymbol>().Single();
+
+                ValidateReabstraction(i2p1);
+
+                Assert.Empty(i2p1.ExplicitInterfaceImplementations);
+                Assert.Empty(i2p1.AddMethod.ExplicitInterfaceImplementations);
+                Assert.Empty(i2p1.RemoveMethod.ExplicitInterfaceImplementations);
+            }
+        }
+
+        [Fact]
+        public void EventReAbstraction_035()
+        {
+            var source1 =
+@"
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1;
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidateEventReAbstraction_034(source1,
+                // (2,23): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
+                // public interface I2 : I1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(2, 23),
+                // (4,34): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
+                //     abstract event System.Action I1.P1;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(4, 34),
+                // (4,34): error CS0538: 'I1' in explicit interface declaration is not an interface
+                //     abstract event System.Action I1.P1;
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I1").WithArguments("I1").WithLocation(4, 34)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_036()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1;
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidateEventReAbstraction_014(source1,
+                // (9,36): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+                //     abstract event System.Action I1.P1
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(9, 36),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_037()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action P1;
+}
+
+public interface I2 : I1
+{
+    abstract event System.Action I1.P1;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular7_3,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (9,37): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     abstract event System.Action I1.P1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("default interface implementation").WithLocation(9, 37)
+                );
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+            compilation2.VerifyDiagnostics(
+                // (9,37): error CS8701: Target runtime doesn't support default interface implementation.
+                //     abstract event System.Action I1.P1;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P1").WithLocation(9, 37)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_001()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get; set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_001(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_002()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { get => throw null; set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get; set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_001(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void IndexerReAbstraction_003()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get; set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1[0];
+        i1[0] = 1;
+    }
+
+    int I1.this[int i]
+    {
+        get
+        {
+            System.Console.WriteLine(""Test1.get_P1"");
+            return 0;
+        }
+        set => System.Console.WriteLine(""Test1.set_P1"");
+    }
+}
+";
+            ValidatePropertyReAbstraction_003(source1, source2,
+@"
+Test1.get_P1
+Test1.set_P1
+");
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void IndexerReAbstraction_004()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { get => throw null; set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get; set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1[0];
+        i1[0] = 1;
+    }
+
+    int I1.this[int i]
+    {
+        get
+        {
+            System.Console.WriteLine(""Test1.get_P1"");
+            return 0;
+        }
+        set => System.Console.WriteLine(""Test1.set_P1"");
+    }
+}
+";
+            ValidatePropertyReAbstraction_003(source1, source2,
+@"
+Test1.get_P1
+Test1.set_P1
+");
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_005()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get; set;}
+}
+
+public interface I3 : I2 {}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+}
+";
+            ValidatePropertyReAbstraction_005(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1.this[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_006()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { get => throw null; set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get; set;}
+}
+
+public interface I3 : I2 {}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+}
+";
+            ValidatePropertyReAbstraction_005(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1.this[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void IndexerReAbstraction_007()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get; set;}
+}
+
+public interface I3 : I2
+{
+    int I1.this[int i]
+    {
+        get
+        {
+            System.Console.WriteLine(""I3.get_P1"");
+            return 0;
+        }
+        set => System.Console.WriteLine(""I3.set_P1"");
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1[0];
+        i1[0] = 1;
+    }
+}
+";
+            ValidatePropertyReAbstraction_007(source1, source2,
+@"
+I3.get_P1
+I3.set_P1
+");
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void IndexerReAbstraction_008()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { get => throw null; set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get; set;}
+}
+
+public interface I3 : I2
+{
+    int I1.this[int i]
+    {
+        get
+        {
+            System.Console.WriteLine(""I3.get_P1"");
+            return 0;
+        }
+        set => System.Console.WriteLine(""I3.set_P1"");
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1[0];
+        i1[0] = 1;
+    }
+}
+";
+            ValidatePropertyReAbstraction_007(source1, source2,
+@"
+I3.get_P1
+I3.set_P1
+");
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_009()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { get => throw null; set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get; set;}
+}
+
+public interface I3 : I1
+{
+    abstract int I1.this[int i] {get; set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidatePropertyReAbstraction_009(source1, source2,
+                new[] {
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(2, 15)
+                },
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_010()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { get => throw null; set => throw null; }
+}
+
+public interface I2 : I1
+{
+    int I1.this[int i] { get => throw null; set => throw null; }
+}
+
+public interface I3 : I1
+{
+    abstract int I1.this[int i] {get; set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidatePropertyReAbstraction_009(source1, source2,
+                new[] {
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(2, 15)
+                },
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_011()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { get => throw null; set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get; set;}
+}
+
+public interface I3 : I1
+{
+    int I1.this[int i] { get => throw null; set => throw null; }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidatePropertyReAbstraction_009(source1, source2,
+                new[] {
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(2, 15)
+                },
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_012()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { get => throw null; set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get; set;}
+}
+
+public interface I3 : I1
+{
+    abstract int I1.this[int i] {get; set;}
+}
+
+public interface I4 : I2, I3 {}
+";
+
+            var source2 =
+@"
+class Test1 : I4
+{
+}
+";
+            ValidatePropertyReAbstraction_012(source1, source2,
+                new[] {
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
+                // class Test1 : I4
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I4").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(2, 15)
+                },
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
+                // class Test1 : I4
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I4").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void IndexerReAbstraction_013()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { get => throw null; set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get; set;}
+}
+
+public interface I3 : I1
+{
+    abstract int I1.this[int i] {get; set;}
+}
+
+public interface I4 : I2, I3
+{
+    int I1.this[int i]
+    {
+        get
+        {
+            System.Console.WriteLine(""I4.get_P1"");
+            return 0;
+        }
+        set => System.Console.WriteLine(""I4.set_P1"");
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I4
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1[0];
+        i1[0] = 1;
+    }
+}
+";
+            ValidatePropertyReAbstraction_013(source1, source2,
+@"
+I4.get_P1
+I4.set_P1
+");
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_014()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i]
+    {
+        get
+        {
+            throw null;
+        }
+        set
+        {
+            throw null;
+        }
+    }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (11,9): error CS0500: 'I2.I1.this[int].get' cannot declare a body because it is marked abstract
+                //         get
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I2.I1.this[int].get").WithLocation(11, 9),
+                // (15,9): error CS0500: 'I2.I1.this[int].set' cannot declare a body because it is marked abstract
+                //         set
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I2.I1.this[int].set").WithLocation(15, 9),
+                // (22,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(22, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_015()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i]
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (11,9): error CS0500: 'I2.I1.this[int].get' cannot declare a body because it is marked abstract
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I2.I1.this[int].get").WithLocation(11, 9),
+                // (12,9): error CS0500: 'I2.I1.this[int].set' cannot declare a body because it is marked abstract
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I2.I1.this[int].set").WithLocation(12, 9),
+                // (16,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(16, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_016()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get; set;}
+}
+
+public interface I2 : I1
+{
+    extern abstract int I1.this[int i] {get; set;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_016(source1,
+                // (9,28): error CS0180: 'I2.I1.this[int]' cannot be both extern and abstract
+                //     extern abstract int I1.this[int i] {get; set;}
+                Diagnostic(ErrorCode.ERR_AbstractAndExtern, "this").WithArguments("I2.I1.this[int]").WithLocation(9, 28),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_017()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract public int I1.this[int i] { get; set; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,28): error CS0106: The modifier 'public' is not valid for this item
+                //     abstract public int I1.this[int i] { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("public").WithLocation(9, 28),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_018()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get; set;}
+}
+
+public class C2 : I1
+{
+    abstract int I1.this[int i] { get; set; }
+}
+";
+            ValidatePropertyReAbstraction_018(source1,
+                // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract int I1.this[int i] { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("abstract").WithLocation(9, 21),
+                // (9,35): error CS0501: 'C2.I1.this[int].get' must declare a body because it is not marked abstract, extern, or partial
+                //     abstract int I1.this[int i] { get; set; }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("C2.I1.this[int].get").WithLocation(9, 35),
+                // (9,40): error CS0501: 'C2.I1.this[int].set' must declare a body because it is not marked abstract, extern, or partial
+                //     abstract int I1.this[int i] { get; set; }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("C2.I1.this[int].set").WithLocation(9, 40)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_019()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get; set;}
+}
+
+public struct C2 : I1
+{
+    abstract int I1.this[int i] { get; set; }
+}
+";
+            ValidatePropertyReAbstraction_018(source1,
+                // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract int I1.this[int i] { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("abstract").WithLocation(9, 21),
+                // (9,35): error CS0501: 'C2.I1.this[int].get' must declare a body because it is not marked abstract, extern, or partial
+                //     abstract int I1.this[int i] { get; set; }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("C2.I1.this[int].get").WithLocation(9, 35),
+                // (9,40): error CS0501: 'C2.I1.this[int].set' must declare a body because it is not marked abstract, extern, or partial
+                //     abstract int I1.this[int i] { get; set; }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("C2.I1.this[int].set").WithLocation(9, 40)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_020()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] { get; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,21): error CS0551: Explicit interface implementation 'I2.I1.this[int]' is missing accessor 'I1.this[int].set'
+                //     abstract int I1.this[int i] { get; }
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "this").WithArguments("I2.I1.this[int]", "I1.this[int].set").WithLocation(9, 21),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_021()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] { set; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,21): error CS0551: Explicit interface implementation 'I2.I1.this[int]' is missing accessor 'I1.this[int].get'
+                //     abstract int I1.this[int i] { set; }
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "this").WithArguments("I2.I1.this[int]", "I1.this[int].get").WithLocation(9, 21),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_022()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] { get; set; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,40): error CS0550: 'I2.I1.this[int].set' adds an accessor not found in interface member 'I1.this[int]'
+                //     abstract int I1.this[int i] { get; set; }
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("I2.I1.this[int].set", "I1.this[int]").WithLocation(9, 40),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_023()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] { get; set; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,35): error CS0550: 'I2.I1.this[int].get' adds an accessor not found in interface member 'I1.this[int]'
+                //     abstract int I1.this[int i] { get; set; }
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("I2.I1.this[int].get", "I1.this[int]").WithLocation(9, 35),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_024()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get => throw null; private set => throw null;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] { get; set; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,40): error CS0550: 'I2.I1.this[int].set' adds an accessor not found in interface member 'I1.this[int]'
+                //     abstract int I1.this[int i] { get; set; }
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("I2.I1.this[int].set", "I1.this[int]").WithLocation(9, 40),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_025()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {private get => throw null; set => throw null;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] { get; set; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,35): error CS0550: 'I2.I1.this[int].get' adds an accessor not found in interface member 'I1.this[int]'
+                //     abstract int I1.this[int i] { get; set; }
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("I2.I1.this[int].get", "I1.this[int]").WithLocation(9, 35),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_026()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    internal int this[int i] {get => throw null; set => throw null;}
+}
+";
+            var source2 =
+@"
+public interface I2 : I1
+{
+    abstract int I1.this[int i] { get; set; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_026(source1, source2,
+                // (4,21): error CS0122: 'I1.this[int]' is inaccessible due to its protection level
+                //     abstract int I1.this[int i] { get; set; }
+                Diagnostic(ErrorCode.ERR_BadAccess, "this").WithArguments("I1.this[int]").WithLocation(4, 21),
+                // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(7, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_027()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {internal get => throw null; set => throw null;}
+}
+";
+            var source2 =
+@"
+public interface I2 : I1
+{
+    abstract int I1.this[int i] { get; set; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_026(source1, source2,
+                // (4,21): error CS0122: 'I1.this[int].get' is inaccessible due to its protection level
+                //     abstract int I1.this[int i] { get; set; }
+                Diagnostic(ErrorCode.ERR_BadAccess, "this").WithArguments("I1.this[int].get").WithLocation(4, 21),
+                // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(7, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_028()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get => throw null; internal set => throw null;}
+}
+";
+            var source2 =
+@"
+public interface I2 : I1
+{
+    abstract int I1.this[int i] { get; set; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_026(source1, source2,
+                // (4,21): error CS0122: 'I1.this[int].set' is inaccessible due to its protection level
+                //     abstract int I1.this[int i] { get; set; }
+                Diagnostic(ErrorCode.ERR_BadAccess, "this").WithArguments("I1.this[int].set").WithLocation(4, 21),
+                // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(7, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_037()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_001(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_038()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { get => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_001(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void IndexerReAbstraction_039()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1[0];
+    }
+
+    int I1.this[int i]
+    {
+        get
+        {
+            System.Console.WriteLine(""Test1.get_P1"");
+            return 0;
+        }
+    }
+}
+";
+            ValidatePropertyReAbstraction_003(source1, source2, "Test1.get_P1");
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void IndexerReAbstraction_040()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { get => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1[0];
+    }
+
+    int I1.this[int i]
+    {
+        get
+        {
+            System.Console.WriteLine(""Test1.get_P1"");
+            return 0;
+        }
+    }
+}
+";
+            ValidatePropertyReAbstraction_003(source1, source2, "Test1.get_P1");
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_041()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get;}
+}
+
+public interface I3 : I2 {}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+}
+";
+            ValidatePropertyReAbstraction_005(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1.this[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_042()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { get => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get;}
+}
+
+public interface I3 : I2 {}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+}
+";
+            ValidatePropertyReAbstraction_005(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1.this[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void IndexerReAbstraction_043()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get;}
+}
+
+public interface I3 : I2
+{
+    int I1.this[int i]
+    {
+        get
+        {
+            System.Console.WriteLine(""I3.get_P1"");
+            return 0;
+        }
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1[0];
+    }
+}
+";
+            ValidatePropertyReAbstraction_007(source1, source2, "I3.get_P1");
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void IndexerReAbstraction_044()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { get => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get;}
+}
+
+public interface I3 : I2
+{
+    int I1.this[int i]
+    {
+        get
+        {
+            System.Console.WriteLine(""I3.get_P1"");
+            return 0;
+        }
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1[0];
+    }
+}
+";
+            ValidatePropertyReAbstraction_007(source1, source2, "I3.get_P1");
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_045()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { get => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get;}
+}
+
+public interface I3 : I1
+{
+    abstract int I1.this[int i] {get;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidatePropertyReAbstraction_009(source1, source2,
+                new[] {
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(2, 15)
+                },
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_046()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { get => throw null; }
+}
+
+public interface I2 : I1
+{
+    int I1.this[int i] { get => throw null; }
+}
+
+public interface I3 : I1
+{
+    abstract int I1.this[int i] {get;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidatePropertyReAbstraction_009(source1, source2,
+                new[] {
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(2, 15)
+                },
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_047()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { get => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get;}
+}
+
+public interface I3 : I1
+{
+    int I1.this[int i] { get => throw null; }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidatePropertyReAbstraction_009(source1, source2,
+                new[] {
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(2, 15)
+                },
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_048()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { get => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get;}
+}
+
+public interface I3 : I1
+{
+    abstract int I1.this[int i] {get;}
+}
+
+public interface I4 : I2, I3 {}
+";
+
+            var source2 =
+@"
+class Test1 : I4
+{
+}
+";
+            ValidatePropertyReAbstraction_012(source1, source2,
+                new[] {
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
+                // class Test1 : I4
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I4").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(2, 15)
+                },
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
+                // class Test1 : I4
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I4").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void IndexerReAbstraction_049()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { get => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get;}
+}
+
+public interface I3 : I1
+{
+    abstract int I1.this[int i] {get;}
+}
+
+public interface I4 : I2, I3
+{
+    int I1.this[int i]
+    {
+        get
+        {
+            System.Console.WriteLine(""I4.get_P1"");
+            return 0;
+        }
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I4
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1[0];
+    }
+}
+";
+            ValidatePropertyReAbstraction_013(source1, source2, "I4.get_P1");
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_050()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i]
+    {
+        get
+        {
+            throw null;
+        }
+    }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (11,9): error CS0500: 'I2.I1.this[int].get' cannot declare a body because it is marked abstract
+                //         get
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I2.I1.this[int].get").WithLocation(11, 9),
+                // (18,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(18, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_051()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i]
+    {
+        get => throw null;
+    }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (11,9): error CS0500: 'I2.I1.this[int].get' cannot declare a body because it is marked abstract
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I2.I1.this[int].get").WithLocation(11, 9),
+                // (15,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(15, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_052()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] => throw null;
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,36): error CS0500: 'I2.I1.this[int].get' cannot declare a body because it is marked abstract
+                //     abstract int I1.this[int i] => throw null;
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "throw null").WithArguments("I2.I1.this[int].get").WithLocation(9, 36),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_053()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get;}
+}
+
+public interface I2 : I1
+{
+    extern abstract int I1.this[int i] {get;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_016(source1,
+                // (9,28): error CS0180: 'I2.I1.this[int]' cannot be both extern and abstract
+                //     extern abstract int I1.this[int i] {get;}
+                Diagnostic(ErrorCode.ERR_AbstractAndExtern, "this").WithArguments("I2.I1.this[int]").WithLocation(9, 28),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_054()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get;}
+}
+
+public interface I2 : I1
+{
+    abstract public int I1.this[int i] { get;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,28): error CS0106: The modifier 'public' is not valid for this item
+                //     abstract public int I1.this[int i] { get;}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("public").WithLocation(9, 28),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_055()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get;}
+}
+
+public class C2 : I1
+{
+    abstract int I1.this[int i] { get; }
+}
+";
+            ValidatePropertyReAbstraction_018(source1,
+                // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract int I1.this[int i] { get; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("abstract").WithLocation(9, 21),
+                // (9,35): error CS0501: 'C2.I1.this[int].get' must declare a body because it is not marked abstract, extern, or partial
+                //     abstract int I1.this[int i] { get; }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("C2.I1.this[int].get").WithLocation(9, 35)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_056()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get;}
+}
+
+public struct C2 : I1
+{
+    abstract int I1.this[int i] { get; }
+}
+";
+            ValidatePropertyReAbstraction_018(source1,
+                // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract int I1.this[int i] { get; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("abstract").WithLocation(9, 21),
+                // (9,35): error CS0501: 'C2.I1.this[int].get' must declare a body because it is not marked abstract, extern, or partial
+                //     abstract int I1.this[int i] { get; }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("C2.I1.this[int].get").WithLocation(9, 35)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_057()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] { get; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,21): error CS0551: Explicit interface implementation 'I2.I1.this[int]' is missing accessor 'I1.this[int].set'
+                //     abstract int I1.this[int i] { get; }
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "this").WithArguments("I2.I1.this[int]", "I1.this[int].set").WithLocation(9, 21),
+                // (9,35): error CS0550: 'I2.I1.this[int].get' adds an accessor not found in interface member 'I1.this[int]'
+                //     abstract int I1.this[int i] { get; }
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("I2.I1.this[int].get", "I1.this[int]").WithLocation(9, 35),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_058()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    internal int this[int i] {get => throw null;}
+}
+";
+            var source2 =
+@"
+public interface I2 : I1
+{
+    abstract int I1.this[int i] { get;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_026(source1, source2,
+                // (4,21): error CS0122: 'I1.this[int]' is inaccessible due to its protection level
+                //     abstract int I1.this[int i] { get;}
+                Diagnostic(ErrorCode.ERR_BadAccess, "this").WithArguments("I1.this[int]").WithLocation(4, 21),
+                // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(7, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_059()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_001(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_060()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_001(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void IndexerReAbstraction_061()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1[0] = 1;
+    }
+
+    int I1.this[int i]
+    {
+        set
+        {
+            System.Console.WriteLine(""Test1.set_P1"");
+        }
+    }
+}
+";
+            ValidatePropertyReAbstraction_003(source1, source2, "Test1.set_P1");
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void IndexerReAbstraction_062()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1[0] = 1;
+    }
+
+    int I1.this[int i]
+    {
+        set
+        {
+            System.Console.WriteLine(""Test1.set_P1"");
+        }
+    }
+}
+";
+            ValidatePropertyReAbstraction_003(source1, source2, "Test1.set_P1");
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_063()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {set;}
+}
+
+public interface I3 : I2 {}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+}
+";
+            ValidatePropertyReAbstraction_005(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1.this[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_064()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {set;}
+}
+
+public interface I3 : I2 {}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+}
+";
+            ValidatePropertyReAbstraction_005(source1, source2,
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1.this[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void IndexerReAbstraction_065()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {set;}
+}
+
+public interface I3 : I2
+{
+    int I1.this[int i]
+    {
+        set
+        {
+            System.Console.WriteLine(""I3.set_P1"");
+        }
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1[0] = 1;
+    }
+}
+";
+            ValidatePropertyReAbstraction_007(source1, source2, "I3.set_P1");
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void IndexerReAbstraction_066()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {set;}
+}
+
+public interface I3 : I2
+{
+    int I1.this[int i]
+    {
+        set
+        {
+            System.Console.WriteLine(""I3.set_P1"");
+        }
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I3
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1[0] = 1;
+    }
+}
+";
+            ValidatePropertyReAbstraction_007(source1, source2, "I3.set_P1");
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_067()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {set;}
+}
+
+public interface I3 : I1
+{
+    abstract int I1.this[int i] {set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidatePropertyReAbstraction_009(source1, source2,
+                new[] {
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(2, 15)
+                },
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_068()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { set => throw null; }
+}
+
+public interface I2 : I1
+{
+    int I1.this[int i] { set => throw null; }
+}
+
+public interface I3 : I1
+{
+    abstract int I1.this[int i] {set;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidatePropertyReAbstraction_009(source1, source2,
+                new[] {
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(2, 15)
+                },
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_069()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {set;}
+}
+
+public interface I3 : I1
+{
+    int I1.this[int i] { set => throw null; }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+            ValidatePropertyReAbstraction_009(source1, source2,
+                new[] {
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(2, 15)
+                },
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_070()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {set;}
+}
+
+public interface I3 : I1
+{
+    abstract int I1.this[int i] {set;}
+}
+
+public interface I4 : I2, I3 {}
+";
+
+            var source2 =
+@"
+class Test1 : I4
+{
+}
+";
+            ValidatePropertyReAbstraction_012(source1, source2,
+                new[] {
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
+                // class Test1 : I4
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I4").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(2, 15)
+                },
+                // (2,15): error CS8705: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
+                // class Test1 : I4
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I4").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
+        public void IndexerReAbstraction_071()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] { set => throw null; }
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {set;}
+}
+
+public interface I3 : I1
+{
+    abstract int I1.this[int i] {set;}
+}
+
+public interface I4 : I2, I3
+{
+    int I1.this[int i]
+    {
+        set
+        {
+            System.Console.WriteLine(""I4.set_P1"");
+        }
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I4
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1[0] = 1;
+    }
+}
+";
+            ValidatePropertyReAbstraction_013(source1, source2, "I4.set_P1");
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_072()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i]
+    {
+        set
+        {
+            throw null;
+        }
+    }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (11,9): error CS0500: 'I2.I1.this[int].set' cannot declare a body because it is marked abstract
+                //         set
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I2.I1.this[int].set").WithLocation(11, 9),
+                // (18,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(18, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_073()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i]
+    {
+        set => throw null;
+    }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (11,9): error CS0500: 'I2.I1.this[int].set' cannot declare a body because it is marked abstract
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I2.I1.this[int].set").WithLocation(11, 9),
+                // (15,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(15, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_074()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {set;}
+}
+
+public interface I2 : I1
+{
+    extern abstract int I1.this[int i] {set;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_016(source1,
+                // (9,28): error CS0180: 'I2.I1.this[int]' cannot be both extern and abstract
+                //     extern abstract int I1.this[int i] {set;}
+                Diagnostic(ErrorCode.ERR_AbstractAndExtern, "this").WithArguments("I2.I1.this[int]").WithLocation(9, 28),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_075()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {set;}
+}
+
+public interface I2 : I1
+{
+    abstract public int I1.this[int i] { set;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,28): error CS0106: The modifier 'public' is not valid for this item
+                //     abstract public int I1.this[int i] { set;}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("public").WithLocation(9, 28),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_076()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {set;}
+}
+
+public class C2 : I1
+{
+    abstract int I1.this[int i] { set; }
+}
+";
+            ValidatePropertyReAbstraction_018(source1,
+                // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract int I1.this[int i] { set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("abstract").WithLocation(9, 21),
+                // (9,35): error CS0501: 'C2.I1.this[int].set' must declare a body because it is not marked abstract, extern, or partial
+                //     abstract int I1.this[int i] { set; }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("C2.I1.this[int].set").WithLocation(9, 35)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_077()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {set;}
+}
+
+public struct C2 : I1
+{
+    abstract int I1.this[int i] { set; }
+}
+";
+            ValidatePropertyReAbstraction_018(source1,
+                // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract int I1.this[int i] { set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("abstract").WithLocation(9, 21),
+                // (9,35): error CS0501: 'C2.I1.this[int].set' must declare a body because it is not marked abstract, extern, or partial
+                //     abstract int I1.this[int i] { set; }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("C2.I1.this[int].set").WithLocation(9, 35)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_078()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] { set; }
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,21): error CS0551: Explicit interface implementation 'I2.I1.this[int]' is missing accessor 'I1.this[int].get'
+                //     abstract int I1.this[int i] { set; }
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "this").WithArguments("I2.I1.this[int]", "I1.this[int].get").WithLocation(9, 21),
+                // (9,35): error CS0550: 'I2.I1.this[int].set' adds an accessor not found in interface member 'I1.this[int]'
+                //     abstract int I1.this[int i] { set; }
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("I2.I1.this[int].set", "I1.this[int]").WithLocation(9, 35),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_079()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    internal int this[int i] {set => throw null;}
+}
+";
+            var source2 =
+@"
+public interface I2 : I1
+{
+    abstract int I1.this[int i] { set;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_026(source1, source2,
+                // (4,21): error CS0122: 'I1.this[int]' is inaccessible due to its protection level
+                //     abstract int I1.this[int i] { set;}
+                Diagnostic(ErrorCode.ERR_BadAccess, "this").WithArguments("I1.this[int]").WithLocation(4, 21),
+                // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(7, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_080()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] { get; set; } = 0;
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,47): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                //     abstract int I1.this[int i] { get; set; } = 0;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(9, 47),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_081()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] { get; } = 0;
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,42): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                //     abstract int I1.this[int i] { get; } = 0;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(9, 42),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_082()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] { set; } = 0;
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1,
+                // (9,42): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                //     abstract int I1.this[int i] { set; } = 0;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(9, 42),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_083()
+        {
+            var source1 =
+@"
+public interface I1
+{
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get; set;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_083(source1,
+                // (8,21): error CS0539: 'I2.this[int]' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract int I1.this[int i] {get; set;}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "this").WithArguments("I2.this[int]").WithLocation(8, 21)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_084()
+        {
+            var source1 =
+@"
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get; set;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_083(source1,
+                // (2,23): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
+                // public interface I2 : I1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(2, 23),
+                // (4,18): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
+                //     abstract int I1.this[int i] {get; set;}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(4, 18),
+                // (4,18): error CS0538: 'I1' in explicit interface declaration is not an interface
+                //     abstract int I1.this[int i] {get; set;}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I1").WithArguments("I1").WithLocation(4, 18)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_085()
+        {
+            var source1 =
+@"
+public interface I1
+{
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_083(source1,
+                // (8,21): error CS0539: 'I2.this[int]' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract int I1.this[int i] {get;}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "this").WithArguments("I2.this[int]").WithLocation(8, 21)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_086()
+        {
+            var source1 =
+@"
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_083(source1,
+                // (2,23): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
+                // public interface I2 : I1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(2, 23),
+                // (4,18): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
+                //     abstract int I1.this[int i] {get;}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(4, 18),
+                // (4,18): error CS0538: 'I1' in explicit interface declaration is not an interface
+                //     abstract int I1.this[int i] {get;}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I1").WithArguments("I1").WithLocation(4, 18)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_087()
+        {
+            var source1 =
+@"
+public interface I1
+{
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {set;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_083(source1,
+                // (8,21): error CS0539: 'I2.this[int]' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract int I1.this[int i] {set;}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "this").WithArguments("I2.this[int]").WithLocation(8, 21)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_088()
+        {
+            var source1 =
+@"
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {set;}
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_083(source1,
+                // (2,23): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
+                // public interface I2 : I1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(2, 23),
+                // (4,18): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
+                //     abstract int I1.this[int i] {set;}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(4, 18),
+                // (4,18): error CS0538: 'I1' in explicit interface declaration is not an interface
+                //     abstract int I1.this[int i] {set;}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I1").WithArguments("I1").WithLocation(4, 18)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_089()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get; set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get; set;}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular7_3,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (9,34): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     abstract int I1.this[int i] {get; set;}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("default interface implementation").WithLocation(9, 34),
+                // (9,39): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     abstract int I1.this[int i] {get; set;}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("default interface implementation").WithLocation(9, 39)
+                );
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+            compilation2.VerifyDiagnostics(
+                // (9,34): error CS8701: Target runtime doesn't support default interface implementation.
+                //     abstract int I1.this[int i] {get; set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(9, 34),
+                // (9,39): error CS8701: Target runtime doesn't support default interface implementation.
+                //     abstract int I1.this[int i] {get; set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(9, 39)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_090()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {get;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {get;}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular7_3,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (9,34): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     abstract int I1.this[int i] {get;}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("default interface implementation").WithLocation(9, 34)
+                );
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+            compilation2.VerifyDiagnostics(
+                // (9,34): error CS8701: Target runtime doesn't support default interface implementation.
+                //     abstract int I1.this[int i] {get;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(9, 34)
+                );
+        }
+
+        [Fact]
+        public void IndexerReAbstraction_091()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int i] {set;}
+}
+
+public interface I2 : I1
+{
+    abstract int I1.this[int i] {set;}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular7_3,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (9,34): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     abstract int I1.this[int i] {set;}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("default interface implementation").WithLocation(9, 34)
+                );
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+            compilation2.VerifyDiagnostics(
+                // (9,34): error CS8701: Target runtime doesn't support default interface implementation.
+                //     abstract int I1.this[int i] {set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(9, 34)
                 );
         }
 

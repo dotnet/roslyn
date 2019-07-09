@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
         private static readonly SyntaxAnnotation s_delegateToReplaceAnnotation = new SyntaxAnnotation();
         private static readonly SyntaxGenerator s_generator = CSharpSyntaxGenerator.Instance;
 
+        [ImportingConstructor]
+        public CSharpConvertLocalFunctionToMethodCodeRefactoringProvider()
+        {
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;
@@ -35,23 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             }
 
             var cancellationToken = context.CancellationToken;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
 
-            var identifier = await root.SyntaxTree.GetTouchingTokenAsync(context.Span.Start,
-                token => token.Parent.IsKind(SyntaxKind.LocalFunctionStatement), cancellationToken).ConfigureAwait(false);
-            if (identifier == default)
-            {
-                return;
-            }
-
-            if (context.Span.Length > 0 &&
-                context.Span != identifier.Span)
-            {
-                return;
-            }
-
-            var localFunction = (LocalFunctionStatementSyntax)identifier.Parent;
-            if (localFunction.Identifier != identifier)
+            var localFunction = await refactoringHelperService.TryGetSelectedNodeAsync<LocalFunctionStatementSyntax>(document, context.Span, cancellationToken).ConfigureAwait(false);
+            if (localFunction == default)
             {
                 return;
             }
@@ -60,6 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             {
                 return;
             }
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             context.RegisterRefactoring(new MyCodeAction(CSharpFeaturesResources.Convert_to_method,
                 c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)));
@@ -154,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
                 // Using symbol to get type arguments, since it could be inferred and not present in the source
                 var symbol = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol as IMethodSymbol;
-                if (symbol?.OriginalDefinition != declaredSymbol)
+                if (!Equals(symbol?.OriginalDefinition, declaredSymbol))
                 {
                     continue;
                 }

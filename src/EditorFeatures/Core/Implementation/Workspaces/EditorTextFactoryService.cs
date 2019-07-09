@@ -84,11 +84,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             cancellationToken.ThrowIfCancellationRequested();
             stream.Seek(0, SeekOrigin.Begin);
 
-            using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true))
-            {
-                var buffer = CreateTextBuffer(reader, cancellationToken);
-                return buffer.CurrentSnapshot.AsRoslynText(_textBufferCloneService, reader.CurrentEncoding ?? Encoding.UTF8);
-            }
+            using var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true);
+
+            var buffer = CreateTextBuffer(reader, cancellationToken);
+            return buffer.CurrentSnapshot.AsRoslynText(_textBufferCloneService, reader.CurrentEncoding ?? Encoding.UTF8);
         }
     }
 }

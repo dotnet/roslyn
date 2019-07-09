@@ -70,30 +70,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
         private async Task<(TAnonymousObjectCreationExpressionSyntax, INamedTypeSymbol)> TryGetAnonymousObjectAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var position = span.Start;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
 
-            // Span actually has to be within the token (i.e. not in trivia around it).
-            if (!token.Span.IntersectsWith(position))
-            {
-                return default;
-            }
+            // Gets a `TAnonymousObjectCreationExpressionSyntax` for current selection.
+            // Due to the way `TryGetSelectedNodeAsync` works and how `TAnonymousObjectCreationExpressionSyntax` is e.g. for C# constructed
+            // it matches even when caret is next to some tokens within the anonymous object creation node.
+            // E.g.: `var a = new [||]{ b=1,[||] c=2 };` both match due to the caret being next to `,` and `{`.
 
-            if (!span.IsEmpty && span != token.Span)
-            {
-                // if there is a selection, it has to be of the whole token.
-                return default;
-            }
-
-            var anonymousObject = token.Parent as TAnonymousObjectCreationExpressionSyntax;
+            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
+            var anonymousObject = await refactoringHelperService.TryGetSelectedNodeAsync<TAnonymousObjectCreationExpressionSyntax>(document, span, cancellationToken).ConfigureAwait(false);
             if (anonymousObject == null)
-            {
-                return default;
-            }
-
-            // The position/selection must be of the 'new' token of the anonymous object.
-            if (anonymousObject.GetFirstToken() != token)
             {
                 return default;
             }
@@ -277,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             Document document, string className,
             ImmutableArray<IPropertySymbol> properties, CancellationToken cancellationToken)
         {
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Next, see if any of the properties ended up using any type parameters from the
             // containing method/named-type.  If so, we'll need to generate a generic type so we can
@@ -297,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             var namedTypeWithoutMembers = CreateNamedType(className, capturedTypeParameters, members: default);
 
             var generator = SyntaxGenerator.GetGenerator(document);
-            var constructor = CreateConstructor(compilation, className, properties, generator);
+            var constructor = CreateConstructor(semanticModel, className, properties, generator);
 
             // Generate Equals/GetHashCode.  Only readonly properties are suitable for these
             // methods.  We can defer to our existing language service for this so that we
@@ -391,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                    name: "", typeParameters: default, parameters: default, methodKind: kind);
 
         private static IMethodSymbol CreateConstructor(
-            Compilation compilation, string className,
+            SemanticModel semanticModel, string className,
             ImmutableArray<IPropertySymbol> properties, SyntaxGenerator generator)
         {
             // For every property, create a corresponding parameter, as well as an assignment
@@ -408,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             });
 
             var assignmentStatements = generator.CreateAssignmentStatements(
-                compilation, parameters, parameterToPropMap, ImmutableDictionary<string, string>.Empty,
+                semanticModel, parameters, parameterToPropMap, ImmutableDictionary<string, string>.Empty,
                 addNullChecks: false, preferThrowExpression: false);
 
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(

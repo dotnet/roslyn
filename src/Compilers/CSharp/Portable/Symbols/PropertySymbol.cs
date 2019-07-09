@@ -118,6 +118,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Returns true if this symbol requires an instance reference as the implicit reciever. This is false if the symbol is static.
+        /// </summary>
+        public virtual bool RequiresInstanceReceiver => !IsStatic;
+
+        /// <summary>
         /// Returns whether the property is really an indexer.
         /// </summary>
         /// <remarks>
@@ -427,6 +432,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return this.Type; }
         }
+
+        CodeAnalysis.NullableAnnotation IPropertySymbol.NullableAnnotation => TypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
 
         ImmutableArray<IParameterSymbol> IPropertySymbol.Parameters
         {

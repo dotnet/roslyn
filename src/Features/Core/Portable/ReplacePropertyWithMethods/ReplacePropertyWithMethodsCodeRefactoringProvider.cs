@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
         private const string GetPrefix = "Get";
         private const string SetPrefix = "Set";
 
+        [ImportingConstructor]
+        public ReplacePropertyWithMethodsCodeRefactoringProvider()
+        {
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;
@@ -358,30 +363,27 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             var editor = new SyntaxEditor(root, updatedSolution.Workspace);
 
             // First replace all the properties with the appropriate getters/setters.
-            foreach (var definition in currentDefinitions)
+            foreach (var (property, declaration) in currentDefinitions)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var propertyDefinition = definition.property;
-                var propertyDeclaration = definition.declaration;
-
                 var members = await service.GetReplacementMembersAsync(
                     updatedDocument,
-                    propertyDefinition, propertyDeclaration,
-                    definitionToBackingField.GetValueOrDefault(propertyDefinition),
+                    property, declaration,
+                    definitionToBackingField.GetValueOrDefault(property),
                     desiredGetMethodName, desiredSetMethodName,
                     cancellationToken).ConfigureAwait(false);
 
                 // Properly make the members fit within an interface if that's what
                 // we're generating into.
-                if (propertyDefinition.ContainingType.TypeKind == TypeKind.Interface)
+                if (property.ContainingType.TypeKind == TypeKind.Interface)
                 {
                     members = members.Select(editor.Generator.AsInterfaceMember)
                                      .WhereNotNull()
                                      .ToList();
                 }
 
-                var nodeToReplace = service.GetPropertyNodeToReplace(propertyDeclaration);
+                var nodeToReplace = service.GetPropertyNodeToReplace(declaration);
                 editor.InsertAfter(nodeToReplace, members);
                 editor.RemoveNode(nodeToReplace);
             }

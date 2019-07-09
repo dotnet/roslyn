@@ -109,9 +109,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         private EntryPoint _lazyEntryPoint;
 
         /// <summary>
+        /// Emit nullable attributes for only those members that are visible outside the assembly
+        /// (public, protected, and if any [InternalsVisibleTo] attributes, internal members).
+        /// If false, attributes are emitted for all members regardless of visibility.
+        /// </summary>
+        private ThreeState _lazyEmitNullablePublicOnly;
+
+        /// <summary>
         /// The set of trees for which a <see cref="CompilationUnitCompletedEvent"/> has been added to the queue.
         /// </summary>
         private HashSet<SyntaxTree> _lazyCompilationUnitCompletedTrees;
+
+        /// <summary>
+        /// Run the nullable walker during the flow analysis passes. True if the project-level nullable
+        /// context option is set, or if any file enables nullable or just the nullable warnings.
+        /// </summary>
+        private ThreeState _lazyShouldRunNullableWalker;
 
         public override string Language
         {
@@ -164,12 +177,57 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool FeatureStrictEnabled => Feature("strict") != null;
 
         /// <summary>
+        /// True if we should enable nullable semantic analysis in this compilation.
+        /// </summary>
+        internal bool NullableSemanticAnalysisEnabled
+        {
+            get
+            {
+                var nullableAnalysisFlag = Feature("run-nullable-analysis");
+                if (nullableAnalysisFlag == "false")
+                {
+                    return false;
+                }
+
+                return ShouldRunNullableWalker || nullableAnalysisFlag == "true";
+            }
+        }
+
+        /// <summary>
         /// True when the "peverify-compat" feature flag is set or the language version is below C# 7.2.
         /// With this flag we will avoid certain patterns known not be compatible with PEVerify.
         /// The code may be less efficient and may deviate from spec in corner cases.
         /// The flag is only to be used if PEVerify pass is extremely important.
         /// </summary>
         internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature("peverify-compat") != null;
+
+        internal bool ShouldRunNullableWalker
+        {
+            get
+            {
+                if (!_lazyShouldRunNullableWalker.HasValue())
+                {
+                    if (Options.NullableContextOptions != NullableContextOptions.Disable)
+                    {
+                        _lazyShouldRunNullableWalker = ThreeState.True;
+                        return true;
+                    }
+
+                    foreach (var syntaxTree in SyntaxTrees)
+                    {
+                        if (((CSharpSyntaxTree)syntaxTree).HasNullableEnables())
+                        {
+                            _lazyShouldRunNullableWalker = ThreeState.True;
+                            return true;
+                        }
+                    }
+
+                    _lazyShouldRunNullableWalker = ThreeState.False;
+                }
+
+                return _lazyShouldRunNullableWalker.Value();
+            }
+        }
 
         /// <summary>
         /// The language version that was used to parse the syntax trees of this compilation.
@@ -304,7 +362,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reuseReferenceManager,
             SyntaxAndDeclarationManager syntaxAndDeclarations,
             AsyncQueue<CompilationEvent> eventQueue = null)
-            : base(assemblyName, references, SyntaxTreeCommonFeatures(syntaxAndDeclarations.ExternalSyntaxTrees), isSubmission, eventQueue)
+            : this(assemblyName, options, references, previousSubmission, submissionReturnType, hostObjectType, isSubmission, referenceManager, reuseReferenceManager, syntaxAndDeclarations, SyntaxTreeCommonFeatures(syntaxAndDeclarations.ExternalSyntaxTrees), eventQueue)
+        {
+        }
+
+        private CSharpCompilation(
+            string assemblyName,
+            CSharpCompilationOptions options,
+            ImmutableArray<MetadataReference> references,
+            CSharpCompilation previousSubmission,
+            Type submissionReturnType,
+            Type hostObjectType,
+            bool isSubmission,
+            ReferenceManager referenceManager,
+            bool reuseReferenceManager,
+            SyntaxAndDeclarationManager syntaxAndDeclarations,
+            IReadOnlyDictionary<string, string> features,
+            AsyncQueue<CompilationEvent> eventQueue = null)
+            : base(assemblyName, references, features, isSubmission, eventQueue)
         {
             WellKnownMemberSignatureComparer = new WellKnownMembersSignatureComparer(this);
             _options = options;
@@ -1629,7 +1704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool ReturnsAwaitableToVoidOrInt(MethodSymbol method, DiagnosticBag diagnostics)
         {
             // Common case optimization
-            if (method.ReturnType.SpecialType == SpecialType.System_Void || method.ReturnType.SpecialType == SpecialType.System_Int32)
+            if (method.ReturnType.IsVoidType() || method.ReturnType.SpecialType == SpecialType.System_Int32)
             {
                 return false;
             }
@@ -1653,7 +1728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var success = binder.GetAwaitableExpressionInfo(dumbInstance, out _, out _, out _, out result, syntax, diagnostics);
 
             return success &&
-                (result.Type.SpecialType == SpecialType.System_Void || result.Type.SpecialType == SpecialType.System_Int32);
+                (result.Type.IsVoidType() || result.Type.SpecialType == SpecialType.System_Int32);
         }
 
         /// <summary>
@@ -1672,7 +1747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol returnType = method.ReturnType;
             bool returnsTaskOrTaskOfInt = false;
-            if (returnType.SpecialType != SpecialType.System_Int32 && returnType.SpecialType != SpecialType.System_Void)
+            if (returnType.SpecialType != SpecialType.System_Int32 && !returnType.IsVoidType())
             {
                 // Never look for ReturnsAwaitableToVoidOrInt on int32 or void
                 returnsTaskOrTaskOfInt = ReturnsAwaitableToVoidOrInt(method, bag);
@@ -2633,9 +2708,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
 
-                bool hasMethodBodyErrorOrWarningAsError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag);
+                bool hasMethodBodyError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag);
 
-                if (hasDeclarationErrors || hasMethodBodyErrorOrWarningAsError)
+                if (hasDeclarationErrors || hasMethodBodyError)
                 {
                     return false;
                 }
@@ -3215,6 +3290,64 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typeSymbol = GetSpecialType(type);
             var diagnostic = typeSymbol.GetUseSiteDiagnostic();
             return (diagnostic == null) || (diagnostic.Severity != DiagnosticSeverity.Error);
+        }
+
+        internal bool EmitNullablePublicOnly
+        {
+            get
+            {
+                if (!_lazyEmitNullablePublicOnly.HasValue())
+                {
+                    bool value = SyntaxTrees.FirstOrDefault()?.Options?.Features?.ContainsKey("nullablePublicOnly") == true;
+                    _lazyEmitNullablePublicOnly = value.ToThreeState();
+                }
+                return _lazyEmitNullablePublicOnly.Value();
+            }
+        }
+
+        internal bool ShouldEmitNullableAttributes(Symbol symbol)
+        {
+            Debug.Assert(!(symbol is null));
+            Debug.Assert(symbol.IsDefinition);
+
+            if (symbol.ContainingModule != SourceModule)
+            {
+                return false;
+            }
+
+            if (!EmitNullablePublicOnly)
+            {
+                return true;
+            }
+
+            // For symbols that do not have explicit accessibility in metadata,
+            // use the accessibility of the container.
+            symbol = getExplicitAccessibilitySymbol(symbol);
+
+            if (!AccessCheck.IsEffectivelyPublicOrInternal(symbol, out bool isInternal))
+            {
+                return false;
+            }
+
+            return !isInternal || SourceAssembly.InternalsAreVisible;
+
+            static Symbol getExplicitAccessibilitySymbol(Symbol symbol)
+            {
+                while (true)
+                {
+                    switch (symbol.Kind)
+                    {
+                        case SymbolKind.Parameter:
+                        case SymbolKind.TypeParameter:
+                        case SymbolKind.Property:
+                        case SymbolKind.Event:
+                            symbol = symbol.ContainingSymbol;
+                            break;
+                        default:
+                            return symbol;
+                    }
+                }
+            }
         }
 
         internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager)

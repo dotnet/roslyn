@@ -28,7 +28,7 @@ Module Module1
     End Sub
 End Module";
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35701")]
         [Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateThroughCommand()
         {

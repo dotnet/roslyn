@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             private static Accessibility? GetAccessibility(SyntaxTokenList modifiers)
             {
-                for (int i = modifiers.Count - 1; i >= 0; i--)
+                for (var i = modifiers.Count - 1; i >= 0; i--)
                 {
                     var modifier = modifiers[i];
                     switch (modifier.Kind())

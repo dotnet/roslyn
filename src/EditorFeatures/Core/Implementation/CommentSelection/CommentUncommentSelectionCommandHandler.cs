@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
         [ImportingConstructor]
-        internal CommentUncommentSelectionCommandHandler(
+        public CommentUncommentSelectionCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
         {
@@ -120,11 +120,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
                 if (operation == Operation.Uncomment)
                 {
-                    using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
-                    {
-                        Format(service, subjectBuffer.CurrentSnapshot, trackingSpans, CancellationToken.None);
-                        transaction.Complete();
-                    }
+                    using var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
+
+                    Format(service, subjectBuffer.CurrentSnapshot, trackingSpans, CancellationToken.None);
+                    transaction.Complete();
                 }
 
                 if (trackingSpans.Any())
@@ -462,10 +461,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         /// </summary>
         private static bool SpanIncludesAllTextOnIncludedLines(SnapshotSpan span)
         {
-            var firstAndLastLine = DetermineFirstAndLastLine(span);
+            var (firstLine, lastLine) = DetermineFirstAndLastLine(span);
 
-            var firstNonWhitespacePosition = firstAndLastLine.firstLine.GetFirstNonWhitespacePosition();
-            var lastNonWhitespacePosition = firstAndLastLine.lastLine.GetLastNonWhitespacePosition();
+            var firstNonWhitespacePosition = firstLine.GetFirstNonWhitespacePosition();
+            var lastNonWhitespacePosition = lastLine.GetLastNonWhitespacePosition();
 
             var allOnFirst = !firstNonWhitespacePosition.HasValue ||
                               span.Start.Position <= firstNonWhitespacePosition.Value;

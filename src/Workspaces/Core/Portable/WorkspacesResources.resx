@@ -357,6 +357,9 @@
   <data name="Adding_additional_documents_is_not_supported" xml:space="preserve">
     <value>Adding additional documents is not supported.</value>
   </data>
+  <data name="Adding_analyzer_config_documents_is_not_supported" xml:space="preserve">
+    <value>Adding analyzer config documents is not supported.</value>
+  </data>
   <data name="Adding_analyzer_references_is_not_supported" xml:space="preserve">
     <value>Adding analyzer references is not supported.</value>
   </data>
@@ -372,6 +375,9 @@
   <data name="Changing_additional_documents_is_not_supported" xml:space="preserve">
     <value>Changing additional documents is not supported.</value>
   </data>
+  <data name="Changing_analyzer_config_documents_is_not_supported" xml:space="preserve">
+    <value>Changing analyzer config documents is not supported.</value>
+  </data>
   <data name="Changing_documents_is_not_supported" xml:space="preserve">
     <value>Changing documents is not supported.</value>
   </data>
@@ -380,6 +386,9 @@
   </data>
   <data name="Removing_additional_documents_is_not_supported" xml:space="preserve">
     <value>Removing additional documents is not supported.</value>
+  </data>
+  <data name="Removing_analyzer_config_documents_is_not_supported" xml:space="preserve">
+    <value>Removing analyzer config documents is not supported.</value>
   </data>
   <data name="Removing_analyzer_references_is_not_supported" xml:space="preserve">
     <value>Removing analyzer references is not supported.</value>
@@ -1498,5 +1507,14 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="DateTimeKind_must_be_Utc" xml:space="preserve">
     <value>DateTimeKind must be Utc</value>
+  </data>
+  <data name="Naming_styles" xml:space="preserve">
+    <value>Naming styles</value>
+  </data>
+  <data name="Naming_rules" xml:space="preserve">
+    <value>Naming rules</value>
+  </data>
+  <data name="Symbol_specifications" xml:space="preserve">
+    <value>Symbol specifications</value>
   </data>
 </root>

@@ -5,7 +5,8 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    internal abstract class AbstractTableControlEventProcessorProvider<TData> : ITableControlEventProcessorProvider
+    internal abstract class AbstractTableControlEventProcessorProvider<TItem> : ITableControlEventProcessorProvider
+        where TItem : TableItem
     {
         public ITableControlEventProcessor GetAssociatedEventProcessor(IWpfTableControl tableControl)
         {
@@ -19,19 +20,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         protected class EventProcessor : TableControlEventProcessorBase
         {
-            protected static AbstractTableEntriesSnapshot<TData> GetEntriesSnapshot(ITableEntryHandle entryHandle)
+            protected static AbstractTableEntriesSnapshot<TItem> GetEntriesSnapshot(ITableEntryHandle entryHandle)
             {
                 return GetEntriesSnapshot(entryHandle, out var index);
             }
 
-            protected static AbstractTableEntriesSnapshot<TData> GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
+            protected static AbstractTableEntriesSnapshot<TItem> GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
             {
                 if (!entryHandle.TryGetSnapshot(out var snapshot, out index))
                 {
                     return null;
                 }
 
-                return snapshot as AbstractTableEntriesSnapshot<TData>;
+                return snapshot as AbstractTableEntriesSnapshot<TItem>;
             }
 
             public override void PreprocessNavigate(ITableEntryHandle entryHandle, TableEntryNavigateEventArgs e)
@@ -42,10 +43,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return;
                 }
 
-                // we always mark it as handled if entry is ours
-                e.Handled = true;
-
-                roslynSnapshot.TryNavigateTo(index, e.IsPreview);
+                // don't be too strict on navigation on our item. if we can't handle the item,
+                // let default handler to handle it at least.
+                // we might fail to navigate if we don't see the document in our solution anymore.
+                // that can happen if error is staled build error or user used #line pragma in C#
+                // to point to some random file in error or more.
+                e.Handled = roslynSnapshot.TryNavigateTo(index, e.IsPreview);
             }
         }
     }

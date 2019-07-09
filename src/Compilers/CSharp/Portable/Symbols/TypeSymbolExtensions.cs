@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Assuming that nullable annotations are enabled:
         /// T => true
         /// T where T : struct => false
         /// T where T : class => false
@@ -58,10 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeParameter = (TypeParameterSymbol)type;
             // https://github.com/dotnet/roslyn/issues/30056: Test `where T : unmanaged`. See
             // UninitializedNonNullableFieldTests.TypeParameterConstraints for instance.
-            return !typeParameter.IsValueType && !(typeParameter.IsReferenceType && typeParameter.IsNotNullableIfReferenceType == true);
+            return !typeParameter.IsValueType && !(typeParameter.IsReferenceType && typeParameter.IsNotNullable == true);
         }
 
         /// <summary>
+        /// Assuming that nullable annotations are enabled:
         /// T => true
         /// T where T : struct => false
         /// T where T : class => false
@@ -71,12 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool IsPossiblyNullableReferenceTypeTypeParameter(this TypeSymbol type)
         {
-            if (type.TypeKind != TypeKind.TypeParameter)
-            {
-                return false;
-            }
-            var typeParameter = (TypeParameterSymbol)type;
-            return !typeParameter.IsValueType && typeParameter.IsNotNullableIfReferenceType == false;
+            return type is TypeParameterSymbol { IsValueType: false, IsNotNullable: false };
         }
 
         public static bool IsNonNullableValueType(this TypeSymbol typeArgument)
@@ -87,6 +84,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return !IsNullableTypeOrTypeParameter(typeArgument);
+        }
+
+        public static bool IsVoidType(this TypeSymbol type)
+        {
+            return type.SpecialType == SpecialType.System_Void;
         }
 
         public static bool IsNullableTypeOrTypeParameter(this TypeSymbol type)
@@ -112,6 +114,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.IsNullableType();
         }
 
+        /// <summary>
+        /// Is this System.Nullable`1 type, or its substitution.
+        ///
+        /// To check whether a type is System.Nullable`1 or is a type parameter constrained to System.Nullable`1
+        /// use <see cref="TypeSymbolExtensions.IsNullableTypeOrTypeParameter" /> instead.
+        /// </summary>
         public static bool IsNullableType(this TypeSymbol type)
         {
             return type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
@@ -1154,7 +1162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsVoidPointer(this TypeSymbol type)
         {
-            return type.IsPointerType() && ((PointerTypeSymbol)type).PointedAtType.SpecialType == SpecialType.System_Void;
+            return type is PointerTypeSymbol p && p.PointedAtType.IsVoidType();
         }
 
         /// <summary>
@@ -1172,6 +1180,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static int ComputeHashCode(this NamedTypeSymbol type)
         {
+            Debug.Assert(!type.Equals(type.OriginalDefinition, TypeCompareKind.AllIgnoreOptions) || wasConstructedForAnnotations(type));
+
+            if (wasConstructedForAnnotations(type))
+            {
+                // A type that uses its own type parameters as type arguments was constructed only for the purpose of adding annotations.
+                // In that case we'll use the hash from the definition.
+
+                return type.OriginalDefinition.GetHashCode();
+            }
+
             int code = type.OriginalDefinition.GetHashCode();
             code = Hash.Combine(type.ContainingType, code);
 
@@ -1201,6 +1219,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 code++;
             }
             return code;
+
+            static bool wasConstructedForAnnotations(NamedTypeSymbol type)
+            {
+                do
+                {
+                    var typeArguments = type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                    var typeParameters = type.OriginalDefinition.TypeParameters;
+
+                    for (int i = 0; i < typeArguments.Length; i++)
+                    {
+                        if (!typeParameters[i].Equals(typeArguments[i].Type.OriginalDefinition))
+                        {
+                            return false;
+                        }
+                    }
+
+                    type = type.ContainingType;
+                }
+                while (type is object && !type.IsDefinition);
+
+                return true;
+            }
         }
 
         /// <summary>
@@ -1425,7 +1465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return true;
             }
-            if (namedType.SpecialType == SpecialType.System_Void)
+            if (namedType.IsVoidType())
             {
                 return false;
             }
@@ -1657,23 +1697,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Cci.ITypeReference typeRef)
         {
             var builder = ArrayBuilder<Cci.ICustomAttribute>.GetInstance();
-            if (type.Type.ContainsTupleNames())
+            var compilation = declaringSymbol.DeclaringCompilation;
+
+            if (compilation != null)
             {
-                SynthesizedAttributeData attr = declaringSymbol.DeclaringCompilation.SynthesizeTupleNamesAttribute(type.Type);
-                if (attr != null)
+                if (type.Type.ContainsTupleNames())
                 {
-                    builder.Add(attr);
+                    SynthesizedAttributeData attr = compilation.SynthesizeTupleNamesAttribute(type.Type);
+                    if (attr != null)
+                    {
+                        builder.Add(attr);
+                    }
+                }
+
+                if (compilation.ShouldEmitNullableAttributes(declaringSymbol))
+                {
+                    SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttributeIfNecessary(declaringSymbol, declaringSymbol.GetNullableContextValue(), type);
+                    if (attr != null)
+                    {
+                        builder.Add(attr);
+                    }
                 }
             }
 
-            if (type.NeedsNullableAttribute())
-            {
-                SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttribute(declaringSymbol, type);
-                if (attr != null)
-                {
-                    builder.Add(attr);
-                }
-            }
+
             return new Cci.TypeReferenceWithAttributes(typeRef, builder.ToImmutableAndFree());
         }
 
@@ -1715,7 +1762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // Note: we're passing the return type explicitly (rather than using `method.ReturnType`) to avoid cycles
             return !returnType.IsErrorType() &&
-                returnType.SpecialType != SpecialType.System_Void &&
+                !returnType.IsVoidType() &&
                 !returnType.IsNonGenericTaskType(declaringCompilation) &&
                 !returnType.IsGenericTaskType(declaringCompilation) &&
                 !returnType.IsIAsyncEnumerableType(declaringCompilation) &&

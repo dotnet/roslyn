@@ -11,7 +11,8 @@ namespace Microsoft.CodeAnalysis
 {
     public class TextDocument
     {
-        internal readonly TextDocumentState State;
+        internal TextDocumentState State { get; }
+        internal TextDocumentKind Kind { get; }
 
         /// <summary>
         /// The project this document belongs to.
@@ -22,13 +23,14 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        internal TextDocument(Project project, TextDocumentState state)
+        internal TextDocument(Project project, TextDocumentState state, TextDocumentKind kind)
         {
             Contract.ThrowIfNull(project);
             Contract.ThrowIfNull(state);
 
             this.Project = project;
             State = state;
+            Kind = kind;
         }
 
         /// <summary>
@@ -115,6 +117,14 @@ namespace Microsoft.CodeAnalysis
         internal Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken = default)
         {
             return State.GetTopLevelChangeTextVersionAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// True if the info of the document change (name, folders, file path; not the content)
+        /// </summary>
+        internal virtual bool HasInfoChanged(TextDocument otherTextDocument)
+        {
+            return State.Attributes != otherTextDocument.State.Attributes;
         }
     }
 }

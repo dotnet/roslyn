@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             {
                                 var newParameters = parameterList.Parameters;
 
-                                for (int i = 0; i < parameterSymbols.Length; i++)
+                                for (var i = 0; i < parameterSymbols.Length; i++)
                                 {
                                     var typeSyntax = parameterSymbols[i].Type.GenerateTypeSyntax().WithTrailingTrivia(s_oneWhitespaceSeparator);
                                     var newParameter = parameters[i].WithType(typeSyntax).WithAdditionalAnnotations(Simplifier.Annotation);
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     return false;
                 }
 
-                bool found = false;
+                var found = false;
                 foreach (var argument in tuple.Arguments)
                 {
                     string elementName = null;
@@ -697,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             ExpressionSyntax left;
 
                             // Assumption here is, if the enclosing and containing types are different then there is inheritance relationship
-                            if (_semanticModel.GetEnclosingNamedType(originalSimpleName.SpanStart, _cancellationToken) != symbol.ContainingType)
+                            if (!Equals(_semanticModel.GetEnclosingNamedType(originalSimpleName.SpanStart, _cancellationToken), symbol.ContainingType))
                             {
                                 left = SyntaxFactory.BaseExpression();
                             }
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 if (isInsideCref)
                 {
                     var leftTokens = expression.DescendantTokens();
-                    List<SyntaxToken> candidateTokens = new List<SyntaxToken>();
+                    var candidateTokens = new List<SyntaxToken>();
 
                     foreach (var candidateToken in leftTokens)
                     {
@@ -776,7 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             private IList<ISymbol> TypeArgumentSymbolsPresentInName(SimpleNameSyntax simpleName)
             {
-                List<ISymbol> typeArgumentSymbols = new List<ISymbol>();
+                var typeArgumentSymbols = new List<ISymbol>();
                 var typeArgumentListSyntax = simpleName.DescendantNodesAndSelf().Where(n => n is TypeArgumentListSyntax);
                 foreach (var typeArgumentList in typeArgumentListSyntax)
                 {
@@ -822,7 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             private bool IsTypeArgumentDefinedRecursive(ISymbol symbol, IList<ISymbol> typeArgumentSymbols, bool enterContainingSymbol)
             {
-                if (symbol == symbol.OriginalDefinition)
+                if (Equals(symbol, symbol.OriginalDefinition))
                 {
                     return false;
                 }

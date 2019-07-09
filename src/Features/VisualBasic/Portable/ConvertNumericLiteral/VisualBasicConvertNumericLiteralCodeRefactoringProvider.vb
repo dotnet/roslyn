@@ -9,6 +9,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertNumericLiteral
     Friend NotInheritable Class VisualBasicConvertNumericLiteralCodeRefactoringProvider
         Inherits AbstractConvertNumericLiteralCodeRefactoringProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetNumericLiteralPrefixes() As (hexPrefix As String, binaryPrefix As String)
             Return (hexPrefix:="&H", binaryPrefix:="&B")
         End Function

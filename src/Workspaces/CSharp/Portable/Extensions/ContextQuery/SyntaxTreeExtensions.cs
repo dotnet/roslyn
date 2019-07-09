@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return false;
             }
 
-            validTypeDeclarations = validTypeDeclarations ?? SpecializedCollections.EmptySet<SyntaxKind>();
+            validTypeDeclarations ??= SpecializedCollections.EmptySet<SyntaxKind>();
 
             // Check many of the simple cases first.
             var leftToken = contextOpt != null
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return false;
             }
 
-            validModifiers = validModifiers ?? SpecializedCollections.EmptySet<SyntaxKind>();
+            validModifiers ??= SpecializedCollections.EmptySet<SyntaxKind>();
 
             if (modifierTokens.IsSubsetOf(validModifiers))
             {
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var validModifiers = SyntaxKindSet.LocalFunctionModifiers;
 
             var modifierTokens = syntaxTree.GetPrecedingModifiers(
-                position, token, out int beforeModifiersPosition);
+                position, token, out var beforeModifiersPosition);
 
             if (modifierTokens.IsSubsetOf(validModifiers))
             {
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 ? contextOpt.ContainingTypeDeclaration
                 : syntaxTree.GetContainingTypeDeclaration(position, cancellationToken);
 
-            validTypeDeclarations = validTypeDeclarations ?? SpecializedCollections.EmptySet<SyntaxKind>();
+            validTypeDeclarations ??= SpecializedCollections.EmptySet<SyntaxKind>();
 
             if (typeDecl != null)
             {
@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return false;
             }
 
-            validModifiers = validModifiers ?? SpecializedCollections.EmptySet<SyntaxKind>();
+            validModifiers ??= SpecializedCollections.EmptySet<SyntaxKind>();
 
             if (modifierTokens.IsProperSubsetOf(validModifiers))
             {
@@ -1806,6 +1806,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             while (enclosingSymbol is IMethodSymbol method && (method.MethodKind == MethodKind.LocalFunction || method.MethodKind == MethodKind.AnonymousFunction))
             {
+                if (method.IsStatic)
+                {
+                    return false;
+                }
+
                 // It is allowed to reference the instance (`this`) within a local function or anonymous function, as long as the containing method allows it
                 enclosingSymbol = enclosingSymbol.ContainingSymbol;
             }

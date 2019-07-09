@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -12,7 +11,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
@@ -48,7 +46,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var project = _document.Project;
                 var languageServices = project.Solution.Workspace.Services.GetLanguageServices(_state.ContainingType.Language);
 
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var factory = languageServices.GetService<SyntaxGenerator>();
                 var codeGenerationService = languageServices.GetService<ICodeGenerationService>();
 
@@ -71,7 +69,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         factory.IdentifierName(symbolName));
 
                     factory.AddAssignmentStatements(
-                        compilation, parameter, fieldAccess,
+                        semanticModel, parameter, fieldAccess,
                         _addNullChecks, useThrowExpressions,
                         nullCheckStatements, assignStatements);
                 }

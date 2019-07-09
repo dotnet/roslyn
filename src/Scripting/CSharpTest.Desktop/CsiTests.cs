@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 {
     public class CsiTests : TestBase
     {
-        private static readonly string s_compilerVersion = typeof(Csi).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
+        private static readonly string s_compilerVersion = CommonCompiler.GetProductVersion(typeof(Csi));
         private string CsiPath => typeof(Csi).GetTypeInfo().Assembly.Location;
 
         /// <summary>
@@ -148,7 +148,7 @@ throw new Exception(""Error!"");
             Assert.True(result.ContainsErrors);
             AssertEx.AssertEqualToleratingWhitespaceDifferences("OK", result.Output);
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-Error!
+System.Exception: Error!
    + <Initialize>.MoveNext(){string.Format(ScriptingResources.AtFileLine, $"{cwd}{Path.DirectorySeparatorChar}a.csx", "2")}
 ", result.Errors);
         }

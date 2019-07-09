@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Common;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal class TodoItemsUpdatedArgs : UpdatedEventArgs
+    internal sealed class TodoItemsUpdatedArgs : UpdatedEventArgs
     {
         /// <summary>
         /// Solution this task items are associated with
@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor
         public ImmutableArray<TodoItem> TodoItems { get; }
 
         public TodoItemsUpdatedArgs(
-            object id, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoItem> todoItems) :
-            base(id, workspace, projectId, documentId)
+            object id, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoItem> todoItems)
+            : base(id, workspace, projectId, documentId)
         {
-            this.Solution = solution;
-            this.TodoItems = todoItems;
+            Solution = solution;
+            TodoItems = todoItems;
         }
     }
 }

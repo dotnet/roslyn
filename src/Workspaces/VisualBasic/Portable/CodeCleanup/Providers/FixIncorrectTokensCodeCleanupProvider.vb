@@ -23,6 +23,10 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         Private Const s_CH_STRGHT_Q As Char = ChrW(&H27S)             '// UNICODE straight quote
         Private Shared ReadOnly s_smartSingleQuotes As Char() = New Char() {s_ASCII_LSMART_Q, s_ASCII_RSMART_Q, s_UNICODE_LSMART_Q, s_UNICODE_RSMART_Q}
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides ReadOnly Property Name As String
             Get
                 Return PredefinedCodeCleanupProviderNames.FixIncorrectTokens

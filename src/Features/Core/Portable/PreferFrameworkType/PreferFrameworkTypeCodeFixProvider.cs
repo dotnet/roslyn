@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PreferFrameworkType
 {
@@ -18,6 +17,11 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
         Name = PredefinedCodeFixProviderNames.PreferFrameworkType), Shared]
     internal class PreferFrameworkTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public PreferFrameworkTypeCodeFixProvider()
+        {
+        }
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(
             IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId);
 
@@ -28,7 +32,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
             {
                 context.RegisterCodeFix(
                     new PreferFrameworkTypeCodeAction(
-                        c => this.FixAsync(context.Document, diagnostic, c)),
+                        c => FixAsync(context.Document, diagnostic, c)),
                     context.Diagnostics);
             }
 

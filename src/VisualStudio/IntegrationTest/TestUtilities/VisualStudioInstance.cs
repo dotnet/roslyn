@@ -185,7 +185,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public void WaitForApplicationIdle(CancellationToken cancellationToken)
         {
-            var task = Task.Factory.StartNew(() => _inProc.WaitForApplicationIdle(), cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            var task = Task.Factory.StartNew(() => _inProc.WaitForApplicationIdle(Helper.HangMitigatingTimeout), cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             task.Wait(cancellationToken);
         }
 
@@ -300,10 +300,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private void StartRemoteIntegrationService(DTE dte)
         {
             // We use DTE over RPC to start the integration service. All other DTE calls should happen in the host process.
-
             if (dte.Commands.Item(WellKnownCommandNames.Test_IntegrationTestService_Start).IsAvailable)
             {
                 dte.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_Start);
+            }
+
+            if (AsyncCompletionCondition.Instance.ShouldSkip
+                && dte.Commands.Item(WellKnownCommandNames.Test_IntegrationTestService_DisableAsyncCompletion).IsAvailable)
+            {
+                dte.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_DisableAsyncCompletion);
             }
         }
 

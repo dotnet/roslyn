@@ -6,10 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
 {
+    using Microsoft.CodeAnalysis.Indentation;
+
     internal abstract partial class AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax> : AbstractSyntaxWrapper
         where TBinaryExpressionSyntax : SyntaxNode
     {
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
         private readonly IPrecedenceService _precedenceService;
 
         protected AbstractBinaryExpressionWrapper(
-            IBlankLineIndentationService indentationService,
+            IIndentationService indentationService,
             ISyntaxFactsService syntaxFacts,
             IPrecedenceService precedenceService) : base(indentationService)
         {
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
 #if DEBUG
             Debug.Assert(exprsAndOperators.Length >= 3);
             Debug.Assert(exprsAndOperators.Length % 2 == 1, "Should have odd number of exprs and operators");
-            for (int i = 0; i < exprsAndOperators.Length; i++)
+            for (var i = 0; i < exprsAndOperators.Length; i++)
             {
                 var item = exprsAndOperators[i];
                 Debug.Assert(((i % 2) == 0 && item.IsNode) ||

@@ -16,6 +16,140 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private const string RangeAllSignature = "System.Range System.Range.All.get";
 
         [Fact]
+        public void RangeBadIndexerTypes()
+        {
+            var src = @"
+using System;
+
+public static class Program {
+    public static void Main() {
+        var a = new Span<byte>();
+        var b = a[""str2""];
+        var c = a[null];
+        var d = a[Main()];
+        var e = a[new object()];
+        Console.WriteLine(zzz[0]);
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(src);
+            comp.VerifyDiagnostics(
+                // (7,19): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+                //         var b = a["str2"];
+                Diagnostic(ErrorCode.ERR_BadArgType, @"""str2""").WithArguments("1", "string", "int").WithLocation(7, 19),
+                // (8,19): error CS1503: Argument 1: cannot convert from '<null>' to 'int'
+                //         var c = a[null];
+                Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "int").WithLocation(8, 19),
+                // (9,19): error CS1503: Argument 1: cannot convert from 'void' to 'int'
+                //         var d = a[Main()];
+                Diagnostic(ErrorCode.ERR_BadArgType, "Main()").WithArguments("1", "void", "int").WithLocation(9, 19),
+                // (10,19): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                //         var e = a[new object()];
+                Diagnostic(ErrorCode.ERR_BadArgType, "new object()").WithArguments("1", "object", "int").WithLocation(10, 19),
+                // (11,27): error CS0103: The name 'zzz' does not exist in the current context
+                //         Console.WriteLine(zzz[0]);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "zzz").WithArguments("zzz").WithLocation(11, 27));
+        }
+
+        [Fact]
+        public void PatternIndexRangeLangVer()
+        {
+            var src = @"
+using System;
+struct S
+{
+    public int Length => 0;
+    public int Slice(int x, int y) => 0;
+}
+class C
+{
+    void M(string s, Index i, Range r)
+    {
+        _ = s[i];
+        _ = s[r];
+        _ = new S()[r];
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (12,13): error CS8652: The feature 'index operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = s[i];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s[i]").WithArguments("index operator").WithLocation(12, 13),
+                // (13,13): error CS8652: The feature 'index operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = s[r];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s[r]").WithArguments("index operator").WithLocation(13, 13),
+                // (14,13): error CS8652: The feature 'index operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = new S()[r];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S()[r]").WithArguments("index operator").WithLocation(14, 13));
+        }
+
+        [Fact]
+        public void SpanPatternRangeDelegate()
+        {
+            var src = @"
+using System;
+class C
+{
+    void Throws<T>(Func<T> f) { }
+    public static void Main()
+    {
+        string s = ""abcd"";
+        Throws(() => new Span<char>(s.ToCharArray())[0..1]);
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(src, TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (9,9): error CS0306: The type 'Span<char>' may not be used as a type argument
+                //         Throws(() => new Span<char>(s.ToCharArray())[0..1]);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "Throws").WithArguments("System.Span<char>").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void PatternIndexNoRefIndexer()
+        {
+            var src = @"
+struct S
+{
+    public int Length => 0;
+    public int this[int i] => 0;
+}
+class C
+{
+    void M(S s)
+    {
+        ref readonly int x = ref s[^2];
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyDiagnostics(
+                // (11,34): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         ref readonly int x = ref s[^2];
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s[^2]").WithArguments("S.this[int]").WithLocation(11, 34));
+        }
+
+        [Fact]
+        public void PatternRangeSpanNoReturn()
+        {
+            var src = @"
+using System;
+class C
+{
+    Span<int> M()
+    {
+        Span<int> s1 = stackalloc int[10];
+        Span<int> s2 = s1[0..2];
+        return s2;
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(src);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s2;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(9, 16));
+        }
+
+        [Fact]
         public void PatternIndexAndRangeLengthInaccessible()
         {
             var src = @"
@@ -122,9 +256,9 @@ class C
 }";
             var comp = CreateCompilationWithIndexAndRange(src);
             comp.VerifyDiagnostics(
-                // (12,15): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+                // (12,13): error CS0271: The property or indexer 'B.this[int]' cannot be used in this context because the get accessor is inaccessible
                 //         _ = b[^0];
-                Diagnostic(ErrorCode.ERR_BadArgType, "^0").WithArguments("1", "System.Index", "int").WithLocation(12, 15),
+                Diagnostic(ErrorCode.ERR_InaccessibleGetter, "b[^0]").WithArguments("B.this[int]").WithLocation(12, 13),
                 // (13,15): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
                 //         _ = b[0..];
                 Diagnostic(ErrorCode.ERR_BadArgType, "0..").WithArguments("1", "System.Range", "int").WithLocation(13, 15)
@@ -198,6 +332,8 @@ namespace System
     public struct Range
     {
         public Range(Index start, Index end) { }
+        public Index Start => default;
+        public Index End => default;
     }
 }
 class C
@@ -213,16 +349,13 @@ class C
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // At binding time we don't look for all the necessary members
-                // on the Index and Range types.
+                    // (23,13): error CS0656: Missing compiler required member 'System.Index.GetOffset'
+                    //         _ = this[^0];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this[^0]").WithArguments("System.Index", "GetOffset").WithLocation(23, 13),
+                    // (24,13): error CS0656: Missing compiler required member 'System.Index.GetOffset'
+                    //         _ = this[0..];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this[0..]").WithArguments("System.Index", "GetOffset").WithLocation(24, 13)
                 );
-            comp.VerifyEmitDiagnostics(
-                // (20,5): error CS0656: Missing compiler required member 'System.Index.GetOffset'
-                //     {
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
-        _ = this[^0];
-        _ = this[0..];
-    }").WithArguments("System.Index", "GetOffset").WithLocation(20, 5));
         }
 
         [Theory]
@@ -259,17 +392,10 @@ class C
             var comp = CreateCompilation(src);
 
             comp.VerifyDiagnostics(
-                // At binding time we don't look for all the necessary members
-                // on the Index and Range types.
+                // (24,13): error CS0656: Missing compiler required member 'System.Range.get_...'
+                //         _ = this[0..];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this[0..]").WithArguments("System.Range", "get_" + (propertyName == "Start" ? "End" : "Start")).WithLocation(24, 13)
                 );
-
-            comp.VerifyEmitDiagnostics(
-                // (22,5): error CS0656: Missing compiler required member 'System.Range.get_{propertyName}'
-                //     {
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
-        _ = this[^0];
-        _ = this[0..];
-    }").WithArguments("System.Range", "get_" + (propertyName == "Start" ? "End" : "Start")).WithLocation(22, 5));
         }
 
         [Fact]

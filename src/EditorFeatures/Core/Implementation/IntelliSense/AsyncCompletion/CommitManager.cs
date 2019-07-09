@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -130,17 +132,45 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return CommitResultUnhandled;
             }
 
+            if (!session.Properties.TryGetProperty(CompletionSource.CompletionListSpan, out TextSpan completionListSpan))
+            {
+                return CommitResultUnhandled;
+            }
+
             var triggerDocument = triggerSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (triggerDocument == null)
             {
                 return CommitResultUnhandled;
             }
 
+            // Telemetry
+            if (session.TextView.Properties.TryGetProperty(CompletionSource.TypeImportCompletionEnabled, out bool isTyperImportCompletionEnabled) && isTyperImportCompletionEnabled)
+            {
+                AsyncCompletionLogger.LogCommitWithTypeImportCompletionEnabled();
+
+                if (roslynItem.IsCached)
+                {
+                    AsyncCompletionLogger.LogCommitOfTypeImportCompletionItem();
+                }
+            }
+
+            if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
+            {
+                // Capture the % of committed completion items that would have appeared in the "Target type matches" filter
+                // (regardless of whether that filter button was active at the time of commit).
+                AsyncCompletionLogger.LogCommitWithTargetTypeCompletionExperimentEnabled();
+                if (item.Filters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
+                {
+                    AsyncCompletionLogger.LogCommitItemWithTargetTypeFilter();
+                }
+            }
+
             // Commit with completion service assumes that null is provided is case of invoke. VS provides '\0' in the case.
-            char? commitChar = typeChar == '\0' ? null : (char?)typeChar;
+            var commitChar = typeChar == '\0' ? null : (char?)typeChar;
             var commitBehavior = Commit(
                 triggerDocument, completionService, session.TextView, subjectBuffer,
-                roslynItem, commitChar, triggerSnapshot, serviceRules, filterText, cancellationToken);
+                roslynItem, completionListSpan, commitChar, triggerSnapshot, serviceRules,
+                filterText, cancellationToken);
 
             _recentItemsManager.MakeMostRecentItem(roslynItem.DisplayText);
             return new AsyncCompletionData.CommitResult(isHandled: true, commitBehavior);
@@ -152,6 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             ITextView view,
             ITextBuffer subjectBuffer,
             RoslynCompletionItem roslynItem,
+            TextSpan completionListSpan,
             char? commitCharacter,
             ITextSnapshot triggerSnapshot,
             CompletionRules rules,
@@ -174,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return AsyncCompletionData.CommitBehavior.None;
             }
 
-            var change = completionService.GetChangeAsync(document, roslynItem, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
+            var change = completionService.GetChangeAsync(document, roslynItem, completionListSpan, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
             var textChange = change.TextChange;
             var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
             var mappedSpan = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);

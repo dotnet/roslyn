@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             /// The System.Range type.  Needed so that we only fixup code if we see the type
             /// we're using has an indexer that takes a Range.
             /// </summary>
-            private readonly INamedTypeSymbol _rangeType;
+            public readonly INamedTypeSymbol RangeType;
             private readonly ConcurrentDictionary<IMethodSymbol, MemberInfo> _methodToMemberInfo;
 
             public InfoCache(Compilation compilation)
             {
-                _rangeType = compilation.GetTypeByMetadataName("System.Range");
+                RangeType = compilation.GetTypeByMetadataName("System.Range");
 
                 _methodToMemberInfo = new ConcurrentDictionary<IMethodSymbol, MemberInfo>();
 
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                     // it's a method like:  MyType MyType.Slice(int start, int length).  Look for an
                     // indexer like  `MyType MyType.this[Range range]`. If we can't find one return
                     // 'default' so we'll consider this named-type non-viable.
-                    var indexer = GetIndexer(containingType, _rangeType, containingType);
+                    var indexer = GetIndexer(containingType, RangeType, containingType);
                     if (indexer != null)
                     {
                         return new MemberInfo(lengthLikeProperty, overloadedMethodOpt: null);
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
                 // it's a method like:   `SomeType MyType.Slice(int start, int length)`.  Look 
                 // for an overload like: `SomeType MyType.Slice(Range)`
-                var overloadedRangeMethod = GetOverload(sliceLikeMethod, _rangeType);
+                var overloadedRangeMethod = GetOverload(sliceLikeMethod, RangeType);
                 if (overloadedRangeMethod != null)
                 {
                     return new MemberInfo(lengthLikeProperty, overloadedRangeMethod);

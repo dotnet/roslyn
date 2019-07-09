@@ -111,22 +111,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                     return;
                 }
 
-                using (var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService))
-                {
-                    // try to move the caret to the end of the line on which the caret is
-                    args.TextView.TryMoveCaretToAndEnsureVisible(subjectLineWhereCaretIsOn.End);
+                using var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
 
-                    // okay, now insert ending if we need to
-                    var newDocument = InsertEndingIfRequired(document, insertionPoint.Value, position.Value, userCancellationToken);
+                // try to move the caret to the end of the line on which the caret is
+                args.TextView.TryMoveCaretToAndEnsureVisible(subjectLineWhereCaretIsOn.End);
 
-                    // format the document and apply the changes to the workspace
-                    FormatAndApply(newDocument, insertionPoint.Value, userCancellationToken);
+                // okay, now insert ending if we need to
+                var newDocument = InsertEndingIfRequired(document, insertionPoint.Value, position.Value, userCancellationToken);
 
-                    // now, insert new line
-                    NextAction(operations, nextHandler);
+                // format the document and apply the changes to the workspace
+                FormatAndApply(newDocument, insertionPoint.Value, userCancellationToken);
 
-                    transaction.Complete();
-                }
+                // now, insert new line
+                NextAction(operations, nextHandler);
+
+                transaction.Complete();
             }
         }
 

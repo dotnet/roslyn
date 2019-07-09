@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.CanImplementImplicitly
+                    return CanImplementImplicitly
                         ? ImmutableArray.Create<IMethodSymbol>()
                         : _symbol.ExplicitInterfaceImplementations;
                 }
@@ -65,6 +65,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public ITypeSymbol ReceiverType => _symbol.ReceiverType;
 
+            public NullableAnnotation ReceiverNullableAnnotation => _symbol.ReceiverNullableAnnotation;
+
             public IMethodSymbol ReducedFrom =>
                     // This implementation feels incorrect!
                     _symbol.ReducedFrom;
@@ -85,6 +87,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public ITypeSymbol ReturnType => _symbol.ReturnType;
 
+            public NullableAnnotation ReturnNullableAnnotation => _symbol.ReturnNullableAnnotation;
+
             public ImmutableArray<AttributeData> GetReturnTypeAttributes()
             {
                 return _symbol.GetReturnTypeAttributes();
@@ -95,6 +99,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public ImmutableArray<CustomModifier> ReturnTypeCustomModifiers => _symbol.ReturnTypeCustomModifiers;
 
             public ImmutableArray<ITypeSymbol> TypeArguments => _symbol.TypeArguments;
+
+            public ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations => _symbol.TypeArgumentsNullableAnnotations;
 
             public ImmutableArray<ITypeParameterSymbol> TypeParameters => _symbol.TypeParameters;
 

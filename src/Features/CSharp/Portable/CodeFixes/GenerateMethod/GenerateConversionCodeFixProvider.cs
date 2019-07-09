@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -21,6 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
     {
         private const string CS0029 = nameof(CS0029); // error CS0029: Cannot implicitly convert type 'type' to 'type'
         private const string CS0030 = nameof(CS0030); // error CS0030: Cannot convert type 'type' to 'type'
+
+        [ImportingConstructor]
+        public GenerateConversionCodeFixProvider()
+        {
+        }
 
         public override ImmutableArray<string> FixableDiagnosticIds
         {

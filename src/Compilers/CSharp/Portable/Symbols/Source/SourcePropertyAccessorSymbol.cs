@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                   out _lazyParameters, alsoCopyParamsModifier: true);
                 }
             }
-            else if (_lazyReturnType.SpecialType != SpecialType.System_Void)
+            else if (!_lazyReturnType.IsVoidType())
             {
                 PropertySymbol associatedProperty = _property;
                 var type = associatedProperty.TypeWithAnnotations;
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid
         {
-            get { return this.ReturnType.SpecialType == SpecialType.System_Void; }
+            get { return this.ReturnType.IsVoidType(); }
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early)
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
             => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         public override RefKind RefKind
@@ -365,6 +365,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 LazyMethodChecks();
                 return _lazyReturnType;
+            }
+        }
+
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations
+        {
+            get
+            {
+                if (MethodKind == MethodKind.PropertySet)
+                {
+                    return FlowAnalysisAnnotations.None;
+                }
+
+                var result = FlowAnalysisAnnotations.None;
+                if (_property.HasMaybeNull)
+                {
+                    result |= FlowAnalysisAnnotations.MaybeNull;
+                }
+                if (_property.HasNotNull)
+                {
+                    result |= FlowAnalysisAnnotations.NotNull;
+                }
+                return result;
             }
         }
 
@@ -429,6 +451,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (LocalDeclaredReadOnly || _property.HasReadOnlyModifier)
                 {
                     return true;
+                }
+
+                // The below checks are used to decide if this accessor is implicitly 'readonly'.
+
+                // Making a member implicitly 'readonly' allows valid C# 7.0 code to break PEVerify.
+                // For instance:
+
+                // struct S {
+                //     int Value { get; set; }
+                //     static readonly S StaticField = new S();
+                //     static void M() {
+                //         System.Console.WriteLine(StaticField.Value);
+                //     }
+                // }
+
+                // The above program will fail PEVerify if the 'S.Value.get' accessor is made implicitly readonly because
+                // we won't emit an implicit copy of 'S.StaticField' to pass to 'S.Value.get'.
+
+                // Code emitted in C# 7.0 and before must be PEVerify compatible, so we will only make
+                // members implicitly readonly in language versions which support the readonly members feature.
+                var options = (CSharpParseOptions)SyntaxTree.Options;
+                if (!options.IsFeatureEnabled(MessageID.IDS_FeatureReadOnlyMembers))
+                {
+                    return false;
                 }
 
                 // If we have IsReadOnly..ctor, we can use the attribute. Otherwise, we need to NOT be a netmodule and the type must not already exist in order to synthesize it.
@@ -537,6 +583,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (CSharpSyntaxNode)syntaxReferenceOpt.GetSyntax();
         }
 
+        internal override bool IsExplicitInterfaceImplementation
+        {
+            get
+            {
+                return _property.IsExplicitInterfaceImplementation;
+            }
+        }
+
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
             get
@@ -621,13 +675,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameters.ToImmutableAndFree();
         }
 
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+            base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
 
-            if (IsDeclaredReadOnly)
+            var compilation = this.DeclaringCompilation;
+            var annotations = ReturnTypeFlowAnalysisAnnotations;
+            if ((annotations & FlowAnalysisAnnotations.MaybeNull) != 0)
             {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, locations[0], modifyCompilation: true);
+                AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(_property.MaybeNullAttributeIfExists));
+            }
+            if ((annotations & FlowAnalysisAnnotations.NotNull) != 0)
+            {
+                AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(_property.NotNullAttributeIfExists));
             }
         }
 

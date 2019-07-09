@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 private readonly ImmutableHashSet<string> _roles;
 
                 private Document _documentOpt;
-                private bool _useSuggestionMode;
+                private readonly bool _useSuggestionMode;
                 private readonly DisconnectedBufferGraph _disconnectedBufferGraph;
 
                 public ModelComputer(
@@ -103,8 +103,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                         // TODO(cyrusn): We're calling into extensions, we need to make ourselves resilient
                         // to the extension crashing.
-                        var completionList = await _completionService.GetCompletionsAndSetItemDocumentAsync(
-                            _documentOpt, _subjectBufferCaretPosition, _trigger, _roles, _options, cancellationToken).ConfigureAwait(false);
+                        var completionList = _documentOpt == null
+                            ? null
+                            : await _completionService.GetCompletionsAsync(
+                                _documentOpt, _subjectBufferCaretPosition, _trigger, _roles, _options, cancellationToken).ConfigureAwait(false);
                         if (completionList == null)
                         {
                             Logger.Log(FunctionId.Completion_ModelComputer_DoInBackground,

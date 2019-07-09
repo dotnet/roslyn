@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             string namingRuleTitle,
             SymbolSpecification symbolSpec,
             NamingStyle namingStyle,
-            IReadOnlyDictionary<string, object> conventionsDictionary,
+            IReadOnlyDictionary<string, string> conventionsDictionary,
             out SerializableNamingRule serializableNamingRule)
         {
             if (!TryGetRuleSeverity(namingRuleTitle, conventionsDictionary, out var severity))
@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private static bool TryGetRuleSeverity(
             string namingRuleName,
-            IReadOnlyDictionary<string, object> conventionsDictionary,
+            IReadOnlyDictionary<string, string> conventionsDictionary,
             out ReportDiagnostic severity)
         {
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_rule.{namingRuleName}.severity", out object result))
+            if (conventionsDictionary.TryGetValue($"dotnet_naming_rule.{namingRuleName}.severity", out var result))
             {
-                severity = ParseEnforcementLevel(result as string ?? string.Empty);
+                severity = ParseEnforcementLevel(result ?? string.Empty);
                 return true;
             }
 

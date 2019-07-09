@@ -47,16 +47,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BlockCommentEditing
                 return false;
             }
 
-            using (var transaction = _undoHistoryRegistry.GetHistory(textView.TextBuffer).CreateTransaction(EditorFeaturesResources.Insert_new_line))
-            {
-                var editorOperations = _editorOperationsFactoryService.GetEditorOperations(textView);
+            using var transaction = _undoHistoryRegistry.GetHistory(textView.TextBuffer).CreateTransaction(EditorFeaturesResources.Insert_new_line);
 
-                editorOperations.InsertNewLine();
-                editorOperations.InsertText(exteriorText);
+            var editorOperations = _editorOperationsFactoryService.GetEditorOperations(textView);
 
-                transaction.Complete();
-                return true;
-            }
+            editorOperations.InsertNewLine();
+            editorOperations.InsertText(exteriorText);
+
+            transaction.Complete();
+            return true;
         }
 
         protected abstract string GetExteriorTextForNextLine(SnapshotPoint caretPosition);

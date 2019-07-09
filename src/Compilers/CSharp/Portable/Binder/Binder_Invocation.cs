@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     analyzedArguments.Arguments[i] = GenerateConversionForAssignment(objType, argument, diagnostics);
                 }
-                else if (argument.Type.SpecialType == SpecialType.System_Void)
+                else if (argument.Type.IsVoidType())
                 {
                     Error(diagnostics, ErrorCode.ERR_CantUseVoidInArglist, argument.Syntax);
                 }
@@ -1002,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // instance methods. Therefore we must detect this scenario here, rather than in
             // overload resolution.
 
-            var receiver = ReplaceTypeOrValueReceiver(methodGroup.Receiver, method.IsStatic && !invokedAsExtensionMethod, diagnostics);
+            var receiver = ReplaceTypeOrValueReceiver(methodGroup.Receiver, !method.RequiresInstanceReceiver && !invokedAsExtensionMethod, diagnostics);
 
             // Note: we specifically want to do final validation (7.6.5.1) without checking delegate compatibility (15.2),
             // so we're calling MethodGroupFinalValidation directly, rather than via MethodGroupConversionHasErrors.
@@ -1056,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // For extension methods, there is no receiver because the receiver in source was actually the first argument.
             // For instance methods, we may have synthesized an implicit this node.  We'll keep it for the emitter.
             // For static methods, we may have synthesized a type expression.  It serves no purpose, so we'll drop it.
-            if (invokedAsExtensionMethod || (method.IsStatic && receiver != null && receiver.WasCompilerGenerated))
+            if (invokedAsExtensionMethod || (!method.RequiresInstanceReceiver && receiver != null && receiver.WasCompilerGenerated))
             {
                 receiver = null;
             }
@@ -1065,7 +1065,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var argRefKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
             var args = analyzedArguments.Arguments.ToImmutable();
 
-            if (!gotError && !method.IsStatic && receiver != null && receiver.Kind == BoundKind.ThisReference && receiver.WasCompilerGenerated)
+            if (!gotError && method.RequiresInstanceReceiver && receiver != null && receiver.Kind == BoundKind.ThisReference && receiver.WasCompilerGenerated)
             {
                 gotError = IsRefOrOutThisParameterCaptured(node, diagnostics);
             }
@@ -1116,7 +1116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isDelegateCall = (object)delegateTypeOpt != null;
             if (!isDelegateCall)
             {
-                if (!method.IsStatic)
+                if (method.RequiresInstanceReceiver)
                 {
                     WarnOnAccessOfOffDefault(node.Kind() == SyntaxKind.InvocationExpression ?
                                                 ((InvocationExpressionSyntax)node).Expression :
@@ -1145,7 +1145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Ignore calls to base members.
                 TypeSymbol.Equals(containingMethod.ContainingType, method.ContainingType, TypeCompareKind.ConsiderEverything) &&
                 !method.IsEffectivelyReadOnly &&
-                !method.IsStatic)
+                method.RequiresInstanceReceiver)
             {
                 Error(diagnostics, ErrorCode.WRN_ImplicitCopyInReadOnlyMember, receiver.Syntax, method, ThisParameterSymbol.SymbolName);
                 return false;

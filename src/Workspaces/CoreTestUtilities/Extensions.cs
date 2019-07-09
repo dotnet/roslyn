@@ -50,6 +50,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
         {
             return new ChecksumObjectCollection<DocumentStateChecksums>(service, collection);
         }
+
+        public static ChecksumObjectCollection<DocumentStateChecksums> ToDocumentObjects(this AnalyzerConfigDocumentChecksumCollection collection, IRemotableDataService service)
+        {
+            return new ChecksumObjectCollection<DocumentStateChecksums>(service, collection);
+        }
     }
 
     /// <summary>
@@ -80,4 +85,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
             throw new NotImplementedException("should not be called");
         }
     }
+
+    internal sealed class AssetProvider : IAssetProvider
+    {
+        private readonly IRemotableDataService _service;
+
+        public AssetProvider(IRemotableDataService service)
+        {
+            _service = service;
+        }
+
+        public Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
+        {
+            return _service.GetValueAsync<T>(checksum);
+        }
+    }
+
 }

@@ -56,7 +56,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private SmallDictionary<int, bool> _lazyMakeMemberMissingMap;
 
-        private readonly IReadOnlyDictionary<string, string> _features;
+        // Protected for access in CSharpCompilation.WithAdditionalFeatures
+        protected readonly IReadOnlyDictionary<string, string> _features;
 
         public ScriptCompilationInfo ScriptCompilationInfo => CommonScriptCompilationInfo;
         internal abstract ScriptCompilationInfo CommonScriptCompilationInfo { get; }
@@ -1346,7 +1347,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="accumulator">Bag to which filtered diagnostics will be added.</param>
         /// <param name="incoming">Diagnostics to be filtered.</param>
-        /// <returns>True if there were no errors or warnings-as-errors.</returns>
+        /// <returns>True if there are no unsuppressed errors (i.e., no errors which fail compilation).</returns>
         internal bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming)
         {
             bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), exclude: null);
@@ -1377,8 +1378,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     continue;
                 }
-                else if (filtered.Severity == DiagnosticSeverity.Error &&
-                         !filtered.IsSuppressed)
+                else if (filtered.IsUnsuppressableError())
                 {
                     hasError = true;
                 }

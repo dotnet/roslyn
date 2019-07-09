@@ -137,15 +137,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // https://github.com/dotnet/roslyn/issues/30078: Make sure this is covered by test
                     return annotations.Value;
                 }
+                return DecodeFlowAnalysisAttributes(GetDecodedWellKnownAttributeData());
+            }
+        }
 
+        private static FlowAnalysisAnnotations DecodeFlowAnalysisAttributes(ParameterWellKnownAttributeData attributeData)
+        {
+            if (attributeData == null)
+            {
+                return FlowAnalysisAnnotations.None;
+            }
+            FlowAnalysisAnnotations annotations = FlowAnalysisAnnotations.None;
+            if (attributeData.HasAllowNullAttribute) annotations |= FlowAnalysisAnnotations.AllowNull;
+            if (attributeData.HasDisallowNullAttribute) annotations |= FlowAnalysisAnnotations.DisallowNull;
+            if (attributeData.HasMaybeNullAttribute)
+            {
+                annotations |= FlowAnalysisAnnotations.MaybeNull;
+            }
+            else
+            {
+                bool? value = attributeData.MaybeNullWhenAttribute;
+                if (value.HasValue)
+                {
+                    annotations |= (value.GetValueOrDefault() ? FlowAnalysisAnnotations.MaybeNullWhenTrue : FlowAnalysisAnnotations.MaybeNullWhenFalse);
+                }
+            }
+            if (attributeData.HasNotNullAttribute)
+            {
+                annotations |= FlowAnalysisAnnotations.NotNull;
+            }
+            else
+            {
+                bool? value = attributeData.NotNullWhenAttribute;
+                if (value.HasValue)
+                {
+                    annotations |= (value.GetValueOrDefault() ? FlowAnalysisAnnotations.NotNullWhenTrue : FlowAnalysisAnnotations.NotNullWhenFalse);
+                }
+            }
+            if (attributeData.HasAssertsTrueAttribute) annotations |= FlowAnalysisAnnotations.AssertsTrue;
+            if (attributeData.HasAssertsFalseAttribute) annotations |= FlowAnalysisAnnotations.AssertsFalse;
+            return annotations;
+        }
+
+        internal bool HasEnumeratorCancellationAttribute
+        {
+            get
+            {
                 ParameterWellKnownAttributeData attributeData = GetDecodedWellKnownAttributeData();
-                bool hasEnsuresNotNull = attributeData?.HasEnsuresNotNullAttribute == true;
-
-                return FlowAnalysisAnnotationsFacts.Create(
-                    notNullWhenTrue: hasEnsuresNotNull || attributeData?.HasNotNullWhenTrueAttribute == true,
-                    notNullWhenFalse: hasEnsuresNotNull || attributeData?.HasNotNullWhenFalseAttribute == true,
-                    assertsTrue: attributeData?.HasAssertsTrueAttribute == true,
-                    assertsFalse: attributeData?.HasAssertsFalseAttribute == true);
+                return attributeData?.HasEnumeratorCancellationAttribute == true;
             }
         }
 
@@ -631,17 +670,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // NullableAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullWhenTrueAttribute))
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.AllowNullAttribute))
             {
-                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasNotNullWhenTrueAttribute = true;
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasAllowNullAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullWhenFalseAttribute))
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.DisallowNullAttribute))
             {
-                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasNotNullWhenFalseAttribute = true;
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasDisallowNullAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.EnsuresNotNullAttribute))
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullAttribute))
             {
-                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasEnsuresNotNullAttribute = true;
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasMaybeNullAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullWhenAttribute))
+            {
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().MaybeNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenAttribute(AttributeDescription.MaybeNullWhenAttribute, attribute, arguments.Diagnostics);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullAttribute))
+            {
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasNotNullAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullWhenAttribute))
+            {
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().NotNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenAttribute(AttributeDescription.NotNullWhenAttribute, attribute, arguments.Diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.AssertsTrueAttribute))
             {
@@ -651,6 +702,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasAssertsFalseAttribute = true;
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.EnumeratorCancellationAttribute))
+            {
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasEnumeratorCancellationAttribute = true;
+                ValidateCancellationTokenAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics);
+            }
+        }
+
+        private static bool? DecodeMaybeNullWhenOrNotNullWhenAttribute(AttributeDescription description, CSharpAttributeData attribute, DiagnosticBag diagnostics)
+        {
+            var arguments = attribute.CommonConstructorArguments;
+            return arguments.Length == 1 && arguments[0].TryDecodeValue(SpecialType.System_Boolean, out bool value) ?
+                (bool?)value :
+                null;
         }
 
         private void DecodeDefaultParameterValueAttribute(AttributeDescription description, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
@@ -918,6 +982,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             diagnostics.Add(node.Name.Location, useSiteDiagnostics);
+        }
+
+        private void ValidateCancellationTokenAttribute(AttributeSyntax node, DiagnosticBag diagnostics)
+        {
+            if (needsReporting())
+            {
+                diagnostics.Add(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
+            }
+
+            bool needsReporting()
+            {
+                if (!Type.Equals(this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken)))
+                {
+                    return true;
+                }
+                else if (this.ContainingSymbol is MethodSymbol method &&
+                    method.IsAsync &&
+                    method.ReturnType.OriginalDefinition.Equals(this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T)))
+                {
+                    // Note: async methods that return this type must be iterators. This is enforced elsewhere
+                    return false;
+                }
+
+                return true;
+            }
         }
 
         internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)

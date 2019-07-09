@@ -33,15 +33,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
         private async Task VerifyRefactoringDisabledAsync(CodeRefactoringProvider codeRefactoring)
         {
             var refactoringService = new CodeRefactorings.CodeRefactoringService(GetMetadata(codeRefactoring));
-            using (var workspace = TestWorkspace.CreateCSharp(@"class Program {}"))
-            {
-                var project = workspace.CurrentSolution.Projects.Single();
-                var document = project.Documents.Single();
-                var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>() as EditorLayerExtensionManager.ExtensionManager;
-                var result = await refactoringService.GetRefactoringsAsync(document, TextSpan.FromBounds(0, 0), CancellationToken.None);
-                Assert.True(extensionManager.IsDisabled(codeRefactoring));
-                Assert.False(extensionManager.IsIgnored(codeRefactoring));
-            }
+            using var workspace = TestWorkspace.CreateCSharp(@"class Program {}");
+            var project = workspace.CurrentSolution.Projects.Single();
+            var document = project.Documents.Single();
+            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>() as EditorLayerExtensionManager.ExtensionManager;
+            var result = await refactoringService.GetRefactoringsAsync(document, TextSpan.FromBounds(0, 0), CancellationToken.None);
+            Assert.True(extensionManager.IsDisabled(codeRefactoring));
+            Assert.False(extensionManager.IsIgnored(codeRefactoring));
         }
 
         private static IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> GetMetadata(params CodeRefactoringProvider[] providers)

@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.Execution
     [ExportWorkspaceServiceFactory(typeof(ISerializerService), layer: ServiceLayer.Default), Shared]
     internal class SerializerServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public SerializerServiceFactory()
+        {
+        }
+
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
