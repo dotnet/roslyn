@@ -115,6 +115,14 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                             VerifyType(context.ReportDiagnostic, memberReference.Member.ContainingType, context.Operation.Syntax);
                             break;
 
+                        case IArrayCreationOperation arrayCreation:
+                            VerifyType(context.ReportDiagnostic, arrayCreation.Type, context.Operation.Syntax);
+                            break;
+
+                        case IAddressOfOperation addressOf:
+                            VerifyType(context.ReportDiagnostic, addressOf.Type, context.Operation.Syntax);
+                            break;
+
                         case IConversionOperation conversion:
                             if (conversion.OperatorMethod != null)
                             {
@@ -154,6 +162,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 OperationKind.FieldReference,
                 OperationKind.MethodReference,
                 OperationKind.PropertyReference,
+                OperationKind.ArrayCreation,
+                OperationKind.AddressOf,
                 OperationKind.Conversion,
                 OperationKind.UnaryOperator,
                 OperationKind.BinaryOperator,
@@ -243,12 +253,20 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 }
             }
 
-            void VerifyType(Action<Diagnostic> reportDiagnostic, ITypeSymbol type, SyntaxNode syntaxNode)
+            bool VerifyType(Action<Diagnostic> reportDiagnostic, ITypeSymbol type, SyntaxNode syntaxNode)
             {
-                type = type.OriginalDefinition;
-
                 do
                 {
+                    if (!VerifyTypeArguments(reportDiagnostic, type, syntaxNode, out type))
+                    {
+                        return false;
+                    }
+                    if (type == null)
+                    {
+                        // Type will be null for arrays and pointers.
+                        return true;
+                    }
+
                     if (entryBySymbol.TryGetValue(type, out var entry))
                     {
                         reportDiagnostic(
@@ -257,12 +275,48 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                                 syntaxNode.GetLocation(),
                                 type.ToDisplayString(SymbolDisplayFormat),
                                 string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
-                        break;
+                        return false;
                     }
 
                     type = type.ContainingType;
                 }
                 while (!(type is null));
+
+                return true;
+            }
+
+            bool VerifyTypeArguments(Action<Diagnostic> reportDiagnostic, ITypeSymbol type, SyntaxNode syntaxNode, out ITypeSymbol originalDefinition)
+            {
+                switch (type)
+                {
+                    case INamedTypeSymbol namedTypeSymbol:
+                        originalDefinition = namedTypeSymbol.ConstructedFrom;
+                        foreach (var typeArgument in namedTypeSymbol.TypeArguments)
+                        {
+                            if (typeArgument.TypeKind != TypeKind.TypeParameter &&
+                                typeArgument.TypeKind != TypeKind.Error &&
+                                !VerifyType(reportDiagnostic, typeArgument, syntaxNode))
+                            {
+                                return false;
+                            }
+                        }
+                        break;
+
+                    case IArrayTypeSymbol arrayTypeSymbol:
+                        originalDefinition = null;
+                        return VerifyType(reportDiagnostic, arrayTypeSymbol.ElementType, syntaxNode);
+
+                    case IPointerTypeSymbol pointerTypeSymbol:
+                        originalDefinition = null;
+                        return VerifyType(reportDiagnostic, pointerTypeSymbol.PointedAtType, syntaxNode);
+
+                    default:
+                        originalDefinition = type.OriginalDefinition;
+                        break;
+
+                }
+
+                return true;
             }
 
             void VerifySymbol(Action<Diagnostic> reportDiagnostic, ISymbol symbol, SyntaxNode syntaxNode)
