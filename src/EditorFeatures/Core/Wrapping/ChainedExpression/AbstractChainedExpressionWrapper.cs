@@ -272,8 +272,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
         }
 
         /// <summary>
-        /// Recursively walks down 'node' decomposing it into the individual tokens and 
-        /// nodes we want to look for chunks in. 
+        /// Recursively walks down <paramref name="node"/> decomposing it into the individual 
+        /// tokens and nodes we want to look for chunks in. 
         /// </summary>
         private void Decompose(SyntaxNode node, ArrayBuilder<SyntaxNodeOrToken> pieces)
         {
