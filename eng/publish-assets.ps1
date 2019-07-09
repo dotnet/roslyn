@@ -145,6 +145,10 @@ try {
     $data = GetBranchPublishData $branchName
     if ($data -eq $null) {
       Write-Host "Branch $branchName not listed for publishing."
+      if ($branchName.StartsWith("release/")) {
+        Write-Error "Release branches must be listed in PublishData.json."
+        exit 1
+      }
       exit 0
     }
 
