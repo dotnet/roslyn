@@ -97,8 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
                 await AddUnwrapCodeActionAsync(actions).ConfigureAwait(false);
                 await AddWrapLongCodeActionAsync(actions).ConfigureAwait(false);
 
-                return ImmutableArray.Create(new WrappingGroup(
-                    isInlinable: true, actions.ToImmutableAndFree()));
+                return ImmutableArray.Create(new WrappingGroup(isInlinable: true, actions.ToImmutableAndFree()));
             }
 
             // Pass 0 as the wrapping column as we effectively always want to wrap each chunk
