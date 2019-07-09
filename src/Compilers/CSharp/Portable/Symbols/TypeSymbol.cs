@@ -313,7 +313,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var t2 = obj as TypeSymbol;
             if ((object)t2 == null) return false;
-            return this.Equals(t2, TypeSymbolEqualityComparer.Default);
+            var def = this.Equals(t2, TypeSymbolEqualityComparer.Default);
+            var evr = this.Equals(t2, TypeSymbolEqualityComparer.CompareEverything);
+
+            if (def != evr)
+            {
+                //Debugger.Break();
+            }
+           // Debug.Assert(def == evr, "Comparison result changed");
+
+            return def;
         }
 
         public bool Equals(ITypeSymbol other, TypeSymbolEqualityComparer equalityComparer)
@@ -385,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected virtual ImmutableArray<NamedTypeSymbol> MakeAllInterfaces()
         {
             var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            var visited = new HashSet<NamedTypeSymbol>();
+            var visited = new HashSet<NamedTypeSymbol>(TypeSymbolEqualityComparer.CompareEverything);
 
             for (var baseType = this; !ReferenceEquals(baseType, null); baseType = baseType.BaseTypeNoUseSiteDiagnostics)
             {
@@ -462,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // indirectly.
         private static MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> MakeInterfacesAndTheirBaseInterfaces(ImmutableArray<NamedTypeSymbol> declaredInterfaces)
         {
-            var resultBuilder = new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(declaredInterfaces.Length, EqualsCLRSignatureComparer);
+            var resultBuilder = new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(declaredInterfaces.Length, EqualsCLRSignatureComparer, EqualsConsiderEverything);
             foreach (var @interface in declaredInterfaces)
             {
                 if (resultBuilder.Add(@interface, @interface))

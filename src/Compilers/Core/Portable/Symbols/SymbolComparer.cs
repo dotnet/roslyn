@@ -6,21 +6,21 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// TODO
     /// </summary>
-    public sealed class TypeSymbolEqualityComparer : IEqualityComparer<ITypeSymbol>
+    public sealed class SymbolComparer : IEqualityComparer<ISymbol>
     {
         /// <summary>
         /// Compares two types based on the default comparison rules, equivalent to calling <see cref="IEquatable{ISymbol}.Equals(ISymbol)"/>
         /// </summary>
-        public static TypeSymbolEqualityComparer Default = new TypeSymbolEqualityComparer(TypeCompareKind.AllNullableIgnoreOptions);
+        public static SymbolComparer Default = new SymbolComparer(TypeCompareKind.AllNullableIgnoreOptions);
 
         /// <summary>
         /// Compares two types considering everything available to the compiler
         /// </summary>
-        public static TypeSymbolEqualityComparer CompareEverything = new TypeSymbolEqualityComparer(TypeCompareKind.ConsiderEverything2);
+        public static SymbolComparer CompareEverything = new SymbolComparer(TypeCompareKind.ConsiderEverything2);
 
         private readonly TypeCompareKind _compareKind;
 
-        private TypeSymbolEqualityComparer(TypeCompareKind compareKind)
+        private SymbolComparer(TypeCompareKind compareKind)
         {
             _compareKind = compareKind;
         }
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="x">The first type to compare</param>
         /// <param name="y">The second type to compare</param>
         /// <returns>True if the types are equivalent</returns>
-        public bool Equals(ITypeSymbol x, ITypeSymbol y)
+        public bool Equals(ISymbol x, ISymbol y)
         {
             if (x is null)
             {
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public int GetHashCode(ITypeSymbol obj)
+        public int GetHashCode(ISymbol obj)
         {
             return obj.GetHashCode();
         }
@@ -55,11 +55,11 @@ namespace Microsoft.CodeAnalysis
 
     internal sealed class WrappedTypeComparer<T> : IEqualityComparer<T>
     {
-        TypeSymbolEqualityComparer _typeComparer;
+        SymbolComparer _typeComparer;
 
-        Func<T, T, TypeSymbolEqualityComparer, bool> _comparerFunc;
+        Func<T, T, SymbolComparer, bool> _comparerFunc;
 
-        internal WrappedTypeComparer(TypeSymbolEqualityComparer typeComparer, Func<T, T, TypeSymbolEqualityComparer, bool> comparisonFuncOpt = null)
+        internal WrappedTypeComparer(SymbolComparer typeComparer, Func<T, T, SymbolComparer, bool> comparisonFuncOpt = null)
         {
             _typeComparer = typeComparer;
             _comparerFunc = comparisonFuncOpt;

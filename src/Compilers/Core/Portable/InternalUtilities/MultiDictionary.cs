@@ -95,6 +95,10 @@ namespace Roslyn.Utilities
             // Stores either a single V or an ImmutableHashSet<V>
             private readonly object _value;
 
+            private readonly IEqualityComparer<V> _equalityComparer;
+
+            private IEqualityComparer<V> EqualityComparer => _equalityComparer ?? ImmutableHashSet<V>.Empty.KeyComparer;
+
             public int Count
             {
                 get
@@ -121,9 +125,10 @@ namespace Roslyn.Utilities
                 }
             }
 
-            public ValueSet(object value)
+            public ValueSet(object value, IEqualityComparer<V> equalityComparer = null)
             {
                 _value = value;
+                _equalityComparer = equalityComparer;
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -148,15 +153,15 @@ namespace Roslyn.Utilities
                 var set = _value as ImmutableHashSet<V>;
                 if (set == null)
                 {
-                    if (ImmutableHashSet<V>.Empty.KeyComparer.Equals((V)_value, v))
+                    if (EqualityComparer.Equals((V)_value, v))
                     {
                         return this;
                     }
 
-                    set = ImmutableHashSet.Create((V)_value);
+                    set = ImmutableHashSet.Create(EqualityComparer, (V)_value);
                 }
 
-                return new ValueSet(set.Add(v));
+                return new ValueSet(set.Add(v), EqualityComparer);
             }
 
             public bool Contains(V v)
@@ -164,7 +169,7 @@ namespace Roslyn.Utilities
                 var set = _value as ImmutableHashSet<V>;
                 if (set == null)
                 {
-                    return ImmutableHashSet<V>.Empty.KeyComparer.Equals((V)_value, v);
+                    return EqualityComparer.Equals((V)_value, v);
                 }
 
                 return set.Contains(v);
@@ -196,6 +201,8 @@ namespace Roslyn.Utilities
         }
 
         private readonly Dictionary<K, ValueSet> _dictionary;
+
+        private readonly IEqualityComparer<V> _valueComparer;
 
         public int Count => _dictionary.Count;
 
@@ -229,6 +236,12 @@ namespace Roslyn.Utilities
             _dictionary = new Dictionary<K, ValueSet>(capacity, comparer);
         }
 
+        public MultiDictionary(int capacity, IEqualityComparer<K> comparer, IEqualityComparer<V> valueComparer)
+        {
+            _dictionary = new Dictionary<K, ValueSet>(capacity, comparer);
+            _valueComparer = valueComparer;
+        }
+
         public bool Add(K k, V v)
         {
             ValueSet updated;
@@ -243,7 +256,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                updated = new ValueSet(v);
+                updated = new ValueSet(v, _valueComparer);
             }
 
             _dictionary[k] = updated;
