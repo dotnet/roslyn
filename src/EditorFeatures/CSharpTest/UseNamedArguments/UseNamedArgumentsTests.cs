@@ -249,7 +249,7 @@ class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }"
 class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }");
         }
 
-        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/35180")]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestAvailableOnSelectionOfArgument1()
         {
