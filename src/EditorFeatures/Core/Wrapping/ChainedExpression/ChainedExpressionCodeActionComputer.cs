@@ -44,16 +44,23 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             private readonly ImmutableArray<ImmutableArray<SyntaxNodeOrToken>> _chunks;
 
             /// <summary>
-            /// Trivia to place before a chunk when it is wrapped.
-            /// </summary>
-            private readonly SyntaxTriviaList _indentationTrivia;
-
-            /// <summary>
             /// trivia to place at the end of a node prior to a chunk that is wrapped.
             /// For C# this will just be a newline.  For VB this will include a line-
             /// continuation character.
             /// </summary>
             private readonly SyntaxTriviaList _newlineBeforeOperatorTrivia;
+
+            /// <summary>
+            /// The indent trivia to insert if we are trying to align wrapped chunks with the 
+            /// start of the original chunk.
+            /// </summary>
+            private readonly SyntaxTriviaList _indentAndAlignTrivia;
+
+            /// <summary>
+            /// The indent trivia to insert if we are trying to simply smart-indent all wrapped
+            /// chunks.
+            /// </summary>
+            private readonly SyntaxTriviaList _smartIndentTrivia;
 
             public CallExpressionCodeActionComputer(
                 AbstractChainedExpressionWrapper<TNameSyntax, TBaseArgumentListSyntax> service,
@@ -71,39 +78,59 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
                 // Both [0][0] indices are safe here.  We can only get here if we had more than
                 // two chunks to wrap.  And each chunk is required to have at least three elements
                 // (i.e. `. name (arglist)`).
-                var indentationString = OriginalSourceText.GetOffset(chunks[0][0].SpanStart)
-                                                          .CreateIndentationString(UseTabs, TabSize);
+                var firstPeriod = chunks[0][0];
 
-                _indentationTrivia = new SyntaxTriviaList(generator.Whitespace(indentationString));
+                _indentAndAlignTrivia = new SyntaxTriviaList(generator.Whitespace(
+                    OriginalSourceText.GetOffset(firstPeriod.SpanStart).CreateIndentationString(UseTabs, TabSize)));
+
+                _smartIndentTrivia = new SyntaxTriviaList(generator.Whitespace(
+                    this.GetSmartIndentationAfter(firstPeriod)));
+
                 _newlineBeforeOperatorTrivia = service.GetNewLineBeforeOperatorTrivia(NewLineTrivia);
             }
 
             protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
-                => ImmutableArray.Create(new WrappingGroup(
-                    isInlinable: true, ImmutableArray.Create(
-                        await GetWrapCodeActionAsync().ConfigureAwait(false),
-                        await GetUnwrapCodeActionAsync().ConfigureAwait(false),
-                        await GetWrapLongCodeActionAsync().ConfigureAwait(false))));
+            {
+                var actions = ArrayBuilder<WrapItemsAction>.GetInstance();
+
+                await AddWrapCodeActionAsync(actions).ConfigureAwait(false);
+                await AddUnwrapCodeActionAsync(actions).ConfigureAwait(false);
+                await AddWrapLongCodeActionAsync(actions).ConfigureAwait(false);
+
+                return ImmutableArray.Create(new WrappingGroup(
+                    isInlinable: true, actions.ToImmutableAndFree()));
+            }
 
             // Pass 0 as the wrapping column as we effectively always want to wrap each chunk
             // Not just when the chunk would go past the wrapping column.
-            private Task<WrapItemsAction> GetWrapCodeActionAsync()
-                => TryCreateCodeActionAsync(GetWrapEdits(wrappingColumn: 0), FeaturesResources.Wrapping, FeaturesResources.Wrap_call_chain);
+            private async Task AddWrapCodeActionAsync(ArrayBuilder<WrapItemsAction> actions)
+            {
+                actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(wrappingColumn: 0, align: false), FeaturesResources.Wrapping, FeaturesResources.Wrap_call_chain).ConfigureAwait(false));
+                actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(wrappingColumn: 0, align: true), FeaturesResources.Wrapping, FeaturesResources.Wrap_and_align_call_chain).ConfigureAwait(false));
+            }
 
-            private Task<WrapItemsAction> GetUnwrapCodeActionAsync()
-                => TryCreateCodeActionAsync(GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_call_chain);
+            private async Task AddUnwrapCodeActionAsync(ArrayBuilder<WrapItemsAction> actions)
+            {
+                actions.Add(await TryCreateCodeActionAsync(GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_call_chain).ConfigureAwait(false));
+            }
 
-            private Task<WrapItemsAction> GetWrapLongCodeActionAsync()
-                => TryCreateCodeActionAsync(GetWrapEdits(WrappingColumn), FeaturesResources.Wrapping, FeaturesResources.Wrap_long_call_chain);
+            private async Task AddWrapLongCodeActionAsync(ArrayBuilder<WrapItemsAction> actions)
+            {
+                actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(WrappingColumn, align: false), FeaturesResources.Wrapping, FeaturesResources.Wrap_long_call_chain).ConfigureAwait(false));
+                actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(WrappingColumn, align: true), FeaturesResources.Wrapping, FeaturesResources.Wrap_and_align_long_call_chain).ConfigureAwait(false));
+            }
 
-            private ImmutableArray<Edit> GetWrapEdits(int wrappingColumn)
+            private ImmutableArray<Edit> GetWrapEdits(int wrappingColumn, bool align)
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
 
                 // First, normalize the first chunk.
                 var firstChunk = _chunks[0];
                 DeleteAllSpacesInChunk(result, firstChunk);
-                var position = _indentationTrivia.FullSpan.Length + NormalizedWidth(firstChunk);
+
+                var indentationTrivia = align ? _indentAndAlignTrivia : _smartIndentTrivia;
+
+                var position = indentationTrivia.FullSpan.Length;// _indentationTrivia.FullSpan.Length + NormalizedWidth(firstChunk);
 
                 // Now, go to each subsequent chunk.  If keeping it on the current line would
                 // cause us to go past the requested wrapping column, then wrap it and proceed.
@@ -116,13 +143,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
                     {
                         // we're wrapping.  So our position is reset to the indentation
                         // on the next line.
-                        position = _indentationTrivia.FullSpan.Length;
+                        position = indentationTrivia.FullSpan.Length;
 
                         // First, add a newline at the end of the previous arglist, and then
                         // indent the very first member chunk appropriately.
                         result.Add(Edit.UpdateBetween(
                             _chunks[i - 1].Last(), _newlineBeforeOperatorTrivia,
-                            _indentationTrivia, chunk[0]));
+                            indentationTrivia, chunk[0]));
                     }
 
                     // Now, delete all the remaining spaces in this call chunk.
