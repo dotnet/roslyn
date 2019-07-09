@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
     /// 
     /// This approach gives an intuitive wrapping algorithm that matches the common way
     /// many wrap dotted invocations, while also effectively not limiting the wrapper to
-    /// only simple forms like `.a(...).b(...).c(...)`.  
+    /// only simple forms like <c>.a(...).b(...).c(...)</c>.  
     /// </summary>
     internal abstract partial class AbstractChainedExpressionWrapper<
         TNameSyntax,
