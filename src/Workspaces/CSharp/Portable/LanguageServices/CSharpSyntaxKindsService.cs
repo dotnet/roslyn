@@ -9,8 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
     {
         public static readonly CSharpSyntaxKindsService Instance = new CSharpSyntaxKindsService();
 
-        [ImportingConstructor]
-        public CSharpSyntaxKindsService()
+        private CSharpSyntaxKindsService()
         {
         }
 
