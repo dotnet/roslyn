@@ -1965,10 +1965,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public SyntaxNode GetContainingPropertyDeclaration(SyntaxNode node) => node.GetAncestorOrThis<PropertyDeclarationSyntax>();
+        public SyntaxNode GetContainingPropertyDeclaration(SyntaxNode node)
+            => node.GetAncestorOrThis<PropertyDeclarationSyntax>();
 
-        public SyntaxNode GetContainingParameter(SyntaxNode node) => node.GetAncestorOrThis<ParameterSyntax>();
+        public SyntaxNode GetContainingParameter(SyntaxNode node)
+            => node.GetAncestorOrThis<ParameterSyntax>();
 
-        public override SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node) => CSharpSyntaxGenerator.GetAttributeLists(node);
+        public override SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node)
+            => CSharpSyntaxGenerator.GetAttributeLists(node);
     }
 }
