@@ -556,6 +556,21 @@ class B5 : A<object>
         }
 
         [Fact]
+        public void TestNullCheckedSubstitution6()
+        {
+            var source = @"
+class C
+{
+    void M<T>(T value!) where T : unmanaged { }
+}";
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                    // (4,17): error CS8718: Parameter 'T' is a non-nullable value type and cannot be null-checked.
+                    //     void M<T>(T value!) where T : unmanaged { }
+                    Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "value").WithArguments("T").WithLocation(4, 17));
+
+        }
+
+        [Fact]
         public void TestNullCheckingExpectedOutput()
         {
             var source = @"
