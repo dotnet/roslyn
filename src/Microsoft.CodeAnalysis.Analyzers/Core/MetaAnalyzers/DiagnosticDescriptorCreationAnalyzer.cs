@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private static void AnalyzeTitle(OperationAnalysisContext operationAnalysisContext, IObjectCreationOperation objectCreation)
         {
-            IParameterSymbol title = objectCreation.Constructor.Parameters.Where(p => p.Name == "title").FirstOrDefault();
+            IParameterSymbol title = objectCreation.Constructor.Parameters.FirstOrDefault(p => p.Name == "title");
             if (title != null &&
                 title.Type != null &&
                 title.Type.SpecialType == SpecialType.System_String)

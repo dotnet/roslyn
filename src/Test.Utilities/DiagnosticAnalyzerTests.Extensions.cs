@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -265,12 +266,13 @@ namespace Test.Utilities
                 builder.AppendLine("// " + diagnostics[i].ToString());
 
                 Type analyzerType = analyzer.GetType();
-                IEnumerable<FieldInfo> ruleFields = analyzerType
-                    .GetFields(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy)
-                    .Where(f => f.IsStatic && f.FieldType == typeof(DiagnosticDescriptor));
+                var ruleFields = analyzerType
+                    .GetFields(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
 
                 foreach (FieldInfo field in ruleFields)
                 {
+                    Debug.Assert(field.IsStatic, "field is not static");
+
                     if (field.GetValue(null) is DiagnosticDescriptor rule && rule.Id == diagnostics[i].Id)
                     {
                         Location location = diagnostics[i].Location;

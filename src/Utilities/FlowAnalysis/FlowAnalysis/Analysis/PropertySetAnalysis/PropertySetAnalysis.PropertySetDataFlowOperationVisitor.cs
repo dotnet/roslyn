@@ -69,15 +69,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
             }
 
-            public override int GetHashCode()
-            {
-                return HashUtilities.Combine(
-                    this._hazardousUsageBuilder.GetHashCode(),
-                    this._visitedLocalFunctions.GetHashCode(),
-                    this._visitedLambdas.GetHashCode(),
-                    base.GetHashCode());
-            }
-
             public ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> HazardousUsages
             {
                 get
