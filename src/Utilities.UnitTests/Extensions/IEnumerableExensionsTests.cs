@@ -35,9 +35,9 @@ namespace Analyzer.Utilities.Extensions
         [InlineData(2, false)]
         [InlineData(3, false)]
         [Theory]
-        public void IEnumerableHasLessThan2_ReturnsTheCorrectValue(int count, bool result)
+        public void IEnumerableHasFewerThan2_ReturnsTheCorrectValue(int count, bool result)
         {
-            Assert.Equal(result, IEnumerableExtensions.HasLessThan(CreateIEnumerable(count), 2));
+            Assert.Equal(result, IEnumerableExtensions.HasFewerThan(CreateIEnumerable(count), 2));
         }
 
         private static IEnumerable<int> CreateIEnumerable(int count)
@@ -78,9 +78,9 @@ namespace Analyzer.Utilities.Extensions
         [InlineData(2, false)]
         [InlineData(3, false)]
         [Theory]
-        public void ICollectionHasLessThan2_ReturnsTheCorrectValue(int count, bool result)
+        public void ICollectionHasFewerThan2_ReturnsTheCorrectValue(int count, bool result)
         {
-            Assert.Equal(result, IEnumerableExtensions.HasLessThan(new Collection(count), 2));
+            Assert.Equal(result, IEnumerableExtensions.HasFewerThan(new Collection(count), 2));
         }
 
 #pragma warning disable CA1010 // Collections should implement generic interface
@@ -121,9 +121,9 @@ namespace Analyzer.Utilities.Extensions
         [InlineData(2, false)]
         [InlineData(3, false)]
         [Theory]
-        public void IIntCollectionHasLessThan2_ReturnsTheCorrectValue(int count, bool result)
+        public void IIntCollectionHasFewerThan2_ReturnsTheCorrectValue(int count, bool result)
         {
-            Assert.Equal(result, IEnumerableExtensions.HasLessThan(new IntCollection(count), 2));
+            Assert.Equal(result, IEnumerableExtensions.HasFewerThan(new IntCollection(count), 2));
         }
 
         private class IntCollection : ICollection<int>

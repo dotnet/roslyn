@@ -243,6 +243,44 @@ T:System.Collections.Generic.List`1";
         }
 
         [Fact]
+        public async Task CSharp_BannedType_AsTypeArgument()
+        {
+            var source = @"
+struct C {}
+
+class G<T>
+{
+    class N<U>
+    { }
+
+    unsafe void M()
+    {
+        var b = new G<C>();
+        var c = new G<C>.N<int>();
+        var d = new G<int>.N<C>();
+        var e = new G<G<int>.N<C>>.N<int>();
+        var f = new G<G<C>.N<int>>.N<int>();
+        var g = new C[42];
+        var h = new G<C[]>();
+        fixed (C* i = &g[0]) { }
+    }
+}";
+
+            var bannedText = @"
+T:C";
+
+            await VerifyCSharpAsync(source, bannedText,
+                GetCSharpResultAt(11, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(12, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(13, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(14, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(15, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(16, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(17, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(18, 23, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
+        }
+
+        [Fact]
         public async Task CSharp_BannedNestedType_Constructor()
         {
             var source = @"
