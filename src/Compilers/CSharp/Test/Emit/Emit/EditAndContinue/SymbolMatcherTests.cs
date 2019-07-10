@@ -1076,7 +1076,6 @@ class C : I<int, bool>
         }
 
         [Fact]
-<<<<<<< HEAD
         public void Method_ParameterNullableChange()
         {
             var source0 = @"
@@ -1099,9 +1098,9 @@ class C
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<MethodSymbol>("C.M");
@@ -1128,9 +1127,9 @@ class C
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<FieldSymbol>("C.S");
@@ -1212,6 +1211,7 @@ class C
             Assert.Equal("y2", mappedY2.Name);
         }
 
+        [Fact]
         public void InterfaceMembers()
         {
             var source = @"
@@ -1234,6 +1234,10 @@ interface I
 ";
             var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
                 default,
                 compilation0.SourceAssembly,
                 default,

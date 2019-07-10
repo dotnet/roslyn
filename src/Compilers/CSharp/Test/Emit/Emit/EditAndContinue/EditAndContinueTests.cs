@@ -720,12 +720,15 @@ namespace N
                 Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
                 Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
                 Row(8, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(9, TableIndex.MemberRef, EditAndContinueOperation.Default),
                 Row(11, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(13, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(14, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(15, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(16, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(17, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(18, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default), // NullableAttribute
                 Row(7, TableIndex.TypeDef, EditAndContinueOperation.Default), // NullableContextAttribute
                 Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddField),
@@ -747,7 +750,9 @@ namespace N
                 Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             CheckEncMap(reader2,
                 Handle(11, TableIndex.TypeRef),
@@ -756,6 +761,8 @@ namespace N
                 Handle(14, TableIndex.TypeRef),
                 Handle(15, TableIndex.TypeRef),
                 Handle(16, TableIndex.TypeRef),
+                Handle(17, TableIndex.TypeRef),
+                Handle(18, TableIndex.TypeRef),
                 Handle(6, TableIndex.TypeDef),
                 Handle(7, TableIndex.TypeDef),
                 Handle(1, TableIndex.Field),
@@ -768,11 +775,14 @@ namespace N
                 Handle(4, TableIndex.Param),
                 Handle(7, TableIndex.MemberRef),
                 Handle(8, TableIndex.MemberRef),
+                Handle(9, TableIndex.MemberRef),
                 Handle(11, TableIndex.CustomAttribute),
                 Handle(12, TableIndex.CustomAttribute),
                 Handle(13, TableIndex.CustomAttribute),
                 Handle(14, TableIndex.CustomAttribute),
                 Handle(15, TableIndex.CustomAttribute),
+                Handle(16, TableIndex.CustomAttribute),
+                Handle(17, TableIndex.CustomAttribute),
                 Handle(3, TableIndex.AssemblyRef));
 
             var diff3 = compilation3.EmitDifference(
@@ -798,14 +808,14 @@ namespace N
 
             CheckEncLog(reader3,
                 Row(4, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(17, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(18, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(19, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(20, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                 Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(12, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                 Row(5, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -1651,7 +1661,7 @@ class C
                 Handle(1, TableIndex.GenericParamConstraint));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop)]
+        [Fact]
         public void AddNamespace()
         {
             var source0 =
@@ -2219,7 +2229,7 @@ class C
             CheckNames(readers, reader1.GetPropertyDefNames());
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ArrayInitializer()
         {
             var source0 = @"
@@ -2252,24 +2262,22 @@ class C
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, compilation0.GetMember("C.M"), compilation1.GetMember("C.M"))));
 
-            using (var md1 = diff1.GetMetadata())
-            {
-                var reader1 = md1.Reader;
-                CheckEncLog(reader1,
-                    Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                    Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(13, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    //Row(2, TableIndex.TypeSpec, EditAndContinueOperation.Default),
-                    Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                    Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default));
-                CheckEncMap(reader1,
-                    Handle(12, TableIndex.TypeRef),
-                    Handle(13, TableIndex.TypeRef),
-                    Handle(1, TableIndex.MethodDef),
-                    Handle(2, TableIndex.StandAloneSig),
-                    //Handle(2, TableIndex.TypeSpec),
-                    Handle(2, TableIndex.AssemblyRef));
-            }
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            CheckEncLog(reader1,
+                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(13, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default));
+
+            CheckEncMap(reader1,
+                Handle(12, TableIndex.TypeRef),
+                Handle(13, TableIndex.TypeRef),
+                Handle(1, TableIndex.MethodDef),
+                Handle(2, TableIndex.StandAloneSig),
+                Handle(2, TableIndex.AssemblyRef));
 
             diff1.VerifyIL(
 @"{
@@ -3977,7 +3985,7 @@ class B : A<B>
         /// <summary>
         /// Preserve locals for method added after initial compilation.
         /// </summary>
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void PreserveLocalSlots_NewMethod()
         {
             var source0 =
@@ -4716,7 +4724,7 @@ namespace M
         /// Anonymous type names with module ids
         /// and gaps in indices.
         /// </summary>
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void AnonymousTypes_OtherTypeNames()
         {
             var ilSource =
@@ -7106,14 +7114,13 @@ class C
                 md0,
                 EmptyLocalsProvider);
 
-
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, syntaxMap: s => null, preserveLocalVariables: true)));
 
             using var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
-            var readers = new[] { reader0, reader1 };
+            var readers = new List<MetadataReader> { reader0, reader1 };
 
             CheckNames(readers, reader1.GetAssemblyRefNames(), "netstandard");
             CheckNames(readers, reader1.GetTypeDefNames(), "<>f__AnonymousType1`1");
@@ -7126,7 +7133,7 @@ class C
 
             using var md2 = diff2F.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers.Add(reader2);
             CheckNames(readers, reader2.GetAssemblyRefNames(), "netstandard");
             CheckNames(readers, reader2.GetTypeDefNames());
             CheckNames(readers, reader2.GetTypeRefNames(), "Object");
@@ -7135,13 +7142,6 @@ class C
             var diff2G = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1G, method2G, syntaxMap: s => null, preserveLocalVariables: true)));
-
-            using var md2 = diff2G.GetMetadata();
-            var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
-            CheckNames(readers, reader2.GetAssemblyRefNames(), "netstandard");
-            CheckNames(readers, reader2.GetTypeDefNames());
-            CheckNames(readers, reader2.GetTypeRefNames(), "Object");
         }
 
         [Fact]
