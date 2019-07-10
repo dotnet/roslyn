@@ -33,22 +33,21 @@ namespace Microsoft.CodeAnalysis
         Enable = Warnings | Annotations,
     }
 
-
     public static class NullableContextOptionsExtensions
     {
-        private static bool FlagSet(NullableContextOptions context, NullableContextOptions flag) =>
+        private static bool IsFlagSet(NullableContextOptions context, NullableContextOptions flag) =>
             (context & flag) == flag;
 
         /// <summary>
         /// Returns whether nullable warnings are enabled.
         /// </summary>
         public static bool WarningsEnabled(this NullableContextOptions context) =>
-            FlagSet(context, NullableContextOptions.Warnings);
+            IsFlagSet(context, NullableContextOptions.Warnings);
 
         /// <summary>
         /// Returns whether nullable annotations are enabled.
         /// </summary>
         public static bool AnnotationsEnabled(this NullableContextOptions context) =>
-            FlagSet(context, NullableContextOptions.Annotations);
+            IsFlagSet(context, NullableContextOptions.Annotations);
     }
 }

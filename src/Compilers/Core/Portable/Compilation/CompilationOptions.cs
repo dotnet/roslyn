@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis
         /// This context does not apply to files that are marked as generated. Nullable is off
         /// by default in those locations.
         /// </remarks>
-        public NullableContextOptions NullableContextOptions { get; protected set; }
+        public abstract NullableContextOptions NullableContextOptions { get; protected set; }
 
         /// <summary>
         /// A set of strings designating experimental compiler features that are to be enabled.

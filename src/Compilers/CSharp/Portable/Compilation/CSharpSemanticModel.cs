@@ -5024,6 +5024,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.IsEventUsableAsField(position, symbol.EnsureCSharpSymbolOrNull<IEventSymbol, EventSymbol>(nameof(symbol)));
         }
 
+        public sealed override NullableContext GetNullableContext(int position)
+        {
+            var syntaxTree = (CSharpSyntaxTree)Root.SyntaxTree;
+            NullableContextState contextState = syntaxTree.GetNullableContextState(position);
+            var defaultState = syntaxTree.IsGeneratedCode() ? NullableContextOptions.Disable : Compilation.Options.NullableContextOptions;
+
+            NullableContext context = getFlag(contextState.AnnotationsState, defaultState.AnnotationsEnabled(), NullableContext.AnnotationsContextInherited, NullableContext.AnnotationsEnable);
+            context |= getFlag(contextState.WarningsState, defaultState.WarningsEnabled(), NullableContext.WarningsContextInherited, NullableContext.WarningsEnable);
+
+            return context;
+
+            static NullableContext getFlag(bool? contextState, bool defaultEnableState, NullableContext inheritedFlag, NullableContext enableFlag) =>
+                contextState switch
+                {
+                    null when defaultEnableState => (inheritedFlag | enableFlag),
+                    null => inheritedFlag,
+                    true => enableFlag,
+                    false => NullableContext.Disable
+                };
+        }
+
         #endregion
     }
 }

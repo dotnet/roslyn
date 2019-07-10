@@ -6,15 +6,33 @@ using System;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Represents the state of the nullable analysis at a specific point in a file.
+    /// Represents the state of the nullable analysis at a specific point in a file. Bits one and
+    /// two correspond to whether the nullable feature is enabled. Bits three and four correspond
+    /// to whether the context was inherited from the global context.
     /// </summary>
     [Flags]
     public enum NullableContext
     {
         /// <summary>
-        /// Nullable warnings and annotations are off at this location.
+        /// Nullable warnings and annotations are explicitly turned off at this location.
         /// </summary>
-        Disabled = 0b00_00,
+        Disable = 0b00_00,
+
+        /// <summary>
+        /// Nullable warnings are enabled and will be reported at this file location.
+        /// </summary>
+        WarningsEnable = 0b00_01,
+
+        /// <summary>
+        /// Nullable annotations are enabled and will be shown when APIs defined at
+        /// this location are used in other contexts.
+        /// </summary>
+        AnnotationsEnable = 0b00_10,
+
+        /// <summary>
+        /// The nullable feature is fully enabled.
+        /// </summary>
+        Enable = WarningsEnable | AnnotationsEnable,
 
         /// <summary>
         /// The nullable warning state is inherited from the project default.
@@ -24,17 +42,17 @@ namespace Microsoft.CodeAnalysis
         /// files have nullable off by default, regardless of of the project-level
         /// default setting.
         /// </remarks>
-        WarningsContextInherited = 0b00_01,
+        WarningsContextInherited = 0b01_00,
 
         /// <summary>
-        /// The nullable annotation tate is inherited from the project default.
+        /// The nullable annotation state is inherited from the project default.
         /// </summary>
         /// <remarks>
         /// The project default can change depending on the file type. Generated
         /// files have nullable off by default, regardless of of the project-level
         /// default setting.
         /// </remarks>
-        AnnotationsContextInherited = 0b00_10,
+        AnnotationsContextInherited = 0b10_00,
 
         /// <summary>
         /// The current state of both warnings and annotations are inherited from
@@ -47,52 +65,36 @@ namespace Microsoft.CodeAnalysis
         /// files have nullable off by default, regardless of of the project-level
         /// default setting.
         /// </remarks>
-        ContextInherited = WarningsContextInherited | AnnotationsContextInherited,
-
-        /// <summary>
-        /// Nullable warnings are enabled and will be reported at this file location.
-        /// </summary>
-        WarningsEnabled = 0b01_00,
-
-        /// <summary>
-        /// Nullable annotations are enabled and will be shown when APIs defined at
-        /// this location are used in other contexts.
-        /// </summary>
-        AnnotationsEnabled = 0b10_00,
-
-        /// <summary>
-        /// The nullable feature is fully enabled.
-        /// </summary>
-        Enabled = WarningsEnabled | AnnotationsEnabled
+        ContextInherited = WarningsContextInherited | AnnotationsContextInherited
     }
 
     public static class NullableContextExtensions
     {
-        private static bool FlagSet(NullableContext context, NullableContext flag) =>
+        private static bool IsFlagSet(NullableContext context, NullableContext flag) =>
             (context & flag) == flag;
 
         /// <summary>
         /// Returns whether nullable warnings are enabled for this context.
         /// </summary>
         public static bool WarningsEnabled(this NullableContext context) =>
-            FlagSet(context, NullableContext.WarningsEnabled);
+            IsFlagSet(context, NullableContext.WarningsEnable);
 
         /// <summary>
         /// Returns whether nullable annotations are enabled for this context.
         /// </summary>
         public static bool AnnotationsEnabled(this NullableContext context) =>
-            FlagSet(context, NullableContext.AnnotationsEnabled);
+            IsFlagSet(context, NullableContext.AnnotationsEnable);
 
         /// <summary>
         /// Returns whether the nullable warning state was inherited from the project default for this file type.
         /// </summary>
         public static bool WarningsInherited(this NullableContext context) =>
-            FlagSet(context, NullableContext.WarningsContextInherited);
+            IsFlagSet(context, NullableContext.WarningsContextInherited);
 
         /// <summary>
         /// Returns whether the nullable annotation state was inherited from the project default for this file type.
         /// </summary>
         public static bool AnnotationsInherited(this NullableContext context) =>
-            FlagSet(context, NullableContext.AnnotationsContextInherited);
+            IsFlagSet(context, NullableContext.AnnotationsContextInherited);
     }
 }

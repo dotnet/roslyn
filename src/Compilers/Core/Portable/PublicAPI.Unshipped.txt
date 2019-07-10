@@ -17,7 +17,6 @@ Microsoft.CodeAnalysis.Compilation.CreateTupleTypeSymbol(System.Collections.Immu
 Microsoft.CodeAnalysis.Compilation.CreateTupleTypeSymbol(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol> elementTypes, System.Collections.Immutable.ImmutableArray<string> elementNames, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Location> elementLocations) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.Compilation.HasImplicitConversion(Microsoft.CodeAnalysis.ITypeSymbol fromType, Microsoft.CodeAnalysis.ITypeSymbol toType) -> bool
 Microsoft.CodeAnalysis.Compilation.IsSymbolAccessibleWithin(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.ISymbol within, Microsoft.CodeAnalysis.ITypeSymbol throughType = null) -> bool
-Microsoft.CodeAnalysis.CompilationOptions.NullableContextOptions.get -> Microsoft.CodeAnalysis.NullableContextOptions
 Microsoft.CodeAnalysis.Diagnostics.DiagnosticSuppressor
 Microsoft.CodeAnalysis.Diagnostics.DiagnosticSuppressor.DiagnosticSuppressor() -> void
 Microsoft.CodeAnalysis.Diagnostics.Suppression
@@ -60,13 +59,13 @@ Microsoft.CodeAnalysis.NullableAnnotation.Disabled = 1 -> Microsoft.CodeAnalysis
 Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated = 2 -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.NullableAnnotation.NotApplicable = 0 -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.NullableContext
-Microsoft.CodeAnalysis.NullableContext.AnnotationsContextInherited = 2 -> Microsoft.CodeAnalysis.NullableContext
-Microsoft.CodeAnalysis.NullableContext.AnnotationsEnabled = 8 -> Microsoft.CodeAnalysis.NullableContext
+Microsoft.CodeAnalysis.NullableContext.AnnotationsContextInherited = 8 -> Microsoft.CodeAnalysis.NullableContext
+Microsoft.CodeAnalysis.NullableContext.AnnotationsEnable = 2 -> Microsoft.CodeAnalysis.NullableContext
 Microsoft.CodeAnalysis.NullableContext.ContextInherited = Microsoft.CodeAnalysis.NullableContext.WarningsContextInherited | Microsoft.CodeAnalysis.NullableContext.AnnotationsContextInherited -> Microsoft.CodeAnalysis.NullableContext
-Microsoft.CodeAnalysis.NullableContext.Disabled = 0 -> Microsoft.CodeAnalysis.NullableContext
-Microsoft.CodeAnalysis.NullableContext.Enabled = Microsoft.CodeAnalysis.NullableContext.WarningsEnabled | Microsoft.CodeAnalysis.NullableContext.AnnotationsEnabled -> Microsoft.CodeAnalysis.NullableContext
-Microsoft.CodeAnalysis.NullableContext.WarningsContextInherited = 1 -> Microsoft.CodeAnalysis.NullableContext
-Microsoft.CodeAnalysis.NullableContext.WarningsEnabled = 4 -> Microsoft.CodeAnalysis.NullableContext
+Microsoft.CodeAnalysis.NullableContext.Disable = 0 -> Microsoft.CodeAnalysis.NullableContext
+Microsoft.CodeAnalysis.NullableContext.Enable = Microsoft.CodeAnalysis.NullableContext.WarningsEnable | Microsoft.CodeAnalysis.NullableContext.AnnotationsEnable -> Microsoft.CodeAnalysis.NullableContext
+Microsoft.CodeAnalysis.NullableContext.WarningsContextInherited = 4 -> Microsoft.CodeAnalysis.NullableContext
+Microsoft.CodeAnalysis.NullableContext.WarningsEnable = 1 -> Microsoft.CodeAnalysis.NullableContext
 Microsoft.CodeAnalysis.NullableContextExtensions
 Microsoft.CodeAnalysis.NullableContextOptions
 Microsoft.CodeAnalysis.NullableContextOptions.Annotations = 2 -> Microsoft.CodeAnalysis.NullableContextOptions
@@ -100,6 +99,7 @@ Microsoft.CodeAnalysis.TypeInfo.Nullability.get -> Microsoft.CodeAnalysis.Nullab
 abstract Microsoft.CodeAnalysis.Compilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion
 abstract Microsoft.CodeAnalysis.Compilation.ContainsSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
 abstract Microsoft.CodeAnalysis.Compilation.GetSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>
+abstract Microsoft.CodeAnalysis.CompilationOptions.NullableContextOptions.get -> Microsoft.CodeAnalysis.NullableContextOptions
 abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions.TryGetValue(string key, out string value) -> bool
 abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider.GetOptions(Microsoft.CodeAnalysis.AdditionalText textFile) -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
 abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider.GetOptions(Microsoft.CodeAnalysis.SyntaxTree tree) -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
