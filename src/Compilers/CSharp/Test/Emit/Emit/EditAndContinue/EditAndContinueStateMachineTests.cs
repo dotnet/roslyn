@@ -5435,6 +5435,18 @@ class C
                 "C: {<>c}",
                 "C.<>c: {<>9__0_0, <F>b__0_0, <<F>b__0_0>d}",
                 "C.<>c.<<F>b__0_0>d: {<>1__state, <>t__builder, <>4__this, <a>5__1, <>s__2, <>u__1, MoveNext, SetStateMachine}");
+
+            // TODO to be updated when EmitDifference would pass.
+            diff1.VerifyIL("C.<>c.<F>b__0#1", @"
+{
+  // Code size        4 (0x4)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4.1
+  IL_0002:  add
+  IL_0003:  ret
+}
+");
         }
     }
 }

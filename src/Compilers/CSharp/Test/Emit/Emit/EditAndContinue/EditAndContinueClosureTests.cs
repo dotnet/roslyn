@@ -519,9 +519,9 @@ class C
 
     public void F(string? x)
     <N:0>{</N:0>
-        var y1 = new { A = id(x) };
-        var y2 = G(() => new { B = id(x) });
-        var z = new Func<string>(() => y1.A + y2.B);
+        var <N:1>y1</N:1> = new { A = id(x) };
+        var <N:2>y2</N:2> = G(<N:3>() => new { B = id(x) }</N:3>);
+        var <N:4>z</N:4> = new Func<string>(<N:5>() => y1.A + y2.B</N:5>);
     }
 }", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
             var source1 = MarkedSource(@"
@@ -536,9 +536,9 @@ class C
     public void F(string? x)
     <N:0>{</N:0>
         if (x is null) throw new Exception();
-        var y1 = new { A = id(x) };
-        var y2 = G(() => new { B = id(x) });
-        var z = new Func<string>(() => y1.A + y2.B);
+        var <N:1>y1</N:1> = new { A = id(x) };
+        var <N:2>y2</N:2> = G(<N:3>() => new { B = id(x) }</N:3>);
+        var <N:4>z</N:4> = new Func<string>(<N:5>() => y1.A + y2.B</N:5>);
     }
 }", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
             var compilation0 = CreateCompilation(source0.Tree);
@@ -560,14 +560,17 @@ class C
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers();
 
-            var md1 = diff1.GetMetadata();
-            var reader1 = md1.Reader;
-
-            // Method updates
-            CheckEncLogDefinitions(reader1,
-                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default));
+            // TODO to be updated when EmitDifference would pass.
+            diff1.VerifyIL("C.<>c.<F>b__0#1", @"
+{
+  // Code size        4 (0x4)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4.1
+  IL_0002:  add
+  IL_0003:  ret
+}
+");
         }
 
         [Fact]
