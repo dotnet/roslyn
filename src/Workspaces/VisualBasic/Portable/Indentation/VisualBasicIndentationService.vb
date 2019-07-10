@@ -46,7 +46,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                 line As TextLine,
                 optionSet As OptionSet,
                 ByRef token As SyntaxToken,
-                CancellationToken As CancellationToken,
                 Optional neverUseWhenHavingMissingToken As Boolean = True) As Boolean
 
             ' find first text on line
