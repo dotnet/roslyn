@@ -100,12 +100,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return false;
         }
 
-        // This is a temporarily method to support preferrrence of IntelliCode items comparing to non-IntelliCode items.
+        // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
         // We expect that Editor will intorduce this support and we will get rid of relying on the "★" then.
         internal static bool IsPreferredItem(this RoslynCompletionItem completionItem)
             => completionItem.DisplayText.StartsWith("★");
 
-        // This is a temporarily method to support preferrrence of IntelliCode items comparing to non-IntelliCode items.
+        // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
         // We expect that Editor will intorduce this support and we will get rid of relying on the "★" then.
         internal static bool IsPreferredItem(this VSCompletionItem completionItem)
             => completionItem.DisplayText.StartsWith("★");
