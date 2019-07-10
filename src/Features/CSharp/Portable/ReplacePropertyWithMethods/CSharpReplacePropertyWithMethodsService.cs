@@ -5,6 +5,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -14,6 +15,8 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
@@ -27,26 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         {
         }
 
-        public override SyntaxNode GetPropertyDeclaration(SyntaxToken token)
+        public override async Task<SyntaxNode> GetPropertyDeclarationAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var containingProperty = token.Parent.FirstAncestorOrSelf<PropertyDeclarationSyntax>();
-            if (containingProperty == null)
-            {
-                return null;
-            }
+            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
+            var property = await refactoringHelperService.TryGetSelectedNodeAsync<PropertyDeclarationSyntax>(document, span, cancellationToken).ConfigureAwait(false);
 
-            var start = containingProperty.AttributeLists.Count > 0
-                ? containingProperty.AttributeLists.Last().GetLastToken().GetNextToken().SpanStart
-                : containingProperty.SpanStart;
-
-            // Offer this refactoring anywhere in the signature of the property.
-            var position = token.SpanStart;
-            if (position < start || position > containingProperty.Identifier.Span.End)
-            {
-                return null;
-            }
-
-            return containingProperty;
+            return property;
         }
 
         public override async Task<IList<SyntaxNode>> GetReplacementMembersAsync(

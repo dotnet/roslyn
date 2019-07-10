@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
         where TCrefSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
     {
-        public abstract SyntaxNode GetPropertyDeclaration(SyntaxToken token);
+        public abstract Task<SyntaxNode> GetPropertyDeclarationAsync(Document document, TextSpan span, CancellationToken cancellationToken);
         public abstract SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration);
         public abstract Task<IList<SyntaxNode>> GetReplacementMembersAsync(Document document, IPropertySymbol property, SyntaxNode propertyDeclaration, IFieldSymbol propertyBackingField, string desiredGetMethodName, string desiredSetMethodName, CancellationToken cancellationToken);
 

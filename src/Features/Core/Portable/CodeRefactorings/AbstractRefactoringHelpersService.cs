@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -322,10 +323,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             if (extractParentsOfHeader)
             {
-                extractedNode = ExtractNodeOfHeader(node, syntaxFacts);
+                return ExtractNodeOfHeader(node, syntaxFacts);
             }
 
-            return extractedNode;
+            return null;
         }
 
         protected virtual SyntaxNode ExtractNodeSimple(SyntaxNode node, ISyntaxFactsService syntaxFacts)

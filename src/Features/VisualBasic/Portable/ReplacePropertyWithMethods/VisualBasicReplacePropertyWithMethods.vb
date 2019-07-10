@@ -3,10 +3,12 @@
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.ReplacePropertyWithMethods
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithProperty
@@ -18,33 +20,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
         Public Sub New()
         End Sub
 
-        Public Overrides Function GetPropertyDeclaration(token As SyntaxToken) As SyntaxNode
-            Dim containingProperty = token.Parent.FirstAncestorOrSelf(Of PropertyStatementSyntax)
-            If containingProperty Is Nothing Then
-                Return Nothing
-            End If
-
-            ' a parameterized property cannot be trivially converted to a method.
-            If containingProperty.ParameterList IsNot Nothing Then
-                Return Nothing
-            End If
-
-            Dim start = If(containingProperty.AttributeLists.Count > 0,
-                containingProperty.AttributeLists.Last().GetLastToken().GetNextToken().SpanStart,
-                 containingProperty.SpanStart)
-
-            ' Offer this refactoring anywhere in the signature of the property.
-            Dim position = token.SpanStart
-            If position < start Then
-                Return Nothing
-            End If
-
-            If containingProperty.HasReturnType() AndAlso
-                position > containingProperty.GetReturnType().Span.End Then
-                Return Nothing
-            End If
-
-            Return containingProperty
+        Public Overrides Async Function GetPropertyDeclarationAsync(document As Document, span As TextSpan, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+            Dim refactoringHelperService = document.GetLanguageService(Of IRefactoringHelpersService)()
+            Return Await refactoringHelperService.TryGetSelectedNodeAsync(Of PropertyStatementSyntax)(document, span, cancellationToken).ConfigureAwait(False)
         End Function
 
         Public Overrides Function GetReplacementMembersAsync(
