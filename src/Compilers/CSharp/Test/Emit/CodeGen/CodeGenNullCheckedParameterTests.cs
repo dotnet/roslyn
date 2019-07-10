@@ -567,8 +567,31 @@ class C
                     // (4,17): error CS8718: Parameter 'T' is a non-nullable value type and cannot be null-checked.
                     //     void M<T>(T value!) where T : unmanaged { }
                     Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "value").WithArguments("T").WithLocation(4, 17));
-
         }
+
+        [Fact]
+        public void TestNullCheckedSubstitution7()
+        {
+            var source = @"
+class C
+{
+    void M<T>(T value!) where T : notnull { }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.M<T>(T)", @"
+{
+    // Code size       20 (0x14)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  box        ""T""
+    IL_0006:  brtrue.s   IL_0013
+    IL_0008:  ldstr      ""value""
+    IL_000d:  newobj     ""System.ArgumentNullException..ctor(string)""
+    IL_0012:  throw
+    IL_0013:  ret
+}");
+        }
+
 
         [Fact]
         public void TestNullCheckingExpectedOutput()
