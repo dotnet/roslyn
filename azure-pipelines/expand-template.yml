@@ -3,7 +3,10 @@ steps:
     dotnet build-server shutdown
     git clean -fdx
   displayName: Cleaning repo for template expansion
-- powershell: ./Expand-Template.ps1 -LibraryName Calc -Author "Andrew Arnott"
+- powershell: |
+    git config user.name "test user"
+    git config user.email "andrewarnott@gmail.com"
+    ./Expand-Template.ps1 -LibraryName Calc -Author "Andrew Arnott"
   displayName: Expanding template
   failOnStderr: true
 # TODO: Verify that all changes are staged to the git index

@@ -10,6 +10,8 @@ A token obtained from codecov.io for your repo. If not specified, code coverage 
 but can be added later by editing the Azure Pipelines YAML file.
 .PARAMETER CIFeed
 The `/{guid}` path to the Azure Pipelines artifact feed to push your nuget package to as part of your CI.
+.PARAMETER Squash
+A switch that causes all of git history to be squashed to just one initial commit for the template, and one for its expansion.
 #>
 [CmdletBinding()]
 Param(
@@ -20,7 +22,9 @@ Param(
     [Parameter()]
     [string]$CodeCovToken,
     [Parameter()]
-    [string]$CIFeed
+    [string]$CIFeed,
+    [Parameter()]
+    [switch]$Squash
 )
 
 function Replace-Placeholders {
@@ -69,6 +73,11 @@ if (-not $sn) {
 
 Push-Location $PSScriptRoot
 try {
+    if ($Squash) {
+        git reset --soft $(git rev-list --max-parents=0 HEAD)
+        git commit --amend -qm "Initial template from https://github.com/AArnott/Library.Template"
+    }
+
     # Rename project directories and solution
     Set-Location src
     git mv Library.sln "$LibraryName.sln"
@@ -147,6 +156,9 @@ try {
             Write-Error "PLACEHOLDER discovered in $($_.FullName)"
         }
     }
+
+    # Commit the changes
+    git commit -qm "Expanded template for $LibraryName" -m "This expansion done by the (now removed) Expand-Template.ps1 script."
 } finally {
     Pop-Location
 }
