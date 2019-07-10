@@ -21,6 +21,9 @@ class C
     public event Action<object?> E3 = null!;
     public event Action<object?>? E4 = null;
 #pragma warning restore 0414
+#pragma warning disable 0626
+    public extern event Action<object?> E5;
+#pragma warning restore 0626
 
     internal C()
     {
@@ -40,12 +43,9 @@ class C
 }";
             var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                    // (12,14): warning CS8618: Non-nullable event 'E1' is uninitialized.
+                    // (15,14): warning CS8618: Non-nullable event 'E1' is uninitialized.
                     //     internal C()
-                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("event", "E1").WithLocation(12, 14),
-                    // (22,14): warning CS8618: Non-nullable event 'E1' is uninitialized.
-                    //     internal C(object o)
-                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("event", "E1").WithLocation(22, 14));
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("event", "E1").WithLocation(15, 14));
         }
 
         [Fact]

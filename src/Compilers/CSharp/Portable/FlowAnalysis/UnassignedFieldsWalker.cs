@@ -124,5 +124,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
+        public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
+        {
+            base.VisitEventAssignmentOperator(node);
+            if (node.IsAddition && node is { Event: { IsStatic: false, AssociatedField: { } field } })
+            {
+                int slot = MakeMemberSlot(node.ReceiverOpt, field);
+                if (slot != -1)
+                {
+                    SetSlotState(slot, assigned: true);
+                }
+            }
+            return null;
+        }
     }
 }
