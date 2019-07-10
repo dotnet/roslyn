@@ -2827,6 +2827,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LearnFromEqualsMethod(method, node, receiverType, results);
 
+            LearnFromCompareExchangeMethod(method, node, results);
+
             if (method.MethodKind == MethodKind.LocalFunction)
             {
                 var localFunc = (LocalFunctionSymbol)method.OriginalDefinition;
@@ -2930,6 +2932,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Split();
                     LearnFromNonNullTest(right, ref StateWhenTrue);
+                }
+            }
+        }
+
+        private void LearnFromCompareExchangeMethod(MethodSymbol method, BoundCall node, ImmutableArray<VisitArgumentResult> results)
+        {
+            var isCompareExchangeMethod = method.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange))
+                || method.OriginalDefinition.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T));
+            if (!isCompareExchangeMethod)
+            {
+                return;
+            }
+
+            // In general a call to CompareExchange of the form:
+            //
+            // Interlocked.CompareExchange(ref location, value, comparand);
+            //
+            // will be analyzed similarly to the following:
+            //
+            // if (location == comparand)
+            // {
+            //     location = value;
+            // }
+
+            var arguments = node.Arguments;
+            var locationSlot = MakeSlot(arguments[0]);
+            if (locationSlot != -1)
+            {
+                var comparand = arguments[2];
+                var valueFlowState = results[1].RValueType.State;
+                if (comparand.ConstantValue?.IsNull == true)
+                {
+                    // If location contained a null, then the write `location = value` definitely occurred
+                    State[locationSlot] = valueFlowState;
+                }
+                else
+                {
+                    var locationFlowState = results[0].RValueType.State;
+                    // A write may have occurred
+                    State[locationSlot] = valueFlowState.Join(locationFlowState);
                 }
             }
         }
@@ -3187,6 +3229,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (method is object && (method.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn)
+            {
+                SetUnreachable();
+            }
+
             return (method, results);
         }
 
@@ -3213,7 +3260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
             var savedState = (argument.Kind == BoundKind.Lambda) ? this.State.Clone() : default(Optional<LocalState>);
-            // Note: AssertsTrue/AssertsFalse are ineffective on ref/out parameters
+            // Note: DoesNotReturnIf is ineffective on ref/out parameters
 
             switch (refKind)
             {
@@ -3223,22 +3270,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case RefKind.None:
                 case RefKind.In:
-                    switch (annotations & (FlowAnalysisAnnotations.AssertsTrue | FlowAnalysisAnnotations.AssertsFalse))
+                    switch (annotations & (FlowAnalysisAnnotations.DoesNotReturnIfTrue | FlowAnalysisAnnotations.DoesNotReturnIfFalse))
                     {
-                        case FlowAnalysisAnnotations.AssertsTrue:
-                        case FlowAnalysisAnnotations.AssertsTrue | FlowAnalysisAnnotations.AssertsFalse:
-                            Visit(argument);
-                            if (IsConditionalState)
-                            {
-                                SetState(StateWhenTrue);
-                            }
-                            break;
-
-                        case FlowAnalysisAnnotations.AssertsFalse:
+                        case FlowAnalysisAnnotations.DoesNotReturnIfTrue:
                             Visit(argument);
                             if (IsConditionalState)
                             {
                                 SetState(StateWhenFalse);
+                            }
+                            break;
+
+                        case FlowAnalysisAnnotations.DoesNotReturnIfFalse:
+                            Visit(argument);
+                            if (IsConditionalState)
+                            {
+                                SetState(StateWhenTrue);
                             }
                             break;
 
