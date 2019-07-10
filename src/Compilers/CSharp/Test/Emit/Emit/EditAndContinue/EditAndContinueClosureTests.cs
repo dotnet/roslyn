@@ -505,11 +505,12 @@ class C
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default));
         }
 
-        [Fact(Skip = "")]
+        [ConditionalFact(AlwaysSkip = "")]
         public void MethodWithNullable_AddingNullCheck()
         {
             var source0 = MarkedSource(@"
 using System;
+#nullable enable
 
 class C
 {
@@ -525,6 +526,7 @@ class C
 }", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
             var source1 = MarkedSource(@"
 using System;
+#nullable enable
 
 class C
 {
@@ -567,11 +569,6 @@ class C
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default));
         }
-
-
-
-
-
 
         [Fact]
         public void MethodWithLocalFunctionClosure1()
