@@ -1581,6 +1581,199 @@ class C
 }");
         }
 
+        [Fact]
+        public void RemoveRestoreNullableAtArrayElement()
+        {
+            var source0 =
+@"
+using System;
+class C
+{
+    public static void M()
+    {
+        var arr = new int?[] { 0 };
+        foreach (var s in arr)
+        {
+            Console.WriteLine(1);
+        }
+    }
+}";
+            // Remove nullable
+            var source1 =
+@"using System;
+class C
+{
+    public static void M()
+    {
+        var arr = new int[] { 0 };
+        foreach (var s in arr)
+        {
+            Console.WriteLine(1);
+        }
+    }
+}";
+            // Restore nullable
+            var source2 = source0;
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+
+            var v0 = CompileAndVerify(compilation0, emitOptions: EmitOptions.Default);
+            v0.VerifyIL("C.M", @"
+{
+  // Code size       56 (0x38)
+  .maxstack  4
+  .locals init (int?[] V_0, //arr
+                int?[] V_1,
+                int V_2,
+                int? V_3) //s
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  newarr     ""int?""
+  IL_0007:  dup
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.0
+  IL_000a:  newobj     ""int?..ctor(int)""
+  IL_000f:  stelem     ""int?""
+  IL_0014:  stloc.0
+  IL_0015:  nop
+  IL_0016:  ldloc.0
+  IL_0017:  stloc.1
+  IL_0018:  ldc.i4.0
+  IL_0019:  stloc.2
+  IL_001a:  br.s       IL_0031
+  IL_001c:  ldloc.1
+  IL_001d:  ldloc.2
+  IL_001e:  ldelem     ""int?""
+  IL_0023:  stloc.3
+  IL_0024:  nop
+  IL_0025:  ldc.i4.1
+  IL_0026:  call       ""void System.Console.WriteLine(int)""
+  IL_002b:  nop
+  IL_002c:  nop
+  IL_002d:  ldloc.2
+  IL_002e:  ldc.i4.1
+  IL_002f:  add
+  IL_0030:  stloc.2
+  IL_0031:  ldloc.2
+  IL_0032:  ldloc.1
+  IL_0033:  ldlen
+  IL_0034:  conv.i4
+  IL_0035:  blt.s      IL_001c
+  IL_0037:  ret
+}");
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll);
+            var compilation2 = compilation0.WithSource(source2);
+
+            var methodData0 = v0.TestData.GetMethodData("C.M");
+            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
+            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
+
+            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
+
+            diff1.VerifyIL("C.M", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  .locals init ([unchanged] V_0,
+                [unchanged] V_1,
+                int V_2,
+                [unchanged] V_3,
+                int[] V_4, //arr
+                int[] V_5,
+                int V_6) //s
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  newarr     ""int""
+  IL_0007:  stloc.s    V_4
+  IL_0009:  nop
+  IL_000a:  ldloc.s    V_4
+  IL_000c:  stloc.s    V_5
+  IL_000e:  ldc.i4.0
+  IL_000f:  stloc.2
+  IL_0010:  br.s       IL_0025
+  IL_0012:  ldloc.s    V_5
+  IL_0014:  ldloc.2
+  IL_0015:  ldelem.i4
+  IL_0016:  stloc.s    V_6
+  IL_0018:  nop
+  IL_0019:  ldc.i4.1
+  IL_001a:  call       ""void System.Console.WriteLine(int)""
+  IL_001f:  nop
+  IL_0020:  nop
+  IL_0021:  ldloc.2
+  IL_0022:  ldc.i4.1
+  IL_0023:  add
+  IL_0024:  stloc.2
+  IL_0025:  ldloc.2
+  IL_0026:  ldloc.s    V_5
+  IL_0028:  ldlen
+  IL_0029:  conv.i4
+  IL_002a:  blt.s      IL_0012
+  IL_002c:  ret
+}");
+
+            var method2 = compilation2.GetMember<MethodSymbol>("C.M");
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables: true)));
+
+            diff2.VerifyIL("C.M",
+@"{
+  // Code size       62 (0x3e)
+  .maxstack  4
+  .locals init ([unchanged] V_0,
+                [unchanged] V_1,
+                int V_2,
+                [unchanged] V_3,
+                [unchanged] V_4,
+                [unchanged] V_5,
+                [int] V_6,
+                int?[] V_7, //arr
+                int?[] V_8,
+                int? V_9) //s
+ -IL_0000:  nop
+ -IL_0001:  ldc.i4.1
+  IL_0002:  newarr     ""int?""
+  IL_0007:  dup
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.0
+  IL_000a:  newobj     ""int?..ctor(int)""
+  IL_000f:  stelem     ""int?""
+  IL_0014:  stloc.s    V_7
+ -IL_0016:  nop
+ -IL_0017:  ldloc.s    V_7
+  IL_0019:  stloc.s    V_8
+  IL_001b:  ldc.i4.0
+  IL_001c:  stloc.2
+ ~IL_001d:  br.s       IL_0036
+ -IL_001f:  ldloc.s    V_8
+  IL_0021:  ldloc.2
+  IL_0022:  ldelem     ""int?""
+  IL_0027:  stloc.s    V_9
+ -IL_0029:  nop
+ -IL_002a:  ldc.i4.1
+  IL_002b:  call       ""void System.Console.WriteLine(int)""
+  IL_0030:  nop
+ -IL_0031:  nop
+ ~IL_0032:  ldloc.2
+  IL_0033:  ldc.i4.1
+  IL_0034:  add
+  IL_0035:  stloc.2
+ -IL_0036:  ldloc.2
+  IL_0037:  ldloc.s    V_8
+  IL_0039:  ldlen
+  IL_003a:  conv.i4
+  IL_003b:  blt.s      IL_001f
+ -IL_003d:  ret
+}", methodToken: diff1.UpdatedMethods.Single());
+        }
+
+
+
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void AddAndDelete()
         {
@@ -4325,14 +4518,16 @@ class C
         ref int <N:4>d</N:4> = ref array[0];
         ref readonly int <N:5>e</N:5> = ref array[0];
         C1<(int, dynamic)>.E***[,,] <N:6>x</N:6> = null;
+        var <N:6>f</N:6> = new List<int?>();
     }
 }
 ";
-            var source0 = MarkedSource(sourceText);
-            var source1 = MarkedSource(sourceText);
-            var source2 = MarkedSource(sourceText);
+            var source0 = MarkedSource(sourceText, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var source1 = MarkedSource(sourceText, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var source2 = MarkedSource(sourceText, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
 
             var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithAllowUnsafe(true));
+
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
 
@@ -4351,7 +4546,8 @@ class C
                 int[] V_3, //array
                 int& V_4, //d
                 int& V_5, //e
-                C1<(int, dynamic)>.E***[,,] V_6) //x
+                C1<(int, dynamic)>.E***[,,] V_6, //x
+                System.Collections.Generic.List<int?> V_7) //f
   IL_0000:  nop
   IL_0001:  ldstr      ""a""
   IL_0006:  newobj     ""System.Collections.Generic.List<(int, int)>..ctor()""
@@ -4385,6 +4581,11 @@ class C
   IL_004d:  ldnull
   IL_004e:  stloc.s    V_6
   IL_0050:  ret
+  IL_0044:  ldnull
+  IL_0045:  stloc.s    V_5
+  IL_0047:  newobj     ""System.Collections.Generic.List<int?>..ctor()""
+  IL_004c:  stloc.s    V_6
+  IL_004e:  ret
 }
 ");
 
@@ -4398,15 +4599,24 @@ class C
 
             diff1.VerifyIL("C.G", @"
 {
+<<<<<<< HEAD
   // Code size       82 (0x52)
+=======
+  // Code size       80 (0x50)
+>>>>>>> EnC compiler tests for nullables
   .maxstack  4
   .locals init (<>f__AnonymousType0<string, System.Collections.Generic.List<(int, int)>> V_0, //a
                 System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>> V_1, //b
                 (int number, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value> value)[] V_2, //c
                 int[] V_3, //array
                 int& V_4, //d
+<<<<<<< HEAD
                 int& V_5, //e
                 C1<(int, dynamic)>.E***[,,] V_6) //x
+=======
+                C1<(int, dynamic)>.E***[,,] V_5, //x
+                System.Collections.Generic.List<int?> V_6) //f
+>>>>>>> EnC compiler tests for nullables
   IL_0000:  nop
   IL_0001:  ldstr      ""a""
   IL_0006:  newobj     ""System.Collections.Generic.List<(int, int)>..ctor()""
@@ -4442,6 +4652,7 @@ class C
   IL_003d:  ldc.i4.0
   IL_003e:  ldelema    ""int""
   IL_0043:  stloc.s    V_4
+<<<<<<< HEAD
   IL_0045:  ldloc.3
   IL_0046:  ldc.i4.0
   IL_0047:  ldelema    ""int""
@@ -4449,6 +4660,13 @@ class C
   IL_004e:  ldnull
   IL_004f:  stloc.s    V_6
   IL_0051:  ret
+=======
+  IL_0045:  ldnull
+  IL_0046:  stloc.s    V_5
+  IL_0048:  newobj     ""System.Collections.Generic.List<int?>..ctor()""
+  IL_004d:  stloc.s    V_6
+  IL_004f:  ret
+>>>>>>> EnC compiler tests for nullables
 }
 ");
 
@@ -4459,15 +4677,24 @@ class C
 
             diff2.VerifyIL("C.G", @"
 {
+<<<<<<< HEAD
   // Code size       82 (0x52)
+=======
+  // Code size       80 (0x50)
+>>>>>>> EnC compiler tests for nullables
   .maxstack  4
   .locals init (<>f__AnonymousType0<string, System.Collections.Generic.List<(int, int)>> V_0, //a
                 System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>> V_1, //b
                 (int number, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value> value)[] V_2, //c
                 int[] V_3, //array
                 int& V_4, //d
+<<<<<<< HEAD
                 int& V_5, //e
                 C1<(int, dynamic)>.E***[,,] V_6) //x
+=======
+                C1<(int, dynamic)>.E***[,,] V_5, //x
+                System.Collections.Generic.List<int?> V_6) //f
+>>>>>>> EnC compiler tests for nullables
   IL_0000:  nop
   IL_0001:  ldstr      ""a""
   IL_0006:  newobj     ""System.Collections.Generic.List<(int, int)>..ctor()""
@@ -4503,6 +4730,7 @@ class C
   IL_003d:  ldc.i4.0
   IL_003e:  ldelema    ""int""
   IL_0043:  stloc.s    V_4
+<<<<<<< HEAD
   IL_0045:  ldloc.3
   IL_0046:  ldc.i4.0
   IL_0047:  ldelema    ""int""
@@ -4510,6 +4738,13 @@ class C
   IL_004e:  ldnull
   IL_004f:  stloc.s    V_6
   IL_0051:  ret
+=======
+  IL_0045:  ldnull
+  IL_0046:  stloc.s    V_5
+  IL_0048:  newobj     ""System.Collections.Generic.List<int?>..ctor()""
+  IL_004d:  stloc.s    V_6
+  IL_004f:  ret
+>>>>>>> EnC compiler tests for nullables
 }
 ");
         }

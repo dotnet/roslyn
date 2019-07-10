@@ -505,6 +505,74 @@ class C
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default));
         }
 
+        [Fact(Skip = "")]
+        public void MethodWithNullable_AddingNullCheck()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    static T id<T>(T t) => t;
+    static T G<T>(Func<T> f) => f();
+
+    public void F(string? x)
+    <N:0>{</N:0>
+        var y1 = new { A = id(x) };
+        var y2 = G(() => new { B = id(x) });
+        var z = new Func<string>(() => y1.A + y2.B);
+    }
+}", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    static T id<T>(T t) => t;
+    static T G<T>(Func<T> f) => f();
+
+    public void F(string? x)
+    <N:0>{</N:0>
+        if (x is null) throw new Exception();
+        var y1 = new { A = id(x) };
+        var y2 = G(() => new { B = id(x) });
+        var z = new Func<string>(() => y1.A + y2.B);
+    }
+}", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation0 = CreateCompilation(source0.Tree);
+
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // no new synthesized members generated (with #1 in names):
+            diff1.VerifySynthesizedMembers();
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default));
+        }
+
+
+
+
+
+
         [Fact]
         public void MethodWithLocalFunctionClosure1()
         {
