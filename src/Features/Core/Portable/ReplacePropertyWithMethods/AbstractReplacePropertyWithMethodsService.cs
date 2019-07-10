@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -13,14 +14,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 {
-    internal abstract class AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TCrefSyntax, TStatementSyntax>
+    internal abstract class AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TCrefSyntax, TStatementSyntax, TPropertySyntax>
         : IReplacePropertyWithMethodsService
         where TIdentifierNameSyntax : TExpressionSyntax
         where TExpressionSyntax : SyntaxNode
         where TCrefSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
+        where TPropertySyntax : SyntaxNode
     {
-        public abstract Task<SyntaxNode> GetPropertyDeclarationAsync(Document document, TextSpan span, CancellationToken cancellationToken);
         public abstract SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration);
         public abstract Task<IList<SyntaxNode>> GetReplacementMembersAsync(Document document, IPropertySymbol property, SyntaxNode propertyDeclaration, IFieldSymbol propertyBackingField, string desiredGetMethodName, string desiredSetMethodName, CancellationToken cancellationToken);
 
@@ -28,6 +29,13 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
         protected abstract TCrefSyntax CreateCrefSyntax(TCrefSyntax originalCref, SyntaxToken identifierToken, SyntaxNode parameterType);
 
         protected abstract TExpressionSyntax UnwrapCompoundAssignment(SyntaxNode compoundAssignment, TExpressionSyntax readExpression);
+        public async Task<SyntaxNode> GetPropertyDeclarationAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        {
+            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
+            var property = await refactoringHelperService.TryGetSelectedNodeAsync<TPropertySyntax>(document, span, cancellationToken).ConfigureAwait(false);
+
+            return property;
+        }
 
         protected static SyntaxNode GetFieldReference(SyntaxGenerator generator, IFieldSymbol propertyBackingField)
         {
@@ -66,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         private readonly struct ReferenceReplacer
         {
-            private readonly AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TCrefSyntax, TStatementSyntax> _service;
+            private readonly AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TCrefSyntax, TStatementSyntax, TPropertySyntax> _service;
             private readonly SemanticModel _semanticModel;
             private readonly ISyntaxFactsService _syntaxFacts;
             private readonly ISemanticFactsService _semanticFacts;
@@ -82,7 +90,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             private readonly CancellationToken _cancellationToken;
 
             public ReferenceReplacer(
-                AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TCrefSyntax, TStatementSyntax> service,
+                AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TCrefSyntax, TStatementSyntax, TPropertySyntax> service,
                 SemanticModel semanticModel,
                 ISyntaxFactsService syntaxFacts,
                 ISemanticFactsService semanticFacts,

@@ -5,7 +5,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -15,27 +14,17 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 {
     [ExportLanguageService(typeof(IReplacePropertyWithMethodsService), LanguageNames.CSharp), Shared]
     internal partial class CSharpReplacePropertyWithMethodsService :
-        AbstractReplacePropertyWithMethodsService<IdentifierNameSyntax, ExpressionSyntax, NameMemberCrefSyntax, StatementSyntax>
+        AbstractReplacePropertyWithMethodsService<IdentifierNameSyntax, ExpressionSyntax, NameMemberCrefSyntax, StatementSyntax, PropertyDeclarationSyntax>
     {
         [ImportingConstructor]
         public CSharpReplacePropertyWithMethodsService()
         {
-        }
-
-        public override async Task<SyntaxNode> GetPropertyDeclarationAsync(Document document, TextSpan span, CancellationToken cancellationToken)
-        {
-            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-            var property = await refactoringHelperService.TryGetSelectedNodeAsync<PropertyDeclarationSyntax>(document, span, cancellationToken).ConfigureAwait(false);
-
-            return property;
         }
 
         public override async Task<IList<SyntaxNode>> GetReplacementMembersAsync(

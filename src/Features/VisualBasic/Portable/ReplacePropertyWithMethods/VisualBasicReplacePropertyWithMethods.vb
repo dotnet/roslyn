@@ -3,27 +3,20 @@
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGeneration
-Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.ReplacePropertyWithMethods
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithProperty
     <ExportLanguageService(GetType(IReplacePropertyWithMethodsService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicReplacePropertyWithMethods
-        Inherits AbstractReplacePropertyWithMethodsService(Of IdentifierNameSyntax, ExpressionSyntax, CrefReferenceSyntax, StatementSyntax)
+        Inherits AbstractReplacePropertyWithMethodsService(Of IdentifierNameSyntax, ExpressionSyntax, CrefReferenceSyntax, StatementSyntax, PropertyStatementSyntax)
 
         <ImportingConstructor>
         Public Sub New()
         End Sub
-
-        Public Overrides Async Function GetPropertyDeclarationAsync(document As Document, span As TextSpan, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
-            Dim refactoringHelperService = document.GetLanguageService(Of IRefactoringHelpersService)()
-            Return Await refactoringHelperService.TryGetSelectedNodeAsync(Of PropertyStatementSyntax)(document, span, cancellationToken).ConfigureAwait(False)
-        End Function
 
         Public Overrides Function GetReplacementMembersAsync(
                 document As Document,
