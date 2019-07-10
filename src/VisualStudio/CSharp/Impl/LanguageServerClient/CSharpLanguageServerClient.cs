@@ -30,14 +30,29 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageServerClient
         public event AsyncEventHandler<EventArgs> StopAsync;
 #pragma warning restore CS0067
 
+        [Import]
+        private PrimaryWorkspace _primaryWorkspace = null;
+
         public async Task<Connection> ActivateAsync(CancellationToken token)
         {
-            var current = RemoteHostClient.CreateClientId(Process.GetCurrentProcess().Id.ToString());
-            var hostGroup = new HostGroup(current);
+            string codeAnalysisHostGroupId = await GetHostGroupIdAsync(token).ConfigureAwait(false);
+            var hostGroup = new HostGroup(codeAnalysisHostGroupId);
             var serviceDescriptor = new ServiceDescriptor(WellKnownServiceHubServices.LanguageServer) { HostGroup = hostGroup };
             var client = new HubClient("ManagedLanguage.IDE.CSharpLSPServerClient");
             var stream = await client.RequestServiceAsync(serviceDescriptor, token).ConfigureAwait(true);
             return new Connection(stream, stream);
+        }
+
+        public async Task<string> GetHostGroupIdAsync(CancellationToken cancellationToken)
+        {
+            var client = await _primaryWorkspace.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                // exception is handled by code lens engine
+                throw new InvalidOperationException("remote host doesn't exist");
+            }
+
+            return client.ClientId;
         }
 
         public async Task OnLoadedAsync()

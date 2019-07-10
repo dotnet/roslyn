@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -92,62 +89,18 @@ namespace Microsoft.CodeAnalysis.Remote
         [JsonRpcMethod(Methods.InitializeName)]
         public object Initialize(int? processId, string rootPath, Uri rootUri, ClientCapabilities capabilities, TraceSetting trace)
         {
-            var c = new ServerCapabilities();
-            c.WorkspaceSymbolProvider = true;
-            var result = new InitializeResult();
-            result.Capabilities = c;
-
-            return result;
+            return new InitializeResult()
+            {
+                Capabilities = new MSLSPServerCapabilities()
+                {
+                    WorkspaceStreamingSymbolProvider = true
+                }
+            };
         }
 
         [JsonRpcMethod(Methods.ShutdownName)]
         public void Shutdown()
         {
-        }
-
-        [JsonRpcMethod(Methods.WorkspaceSymbolName)]
-        public SymbolInformation[] WorkspaceSymbol(string query)
-        {
-            foreach (var project in SolutionService.PrimaryWorkspace.CurrentSolution.Projects)
-            {
-                return RunServiceAsync(async () =>
-                {
-                    using (UserOperationBooster.Boost())
-                    {
-                        //var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
-
-                        //var project = solution.GetProject(projectId);
-                        //var priorityDocuments = priorityDocumentIds.Select(d => solution.GetDocument(d))
-                        //                                           .ToImmutableArray();
-
-                        var result = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                            project, ImmutableArray<Document>.Empty, query, ImmutableArray<string>.Empty.ToImmutableHashSet(), CancellationToken.None).ConfigureAwait(false);
-
-                        return Convert(result);
-                    }
-                }, CancellationToken.None).Result;
-            }
-
-            return null;
-        }
-
-        private SymbolInformation[] Convert(
-            ImmutableArray<INavigateToSearchResult> results)
-        {
-            var symbols = new SymbolInformation[results.Length];
-
-            for (int i = 0; i < results.Length; i++)
-            {
-                symbols[i] = new SymbolInformation()
-                {
-                    Name = results[i].Name,
-                    ContainerName = results[i].Summary,
-                    Kind = VisualStudio.LanguageServer.Protocol.SymbolKind.Method,
-                    Location = new VisualStudio.LanguageServer.Protocol.Location()
-                };
-            }
-
-            return symbols;
         }
 
         protected async Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken)
@@ -232,6 +185,12 @@ namespace Microsoft.CodeAnalysis.Remote
             _rpc.Dispose();
 
             Logger.TraceInformation($"{DebugInstanceString} Service instance disposed");
+        }
+
+        protected Task InvokeAsync(
+            string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+        {
+            return _rpc.InvokeWithCancellationAsync(targetName, arguments?.AsArray(), cancellationToken);
         }
     }
 }
