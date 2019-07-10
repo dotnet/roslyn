@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -156,27 +157,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // For the purpose of construction we use original type parameters in place of type arguments that we couldn't infer from the first argument.
-            ImmutableArray<TypeWithAnnotations> typeArgsForConstruct = default;
-            for (int i = 0; i < typeArgs.Length; i++)
+            ImmutableArray<TypeWithAnnotations> typeArgsForConstruct = typeArgs;
+            if (typeArgs.Any(t => !t.HasType))
             {
-                if (!typeArgs[i].HasType)
-                {
-                    var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(typeArgs.Length);
-                    builder.AddRange(typeArgs, i);
-
-                    for (; i < typeArgs.Length; i++)
-                    {
-                        var typeArgForConstruct = typeArgs[i];
-                        builder.Add(typeArgForConstruct.HasType ? typeArgForConstruct : TypeWithAnnotations.Create(method.TypeParameters[i]));
-                    }
-
-                    typeArgsForConstruct = builder.ToImmutableAndFree();
-                }
-            }
-
-            if (typeArgsForConstruct.IsDefault)
-            {
-                typeArgsForConstruct = typeArgs;
+                typeArgsForConstruct = typeArgs.ZipAsArray(
+                    method.TypeParameters,
+                    (t, tp) => t.HasType ? t : TypeWithAnnotations.Create(tp));
             }
 
             return method.Construct(typeArgsForConstruct);

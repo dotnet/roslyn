@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void UnmanagedConstraintOnExtensionMethod()
         {
             var src = @"
-public static class FooExtensions
+public static class Ext
 {
     public static T GenericExtension<T>(ref this T self) where T : unmanaged
     {
@@ -31,14 +31,14 @@ public static class FooExtensions
             var src2 = @"
 public class Program
 {
-    public struct Foo<T> where T : unmanaged
+    public struct S<T> where T : unmanaged
     {
         public T t;
     }
 
-    static void UseFoo<T>(Foo<T> foo) where T : unmanaged
+    static void M<T>(S<T> s) where T : unmanaged
     {
-        foo. GenericExtension();
+        s.GenericExtension();
     }
 }";
             var comp1 = CreateCompilation(src, parseOptions: TestOptions.Regular8);
@@ -51,9 +51,10 @@ public class Program
             comp2 = CreateCompilation(src2, parseOptions: TestOptions.Regular7_3,
                 references: new[] { comp1.ToMetadataReference() });
             comp2.VerifyDiagnostics(
-                    // (11,14): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         foo. GenericExtension();
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "GenericExtension").WithArguments("unmanaged constructed types").WithLocation(11, 14));
+                // (11,11): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         s.GenericExtension();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "GenericExtension").WithArguments("unmanaged constructed types").WithLocation(11, 11));
+
             var info = checkSymbolInfo(comp2);
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason);
