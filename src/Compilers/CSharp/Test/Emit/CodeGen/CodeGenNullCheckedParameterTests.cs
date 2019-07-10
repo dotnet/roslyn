@@ -1578,5 +1578,21 @@ class C
     IL_0014:  ret
 }");
         }
+
+        [Fact(Skip = "PROTOTYPE")]
+        public void TestNullCheckedOutString()
+        {
+            // PROTOTYPE : Should be error or warning.
+            var source = @"
+class C
+{
+    public static void Main() { }
+    public void M(out string x!)
+    {
+        x = ""hello world"";
+    }
+}";
+            CompileAndVerify(source).VerifyIL("C.M(out string)", @"");
+        }
     }
 }
