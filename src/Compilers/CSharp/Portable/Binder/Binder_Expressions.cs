@@ -2773,9 +2773,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
                         TupleTypeSymbol.ReportNamesMismatchesIfAny(parameterTypeWithAnnotations.Type, sourceTuple, diagnostics);
+                        arguments[arg] = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, parameterTypeWithAnnotations.Type, diagnostics);
                     }
-
-                    arguments[arg] = BindToNaturalType(argument, diagnostics);
+                    else
+                    {
+                        arguments[arg] = BindToNaturalType(argument, diagnostics);
+                    }
                 }
             }
         }

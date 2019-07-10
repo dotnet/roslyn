@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TopLevelAnnotated = 1 << 5,
             TopLevelDisabled = TopLevelAnnotated | TopLevelNotAnnotated,
             TopLevelAnnotationMask = TopLevelDisabled,
-#if DEBUG
+
             /// <summary>
             /// Captures the fact that consumers of the node already checked the state of the WasCompilerGenerated bit.
             /// Allows to assert on attempts to set WasCompilerGenerated bit after that.
@@ -46,7 +46,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// the target type is known.
             /// </summary>
             WasConverted = 1 << 8,
-#endif
+
+            AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted,
+        }
+
+        protected new BoundNode MemberwiseClone()
+        {
+            var result = (BoundNode)base.MemberwiseClone();
+            result._attributes &= BoundNodeAttributes.AttributesPreservedInClone;
+            return result;
         }
 
         protected BoundNode(BoundKind kind, SyntaxNode syntax)
@@ -328,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (this.HasErrors)
                 return this;
 
-            var clone = (BoundNode)this.MemberwiseClone();
+            BoundNode clone = MemberwiseClone();
             clone.HasErrors = true;
             return clone;
         }

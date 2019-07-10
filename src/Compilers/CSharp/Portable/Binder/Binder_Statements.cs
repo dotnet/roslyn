@@ -383,6 +383,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                         diagnostics.Add(exprSyntax, useSiteDiagnostics);
                     }
+
+                    boundExpr = BindToNaturalType(boundExpr, diagnostics);
                 }
             }
             else
@@ -892,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            return result.WithWasConverted();
+            return result?.WithWasConverted();
         }
 
         private static bool IsInitializerRefKindValid(
