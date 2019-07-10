@@ -1184,6 +1184,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UpdateExpression(builder, node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, node.Type));
         }
 
+        public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            BoundExpression operand = VisitExpression(ref builder, node.Operand);
+            return UpdateExpression(builder, node.Update(operand, node.ConversionMethod, node.Type));
+        }
+
         #endregion
     }
 }
