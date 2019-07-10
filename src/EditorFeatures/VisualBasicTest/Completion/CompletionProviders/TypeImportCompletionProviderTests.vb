@@ -59,7 +59,7 @@ End Class]]></Text>.Value
 
             Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
             Await VerifyItemExistsAsync(markup, "My", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyAttribute")
-            Await VerifyItemExistsAsync(markup, "MyAttributeWithoutSuffix", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyAttributeWithoutSuffix")
+            Await VerifyItemIsAbsentAsync(markup, "MyAttributeWithoutSuffix", inlineDescription:="Foo") ' We intentionally ignore attribute types without proper suffix for perf reason
             Await VerifyItemIsAbsentAsync(markup, "MyAttribute", inlineDescription:="Foo")
             Await VerifyItemIsAbsentAsync(markup, "MyVBClass", inlineDescription:="Foo")
         End Function
