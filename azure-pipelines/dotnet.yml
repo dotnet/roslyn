@@ -53,3 +53,4 @@ steps:
 - bash: bash <(curl -s https://codecov.io/bash)
   displayName: Publish code coverage results to codecov.io
   condition: ne(variables['codecov_token'], '')
+  timeoutInMinutes: 3
