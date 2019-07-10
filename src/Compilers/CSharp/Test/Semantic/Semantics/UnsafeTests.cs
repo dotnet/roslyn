@@ -8210,6 +8210,29 @@ class C
 
         #region PointerTypes tests
 
+        [WorkItem(37051, "https://github.com/dotnet/roslyn/issues/37051")]
+        [Fact]
+        public void OverrideMethodReturningGenericPointer()
+        {
+            var text = @"using System;
+
+public unsafe abstract class Base
+{
+    public abstract T* Alloc<T>()
+        where T : unmanaged;
+}
+
+public unsafe class Derived : Base
+{
+    public override T* Alloc<T>()
+    {
+        throw new NotImplementedException();
+    }
+}";
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+        }
+
+
         [WorkItem(5712, "https://github.com/dotnet/roslyn/issues/5712")]
         [Fact]
         public void PathologicalRefStructPtrMultiDimensionalArray()
