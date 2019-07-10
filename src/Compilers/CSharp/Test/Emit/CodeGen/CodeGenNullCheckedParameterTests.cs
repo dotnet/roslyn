@@ -1388,6 +1388,45 @@ class Iterators
         }
 
         [Fact]
+        public void TestNullCheckedEnumeratorInLocalFunction()
+        {
+            var source = @"
+using System.Collections.Generic;
+class Iterators
+{
+    void Use()
+    {
+        IEnumerator<char> e = GetChars(""hello"");
+        IEnumerator<char> GetChars(string s!)
+        {
+            foreach (var c in s)
+            {
+                yield return c;
+            }
+        }
+    }
+
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("Iterators.<Use>g__GetChars|0_0(string)", @"
+{
+    // Code size       28 (0x1c)
+    .maxstack  3
+    IL_0000:  ldarg.0
+    IL_0001:  brtrue.s   IL_000e
+    IL_0003:  ldstr      ""s""
+    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
+    IL_000d:  throw
+    IL_000e:  ldc.i4.0
+    IL_000f:  newobj     ""Iterators.<<Use>g__GetChars|0_0>d..ctor(int)""
+    IL_0014:  dup
+    IL_0015:  ldarg.0
+    IL_0016:  stfld      ""string Iterators.<<Use>g__GetChars|0_0>d.s""
+    IL_001b:  ret
+}");
+        }
+
+        [Fact]
         public void TestNullCheckedIteratorExecution()
         {
             var source = @"
