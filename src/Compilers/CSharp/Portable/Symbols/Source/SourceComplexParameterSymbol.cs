@@ -284,7 +284,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.WRN_NullAsNonNullable, parameterSyntax.Default.Value.Location);
             }
-
+            if (this.IsNullChecked)
+            {
+                if (convertedExpression.ConstantValue?.IsNull == true)
+                {
+                    diagnostics.Add(ErrorCode.WRN_NullCheckedHasDefaultNull, this.Locations.FirstOrNone(), new object[] { this });
+                }
+                if (this.Type.IsValueType && !this.Type.IsNullableTypeOrTypeParameter())
+                {
+                    diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, this.Locations.FirstOrNone(), new object[] { this });
+                }
+            }
             // represent default(struct) by a Null constant:
             var value = convertedExpression.ConstantValue ?? ConstantValue.Null;
             VerifyParamDefaultValueMatchesAttributeIfAny(value, defaultSyntax.Value, diagnostics);

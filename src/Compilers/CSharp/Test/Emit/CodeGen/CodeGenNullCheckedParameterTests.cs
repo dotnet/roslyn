@@ -16,8 +16,7 @@ public class C
 {
     public static void Main() { }
     public void M(string input!) { }
-}
-";
+}";
 
             // Release
             var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe);
@@ -101,7 +100,7 @@ class C
 
             // Release
             CreateCompilation(source).VerifyEmitDiagnostics(
-                    // (5,19): error CS8719: Parameter 'string' is null-checked but is null by default.
+                    // (5,19): warning CS8719: Parameter 'string' is null-checked but is null by default.
                     //     void M(string name! = null) { }
                     Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("string").WithLocation(5, 19));
         }
