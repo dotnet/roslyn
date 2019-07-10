@@ -930,5 +930,64 @@ class CC
         }
 
         #endregion
+
+        #region Test methods
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingMethodExplicitInterfaceSelection()
+        {
+            var testText = @"
+using System;
+class C
+{
+    class TestAttribute : Attribute { }
+    public void [|I|].A([Test]int a = 42, int b = 41) {}
+}";
+            await TestMissingAsync<MethodDeclarationSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMethodCaretBeforeInterfaceSelection()
+        {
+            var testText = @"
+using System;
+class C
+{
+    class TestAttribute : Attribute { }
+    {|result:public void [||]I.A([Test]int a = 42, int b = 41) {}|}
+}";
+            await TestAsync<MethodDeclarationSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMethodNameAndExplicitInterfaceSelection()
+        {
+            var testText = @"
+using System;
+class C
+{
+    class TestAttribute : Attribute { }
+    {|result:public void [|I.A|]([Test]int a = 42, int b = 41) {}|}
+}";
+            await TestAsync<MethodDeclarationSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMethodInHeader()
+        {
+            var testText = @"
+using System;
+class CC
+{
+    class TestAttribute : Attribute { }
+    {|result:public C[||]C I.A([Test]int a = 42, int b = 41) { return null; }|}
+}";
+            await TestAsync<MethodDeclarationSyntax>(testText);
+        }
+
+        #endregion
     }
 }

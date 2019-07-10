@@ -1781,6 +1781,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return IsInHeader(node, parameter, parameter.Identifier)
         End Function
 
+        Public Function IsInMethodHeader(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInMethodHeader
+            Dim method = node.GetAncestorOrThis(Of MethodStatementSyntax)()
+
+            If method Is Nothing Then
+                Return False
+            End If
+
+            If method.HasReturnType() Then
+                Return IsInHeader(node, method, method.GetReturnType())
+            End If
+
+            If method.ParameterList IsNot Nothing Then
+                Return IsInHeader(node, method, method.ParameterList)
+            End If
+
+            Return IsInHeader(node, method, method)
+        End Function
+
         Public Function IsBetweenTypeMembers(sourceText As SourceText, root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsBetweenTypeMembers
             Dim token = root.FindToken(position)
             Dim typeDecl = token.GetAncestor(Of TypeBlockSyntax)
@@ -1970,14 +1988,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shadows Function SpansPreprocessorDirective(tokens As IEnumerable(Of SyntaxToken)) As Boolean
             Return MyBase.SpansPreprocessorDirective(tokens)
-        End Function
-
-        Public Function GetContainingPropertyDeclaration(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetContainingPropertyDeclaration
-            Return node.GetAncestorOrThis(Of PropertyStatementSyntax)
-        End Function
-
-        Public Function GetContainingParameter(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetContainingParameter
-            Return node.GetAncestorOrThis(Of ParameterSyntax)
         End Function
 
         Public Overrides Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetAttributeLists

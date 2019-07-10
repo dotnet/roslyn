@@ -10,7 +10,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
-    internal abstract class AbstractRefactoringHelpersService : IRefactoringHelpersService
+    internal abstract class AbstractRefactoringHelpersService<TPropertyDeclaration, TParameter, TMethodDeclaration> : IRefactoringHelpersService
+        where TPropertyDeclaration : SyntaxNode
+        where TParameter : SyntaxNode
+        where TMethodDeclaration : SyntaxNode
     {
         public async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
             Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
@@ -368,13 +371,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // Header: [Test] `public int a` { get; set; }
             if (syntaxFacts.IsInPropertyDeclarationHeader(node))
             {
-                return syntaxFacts.GetContainingPropertyDeclaration(node);
+                return node.GetAncestorOrThis<TPropertyDeclaration>();
             }
 
             // Header: public C([Test]`int a` = 42) {}
             if (syntaxFacts.IsInParameterHeader(node))
             {
-                return syntaxFacts.GetContainingParameter(node);
+                return node.GetAncestorOrThis<TParameter>();
+            }
+
+            // Header: `public I.C([Test]int a = 42)` {}
+            if (syntaxFacts.IsInMethodHeader(node))
+            {
+                return node.GetAncestorOrThis<TMethodDeclaration>();
             }
 
             return null;

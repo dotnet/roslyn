@@ -1798,6 +1798,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsInHeader(node, parameter, parameter.Identifier);
         }
 
+        public bool IsInMethodHeader(SyntaxNode node)
+        {
+            var containingMethod = node.GetAncestorOrThis<MethodDeclarationSyntax>();
+            if (containingMethod == null)
+            {
+                return false;
+            }
+
+            return IsInHeader(node, containingMethod, containingMethod.ParameterList);
+        }
+
         public bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position)
         {
             var token = root.FindToken(position);
@@ -1930,12 +1941,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
         }
-
-        public SyntaxNode GetContainingPropertyDeclaration(SyntaxNode node)
-            => node.GetAncestorOrThis<PropertyDeclarationSyntax>();
-
-        public SyntaxNode GetContainingParameter(SyntaxNode node)
-            => node.GetAncestorOrThis<ParameterSyntax>();
 
         public override SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node)
             => CSharpSyntaxGenerator.GetAttributeLists(node);
