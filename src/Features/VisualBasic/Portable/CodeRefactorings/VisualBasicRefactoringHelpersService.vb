@@ -11,19 +11,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
     Friend Class VisualBasicRefactoringHelpersService
         Inherits AbstractRefactoringHelpersService(Of PropertyStatementSyntax, ParameterSyntax, MethodStatementSyntax)
 
-        Protected Overrides Function ExtractNodeSimple(node As SyntaxNode, syntaxFacts As ISyntaxFactsService) As SyntaxNode
-            Dim baseExtraction = MyBase.ExtractNodeSimple(node, syntaxFacts)
-            If baseExtraction IsNot Nothing Then
-                Return baseExtraction
-            End If
+        Protected Overrides Iterator Function ExtractNodeSimple(node As SyntaxNode, syntaxFacts As ISyntaxFactsService) As IEnumerable(Of SyntaxNode)
+            For Each baseExtraction In MyBase.ExtractNodeSimple(node, syntaxFacts)
+                Yield baseExtraction
+            Next
 
             ' VB's arguments can have identifiers nested in ModifiedArgument -> we want
             ' identifiers to represent parent node -> need to extract.
             If IsIdentifierOfParameter(node) Then
-                Return node.Parent
+                Yield node.Parent
             End If
-
-            Return Nothing
         End Function
 
         Function IsIdentifierOfParameter(node As SyntaxNode) As Boolean

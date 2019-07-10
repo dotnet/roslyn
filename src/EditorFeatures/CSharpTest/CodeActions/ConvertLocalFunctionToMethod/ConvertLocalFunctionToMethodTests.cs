@@ -514,6 +514,7 @@ class C
             await TestAsync("C LocalFunction(C [||]c)");
             await TestMissingAsync("[|C|] LocalFunction(C c)");
             await TestMissingAsync("C[| |]LocalFunction(C c)");
+            await TestMissingAsync("C LocalFunction([|C c|])");
 
             async Task TestAsync(string signature)
             {
