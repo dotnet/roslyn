@@ -5893,7 +5893,7 @@ class C
             var ilSource =
 @".assembly extern netstandard { .ver 2:0:0:0 .publickeytoken = (cc 7b 13 ff cd 2d dd 51) }
 .assembly '<<GeneratedFileName>>' { }
-.class C
+.class C extends object
 {
   .method private static class [netstandard]System.IDisposable F()
   {
