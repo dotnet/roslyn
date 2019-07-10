@@ -187,12 +187,12 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return _services.GetService<IOptionService>().GetOptions();
+                return _services.GetRequiredService<IOptionService>().GetOptions();
             }
 
             set
             {
-                _services.GetService<IOptionService>().SetOptions(value);
+                _services.GetRequiredService<IOptionService>().SetOptions(value);
             }
         }
 
