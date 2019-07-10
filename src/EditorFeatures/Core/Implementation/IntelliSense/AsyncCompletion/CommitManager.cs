@@ -341,6 +341,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 case EnterKeyRule.Always:
                     return true;
                 case EnterKeyRule.AfterFullyTypedWord:
+                    if (textTypedSoFar.LastOrDefault() == '\n')
+                    {
+                        textTypedSoFar = textTypedSoFar.Substring(0, textTypedSoFar.Length - 1);
+                    }
+
                     return item.GetEntireDisplayText() == textTypedSoFar;
             }
         }

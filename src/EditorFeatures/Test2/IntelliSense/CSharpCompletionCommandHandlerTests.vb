@@ -327,6 +327,66 @@ class Class1
 
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestEnterIsConsumedWithAfterFullyTypedWordOption_NotFullyTyped(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document>
+class Class1
+{
+    void Main(string[] args)
+    {
+        $$
+    }
+}</Document>)
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.EnterKeyBehavior, LanguageNames.CSharp, EnterKeyRule.AfterFullyTypedWord)
+                state.SendTypeChars("System.TimeSpan.FromMin")
+                state.SendReturn()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal(<text>
+class Class1
+{
+    void Main(string[] args)
+    {
+        System.TimeSpan.FromMinutes
+    }
+}</text>.NormalizedValue, state.GetDocumentText())
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestEnterIsConsumedWithAfterFullyTypedWordOption_FullyTyped(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document>
+class Class1
+{
+    void Main(string[] args)
+    {
+        $$
+    }
+}</Document>)
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.EnterKeyBehavior, LanguageNames.CSharp, EnterKeyRule.AfterFullyTypedWord)
+
+                state.SendTypeChars("System.TimeSpan.FromMinutes")
+                state.SendReturn()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal(<text>
+class Class1
+{
+    void Main(string[] args)
+    {
+        System.TimeSpan.FromMinutes
+
+    }
+}</text>.NormalizedValue, state.GetDocumentText())
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestDescription1(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                   <Document><![CDATA[
