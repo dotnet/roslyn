@@ -1760,7 +1760,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End If
 
-            If propertyDeclaration.AsClause Is Nothing Then
+            If propertyDeclaration.AsClause IsNot Nothing Then
                 Return IsInHeader(node, propertyDeclaration, propertyDeclaration.AsClause)
             End If
 
@@ -1768,13 +1768,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsInParameterHeader(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInParameterHeader
-            Dim parameter = node.GetAncestor(Of ParameterSyntax)()
+            Dim parameter = node.GetAncestorOrThis(Of ParameterSyntax)()
 
             If parameter Is Nothing Then
                 Return False
             End If
 
-            If parameter.AsClause Is Nothing Then
+            If parameter.AsClause IsNot Nothing Then
                 Return IsInHeader(node, parameter, parameter.AsClause)
             End If
 
