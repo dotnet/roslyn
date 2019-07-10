@@ -1076,6 +1076,7 @@ class C : I<int, bool>
         }
 
         [Fact]
+<<<<<<< HEAD
         public void Method_ParameterNullableChange()
         {
             var source0 = @"
@@ -1209,6 +1210,61 @@ class C
 
             Assert.Equal("y1", mappedY1.Name);
             Assert.Equal("y2", mappedY2.Name);
+        }
+
+        public void InterfaceMembers()
+        {
+            var source = @"
+using System;
+
+interface I
+{
+    static int X = 1;
+    static event Action Y;
+
+    static void M() { }
+    void N() { }
+
+    static int P { get => 1; set { } }
+    int Q { get => 1; set { } }
+
+    static event Action E { add { } remove { } }
+    event Action F { add { } remove { } }
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+
+            var x0 = compilation0.GetMember<FieldSymbol>("I.X");
+            var y0 = compilation0.GetMember<EventSymbol>("I.Y");
+            var m0 = compilation0.GetMember<MethodSymbol>("I.M");
+            var n0 = compilation0.GetMember<MethodSymbol>("I.N");
+            var p0 = compilation0.GetMember<PropertySymbol>("I.P");
+            var q0 = compilation0.GetMember<PropertySymbol>("I.Q");
+            var e0 = compilation0.GetMember<EventSymbol>("I.E");
+            var f0 = compilation0.GetMember<EventSymbol>("I.F");
+
+            var x1 = compilation1.GetMember<FieldSymbol>("I.X");
+            var y1 = compilation1.GetMember<EventSymbol>("I.Y");
+            var m1 = compilation1.GetMember<MethodSymbol>("I.M");
+            var n1 = compilation1.GetMember<MethodSymbol>("I.N");
+            var p1 = compilation1.GetMember<PropertySymbol>("I.P");
+            var q1 = compilation1.GetMember<PropertySymbol>("I.Q");
+            var e1 = compilation1.GetMember<EventSymbol>("I.E");
+            var f1 = compilation1.GetMember<EventSymbol>("I.F");
+
+            Assert.Same(x0, matcher.MapDefinition(x1));
+            Assert.Same(y0, matcher.MapDefinition(y1));
+            Assert.Same(m0, matcher.MapDefinition(m1));
+            Assert.Same(n0, matcher.MapDefinition(n1));
+            Assert.Same(p0, matcher.MapDefinition(p1));
+            Assert.Same(q0, matcher.MapDefinition(q1));
+            Assert.Same(e0, matcher.MapDefinition(e1));
+            Assert.Same(f0, matcher.MapDefinition(f1));
         }
     }
 }

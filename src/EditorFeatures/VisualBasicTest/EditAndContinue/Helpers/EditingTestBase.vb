@@ -3,14 +3,14 @@
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
-    <[UseExportProvider]>
-    Public MustInherit Class RudeEditTestBase
+    Public MustInherit Class EditingTestBase
         Inherits BasicTestBase
 
         Friend Shared ReadOnly Analyzer As VisualBasicEditAndContinueAnalyzer = New VisualBasicEditAndContinueAnalyzer()
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         End Function
 
         Private Shared Function ParseSource(source As String, Optional options As ParseOptions = Nothing) As SyntaxTree
-            Return SyntaxFactory.ParseSyntaxTree(ActiveStatementsDescription.ClearTags(source), options)
+            Return VisualBasicEditAndContinueTestHelpers.Instance.ParseText(ActiveStatementsDescription.ClearTags(source))
         End Function
 
         Friend Shared Function GetTopEdits(src1 As String, src2 As String) As EditScript(Of SyntaxNode)
@@ -49,14 +49,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Return match.GetTreeEdits()
         End Function
 
-        Friend Shared Function GetMethodEdits(src1 As String, src2 As String, Optional options As ParseOptions = Nothing, Optional stateMachine As StateMachineKind = StateMachineKind.None) As EditScript(Of SyntaxNode)
-            Dim match = GetMethodMatch(src1, src2, options, stateMachine)
+        Friend Shared Function GetMethodEdits(src1 As String, src2 As String, Optional stateMachine As StateMachineKind = StateMachineKind.None) As EditScript(Of SyntaxNode)
+            Dim match = GetMethodMatch(src1, src2, stateMachine)
             Return match.GetTreeEdits()
         End Function
 
-        Friend Shared Function GetMethodMatch(src1 As String, src2 As String, Optional options As ParseOptions = Nothing, Optional stateMachine As StateMachineKind = StateMachineKind.None) As Match(Of SyntaxNode)
-            Dim m1 = MakeMethodBody(src1, options, stateMachine)
-            Dim m2 = MakeMethodBody(src2, options, stateMachine)
+        Friend Shared Function GetMethodMatch(src1 As String, src2 As String, Optional stateMachine As StateMachineKind = StateMachineKind.None) As Match(Of SyntaxNode)
+            Dim m1 = MakeMethodBody(src1, stateMachine)
+            Dim m2 = MakeMethodBody(src2, stateMachine)
 
             Dim diagnostics = New List(Of RudeEditDiagnostic)()
 
@@ -75,9 +75,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         Public Shared Function GetMethodMatches(src1 As String,
                                                 src2 As String,
-                                                Optional options As ParseOptions = Nothing,
                                                 Optional stateMachine As StateMachineKind = StateMachineKind.None) As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))
-            Dim methodMatch = GetMethodMatch(src1, src2, options, stateMachine)
+            Dim methodMatch = GetMethodMatch(src1, src2, stateMachine)
             Return EditAndContinueTestHelpers.GetMethodMatches(Analyzer, methodMatch)
         End Function
 
@@ -89,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Return EditAndContinueTestHelpers.ToMatchingPairs(matches)
         End Function
 
-        Friend Shared Function MakeMethodBody(bodySource As String, Optional options As ParseOptions = Nothing, Optional stateMachine As StateMachineKind = StateMachineKind.None) As SyntaxNode
+        Friend Shared Function MakeMethodBody(bodySource As String, Optional stateMachine As StateMachineKind = StateMachineKind.None) As SyntaxNode
             Dim source As String
             Select Case stateMachine
                 Case StateMachineKind.Iterator
@@ -102,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                     source = "Class C" & vbLf & "Sub F()" & vbLf & bodySource & " : End Sub : End Class"
             End Select
 
-            Dim tree = ParseSource(source, options)
+            Dim tree = ParseSource(source)
             Dim root = tree.GetRoot()
             tree.GetDiagnostics().Verify()
 

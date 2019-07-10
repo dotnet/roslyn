@@ -742,7 +742,7 @@ public interface I
             var src1 = "";
             var src2 = "ref struct X { }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [ref struct X { }]@0");
@@ -756,7 +756,7 @@ public interface I
             var src1 = "";
             var src2 = "readonly struct X { }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [readonly struct X { }]@0");
@@ -770,7 +770,7 @@ public interface I
             var src1 = "struct X { }";
             var src2 = "ref struct X { }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [struct X { }]@0 -> [ref struct X { }]@0");
@@ -785,7 +785,7 @@ public interface I
             var src1 = "struct X { }";
             var src2 = "readonly struct X { }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [struct X { }]@0 -> [readonly struct X { }]@0");
@@ -841,7 +841,7 @@ public class SubClass : BaseClass, IConflict
 }
 ";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 @"Insert [public class SubClass : BaseClass, IConflict
@@ -1610,7 +1610,7 @@ public class SubClass : BaseClass, IConflict
             var src1 = "";
             var src2 = "public delegate int D(in int b);";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [public delegate int D(in int b);]@0",
@@ -1626,7 +1626,7 @@ public class SubClass : BaseClass, IConflict
             var src1 = "public delegate int D();";
             var src2 = "public delegate int D(in int b);";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [in int b]@22");
@@ -1641,7 +1641,7 @@ public class SubClass : BaseClass, IConflict
             var src1 = "public delegate int D(int b);";
             var src2 = "public delegate int D(in int b);";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [int b]@22 -> [in int b]@22");
@@ -1656,7 +1656,7 @@ public class SubClass : BaseClass, IConflict
             var src1 = "";
             var src2 = "public delegate ref readonly int D();";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [public delegate ref readonly int D();]@0",
@@ -1671,7 +1671,7 @@ public class SubClass : BaseClass, IConflict
             var src1 = "public delegate int D();";
             var src2 = "public delegate ref readonly int D();";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [public delegate int D();]@0 -> [public delegate ref readonly int D();]@0");
@@ -3652,7 +3652,7 @@ class C
             var src1 = "class Test { }";
             var src2 = "class Test { int M(in int b) => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [int M(in int b) => throw null;]@13",
@@ -3668,7 +3668,7 @@ class C
             var src1 = "class Test { int M() => throw null; }";
             var src2 = "class Test { int M(in int b) => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [in int b]@19");
@@ -3683,7 +3683,7 @@ class C
             var src1 = "class Test { int M(int b) => throw null; }";
             var src2 = "class Test { int M(in int b) => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [int b]@19 -> [in int b]@19");
@@ -3698,7 +3698,7 @@ class C
             var src1 = "class Test { }";
             var src2 = "class Test { ref readonly int M() => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [ref readonly int M() => throw null;]@13",
@@ -3713,7 +3713,7 @@ class C
             var src1 = "class Test { int M() => throw null; }";
             var src2 = "class Test { ref readonly int M() => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [int M() => throw null;]@13 -> [ref readonly int M() => throw null;]@13");
@@ -3774,7 +3774,7 @@ public class SubClass : BaseClass, IConflict
 }
 ";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [string IConflict.Get() => String.Empty;]@325",
@@ -3994,7 +3994,7 @@ class C
             var src1 = "class Test { }";
             var src2 = "class Test { public static bool operator !(in Test b) => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [public static bool operator !(in Test b) => throw null;]@13",
@@ -4011,7 +4011,7 @@ class C
             var src1 = "class Test { public static bool operator !(Test b) => throw null; }";
             var src2 = "class Test { public static bool operator !(in Test b) => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [Test b]@43 -> [in Test b]@43");
@@ -5247,7 +5247,7 @@ public class C
             var src1 = "class Test { }";
             var src2 = "class Test { Test(in int b) => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [Test(in int b) => throw null;]@13",
@@ -5263,7 +5263,7 @@ public class C
             var src1 = "class Test { Test() => throw null; }";
             var src2 = "class Test { Test(in int b) => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [in int b]@18");
@@ -5278,7 +5278,7 @@ public class C
             var src1 = "class Test { Test(int b) => throw null; }";
             var src2 = "class Test { Test(in int b) => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [int b]@18 -> [in int b]@18");
@@ -7711,7 +7711,7 @@ class C
             var src1 = "class Test { }";
             var src2 = "class Test { ref readonly int M() { get; } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [ref readonly int M() { get; }]@13",
@@ -7726,7 +7726,7 @@ class C
             var src1 = "class Test { int M() { get; } }";
             var src2 = "class Test { ref readonly int M() { get; } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [int M() { get; }]@13 -> [ref readonly int M() { get; }]@13");
@@ -8340,7 +8340,7 @@ class SampleCollection<T>
             var src1 = "class Test { }";
             var src2 = "class Test { int this[in int i] => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [int this[in int i] => throw null;]@13",
@@ -8356,7 +8356,7 @@ class SampleCollection<T>
             var src1 = "class Test { int this[int i] => throw null; }";
             var src2 = "class Test { int this[in int i] => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [int i]@22 -> [in int i]@22");
@@ -8371,7 +8371,7 @@ class SampleCollection<T>
             var src1 = "class Test { }";
             var src2 = "class Test { ref readonly int this[int i] => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Insert [ref readonly int this[int i] => throw null;]@13",
@@ -8387,7 +8387,7 @@ class SampleCollection<T>
             var src1 = "class Test { int this[int i] => throw null; }";
             var src2 = "class Test { ref readonly int this[int i] => throw null; }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [int this[int i] => throw null;]@13 -> [ref readonly int this[int i] => throw null;]@13");
