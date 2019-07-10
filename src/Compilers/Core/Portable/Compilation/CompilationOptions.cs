@@ -633,7 +633,8 @@ namespace Microsoft.CodeAnalysis
                    object.Equals(this.SourceReferenceResolver, other.SourceReferenceResolver) &&
                    object.Equals(this.StrongNameProvider, other.StrongNameProvider) &&
                    object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer) &&
-                   this.PublicSign == other.PublicSign;
+                   this.PublicSign == other.PublicSign &&
+                   this.NullableContextOptions == other.NullableContextOptions;
 
             return equal;
         }
@@ -667,7 +668,8 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
                    Hash.Combine(this.AssemblyIdentityComparer,
-                   Hash.Combine(this.PublicSign, 0))))))))))))))))))))))))));
+                   Hash.Combine(this.PublicSign,
+                   Hash.Combine((int)this.NullableContextOptions, 0)))))))))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions left, CompilationOptions right)
