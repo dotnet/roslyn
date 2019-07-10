@@ -186,6 +186,62 @@ public class Program
         }
 
         [Fact]
+        [WorkItem(36934, "https://github.com/dotnet/roslyn/issues/36934")]
+        public void AttributeUsage()
+        {
+            var source =
+@"#nullable enable
+public class Program
+{
+    private object _f1;
+    private object _f2;
+    private object _f3;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var attributeType = module.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Runtime.CompilerServices.NullableContextAttribute");
+                AttributeUsageInfo attributeUsage = attributeType.GetAttributeUsageInfo();
+                Assert.False(attributeUsage.Inherited);
+                Assert.False(attributeUsage.AllowMultiple);
+                Assert.True(attributeUsage.HasValidAttributeTargets);
+                var expectedTargets = AttributeTargets.Module | AttributeTargets.Class | AttributeTargets.Delegate | AttributeTargets.Interface | AttributeTargets.Method | AttributeTargets.Struct;
+                Assert.Equal(expectedTargets, attributeUsage.ValidTargets);
+            });
+        }
+
+        [Fact]
+        public void MissingAttributeUsageAttribute()
+        {
+            var source =
+@"#pragma warning disable 169
+#pragma warning disable 414
+#nullable enable
+public class Program
+{
+    private object _f1 = null!;
+    private object _f2 = null!;
+    private object _f3 = null!;
+}";
+
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_AttributeUsageAttribute);
+            comp.VerifyEmitDiagnostics(
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1));
+        }
+
+        [Fact]
         public void AttributeField()
         {
             var source =

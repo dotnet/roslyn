@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxTrivia ElasticMarker { get; }
         SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
 
+        ISyntaxKindsService SyntaxKinds { get; }
+
         bool SupportsIndexingInitializer(ParseOptions options);
         bool SupportsThrowExpression(ParseOptions options);
 
@@ -129,7 +131,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsInvocationExpression(SyntaxNode node);
         bool IsExpressionOfInvocationExpression(SyntaxNode node);
-        SyntaxNode GetExpressionOfInvocationExpression(SyntaxNode node);
+        void GetPartsOfInvocationExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList);
 
         SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node);
 
@@ -187,8 +189,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// may return the expression in the surrounding With-statement.
         /// </summary>
         SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node, bool allowImplicitTarget = false);
-        SyntaxToken GetOperatorTokenOfMemberAccessExpression(SyntaxNode node);
-        void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode name);
+        void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode name);
 
         SyntaxNode GetTargetOfMemberBinding(SyntaxNode node);
 
@@ -213,7 +214,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
 
         bool IsConditionalAccessExpression(SyntaxNode node);
-        void GetPartsOfConditionalAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode whenNotNull);
+        void GetPartsOfConditionalAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode whenNotNull);
+
+        bool IsMemberBindingExpression(SyntaxNode node);
+        bool IsPostfixUnaryExpression(SyntaxNode node);
 
         bool IsParenthesizedExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node);
