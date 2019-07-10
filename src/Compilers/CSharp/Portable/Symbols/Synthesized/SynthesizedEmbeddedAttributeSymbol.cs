@@ -27,20 +27,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly NamedTypeSymbol _baseType;
         private readonly NamespaceSymbol _namespace;
         private readonly ModuleSymbol _module;
+        private readonly bool _includeAttributeUsageAttribute;
 
         public SynthesizedEmbeddedAttributeSymbolBase(
             AttributeDescription description,
             CSharpCompilation compilation,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool includeAttributeUsageAttribute)
         {
             _name = description.Name;
             _baseType = MakeBaseType(compilation, diagnostics);
             _module = compilation.SourceModule;
+            _includeAttributeUsageAttribute = includeAttributeUsageAttribute;
 
             _namespace = _module.GlobalNamespace;
             foreach (var part in description.Namespace.Split('.'))
             {
                 _namespace = new MissingNamespaceSymbol(_namespace, part);
+            }
+
+            if (includeAttributeUsageAttribute)
+            {
+                EnsureAttributeUsageAttribute(compilation, diagnostics);
             }
         }
 
@@ -166,6 +174,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AddSynthesizedAttribute(
                 ref attributes,
                 moduleBuilder.SynthesizeEmbeddedAttribute());
+
+            if (_includeAttributeUsageAttribute)
+            {
+                var usageInfo = GetAttributeUsageInfo();
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    moduleBuilder.Compilation.SynthesizeAttributeUsageAttribute(usageInfo.ValidTargets, usageInfo.AllowMultiple, usageInfo.Inherited));
+            }
+        }
+
+        private static void EnsureAttributeUsageAttribute(CSharpCompilation compilation, DiagnosticBag diagnostics)
+        {
+            Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_AttributeUsageAttribute__ctor, diagnostics, Location.None);
+            Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_AttributeUsageAttribute__AllowMultiple, diagnostics, Location.None);
+            Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_AttributeUsageAttribute__Inherited, diagnostics, Location.None);
         }
     }
 
@@ -180,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AttributeDescription description,
             CSharpCompilation compilation,
             DiagnosticBag diagnostics)
-            : base(description, compilation, diagnostics)
+            : base(description, compilation, diagnostics, includeAttributeUsageAttribute: false)
         {
             _constructors = ImmutableArray.Create<MethodSymbol>(new SynthesizedEmbeddedAttributeConstructorSymbol(this, m => ImmutableArray<ParameterSymbol>.Empty));
             Debug.Assert(_constructors.Length == description.Signatures.Length);

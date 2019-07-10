@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -480,6 +482,54 @@ public class Program
     [Nullable(2)] System.Object? _f2
 ";
             AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
+        [WorkItem(36934, "https://github.com/dotnet/roslyn/issues/36934")]
+        public void AttributeUsage()
+        {
+            var source =
+@"#nullable enable
+public class Program
+{
+    public object? F;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("nullablePublicOnly"), options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var attributeType = module.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Runtime.CompilerServices.NullablePublicOnlyAttribute");
+                AttributeUsageInfo attributeUsage = attributeType.GetAttributeUsageInfo();
+                Assert.False(attributeUsage.Inherited);
+                Assert.False(attributeUsage.AllowMultiple);
+                Assert.True(attributeUsage.HasValidAttributeTargets);
+                Assert.Equal(AttributeTargets.Module, attributeUsage.ValidTargets);
+            });
+        }
+
+        [Fact]
+        public void MissingAttributeUsageAttribute()
+        {
+            var source =
+@"#nullable enable
+public class Program
+{
+    public object? F;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("nullablePublicOnly"));
+            comp.MakeTypeMissing(WellKnownType.System_AttributeUsageAttribute);
+            comp.VerifyEmitDiagnostics(
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1));
         }
 
         [Fact]
