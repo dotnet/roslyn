@@ -1753,6 +1753,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return position >= start AndAlso position <= _end
         End Function
 
+        Private Function ISyntaxFactsService_IsInHeader(node As SyntaxNode, ownerOfHeader As SyntaxNode, lastTokenOrNodeOfHeader As SyntaxNodeOrToken) As Boolean Implements ISyntaxFactsService.IsInHeader
+            Return IsInHeader(node, ownerOfHeader, lastTokenOrNodeOfHeader)
+        End Function
+
         Public Function IsInPropertyDeclarationHeader(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInPropertyDeclarationHeader
             Dim propertyDeclaration = node.GetAncestorOrThis(Of PropertyStatementSyntax)()
 

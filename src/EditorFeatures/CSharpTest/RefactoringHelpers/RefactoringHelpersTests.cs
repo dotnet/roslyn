@@ -79,9 +79,9 @@ class C
 {
     void M()
     {
-        C[||] LocalFunction(C c)
+        C LocalFunction(C c)
         {
-            return null;
+            [||]return null;
         }
         
     }

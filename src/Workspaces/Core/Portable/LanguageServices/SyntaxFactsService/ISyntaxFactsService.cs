@@ -408,6 +408,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         ImmutableArray<SyntaxNode> GetSelectedFieldsAndProperties(SyntaxNode root, TextSpan textSpan, bool allowPartialSelection);
         bool IsOnTypeHeader(SyntaxNode root, int position);
+        bool IsInHeader(SyntaxNode node, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader);
         bool IsInPropertyDeclarationHeader(SyntaxNode node);
         bool IsInParameterHeader(SyntaxNode node);
         bool IsInMethodHeader(SyntaxNode node);
