@@ -239,28 +239,32 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 .Select(nodeOrToken => nodeOrToken.AsNode())
                 .OfType<TStatementSyntax>()
                 .SkipWhile(node => node != declarationSyntax)
-                .ToArray();
+                .ToImmutableArray();
 
             // List of local variables that will be in the order they are declared.
-            var localVariables = new List<ISymbol>();
+            var localVariables = ArrayBuilder<ISymbol>.GetInstance();
 
-            // Map a symbol to an index into the statementsAfterDeclaration 
+            // Map a symbol to an index into the statementsAfterDeclaration array.
             var variableDeclarationIndex = PooledDictionary<ISymbol, int>.GetInstance();
             var lastVariableUsageIndex = PooledDictionary<ISymbol, int>.GetInstance();
 
             for (var statementIndex = 0; statementIndex < statementsAfterDeclaration.Length; statementIndex++)
             {
-                var node = statementsAfterDeclaration[statementIndex];
+                var currentStatement = statementsAfterDeclaration[statementIndex];
 
                 // Update the last usage index for any variable referenced in the statement.
-                var referencedVariables = GetReferencedLocalVariables(node, localVariables, semanticModel, syntaxFactsService, cancellationToken);
+                var referencedVariables = PooledHashSet<ISymbol>.GetInstance();
+                AddReferencedLocalVariables(referencedVariables, currentStatement, localVariables, semanticModel, syntaxFactsService, cancellationToken);
+
                 foreach (var referencedVariable in referencedVariables)
                 {
                     lastVariableUsageIndex[referencedVariable] = statementIndex;
                 }
 
+                referencedVariables.Free();
+
                 // Add new variables that were declared in the statement
-                var declaredVariables = semanticModel.GetAllDeclaredSymbols(node, cancellationToken);
+                var declaredVariables = semanticModel.GetAllDeclaredSymbols(currentStatement, cancellationToken);
                 foreach (var declaredVariable in declaredVariables)
                 {
                     variableDeclarationIndex[declaredVariable] = statementIndex;
@@ -286,20 +290,25 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 lastUsageIndex = Math.Max(lastUsageIndex, lastVariableUsageIndex[localSymbol]);
             }
 
+            localVariables.Free();
             variableDeclarationIndex.Free();
             lastVariableUsageIndex.Free();
 
             return statementsAfterDeclaration[lastUsageIndex];
         }
 
-        private static ImmutableArray<ISymbol> GetReferencedLocalVariables(
+        /// <summary>
+        /// Adds local variables that are being referenced within a statement to a set of symbols.
+        /// </summary>
+        private static void AddReferencedLocalVariables(
+            HashSet<ISymbol> referencedVariables,
             SyntaxNode node,
-            List<ISymbol> localVariables,
+            IReadOnlyList<ISymbol> localVariables,
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFactsService,
             CancellationToken cancellationToken)
         {
-            var referencedVariables = ArrayBuilder<ISymbol>.GetInstance();
+            // If this node matches one of our local variables, then we can say it has been referenced.
             if (syntaxFactsService.IsIdentifierName(node))
             {
                 var identifierName = syntaxFactsService.GetIdentifierOfSimpleName(node).ValueText;
@@ -308,22 +317,30 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                     => syntaxFactsService.StringComparer.Equals(localVariable.Name, identifierName) &&
                         localVariable.Equals(semanticModel.GetSymbolInfo(node).Symbol));
 
-                referencedVariables.AddIfNotNull(variable);
+                if (variable is object)
+                {
+                    referencedVariables.Add(variable);
+                }
             }
 
+            // Walk through child nodes looking for references
             foreach (var nodeOrToken in node.ChildNodesAndTokens())
             {
+                // If we have already referenced all the local variables we are
+                // concerned with, then we can return early.
+                if (referencedVariables.Count == localVariables.Count)
+                {
+                    return;
+                }
+
                 var childNode = nodeOrToken.AsNode();
                 if (childNode is null)
                 {
                     continue;
                 }
 
-                var variables = GetReferencedLocalVariables(childNode, localVariables, semanticModel, syntaxFactsService, cancellationToken);
-                referencedVariables.AddRange(variables);
+                AddReferencedLocalVariables(referencedVariables, childNode, localVariables, semanticModel, syntaxFactsService, cancellationToken);
             }
-
-            return referencedVariables.ToImmutableAndFree();
         }
 
         private sealed class MyCodeAction : DocumentChangeAction

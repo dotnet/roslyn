@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
@@ -517,6 +518,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         }
 
         [Fact]
+        [WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
         public async Task ExpandsToIncludeSurroundedVariableDeclarations()
         {
             await TestInRegularAndScriptAsync(
@@ -549,6 +551,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
         public async Task ExpandsToIncludeSurroundedOutVariableDeclarations()
         {
             await TestInRegularAndScriptAsync(
@@ -586,6 +589,84 @@ class C
             var b = a;
         }
         var c = 1;
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
+        public async Task ExpandsToIncludeSurroundedPatternVariableDeclarations()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.IO;
+
+class C
+{
+    void M()
+    {
+        var reader = new MemoryStream()[||];
+        var buffer = reader.GetBuffer();
+        if (!(buffer[0] is int number))
+        {
+            return;
+        }
+        var a = number;
+        var b = a;
+        var c = 1;
+    }
+}",
+@"using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var reader = new MemoryStream())
+        {
+            var buffer = reader.GetBuffer();
+            if (!(buffer[0] is int number))
+            {
+                return;
+            }
+            var a = number;
+            var b = a;
+        }
+        var c = 1;
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
+        public async Task ExpandsToIncludeSurroundedMultiVariableDeclarations()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.IO;
+
+class C
+{
+    void M()
+    {
+        var reader = new MemoryStream()[||];
+        var buffer = reader.GetBuffer();
+        int a = buffer[0], b = a;
+        var c = b;
+        var d = 1;
+    }
+}",
+@"using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var reader = new MemoryStream())
+        {
+            var buffer = reader.GetBuffer();
+            int a = buffer[0], b = a;
+            var c = b;
+        }
+        var d = 1;
     }
 }");
         }
