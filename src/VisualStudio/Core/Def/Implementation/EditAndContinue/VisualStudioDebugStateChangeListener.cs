@@ -48,7 +48,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             {
                 if (moduleInstance is DkmClrModuleInstance clrModuleInstance)
                 {
-                    _listener.OnManagedModuleInstanceLoaded(clrModuleInstance);
+                    // We may receive module load event before StartDebugging call, in which case the listener is uninitialized. 
+                    _listener?.OnManagedModuleInstanceLoaded(clrModuleInstance);
                 }
             }
 
@@ -62,7 +63,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             {
                 if (moduleInstance is DkmClrModuleInstance clrModuleInstance)
                 {
-                    _listener.OnManagedModuleInstanceUnloaded(clrModuleInstance);
+                    // We may receive module load event before StartDebugging call, in which case the listener is uninitialized. 
+                    _listener?.OnManagedModuleInstanceUnloaded(clrModuleInstance);
                 }
             }
         }
