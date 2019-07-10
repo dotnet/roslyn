@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 result.Add(await GetWrapLongGroupAsync().ConfigureAwait(false));
             }
 
-            #region unwrap all
+            #region unwrap group
 
             private async Task<WrappingGroup> GetUnwrapGroupAsync()
             {
