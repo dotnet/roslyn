@@ -77,6 +77,16 @@ namespace Microsoft.CodeAnalysis
             public int ReadInteger()
             {
                 EatSpace();
+                return ReadIntegerRaw_DoNotCallDirectly();
+            }
+
+            public int ReadFormatVersion()
+            {
+                return ReadIntegerRaw_DoNotCallDirectly();
+            }
+
+            private int ReadIntegerRaw_DoNotCallDirectly()
+            {
                 Debug.Assert(char.IsNumber(Data[Position]));
 
                 var value = 0;
@@ -289,7 +299,7 @@ namespace Microsoft.CodeAnalysis
             public bool IgnoreAssemblyKey { get; private set; }
             public SymbolEquivalenceComparer Comparer { get; private set; }
 
-            private List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
+            private readonly List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
             private bool _resolveLocations;
 
             private SymbolKeyReader()
@@ -383,23 +393,10 @@ namespace Microsoft.CodeAnalysis
 
             #region Symbols
 
-            public SymbolKeyResolution ReadFirstSymbolKey()
-            {
-                return ReadSymbolKeyWorker(first: true);
-            }
-
             public SymbolKeyResolution ReadSymbolKey()
             {
-                return ReadSymbolKeyWorker(first: false);
-            }
-
-            private SymbolKeyResolution ReadSymbolKeyWorker(bool first)
-            {
                 CancellationToken.ThrowIfCancellationRequested();
-                if (!first)
-                {
-                    EatSpace();
-                }
+                EatSpace();
 
                 var type = (SymbolKeyType)Data[Position];
                 if (type == SymbolKeyType.Null)
@@ -432,35 +429,32 @@ namespace Microsoft.CodeAnalysis
             }
 
             private SymbolKeyResolution ReadWorker(SymbolKeyType type)
-            {
-                switch (type)
+                => type switch
                 {
-                    case SymbolKeyType.Alias: return AliasSymbolKey.Resolve(this);
-                    case SymbolKeyType.BodyLevel: return BodyLevelSymbolKey.Resolve(this);
-                    case SymbolKeyType.ConstructedMethod: return ConstructedMethodSymbolKey.Resolve(this);
-                    case SymbolKeyType.NamedType: return NamedTypeSymbolKey.Resolve(this);
-                    case SymbolKeyType.ErrorType: return ErrorTypeSymbolKey.Resolve(this);
-                    case SymbolKeyType.Field: return FieldSymbolKey.Resolve(this);
-                    case SymbolKeyType.DynamicType: return DynamicTypeSymbolKey.Resolve(this);
-                    case SymbolKeyType.Method: return MethodSymbolKey.Resolve(this);
-                    case SymbolKeyType.Namespace: return NamespaceSymbolKey.Resolve(this);
-                    case SymbolKeyType.PointerType: return PointerTypeSymbolKey.Resolve(this);
-                    case SymbolKeyType.Parameter: return ParameterSymbolKey.Resolve(this);
-                    case SymbolKeyType.Property: return PropertySymbolKey.Resolve(this);
-                    case SymbolKeyType.ArrayType: return ArrayTypeSymbolKey.Resolve(this);
-                    case SymbolKeyType.Assembly: return AssemblySymbolKey.Resolve(this);
-                    case SymbolKeyType.TupleType: return TupleTypeSymbolKey.Resolve(this);
-                    case SymbolKeyType.Module: return ModuleSymbolKey.Resolve(this);
-                    case SymbolKeyType.Event: return EventSymbolKey.Resolve(this);
-                    case SymbolKeyType.ReducedExtensionMethod: return ReducedExtensionMethodSymbolKey.Resolve(this);
-                    case SymbolKeyType.TypeParameter: return TypeParameterSymbolKey.Resolve(this);
-                    case SymbolKeyType.AnonymousType: return AnonymousTypeSymbolKey.Resolve(this);
-                    case SymbolKeyType.AnonymousFunctionOrDelegate: return AnonymousFunctionOrDelegateSymbolKey.Resolve(this);
-                    case SymbolKeyType.TypeParameterOrdinal: return TypeParameterOrdinalSymbolKey.Resolve(this);
-                }
-
-                throw new NotImplementedException();
-            }
+                    SymbolKeyType.Alias => AliasSymbolKey.Resolve(this),
+                    SymbolKeyType.BodyLevel => BodyLevelSymbolKey.Resolve(this),
+                    SymbolKeyType.ConstructedMethod => ConstructedMethodSymbolKey.Resolve(this),
+                    SymbolKeyType.NamedType => NamedTypeSymbolKey.Resolve(this),
+                    SymbolKeyType.ErrorType => ErrorTypeSymbolKey.Resolve(this),
+                    SymbolKeyType.Field => FieldSymbolKey.Resolve(this),
+                    SymbolKeyType.DynamicType => DynamicTypeSymbolKey.Resolve(this),
+                    SymbolKeyType.Method => MethodSymbolKey.Resolve(this),
+                    SymbolKeyType.Namespace => NamespaceSymbolKey.Resolve(this),
+                    SymbolKeyType.PointerType => PointerTypeSymbolKey.Resolve(this),
+                    SymbolKeyType.Parameter => ParameterSymbolKey.Resolve(this),
+                    SymbolKeyType.Property => PropertySymbolKey.Resolve(this),
+                    SymbolKeyType.ArrayType => ArrayTypeSymbolKey.Resolve(this),
+                    SymbolKeyType.Assembly => AssemblySymbolKey.Resolve(this),
+                    SymbolKeyType.TupleType => TupleTypeSymbolKey.Resolve(this),
+                    SymbolKeyType.Module => ModuleSymbolKey.Resolve(this),
+                    SymbolKeyType.Event => EventSymbolKey.Resolve(this),
+                    SymbolKeyType.ReducedExtensionMethod => ReducedExtensionMethodSymbolKey.Resolve(this),
+                    SymbolKeyType.TypeParameter => TypeParameterSymbolKey.Resolve(this),
+                    SymbolKeyType.AnonymousType => AnonymousTypeSymbolKey.Resolve(this),
+                    SymbolKeyType.AnonymousFunctionOrDelegate => AnonymousFunctionOrDelegateSymbolKey.Resolve(this),
+                    SymbolKeyType.TypeParameterOrdinal => TypeParameterOrdinalSymbolKey.Resolve(this),
+                    _ => throw new NotImplementedException(),
+                };
 
             public ImmutableArray<SymbolKeyResolution> ReadSymbolKeyArray()
                 => ReadArray(_readSymbolKey);
@@ -536,15 +530,6 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return Location.None;
-            }
-
-            private Location CreateModuleLocation(
-                SymbolKeyResolution assembly, string moduleName)
-            {
-                var symbol = assembly.GetAnySymbol() as IAssemblySymbol;
-                Debug.Assert(symbol != null);
-                var module = symbol.Modules.FirstOrDefault(m => m.MetadataName == moduleName);
-                return module.Locations.FirstOrDefault();
             }
 
             public ImmutableArray<Location> ReadLocationArray()

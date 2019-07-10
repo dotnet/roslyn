@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -16,7 +15,6 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteString(symbol.MetadataName);
                 visitor.WriteSymbolKey(symbol.ContainingSymbol);
                 visitor.WriteInteger(symbol.Arity);
-                visitor.WriteInteger((int)symbol.TypeKind);
                 visitor.WriteBoolean(symbol.IsUnboundGenericType);
 
                 if (!symbol.Equals(symbol.ConstructedFrom) && !symbol.IsUnboundGenericType)
@@ -34,26 +32,22 @@ namespace Microsoft.CodeAnalysis
                 var metadataName = reader.ReadString();
                 var containingSymbolResolution = reader.ReadSymbolKey();
                 var arity = reader.ReadInteger();
-                var typeKind = (TypeKind)reader.ReadInteger();
                 var isUnboundGenericType = reader.ReadBoolean();
                 var typeArgumentsOpt = reader.ReadSymbolKeyArray();
 
                 var types = GetAllSymbols<INamespaceOrTypeSymbol>(containingSymbolResolution).SelectMany(
-                    s => Resolve(reader, s, metadataName, arity, typeKind, isUnboundGenericType, typeArgumentsOpt));
+                    s => Resolve(s, metadataName, arity, isUnboundGenericType, typeArgumentsOpt));
                 return CreateSymbolInfo(types);
             }
             private static IEnumerable<INamedTypeSymbol> Resolve(
-                SymbolKeyReader reader,
                 INamespaceOrTypeSymbol container,
                 string metadataName,
                 int arity,
-                TypeKind typeKind,
                 bool isUnboundGenericType,
                 ImmutableArray<SymbolKeyResolution> typeArguments)
             {
                 var types = container.GetTypeMembers(GetName(metadataName), arity);
-                var result = InstantiateTypes(
-                    reader.Compilation, reader.IgnoreAssemblyKey, types, arity, typeArguments);
+                var result = InstantiateTypes(types, arity, typeArguments);
 
                 return isUnboundGenericType
                     ? result.Select(t => t.ConstructUnboundGenericType())

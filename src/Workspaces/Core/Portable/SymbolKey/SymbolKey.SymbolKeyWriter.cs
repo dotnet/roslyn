@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis
 
             public CancellationToken CancellationToken { get; private set; }
 
-            private List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
+            private readonly List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
 
             internal int _nestingCount;
             private int _nextId;
@@ -128,20 +129,7 @@ namespace Microsoft.CodeAnalysis
 
             internal void WriteSymbolKey(ISymbol symbol)
             {
-                WriteSymbolKey(symbol, first: false);
-            }
-
-            internal void WriteFirstSymbolKey(ISymbol symbol)
-            {
-                WriteSymbolKey(symbol, first: true);
-            }
-
-            private void WriteSymbolKey(ISymbol symbol, bool first)
-            {
-                if (!first)
-                {
-                    WriteSpace();
-                }
+                WriteSpace();
 
                 if (symbol == null)
                 {
@@ -150,7 +138,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 int id;
-                var shouldWriteOrdinal = ShouldWriteTypeParameterOrdinal(symbol, out var methodIndex);
+                var shouldWriteOrdinal = ShouldWriteTypeParameterOrdinal(symbol, out _);
                 if (!shouldWriteOrdinal)
                 {
                     if (_symbolToId.TryGetValue(symbol, out id))
@@ -215,10 +203,15 @@ namespace Microsoft.CodeAnalysis
                 _stringBuilder.Append(' ');
             }
 
+            internal void WriteFormatVersion()
+            {
+                _stringBuilder.AppendFormat(FormatVersion.ToString(CultureInfo.InvariantCulture));
+            }
+
             internal void WriteInteger(int value)
             {
                 WriteSpace();
-                _stringBuilder.Append(value);
+                _stringBuilder.Append(value.ToString(CultureInfo.InvariantCulture));
             }
 
             internal void WriteBoolean(bool value)

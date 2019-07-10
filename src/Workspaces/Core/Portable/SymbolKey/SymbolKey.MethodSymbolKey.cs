@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -148,8 +147,11 @@ namespace Microsoft.CodeAnalysis
                     // Push an null-method to our stack so that any method-type-parameters
                     // can at least be read (if not resolved) properly.
                     reader.PushMethod(methodOpt: null);
-                    var parameterTypeResolutions = reader.ReadSymbolKeyArray();
-                    var returnType = GetFirstSymbol<ITypeSymbol>(reader.ReadSymbolKey());
+
+                    // read out the values.  We don't actually need to use them, but we have
+                    // to effectively read past them in the string.
+                    _ = reader.ReadSymbolKeyArray();
+                    _ = GetFirstSymbol<ITypeSymbol>(reader.ReadSymbolKey());
                     reader.PopMethod(methodOpt: null);
                 }
 
