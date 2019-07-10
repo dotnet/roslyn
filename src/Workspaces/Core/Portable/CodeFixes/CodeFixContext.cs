@@ -48,6 +48,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
+        [Obsolete("This is a hack to support TypeScript; please do not use it.")]
+        internal bool IsBlocking { get; }
+
         /// <summary>
         /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
         /// </summary>
@@ -102,7 +105,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             bool verifyArguments,
             CancellationToken cancellationToken)
-            : this(document, document.Project, span, diagnostics, registerCodeFix, verifyArguments, cancellationToken)
+            : this(document, document.Project, span, diagnostics, registerCodeFix, verifyArguments, isBlocking: false, cancellationToken)
+        {
+        }
+
+        [Obsolete("This is a hack to support TypeScript; please do not use it.")]
+        internal CodeFixContext(
+            Document document,
+            TextSpan span,
+            ImmutableArray<Diagnostic> diagnostics,
+            Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
+            bool verifyArguments,
+            bool isBlocking,
+            CancellationToken cancellationToken)
+            : this(document, document.Project, span, diagnostics, registerCodeFix, verifyArguments, isBlocking, cancellationToken)
         {
         }
 
@@ -111,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             CancellationToken cancellationToken)
-            : this(document: null, project: project, span: default, diagnostics: diagnostics, registerCodeFix: registerCodeFix, verifyArguments: false, cancellationToken: cancellationToken)
+            : this(document: null, project: project, span: default, diagnostics: diagnostics, registerCodeFix: registerCodeFix, verifyArguments: false, isBlocking: false, cancellationToken: cancellationToken)
         {
         }
 
@@ -122,6 +138,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             bool verifyArguments,
+            bool isBlocking,
             CancellationToken cancellationToken)
         {
             if (verifyArguments)
@@ -145,6 +162,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _diagnostics = diagnostics;
             _registerCodeFix = registerCodeFix;
             _cancellationToken = cancellationToken;
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            IsBlocking = isBlocking;
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         internal CodeFixContext(

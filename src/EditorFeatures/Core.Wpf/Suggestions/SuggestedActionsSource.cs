@@ -349,8 +349,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var includeSuppressionFixes = requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Any);
 
                     var fixes = Task.Run(
+#pragma warning disable CS0618 // Type or member is obsolete
                         () => _owner._codeFixService.GetFixesAsync(
-                                document, range.Span.ToTextSpan(), includeSuppressionFixes, cancellationToken),
+                                document, range.Span.ToTextSpan(), includeSuppressionFixes, isBlocking: true, cancellationToken),
+#pragma warning restore CS0618 // Type or member is obsolete
                         cancellationToken).WaitAndGetResult(cancellationToken);
 
                     var filteredFixes = FilterOnUIThread(fixes, workspace);
