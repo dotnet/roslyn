@@ -27,6 +27,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
+        [Obsolete("This is a hack to support TypeScript; please do not use it.")]
+        internal bool IsBlocking { get; }
+
         private readonly Action<CodeAction> _registerRefactoring;
 
         /// <summary>
@@ -37,10 +40,24 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             TextSpan span,
             Action<CodeAction> registerRefactoring,
             CancellationToken cancellationToken)
+#pragma warning disable CS0618 // Type or member is obsolete
+            : this(document, span, registerRefactoring, isBlocking: false, cancellationToken)
+#pragma warning restore CS0618 // Type or member is obsolete
+        {
+        }
+
+        [Obsolete("This is a hack to support TypeScript; please do not use it.")]
+        internal CodeRefactoringContext(
+            Document document,
+            TextSpan span,
+            Action<CodeAction> registerRefactoring,
+            bool isBlocking,
+            CancellationToken cancellationToken)
         {
             Document = document ?? throw new ArgumentNullException(nameof(document));
             Span = span;
             _registerRefactoring = registerRefactoring ?? throw new ArgumentNullException(nameof(registerRefactoring));
+            IsBlocking = isBlocking;
             CancellationToken = cancellationToken;
         }
 

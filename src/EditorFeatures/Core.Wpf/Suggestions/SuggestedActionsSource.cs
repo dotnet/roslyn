@@ -753,8 +753,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // the background so that no one takes an accidentally dependency on running on 
                     // the UI thread.
                     var refactorings = Task.Run(
+#pragma warning disable CS0618 // Type or member is obsolete
                         () => _owner._codeRefactoringService.GetRefactoringsAsync(
-                            document, selection, cancellationToken),
+                            document, selection, isBlocking: true, cancellationToken),
+#pragma warning restore CS0618 // Type or member is obsolete
                         cancellationToken).WaitAndGetResult(cancellationToken);
 
                     var filteredRefactorings = FilterOnUIThread(refactorings, workspace);
