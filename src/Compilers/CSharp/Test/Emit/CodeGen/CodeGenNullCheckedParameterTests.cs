@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -1610,6 +1611,67 @@ class C
     IL_000d:  throw
     IL_000e:  ret
 }");
+        }
+
+        [Fact]
+        public void TestNullCheckedGenericWithDefault()
+        {
+            var source = @"
+class C
+{
+    static void M1<T>(T t! = default) { }
+}";
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M1<T>(T)", @"
+{
+    // Code size       21 (0x15)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  box        ""T""
+    IL_0006:  brtrue.s   IL_0013
+    IL_0008:  ldstr      ""t""
+    IL_000d:  newobj     ""System.ArgumentNullException..ctor(string)""
+    IL_0012:  throw
+    IL_0013:  nop
+    IL_0014:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCheckedGenericWithDefaultClass()
+        {
+            var source = @"
+class C
+{
+    static void M2<T>(T t! = default) where T : class { }
+}";
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M2<T>(T)", @"
+{
+    // Code size       21 (0x15)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  box        ""T""
+    IL_0006:  brtrue.s   IL_0013
+    IL_0008:  ldstr      ""t""
+    IL_000d:  newobj     ""System.ArgumentNullException..ctor(string)""
+    IL_0012:  throw
+    IL_0013:  nop
+    IL_0014:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCheckedGenericWithDefaultStruct()
+        {
+            var source = @"
+class C
+{
+    static void M2<T>(T t! = default) where T : struct { }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                    // (4,25): error CS8718: Parameter 'T' is a non-nullable value type and cannot be null-checked.
+                    //     static void M2<T>(T t! = default) where T : struct { }
+                    Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "t").WithArguments("T").WithLocation(4, 25));
         }
     }
 }
