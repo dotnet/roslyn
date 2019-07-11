@@ -24,6 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue
         internal static CSharpEditAndContinueTestHelpers Instance40 => new CSharpEditAndContinueTestHelpers(
             ImmutableArray.Create(TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System_Core));
 
+        internal static readonly CSharpEditAndContinueTestHelpers InstanceNetCoreApp30 = new CSharpEditAndContinueTestHelpers(
+            ImmutableArray.Create(TestReferences.NetCoreApp30.SystemRuntimeRef));
+
         internal static CSharpEditAndContinueTestHelpers InstanceMinAsync => new CSharpEditAndContinueTestHelpers(
             ImmutableArray.Create(TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync));
 

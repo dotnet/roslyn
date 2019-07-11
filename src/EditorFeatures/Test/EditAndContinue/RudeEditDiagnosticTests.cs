@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                 RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
                 RudeEditKind.SwitchBetweenLambdaAndLocalFunction,
                 RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier,
+                RudeEditKind.InsertIntoInterface,
+                RudeEditKind.InsertLocalFunctionIntoInterfaceMethod,
             };
 
             var arg2 = new HashSet<RudeEditKind>()

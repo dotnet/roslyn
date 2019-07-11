@@ -4741,7 +4741,7 @@ class Program
         }
 
         [Fact]
-        public void LocalFunctions_InLocalFunction_NoChangeInignature()
+        public void LocalFunctions_InLocalFunction_NoChangeInSignature()
         {
             var src1 = "int x() { int y(int a) => a; return y(b); }";
             var src2 = "int x() { int y() => c; return y(); }";
@@ -4752,7 +4752,7 @@ class Program
         }
 
         [Fact]
-        public void LocalFunctions_InLocalFunction_ChangeInignature()
+        public void LocalFunctions_InLocalFunction_ChangeInSignature()
         {
             var src1 = "int x() { int y(int a) => a; return y(b); }";
             var src2 = "int x(int z) { int y() => c; return y(); }";
@@ -6765,6 +6765,51 @@ class Program
                 "Update [void M() { int local() { throw null; } }]@13 -> [void M() { ref readonly int local() { throw null; } }]@13");
 
             edits.VerifyRudeDiagnostics();
+        }
+
+        [WorkItem(37128, "https://github.com/dotnet/roslyn/issues/37128")]
+        [Fact]
+        public void LocalFunction_AddToInterfaceMethod()
+        {
+            var src1 = @"
+using System;
+interface I
+{
+    static int X = M(() => 1);
+    static int M() => 1;
+
+    static void F()
+    {
+        void g() { }
+    }
+}
+";
+            var src2 = @"
+using System;
+interface I
+{
+    static int X = M(() => { void f3() {} return 2; });
+    static int M() => 1;
+
+    static void F()
+    {
+        int f1() => 1;
+        f1();
+
+        void g() { void f2() {} f2(); }
+
+        var l = new Func<int>(() => 1);
+        l();
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            // lambdas are ok as they are emitted to a nested type
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f1"),
+                Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f2"),
+                Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f3"));
         }
 
         #endregion
