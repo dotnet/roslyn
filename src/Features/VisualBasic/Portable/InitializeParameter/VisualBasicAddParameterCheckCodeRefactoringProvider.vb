@@ -47,5 +47,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         Protected Overrides Function GetParameterNodeAtIndex(position As Integer, functionDeclaration As SyntaxNode) As SyntaxNode
             Throw New NotImplementedException()
         End Function
+        'Protected Overrides Function GetParameterNodeAtIndex(ByVal ordinal As Integer, ByVal functionDecleration As SyntaxNode) As SyntaxNode
+        '    Dim listOfParameters = InitializeParameterHelpers.GetParameters(functionDecleration)
+        '    Return If(listOfParameters.Count < ordinal, Nothing, If(ordinal > listOfParameters.Count AndAlso listOfParameters(ordinal) IsNot Nothing, Nothing, listOfParameters(ordinal)))
+        'End Function
     End Class
 End Namespace

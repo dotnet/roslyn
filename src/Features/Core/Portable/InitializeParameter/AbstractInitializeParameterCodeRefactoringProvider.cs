@@ -29,15 +29,16 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected abstract SyntaxNode GetBody(SyntaxNode functionDeclaration);
         protected abstract SyntaxNode GetTypeBlock(SyntaxNode node);
 
-        protected virtual IEnumerable<SyntaxNode> GetParameterList(SyntaxNode parameterNode)
+        protected virtual ImmutableArray<SyntaxNode> GetParameters(SyntaxNode parameterNode)
         {
-            return null;
+            return default;
+            // Null, count/length, Immutablearray/Ienmuarable, isDefault/null
         }
         protected abstract void InsertStatement(
             SyntaxEditor editor, SyntaxNode functionDeclaration, IMethodSymbol method,
             SyntaxNode statementToAddAfterOpt, TStatementSyntax statement);
 
-        protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
+        protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method,
             IBlockOperation blockStatementOpt, CancellationToken cancellationToken);
 
@@ -52,18 +53,17 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var firstparameterNode = GetParameterNode(token, position);
 
             // Creating a list and iterating it from the allows the right order or ifs
-            var listOfParameterNodes = GetParameterList(firstparameterNode);
+            var parameterNodes = GetParameters(firstparameterNode);
             var counter = 0;
 
             // List with parameterNodes that pass all checks
-            var listOfValidParametersNodes = new List<SyntaxNode>();
-            var checkIfToReturn = false;
+            var listOfPotentiallyValidParametersNodes = new List<SyntaxNode>();
 
-            if (listOfParameterNodes != null)
+            if (!parameterNodes.IsDefault)
             {
-                foreach (var parameterNode in listOfParameterNodes)
+                foreach (var parameterNode in parameterNodes)
                 {
-                    counter++;
+                    ++counter;
                     if (parameterNode == null)
                     {
                         continue;
@@ -115,37 +115,32 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
                     if (CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
                     {
-                        checkIfToReturn = true;
                         // Ok.  Looks like there is at least one reasonable parameter to analyze.  Defer to subclass to 
                         // actually determine if there are any viable refactorings here.
 
                         // Update the list of valid parameter nodes
-                        listOfValidParametersNodes.Add(parameterNode);
+                        listOfPotentiallyValidParametersNodes.Add(parameterNode);
 
                         // For single parameter - Only offers for the parameter cursor is on
                         if (firstparameterNode == parameterNode)
                         {
-                            context.RegisterRefactorings(await GetRefactoringsAsync(
+                            context.RegisterRefactorings(await GetRefactoringsForAllParametersAsync(
                         document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false));
 
                         }
 
-                        // Calls for a multiple null check only when this is the last itieration and there's more than one possible valid parameter parameter
-                        if (listOfValidParametersNodes.Count > 1 && counter == listOfParameterNodes.Count())
+                        // Calls for a multiple null check only when this is the last iteration and there's more than one possible valid parameter parameter
+                        if (listOfPotentiallyValidParametersNodes.Count > 1 && counter == parameterNodes.Count())
                         {
-                            context.RegisterRefactorings(await GetRefactoringsAsync(
-                                document, functionDeclaration, methodSymbol, blockStatementOpt, listOfValidParametersNodes, position, cancellationToken).ConfigureAwait(false));
+                            context.RegisterRefactorings(await GetRefactoringsForAllParametersAsync(
+                                document, functionDeclaration, methodSymbol, blockStatementOpt, listOfPotentiallyValidParametersNodes, position, cancellationToken).ConfigureAwait(false));
                         }
                     }
-                }
-                if (!checkIfToReturn)
-                {
-                    return;
                 }
             }
         }
 
-        protected virtual Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation blockStatementOpt, IEnumerable<SyntaxNode> listOfParameterNodes, int position, CancellationToken cancellationToken)
+        protected virtual Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation blockStatementOpt, IEnumerable<SyntaxNode> listOfParameterNodes, int position, CancellationToken cancellationToken)
         {
             return Task.FromResult(ImmutableArray<CodeAction>.Empty);
         }

@@ -1663,4 +1663,7 @@ This version used in: {2}</value>
   <data name="DisposableFieldsShouldBeDisposedDescription" xml:space="preserve">
     <value>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</value>
   </data>
+  <data name="Add_null_checks_for_all_parameters" xml:space="preserve">
+    <value>Add null checks for all parameters</value>
+  </data>
 </root>

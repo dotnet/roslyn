@@ -30,8 +30,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TExpressionSyntax : SyntaxNode
         where TBinaryExpressionSyntax : TExpressionSyntax
     {
-
-        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
+        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
             IBlockOperation blockStatementOpt, IEnumerable<SyntaxNode> listOfParameterNodes, int position, CancellationToken cancellationToken)
         {
@@ -59,31 +58,23 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return ImmutableArray<CodeAction>.Empty;
             }
 
-            // ***  Could have a check here if the list only has one parameter and it is the one pressed - then do not offer add null check for all *** \\ 
-
             // Great.  The list has parameters that need null checks. Offer to add null checks for all.
+            return ImmutableArray.Create<CodeAction>(new MyCodeAction(
+                 FeaturesResources.Add_null_checks_for_all_parameters,
+                     c => DocumentRetriever(document, functionDeclaration, blockStatementOpt, listOfParametersOrdinals, c)));
 
-            var result = ArrayBuilder<CodeAction>.GetInstance();
-
-            result.Add(new MyCodeAction(
-                    $"Add null checks for all",
-                    c => DocumentRetriver(document, functionDeclaration, methodSymbol, blockStatementOpt, listOfParametersOrdinals, c)));
-
-            return result.ToImmutableAndFree();
-
-
-            // DocumentRetriver updates all necessary variables per each parameter and calls for AddNullCheckAsync
-            async Task<Document> DocumentRetriver(
-                Document document, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol, IBlockOperation blockStatementOpt, List<int> listOfParametersOrdinals, CancellationToken cancellationToken)
+            // DocumentRetriever updates all necessary variables per each parameter and calls for AddNullCheckAsync
+            async Task<Document> DocumentRetriever(
+                Document document, SyntaxNode functionDeclaration, IBlockOperation blockStatementOpt, List<int> listOfParametersOrdinals, CancellationToken cancellationToken)
             {
                 foreach (var index in listOfParametersOrdinals)
                 {
+
                     // Update functionDeclaration and use it to get the first valid ParameterNode using the ordinals (index).
-                    var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    // var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     var token = root.FindToken(position);
                     var firstparameterNode = GetParameterNode(token, position);
-
                     functionDeclaration = firstparameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
 
                     var currentNode = GetParameterNodeAtIndex(index, functionDeclaration);
@@ -91,6 +82,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     {
                         continue;
                     }
+
                     var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(currentNode, cancellationToken);
 
@@ -101,24 +93,32 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         continue;
                     }
 
-                    // Now update document
-                    document = await AddNullCheckAsync(document, parameter, functionDeclaration, (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false);
+                    // If parameter is a string, default check would be IsNullOrEmpty - update document
+                    if (parameter.Type.SpecialType == SpecialType.System_String)
+                    {
+                        document = await AddStringCheckAsync(document, parameter, functionDeclaration, (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), cancellationToken).ConfigureAwait(false);
+                        continue;
+                    }
+
+                    // For all other parameters, add null check - update document
+                    document = await AddNullCheckAsync(document, parameter, functionDeclaration,
+                        (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false);
                 }
+
                 return document;
             }
         }
 
         protected abstract SyntaxNode GetParameterNodeAtIndex(int position, SyntaxNode functionDeclaration);
 
-        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
+        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
             IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Only should provide null-checks for reference types and nullable types.
-            if (!ParameterValidForNullCheck(document, parameter, semanticModel,
-            blockStatementOpt, cancellationToken))
+            if (!ParameterValidForNullCheck(document, parameter, semanticModel, blockStatementOpt, cancellationToken))
             {
                 return ImmutableArray<CodeAction>.Empty;
             }
@@ -317,15 +317,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return documentOpt;
             }
 
-            // This is where I'll need a loop to recall this function with edited document.
-
             // If we can't, then just offer to add an "if (s == null)" statement.
             return await AddNullCheckStatementAsync(
                 document, parameter, functionDeclaration, method, blockStatementOpt,
                 (s, g) => CreateNullCheckStatement(s, g, parameter),
                 cancellationToken).ConfigureAwait(false);
         }
-
 
         private async Task<Document> AddStringCheckAsync(
             Document document,

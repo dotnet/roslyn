@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.InitializeParameter;
-using System.Collections.Generic;
-
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
@@ -40,14 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination);
 
-        protected override IEnumerable<SyntaxNode> GetParameterList(SyntaxNode parameterNode)
+        protected override ImmutableArray<SyntaxNode> GetParameters(SyntaxNode parameterNode)
         {
-            var node = parameterNode?.Parent as ParameterListSyntax;
-            if (node == null)
-            {
-                return null;
-            }
-            return node.Parameters;
+            var functionDeclaration = parameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
+            return InitializeParameterHelpers.GetParameters(functionDeclaration);
+            //var node = parameterNode?.Parent as ParameterListSyntax; // 
+            //return node == null ? null : (IEnumerable<SyntaxNode>)node.Parameters;
         }
 
         protected override bool CanOffer(SyntaxNode body)
@@ -62,10 +60,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
             return true;
         }
+
         protected override SyntaxNode GetParameterNodeAtIndex(int ordinal, SyntaxNode functionDecleration)
         {
             var listOfParameters = InitializeParameterHelpers.GetParameters(functionDecleration);
-            return ordinal > listOfParameters.Count && listOfParameters[ordinal] != null ? null : listOfParameters[ordinal];
+
+            return listOfParameters.Length < ordinal
+                ? null
+                : ordinal > listOfParameters.Length && listOfParameters[ordinal] != null ? null : listOfParameters[ordinal];
         }
     }
 }

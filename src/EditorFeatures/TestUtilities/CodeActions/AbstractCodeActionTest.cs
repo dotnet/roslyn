@@ -48,6 +48,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestWorkspace workspace, TestParameters parameters)
         {
             return (await GetCodeRefactoringsAsync(workspace, parameters)).FirstOrDefault();
+            /*
+            var allRefactorings = await GetCodeRefactoringsAsync(workspace, parameters).ConfigureAwait(false);
+            return allRefactorings.ElementAtOrDefault(parameters.index);
+            */
         }
 
         private async Task<IEnumerable<CodeRefactoring>> GetCodeRefactoringsAsync(
