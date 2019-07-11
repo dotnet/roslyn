@@ -185,16 +185,15 @@ namespace Microsoft.CodeAnalysis
         public override string ToString()
             => _symbolKeyData;
 
-        //private static IEnumerable<TType> GetAllSymbols<TType>(SymbolKeyResolution info)
-        //    => GetAllSymbols(info).OfType<TType>();
-
         private static SymbolKeyResolution CreateSymbolInfo<TSymbol>(PooledArrayBuilder<TSymbol> symbols)
             where TSymbol : class, ISymbol
         {
+#if DEBUG
             foreach (var symbol in symbols)
             {
                 Debug.Assert(symbol != null);
             }
+#endif
 
             if (symbols.Builder.Count == 0)
             {
@@ -211,22 +210,6 @@ namespace Microsoft.CodeAnalysis
                     CandidateReason.Ambiguous);
             }
         }
-
-        //private static SymbolKeyResolution CreateSymbolInfo(IEnumerable<ISymbol> symbols)
-        //{
-        //    return symbols == null
-        //        ? default
-        //        : CreateSymbolInfo(symbols.WhereNotNull().ToArray());
-        //}
-
-        //private static SymbolKeyResolution CreateSymbolInfo(ISymbol[] symbols)
-        //{
-        //    return symbols.Length == 0
-        //        ? default
-        //        : symbols.Length == 1
-        //            ? new SymbolKeyResolution(symbols[0])
-        //            : new SymbolKeyResolution(ImmutableArray.Create<ISymbol>(symbols), CandidateReason.Ambiguous);
-        //}
 
         private static bool Equals(Compilation compilation, string name1, string name2)
             => Equals(compilation.IsCaseSensitive, name1, name2);
