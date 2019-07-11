@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -1114,6 +1116,84 @@ class C
                     Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 20));
 
             Assert.False(comp.NullableSemanticAnalysisEnabled);
+        }
+
+        [Fact]
+        public void SymbolInfo_Invocation_InferredArguments()
+        {
+            var source = @"
+class C
+{
+    T Identity<T>(T t) => t;
+
+    void M(string? s)
+    {
+        _ = Identity(s);
+        if (s is null) return;
+        _ = Identity(s);
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var invocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+
+            var symbolInfo = model.GetSymbolInfo(invocations[0]);
+            verifySymbolInfo((IMethodSymbol)symbolInfo.Symbol, PublicNullableAnnotation.Annotated);
+            symbolInfo = model.GetSymbolInfo(invocations[1]);
+            verifySymbolInfo((IMethodSymbol)symbolInfo.Symbol, PublicNullableAnnotation.NotAnnotated);
+
+            static void verifySymbolInfo(IMethodSymbol methodSymbol, PublicNullableAnnotation expectedAnnotation)
+            {
+                Assert.Equal(expectedAnnotation, methodSymbol.TypeArgumentsNullableAnnotations.Single());
+                Assert.Equal(expectedAnnotation, methodSymbol.Parameters.Single().NullableAnnotation);
+                Assert.Equal(expectedAnnotation, methodSymbol.ReturnNullableAnnotation);
+            }
+        }
+
+        [Fact]
+        public void SymbolInfo_Invocation_LocalFunction()
+        {
+            var source = @"
+using System.Collections.Generic;
+class C
+{
+
+    void M(string? s)
+    {
+        _ = CreateList(s);
+        if (s is null) return;
+        _ = CreateList(s);
+
+        List<T> CreateList<T>(T t) => null!;
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var invocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+
+            var symbolInfo = model.GetSymbolInfo(invocations[0]);
+            verifySymbolInfo((IMethodSymbol)symbolInfo.Symbol, PublicNullableAnnotation.Annotated);
+            symbolInfo = model.GetSymbolInfo(invocations[1]);
+            verifySymbolInfo((IMethodSymbol)symbolInfo.Symbol, PublicNullableAnnotation.NotAnnotated);
+
+            static void verifySymbolInfo(IMethodSymbol methodSymbol, PublicNullableAnnotation expectedAnnotation)
+            {
+                Assert.Equal(expectedAnnotation, methodSymbol.TypeArgumentsNullableAnnotations.Single());
+                Assert.Equal(expectedAnnotation, methodSymbol.Parameters.Single().NullableAnnotation);
+                Assert.Equal(expectedAnnotation, ((INamedTypeSymbol)methodSymbol.ReturnType).TypeArgumentsNullableAnnotations.Single());
+            }
         }
     }
 }

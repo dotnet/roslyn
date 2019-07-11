@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
 
             Protected Overrides Function ShouldUseTokenIndenter(ByRef token As SyntaxToken) As Boolean
                 Return ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                    Rules, Root, LineToBeIndented, OptionSet, token, CancellationToken)
+                    Rules, Root, LineToBeIndented, OptionSet, token)
             End Function
 
             Protected Overrides Function CreateSmartTokenFormatter() As ISmartTokenFormatter

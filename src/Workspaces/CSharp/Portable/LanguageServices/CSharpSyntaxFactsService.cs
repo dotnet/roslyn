@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -37,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SyntaxTrivia ElasticCarriageReturnLineFeed
             => SyntaxFactory.ElasticCarriageReturnLineFeed;
+
+        public ISyntaxKindsService SyntaxKinds { get; } = CSharpSyntaxKindsService.Instance;
 
         protected override IDocumentationCommentService DocumentationCommentService
             => CSharpDocumentationCommentService.Instance;
@@ -618,12 +621,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node is ConditionalAccessExpressionSyntax;
 
         public void GetPartsOfConditionalAccessExpression(
-            SyntaxNode node, out SyntaxNode expression, out SyntaxNode whenNotNull)
+            SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode whenNotNull)
         {
             var conditionalAccess = (ConditionalAccessExpressionSyntax)node;
             expression = conditionalAccess.Expression;
+            operatorToken = conditionalAccess.OperatorToken;
             whenNotNull = conditionalAccess.WhenNotNull;
         }
+
+        public bool IsPostfixUnaryExpression(SyntaxNode node)
+            => node is PostfixUnaryExpressionSyntax;
+
+        public bool IsMemberBindingExpression(SyntaxNode node)
+            => node is MemberBindingExpressionSyntax;
 
         public bool IsPointerMemberAccessExpression(SyntaxNode node)
             => (node as MemberAccessExpressionSyntax)?.Kind() == SyntaxKind.PointerMemberAccessExpression;
@@ -1426,6 +1436,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsCharacterLiteral(SyntaxToken token)
             => token.Kind() == SyntaxKind.CharacterLiteralToken;
 
+        public void GetPartsOfInvocationExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList)
+        {
+            var invocation = (InvocationExpressionSyntax)node;
+            expression = invocation.Expression;
+            argumentList = invocation.ArgumentList;
+        }
+
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode invocationExpression)
             => GetArgumentsOfArgumentList((invocationExpression as InvocationExpressionSyntax)?.ArgumentList);
 
@@ -1564,13 +1581,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode memberAccessExpression)
             => ((MemberAccessExpressionSyntax)memberAccessExpression).Name;
 
-        public SyntaxToken GetOperatorTokenOfMemberAccessExpression(SyntaxNode memberAccessExpression)
-            => ((MemberAccessExpressionSyntax)memberAccessExpression).OperatorToken;
-
-        public void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode name)
+        public void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode name)
         {
             var memberAccess = (MemberAccessExpressionSyntax)node;
             expression = memberAccess.Expression;
+            operatorToken = memberAccess.OperatorToken;
             name = memberAccess.Name;
         }
 
@@ -1815,6 +1830,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return position >= start && position <= end;
         }
 
+        public bool IsInPropertyDeclarationHeader(SyntaxNode node)
+        {
+            var propertyDeclaration = node.GetAncestor<PropertyDeclarationSyntax>();
+            if (propertyDeclaration == null)
+            {
+                return false;
+            }
+
+            var start = propertyDeclaration.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart ??
+                        propertyDeclaration.SpanStart;
+            var end = propertyDeclaration.Identifier.FullSpan.End;
+
+            return node.Span.Start >= start && node.Span.End <= end;
+        }
+
         public bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position)
         {
             var token = root.FindToken(position);
@@ -1950,5 +1980,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
         }
+
+        public SyntaxNode GetContainingPropertyDeclaration(SyntaxNode node) => node.GetAncestor<PropertyDeclarationSyntax>();
+
+        public SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node) => CSharpSyntaxGenerator.GetAttributeLists(node);
     }
 }
