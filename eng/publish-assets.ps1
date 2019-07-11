@@ -146,7 +146,7 @@ try {
     if ($data -eq $null) {
       Write-Host "Branch $branchName not listed for publishing."
       if ($branchName.StartsWith("release/")) {
-        Write-Host "##[error]Release branch $branchName must be listed in PublishData.json."
+        Write-Host "##vso[task.LogIssue type=error;]Release branch $branchName must be listed in PublishData.json."
         exit 1
       }
       exit 0
