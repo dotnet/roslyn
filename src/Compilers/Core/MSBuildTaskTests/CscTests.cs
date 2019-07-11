@@ -351,6 +351,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("/nullable:disable /out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
 
+#pragma warning disable CS0618
+        // NullableContextOptions is Obsolete
         [Theory]
         [InlineData(null, "disable")]
         [InlineData("", "disable")]
@@ -382,6 +384,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.Nullable = nullable;
             Assert.Equal("/nullable:enable /out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
+#pragma warning restore CS0618
 
         [Fact]
         public void NullableReferenceTypes_Safeonly()
