@@ -17,21 +17,7 @@ namespace Microsoft.CodeAnalysis
                 var metadataName = reader.ReadString();
                 var containingTypeResolution = reader.ReadSymbolKey();
 
-                using var result = PooledArrayBuilder<IEventSymbol>.GetInstance();
-                foreach (var containingSymbol in containingTypeResolution)
-                {
-                    if (containingSymbol is INamedTypeSymbol containingType)
-                    {
-                        foreach (var member in containingType.GetMembers(metadataName))
-                        {
-                            if (member is IEventSymbol ev)
-                            {
-                                result.AddIfNotNull(ev);
-                            }
-                        }
-                    }
-                }
-
+                using var result = GetMembersOfNamedType<IEventSymbol>(containingTypeResolution, metadataName);
                 return CreateSymbolInfo(result);
             }
         }

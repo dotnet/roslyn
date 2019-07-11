@@ -246,5 +246,31 @@ namespace Microsoft.CodeAnalysis
 
             return true;
         }
+
+        private static PooledArrayBuilder<TSymbol> GetMembersOfNamedType<TSymbol>(
+            SymbolKeyResolution containingTypeResolution,
+            string metadataNameOpt) where TSymbol : ISymbol
+        {
+            var result = PooledArrayBuilder<TSymbol>.GetInstance();
+            foreach (var containingSymbol in containingTypeResolution)
+            {
+                if (containingSymbol is INamedTypeSymbol containingType)
+                {
+                    var members = metadataNameOpt == null
+                        ? containingType.GetMembers()
+                        : containingType.GetMembers(metadataNameOpt);
+
+                    foreach (var member in members)
+                    {
+                        if (member is TSymbol symbol)
+                        {
+                            result.AddIfNotNull(symbol);
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
     }
 }
