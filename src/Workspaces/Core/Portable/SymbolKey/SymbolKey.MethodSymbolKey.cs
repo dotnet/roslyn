@@ -24,12 +24,14 @@ namespace Microsoft.CodeAnalysis
                 using var result = PooledArrayBuilder<IMethodSymbol>.GetInstance();
                 foreach (var reducedFromSymbol in reducedFromResolution)
                 {
-                    foreach (var receiverSymbol in receiverTypeResolution)
+                    if (reducedFromSymbol is IMethodSymbol reducedFrom)
                     {
-                        if (reducedFromSymbol is IMethodSymbol reducedFrom &&
-                            receiverSymbol is ITypeSymbol receiverType)
+                        foreach (var receiverSymbol in receiverTypeResolution)
                         {
-                            result.AddIfNotNull(reducedFrom.ReduceExtensionMethod(receiverType));
+                            if (receiverSymbol is ITypeSymbol receiverType)
+                            {
+                                result.AddIfNotNull(reducedFrom.ReduceExtensionMethod(receiverType));
+                            }
                         }
                     }
                 }
