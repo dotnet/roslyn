@@ -55,8 +55,7 @@ namespace Microsoft.CodeAnalysis
 
             private static PooledArrayBuilder<INamedTypeSymbol> ResolveErrorTypes(
                 SymbolKeyReader reader,
-                SymbolKeyResolution containingSymbolResolution,
-                string name, int arity)
+                SymbolKeyResolution containingSymbolResolution, string name, int arity)
             {
                 var errorTypes = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
 
