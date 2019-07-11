@@ -9853,7 +9853,7 @@ public class Program
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.EditAndContinueRequiresDesktop, AlwaysSkip = "https://github.com/dotnet/roslyn/issues/37047")]
+        [Fact]
         public void OutVar_InSwitchExpression()
         {
             var source0 = MarkedSource(@"
