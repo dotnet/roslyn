@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
 {
-    internal abstract class AbstractConvertNumericLiteralCodeRefactoringProvider : CodeRefactoringProvider
+    internal abstract class AbstractConvertNumericLiteralCodeRefactoringProvider<TNumericLiteralExpression> : CodeRefactoringProvider where TNumericLiteralExpression : SyntaxNode
     {
         protected abstract (string hexPrefix, string binaryPrefix) GetNumericLiteralPrefixes();
 
@@ -115,17 +115,19 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
             }
         }
 
-        internal abstract Task<SyntaxToken> GetNumericTokenAsync(Document document, TextSpan span, CancellationToken cancellationToken);
-
-        protected async Task<TExpression> GetNumericLiteralExpression<TExpression>(Document document, TextSpan span, CancellationToken cancellationToken) where TExpression : SyntaxNode
+        internal virtual async Task<SyntaxToken> GetNumericTokenAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var refactoringService = document.GetLanguageService<IRefactoringHelpersService>();
 
-            var literalNode = await refactoringService.TryGetSelectedNodeAsync<TExpression>(document, span, cancellationToken).ConfigureAwait(false);
-            return syntaxFacts.IsNumericLiteralExpression(literalNode)
+            var literalNode = await refactoringService.TryGetSelectedNodeAsync<TNumericLiteralExpression>(document, span, cancellationToken).ConfigureAwait(false);
+            var numericLiteralExpressionNode = syntaxFacts.IsNumericLiteralExpression(literalNode)
                 ? literalNode
                 : null;
+
+            return numericLiteralExpressionNode != null
+                ? numericLiteralExpressionNode.GetFirstToken()    // We know that TNumericLiteralExpression has always only one token: NumericLiteralToken
+                : default;
         }
 
         private static (string prefix, string number, string suffix) GetNumericLiteralParts(string numericText, string hexPrefix, string binaryPrefix)

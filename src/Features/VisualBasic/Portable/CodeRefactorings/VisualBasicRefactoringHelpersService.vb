@@ -11,8 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
     Friend Class VisualBasicRefactoringHelpersService
         Inherits AbstractRefactoringHelpersService(Of PropertyStatementSyntax, ParameterSyntax, MethodStatementSyntax, LocalDeclarationStatementSyntax)
 
-        Protected Overrides Iterator Function ExtractNodeSimple(node As SyntaxNode, syntaxFacts As ISyntaxFactsService) As IEnumerable(Of SyntaxNode)
-            For Each baseExtraction In MyBase.ExtractNodeSimple(node, syntaxFacts)
+        Protected Overrides Iterator Function ExtractNodesSimple(node As SyntaxNode, syntaxFacts As ISyntaxFactsService) As IEnumerable(Of SyntaxNode)
+            For Each baseExtraction In MyBase.ExtractNodesSimple(node, syntaxFacts)
                 Yield baseExtraction
             Next
 

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -44,8 +45,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// of tokens gracefully. Over-selection containing leading comments is also handled correctly. 
         /// </para>
         /// </summary>
-        protected Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selection, Predicate<SyntaxNode> predicate, CancellationToken cancellationToken)
-            => TryGetSelectedNodeAsync(document, selection, predicate, DefaultNodeExtractor, cancellationToken);
+        protected Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selection, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
+            => TryGetSelectedNodeAsync(document, selection, predicate, DefaultNodesExtractor, cancellationToken);
 
         /// <summary>
         /// <para>
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// - Whole node passing <paramref name="predicate"/> is selected.
         /// </para>
         /// <para>
-        /// The <paramref name="extractNode"/> enables testing with <paramref name="predicate"/> and potentially returning Nodes 
+        /// The <paramref name="extractNodes"/> enables testing with <paramref name="predicate"/> and potentially returning Nodes 
         /// that are under/above those that might be selected / considered (as described above). It should iterate over all candidate
         /// nodes.
         /// </para>
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// of tokens gracefully. Over-selection containing leading comments is also handled correctly. 
         /// </para>
         /// </summary>
-        protected async Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selectionRaw, Predicate<SyntaxNode> predicate, Func<SyntaxNode, ISyntaxFactsService, bool, IEnumerable<SyntaxNode>> extractNode, CancellationToken cancellationToken)
+        protected async Task<SyntaxNode> TryGetSelectedNodeAsync(Document document, TextSpan selectionRaw, Func<SyntaxNode, bool> predicate, Func<SyntaxNode, ISyntaxFactsService, bool, IEnumerable<SyntaxNode>> extractNodes, CancellationToken cancellationToken)
         {
             // Given selection is trimmed first to enable over-selection that spans multiple lines. Since trailing whitespace ends
             // at newline boundary over-selection to e.g. a line after LocalFunctionStatement would cause FindNode to find enclosing
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             var prevNode = selectionNode;
             do
             {
-                var wantedNode = TryGetAcceptedNodeOrExtracted(selectionNode, predicate, extractNode, syntaxFacts, extractParentsOfHeader: false);
+                var wantedNode = TryGetAcceptedNodeOrExtracted(selectionNode, predicate, extractNodes, syntaxFacts, extractParentsOfHeader: false);
                 if (wantedNode != null)
                 {
                     // For selections we need to handle an edge case where only AttributeLists are within selection (e.g. `Func([|[in][out]|] arg1);`).
@@ -233,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     // Consider either a Node that is:
                     // - Parent of touched Token (location can be within) 
                     // - Ancestor Node of such Token as long as their span starts on location (it's still on the edge)
-                    var wantedNode = TryGetAcceptedNodeOrExtracted(rightNode, predicate, extractNode, syntaxFacts, extractParentsOfHeader: true);
+                    var wantedNode = TryGetAcceptedNodeOrExtracted(rightNode, predicate, extractNodes, syntaxFacts, extractParentsOfHeader: true);
                     if (wantedNode != null)
                     {
                         return wantedNode;
@@ -271,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 {
                     // Consider either a Node that is:
                     // - Ancestor Node of such Token as long as their span ends on location (it's still on the edge)
-                    var wantedNode = TryGetAcceptedNodeOrExtracted(leftNode, predicate, extractNode, syntaxFacts, extractParentsOfHeader: true);
+                    var wantedNode = TryGetAcceptedNodeOrExtracted(leftNode, predicate, extractNodes, syntaxFacts, extractParentsOfHeader: true);
                     if (wantedNode != null)
                     {
                         return wantedNode;
@@ -289,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // nothing found -> return null
             return null;
 
-            static SyntaxNode TryGetAcceptedNodeOrExtracted(SyntaxNode node, Predicate<SyntaxNode> predicate, Func<SyntaxNode, ISyntaxFactsService, bool, IEnumerable<SyntaxNode>> extractNode, ISyntaxFactsService syntaxFacts, bool extractParentsOfHeader)
+            static SyntaxNode TryGetAcceptedNodeOrExtracted(SyntaxNode node, Func<SyntaxNode, bool> predicate, Func<SyntaxNode, ISyntaxFactsService, bool, IEnumerable<SyntaxNode>> extractNodes, ISyntaxFactsService syntaxFacts, bool extractParentsOfHeader)
             {
                 if (node == null)
                 {
@@ -301,15 +302,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     return node;
                 }
 
-                foreach (var extractedNode in extractNode(node, syntaxFacts, extractParentsOfHeader))
-                {
-                    if (predicate(extractedNode))
-                    {
-                        return extractedNode;
-                    }
-                }
-
-                return null;
+                return extractNodes(node, syntaxFacts, extractParentsOfHeader).FirstOrDefault(predicate);
             }
         }
 
@@ -351,24 +344,24 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// with that and only that node. On the other hand placing cursor anywhere in header should still count as selecting the node it's header of.
         /// </para>
         /// </summary>
-        protected virtual IEnumerable<SyntaxNode> DefaultNodeExtractor(SyntaxNode node, ISyntaxFactsService syntaxFacts, bool extractParentsOfHeader)
+        protected virtual IEnumerable<SyntaxNode> DefaultNodesExtractor(SyntaxNode node, ISyntaxFactsService syntaxFacts, bool extractParentsOfHeader)
         {
             // REMARKS: 
             // The set of currently attempted extractions is in no way exhaustive and covers only cases
             // that were found to be relevant for refactorings that were moved to `TryGetSelectedNodeAsync`.
             // Feel free to extend it / refine current heuristics. 
 
-            foreach (var extractedNode in ExtractNodeSimple(node, syntaxFacts))
+            foreach (var extractedNode in ExtractNodesSimple(node, syntaxFacts))
             {
                 yield return extractedNode;
             }
 
             if (extractParentsOfHeader)
             {
-                foreach (var headerNode in ExtractNodeOfHeader(node, syntaxFacts))
+                foreach (var headerNode in ExtractNodesOfHeader(node, syntaxFacts))
                 {
                     yield return headerNode;
-                    foreach (var extractedNode in ExtractNodeSimple(headerNode, syntaxFacts))
+                    foreach (var extractedNode in ExtractNodesSimple(headerNode, syntaxFacts))
                     {
                         yield return extractedNode;
                     }
@@ -376,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        protected virtual IEnumerable<SyntaxNode> ExtractNodeSimple(SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        protected virtual IEnumerable<SyntaxNode> ExtractNodesSimple(SyntaxNode node, ISyntaxFactsService syntaxFacts)
         {
             // `var a = b`;
             if (syntaxFacts.IsLocalDeclarationStatement(node))
@@ -421,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        protected virtual IEnumerable<SyntaxNode> ExtractNodeOfHeader(SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        protected virtual IEnumerable<SyntaxNode> ExtractNodesOfHeader(SyntaxNode node, ISyntaxFactsService syntaxFacts)
         {
             // Header: [Test] `public int a` { get; set; }
             if (syntaxFacts.IsInPropertyDeclarationHeader(node))

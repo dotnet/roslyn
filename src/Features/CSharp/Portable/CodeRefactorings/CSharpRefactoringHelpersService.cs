@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
     [ExportLanguageService(typeof(IRefactoringHelpersService), LanguageNames.CSharp), Shared]
     internal class CSharpRefactoringHelpersService : AbstractRefactoringHelpersService<PropertyDeclarationSyntax, ParameterSyntax, MethodDeclarationSyntax, LocalDeclarationStatementSyntax>
     {
-        protected override IEnumerable<SyntaxNode> ExtractNodeOfHeader(SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        protected override IEnumerable<SyntaxNode> ExtractNodesOfHeader(SyntaxNode node, ISyntaxFactsService syntaxFacts)
         {
-            foreach (var baseExtraction in base.ExtractNodeOfHeader(node, syntaxFacts))
+            foreach (var baseExtraction in base.ExtractNodesOfHeader(node, syntaxFacts))
             {
                 yield return baseExtraction;
             }
@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
 
         private bool IsInLocalFunctionHeader(SyntaxNode node, ISyntaxFactsService syntaxFacts)
         {
-            var containingMethod = node.GetAncestorOrThis<LocalFunctionStatementSyntax>();
-            if (containingMethod == null)
+            var containingLocalFunction = node.GetAncestorOrThis<LocalFunctionStatementSyntax>();
+            if (containingLocalFunction == null)
             {
                 return false;
             }
 
-            return syntaxFacts.IsInHeader(node, containingMethod, containingMethod.ParameterList);
+            return syntaxFacts.IsInHeader(node, containingLocalFunction, containingLocalFunction.ParameterList);
         }
     }
 }
