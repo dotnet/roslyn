@@ -6811,10 +6811,14 @@ interface I
             var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
 
             // lambdas are ok as they are emitted to a nested type
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f1"),
-                Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f2"),
-                Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f3"));
+            edits.VerifySemantics(
+                targetFrameworks: new[] { TargetFramework.NetCoreApp30 },
+                expectedDiagnostics: new[]
+                {
+                    Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f1"),
+                    Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f2"),
+                    Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f3")
+                });
         }
 
         #endregion
@@ -8726,13 +8730,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            CSharpEditAndContinueTestHelpers.InstanceMinAsync.VerifySemantics(
-                editScript: edits,
-                activeStatements: ActiveStatementsDescription.Empty,
-                additionalNewSources: null,
-                additionalOldSources: null,
-                expectedSemanticEdits: null,
-                expectedDeclarationError: null,
+            edits.VerifySemantics(
+                targetFrameworks: new[] { TargetFramework.MinimalAsync },
                 expectedDiagnostics: new[]
                 {
                     Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "static async Task<int> F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute")
@@ -8767,13 +8766,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            CSharpEditAndContinueTestHelpers.InstanceMinAsync.VerifySemantics(
-                edits,
-                ActiveStatementsDescription.Empty,
-                null,
-                null,
-                null,
-                null);
+            edits.VerifySemantics(targetFrameworks: new[] { TargetFramework.MinimalAsync });
         }
 
         [Fact]
