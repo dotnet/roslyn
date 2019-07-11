@@ -2292,7 +2292,28 @@ namespace PushUpTest
         }
     }
 }";
-            await TestQuickActionNotProvidedAsync(testText);
+            var expected = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    class Test2Attribute : Attribute { }
+    public class A
+    {
+        [Test]
+        [Test2]
+        void C()
+        {
+        }
+    }
+
+    public class B : A
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
