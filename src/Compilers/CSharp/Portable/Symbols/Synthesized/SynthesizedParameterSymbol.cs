@@ -240,8 +240,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind refKind,
                 string name,
                 ImmutableArray<CustomModifier> refCustomModifiers,
-                bool IsNullChecked)
-                : base(container, type, ordinal, refKind, name, IsNullChecked)
+                bool isNullChecked)
+                : base(container, type, ordinal, refKind, name, isNullChecked)
             {
                 _refCustomModifiers = refCustomModifiers.NullToEmpty();
             }
