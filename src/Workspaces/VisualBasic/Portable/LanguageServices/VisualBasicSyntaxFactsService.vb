@@ -1785,6 +1785,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return IsInHeader(node, method, method)
         End Function
 
+        Public Function IsInLocalFunctionHeader(node As SyntaxNode, syntaxFacts As ISyntaxFactsService) As Boolean Implements ISyntaxFactsService.IsInLocalFunctionHeader
+            ' No local functions in VisualBasic
+            Return False
+        End Function
+
         Public Function IsBetweenTypeMembers(sourceText As SourceText, root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsBetweenTypeMembers
             Dim token = root.FindToken(position)
             Dim typeDecl = token.GetAncestor(Of TypeBlockSyntax)

@@ -416,6 +416,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsInPropertyDeclarationHeader(SyntaxNode node);
         bool IsInParameterHeader(SyntaxNode node);
         bool IsInMethodHeader(SyntaxNode node);
+        bool IsInLocalFunctionHeader(SyntaxNode node, ISyntaxFactsService syntaxFacts);
         bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position);
 
         // Walks the tree, starting from contextNode, looking for the first construct

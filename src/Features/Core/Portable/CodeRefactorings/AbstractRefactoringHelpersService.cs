@@ -11,11 +11,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
-    internal abstract class AbstractRefactoringHelpersService<TPropertyDeclaration, TParameter, TMethodDeclaration, TLocalDeclaration> : IRefactoringHelpersService
+    internal abstract class AbstractRefactoringHelpersService<TPropertyDeclaration, TParameter, TMethodDeclaration, TLocalDeclaration, TLocalFunctionStatementSyntax> : IRefactoringHelpersService
         where TPropertyDeclaration : SyntaxNode
         where TParameter : SyntaxNode
         where TMethodDeclaration : SyntaxNode
         where TLocalDeclaration : SyntaxNode
+        where TLocalFunctionStatementSyntax : SyntaxNode
     {
         public async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
             Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
@@ -442,6 +443,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             if (syntaxFacts.IsInMethodHeader(node))
             {
                 yield return node.GetAncestorOrThis<TMethodDeclaration>();
+            }
+
+            if (syntaxFacts.IsInLocalFunctionHeader(node, syntaxFacts))
+            {
+                yield return node.GetAncestorOrThis<TLocalFunctionStatementSyntax>();
             }
         }
     }
