@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageServerClient
 {
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Export(typeof(ILanguageClient))]
-    [ExportMetadata("Capability", "workspace/beginSymbol")]
+    [ExportMetadata("Capability", "WorkspaceStreamingSymbolProvider")]
     internal class CSharpLanguageServerClient : ILanguageClient
     {
         /// <summary>

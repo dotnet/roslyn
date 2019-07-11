@@ -33,28 +33,40 @@ namespace Microsoft.CodeAnalysis.Remote
         public int WorkspaceBeginSymbol(string query, CancellationToken cancellationToken)
         {
             int searchId = searchIds++;
-            Task.Run(async () =>
-            {
-                using (UserOperationBooster.Boost())
-                {
-                    foreach (var project in SolutionService.PrimaryWorkspace.CurrentSolution.Projects)
-                    {
-                        var result = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                            project, ImmutableArray<Document>.Empty, query, KindsProvided, cancellationToken).ConfigureAwait(false);
-
-                        SymbolInformation[] convertedResults = await Convert(result, cancellationToken).ConfigureAwait(false);
-
-                        await InvokeAsync(
-                            MSLSPMethods.WorkspacePublishSymbolName,
-                            new object[] { new MSLSPPublishSymbolParams() { SearchId = searchId, Symbols = convertedResults } },
-                            cancellationToken).ConfigureAwait(false);
-                    }
-                }
-
-                await InvokeAsync(MSLSPMethods.WorkspaceCompleteSymbolName, new object[] { searchId }, cancellationToken).ConfigureAwait(false);
-            });
-
+            // Fire and forget
+            SearchAsync(query, searchId, cancellationToken).ConfigureAwait(false);
             return searchId;
+        }
+
+        private async Task SearchAsync(string query, int searchId, CancellationToken cancellationToken)
+        {
+            using (UserOperationBooster.Boost())
+            {
+                foreach (var project in SolutionService.PrimaryWorkspace.CurrentSolution.Projects)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
+                    var result = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
+                        project, ImmutableArray<Document>.Empty, query, KindsProvided, cancellationToken).ConfigureAwait(false);
+
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
+                    SymbolInformation[] convertedResults = await Convert(result, cancellationToken).ConfigureAwait(false);
+
+                    await InvokeAsync(
+                        MSLSPMethods.WorkspacePublishSymbolName,
+                        new object[] { new MSLSPPublishSymbolParams() { SearchId = searchId, Symbols = convertedResults } },
+                        cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            await InvokeAsync(MSLSPMethods.WorkspaceCompleteSymbolName, new object[] { searchId }, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<SymbolInformation[]> Convert(ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken)
