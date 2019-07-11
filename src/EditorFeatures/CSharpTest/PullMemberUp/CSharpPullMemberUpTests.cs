@@ -2270,25 +2270,29 @@ namespace PushUpTest
         #region Selections and caret position
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
-        public async Task TestNoRefactoringCaretInArgs()
+        public async Task TestArgsIsPartOfHeader()
         {
-            var input = @"
+            var testText = @"
+using System;
+
 namespace PushUpTest
 {
+    class TestAttribute : Attribute { }
+    class Test2Attribute : Attribute { }
     public class A
-    { 
+    {
     }
 
     public class B : A
     {
+        [Test]
+        [Test2]
         void C([||])
         {
-
         }
     }
 }";
-
-            await TestQuickActionNotProvidedAsync(input);
+            await TestQuickActionNotProvidedAsync(testText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
