@@ -14545,7 +14545,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected disable, restore or enable.
+        ///   Looks up a localized string similar to Expected &apos;disable&apos; or &apos;restore&apos;.
         /// </summary>
         internal static string WRN_IllegalPPWarning {
             get {
@@ -14554,7 +14554,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected disable, restore or enable after #pragma warning.
+        ///   Looks up a localized string similar to Expected &apos;disable&apos; or &apos;restore&apos; after #pragma warning.
         /// </summary>
         internal static string WRN_IllegalPPWarning_Title {
             get {
