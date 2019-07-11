@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             var clientCapabilities = CreateClientCapabilitiesWithExperimentalValue("supportsWorkspaceEdits", JToken.FromObject(false));
 
             var results = await RunCodeActionsAsync(solution, locations["caret"].Single(), clientCapabilities);
-            var useImplicitTypeResult = results.Where(r => r.Title == CSharpFeaturesResources.Use_implicit_type).Single();
+            var useImplicitTypeResult = results.Single(r => r.Title == CSharpFeaturesResources.Use_implicit_type);
             AssertJsonEquals(expected, useImplicitTypeResult);
         }
 

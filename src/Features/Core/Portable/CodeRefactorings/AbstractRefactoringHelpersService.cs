@@ -197,7 +197,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // closest token/Node. Thus, we move the location to the token in whose `.FullSpan` the original location was.
             if (tokenToLeft == default && tokenToRightOrIn == default)
             {
-
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -375,6 +374,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // `var a = b`;
             if (syntaxFacts.IsLocalDeclarationStatement(node))
             {
+                // Check if there's only one variable being declared, otherwise following transformation
+                // would go through which isn't reasonable since we can't say the first one specifically
+                // is wanted.
+                // `var a = 1, `c = 2, d = 3`;
+                // -> `var a = 1`, c = 2, d = 3;
                 var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(node);
                 if (variables.Count == 1)
                 {
@@ -400,6 +404,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // -> `var a = b`;
             if (node.Parent != null && syntaxFacts.IsLocalDeclarationStatement(node.Parent))
             {
+                // Check if there's only one variable being declared, otherwise following transformation
+                // would go through which isn't reasonable. If there's specifically selected just one, 
+                // we don't want to return LocalDeclarationStatement that contains multiple.
+                // var a = 1, `c = 2`, d = 3;
+                // -> `var a = 1, c = 2, d = 3`;
                 if (syntaxFacts.GetVariablesOfLocalDeclarationStatement(node.Parent).Count == 1)
                 {
                     yield return node.Parent;
