@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         <Extension()>
         Friend Function IsSameType(t1 As TypeSymbol, t2 As TypeSymbol, compareKind As TypeCompareKind) As Boolean
-            Debug.Assert((compareKind And Not (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)) = 0)
+            ' Debug.Assert((compareKind And Not (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)) = 0) TODO: re-enable this assert
 
             If t1 Is t2 Then
                 Return True

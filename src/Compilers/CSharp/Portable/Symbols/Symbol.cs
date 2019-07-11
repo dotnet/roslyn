@@ -600,6 +600,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Equals((object)other);
         }
 
+        public bool Equals(ISymbol other, IEqualityComparer<ISymbol> equalityComparer)
+        {
+            // break the world.
+            return equalityComparer.Equals(this, other);
+        }
+
         // By default, we do reference equality. This can be overridden.
         public override int GetHashCode()
         {

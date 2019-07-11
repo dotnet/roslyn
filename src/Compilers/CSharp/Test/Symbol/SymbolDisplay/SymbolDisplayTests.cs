@@ -5327,7 +5327,7 @@ class C
                 throw new NotImplementedException();
             }
 
-            public bool Equals(ITypeSymbol other, TypeSymbolEqualityComparer equalityComparer)
+            public bool Equals(ISymbol other, IEqualityComparer<ISymbol> equalityComparer)
             {
                 throw new NotImplementedException();
             }

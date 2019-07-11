@@ -26,6 +26,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' to the C# version.
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+
+        Public Overloads Function Equals(other As ISymbol, equalityComparer As IEqualityComparer(Of ISymbol)) As Boolean Implements ISymbol.Equals
+            Return equalityComparer.Equals(Me, other)
+        End Function
+
         ''' <summary>
         ''' Gets the name of this symbol.
         ''' </summary>

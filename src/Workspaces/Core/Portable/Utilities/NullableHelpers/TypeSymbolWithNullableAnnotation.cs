@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis
                 return this.Equals(obj as ISymbol);
             }
 
+            //TODO: fix this
             public bool Equals(ITypeSymbol other, TypeSymbolEqualityComparer equalityComparer)
             {
                 if (other is TypeSymbolWithNullableAnnotation otherWrappingSymbol)
@@ -64,6 +65,12 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
+            }
+
+            public bool Equals(ISymbol other, IEqualityComparer<ISymbol> equalityComparer)
+            {
+                //TODO: this
+                return equalityComparer.Equals(this, other);
             }
 
             public override int GetHashCode()

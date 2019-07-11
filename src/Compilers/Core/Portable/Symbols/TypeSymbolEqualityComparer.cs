@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// TODO
     /// </summary>
-    public sealed class TypeSymbolEqualityComparer : IEqualityComparer<ITypeSymbol>
+    public sealed class TypeSymbolEqualityComparer : IEqualityComparer<ISymbol>
     {
         /// <summary>
         /// Compares two types based on the default comparison rules, equivalent to calling <see cref="IEquatable{ISymbol}.Equals(ISymbol)"/>
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="x">The first type to compare</param>
         /// <param name="y">The second type to compare</param>
         /// <returns>True if the types are equivalent</returns>
-        public bool Equals(ITypeSymbol x, ITypeSymbol y)
+        public bool Equals(ISymbol x, ISymbol y)
         {
             if (x is null)
             {
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public int GetHashCode(ITypeSymbol obj)
+        public int GetHashCode(ISymbol obj)
         {
             return obj.GetHashCode();
         }

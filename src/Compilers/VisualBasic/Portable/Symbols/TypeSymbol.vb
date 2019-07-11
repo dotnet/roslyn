@@ -333,9 +333,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return left.IsSameType(right, comparison)
         End Function
 
-        Public Overloads Function Equals(other As ITypeSymbol, equalityComparer As TypeSymbolEqualityComparer) As Boolean Implements ITypeSymbol.Equals
-            Return equalityComparer.Equals(Me, other)
-        End Function
 
         Public Overloads Function Equals(other As ITypeSymbol, comparison As TypeCompareKind) As Boolean Implements ITypeSymbolComparable.Equals
             Dim typeSymbol As TypeSymbol = TryCast(other, TypeSymbol)

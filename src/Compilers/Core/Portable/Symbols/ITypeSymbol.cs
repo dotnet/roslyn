@@ -165,14 +165,6 @@ namespace Microsoft.CodeAnalysis
             NullableFlowState topLevelNullability,
             int position,
             SymbolDisplayFormat format = null);
-
-        /// <summary>
-        /// Determines if this type symbol represents the same type as another, according to the rules of the provided <see cref="TypeSymbolEqualityComparer"/>
-        /// </summary>
-        /// <param name="other">The other symbol to compare against</param>
-        /// <param name="equalityComparer">The <see cref="TypeSymbolEqualityComparer"/> to use when comparing symbols</param>
-        /// <returns>True if the types are equivalent.</returns>
-        bool Equals(ITypeSymbol other, TypeSymbolEqualityComparer equalityComparer);
     }
 
     // Intentionally not extension methods. We don't want them ever be called for symbol classes
