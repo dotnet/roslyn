@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.ContentType
         [Export]
         [Name(ContentTypeNames.CSharpContentType)]
         [BaseDefinition(ContentTypeNames.RoslynContentType)]
-        [BaseDefinition("code-languageserver-base")]
         public static readonly ContentTypeDefinition CSharpContentTypeDefinition;
 
         [Export]

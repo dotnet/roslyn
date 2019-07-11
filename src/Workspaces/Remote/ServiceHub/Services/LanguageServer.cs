@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.Remote
             // setup. 
             // we also wires given json converters when creating JsonRpc so that razor or SBD can register
             // their own converter when they create their own service
-            Debugger.Launch();
             _rpc = stream.CreateStreamJsonRpc(target: this, Logger, SpecializedCollections.EmptyEnumerable<JsonConverter>());
             _rpc.Disconnected += OnRpcDisconnected;
 

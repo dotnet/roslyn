@@ -18,6 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageServerClient
 {
     [ContentType("CSharp")]
     [Export(typeof(ILanguageClient))]
+    [ExportMetadata("Capability", "workspace/beginSymbol")]
     internal class CSharpLanguageServerClient : ILanguageClient
     {
         public string Name => "C# Language Server Client";
