@@ -7855,11 +7855,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Out parameter &apos;{0}&apos; cannot be null-checked..
+        ///   Looks up a localized string similar to By-reference parameter &apos;{0}&apos; cannot be null-checked..
         /// </summary>
-        internal static string ERR_NullCheckingOnOutParameter {
+        internal static string ERR_NullCheckingOnByRefParameter {
             get {
-                return ResourceManager.GetString("ERR_NullCheckingOnOutParameter", resourceCulture);
+                return ResourceManager.GetString("ERR_NullCheckingOnByRefParameter", resourceCulture);
             }
         }
         

@@ -302,9 +302,9 @@
         <target state="new">The 'notnull' constraint must come before any other constraints</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NullCheckingOnOutParameter">
-        <source>Out parameter '{0}' cannot be null-checked.</source>
-        <target state="new">Out parameter '{0}' cannot be null-checked.</target>
+      <trans-unit id="ERR_NullCheckingOnByRefParameter">
+        <source>By-reference parameter '{0}' cannot be null-checked.</source>
+        <target state="new">By-reference parameter '{0}' cannot be null-checked.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">

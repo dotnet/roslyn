@@ -1728,7 +1728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MustNullCheckInImplementation = 8717,
         ERR_NonNullableValueTypeIsNullChecked = 8718,
         WRN_NullCheckedHasDefaultNull = 8719,
-        ERR_NullCheckingOnOutParameter = 8720,
+        ERR_NullCheckingOnByRefParameter = 8720,
         WRN_NullCheckingOnNullableValueType = 8721,
         #endregion diagnostics introduced for C# 8.0
 
