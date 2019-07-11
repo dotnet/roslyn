@@ -5916,4 +5916,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureNotNullGenericTypeConstraint" xml:space="preserve">
     <value>notnull generic type constraint</value>
   </data>
+  <data name="ERR_DuplicateNullSuppression" xml:space="preserve">
+    <value>Duplicate null suppression operator ('!')</value>
+  </data>
 </root>
