@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail">
         <source>Operation is not ready for "{0}" yet. See bottom left corner for more details.</source>
-        <target state="new">Operation is not ready for "{0}" yet. See bottom left corner for more details.</target>
+        <target state="translated">L'opération n'est pas encore prête pour "{0}". Pour plus d'informations, regardez en bas à gauche.</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
         <source>The symbol has no base.</source>
-        <target state="new">The symbol has no base.</target>
+        <target state="translated">Le symbole n'a pas de base.</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
@@ -334,7 +334,7 @@
       </trans-unit>
       <trans-unit id="_0_bases">
         <source>'{0}' bases</source>
-        <target state="new">'{0}' bases</target>
+        <target state="translated">'{0}' bases</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
@@ -894,7 +894,7 @@
       </trans-unit>
       <trans-unit id="The_triggerSpan_is_not_included_in_the_given_workspace">
         <source>The triggerSpan is not included in the given workspace.</source>
-        <target state="translated">TriggerSpan n'est pas inclus dans l'espace de travail donné.</target>
+        <target state="translated">triggerSpan n'est pas inclus dans l'espace de travail donné.</target>
         <note />
       </trans-unit>
       <trans-unit id="This_session_has_already_been_dismissed">
@@ -1307,6 +1307,26 @@ Voulez-vous continuer ?</target>
       <trans-unit id="Smart_Token_Formatter">
         <source>Smart Token Formatter</source>
         <target state="translated">Formateur de jeton intelligent</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_block_comment">
+        <source>Toggling block comment...</source>
+        <target state="translated">Activation/désactivation du commentaire de bloc...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Block_Comment">
+        <source>Toggle Block Comment</source>
+        <target state="translated">Activer/désactiver le commentaire de bloc</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_line_comment">
+        <source>Toggling line comment...</source>
+        <target state="translated">Activation/désactivation du commentaire de ligne...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Line_Comment">
+        <source>Toggle Line Comment</source>
+        <target state="translated">Activer/désactiver le commentaire de ligne</target>
         <note />
       </trans-unit>
     </body>
