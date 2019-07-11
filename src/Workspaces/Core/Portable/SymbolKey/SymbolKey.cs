@@ -4,11 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -186,21 +184,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public override string ToString()
             => _symbolKeyData;
-
-        private static IEnumerable<ISymbol> GetAllSymbols(SymbolKeyResolution info)
-        {
-            if (info.Symbol != null)
-            {
-                yield return info.Symbol;
-            }
-            else
-            {
-                foreach (var symbol in info.CandidateSymbols)
-                {
-                    yield return symbol;
-                }
-            }
-        }
 
         //private static IEnumerable<TType> GetAllSymbols<TType>(SymbolKeyResolution info)
         //    => GetAllSymbols(info).OfType<TType>();
