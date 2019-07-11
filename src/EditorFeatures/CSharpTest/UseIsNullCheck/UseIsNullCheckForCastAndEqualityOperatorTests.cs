@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestEquality()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -48,7 +48,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestEqualitySwapped()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -74,7 +74,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestNotEquality()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -100,7 +100,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestNotEqualitySwapped()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -158,7 +158,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestFixAll1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -190,7 +190,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestFixAllNested1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -216,7 +216,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestTrivia1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -242,7 +242,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestTrivia2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -268,7 +268,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestConstrainedTypeParameter()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -310,7 +310,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestComplexExpr()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C

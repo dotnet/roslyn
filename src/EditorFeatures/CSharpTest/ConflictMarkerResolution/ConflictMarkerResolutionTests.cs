@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConflictMarkerResolutio
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestTakeTop1()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -63,7 +63,7 @@ namespace N
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestTakeBottom1()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -108,7 +108,7 @@ namespace N
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestTakeBoth1()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -161,7 +161,7 @@ namespace N
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestEmptyTop_TakeTop()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -190,7 +190,7 @@ namespace N
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestEmptyTop_TakeBottom()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -227,7 +227,7 @@ namespace N
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestEmptyBottom_TakeTop()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -264,7 +264,7 @@ namespace N
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestEmptyBottom_TakeBottom()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -293,7 +293,7 @@ namespace N
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestTakeTop_WhitespaceInSection()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -342,7 +342,7 @@ namespace N
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestTakeBottom1_WhitespaceInSection()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -391,7 +391,7 @@ namespace N
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestTakeBoth_WhitespaceInSection()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 

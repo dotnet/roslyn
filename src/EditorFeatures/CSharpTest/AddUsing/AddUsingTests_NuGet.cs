@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
                 NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     [|NuGetType|] n;
@@ -97,7 +97,7 @@ class C
                 NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")));
 
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     [|NuGetType|] n;
@@ -196,7 +196,7 @@ parameters: new TestParameters(index: 2, fixProviderData: data));
                 NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     [|NuGetType|] n;
@@ -229,7 +229,7 @@ class C
             packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     [|NuGetType|] n;
@@ -263,7 +263,7 @@ class C
             packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     [|NuGetType|] n;

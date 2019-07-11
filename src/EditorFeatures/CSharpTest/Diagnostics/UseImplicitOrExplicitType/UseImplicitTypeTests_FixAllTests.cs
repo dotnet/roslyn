@@ -122,7 +122,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegular73AndScriptAsync(input, expected, options: ImplicitTypeEverywhere());
+            await TestInRegularAndScriptAsync(input, expected, options: ImplicitTypeEverywhere());
         }
 
         [Fact]
@@ -236,7 +236,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegular73AndScriptAsync(input, expected, options: ImplicitTypeEverywhere());
+            await TestInRegularAndScriptAsync(input, expected, options: ImplicitTypeEverywhere());
         }
 
         [Fact]
@@ -350,7 +350,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegular73AndScriptAsync(input, expected, options: ImplicitTypeEverywhere());
+            await TestInRegularAndScriptAsync(input, expected, options: ImplicitTypeEverywhere());
         }
 
         [Fact]
@@ -400,7 +400,7 @@ class Program
     </Project>
 </Workspace>";
 
-            await TestInRegular73AndScriptAsync(input, expected, options: ImplicitTypeButKeepIntrinsics());
+            await TestInRegularAndScriptAsync(input, expected, options: ImplicitTypeButKeepIntrinsics());
         }
 
         #endregion

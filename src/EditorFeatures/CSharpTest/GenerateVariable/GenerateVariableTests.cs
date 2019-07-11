@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestSimpleLowercaseIdentifier1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestSimpleLowercaseIdentifier2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -97,7 +97,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestTestSimpleLowercaseIdentifier3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -120,7 +120,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestSimpleUppercaseIdentifier1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -142,7 +142,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestSimpleUppercaseIdentifier2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -165,7 +165,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestSimpleUppercaseIdentifier3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -188,7 +188,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestSimpleRead1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method(int i)
@@ -210,7 +210,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestSimpleReadWithTopLevelNullability()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"#nullable enable
 
 class Class
@@ -236,7 +236,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestSimpleReadWithNestedNullability()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"#nullable enable
 
 using System.Collections.Generic;
@@ -300,7 +300,7 @@ new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), str
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestSimpleWrite1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method(int i)
@@ -322,7 +322,7 @@ new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), str
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestSimpleWrite2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method(int i)
@@ -345,7 +345,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInRef()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method(ref int i)
@@ -367,7 +367,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInRef()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 class Class
@@ -393,7 +393,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInIn()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 class Class
@@ -419,7 +419,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInRef1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method(ref int i)
@@ -455,7 +455,7 @@ new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), str
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInOut1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method(out int i)
@@ -477,7 +477,7 @@ new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), str
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateInStaticMember1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     static void Method()
@@ -499,7 +499,7 @@ new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), str
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateInStaticMember2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     static void Method()
@@ -522,7 +522,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateInStaticMember3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     static void Method()
@@ -545,7 +545,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateOffInstance1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -567,7 +567,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateOffInstance2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -590,7 +590,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateOffInstance3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -613,7 +613,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateOffWrittenInstance1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -635,7 +635,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateOffWrittenInstance2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -658,7 +658,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateOffStatic1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -680,7 +680,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateOffStatic2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -703,7 +703,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateOffStatic3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -726,7 +726,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateOffWrittenStatic1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -748,7 +748,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateOffWrittenStatic2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -771,7 +771,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateInstanceIntoSibling1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -800,7 +800,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateInstanceIntoOuter1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Outer
 {
     class Class
@@ -828,7 +828,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateInstanceIntoDerived1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class : Base
 {
     void Method(Base b)
@@ -857,7 +857,7 @@ class Base
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateStaticIntoDerived1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class : Base
 {
     void Method(Base b)
@@ -904,7 +904,7 @@ count: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateIntoInterface1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method(I i)
@@ -933,7 +933,7 @@ interface I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateIntoInterface2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method(I i)
@@ -997,7 +997,7 @@ count: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateWriteIntoInterface1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method(I i)
@@ -1026,7 +1026,7 @@ interface I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateInGenericType()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class<T>
 {
     void Method(T t)
@@ -1048,7 +1048,7 @@ interface I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateInGenericMethod1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method<T>(T t)
@@ -1070,7 +1070,7 @@ interface I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateInGenericMethod2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method<T>(IList<T> t)
@@ -1092,7 +1092,7 @@ interface I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldBeforeFirstField()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     int i;
@@ -1117,7 +1117,7 @@ interface I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldAfterLastField()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -1142,7 +1142,7 @@ interface I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyAfterLastField1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     int Bar;
@@ -1168,7 +1168,7 @@ interface I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyAfterLastField2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -1194,7 +1194,7 @@ interface I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyBeforeFirstProperty()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     int Quux { get; }
@@ -1219,7 +1219,7 @@ interface I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyBeforeFirstPropertyEvenWithField1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     int Bar;
@@ -1248,7 +1248,7 @@ interface I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyAfterLastPropertyEvenWithField2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     int Quux { get; }
@@ -1504,7 +1504,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInSimpleLambda()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -1530,7 +1530,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInParenthesizedLambda()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -1557,7 +1557,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInAsyncTaskOfTSimpleLambda()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -1586,7 +1586,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInAsyncTaskOfTParenthesizedLambda()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -1615,7 +1615,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFromLambda()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method(int i)
@@ -1643,7 +1643,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateInMethodOverload1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method(int i)
@@ -1667,7 +1667,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateInMethodOverload2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method(int i)
@@ -1690,7 +1690,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestExplicitProperty1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class : ITest
 {
     bool ITest.[|SomeProp|] { get; set; }
@@ -1714,7 +1714,7 @@ interface ITest
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestExplicitProperty2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class : ITest
 {
     bool ITest.[|SomeProp|] { }
@@ -1738,7 +1738,7 @@ interface ITest
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestExplicitProperty3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class : ITest
 {
     bool ITest.[|SomeProp|] { }
@@ -1793,7 +1793,7 @@ interface ITest
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestEscapedName()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -1816,7 +1816,7 @@ interface ITest
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestEscapedKeyword()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -1839,7 +1839,7 @@ interface ITest
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestRefLambda()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -1876,7 +1876,7 @@ interface ITest
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNameSimplification()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"namespace TestNs
 {
     class Program
@@ -1911,7 +1911,7 @@ interface ITest
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPostIncrement()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -1934,7 +1934,7 @@ interface ITest
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPreDecrement()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -1980,7 +1980,7 @@ parseOptions: Options.Script);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task BugFix5565()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -2011,7 +2011,7 @@ class Program
         [Fact(Skip = "Tuples"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task BugFix5538()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -2043,7 +2043,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task BugFix5697()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C { }
 class D
 {
@@ -2081,7 +2081,7 @@ class D
 }",
 new[] { string.Format(FeaturesResources.Generate_field_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_property_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_local_0, "p"), string.Format(FeaturesResources.Generate_parameter_0, "p") });
 
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main()
@@ -2118,7 +2118,7 @@ new[] { string.Format(FeaturesResources.Generate_field_1_0, "p", "Program"), str
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestOnLeftOfDot()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main()
@@ -2203,7 +2203,7 @@ parseOptions: null);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestReferenceTypeParameter1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C<T>
 {
     public void Test()
@@ -2233,7 +2233,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestReferenceTypeParameter2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C<T>
 {
     public void Test()
@@ -2283,7 +2283,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestForeachVar()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2358,7 +2358,7 @@ parseOptions: null);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestDelegateInvoke()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -2387,7 +2387,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestComplexAssign1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -2410,7 +2410,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestComplexAssign2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -2433,7 +2433,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestTypeNamedVar()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -2468,7 +2468,7 @@ class var
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestStaticExtensionMethodArgument()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -2511,7 +2511,7 @@ static class MyExtension
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task AddBlankLineBeforeCommentBetweenMembers1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     //method
@@ -2536,7 +2536,7 @@ static class MyExtension
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task AddBlankLineBeforeCommentBetweenMembers2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     //method
@@ -2562,7 +2562,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task AddBlankLineBetweenMembers1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -2586,7 +2586,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task AddBlankLineBetweenMembers2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -2610,7 +2610,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task DontAddBlankLineBetweenFields()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     private static int P;
@@ -2639,7 +2639,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task DontAddBlankLineBetweenAutoProperties()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     public static int P { get; private set; }
@@ -2668,7 +2668,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestIntoEmptyClass()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C { }
 class D
 {
@@ -2717,7 +2717,7 @@ parseOptions: Options.Script);
 Initial,
 count: 1);
 
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 Initial,
 @"class C
 {   
@@ -2732,7 +2732,7 @@ Initial,
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFromAttributeNamedArgument1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class ProgramAttribute : Attribute
@@ -2759,7 +2759,7 @@ class ProgramAttribute : Attribute
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFromAttributeNamedArgument2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class ProgramAttribute : Attribute
@@ -3379,7 +3379,7 @@ parseOptions: null);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestAnonymousObjectInitializer1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -3483,7 +3483,7 @@ class DogBed : Goo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyOnObjectInitializer()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Goo
 {
 }
@@ -3513,7 +3513,7 @@ class Bar
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyOnNestedObjectInitializer()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"public class Inner
 {
 }
@@ -3540,7 +3540,7 @@ public class Outer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyOnObjectInitializer1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Goo
 {
 }
@@ -3569,7 +3569,7 @@ class Bar
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyOnObjectInitializer2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Goo
 {
 }
@@ -3599,7 +3599,7 @@ class Bar
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestFieldOnObjectInitializer()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Goo
 {
 }
@@ -3629,7 +3629,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestFieldOnObjectInitializer1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Goo
 {
 }
@@ -3659,7 +3659,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestFieldOnObjectInitializer2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Goo
 {
 }
@@ -3708,7 +3708,7 @@ class Bar
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateLocalInObjectInitializerValue()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Goo
 {
 }
@@ -3776,7 +3776,7 @@ class Class1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPointerType()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static int x;
@@ -3832,7 +3832,7 @@ class Class1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestExpressionTLambda()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Linq.Expressions;
 
@@ -3879,7 +3879,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInReturnStatement()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -3901,7 +3901,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestLocal1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -3931,7 +3931,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestLocalTopLevelNullability()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"#nullable enable
 
 class Program
@@ -3965,7 +3965,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestLocalNestedNullability()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"#nullable enable
 
 class Program
@@ -4011,7 +4011,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestOutLocal1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -4042,7 +4042,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestLocalBeforeComment()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -4073,7 +4073,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestLocalAfterComment()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -4105,7 +4105,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateIntoVisiblePortion()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 #line hidden
@@ -4156,7 +4156,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateLocalAvailableIfBlockIsNotHidden()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 #line hidden
@@ -4229,7 +4229,7 @@ index: 3, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateLocalNameSimplification()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void goo()
@@ -4267,7 +4267,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestParenthesizedExpression()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -4289,7 +4289,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInSelect()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Linq;
 
 class Program
@@ -4317,7 +4317,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInChecked()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -4341,7 +4341,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInArrayRankSpecifier()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -4363,7 +4363,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInConditional1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main()
@@ -4385,7 +4385,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInConditional2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main()
@@ -4407,7 +4407,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInConditional3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main()
@@ -4429,7 +4429,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInCast()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -4451,7 +4451,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInIf()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -4477,7 +4477,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInSwitch()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -4543,7 +4543,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFromAssign1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -4564,7 +4564,7 @@ index: PropertyIndex, options: ImplicitTypingEverywhere());
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestFuncAssignment()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -4586,7 +4586,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFromAssign1NotAsVar()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -4608,7 +4608,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFromAssign2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -4661,7 +4661,7 @@ class C
 ";
             await TestExactActionSetOfferedAsync(code, new[] { string.Format(FeaturesResources.Generate_local_0, "Bar"), string.Format(FeaturesResources.Generate_parameter_0, "Bar") });
 
-            await TestInRegular73AndScriptAsync(code,
+            await TestInRegularAndScriptAsync(code,
 @"
 class C
 {
@@ -4680,7 +4680,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyFromAttribute()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 [AttributeUsage(AttributeTargets.Class)]
@@ -4710,7 +4710,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNewLinePreservationBeforeInsertingLocal()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 namespace CSharpDemoApp
 {
@@ -4755,7 +4755,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateInGenericMethod_Local()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 class TestClass<T1>
 {
@@ -4796,7 +4796,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateInGenericMethod_Property()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 class TestClass<T1>
 {
@@ -4837,7 +4837,7 @@ class TestClass<T1>
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestWithYieldReturnInMethod()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 
@@ -4865,7 +4865,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestWithYieldReturnInAsyncMethod()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 
@@ -4894,7 +4894,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestWithYieldReturnInLocalFunction()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 
@@ -4929,7 +4929,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestWithThrow()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -4956,7 +4956,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeField()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -4979,7 +4979,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeField2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -5002,7 +5002,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeFieldInUnsafeClass()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"unsafe class Class
 {
     void Method()
@@ -5025,7 +5025,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeFieldInNestedClass()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"unsafe class Class
 {
     class MyClass
@@ -5054,7 +5054,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeFieldInNestedClass2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     unsafe class MyClass
@@ -5083,7 +5083,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeReadOnlyField()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -5107,7 +5107,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeReadOnlyField2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -5131,7 +5131,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeReadOnlyFieldInUnsafeClass()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"unsafe class Class
 {
     void Method()
@@ -5155,7 +5155,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeReadOnlyFieldInNestedClass()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"unsafe class Class
 {
     class MyClass
@@ -5185,7 +5185,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeReadOnlyFieldInNestedClass2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     unsafe class MyClass
@@ -5215,7 +5215,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeProperty()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -5239,7 +5239,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeProperty2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -5263,7 +5263,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafePropertyInUnsafeClass()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"unsafe class Class
 {
     void Method()
@@ -5287,7 +5287,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafePropertyInNestedClass()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"unsafe class Class
 {
     class MyClass
@@ -5317,7 +5317,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafePropertyInNestedClass2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     unsafe class MyClass
@@ -5347,7 +5347,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfProperty()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5370,7 +5370,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfField()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5394,7 +5394,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfReadonlyField()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5418,7 +5418,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfLocal()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5441,7 +5441,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfProperty2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5464,7 +5464,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfField2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5488,7 +5488,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfReadonlyField2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5512,7 +5512,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfLocal2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5535,7 +5535,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfProperty3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5558,7 +5558,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfField3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5582,7 +5582,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfReadonlyField3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5606,7 +5606,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfLocal3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5674,7 +5674,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfProperty4()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5698,7 +5698,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfField4()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5721,7 +5721,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfReadonlyField4()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5745,7 +5745,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfLocal4()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5768,7 +5768,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfProperty5()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5802,7 +5802,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfField5()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5835,7 +5835,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfReadonlyField5()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5869,7 +5869,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfLocal5()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5902,7 +5902,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestConditionalAccessProperty()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void Main(C a)
@@ -5925,7 +5925,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestConditionalAccessField()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void Main(C a)
@@ -5949,7 +5949,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestConditionalAccessReadonlyField()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void Main(C a)
@@ -5973,7 +5973,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestConditionalAccessVarProperty()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void Main(C a)
@@ -5996,7 +5996,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestConditionalAccessVarField()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void Main(C a)
@@ -6020,7 +6020,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestConditionalAccessVarReadOnlyField()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void Main(C a)
@@ -6044,7 +6044,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestConditionalAccessNullableProperty()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void Main(C a)
@@ -6067,7 +6067,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestConditionalAccessNullableField()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void Main(C a)
@@ -6091,7 +6091,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestConditionalAccessNullableReadonlyField()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void Main(C a)
@@ -6115,7 +6115,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInConditionalAccessExpression()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public E B { get; private set; }
@@ -6149,7 +6149,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInConditionalAccessExpression2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public E B { get; private set; }
@@ -6183,7 +6183,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInConditionalAccessExpression3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public E B { get; private set; }
@@ -6217,7 +6217,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInConditionalAccessExpression4()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public E B { get; private set; }
@@ -6251,7 +6251,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInConditionalAccessExpression()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public E B { get; private set; }
@@ -6286,7 +6286,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInConditionalAccessExpression2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public E B { get; private set; }
@@ -6321,7 +6321,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInConditionalAccessExpression3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public E B { get; private set; }
@@ -6356,7 +6356,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInConditionalAccessExpression4()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public E B { get; private set; }
@@ -6391,7 +6391,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateReadonlyFieldInConditionalAccessExpression()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public E B { get; private set; }
@@ -6426,7 +6426,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateReadonlyFieldInConditionalAccessExpression2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public E B { get; private set; }
@@ -6461,7 +6461,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateReadonlyFieldInConditionalAccessExpression3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public E B { get; private set; }
@@ -6496,7 +6496,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateReadonlyFieldInConditionalAccessExpression4()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public E B { get; private set; }
@@ -6530,7 +6530,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInPropertyInitializers()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6556,7 +6556,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateReadonlyFieldInPropertyInitializers()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6583,7 +6583,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInPropertyInitializers()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6609,7 +6609,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInExpressionBodiedProperty()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     public int Y => [|y|];
@@ -6625,7 +6625,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateReadonlyFieldInExpressionBodiedProperty()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     public int Y => [|y|];
@@ -6642,7 +6642,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInExpressionBodiedProperty()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     public int Y => [|y|];
@@ -6659,7 +6659,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInExpressionBodiedOperator()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public static C operator --(C p) => [|x|];
@@ -6675,7 +6675,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateReadOnlyFieldInExpressionBodiedOperator()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public static C operator --(C p) => [|x|];
@@ -6692,7 +6692,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInExpressionBodiedOperator()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public static C operator --(C p) => [|x|];
@@ -6709,7 +6709,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInExpressionBodiedMethod()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public static C GetValue(C p) => [|x|];
@@ -6725,7 +6725,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateReadOnlyFieldInExpressionBodiedMethod()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public static C GetValue(C p) => [|x|];
@@ -6742,7 +6742,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInExpressionBodiedMethod()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public static C GetValue(C p) => [|x|];
@@ -6760,7 +6760,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInExpressionBodiedAsyncTaskOfTMethod()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public static async System.Threading.Tasks.Task<C> GetValue(C p) => [|x|];
@@ -6777,7 +6777,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInDictionaryInitializer()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -6803,7 +6803,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInDictionaryInitializer()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -6829,7 +6829,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInDictionaryInitializer2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -6855,7 +6855,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateReadOnlyFieldInDictionaryInitializer()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -6882,7 +6882,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInDictionaryInitializer3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -6909,7 +6909,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateReadOnlyFieldInDictionaryInitializer2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -6936,7 +6936,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInDictionaryInitializer2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -6963,7 +6963,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateReadOnlyFieldInDictionaryInitializer3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -6990,7 +6990,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInDictionaryInitializer3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -7017,7 +7017,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateLocalInDictionaryInitializer()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -7043,7 +7043,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateLocalInDictionaryInitializer2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -7069,7 +7069,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateLocalInDictionaryInitializer3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -7095,7 +7095,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateVariableFromLambda()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -7125,7 +7125,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateVariableFromLambda2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -7156,7 +7156,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateVariableFromLambda3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -7187,7 +7187,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerationFromStaticProperty_Field()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 public class Test
@@ -7220,7 +7220,7 @@ public class Test
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerationFromStaticProperty_ReadonlyField()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 public class Test
@@ -7254,7 +7254,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerationFromStaticProperty_Property()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 public class Test
@@ -7288,7 +7288,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerationFromStaticProperty_Local()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 public class Test
@@ -7321,7 +7321,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestSameNameAsInstanceVariableInContainingType()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Outer
 {
     int _field;
@@ -7385,7 +7385,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TupleRead()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method((int, string) i)
@@ -7407,7 +7407,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TupleWithOneNameRead()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method((int a, string) i)
@@ -7429,7 +7429,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TupleWrite()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -7451,7 +7451,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TupleWithOneNameWrite()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -7473,7 +7473,7 @@ index: LocalIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TupleRefReturnProperties()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 class C
@@ -7499,7 +7499,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TupleRefWithField()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 class C
@@ -7526,7 +7526,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestWithMatchingTypeName1()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -7555,7 +7555,7 @@ public class Goo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestWithMatchingTypeName2()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -7605,7 +7605,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPreferReadOnlyIfAfterReadOnlyAssignment()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     private readonly int _goo;
@@ -7632,7 +7632,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPreferReadOnlyIfBeforeReadOnlyAssignment()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     private readonly int _goo;
@@ -7660,7 +7660,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateReadOnlyPropertyInConstructor()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     public Class()
@@ -7682,7 +7682,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPlaceFieldBasedOnSurroundingStatements()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     private int _goo;
@@ -7713,7 +7713,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPlaceFieldBasedOnSurroundingStatements2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     private int goo;
@@ -7744,7 +7744,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPlacePropertyBasedOnSurroundingStatements()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     public int Goo { get; }
@@ -7791,7 +7791,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestOnNonGenericExpressionWithLessThan()
         {
-            await TestInRegular73AndScriptAsync(@"
+            await TestInRegularAndScriptAsync(@"
 class C
 {
     private void GetEvaluationRuleNames()
@@ -7817,7 +7817,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task GroupNonReadonlyFieldsTogether()
         {
-            await TestInRegular73AndScriptAsync(@"
+            await TestInRegularAndScriptAsync(@"
 class C
 {
     public bool isDisposed;
@@ -7849,7 +7849,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task GroupReadonlyFieldsTogether()
         {
-            await TestInRegular73AndScriptAsync(@"
+            await TestInRegularAndScriptAsync(@"
 class C
 {
     public readonly int x;
@@ -7881,7 +7881,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestWithOutOverload1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -7910,7 +7910,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestWithOutOverload2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -7939,7 +7939,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestWithRefOverload1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -7968,7 +7968,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestWithRefOverload2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -7997,7 +7997,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInExpressionBodiedGetter()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     public int Property
@@ -8020,7 +8020,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInExpressionBodiedGetterWithDifferentAccessibility()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     public int Property
@@ -8045,7 +8045,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateReadonlyFieldInExpressionBodiedGetter()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     public int Property
@@ -8069,7 +8069,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInExpressionBodiedGetter()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     public int Property
@@ -8092,7 +8092,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInExpressionBodiedSetterInferredFromType()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     public int Property
@@ -8115,7 +8115,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInExpressionBodiedLocalFunction()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     public void Method()
@@ -8138,7 +8138,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateReadonlyFieldInExpressionBodiedLocalFunction()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     public void Method()
@@ -8162,7 +8162,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInExpressionBodiedLocalFunction()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     public void Method()
@@ -8186,7 +8186,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInExpressionBodiedAsyncTaskOfTLocalFunction()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     public void Method()
@@ -8210,7 +8210,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInExpressionBodiedLocalFunctionInferredFromType()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     public void Method()
@@ -8233,7 +8233,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInBlockBodiedLocalFunction()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     public void Method()
@@ -8262,7 +8262,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateReadonlyFieldInBlockBodiedLocalFunction()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     public void Method()
@@ -8292,7 +8292,7 @@ index: ReadonlyFieldIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInBlockBodiedLocalFunction()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     public void Method()
@@ -8321,7 +8321,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInBlockBodiedAsyncTaskOfTLocalFunction()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     public void Method()
@@ -8351,7 +8351,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInBlockBodiedLocalFunctionInferredFromType()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     public void Method()
@@ -8380,7 +8380,7 @@ index: PropertyIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInBlockBodiedLocalFunctionInsideLambdaExpression()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 
@@ -8421,7 +8421,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInExpressionBodiedLocalFunctionInsideLambdaExpression()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 
@@ -8456,7 +8456,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestIdentifierInsideLock1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -8483,7 +8483,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestIdentifierInsideLock2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -8510,7 +8510,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestIdentifierInsideLock3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -8537,7 +8537,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInIsPattern1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -8575,7 +8575,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInIsPattern2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -8613,7 +8613,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInIsPattern3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -8661,7 +8661,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInIsPattern4()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -8699,7 +8699,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInIsPattern5()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -8745,7 +8745,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInIsPattern6()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -8783,7 +8783,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInIsPattern7()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -8821,7 +8821,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInIsPattern8()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -8859,7 +8859,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInIsPattern9()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -8897,7 +8897,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInIsPattern10()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -8936,7 +8936,7 @@ class C
         [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInCasePattern1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -8979,7 +8979,7 @@ class C
         [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInCasePattern2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -9021,7 +9021,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInIsSwitchExpression1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -9054,7 +9054,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternGenerateConstant()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -9090,7 +9090,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestAddParameter()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -9110,7 +9110,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestAddParameter_DoesntAddToInterface()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"interface Interface
 {
     void Method();
@@ -9140,7 +9140,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestAddParameterAndOverrides_AddsToInterface()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"interface Interface
 {
     void Method();
@@ -9170,7 +9170,7 @@ class Class : Interface
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestAddParameterIsOfCorrectType()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
     @"class Class
 {
     void Method()
@@ -9194,7 +9194,7 @@ class Class : Interface
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestAddParameterAndOverrides_IsOfCorrectType()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"interface Interface
 {
     void Method();

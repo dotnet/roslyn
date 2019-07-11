@@ -111,7 +111,7 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            await TestInRegular73AndScriptAsync(input, expected);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         [Fact]
@@ -223,7 +223,7 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            await TestInRegular73AndScriptAsync(input, expected);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         [Fact]
@@ -344,7 +344,7 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            await TestInRegular73AndScriptAsync(input, expected, index: 1);
+            await TestInRegularAndScriptAsync(input, expected, index: 1);
         }
 
         [Fact]
@@ -474,7 +474,7 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            await TestInRegular73AndScriptAsync(input, expected, index: 1);
+            await TestInRegularAndScriptAsync(input, expected, index: 1);
         }
 
         #endregion

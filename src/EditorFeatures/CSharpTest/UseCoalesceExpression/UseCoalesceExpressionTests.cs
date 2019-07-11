@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestOnLeft_Equals()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -44,7 +44,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestOnLeft_NotEquals()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -68,7 +68,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestOnRight_Equals()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -92,7 +92,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestOnRight_NotEquals()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -116,7 +116,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestComplexExpression()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -140,7 +140,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestParens1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -164,7 +164,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestParens2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -188,7 +188,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestParens3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -212,7 +212,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestParens4()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -236,7 +236,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestFixAll1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -262,7 +262,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestFixAll2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -286,7 +286,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestFixAll3()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -311,7 +311,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestTrivia1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -340,7 +340,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestInExpressionOfT()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Linq.Expressions;
 
@@ -394,7 +394,7 @@ class C<T> where T : struct
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestClassConstrainedTypeParameter()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C<T> where T : class
 {
@@ -430,7 +430,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestOnArray()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -452,7 +452,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestOnInterface()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -474,7 +474,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestOnDynamic()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {

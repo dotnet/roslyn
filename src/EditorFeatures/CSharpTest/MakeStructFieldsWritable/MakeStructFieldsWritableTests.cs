@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
         public async Task SingleReadonlyField_ThisAssigmentInMethod()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"struct [|MyStruct|]
 {
     public readonly int Value;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
         public async Task SingleReadonlyField_ThisAssigmentInMultipleMethods()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"struct [|MyStruct|]
 {
     public readonly int Value;
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
         public async Task MultipleMixedFields_ThisAssigmentInMethod()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"struct [|MyStruct|]
 {
     public readonly int First;
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
         public async Task MultipleStructDeclaration_SingleReadonlyField_ThisAssigmentInMethod()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"struct MyStruct
 {
     public readonly int Value;
@@ -387,7 +387,7 @@ struct MyStruct2
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
         public async Task NestedStructDeclaration_SingleNestedReadonlyField_ThisAssigmentInMethod()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"struct MyStruct
 {
     public readonly int Value;
@@ -451,7 +451,7 @@ struct MyStruct2
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
         public async Task NestedStructDeclaration_SingleReadonlyField_ThisAssigmentInMethod()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"struct [|MyStruct|]
 {
     public readonly int Value;
@@ -515,7 +515,7 @@ struct MyStruct2
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
         public async Task StructDeclaration_MixedFields_MixedAssigmentsInMethods()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"struct [|MyStruct|]
 {
     public readonly int Value;
@@ -563,7 +563,7 @@ struct MyStruct2
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
         public async Task StructDeclaration_ChangedOrderOfConstructorDeclaration()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"struct [|MyStruct|]
 {
     public readonly int Value;

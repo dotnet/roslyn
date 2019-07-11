@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
         [Fact]
         public async Task Simple()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
         [Fact]
         public async Task Simple_WithTrivia()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     /*A*/ void /*B*/ M()
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
         [Fact]
         public async Task ReturnString()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
         [Fact]
         public async Task ReturnNull()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/33481")]
         public async Task ReturnTypelessTuple()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
         [Fact]
         public async Task ReturnLambda()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
         [Fact]
         public async Task ReturnC()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
         [Fact]
         public async Task ReturnString_AsyncVoid()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     async void M()
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
         [Fact]
         public async Task ReturnString_AsyncVoid_WithUsing()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"
 using System.Threading.Tasks;
 class C
@@ -204,7 +204,7 @@ class C
         [Fact]
         public async Task ReturnString_AsyncTask()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     async System.Threading.Tasks.Task M()
@@ -224,7 +224,7 @@ class C
         [Fact]
         public async Task ReturnString_LocalFunction()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -250,7 +250,7 @@ class C
         [Fact]
         public async Task ReturnString_AsyncVoid_LocalFunction()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -276,7 +276,7 @@ class C
         [Fact]
         public async Task ExpressionBodied()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M() => 1[||];

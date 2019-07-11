@@ -109,7 +109,7 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            await TestInRegular73AndScriptAsync(input, expected);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         [Fact]
@@ -219,7 +219,7 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            await TestInRegular73AndScriptAsync(input, expected);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         [Fact]
@@ -340,7 +340,7 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            await TestInRegular73AndScriptAsync(input, expected);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         [Fact]
@@ -460,7 +460,7 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            await TestInRegular73AndScriptAsync(input, expected);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         #endregion

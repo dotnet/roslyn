@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
         {
             foreach (var version in versions)
             {
-                await TestInRegular73AndScriptAsync(initialMarkup, expectedMarkup,
+                await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup,
                     parseOptions: CSharpParseOptions.Default.WithLanguageVersion(version));
             }
         }

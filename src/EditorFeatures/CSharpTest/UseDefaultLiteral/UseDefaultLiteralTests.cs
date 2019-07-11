@@ -471,7 +471,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
         public async Task TestInSwitchCase_InsideCast()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -533,7 +533,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
         public async Task TestInPatternSwitchCase_InsideCast()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -561,7 +561,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
         public async Task TestInPatternSwitchCase_InsideWhenClause()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -617,7 +617,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
         public async Task TestInPatternIs_InsideCast()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {

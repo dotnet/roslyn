@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [InlineData(nameof(PreferUnusedLocal), "var unused")]
         public async Task ExpressionStatement_NonConstantPrimitiveTypeValue(string optionName, string fix)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -115,7 +115,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal), "var unused")]
         public async Task ExpressionStatement_UserDefinedType(string optionName, string fix)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -294,7 +294,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task ExpressionStatement_UnusedLocal_NameAlreadyUsed()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -320,7 +320,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task ExpressionStatement_UnusedLocal_NameAlreadyUsed_02()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -346,7 +346,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task ExpressionStatement_UnusedLocal_NameAlreadyUsed_03()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int p)
@@ -378,7 +378,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task ExpressionStatement_UnusedLocal_NameAlreadyUsed_04()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int p)
@@ -418,7 +418,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal), "var unused", "var unused", "var unused3")]
         public async Task ExpressionStatement_FixAll(string optionName, string fix1, string fix2, string fix3)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public C()
@@ -458,7 +458,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task ExpressionStatement_Trivia_PreferDiscard_01()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -486,7 +486,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task ExpressionStatement_Trivia_PreferDiscard_02()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -513,7 +513,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task ExpressionStatement_Trivia_PreferUnusedLocal_01()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -541,7 +541,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task ExpressionStatement_Trivia_PreferUnusedLocal_02()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()

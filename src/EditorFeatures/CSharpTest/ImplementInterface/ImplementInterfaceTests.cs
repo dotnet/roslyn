@@ -2441,7 +2441,7 @@ count: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementEventThroughMember()
         {
-            await TestInRegular73AndScriptAsync(@"
+            await TestInRegularAndScriptAsync(@"
 interface IGoo
 {
     event System.EventHandler E;
@@ -2491,7 +2491,7 @@ class HasCanGoo : IGoo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementEventThroughExplicitMember()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"interface IGoo { event System . EventHandler E ; } class CanGoo : IGoo { event IGoo.EventHandler E; } class HasCanGoo : [|IGoo|] { CanGoo canGoo; } ",
 @"using System;
 
@@ -6698,7 +6698,7 @@ class Class : IInterface<(int, string), int>
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestWithGroupingOff1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"interface IInterface
 {
     int Prop { get; }
@@ -6725,7 +6725,7 @@ class Class : IInterface
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDoNotReorderComImportMembers_01()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Runtime.InteropServices;
 
@@ -6778,7 +6778,7 @@ class Class : IComInterface
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDoNotReorderComImportMembers_02()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Runtime.InteropServices;
 
@@ -6815,7 +6815,7 @@ class Class : IComInterface
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestRefReturns()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 
@@ -6855,7 +6855,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestAutoProperties()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"interface IInterface
 {
     int ReadOnlyProp { get; }
@@ -6918,7 +6918,7 @@ class Class : IInterface
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestInWithMethod_Parameters()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"interface ITest
 {
     void Method(in int p);
@@ -6942,7 +6942,7 @@ public class Test : ITest
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestRefReadOnlyWithMethod_ReturnType()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"interface ITest
 {
     ref readonly int Method();
@@ -6966,7 +6966,7 @@ public class Test : ITest
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestRefReadOnlyWithProperty()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"interface ITest
 {
     ref readonly int Property { get; }
@@ -6987,7 +6987,7 @@ public class Test : ITest
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestInWithIndexer_Parameters()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"interface ITest
 {
     int this[in int p] { set; }
@@ -7008,7 +7008,7 @@ public class Test : ITest
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestRefReadOnlyWithIndexer_ReturnType()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"interface ITest
 {
     ref readonly int this[int p] { get; }
@@ -7029,7 +7029,7 @@ public class Test : ITest
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnmanagedConstraint()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"public interface ITest
 {
     void M<T>() where T : unmanaged;
@@ -7875,7 +7875,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNotNullConstraint()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"public interface ITest
 {
     void M<T>() where T : notnull;
@@ -7899,7 +7899,7 @@ public class Test : ITest
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestWithNullableProperty()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"#nullable enable 
 
 public interface ITest
@@ -7940,7 +7940,7 @@ public class Test : [|ITest|]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestWithNullableMethod()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"#nullable enable 
 
 public interface ITest
@@ -7970,7 +7970,7 @@ public class Test : ITest
         {
             // Question whether this is needed,
             // see https://github.com/dotnet/roslyn/issues/36673 
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"#nullable enable 
 
 using System;
@@ -7999,7 +7999,7 @@ public class Test : ITest
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36101"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestWithNullableDisabled()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"#nullable enable 
 
 public interface ITest

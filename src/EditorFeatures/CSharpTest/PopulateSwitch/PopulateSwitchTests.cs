@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task AllMembersExist_NotDefault()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"namespace ConsoleApplication1
 {
     enum MyEnum
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NotAllMembersExist_NotDefault()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"namespace ConsoleApplication1
 {
     enum MyEnum
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NotAllMembersExist_WithDefault()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"namespace ConsoleApplication1
 {
     enum MyEnum
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NotAllMembersExist_NotDefault_EnumHasExplicitType()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"namespace ConsoleApplication1
 {
     enum MyEnum : long
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NotAllMembersExist_WithMembersAndDefaultInSection_NewValuesAboveDefaultSection()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"namespace ConsoleApplication1
 {
     enum MyEnum
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NotAllMembersExist_WithMembersAndDefaultInSection_AssumesDefaultIsInLastSection()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"namespace ConsoleApplication1
 {
     enum MyEnum
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NoMembersExist0()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"namespace ConsoleApplication1
 {
     enum MyEnum
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NoMembersExist1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"namespace ConsoleApplication1
 {
     enum MyEnum
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NoMembersExist2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"namespace ConsoleApplication1
 {
     enum MyEnum
@@ -643,7 +643,7 @@ namespace ConsoleApplication1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task UsingStaticEnum_MembersExist()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using static System.IO.FileMode;
 
 namespace ConsoleApplication1
@@ -703,7 +703,7 @@ namespace ConsoleApplication1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task UsingStaticEnum_NoMembersExist()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using static System.IO.FileMode;
 
 namespace ConsoleApplication1
@@ -753,7 +753,7 @@ namespace ConsoleApplication1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NotAllMembersExist_NotDefault_EnumHasNonFlagsAttribute()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"namespace ConsoleApplication1
 {
     [System.Obsolete]
@@ -811,7 +811,7 @@ namespace ConsoleApplication1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NotAllMembersExist_NotDefault_EnumIsNested()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"namespace ConsoleApplication1
 {
     class MyClass
@@ -892,7 +892,7 @@ namespace ConsoleApplication1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NotAllMembersExist_NotDefault_UsingConstants()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"enum MyEnum
 {
     Fizz,
@@ -943,7 +943,7 @@ class MyClass
         [WorkItem(13455, "https://github.com/dotnet/roslyn/issues/13455")]
         public async Task AllMissingTokens()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
             @"
 enum MyEnum
 {

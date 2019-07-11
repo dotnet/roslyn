@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseClass_NameGetsCapitalized()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class [|c|]
 {
 }",
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [InlineData("M_S__T_", "t_")]
         public async Task TestCamelCaseField_PrefixGetsStripped(string fieldName, string correctedName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 $@"class C
 {{
     int [|{fieldName}|];
@@ -100,7 +100,7 @@ $@"class C
         [InlineData("M_S__T_", "_t_")]
         public async Task TestCamelCaseField_PrefixGetsStrippedBeforeAddition(string fieldName, string correctedName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 $@"class C
 {{
     int [|{fieldName}|];
@@ -143,7 +143,7 @@ $@"class C
     }}
 }}", new TestParameters(options: options.MethodNamesWithAccessibilityArePascalCase(ImmutableArray<Accessibility>.Empty)));
 
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 $@"class C
 {{
     {accessibility} void [|m|]()
@@ -183,7 +183,7 @@ $@"class C
     {camelCaseSymbol}
 }}", new TestParameters(options: options.SymbolKindsArePascalCase(ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind>.Empty)));
 
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 $@"class C
 {{
     {camelCaseSymbol}
@@ -235,7 +235,7 @@ $@"class C
     {camelCaseSymbol}
 }}", new TestParameters(options: options.AccessibilitiesArePascalCase(ImmutableArray.Create(alternateAccessibility))));
 
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 $@"class C
 {{
     {camelCaseSymbol}
@@ -249,7 +249,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_NameGetsCapitalized()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void [|m|]()
@@ -321,7 +321,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseParameters()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public void M(int [|X|])
@@ -340,7 +340,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseLocals_LocalDeclaration1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -361,7 +361,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseLocals_LocalDeclaration2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -382,7 +382,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseLocals_UsingVariable1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -407,7 +407,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseLocals_UsingVariable2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -432,7 +432,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseLocals_ForVariable1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -457,7 +457,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseLocals_ForVariable2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -482,7 +482,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseLocals_ForEachVariable()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -507,7 +507,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseLocals_CatchVariable()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 class C
 {
@@ -578,7 +578,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseLocals_Deconstruction1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -601,7 +601,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseLocals_Deconstruction2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -624,7 +624,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseLocals_ForEachDeconstruction1()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -647,7 +647,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseLocals_ForEachDeconstruction2()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -670,7 +670,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseLocals_OutVariable()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -693,7 +693,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseLocals_PatternVariable()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -805,7 +805,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestUpperCaseConstants_ConstField()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     const int [|field|] = 0;
@@ -820,7 +820,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestUpperCaseConstants_ConstLocal()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -864,7 +864,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseLocalsUpperCaseConstants_ConstLocal()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -885,7 +885,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseLocalsUpperCaseConstants_NonConstLocal()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -906,7 +906,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseLocalFunctions()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -943,7 +943,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestAsyncFunctions_AsyncMethod()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     async void [|M|]()
@@ -962,7 +962,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestAsyncFunctions_AsyncLocalFunction()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -1017,7 +1017,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_InInterfaceWithImplicitImplementation()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"interface I
 {
     void [|m|]();
@@ -1042,7 +1042,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_InInterfaceWithExplicitImplementation()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"interface I
 {
     void [|m|]();
@@ -1097,7 +1097,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_InAbstractType()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 abstract class C
 {
@@ -1140,7 +1140,7 @@ class D : C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseProperty_InInterface()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 interface I
 {

@@ -36,7 +36,7 @@ class Test
     }
 }
 ";
-            await TestInRegular73AndScriptAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
@@ -88,7 +88,7 @@ class Test
     }
 }
 ";
-            await TestInRegular73AndScriptAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
@@ -114,7 +114,7 @@ class Test
     }
 }
 ";
-            await TestInRegular73AndScriptAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
@@ -152,7 +152,7 @@ class Test
     }
 }
 ";
-            await TestInRegular73AndScriptAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
@@ -182,7 +182,7 @@ class Test
     }
 }
 ";
-            await TestInRegular73AndScriptAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
@@ -212,7 +212,7 @@ class Test
     }
 }
 ";
-            await TestInRegular73AndScriptAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
@@ -250,7 +250,7 @@ class Test
     }
 }
 ";
-            await TestInRegular73AndScriptAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
@@ -274,7 +274,7 @@ class Test
     }
 }
 ";
-            await TestInRegular73AndScriptAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
@@ -298,7 +298,7 @@ class Test
     }
 }
 ";
-            await TestInRegular73AndScriptAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
@@ -322,7 +322,7 @@ class Test
     }
 }
 ";
-            await TestInRegular73AndScriptAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
@@ -354,7 +354,7 @@ class Test
     }
 }
 ";
-            await TestInRegular73AndScriptAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
@@ -386,7 +386,7 @@ class Test
     }
 }
 ";
-            await TestInRegular73AndScriptAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
@@ -418,7 +418,7 @@ class Test
     }
 }
 ";
-            await TestInRegular73AndScriptAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
@@ -450,7 +450,7 @@ class Test
     }
 }
 ";
-            await TestInRegular73AndScriptAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
@@ -474,7 +474,7 @@ class Test
     }
 }
 ";
-            await TestInRegular73AndScriptAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
     }
 }

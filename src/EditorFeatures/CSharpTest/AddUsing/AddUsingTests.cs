@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             IDictionary<OptionKey, object> options,
             bool outOfProcess)
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup, index, priority,
                 parameters: new TestParameters(options: options, fixProviderData: outOfProcess));
         }
@@ -4666,7 +4666,7 @@ class C
 }";
             await TestActionCountAsync(code, count: 1);
 
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 code,
 @"
 using System.Collections.Generic;

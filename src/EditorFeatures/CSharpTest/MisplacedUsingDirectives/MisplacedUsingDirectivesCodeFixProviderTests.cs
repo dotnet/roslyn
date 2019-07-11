@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
                 { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredPlacementOption },
                 { new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), placeSystemNamespaceFirst }
             };
-            return TestInRegular73AndScriptAsync(initialMarkup, expectedMarkup, options: options);
+            return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: options);
         }
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)

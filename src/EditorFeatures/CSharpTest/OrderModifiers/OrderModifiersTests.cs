@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task TestClass()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"[|static|] internal class C
 {
 }",
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task TestStruct()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"[|unsafe|] public struct C
 {
 }",
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task TestInterface()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"[|unsafe|] public interface C
 {
 }",
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task TestEnum()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"[|internal|] protected enum C
 {
 }",
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task TestDelegate()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"[|unsafe|] public delegate void D();",
 @"public unsafe delegate void D();");
         }
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task TestMethod()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     [|unsafe|] public void M() { }
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task TestField()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     [|unsafe|] public int a;
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task TestConstructor()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     [|unsafe|] public C() { }
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task TestProperty()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     [|unsafe|] public int P { get; }
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task TestAccessor()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int P { [|internal|] protected get; }
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task TestPropertyEvent()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     [|internal|] protected event Action P { add { } remove { } }
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task TestFieldEvent()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     [|internal|] protected event Action P;
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task TestOperator()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     [|static|] public C operator +(C c1, C c2) { }
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task TestConversionOperator()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     [|static|] public implicit operator bool(C c1) { }
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task TestFixAll1()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"{|FixAllInDocument:static|} internal class C
 {
     static internal class Nested { }
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task TestFixAll2()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"static internal class C
 {
     {|FixAllInDocument:static|} internal class Nested { }
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task TestTrivia1()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"
 /// Doc comment
 [|static|] internal class C
@@ -244,7 +244,7 @@ internal static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task TestTrivia2()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"
 /* start */ [|static|] /* middle */ internal /* end */ class C
 {
@@ -258,7 +258,7 @@ internal static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task TestTrivia3()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"
 #if true
 [|static|] internal class C
@@ -278,7 +278,7 @@ internal static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task PartialAtTheEndClass1()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"[|partial|] public class C { }",
 @"public partial class C { }");
         }
@@ -286,7 +286,7 @@ internal static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task PartialAtTheEndClass2()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"[|partial|] abstract class C { }",
 @"abstract partial class C { }");
         }
@@ -294,7 +294,7 @@ internal static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task PartialAtTheEndClass3()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"[|partial|] sealed class C { }",
 @"sealed partial class C { }");
         }
@@ -302,7 +302,7 @@ internal static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task PartialAtTheEndClass4()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"[|partial|] static class C { }",
 @"static partial class C { }");
         }
@@ -310,7 +310,7 @@ internal static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task PartialAtTheEndClass5()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"[|partial|] unsafe class C { }",
 @"unsafe partial class C { }");
         }
@@ -318,7 +318,7 @@ internal static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task PartialAtTheEndStruct1()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"[|partial|] public struct S { }",
 @"public partial struct S { }");
         }
@@ -326,7 +326,7 @@ internal static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task PartialAtTheEndStruct2()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"[|partial|] unsafe struct S { }",
 @"unsafe partial struct S { }");
         }
@@ -334,7 +334,7 @@ internal static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task PartialAtTheEndInterface()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"[|partial|] public interface I { }",
 @"public partial interface I { }");
         }
@@ -342,7 +342,7 @@ internal static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task PartialAtTheEndMethod1()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"partial class C
 {
     [|partial|] static void M();
@@ -356,7 +356,7 @@ internal static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         public async Task PartialAtTheEndMethod2()
         {
-            await TestInRegular73AndScript1Async(
+            await TestInRegularAndScript1Async(
 @"partial class C
 {
     [|partial|] unsafe void M();

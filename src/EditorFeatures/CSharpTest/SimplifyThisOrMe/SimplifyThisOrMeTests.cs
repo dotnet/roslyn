@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyThisOrMe
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyThisOrMe)]
         public async Task TestSimplifyDiagnosticId()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 
@@ -49,7 +49,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyThisOrMe)]
         public async Task TestThisWithNoType()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     dynamic x = 7;
@@ -337,7 +337,7 @@ class ProgramB3
     </Project>
 </Workspace>";
 
-            await TestInRegular73AndScriptAsync(input, expected);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         [Fact]
@@ -421,7 +421,7 @@ class D
                 SingleOption(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Suggestion),
                 SingleOption(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Suggestion));
 
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
                 initialMarkup: input,
                 expectedMarkup: expected,
                 options: options);

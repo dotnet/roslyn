@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Initialization_ConstantValue(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
             var removeUnusedParametersSuppressed = Option(CodeStyleOptions.UnusedParameters,
                 new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption.None));
 
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
             var removeUnusedParametersNotApplicable = Option(CodeStyleOptions.UnusedParameters,
                 new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption.Silent));
 
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public int M(int z)
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Assignment_ConstantValue(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Assignment_ConstantValue_NoReads(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Assignment_NonConstantValue_NoReads_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Initialization_NonConstantValue_ParameterReference(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int p)
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Assignment_NonConstantValue_ParameterReference(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int p)
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Initialization_NonConstantValue_LocalReference(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Assignment_NonConstantValue_LocalReference(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Initialization_NonConstantValue_DefaultExpression(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"struct C
 {
     C M()
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Initialization_NonConstantValue_CastExpression(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"struct C
 {
     C M(object obj)
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Initialization_NonConstantValue_FieldReferenceWithThisReceiver(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     private int field;
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Assignment_NonConstantValue_FieldReferenceWithNullReceiver(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     private static int field;
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [InlineData(nameof(PreferUnusedLocal), "int unused")]
         public async Task Assignment_NonConstantValue_FieldReferenceWithReceiver(string optionName, string fix)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     private int field;
@@ -474,7 +474,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal), "int unused")]
         public async Task Initialization_NonConstantValue_PropertyReference(string optionName, string fix)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     private int Property { get { throw new System.Exception(); } }
@@ -504,7 +504,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal), "int unused")]
         public async Task Initialization_NonConstantValue_MethodInvocation(string optionName, string fix)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -564,7 +564,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal), "int unused")]
         public async Task Assignment_NonConstantValue_MethodInvocation(string optionName, string fix)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -596,7 +596,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Assignment_NonConstantValue_ImplicitConversion(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int x, short s)
@@ -621,7 +621,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal), "int unused")]
         public async Task Assignment_NonConstantValue_UserDefinedConversion(string optionName, string fix)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int x, C c)
@@ -667,7 +667,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NestedAssignment_ConstantValue(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int x, int y)
@@ -691,7 +691,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task NestedAssignment_NonConstantValue_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int x, int y)
@@ -719,7 +719,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task NestedAssignment_NonConstantValue_PreferUnusedLocal()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int x, int y)
@@ -899,7 +899,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task CompoundAssignmentOperator_ValueNotUsed_ConstantValue(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int x)
@@ -920,7 +920,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal), "int unused")]
         public async Task CompoundAssignmentOperator_ValueNotUsed_NonConstantValue(string optionName, string fix)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 $@"class C
 {{
     int M(int x)
@@ -984,7 +984,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal), "var unused")]
         public async Task LValueFlowCapture_Assignment_ControlFlowInAssignedValue_01(string optionName, string fix)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     C M(C y, C z)
@@ -1052,7 +1052,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal), "var unused")]
         public async Task LValueFlowCapture_DeconstructionAssignment_ControlFlowInAssignedValue_01(string optionName, string fix)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     C M(C y, C z)
@@ -1100,7 +1100,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_NonConstantValue_NoReferences_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -1139,7 +1139,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_NonConstantValue_NoReadReferences_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -1183,7 +1183,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Initialization_ConstantValue_FirstField(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -1209,7 +1209,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Initialization_ConstantValue_MiddleField(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -1235,7 +1235,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Initialization_ConstantValue_LastField(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -1259,7 +1259,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_NonConstantValue_FirstField_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -1288,7 +1288,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_NonConstantValue_FirstField_PreferUnusedLocal()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -1316,7 +1316,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_NonConstantValue_MiddleField_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -1346,7 +1346,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_NonConstantValue_MiddleField_PreferUnusedLocal()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -1374,7 +1374,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_NonConstantValue_LastField_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -1403,7 +1403,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_NonConstantValue_LastField_PreferUnusedLocal()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -1433,7 +1433,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Assignment_BeforeUseAsOutArgument(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -1502,7 +1502,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task OutArgument_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -1532,7 +1532,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task OutArgument_PreferUnusedLocal()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -1563,7 +1563,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task OutVarArgument_ExpressionBody_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M() => M2(out var [|x|]);
@@ -1579,7 +1579,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task OutArgument_NoReads_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -1628,7 +1628,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal), "var unused")]
         public async Task OutDeclarationExpressionArgument(string optionName, string fix)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -1696,7 +1696,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal), "unused")]
         public async Task DeconstructionDeclarationExpression(string optionName, string fix)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -1720,7 +1720,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task DeconstructionAssignment_01_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -1746,7 +1746,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task DeconstructionAssignment_01_PreferUnusedLocal()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -1792,7 +1792,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal), "var unused")]
         public async Task TupleExpressionWithDeclarationExpressions(string optionName, string fix)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -1816,7 +1816,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task DeclarationPatternInSwitchCase_WithOnlyWriteReference_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(object p)
@@ -1864,7 +1864,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task DeclarationPatternInIsPattern_WithNoReference_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(object p)
@@ -1903,7 +1903,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task DeclarationPatternInIsPattern_WithOnlyWriteReference_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(object p)
@@ -1947,7 +1947,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal), "C unused")]
         public async Task DeclarationPatternInIsPattern_WithReadAndWriteReference(string optionName, string fix)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(object p)
@@ -2169,7 +2169,7 @@ class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLambda_WithoutInvocation(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -2202,7 +2202,7 @@ class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLocalFunction_WithoutInvocation_DefinedAtStart(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -2235,7 +2235,7 @@ class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLocalFunction_WithoutInvocation_DefinedAtEnd(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -2268,7 +2268,7 @@ class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NotUseInLambda_WithInvocation(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -2301,7 +2301,7 @@ class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NotUseInLocalFunction_WithInvocation(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -2334,7 +2334,7 @@ class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NotUseInLambda_WithoutInvocation(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -2365,7 +2365,7 @@ class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NotUseInLocalFunction_WithoutInvocation(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -2396,7 +2396,7 @@ class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task RedundantWriteInLambda_WithInvocation(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -2429,7 +2429,7 @@ class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task RedundantWriteInLocalFunction_WithInvocation(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -3461,7 +3461,7 @@ class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NotUsed_LambdaAndLocalFunctionTargets_ThroughLocalsAndParameters(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -3741,7 +3741,7 @@ class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInLambda_NotUsedAfterInvocation(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -3776,7 +3776,7 @@ class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInLocalFunction_NotUsedAfterInvocation(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -3911,7 +3911,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task UnusedValue_DelegateTypeOptionalParameter_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -3990,7 +3990,7 @@ class C
         [InlineData(nameof(PreferUnusedLocal), "unused")]
         public async Task DeclarationPatternInSwitchCase_WithReadAndWriteReferences(string optionName, string fix)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(object p)
@@ -4022,7 +4022,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task CatchClause_ExceptionVariable_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -4076,7 +4076,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task CatchClause_ExceptionVariable_PreferUnusedLocal_02()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -4399,7 +4399,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task IfElse_AssignedInCondition_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool flag)
@@ -4439,7 +4439,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task IfElse_DeclaredInCondition_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool flag)
@@ -4478,7 +4478,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task IfElseAssignedInCondition_ReadAfter_PreferUnusedLocal()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(bool flag)
@@ -4546,7 +4546,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task IfElse_DeclaredInCondition_ReadAfter_PreferUnusedLocal()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(bool flag)
@@ -4883,7 +4883,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task SwitchCase_UnusedValueWithOnlyWrite_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int flag)
@@ -4948,7 +4948,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task SwitchCase_UnusedConstantValue_WithReadsAndWrites(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int flag)
@@ -4991,7 +4991,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal), "int unused")]
         public async Task SwitchCase_UnusedNonConstantValue_WithReadsAndWrites(string optionName, string fix)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int flag)
@@ -5153,7 +5153,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task FixAll_NonConstantValue_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public C()
@@ -5245,7 +5245,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task FixAll_NonConstantValue_PreferUnusedLocal()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public C()
@@ -5344,7 +5344,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task FixAll_ConstantValue_RemoveRedundantAssignments(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public C()
@@ -5438,7 +5438,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task FixAll_MoveMultipleVariableDeclarations_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(bool flag, int p)
@@ -5498,7 +5498,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task FixAll_MoveMultipleVariableDeclarations_PreferUnusedLocal()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(bool flag, int p)
@@ -5557,7 +5557,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task NonConstantValue_Trivia_PreferDiscard_01()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -5591,7 +5591,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task NonConstantValue_Trivia_PreferDiscard_02()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -5627,7 +5627,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task NonConstantValue_Trivia_PreferUnusedLocal_01()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -5663,7 +5663,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task NonConstantValue_Trivia_PreferUnusedLocal_02()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -5702,7 +5702,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task ConstantValue_Trivia_01(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -5740,7 +5740,7 @@ $@"class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task ConstantValue_Trivia_02(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -5777,7 +5777,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task ExistingDiscardDeclarationInLambda_UseOutsideLambda()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -5817,7 +5817,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task ExistingDiscardDeclarationInLambda_UseInsideLambda()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -5859,7 +5859,7 @@ class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task ValueOverwrittenByOutVar_ConditionalAndExpression(string optionName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -5922,7 +5922,7 @@ class C
         [InlineData("int")]
         public async Task UnusedOutVariableDeclaration_PreferDiscard(string typeName)
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 $@"class C
 {{
     void M()
@@ -5958,7 +5958,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task UnusedOutVariableDeclaration_MethodOverloads_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -6359,7 +6359,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task RedundantAssignment_IfStatementParent()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int j)
@@ -6386,7 +6386,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task RedundantAssignment_LoopStatementParent()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int j, int[] array)
@@ -6508,7 +6508,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task RedundantAssignment_WithLeadingAndTrailingComment()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -6543,7 +6543,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task MultipleRedundantAssignment_WithLeadingAndTrailingComment()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -6583,7 +6583,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task MultipleRedundantAssignment_WithInnerComment()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -6614,7 +6614,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task DeclarationPatternInSwitchCase_WithTrivia_PreferDiscard()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(object p)
@@ -6867,7 +6867,7 @@ public static class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task DoesNotUseLocalFunctionName_PreferUnused()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -6899,7 +6899,7 @@ public static class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task CanUseLocalFunctionParameterName_PreferUnused()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M()
@@ -6931,7 +6931,7 @@ public static class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task DoesNotUseLambdaFunctionParameterNameWithCSharpLessThan8_PreferUnused()
         {
-            await TestInRegular73AndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 class C

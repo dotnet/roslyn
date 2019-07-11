@@ -1824,7 +1824,7 @@ class Program
         {
             if (expectDiagnostic)
             {
-                await TestInRegular73AndScriptAsync(initialMarkup, expectedMarkup, options: Option(CSharpCodeStyleOptions.PreferBraces, bracesPreference, NotificationOption.Silent));
+                await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: Option(CSharpCodeStyleOptions.PreferBraces, bracesPreference, NotificationOption.Silent));
             }
             else
             {
