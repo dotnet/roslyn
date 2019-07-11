@@ -301,11 +301,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builtBody = bodyBuilder.ToImmutableAndFree();
             ImmutableArray<BoundStatement> newBody;
             newBody = LocalRewriter.ConstructNullCheckedStatementList(method.Parameters, builtBody, F);
-            var result = F.Block(
+            return F.Block(
                 ImmutableArray.Create(stateMachineVariable),
                 newBody.IsDefault ? builtBody : newBody);
-
-            return result;
         }
 
         protected SynthesizedImplementationMethod OpenMethodImplementation(
