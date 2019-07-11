@@ -82,9 +82,9 @@ class C
             var invocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>().ToList();
             var expressionTypes = invocations.Select(inv => model.GetTypeInfo(inv).Type).Cast<INamedTypeSymbol>().ToList();
 
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, expressionTypes[0].TypeArgumentsNullableAnnotations.Single());
-            Assert.Equal(PublicNullableAnnotation.Annotated, expressionTypes[1].TypeArgumentsNullableAnnotations.Single());
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, expressionTypes[2].TypeArgumentsNullableAnnotations.Single());
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, expressionTypes[0].TypeArgumentNullableAnnotations.Single());
+            Assert.Equal(PublicNullableAnnotation.Annotated, expressionTypes[1].TypeArgumentNullableAnnotations.Single());
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, expressionTypes[2].TypeArgumentNullableAnnotations.Single());
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34412")]
@@ -1150,7 +1150,7 @@ class C
 
             static void verifySymbolInfo(IMethodSymbol methodSymbol, PublicNullableAnnotation expectedAnnotation)
             {
-                Assert.Equal(expectedAnnotation, methodSymbol.TypeArgumentsNullableAnnotations.Single());
+                Assert.Equal(expectedAnnotation, methodSymbol.TypeArgumentNullableAnnotations.Single());
                 Assert.Equal(expectedAnnotation, methodSymbol.Parameters.Single().NullableAnnotation);
                 Assert.Equal(expectedAnnotation, methodSymbol.ReturnNullableAnnotation);
             }
@@ -1190,9 +1190,9 @@ class C
 
             static void verifySymbolInfo(IMethodSymbol methodSymbol, PublicNullableAnnotation expectedAnnotation)
             {
-                Assert.Equal(expectedAnnotation, methodSymbol.TypeArgumentsNullableAnnotations.Single());
+                Assert.Equal(expectedAnnotation, methodSymbol.TypeArgumentNullableAnnotations.Single());
                 Assert.Equal(expectedAnnotation, methodSymbol.Parameters.Single().NullableAnnotation);
-                Assert.Equal(expectedAnnotation, ((INamedTypeSymbol)methodSymbol.ReturnType).TypeArgumentsNullableAnnotations.Single());
+                Assert.Equal(expectedAnnotation, ((INamedTypeSymbol)methodSymbol.ReturnType).TypeArgumentNullableAnnotations.Single());
             }
         }
     }
