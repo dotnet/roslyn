@@ -94,7 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         {
             VerifySemantics(
                 editScript,
-                expectedSemanticEdits: expectedSemanticEdits);
+                activeStatements,
+                expectedSemanticEdits: expectedSemanticEdits,
+                expectedDiagnostics: null);
         }
 
         internal static void VerifySemantics(
