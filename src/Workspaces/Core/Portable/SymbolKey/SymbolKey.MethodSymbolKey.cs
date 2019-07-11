@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var metadataName = reader.ReadString();
-                var containingSymbolResolution = reader.ReadSymbolKey();
+                var containingTypeResolution = reader.ReadSymbolKey();
                 var arity = reader.ReadInteger();
                 var isPartialMethodImplementationPart = reader.ReadBoolean();
                 using var parameterRefKinds = reader.ReadRefKindArray();
@@ -128,23 +128,21 @@ namespace Microsoft.CodeAnalysis
                 // point.
                 var beforeParametersPosition = reader.Position;
 
+                using var methods = GetMembersOfNamedType<IMethodSymbol>(containingTypeResolution, metadataNameOpt: null);
                 using var result = PooledArrayBuilder<IMethodSymbol>.GetInstance();
 
-                foreach (var symbol in containingSymbolResolution)
+                foreach (var candidate in methods)
                 {
-                    if (symbol is INamedTypeSymbol namedType)
-                    {
-                        var method = Resolve(reader, metadataName, arity, isPartialMethodImplementationPart,
-                            parameterRefKinds, beforeParametersPosition, namedType);
+                    var method = Resolve(reader, metadataName, arity, isPartialMethodImplementationPart,
+                        parameterRefKinds, beforeParametersPosition, candidate);
 
-                        // Note: after finding the first method that matches we stop.  That's necessary
-                        // as we cache results while searching.  We don't want to override these positive
-                        // matches with a negative ones if we were to continue searching.
-                        if (method != null)
-                        {
-                            result.AddIfNotNull(method);
-                            break;
-                        }
+                    // Note: after finding the first method that matches we stop.  That's necessary
+                    // as we cache results while searching.  We don't want to override these positive
+                    // matches with a negative ones if we were to continue searching.
+                    if (method != null)
+                    {
+                        result.AddIfNotNull(method);
+                        break;
                     }
                 }
 
@@ -166,25 +164,6 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return CreateSymbolInfo(result);
-            }
-
-            private static IMethodSymbol Resolve(
-                SymbolKeyReader reader, string metadataName, int arity, bool isPartialMethodImplementationPart,
-                PooledArrayBuilder<RefKind> parameterRefKinds, int beforeParametersPosition,
-                INamedTypeSymbol namedType)
-            {
-                foreach (var method in namedType.GetMembers().OfType<IMethodSymbol>())
-                {
-                    var result = Resolve(reader, metadataName, arity, isPartialMethodImplementationPart,
-                        parameterRefKinds, beforeParametersPosition, method);
-
-                    if (result != null)
-                    {
-                        return result;
-                    }
-                }
-
-                return null;
             }
 
             private static IMethodSymbol Resolve(
