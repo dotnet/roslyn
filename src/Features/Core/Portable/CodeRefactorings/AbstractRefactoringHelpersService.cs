@@ -288,6 +288,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
 
             // nothing found -> return null
+
             return null;
 
             static SyntaxNode TryGetAcceptedNodeOrExtracted(SyntaxNode node, Func<SyntaxNode, bool> predicate, Func<SyntaxNode, ISyntaxFactsService, bool, IEnumerable<SyntaxNode>> extractNodes, ISyntaxFactsService syntaxFacts, bool extractParentsOfHeader)
@@ -330,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         /// <summary>
         /// <para>
-        /// Extractor function for <see cref="TryGetSelectedNodeAsync(Document, TextSpan, Predicate{SyntaxNode}, Func{SyntaxNode, ISyntaxFactsService, bool, IEnumerable{SyntaxNode}}, CancellationToken)"/> method 
+        /// Extractor function for <see cref="TryGetSelectedNodeAsync(Document, TextSpan, Func{SyntaxNode, bool}, Func{SyntaxNode, ISyntaxFactsService, bool, IEnumerable{SyntaxNode}}, CancellationToken)"/> method 
         /// that retrieves nodes that should also be considered as refactoring targets given <paramref name="node"/> is considered. 
         /// Can extract both nodes above and under given <paramref name="node"/>.
         /// </para>
