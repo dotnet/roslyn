@@ -2352,15 +2352,15 @@ public class C { public static FrameworkName Goo() { return null; }}";
             Assert.Equal(1, arrayType.Rank);
             Assert.Equal(CodeAnalysis.NullableAnnotation.Disabled, arrayType.ElementNullableAnnotation);
 
-            Assert.Throws<ArgumentException>(() => arrayType = comp.CreateArrayTypeSymbol(elementType, default));
-            Assert.Throws<ArgumentException>(() => arrayType = comp.CreateArrayTypeSymbol(elementType, 0));
+            Assert.Throws<ArgumentException>(() => comp.CreateArrayTypeSymbol(elementType, default));
+            Assert.Throws<ArgumentException>(() => comp.CreateArrayTypeSymbol(elementType, 0));
 
             arrayType = comp.CreateArrayTypeSymbol(elementType, 1, default);
             Assert.Equal(1, arrayType.Rank);
             Assert.Equal(CodeAnalysis.NullableAnnotation.Disabled, arrayType.ElementNullableAnnotation);
 
-            Assert.Throws<ArgumentException>(() => arrayType = comp.CreateArrayTypeSymbol(elementType, rank: default));
-            Assert.Throws<ArgumentException>(() => arrayType = comp.CreateArrayTypeSymbol(elementType, rank: 0));
+            Assert.Throws<ArgumentException>(() => comp.CreateArrayTypeSymbol(elementType, rank: default));
+            Assert.Throws<ArgumentException>(() => comp.CreateArrayTypeSymbol(elementType, rank: 0));
 
             arrayType = comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: default);
             Assert.Equal(1, arrayType.Rank);
