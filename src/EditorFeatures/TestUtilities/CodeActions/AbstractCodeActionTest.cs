@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -171,6 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestParameters parameters = default)
         {
             var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrNull(), optionsCallback);
+
             return TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup,
                 index, priority,

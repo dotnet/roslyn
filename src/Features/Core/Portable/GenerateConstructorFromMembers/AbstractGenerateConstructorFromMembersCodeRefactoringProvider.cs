@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -30,24 +31,18 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
     /// something like "new MyType(x, y, z)", nor is it responsible for generating constructors
     /// in a derived type that delegate to a base type. Both of those are handled by other services.
     /// </summary>
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
-        Name = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers), Shared]
-    [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers)]
-    internal partial class GenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
+    internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
     {
         private const string AddNullChecksId = nameof(AddNullChecksId);
 
         private readonly IPickMembersService _pickMembersService_forTesting;
 
-        [ImportingConstructor]
-        public GenerateConstructorFromMembersCodeRefactoringProvider() : this(null)
-        {
-        }
+        protected abstract bool GetNullCheckOptionEnabled(DocumentOptionSet optionSet);
 
         /// <summary>
         /// For testing purposes only.
         /// </summary>
-        internal GenerateConstructorFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService_forTesting)
+        internal AbstractGenerateConstructorFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService_forTesting)
         {
             _pickMembersService_forTesting = pickMembersService_forTesting;
         }
@@ -122,7 +117,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             if (canAddNullCheck)
             {
                 var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var optionValue = options.GetOption(GenerateConstructorFromMembersOptions.AddNullChecks);
+                var optionValue = GetNullCheckOptionEnabled(options);
 
                 pickMemberOptions.Add(new PickMembersOption(
                     AddNullChecksId,

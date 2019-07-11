@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
-    internal partial class GenerateConstructorFromMembersCodeRefactoringProvider
+    internal partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider
     {
         private class State
         {
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             public ImmutableArray<IParameterSymbol> Parameters { get; private set; }
 
             public static State TryGenerate(
-                GenerateConstructorFromMembersCodeRefactoringProvider service,
+                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
 
             private bool TryInitialize(
-                GenerateConstructorFromMembersCodeRefactoringProvider service,
+                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
