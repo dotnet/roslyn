@@ -948,35 +948,6 @@ interface I
                 Diagnostic(RudeEditKind.InsertIntoInterface, "sealed event Action NonVirtualEvent", FeaturesResources.event_));
         }
 
-        [Fact]
-        public void Interface_AddAbstractMembers()
-        {
-            var src1 = @"
-interface I
-{
-}
-";
-            var src2 = @"
-interface I
-{
-    void M();
-
-    int P { get; }
-    int Q { get; set; }
-
-    event Action F;
-
-    int this[bool a] { get; }
-    int this[byte a] { get; set; }
-}
-";
-
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
-
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertVirtual, "void M()", FeaturesResources.method));
-        }
-
         #endregion
 
         #region Enums
@@ -4641,6 +4612,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
@@ -4663,6 +4635,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
@@ -4685,6 +4658,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
@@ -4707,6 +4681,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: null,
@@ -4727,6 +4702,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
@@ -4749,6 +4725,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
@@ -4771,6 +4748,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
@@ -4792,7 +4770,6 @@ class B
             var edits = GetTopEdits(srcA1, srcA2);
 
             edits.VerifySemantics(
-                activeStatements: ActiveStatementsDescription.Empty,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
@@ -4815,6 +4792,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: null,
@@ -4835,6 +4813,7 @@ class B
 
             edits.VerifySemantics(
                 activeStatements: ActiveStatementsDescription.Empty,
+                targetFrameworks: null,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: null,
