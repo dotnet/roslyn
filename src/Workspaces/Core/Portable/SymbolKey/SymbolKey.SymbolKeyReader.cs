@@ -173,14 +173,26 @@ namespace Microsoft.CodeAnalysis
                 Eat(DoubleQuoteChar);
             }
 
-            public void FillStringArray(PooledArrayBuilder<TStringResult> builder)
-                => FillArray(builder, _readString);
+            public PooledArrayBuilder<TStringResult> ReadStringArray()
+            {
+                var builder = PooledArrayBuilder<TStringResult>.GetInstance();
+                FillArray(builder, _readString);
+                return builder;
+            }
 
-            public void FillBooleanArray(PooledArrayBuilder<bool> builder)
-                => FillArray(builder, _readBoolean);
+            public PooledArrayBuilder<bool> ReadBooleanArray()
+            {
+                var builder = PooledArrayBuilder<bool>.GetInstance();
+                FillArray(builder, _readBoolean);
+                return builder;
+            }
 
-            public void FillRefKindArray(PooledArrayBuilder<RefKind> builder)
-                => FillArray(builder, _readRefKind);
+            public PooledArrayBuilder<RefKind> ReadRefKindArray()
+            {
+                var builder = PooledArrayBuilder<RefKind>.GetInstance();
+                FillArray(builder, _readRefKind);
+                return builder;
+            }
 
             /// <summary>
             /// Returns false if this was an encoded 'null' (as opposed to an empty array).
@@ -446,11 +458,12 @@ namespace Microsoft.CodeAnalysis
                     _ => throw new NotImplementedException(),
                 };
 
-            public void FillSymbolArray<TSymbol>(PooledArrayBuilder<TSymbol> builder) where TSymbol : ISymbol
+            public PooledArrayBuilder<TSymbol> ReadSymbolArray<TSymbol>() where TSymbol : ISymbol
             {
                 using var resolutions = PooledArrayBuilder<SymbolKeyResolution>.GetInstance();
                 FillArray(resolutions, _readSymbolKey);
 
+                var builder = PooledArrayBuilder<TSymbol>.GetInstance();
                 foreach (var resolution in resolutions)
                 {
                     if (resolution.GetAnySymbol() is TSymbol castedSymbol)
@@ -458,6 +471,8 @@ namespace Microsoft.CodeAnalysis
                         builder.AddIfNotNull(castedSymbol);
                     }
                 }
+
+                return builder;
             }
 
             #endregion
@@ -533,8 +548,12 @@ namespace Microsoft.CodeAnalysis
                 return Location.None;
             }
 
-            public void FillLocationArray(PooledArrayBuilder<Location> builder)
-                => FillArray(builder, _readLocation);
+            public PooledArrayBuilder<Location> ReadLocationArray()
+            {
+                var builder = PooledArrayBuilder<Location>.GetInstance();
+                FillArray(builder, _readLocation);
+                return builder;
+            }
 
             #endregion
         }

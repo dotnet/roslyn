@@ -35,9 +35,7 @@ namespace Microsoft.CodeAnalysis
                 var arity = reader.ReadInteger();
                 var isUnboundGenericType = reader.ReadBoolean();
                 var instantiate = reader.ReadBoolean();
-
-                using var typeArguments = PooledArrayBuilder<ITypeSymbol>.GetInstance();
-                reader.FillSymbolArray(typeArguments);
+                using var typeArguments = reader.ReadSymbolArray<ITypeSymbol>();
 
                 if (instantiate && arity != typeArguments.Count)
                 {

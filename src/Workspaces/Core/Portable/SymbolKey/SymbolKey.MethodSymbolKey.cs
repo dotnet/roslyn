@@ -51,10 +51,8 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                using var typeArguments = PooledArrayBuilder<ITypeSymbol>.GetInstance();
-
                 var constructedFromResolution = reader.ReadSymbolKey();
-                reader.FillSymbolArray(typeArguments);
+                using var typeArguments = reader.ReadSymbolArray<ITypeSymbol>();
 
                 var typeArgumentArray = typeArguments.Builder.ToArray();
                 using var result = PooledArrayBuilder<IMethodSymbol>.GetInstance();
@@ -112,13 +110,11 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                using var parameterRefKinds = PooledArrayBuilder<RefKind>.GetInstance();
-
                 var metadataName = reader.ReadString();
                 var containingSymbolResolution = reader.ReadSymbolKey();
                 var arity = reader.ReadInteger();
                 var isPartialMethodImplementationPart = reader.ReadBoolean();
-                reader.FillRefKindArray(parameterRefKinds);
+                using var parameterRefKinds = reader.ReadRefKindArray();
 
                 // For each method that we look at, we'll have to resolve the parameter list and
                 // return type in the context of that method.  i.e. if we have Goo<T>(IList<T> list)
@@ -162,8 +158,7 @@ namespace Microsoft.CodeAnalysis
                     // read out the values.  We don't actually need to use them, but we have
                     // to effectively read past them in the string.
 
-                    using var parameterTypes = PooledArrayBuilder<ITypeSymbol>.GetInstance();
-                    reader.FillSymbolArray(parameterTypes);
+                    using var parameterTypes = reader.ReadSymbolArray<ITypeSymbol>();
                     _ = reader.ReadSymbolKey();
                     reader.PopMethod(methodOpt: null);
                 }
@@ -228,8 +223,7 @@ namespace Microsoft.CodeAnalysis
             private static IMethodSymbol Resolve(
                 SymbolKeyReader reader, bool isPartialMethodImplementationPart, IMethodSymbol method)
             {
-                using var originalParameterTypes = PooledArrayBuilder<ITypeSymbol>.GetInstance();
-                reader.FillSymbolArray(originalParameterTypes);
+                using var originalParameterTypes = reader.ReadSymbolArray<ITypeSymbol>();
                 var returnType = (ITypeSymbol)reader.ReadSymbolKey().GetAnySymbol();
 
                 if (reader.ParameterTypesMatch(method.OriginalDefinition.Parameters, originalParameterTypes))

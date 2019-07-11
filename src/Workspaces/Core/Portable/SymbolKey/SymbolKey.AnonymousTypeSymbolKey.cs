@@ -29,15 +29,10 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                using var propertyTypes = PooledArrayBuilder<ITypeSymbol>.GetInstance();
-                using var propertyNames = PooledArrayBuilder<string>.GetInstance();
-                using var propertyIsReadOnly = PooledArrayBuilder<bool>.GetInstance();
-                using var propertyLocations = PooledArrayBuilder<Location>.GetInstance();
-
-                reader.FillSymbolArray(propertyTypes);
-                reader.FillStringArray(propertyNames);
-                reader.FillBooleanArray(propertyIsReadOnly);
-                reader.FillLocationArray(propertyLocations);
+                using var propertyTypes = reader.ReadSymbolArray<ITypeSymbol>();
+                using var propertyNames = reader.ReadStringArray();
+                using var propertyIsReadOnly = reader.ReadBooleanArray();
+                using var propertyLocations = reader.ReadLocationArray();
 
                 if (propertyTypes.Count == propertyNames.Count)
                 {

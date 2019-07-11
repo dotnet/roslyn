@@ -53,12 +53,8 @@ namespace Microsoft.CodeAnalysis
                 var isError = reader.ReadBoolean();
                 if (isError)
                 {
-                    using var elementTypes = PooledArrayBuilder<ITypeSymbol>.GetInstance();
-                    using var elementNames = PooledArrayBuilder<string>.GetInstance();
-
-                    reader.FillSymbolArray(elementTypes);
-                    reader.FillStringArray(elementNames);
-
+                    using var elementTypes = reader.ReadSymbolArray<ITypeSymbol>();
+                    using var elementNames = reader.ReadStringArray();
                     var elementLocations = ReadElementLocations(reader);
 
                     if (elementTypes.Count == elementNames.Count)
@@ -76,10 +72,8 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    using var elementNamesBuilder = PooledArrayBuilder<string>.GetInstance();
-
                     var underlyingTypeResolution = reader.ReadSymbolKey();
-                    reader.FillStringArray(elementNamesBuilder);
+                    using var elementNamesBuilder = reader.ReadStringArray();
                     var elementLocations = ReadElementLocations(reader);
 
                     try
@@ -108,11 +102,10 @@ namespace Microsoft.CodeAnalysis
 
             private static ImmutableArray<Location> ReadElementLocations(SymbolKeyReader reader)
             {
-                using var elementLocations = PooledArrayBuilder<Location>.GetInstance();
+                using var elementLocations = reader.ReadLocationArray();
 
                 // Compiler API requires that all the locations are non-null, or that there is a default
                 // immutable array passed in.
-                reader.FillLocationArray(elementLocations);
                 if (elementLocations.Builder.All(loc => loc == null))
                 {
                     return default;

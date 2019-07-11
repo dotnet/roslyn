@@ -30,11 +30,8 @@ namespace Microsoft.CodeAnalysis
                 var containingSymbolResolution = reader.ReadSymbolKey();
                 var arity = reader.ReadInteger();
 
-                using var typeArguments = PooledArrayBuilder<ITypeSymbol>.GetInstance();
-                using var errorTypes = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
-
-                reader.FillSymbolArray(typeArguments);
-                ResolveErrorTypes(errorTypes, reader, containingSymbolResolution, name, arity);
+                using var typeArguments = reader.ReadSymbolArray<ITypeSymbol>();
+                using var errorTypes = ResolveErrorTypes(reader, containingSymbolResolution, name, arity);
 
                 if (typeArguments.Count != arity)
                 {
@@ -56,12 +53,13 @@ namespace Microsoft.CodeAnalysis
                 return CreateSymbolInfo(result);
             }
 
-            private static void ResolveErrorTypes(
-                PooledArrayBuilder<INamedTypeSymbol> errorTypes,
+            private static PooledArrayBuilder<INamedTypeSymbol> ResolveErrorTypes(
                 SymbolKeyReader reader,
                 SymbolKeyResolution containingSymbolResolution,
                 string name, int arity)
             {
+                var errorTypes = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
+
                 if (containingSymbolResolution.GetAnySymbol() == null)
                 {
                     errorTypes.AddIfNotNull(reader.Compilation.CreateErrorTypeSymbol(null, name, arity));
@@ -76,6 +74,8 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                 }
+
+                return errorTypes;
             }
         }
     }
