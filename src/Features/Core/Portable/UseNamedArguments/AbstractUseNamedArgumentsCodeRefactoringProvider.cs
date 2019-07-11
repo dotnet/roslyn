@@ -34,13 +34,10 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                 var argument = await refactoringHelperService.TryGetSelectedNodeAsync<TSimpleArgumentSyntax>(document, context.Span, cancellationToken).ConfigureAwait(false);
                 if (argument == null && context.Span.IsEmpty)
                 {
-                    // Pre-helper implementation allowed cursor being anywhere inside the arg. expression as long as 
-                    // it was on the first line. Since the helper doesn't arbitrarily traverse expressions up we need
-                    // to do it explicitely here. We don't need to care about being on right edge (e.g. comma) as that's 
-                    // handled by helper. We only need to try traversing upwards.
-                    //
-                    // Arguments can be arbitrarily large.  Only offer this feature if the caret is on hte
-                    // line that the argument starts on.
+                    // For arguments we want to enable cursor anywhere in the expressions (even deep within) as long as
+                    // it is on the first line of said expression. Since the `TryGetSelectedNodeAsync` doesn't do such
+                    // traversing up & checking line numbers -> need to do it manually.
+                    // The rationale for only first line is that arg. expressions can be arbitrarily large. 
                     // see: https://github.com/dotnet/roslyn/issues/18848
 
                     var position = context.Span.Start;
