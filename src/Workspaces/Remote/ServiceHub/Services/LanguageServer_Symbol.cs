@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private int searchIds;
 
-        public IImmutableSet<string> KindsProvided { get; } = ImmutableHashSet.Create(
+        private static IImmutableSet<string> KindsProvided { get; } = ImmutableHashSet.Create(
            NavigateToItemKind.Class,
            NavigateToItemKind.Constant,
            NavigateToItemKind.Delegate,
@@ -27,51 +28,48 @@ namespace Microsoft.CodeAnalysis.Remote
            NavigateToItemKind.Property,
            NavigateToItemKind.Structure);
 
+
         [JsonRpcMethod(MSLSPMethods.WorkspaceBeginSymbolName)]
         public int WorkspaceBeginSymbol(string query, CancellationToken cancellationToken)
         {
             int searchId = searchIds++;
             Task.Run(async () =>
             {
-                foreach (var project in SolutionService.PrimaryWorkspace.CurrentSolution.Projects)
+                using (UserOperationBooster.Boost())
                 {
-                    using (UserOperationBooster.Boost())
+                    foreach (var project in SolutionService.PrimaryWorkspace.CurrentSolution.Projects)
                     {
-                        //var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
-
-                        //var project = solution.GetProject(projectId);
-                        //var priorityDocuments = priorityDocumentIds.Select(d => solution.GetDocument(d))
-                        //                                           .ToImmutableArray();
-
                         var result = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                        project, ImmutableArray<Document>.Empty, query, KindsProvided, CancellationToken.None).ConfigureAwait(false);
+                            project, ImmutableArray<Document>.Empty, query, KindsProvided, cancellationToken).ConfigureAwait(false);
 
-                        var convertedResults = await Convert(result).ConfigureAwait(false);
+                        SymbolInformation[] convertedResults = await Convert(result, cancellationToken).ConfigureAwait(false);
 
-                        await InvokeAsync(MSLSPMethods.WorkspacePublishSymbolName, new object[] { new MSLSPPublishSymbolParams() { SearchId = searchId, Symbols = convertedResults } }, CancellationToken.None).ConfigureAwait(false);
+                        await InvokeAsync(
+                            MSLSPMethods.WorkspacePublishSymbolName,
+                            new object[] { new MSLSPPublishSymbolParams() { SearchId = searchId, Symbols = convertedResults } },
+                            cancellationToken).ConfigureAwait(false);
                     }
                 }
 
-                await InvokeAsync(MSLSPMethods.WorkspaceCompleteSymbolName, new object[] { searchId }, CancellationToken.None).ConfigureAwait(false);
+                await InvokeAsync(MSLSPMethods.WorkspaceCompleteSymbolName, new object[] { searchId }, cancellationToken).ConfigureAwait(false);
             });
 
             return searchId;
         }
 
-        private async Task<SymbolInformation[]> Convert(
-            ImmutableArray<INavigateToSearchResult> results)
+        private static async Task<SymbolInformation[]> Convert(ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken)
         {
             var symbols = new SymbolInformation[results.Length];
 
             for (int i = 0; i < results.Length; i++)
             {
-                var symbolText = await results[i].NavigableItem.Document.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
+                var symbolText = await results[i].NavigableItem.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 symbols[i] = new SymbolInformation()
                 {
                     Name = results[i].Name,
                     ContainerName = results[i].AdditionalInformation,
-                    Kind = VisualStudio.LanguageServer.Protocol.SymbolKind.Method,
-                    Location = new VisualStudio.LanguageServer.Protocol.Location()
+                    Kind = LSP.SymbolKind.Method,
+                    Location = new LSP.Location()
                     {
                         Uri = new Uri(results[i].NavigableItem.Document.FilePath),
                         Range = TextSpanToRange(results[i].NavigableItem.SourceSpan, symbolText)
@@ -82,18 +80,18 @@ namespace Microsoft.CodeAnalysis.Remote
             return symbols;
         }
 
-        public static Range TextSpanToRange(TextSpan textSpan, SourceText text)
+        private static Range TextSpanToRange(TextSpan textSpan, SourceText text)
         {
             var linePosSpan = text.Lines.GetLinePositionSpan(textSpan);
             return LinePositionToRange(linePosSpan);
         }
 
-        public static Range LinePositionToRange(LinePositionSpan linePositionSpan)
+        private static Range LinePositionToRange(LinePositionSpan linePositionSpan)
         {
             return new Range { Start = LinePositionToPosition(linePositionSpan.Start), End = LinePositionToPosition(linePositionSpan.End) };
         }
 
-        public static Position LinePositionToPosition(LinePosition linePosition)
+        private static Position LinePositionToPosition(LinePosition linePosition)
         {
             return new Position { Line = linePosition.Line, Character = linePosition.Character };
         }

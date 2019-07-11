@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +14,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
+
     // TODO: all service hub service should be extract to interface so that it can support multiple hosts.
     //       right now, tightly coupled to service hub
     internal abstract class ServiceHubServiceBase : IDisposable
@@ -31,21 +31,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
         [Obsolete("don't use RPC directly but use it through StartService and InvokeAsync", error: true)]
         protected readonly JsonRpc Rpc;
-
-        /// <summary>
-        /// PinnedSolutionInfo.ScopeId. scope id of the solution. caller and callee share this id which one
-        /// can use to find matching caller and callee while exchanging data
-        /// 
-        /// PinnedSolutionInfo.FromPrimaryBranch Marks whether the solution checksum it got is for primary branch or not 
-        /// 
-        /// this flag will be passed down to solution controller to help
-        /// solution service's cache policy. for more detail, see <see cref="SolutionService"/>
-        /// 
-        /// PinnedSolutionInfo.SolutionChecksum indicates solution this connection belong to
-        /// </summary>
-        private PinnedSolutionInfo _solutionInfo;
-
-        private RoslynServices _lazyRoslynServices;
 
         private bool _disposed;
 
@@ -83,19 +68,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected string DebugInstanceString => $"{GetType()} ({InstanceId})";
 
-        protected RoslynServices RoslynServices
-        {
-            get
-            {
-                if (_lazyRoslynServices == null)
-                {
-                    _lazyRoslynServices = new RoslynServices(_solutionInfo.ScopeId, AssetStorage, RoslynServices.HostServices);
-                }
-
-                return _lazyRoslynServices;
-            }
-        }
-
         protected bool IsDisposed => ((IDisposableObservable)_rpc).IsDisposed;
 
         protected void StartService()
@@ -132,19 +104,6 @@ namespace Microsoft.CodeAnalysis.Remote
             return _rpc.InvokeWithCancellationAsync(targetName, arguments?.AsArray(), cancellationToken);
         }
 
-        protected Task<Solution> GetSolutionAsync(CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_solutionInfo);
-
-            return GetSolutionAsync(RoslynServices, _solutionInfo, cancellationToken);
-        }
-
-        protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
-        {
-            var localRoslynService = new RoslynServices(solutionInfo.ScopeId, AssetStorage, RoslynServices.HostServices);
-            return GetSolutionAsync(localRoslynService, solutionInfo, cancellationToken);
-        }
-
         protected virtual void Dispose(bool disposing)
         {
             // do nothing here
@@ -153,13 +112,6 @@ namespace Microsoft.CodeAnalysis.Remote
         protected void LogError(string message)
         {
             Log(TraceEventType.Error, message);
-        }
-
-        public virtual void Initialize(PinnedSolutionInfo info)
-        {
-            // set pinned solution info
-            _lazyRoslynServices = null;
-            _solutionInfo = info;
         }
 
         public void Dispose()
@@ -202,12 +154,6 @@ namespace Microsoft.CodeAnalysis.Remote
 {nameof(e.LastMessage)}: {e.LastMessage}
 {nameof(e.Exception)}: {e.Exception?.ToString()}");
             }
-        }
-
-        private static Task<Solution> GetSolutionAsync(RoslynServices roslynService, PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
-        {
-            var solutionController = (ISolutionController)roslynService.SolutionService;
-            return solutionController.GetSolutionAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
         }
 
         protected async Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken)

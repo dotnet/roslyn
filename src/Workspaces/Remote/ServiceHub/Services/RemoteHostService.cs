@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// basically, this is used to manage lifetime of the service hub.
     /// </summary>
-    internal partial class RemoteHostService : ServiceHubServiceBase, IRemoteHostService
+    internal partial class RemoteHostService : SolutionAwareServiceHubServiceBase, IRemoteHostService
     {
         private readonly static TimeSpan s_reportInterval = TimeSpan.FromMinutes(2);
         private readonly CancellationTokenSource _shutdownCancellationSource;

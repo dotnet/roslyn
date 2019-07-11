@@ -15,7 +15,7 @@ using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteHostService : ServiceHubServiceBase, IRemoteHostService
+    internal partial class RemoteHostService : SolutionAwareServiceHubServiceBase, IRemoteHostService
     {
         /// <summary>
         /// Track when last time report has sent and send new report if there is update after given internal

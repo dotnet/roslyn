@@ -74,7 +74,7 @@ namespace Roslyn.Test.Utilities.Remote
 
         public AssetStorage AssetStorage => _inprocServices.AssetStorage;
 
-        public void RegisterService(string name, Func<Stream, IServiceProvider, ServiceHubServiceBase> serviceCreator)
+        public void RegisterService(string name, Func<Stream, IServiceProvider, SolutionAwareServiceHubServiceBase> serviceCreator)
         {
             _inprocServices.RegisterService(name, serviceCreator);
         }
@@ -142,12 +142,12 @@ namespace Roslyn.Test.Utilities.Remote
         private class InProcRemoteServices
         {
             private readonly ServiceProvider _serviceProvider;
-            private readonly Dictionary<string, Func<Stream, IServiceProvider, ServiceHubServiceBase>> _creatorMap;
+            private readonly Dictionary<string, Func<Stream, IServiceProvider, SolutionAwareServiceHubServiceBase>> _creatorMap;
 
             public InProcRemoteServices(bool runCacheCleanup)
             {
                 _serviceProvider = new ServiceProvider(runCacheCleanup);
-                _creatorMap = new Dictionary<string, Func<Stream, IServiceProvider, ServiceHubServiceBase>>();
+                _creatorMap = new Dictionary<string, Func<Stream, IServiceProvider, SolutionAwareServiceHubServiceBase>>();
 
                 RegisterService(WellKnownRemoteHostServices.RemoteHostService, (s, p) => new RemoteHostService(s, p));
                 RegisterService(WellKnownServiceHubServices.CodeAnalysisService, (s, p) => new CodeAnalysisService(s, p));
@@ -158,14 +158,14 @@ namespace Roslyn.Test.Utilities.Remote
             public AssetStorage AssetStorage => _serviceProvider.AssetStorage;
             public TraceSource Logger { get; } = new TraceSource("Default");
 
-            public void RegisterService(string name, Func<Stream, IServiceProvider, ServiceHubServiceBase> serviceCreator)
+            public void RegisterService(string name, Func<Stream, IServiceProvider, SolutionAwareServiceHubServiceBase> serviceCreator)
             {
                 _creatorMap.Add(name, serviceCreator);
             }
 
             public Task<Stream> RequestServiceAsync(string serviceName, CancellationToken cancellationToken)
             {
-                Func<Stream, IServiceProvider, ServiceHubServiceBase> creator;
+                Func<Stream, IServiceProvider, SolutionAwareServiceHubServiceBase> creator;
                 if (_creatorMap.TryGetValue(serviceName, out creator))
                 {
                     var tuple = FullDuplexStream.CreateStreams();

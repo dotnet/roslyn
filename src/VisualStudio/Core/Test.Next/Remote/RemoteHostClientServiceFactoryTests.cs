@@ -252,7 +252,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             return mock.Object;
         }
 
-        private class TestService : ServiceHubServiceBase
+        private class TestService : SolutionAwareServiceHubServiceBase
         {
             public TestService(Stream stream, IServiceProvider serviceProvider) :
                 base(serviceProvider, stream)
