@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// Synthesized namespace that contains synthesized types or subnamespaces.
     /// All its members are stored in a table on <see cref="CommonPEModuleBuilder"/>.
     /// </summary>
-    internal sealed class SynthesizedNamespaceSymbol : NamespaceSymbol, IEquatable<SynthesizedNamespaceSymbol>
+    internal sealed class SynthesizedNamespaceSymbol : NamespaceSymbol
     {
         private readonly string _name;
         private readonly NamespaceSymbol _containingSymbol;

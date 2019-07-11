@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     if (symbol is INamespace @namespace)
                     {
                         // If the namespace did not exist in the previous generation, it was added.
-                        // Otherwise the namespace may contains changes.
+                        // Otherwise the namespace may contain changes.
                         return _definitionMap.NamespaceExists(@namespace) ? SymbolChange.ContainsChanges : SymbolChange.Added;
                     }
 

@@ -2229,7 +2229,7 @@ class C
             CheckNames(readers, reader1.GetPropertyDefNames());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/37137")]
         public void ArrayInitializer()
         {
             var source0 = @"
@@ -3985,7 +3985,7 @@ class B : A<B>
         /// <summary>
         /// Preserve locals for method added after initial compilation.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/37137")]
         public void PreserveLocalSlots_NewMethod()
         {
             var source0 =
@@ -4724,34 +4724,34 @@ namespace M
         /// Anonymous type names with module ids
         /// and gaps in indices.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/37137")]
         public void AnonymousTypes_OtherTypeNames()
         {
             var ilSource =
-@".assembly extern mscorlib { }
+@".assembly extern netstandard { .ver 2:0:0:0 .publickeytoken = (cc 7b 13 ff cd 2d dd 51) }
 // Valid signature, although not sequential index
-.class '<>f__AnonymousType2'<'<A>j__TPar', '<B>j__TPar'>
+.class '<>f__AnonymousType2'<'<A>j__TPar', '<B>j__TPar'> extends object
 {
   .field public !'<A>j__TPar' A
   .field public !'<B>j__TPar' B
 }
 // Invalid signature, unexpected type parameter names
-.class '<>f__AnonymousType1'<A, B>
+.class '<>f__AnonymousType1'<A, B> extends object
 {
   .field public !A A
   .field public !B B
 }
 // Module id, duplicate index
-.class '<m>f__AnonymousType2`1'<'<A>j__TPar'>
+.class '<m>f__AnonymousType2`1'<'<A>j__TPar'> extends object
 {
   .field public !'<A>j__TPar' A
 }
 // Module id
-.class '<m>f__AnonymousType3`1'<'<B>j__TPar'>
+.class '<m>f__AnonymousType3`1'<'<B>j__TPar'> extends object
 {
   .field public !'<B>j__TPar' B
 }
-.class public C
+.class public C extends object
 {
   .method public specialname rtspecialname instance void .ctor()
   {
@@ -4781,9 +4781,9 @@ namespace M
         return y;
     }
 }";
-            var metadata0 = (MetadataImageReference)CompileIL(ilSource);
+            var metadata0 = (MetadataImageReference)CompileIL(ilSource, prependDefaultHeader: false);
 
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20);
             var compilation1 = compilation0.WithSource(source1);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");

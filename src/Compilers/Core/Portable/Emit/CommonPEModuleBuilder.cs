@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Emit
         public abstract IEnumerable<Cci.INamespaceTypeDefinition> GetAnonymousTypeDefinitions(EmitContext context);
 
         /// <summary>
-        /// Top-level embedded types (e.g. attribute types taht are not present in referenced assemblies).
+        /// Top-level embedded types (e.g. attribute types that are not present in referenced assemblies).
         /// </summary>
         public abstract IEnumerable<Cci.INamespaceTypeDefinition> GetEmbeddedTypeDefinitions(EmitContext context);
 

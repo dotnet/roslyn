@@ -281,11 +281,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return;
             }
 
+            var createParameterlessEmbeddedAttributeSymbol = new Func<string, NamespaceSymbol, DiagnosticBag, SynthesizedEmbeddedAttributeSymbol>(CreateParameterlessEmbeddedAttributeSymbol);
+
             CreateAttributeIfNeeded(
                 ref _lazyEmbeddedAttribute,
                 diagnostics,
                 AttributeDescription.CodeAnalysisEmbeddedAttribute,
-                CreateParameterlessEmbeddedAttributeSymbol);
+                createParameterlessEmbeddedAttributeSymbol);
 
             if ((needsAttributes & EmbeddableAttributes.IsReadOnlyAttribute) != 0)
             {
@@ -293,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     ref _lazyIsReadOnlyAttribute,
                     diagnostics,
                     AttributeDescription.IsReadOnlyAttribute,
-                    CreateParameterlessEmbeddedAttributeSymbol);
+                    createParameterlessEmbeddedAttributeSymbol);
             }
 
             if ((needsAttributes & EmbeddableAttributes.IsByRefLikeAttribute) != 0)
@@ -302,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     ref _lazyIsByRefLikeAttribute,
                     diagnostics,
                     AttributeDescription.IsByRefLikeAttribute,
-                    CreateParameterlessEmbeddedAttributeSymbol);
+                    createParameterlessEmbeddedAttributeSymbol);
             }
 
             if ((needsAttributes & EmbeddableAttributes.IsUnmanagedAttribute) != 0)
@@ -311,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     ref _lazyIsUnmanagedAttribute,
                     diagnostics,
                     AttributeDescription.IsUnmanagedAttribute,
-                    CreateParameterlessEmbeddedAttributeSymbol);
+                    createParameterlessEmbeddedAttributeSymbol);
             }
 
             if ((needsAttributes & EmbeddableAttributes.NullableAttribute) != 0)

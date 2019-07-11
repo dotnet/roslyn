@@ -61,7 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public override Cci.INamespace MapNamespace(Cci.INamespace @namespace)
         {
-            Debug.Assert(@namespace is NamespaceSymbol);
             return (Cci.INamespace)_symbols.Visit((NamespaceSymbol)@namespace);
         }
 
