@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 roslynItem, completionListSpan, commitChar, triggerSnapshot, serviceRules,
                 filterText, cancellationToken);
 
-            _recentItemsManager.MakeMostRecentItem(roslynItem.DisplayText);
+            _recentItemsManager.MakeMostRecentItem(roslynItem.FilterText);
             return new AsyncCompletionData.CommitResult(isHandled: true, commitBehavior);
         }
 
