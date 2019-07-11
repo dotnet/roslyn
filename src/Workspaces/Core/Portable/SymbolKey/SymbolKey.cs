@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis
         /// to the corresponding <see cref="ISymbol"/> in a future <see cref="Compilation"/>.
         /// 
         /// This string form is not guaranteed to be reusable across all future versions of 
-        /// Roslyn.  As suchit should only be used for caching data, with the knowledge that
+        /// Roslyn.  As such it should only be used for caching data, with the knowledge that
         /// the data may need to be recomputed if the cached data can no longer be used.
         /// </summary>
         public override string ToString()
