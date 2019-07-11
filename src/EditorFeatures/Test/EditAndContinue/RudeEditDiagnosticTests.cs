@@ -51,6 +51,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                 RudeEditKind.ReadOnlyStruct,
                 RudeEditKind.ReadOnlyReferences,
                 RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier,
+                RudeEditKind.InsertIntoInterface,
+                RudeEditKind.InsertLocalFunctionIntoInterfaceMethod,
             };
 
             var arg2 = new HashSet<RudeEditKind>()

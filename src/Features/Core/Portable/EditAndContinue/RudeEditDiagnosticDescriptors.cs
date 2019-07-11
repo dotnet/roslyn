@@ -84,6 +84,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             { GetDescriptorPair(RudeEditKind.ReadOnlyStruct,                            FeaturesResources.Using_readonly_structs_will_prevent_the_debug_session_from_continuing) },
             { GetDescriptorPair(RudeEditKind.ReadOnlyReferences,                        FeaturesResources.Using_readonly_references_will_prevent_the_debug_session_from_continuing) },
             { GetDescriptorPair(RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier, FeaturesResources.Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing) },
+            { GetDescriptorPair(RudeEditKind.InsertIntoInterface,                       FeaturesResources.Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing) },
+            { GetDescriptorPair(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod,    FeaturesResources.Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing) },
             { GetDescriptorPair(RudeEditKind.InternalError,                             FeaturesResources.Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error) },
             { GetDescriptorPair(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION,        FeaturesResources.Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_will_prevent_the_debug_session_from_continuing) },
 

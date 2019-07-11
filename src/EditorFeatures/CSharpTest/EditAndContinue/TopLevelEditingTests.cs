@@ -802,6 +802,123 @@ public class SubClass : BaseClass, IConflict
             edits.VerifyRudeDiagnostics();
         }
 
+        [WorkItem(37128, "https://github.com/dotnet/roslyn/issues/37128")]
+        [Fact]
+        public void Interface_AddMembersWithImplementation()
+        {
+            var src1 = @"
+using System;
+interface I
+{
+}
+";
+            var src2 = @"
+using System;
+interface I
+{
+    static int StaticField = 10;
+
+    static void StaticMethod() { }
+    void VirtualMethod1() { }
+    virtual void VirtualMethod2() { }
+    abstract void AbstractMethod();
+    sealed void NonVirtualMethod() { }
+
+    public static int operator +(I a, I b) => 1;
+
+    static int StaticProperty1 { get => 1; set { } }
+    static int StaticProperty2 => 1;
+    virtual int VirtualProperty1 { get => 1; set { } }
+    virtual int VirtualProperty2 { get => 1; }
+    int VirtualProperty3 { get => 1; set { } }
+    int VirtualProperty4 { get => 1; }
+    abstract int AbstractProperty1 { get; set; }
+    abstract int AbstractProperty2 { get; }
+    sealed int NonVirtualProperty => 1;
+
+    int this[byte virtualIndexer] => 1;
+    int this[sbyte virtualIndexer] { get => 1; }
+    virtual int this[ushort virtualIndexer] { get => 1; set {} }
+    virtual int this[short virtualIndexer] { get => 1; set {} }
+    abstract int this[uint abstractIndexer] { get; set; }
+    abstract int this[int abstractIndexer] { get; }
+    sealed int this[ulong nonVirtualIndexer] { get => 1; set {} }
+    sealed int this[long nonVirtualIndexer] { get => 1; set {} }
+    
+    static event Action StaticEvent;
+    static event Action StaticEvent2 { add { } remove { } }
+
+    event Action VirtualEvent { add { } remove { } }
+    abstract event Action AbstractEvent;
+    sealed event Action NonVirtualEvent { add { } remove { } }
+
+    interface J { }
+}
+";
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.InsertVirtual, "void VirtualMethod1()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.InsertVirtual, "virtual void VirtualMethod2()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.InsertVirtual, "abstract void AbstractMethod()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.InsertOperator, "public static int operator +(I a, I b)", FeaturesResources.operator_),
+                Diagnostic(RudeEditKind.InsertVirtual, "virtual int VirtualProperty1", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertVirtual, "virtual int VirtualProperty2", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertVirtual, "int VirtualProperty3", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertVirtual, "int VirtualProperty4", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertVirtual, "abstract int AbstractProperty1", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.InsertVirtual, "abstract int AbstractProperty2", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.InsertVirtual, "int this[byte virtualIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertVirtual, "int this[sbyte virtualIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertVirtual, "virtual int this[ushort virtualIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertVirtual, "virtual int this[short virtualIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertVirtual, "abstract int this[uint abstractIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertVirtual, "abstract int this[int abstractIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertVirtual, "event Action VirtualEvent", FeaturesResources.event_),
+                Diagnostic(RudeEditKind.InsertVirtual, "abstract event Action AbstractEvent", CSharpFeaturesResources.event_field),
+                // TODO: The following errors are reported due to https://github.com/dotnet/roslyn/issues/37128.
+                Diagnostic(RudeEditKind.InsertIntoInterface, "static int StaticField = 10", FeaturesResources.field),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "static void StaticMethod()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "sealed void NonVirtualMethod()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "static int StaticProperty1", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "static int StaticProperty2", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "sealed int NonVirtualProperty", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "sealed int this[ulong nonVirtualIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "sealed int this[long nonVirtualIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "static event Action StaticEvent", CSharpFeaturesResources.event_field),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "static event Action StaticEvent2", FeaturesResources.event_),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "sealed event Action NonVirtualEvent", FeaturesResources.event_));
+        }
+
+        [Fact]
+        public void Interface_AddAbstractMembers()
+        {
+            var src1 = @"
+interface I
+{
+}
+";
+            var src2 = @"
+interface I
+{
+    void M();
+
+    int P { get; }
+    int Q { get; set; }
+
+    event Action F;
+
+    int this[bool a] { get; }
+    int this[byte a] { get; set; }
+}
+";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.InsertVirtual, "void M()", FeaturesResources.method));
+        }
+
         #endregion
 
         #region Enums

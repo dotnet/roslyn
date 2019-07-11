@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             DiagnosticDescription expectedDeclarationError,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
-            CSharpEditAndContinueTestHelpers.Instance.VerifySemantics(
+            CSharpEditAndContinueTestHelpers.InstanceNetCoreApp30.VerifySemantics(
                 editScript,
                 activeStatements,
                 additionalOldSources,
