@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -70,22 +71,36 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         public static async Task<Location> GetLocationInGeneratedSourceAsync(SymbolKey symbolId, Document generatedDocument, CancellationToken cancellationToken)
         {
-            var location = symbolId.Resolve(
+            var resolution = symbolId.Resolve(
                 await generatedDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false),
-                ignoreAssemblyKey: true, cancellationToken: cancellationToken)
-                .GetAllSymbols()
-                .Select(s => s.Locations.Where(loc => loc.IsInSource).FirstOrDefault())
-                .WhereNotNull()
-                .FirstOrDefault();
+                ignoreAssemblyKey: true, cancellationToken: cancellationToken);
 
+            var location = GetFirstSourceLocation(resolution);
             if (location == null)
             {
-                // If we cannot find the symbol, then put the caret at the beginning of the file.
+                // If we cannot find the location of the  symbol.  Just put the caret at the 
+                // beginning of the file.
                 var tree = await generatedDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 location = Location.Create(tree, new TextSpan(0, 0));
             }
 
             return location;
+        }
+
+        private static Location GetFirstSourceLocation(SymbolKeyResolution resolution)
+        {
+            foreach (var symbol in resolution)
+            {
+                foreach (var location in symbol.Locations)
+                {
+                    if (location.IsInSource)
+                    {
+                        return location;
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }

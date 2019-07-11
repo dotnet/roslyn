@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis
@@ -33,7 +32,13 @@ namespace Microsoft.CodeAnalysis
             Symbol = null;
             _candidateSymbols = candidateSymbols;
             CandidateReason = candidateReason;
-            Debug.Assert(CandidateSymbols.All(s => s != null));
+
+#if DEBUG
+            foreach (var symbol in CandidateSymbols)
+            {
+                Debug.Assert(symbol != null);
+            }
+#endif
         }
 
         internal int SymbolCount => Symbol != null ? 1 : CandidateSymbols.Length;

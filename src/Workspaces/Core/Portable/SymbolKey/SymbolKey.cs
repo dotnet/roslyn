@@ -92,8 +92,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private const int FormatVersion = 1;
 
-        private readonly static Func<ITypeSymbol, bool> s_typeIsNull = t => t == null;
-
         private readonly string _symbolKeyData;
 
         /// <summary>
@@ -272,5 +270,8 @@ namespace Microsoft.CodeAnalysis
 
             return result;
         }
+
+        private static T FirstOrDefault<T>(ImmutableArray<T> values)
+            => values.IsDefaultOrEmpty ? default : values[0];
     }
 }

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -14,7 +13,7 @@ namespace Microsoft.CodeAnalysis
             {
                 visitor.WriteString(symbol.Name);
                 visitor.WriteSymbolKey(symbol.Target);
-                visitor.WriteString(symbol.DeclaringSyntaxReferences.FirstOrDefault()?.SyntaxTree.FilePath ?? "");
+                visitor.WriteString(FirstOrDefault(symbol.DeclaringSyntaxReferences)?.SyntaxTree.FilePath ?? "");
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)

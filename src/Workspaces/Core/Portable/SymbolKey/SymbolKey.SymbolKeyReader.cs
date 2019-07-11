@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -369,7 +368,7 @@ namespace Microsoft.CodeAnalysis
             public void PopMethod(IMethodSymbol methodOpt)
             {
                 Contract.ThrowIfTrue(_methodSymbolStack.Count == 0);
-                Contract.ThrowIfFalse(Equals(methodOpt, _methodSymbolStack.Last()));
+                Contract.ThrowIfFalse(Equals(methodOpt, _methodSymbolStack[_methodSymbolStack.Count - 1]));
                 _methodSymbolStack.RemoveAt(_methodSymbolStack.Count - 1);
             }
 
@@ -377,7 +376,17 @@ namespace Microsoft.CodeAnalysis
                 => _methodSymbolStack[index];
 
             internal SyntaxTree GetSyntaxTree(string filePath)
-                => this.Compilation.SyntaxTrees.FirstOrDefault(t => t.FilePath == filePath);
+            {
+                foreach (var tree in this.Compilation.SyntaxTrees)
+                {
+                    if (tree.FilePath == filePath)
+                    {
+                        return tree;
+                    }
+                }
+
+                return null;
+            }
 
             #region Symbols
 
@@ -520,17 +529,33 @@ namespace Microsoft.CodeAnalysis
                         // with this name.  In that case, just map this location to none.
                         if (assemblyResolution.GetAnySymbol() is IAssemblySymbol assembly)
                         {
-                            var module = assembly.Modules.FirstOrDefault(m => m.MetadataName == moduleName);
-                            var location = module?.Locations.FirstOrDefault();
-                            if (location != null)
+                            var module = GetModule(assembly.Modules, moduleName);
+                            if (module != null)
                             {
-                                return location;
+                                var location = FirstOrDefault(module.Locations);
+                                if (location != null)
+                                {
+                                    return location;
+                                }
                             }
                         }
                     }
                 }
 
                 return Location.None;
+            }
+
+            private IModuleSymbol GetModule(IEnumerable<IModuleSymbol> modules, string moduleName)
+            {
+                foreach (var module in modules)
+                {
+                    if (module.MetadataName == moduleName)
+                    {
+                        return module;
+                    }
+                }
+
+                return null;
             }
 
             public PooledArrayBuilder<Location> ReadLocationArray()

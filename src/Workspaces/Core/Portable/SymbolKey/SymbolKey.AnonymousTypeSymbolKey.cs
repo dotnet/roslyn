@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis
                 var propertyTypes = properties.SelectAsArray(p => p.Type);
                 var propertyNames = properties.SelectAsArray(p => p.Name);
                 var propertyIsReadOnly = properties.SelectAsArray(p => p.SetMethod == null);
-                var propertyLocations = properties.SelectAsArray(p => p.Locations.FirstOrDefault());
+                var propertyLocations = properties.SelectAsArray(p => FirstOrDefault(p.Locations));
 
                 visitor.WriteSymbolKeyArray(propertyTypes);
                 visitor.WriteStringArray(propertyNames);

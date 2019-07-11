@@ -158,9 +158,11 @@ namespace Microsoft.CodeAnalysis
                     // read out the values.  We don't actually need to use them, but we have
                     // to effectively read past them in the string.
 
-                    using var parameterTypes = reader.ReadSymbolArray<ITypeSymbol>();
-                    _ = reader.ReadSymbolKey();
-                    reader.PopMethod(methodOpt: null);
+                    using (reader.ReadSymbolArray<ITypeSymbol>())
+                    {
+                        _ = reader.ReadSymbolKey();
+                        reader.PopMethod(methodOpt: null);
+                    }
                 }
 
                 return CreateSymbolInfo(result);
