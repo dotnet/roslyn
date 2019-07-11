@@ -166,13 +166,94 @@ class C
 
         [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        public async Task TestMissingLocationAfter()
+        public async Task TestMissingInTooFarBeforeInWhitespace()
         {
             var testText = @"
 class C
 {
     void M()
     {
+        [||]
+
+        C LocalFunction(C c)
+        {
+            return null;
+        }
+        
+    }
+}";
+            await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingInWhiteSpaceOnLineWithDifferentStatement()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        
+        var a = null; [||]
+        C LocalFunction(C c)
+        {
+            return null;
+        }
+        
+    }
+}";
+            await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestBeforeInWhitespace1()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        [||]//Test comment
+        {|result:C LocalFunction(C c)
+        {
+            return null;
+        }|}
+    }
+}";
+            await TestAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestBeforeInWhitespace2()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+            var a = null;
+[||]        {|result:C LocalFunction(C c)
+        {
+            return null;
+        }|}
+    }
+}";
+            await TestAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingInNextTokensLeadingTrivia()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+
         C LocalFunction(C c)
         {
             return null;
@@ -182,45 +263,6 @@ class C
 }";
             await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
         }
-
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        public async Task TestMissingLocationBefore()
-        {
-            var testText = @"
-class C
-{
-    void M()
-    {
-        [||]
-        C LocalFunction(C c)
-        {
-            return null;
-        }
-    }
-}";
-            await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
-        }
-
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        public async Task TestMissingLocationBefore2()
-        {
-            var testText = @"
-class C
-{
-    void M()
-    {
-        var a = new object();[||]
-        C LocalFunction(C c)
-        {
-            return null;
-        }
-    }
-}";
-            await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
-        }
-
         #endregion
 
         #region Selections
@@ -425,6 +467,26 @@ class C
             return null;
         }
         v|]ar a = new object();
+    }
+}";
+            await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingSelectionBefore()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        
+ [|       |]C LocalFunction(C c)
+        {
+            return null;
+        }
+        var a = new object();
     }
 }";
             await TestMissingAsync<LocalFunctionStatementSyntax>(testText);

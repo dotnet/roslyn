@@ -10,10 +10,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
-    internal abstract class AbstractRefactoringHelpersService<TPropertyDeclaration, TParameter, TMethodDeclaration> : IRefactoringHelpersService
+    internal abstract class AbstractRefactoringHelpersService<TPropertyDeclaration, TParameter, TMethodDeclaration, TLocalDeclaration> : IRefactoringHelpersService
         where TPropertyDeclaration : SyntaxNode
         where TParameter : SyntaxNode
         where TMethodDeclaration : SyntaxNode
+        where TLocalDeclaration : SyntaxNode
     {
         public async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
             Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // - Firstly, it is used to handle situation where it touches a Token whose direct ancestor is wanted Node.
             // While having the (even empty) selection inside such token or to left of such Token is already handle 
             // by code above touching it from right `C methodName[||](){}` isn't (the FindNode for that returns Args node).
-            // - Secondly it is used for left/right edge climbing. E.g. `[||]C methodName(){}` the touching token's direct 
+            // - Secondly, it is used for left/right edge climbing. E.g. `[||]C methodName(){}` the touching token's direct 
             // ancestor is TypeNode for the return type but it is still reasonable to expect that the user might want to 
             // be given refactorings for the whole method (as he has caret on the edge of it). Therefore we travel the 
             // Node tree upwards and as long as we're on the left edge of a Node's span we consider such node & potentially 
@@ -160,6 +161,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // E.g. for right edge `C methodName(){}[||]`: CloseBraceToken -> BlockSyntax -> LocalFunctionStatement -> null (higher 
             // node doesn't end on position anymore)
             // Note: left-edge climbing needs to handle AttributeLists explicitly, see below for more information. 
+            // - Thirdly, if location isn't touching anything, we move the location to the token in whose trivia location is in.
+            // more about that below.
             if (!selectionRaw.IsEmpty)
             {
                 return null;
@@ -173,6 +176,54 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             var tokenToRightOrIn = tokenOnLocation.Span.Contains(location)
                 ? tokenOnLocation
                 : default;
+
+            // A token can be to the left only when there's either no tokenDirectlyToRightOrIn or there's one 
+            // directly starting at current location. Otherwise  (otherwise tokenToRightOrIn is also left from location, e.g: `tok[||]enToRightOrIn`)
+            var tokenToLeft = default(SyntaxToken);
+            if (tokenToRightOrIn == default || tokenToRightOrIn.Span.Start == location)
+            {
+                var tokenPreLocation = (tokenOnLocation.Span.End == location)
+                    ? tokenOnLocation
+                    : tokenOnLocation.GetPreviousToken();
+
+                tokenToLeft = (tokenPreLocation.Span.End == location)
+                    ? tokenPreLocation
+                    : default;
+            }
+
+            // If both tokens directly to left & right are empty -> we're somewhere in the middle of whitespace.
+            // Since there wouldn't be (m)any other refactorings we can try to offer at least the ones for (semantically) 
+            // closest token/Node. Thus, we move the location to the token in whose `.FullSpan` the original location was.
+            if (tokenToLeft == default && tokenToRightOrIn == default)
+            {
+
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                // assume non-trivia token can't span multiple lines
+                var tokenLine = sourceText.Lines.GetLineFromPosition(tokenOnLocation.Span.Start);
+                var locationLine = sourceText.Lines.GetLineFromPosition(location);
+
+                // Change location to nearest token only if the token is off by one line or less
+                if (Math.Abs(tokenLine.LineNumber - locationLine.LineNumber) <= 1)
+                {
+                    // Note: being a line below a tokenOnLocation is impossible in current model as whitespace 
+                    // trailing trivia ends on new line. Which is fine because if you're a line _after_ some node
+                    // you usually don't want refactorings for what's above you.
+
+                    // tokenOnLocation: token in whose trivia location is at
+                    if (tokenOnLocation.Span.Start >= location)
+                    {
+                        tokenToRightOrIn = tokenOnLocation;
+                        location = tokenToRightOrIn.Span.Start;
+                    }
+                    else
+                    {
+                        tokenToLeft = tokenOnLocation;
+                        location = tokenToLeft.Span.End;
+                    }
+                }
+            }
 
             if (tokenToRightOrIn != default)
             {
@@ -212,21 +263,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 }
                 while (true);
             }
-
-            // if the location is inside tokenToRightOrIn -> no Token can be to Left (tokenToRightOrIn is also left from location, e.g: `tok[||]enToRightOrIn`)
-            if (tokenToRightOrIn != default && tokenToRightOrIn.Span.Start != location)
-            {
-                return null;
-            }
-
-            // Token to left: a token whose span ends on current location
-            var tokenPreLocation = (tokenOnLocation.Span.End == location)
-                ? tokenOnLocation
-                : tokenOnLocation.GetPreviousToken();
-
-            var tokenToLeft = (tokenPreLocation.Span.End == location)
-                ? tokenPreLocation
-                : default;
 
             if (tokenToLeft != default)
             {
@@ -332,6 +368,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 foreach (var headerNode in ExtractNodeOfHeader(node, syntaxFacts))
                 {
                     yield return headerNode;
+                    foreach (var extractedNode in ExtractNodeSimple(headerNode, syntaxFacts))
+                    {
+                        yield return extractedNode;
+                    }
                 }
             }
         }
@@ -359,6 +399,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                             yield return value;
                         }
                     }
+                }
+            }
+
+            // var `a = b`;
+            // -> `var a = b`;
+            if (node.Parent != null && syntaxFacts.IsLocalDeclarationStatement(node.Parent))
+            {
+                if (syntaxFacts.GetVariablesOfLocalDeclarationStatement(node.Parent).Count == 1)
+                {
+                    yield return node.Parent;
                 }
             }
 
