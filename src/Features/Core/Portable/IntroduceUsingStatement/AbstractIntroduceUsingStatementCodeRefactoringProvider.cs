@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             // the last variable usage index to include the local's last usage.
 
             // Take all the statements starting with the trigger variable's declaration.
-            var statementsAfterDeclaration = declarationSyntax.Parent.ChildNodesAndTokens()
+            var statementsFromDeclarationToEnd = declarationSyntax.Parent.ChildNodesAndTokens()
                 .Select(nodeOrToken => nodeOrToken.AsNode())
                 .OfType<TStatementSyntax>()
                 .SkipWhile(node => node != declarationSyntax)
@@ -248,14 +248,18 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             var variableDeclarationIndex = PooledDictionary<ISymbol, int>.GetInstance();
             var lastVariableUsageIndex = PooledDictionary<ISymbol, int>.GetInstance();
 
-            for (var statementIndex = 0; statementIndex < statementsAfterDeclaration.Length; statementIndex++)
+            // Loop through the statements from the trigger declaration to the end of the containing body.
+            // By starting with the trigger declaration it will add the trigger variable to the list of
+            // local variables.
+            for (var statementIndex = 0; statementIndex < statementsFromDeclarationToEnd.Length; statementIndex++)
             {
-                var currentStatement = statementsAfterDeclaration[statementIndex];
+                var currentStatement = statementsFromDeclarationToEnd[statementIndex];
 
-                // Update the last usage index for any variable referenced in the statement.
+                // Determine which local variables were referenced in this statement.
                 var referencedVariables = PooledHashSet<ISymbol>.GetInstance();
                 AddReferencedLocalVariables(referencedVariables, currentStatement, localVariables, semanticModel, syntaxFactsService, cancellationToken);
 
+                // Update the last usage index for each of the referenced variables.
                 foreach (var referencedVariable in referencedVariables)
                 {
                     lastVariableUsageIndex[referencedVariable] = statementIndex;
@@ -263,23 +267,29 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
 
                 referencedVariables.Free();
 
-                // Add new variables that were declared in the statement
+                // Determine if new variables where declared in this statement.
                 var declaredVariables = semanticModel.GetAllDeclaredSymbols(currentStatement, cancellationToken);
                 foreach (var declaredVariable in declaredVariables)
                 {
+                    // Initialize the declaration and usage index for the new variable and add it
+                    // to the list of local variables.
                     variableDeclarationIndex[declaredVariable] = statementIndex;
                     lastVariableUsageIndex[declaredVariable] = statementIndex;
                     localVariables.Add(declaredVariable);
                 }
             }
 
-            var lastUsageIndex = 0;
+            // Initially we will consider the trigger declaration statement the end of the using 
+            // statement. This index will grow as we examine the last usage index of the local
+            // variables declared within the using statements scope.
+            var endOfUsingStatementIndex = 0;
 
-            // Walk through the local variables in the order that they were declared.
+            // Walk through the local variables in the order that they were declared, starting
+            // with the trigger variable.
             foreach (var localSymbol in localVariables)
             {
                 var declarationIndex = variableDeclarationIndex[localSymbol];
-                if (declarationIndex > lastUsageIndex)
+                if (declarationIndex > endOfUsingStatementIndex)
                 {
                     // If the variable was declared after the last statement to include in
                     // the using statement, we have gone far enough and other variables will
@@ -287,14 +297,17 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                     break;
                 }
 
-                lastUsageIndex = Math.Max(lastUsageIndex, lastVariableUsageIndex[localSymbol]);
+                // If this variable was used later in the method than what we were considering
+                // the scope of the using statement, then increase the scope to include its last
+                // usage.
+                endOfUsingStatementIndex = Math.Max(endOfUsingStatementIndex, lastVariableUsageIndex[localSymbol]);
             }
 
             localVariables.Free();
             variableDeclarationIndex.Free();
             lastVariableUsageIndex.Free();
 
-            return statementsAfterDeclaration[lastUsageIndex];
+            return statementsFromDeclarationToEnd[endOfUsingStatementIndex];
         }
 
         /// <summary>
