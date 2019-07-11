@@ -116,6 +116,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
+        public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
         {
             get { return null; }
@@ -190,6 +192,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get { return TypeWithAnnotations.Create(_returnType); }
+        }
+
+        public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations
+        {
+            get { return FlowAnalysisAnnotations.None; }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers

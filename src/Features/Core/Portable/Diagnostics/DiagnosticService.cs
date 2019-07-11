@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Common;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -26,8 +28,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly object _gate;
         private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>> _map;
 
+        private readonly EventListenerTracker<IDiagnosticService> _eventListenerTracker;
+
         [ImportingConstructor]
-        public DiagnosticService(IAsynchronousOperationListenerProvider listenerProvider) : this()
+        public DiagnosticService(
+            IAsynchronousOperationListenerProvider listenerProvider,
+            [ImportMany]IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners) : this()
         {
             // queue to serialize events.
             _eventMap = new EventMap();
@@ -40,6 +46,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             _gate = new object();
             _map = new Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>>();
+
+            _eventListenerTracker = new EventListenerTracker<IDiagnosticService>(eventListeners, WellKnownEventListeners.DiagnosticService);
         }
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated
@@ -57,11 +65,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void RaiseDiagnosticsUpdated(IDiagnosticUpdateSource source, DiagnosticsUpdatedArgs args)
         {
+            _eventListenerTracker.EnsureEventListener(args.Workspace, this);
+
             var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
-            if (!RequireRunningEventTasks(source, ev))
-            {
-                return;
-            }
 
             var eventToken = _listener.BeginAsyncOperation(DiagnosticsUpdatedEventName);
             _eventQueue.ScheduleTask(() =>
@@ -79,50 +85,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private void RaiseDiagnosticsCleared(IDiagnosticUpdateSource source)
         {
             var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
-            if (!RequireRunningEventTasks(source, ev))
-            {
-                return;
-            }
 
             var eventToken = _listener.BeginAsyncOperation(DiagnosticsUpdatedEventName);
             _eventQueue.ScheduleTask(() =>
             {
-                using (var pooledObject = SharedPools.Default<List<DiagnosticsUpdatedArgs>>().GetPooledObject())
-                {
-                    var removed = pooledObject.Object;
-                    if (!ClearDiagnosticsReportedBySource(source, removed))
-                    {
-                        // there is no change, nothing to raise events for.
-                        return;
-                    }
+                using var pooledObject = SharedPools.Default<List<DiagnosticsUpdatedArgs>>().GetPooledObject();
 
-                    foreach (var args in removed)
-                    {
-                        ev.RaiseEvent(handler => handler(source, args));
-                    }
+                var removed = pooledObject.Object;
+                if (!ClearDiagnosticsReportedBySource(source, removed))
+                {
+                    // there is no change, nothing to raise events for.
+                    return;
+                }
+
+                // don't create event listener if it haven't created yet. if there is a diagnostic to remove
+                // listener should have already created since all events are done in the serialized queue
+                foreach (var args in removed)
+                {
+                    ev.RaiseEvent(handler => handler(source, args));
                 }
             }).CompletesAsyncOperation(eventToken);
-        }
-
-        private bool RequireRunningEventTasks(
-            IDiagnosticUpdateSource source, EventMap.EventHandlerSet<EventHandler<DiagnosticsUpdatedArgs>> ev)
-        {
-            // basically there are 2 cases when there is no event handler registered. 
-            // first case is when diagnostic update source itself provide GetDiagnostics functionality. 
-            // in that case, DiagnosticService doesn't need to track diagnostics reported. so, it bail out right away.
-            // second case is when diagnostic source doesn't provide GetDiagnostics functionality. 
-            // in that case, DiagnosticService needs to track diagnostics reported. so it need to enqueue background 
-            // work to process given data regardless whether there is event handler registered or not.
-            // this could be separated in 2 tasks, but we already saw cases where there are too many tasks enqueued, 
-            // so I merged it to one. 
-
-            // if it doesn't SupportGetDiagnostics, we need to process reported data, so enqueue task.
-            if (!source.SupportGetDiagnostics)
-            {
-                return true;
-            }
-
-            return ev.HasHandlers;
         }
 
         private bool UpdateDataMap(IDiagnosticUpdateSource source, DiagnosticsUpdatedArgs args)
@@ -246,16 +228,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 else
                 {
-                    using (var pool = SharedPools.Default<List<Data>>().GetPooledObject())
-                    {
-                        AppendMatchingData(source, workspace, projectId, documentId, id, pool.Object);
-                        Debug.Assert(pool.Object.Count == 0 || pool.Object.Count == 1);
+                    using var pool = SharedPools.Default<List<Data>>().GetPooledObject();
 
-                        if (pool.Object.Count == 1)
-                        {
-                            var diagnostics = pool.Object[0].Diagnostics;
-                            return !includeSuppressedDiagnostics ? FilterSuppressedDiagnostics(diagnostics) : diagnostics;
-                        }
+                    AppendMatchingData(source, workspace, projectId, documentId, id, pool.Object);
+                    Debug.Assert(pool.Object.Count == 0 || pool.Object.Count == 1);
+
+                    if (pool.Object.Count == 1)
+                    {
+                        var diagnostics = pool.Object[0].Diagnostics;
+                        return !includeSuppressedDiagnostics ? FilterSuppressedDiagnostics(diagnostics) : diagnostics;
                     }
                 }
             }
@@ -294,19 +275,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 else
                 {
-                    using (var list = SharedPools.Default<List<Data>>().GetPooledObject())
-                    {
-                        AppendMatchingData(source, workspace, projectId, documentId, null, list.Object);
+                    using var list = SharedPools.Default<List<Data>>().GetPooledObject();
 
-                        foreach (var data in list.Object)
+                    AppendMatchingData(source, workspace, projectId, documentId, null, list.Object);
+
+                    foreach (var data in list.Object)
+                    {
+                        foreach (var diagnostic in data.Diagnostics)
                         {
-                            foreach (var diagnostic in data.Diagnostics)
+                            AssertIfNull(diagnostic);
+                            if (includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
                             {
-                                AssertIfNull(diagnostic);
-                                if (includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
-                                {
-                                    yield return diagnostic;
-                                }
+                                yield return diagnostic;
                             }
                         }
                     }
@@ -321,14 +301,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                using (var list = SharedPools.Default<List<Data>>().GetPooledObject())
-                {
-                    AppendMatchingData(source, workspace, projectId, documentId, null, list.Object);
+                using var list = SharedPools.Default<List<Data>>().GetPooledObject();
 
-                    foreach (var data in list.Object)
-                    {
-                        yield return new UpdatedEventArgs(data.Id, data.Workspace, data.ProjectId, data.DocumentId);
-                    }
+                AppendMatchingData(source, workspace, projectId, documentId, null, list.Object);
+
+                foreach (var data in list.Object)
+                {
+                    yield return new UpdatedEventArgs(data.Id, data.Workspace, data.ProjectId, data.DocumentId);
                 }
             }
         }
@@ -415,18 +394,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public readonly object Id;
             public readonly ImmutableArray<DiagnosticData> Diagnostics;
 
-            public Data(UpdatedEventArgs args) :
-                this(args, ImmutableArray<DiagnosticData>.Empty)
+            public Data(UpdatedEventArgs args)
+                : this(args, ImmutableArray<DiagnosticData>.Empty)
             {
             }
 
             public Data(UpdatedEventArgs args, ImmutableArray<DiagnosticData> diagnostics)
             {
-                this.Workspace = args.Workspace;
-                this.ProjectId = args.ProjectId;
-                this.DocumentId = args.DocumentId;
-                this.Id = args.Id;
-                this.Diagnostics = diagnostics;
+                Workspace = args.Workspace;
+                ProjectId = args.ProjectId;
+                DocumentId = args.DocumentId;
+                Id = args.Id;
+                Diagnostics = diagnostics;
             }
         }
     }

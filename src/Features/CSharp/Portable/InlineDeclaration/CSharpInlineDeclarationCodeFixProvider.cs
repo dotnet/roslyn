@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpInlineDeclarationCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.InlineDeclarationDiagnosticId);
 
@@ -126,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 // Try to find a predecessor Statement on the same line that isn't going to be removed
                 StatementSyntax priorStatementSyntax = null;
                 var localDeclarationToken = localDeclarationStatement.GetFirstToken();
-                for (int i = declarationIndex - 1; i >= 0; i--)
+                for (var i = declarationIndex - 1; i >= 0; i--)
                 {
                     var statementSyntax = block.Statements[i];
                     if (declarationsToRemove.Contains(statementSyntax))
@@ -163,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                     // We initialize this to null here but we must see at least the statement
                     // into which the declaration is going to be inlined so this will be not null
                     StatementSyntax nextStatementSyntax = null;
-                    for (int i = declarationIndex + 1; i < block.Statements.Count; i++)
+                    for (var i = declarationIndex + 1; i < block.Statements.Count; i++)
                     {
                         var statement = block.Statements[i];
                         if (!declarationsToRemove.Contains(statement))

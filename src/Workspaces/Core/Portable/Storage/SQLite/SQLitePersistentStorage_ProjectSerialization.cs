@@ -9,11 +9,14 @@ namespace Microsoft.CodeAnalysis.SQLite
 {
     internal partial class SQLitePersistentStorage
     {
-        public override Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default)
-            => _projectAccessor.ReadStreamAsync((project, name), cancellationToken);
+        public override Task<Checksum> ReadChecksumAsync(Project project, string name, CancellationToken cancellationToken)
+            => _projectAccessor.ReadChecksumAsync((project, name), cancellationToken);
 
-        public override Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken = default)
-            => _projectAccessor.WriteStreamAsync((project, name), stream, cancellationToken);
+        public override Task<Stream> ReadStreamAsync(Project project, string name, Checksum checksum, CancellationToken cancellationToken = default)
+            => _projectAccessor.ReadStreamAsync((project, name), checksum, cancellationToken);
+
+        public override Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken = default)
+            => _projectAccessor.WriteStreamAsync((project, name), stream, checksum, cancellationToken);
 
         /// <summary>
         /// <see cref="Accessor{TKey, TWriteQueueKey, TDatabaseId}"/> responsible for storing and

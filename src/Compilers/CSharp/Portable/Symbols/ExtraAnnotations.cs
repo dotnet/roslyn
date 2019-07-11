@@ -39,11 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 { "System.Boolean System.String.IsNullOrEmpty(System.String)", Array(default, NotNullWhenFalse) },
                 { "System.Boolean System.String.IsNullOrWhiteSpace(System.String)", Array(default, NotNullWhenFalse) },
-                { "System.Boolean System.String.Contains(System.String)", Array(default, EnsuresNotNull) },
-                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean)", Array(default, AssertsTrue) },
-                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String)", Array(default, AssertsTrue, default) },
-                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String, System.String)", Array(default, AssertsTrue, default, default) },
-                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String, System.String, System.Object[])", Array(default, AssertsTrue, default, default, default) },
+                { "System.Boolean System.String.Contains(System.String)", Array(default, NotNull) },
+                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean)", Array(default, DoesNotReturnIfFalse) },
+                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String)", Array(default, DoesNotReturnIfFalse, default) },
+                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String, System.String)", Array(default, DoesNotReturnIfFalse, default, default) },
+                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String, System.String, System.Object[])", Array(default, DoesNotReturnIfFalse, default, default, default) },
             }.ToImmutableDictionary();
 
         internal static string MakeMethodKey(PEMethodSymbol method, ParamInfo<TypeSymbol>[] paramInfo)
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static ImmutableArray<byte> Nullable(bool isNullable)
         {
-            return ImmutableArray.Create((byte)(isNullable ? NullableAnnotation.Annotated : NullableAnnotation.NotAnnotated));
+            return ImmutableArray.Create(isNullable ? NullableAnnotationExtensions.AnnotatedAttributeValue : NullableAnnotationExtensions.NotAnnotatedAttributeValue);
         }
 
         internal static ImmutableArray<ImmutableArray<byte>> GetExtraAnnotations(string key)

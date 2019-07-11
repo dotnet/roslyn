@@ -90,33 +90,32 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 // this will iterate through candidate checksums to see whether that checksum exists in both
                 // checksum set we are currently searching for and checksums current node contains
-                using (var removed = Creator.CreateList<Checksum>())
+                using var removed = Creator.CreateList<Checksum>();
+
+                // we have 2 sets of checksums. one we are searching for and ones this node contains.
+                // we only need to iterate one of them to see this node contains what we are looking for.
+                // so, we check two set and use one that has smaller number of checksums.
+                foreach (var checksum in GetSmallerChecksumList(searchingChecksumsLeft.Count, searchingChecksumsLeft, _additionalAssets.Count, _additionalAssets.Keys))
                 {
-                    // we have 2 sets of checksums. one we are searching for and ones this node contains.
-                    // we only need to iterate one of them to see this node contains what we are looking for.
-                    // so, we check two set and use one that has smaller number of checksums.
-                    foreach (var checksum in GetSmallerChecksumList(searchingChecksumsLeft.Count, searchingChecksumsLeft, _additionalAssets.Count, _additionalAssets.Keys))
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // if checksumGetter return null for given checksum, that means current node doesn't have given checksum
+                    var checksumObject = GetRemotableDataFromAdditionalAssets(checksum);
+                    if (checksumObject != null && searchingChecksumsLeft.Contains(checksum))
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
+                        // found given checksum in current node
+                        result[checksum] = checksumObject;
+                        removed.Object.Add(checksum);
 
-                        // if checksumGetter return null for given checksum, that means current node doesn't have given checksum
-                        var checksumObject = GetRemotableDataFromAdditionalAssets(checksum);
-                        if (checksumObject != null && searchingChecksumsLeft.Contains(checksum))
+                        // we found all checksums we are looking for
+                        if (removed.Object.Count == searchingChecksumsLeft.Count)
                         {
-                            // found given checksum in current node
-                            result[checksum] = checksumObject;
-                            removed.Object.Add(checksum);
-
-                            // we found all checksums we are looking for
-                            if (removed.Object.Count == searchingChecksumsLeft.Count)
-                            {
-                                break;
-                            }
+                            break;
                         }
                     }
-
-                    searchingChecksumsLeft.ExceptWith(removed.Object);
                 }
+
+                searchingChecksumsLeft.ExceptWith(removed.Object);
             }
 
             private RemotableData GetRemotableDataFromAdditionalAssets(Checksum checksum)
@@ -143,19 +142,13 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             private static string GetLogInfo<T>(T key)
-            {
-                switch (key)
+                => key switch
                 {
-                    case SolutionState solutionState:
-                        return solutionState.FilePath;
-                    case ProjectState projectState:
-                        return projectState.FilePath;
-                    case DocumentState documentState:
-                        return documentState.FilePath;
-                }
-
-                return "no detail";
-            }
+                    SolutionState solutionState => solutionState.FilePath,
+                    ProjectState projectState => projectState.FilePath,
+                    DocumentState documentState => documentState.FilePath,
+                    _ => "no detail",
+                };
         }
 
         private struct SolutionChecksumFinder
@@ -192,14 +185,13 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public void Append(HashSet<Checksum> searchingChecksumsLeft, Dictionary<Checksum, RemotableData> result)
             {
-                using (var resultPool = Creator.CreateResultSet())
-                {
-                    Append(searchingChecksumsLeft, resultPool.Object);
+                using var resultPool = Creator.CreateResultSet();
 
-                    foreach (var kv in resultPool.Object)
-                    {
-                        result[kv.Key] = SolutionAsset.Create(kv.Key, kv.Value, _serializer);
-                    }
+                Append(searchingChecksumsLeft, resultPool.Object);
+
+                foreach (var kv in resultPool.Object)
+                {
+                    result[kv.Key] = SolutionAsset.Create(kv.Key, kv.Value, _serializer);
                 }
             }
 

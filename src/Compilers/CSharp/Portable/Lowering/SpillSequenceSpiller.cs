@@ -630,6 +630,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UpdateExpression(builder, node.Update(initializers));
         }
 
+        public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            BoundExpression count = VisitExpression(ref builder, node.Count);
+            var initializerOpt = (BoundArrayInitialization)VisitExpression(ref builder, node.InitializerOpt);
+            return UpdateExpression(builder, node.Update(node.ElementType, count, initializerOpt, node.Type));
+        }
+
         public override BoundNode VisitArrayLength(BoundArrayLength node)
         {
             BoundSpillSequenceBuilder builder = null;
@@ -764,7 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 receiver = VisitExpression(ref builder, node.ReceiverOpt);
             }
-            else if (!node.Method.IsStatic)
+            else if (node.Method.RequiresInstanceReceiver)
             {
                 // spill the receiver if there were await expressions in the arguments
                 var receiverBuilder = new BoundSpillSequenceBuilder();
@@ -1174,6 +1182,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundSpillSequenceBuilder builder = null;
             BoundExpression operand = VisitExpression(ref builder, node.Operand);
             return UpdateExpression(builder, node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, node.Type));
+        }
+
+        public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            BoundExpression operand = VisitExpression(ref builder, node.Operand);
+            return UpdateExpression(builder, node.Update(operand, node.ConversionMethod, node.Type));
         }
 
         #endregion

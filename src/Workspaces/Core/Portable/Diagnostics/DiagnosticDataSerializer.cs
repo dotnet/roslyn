@@ -38,20 +38,18 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         public async Task<bool> SerializeAsync(object documentOrProject, string key, ImmutableArray<DiagnosticData> items, CancellationToken cancellationToken)
         {
-            using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
-            {
-                WriteTo(writer, items, cancellationToken);
+            using var stream = SerializableBytes.CreateWritableStream();
+            using var writer = new ObjectWriter(stream, cancellationToken: cancellationToken);
 
-                var solution = GetSolution(documentOrProject);
-                var persistService = solution.Workspace.Services.GetService<IPersistentStorageService>();
+            WriteTo(writer, items, cancellationToken);
 
-                using (var storage = persistService.GetStorage(solution))
-                {
-                    stream.Position = 0;
-                    return await WriteStreamAsync(storage, documentOrProject, key, stream, cancellationToken).ConfigureAwait(false);
-                }
-            }
+            var solution = GetSolution(documentOrProject);
+            var persistService = solution.Workspace.Services.GetService<IPersistentStorageService>();
+
+            using var storage = persistService.GetStorage(solution);
+
+            stream.Position = 0;
+            return await WriteStreamAsync(storage, documentOrProject, key, stream, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<StrongBox<ImmutableArray<DiagnosticData>>> DeserializeAsync(object documentOrProject, string key, CancellationToken cancellationToken)
@@ -60,19 +58,18 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             var solution = GetSolution(documentOrProject);
             var persistService = solution.Workspace.Services.GetService<IPersistentStorageService>();
 
-            using (var storage = persistService.GetStorage(solution))
-            using (var stream = await ReadStreamAsync(storage, key, documentOrProject, cancellationToken).ConfigureAwait(false))
-            using (var reader = ObjectReader.TryGetReader(stream))
-            {
-                if (reader == null)
-                {
-                    return null;
-                }
+            using var storage = persistService.GetStorage(solution);
+            using var stream = await ReadStreamAsync(storage, key, documentOrProject, cancellationToken).ConfigureAwait(false);
+            using var reader = ObjectReader.TryGetReader(stream);
 
-                // we return StrongBox rather than ImmutableArray due to task lib's issue with allocations
-                // when returning default(value type)
-                return ReadFrom(reader, documentOrProject, cancellationToken);
+            if (reader == null)
+            {
+                return null;
             }
+
+            // we return StrongBox rather than ImmutableArray due to task lib's issue with allocations
+            // when returning default(value type)
+            return ReadFrom(reader, documentOrProject, cancellationToken);
         }
 
         private Task<bool> WriteStreamAsync(IPersistentStorage storage, object documentOrProject, string key, Stream stream, CancellationToken cancellationToken)
@@ -126,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                     writer.WriteInt32(0);
                 }
 
-                WriteTo(writer, item.DataLocation, cancellationToken);
+                WriteTo(writer, item.DataLocation);
                 WriteTo(writer, item.AdditionalLocations, cancellationToken);
 
                 writer.WriteInt32(item.CustomTags.Count);
@@ -152,12 +149,12 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 foreach (var location in additionalLocations)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    WriteTo(writer, location, cancellationToken);
+                    WriteTo(writer, location);
                 }
             }
         }
 
-        private static void WriteTo(ObjectWriter writer, DiagnosticDataLocation item, CancellationToken cancellationToken)
+        private static void WriteTo(ObjectWriter writer, DiagnosticDataLocation item)
         {
             if (item == null)
             {
@@ -219,33 +216,32 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         {
             try
             {
-                using (var pooledObject = SharedPools.Default<List<DiagnosticData>>().GetPooledObject())
+                using var pooledObject = SharedPools.Default<List<DiagnosticData>>().GetPooledObject();
+
+                var list = pooledObject.Object;
+
+                var format = reader.ReadInt32();
+                if (format != FormatVersion)
                 {
-                    var list = pooledObject.Object;
-
-                    var format = reader.ReadInt32();
-                    if (format != FormatVersion)
-                    {
-                        return null;
-                    }
-
-                    // saved data is for same analyzer of different version of dll
-                    var analyzerVersion = VersionStamp.ReadFrom(reader);
-                    if (analyzerVersion != AnalyzerVersion)
-                    {
-                        return null;
-                    }
-
-                    var version = VersionStamp.ReadFrom(reader);
-                    if (version != VersionStamp.Default && version != Version)
-                    {
-                        return null;
-                    }
-
-                    ReadFrom(reader, project, document, list, cancellationToken);
-
-                    return new StrongBox<ImmutableArray<DiagnosticData>>(list.ToImmutableArray());
+                    return null;
                 }
+
+                // saved data is for same analyzer of different version of dll
+                var analyzerVersion = VersionStamp.ReadFrom(reader);
+                if (analyzerVersion != AnalyzerVersion)
+                {
+                    return null;
+                }
+
+                var version = VersionStamp.ReadFrom(reader);
+                if (version != VersionStamp.Default && version != Version)
+                {
+                    return null;
+                }
+
+                ReadFrom(reader, project, document, list, cancellationToken);
+
+                return new StrongBox<ImmutableArray<DiagnosticData>>(list.ToImmutableArray());
             }
             catch (Exception)
             {
@@ -290,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
                 list.Add(new DiagnosticData(
                     id, category, message, messageFormat, severity, defaultSeverity, isEnabledByDefault, warningLevel, customTags, properties,
-                    project.Solution.Workspace, project.Id, location, additionalLocations,
+                    project.Id, location, additionalLocations,
                     title: title,
                     description: description,
                     helpLink: helpLink,

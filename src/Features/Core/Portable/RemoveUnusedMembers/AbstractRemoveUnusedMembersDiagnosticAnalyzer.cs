@@ -40,8 +40,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         // We need to analyze the whole document even for edits within a method body,
         // because we might add or remove references to members in executable code.
         // For example, if we had an unused field with no references, then editing any single method body
@@ -488,7 +486,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                              .OfType<TDocumentationCommentTriviaSyntax>()
                                              .SelectMany(n => n.DescendantNodes().OfType<TIdentifierNameSyntax>()))
                     {
-                        lazyModel = lazyModel ?? compilation.GetSemanticModel(root.SyntaxTree);
+                        lazyModel ??= compilation.GetSemanticModel(root.SyntaxTree);
                         var symbol = lazyModel.GetSymbolInfo(node, cancellationToken).Symbol;
                         if (symbol != null && IsCandidateSymbol(symbol))
                         {

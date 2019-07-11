@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -17,19 +19,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Creates a speculative SemanticModel for a TypeSyntax node at a position within an existing MemberSemanticModel.
             /// </summary>
-            public SpeculativeMemberSemanticModel(SyntaxTreeSemanticModel parentSemanticModel, Symbol owner, TypeSyntax root, Binder rootBinder, int position)
-                : base(root, owner, rootBinder, containingSemanticModelOpt: null, parentSemanticModelOpt: parentSemanticModel, speculatedPosition: position)
+            public SpeculativeMemberSemanticModel(SyntaxTreeSemanticModel parentSemanticModel, Symbol owner, TypeSyntax root, Binder rootBinder, NullableWalker.SnapshotManager snapshotManagerOpt, int position)
+                : base(root, owner, rootBinder, containingSemanticModelOpt: null, parentSemanticModelOpt: parentSemanticModel, snapshotManagerOpt, speculatedPosition: position)
             {
             }
 
-            protected override BoundNode RewriteNullableBoundNodes(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics)
+            protected override NullableWalker.SnapshotManager GetSnapshotManager()
             {
-                // https://github.com/dotnet/roslyn/issues/35037: Speculative models are going to have to do something more advanced
-                // here. They will need to run nullable analysis up to the point that is being speculated on, and
-                // then take that state and run analysis on the statement or expression being speculated on.
-                // Currently, it will return incorrect info because it's just running analysis on the speculated
-                // part.
-                return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol as MethodSymbol, boundRoot, binder, diagnostics);
+                // In this override, current nullability state cannot influence anything of speculatively bound expressions.
+                return _parentSnapshotManagerOpt;
+            }
+
+            protected override BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots, out NullableWalker.SnapshotManager snapshotManager)
+            {
+                Debug.Assert(boundRoot.Syntax is TypeSyntax);
+                return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol as MethodSymbol, boundRoot, binder, diagnostics, createSnapshots: false, out snapshotManager);
             }
 
             internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)

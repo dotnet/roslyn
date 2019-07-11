@@ -13,6 +13,65 @@ using Microsoft.CodeAnalysis.FlowAnalysis;
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
+    /// Use this to create IOperation when we don't have proper specific IOperation yet for given language construct
+    /// </summary>
+    internal abstract class BaseNoneOperation : Operation
+    {
+        protected BaseNoneOperation(SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.None, semanticModel, syntax, type: null, constantValue, isImplicit)
+        {
+        }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+
+    internal class NoneOperation : BaseNoneOperation
+    {
+        public NoneOperation(ImmutableArray<IOperation> children, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, constantValue, isImplicit)
+        {
+            Children = SetParentOperation(children, this);
+        }
+
+        public override IEnumerable<IOperation> Children { get; }
+    }
+
+    internal abstract class LazyNoneOperation : BaseNoneOperation
+    {
+        private ImmutableArray<IOperation> _lazyChildrenInterlocked;
+
+        public LazyNoneOperation(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, node, constantValue: constantValue, isImplicit: isImplicit)
+        {
+        }
+
+        protected abstract ImmutableArray<IOperation> GetChildren();
+
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                if (_lazyChildrenInterlocked.IsDefault)
+                {
+                    ImmutableArray<IOperation> children = GetChildren();
+                    SetParentOperation(children, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyChildrenInterlocked, children, default);
+                }
+
+                return _lazyChildrenInterlocked;
+            }
+        }
+    }
+
+    /// <summary>
     /// Represents an operation that creates a pointer value by taking the address of a reference.
     /// </summary>
     internal abstract partial class BaseAddressOfOperation : Operation, IAddressOfOperation
@@ -8118,7 +8177,7 @@ namespace Microsoft.CodeAnalysis.Operations
             SemanticModel semanticModel,
             SyntaxNode syntax,
             bool isImplicit)
-            : base(OperationKind.None, semanticModel, syntax, type: default, constantValue: default, isImplicit)
+            : base(OperationKind.PropertySubpattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
         {
         }
         public abstract IOperation Member { get; }

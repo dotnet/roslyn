@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
     Friend Class VisualBasicConvertForEachToForCodeRefactoringProvider
         Inherits AbstractConvertForEachToForCodeRefactoringProvider(Of ForEachBlockSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides ReadOnly Property Title As String = VBFeaturesResources.Convert_to_For
 
         Protected Overrides Function GetForEachStatement(selection As TextSpan, token As SyntaxToken) As ForEachBlockSyntax

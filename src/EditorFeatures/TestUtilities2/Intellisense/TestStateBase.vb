@@ -35,7 +35,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                WithParts({
                                                          GetType(TestCompletionPresenter),
                                                          GetType(TestSignatureHelpPresenter),
-                                                         GetType(IntelliSenseTestState)})
+                                                         GetType(IntelliSenseTestState),
+                                                         GetType(MockCompletionPresenterProvider)
+                                                         })
                                            End Function)
 
         Private Shared ReadOnly Property EntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts As ComposableCatalog
@@ -255,6 +257,33 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional inlineDescription As String = Nothing,
                                Optional projectionsView As ITextView = Nothing) As Task
 
+        Public MustOverride Function WaitForUIRenderedAsync() As Task
+
+        Public Sub NavigateToDisplayText(targetText As String)
+            Dim currentText = GetSelectedItem().DisplayText
+
+            ' GetComputedItems provided by the Editor for tests does not guarantee that 
+            ' the order of items match the order of items actually displayed in the completion popup.
+            ' For example, they put starred items (intellicode) below non-starred ones.
+            ' And the order they display those items in the UI is opposite.
+            ' Therefore, we do the full traverse: down to the bottom and if not found up to the top.
+            Do While currentText <> targetText
+                SendDownKey()
+                Dim newText = GetSelectedItem().DisplayText
+                If currentText = newText Then
+                    ' Nothing found on going down. Try going up
+                    Do While currentText <> targetText
+                        SendUpKey()
+                        newText = GetSelectedItem().DisplayText
+                        Assert.True(newText <> currentText, "Reached the bottom, then the top and didn't find the match")
+                        currentText = newText
+                    Loop
+                End If
+
+                currentText = newText
+            Loop
+        End Sub
+
 #End Region
 
 #Region "Signature Help Operations"
@@ -331,7 +360,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim result = New List(Of Type) From {
                 GetType(TestCompletionPresenter),
                 GetType(TestSignatureHelpPresenter),
-                GetType(IntelliSenseTestState)
+                GetType(IntelliSenseTestState),
+                GetType(MockCompletionPresenterProvider)
             }
 
             If extraExportedTypes IsNot Nothing Then

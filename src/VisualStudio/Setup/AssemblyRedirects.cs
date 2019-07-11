@@ -15,6 +15,7 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Features.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.InteractiveHost.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.LanguageServer.Protocol.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Scripting.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.VisualBasic.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll")]
@@ -31,8 +32,13 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.Xaml.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.dll")]
 
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.Apex.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.CodeLens.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.Debugger.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.FSharp.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.LiveShare.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.Razor.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.TypeScript.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.dll")]
@@ -53,6 +59,11 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.Hosting.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.TypedParts.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Humanizer.dll")]
+
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.VisualStudio.LanguageServer.Protocol.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.VisualStudio.LanguageServer.Protocol.Extensions.dll")]
+
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.CodeAnalysis.FlowAnalysis.Utilities.dll")]
 
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\ICSharpCode.Decompiler.dll")]
 

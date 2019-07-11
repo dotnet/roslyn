@@ -218,7 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             displayParts.AddRange(_declarationParts);
             displayParts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "("));
 
-            bool first = true;
+            var first = true;
             foreach (var parameter in AllParameters.Where(p => !p.IsRemoved))
             {
                 if (!first)
@@ -483,7 +483,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                         }
 
                         if (_changeSignatureDialogViewModel._thisParameter != null &&
-                            ParameterSymbol == _changeSignatureDialogViewModel._thisParameter.ParameterSymbol)
+                            Equals(ParameterSymbol, _changeSignatureDialogViewModel._thisParameter.ParameterSymbol))
                         {
                             return @this ?? string.Empty;
                         }

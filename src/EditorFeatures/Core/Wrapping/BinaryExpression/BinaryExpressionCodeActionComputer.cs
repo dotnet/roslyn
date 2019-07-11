@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
 {
-    internal partial class AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax> where TBinaryExpressionSyntax : SyntaxNode
+    internal partial class AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax>
     {
         private class BinaryExpressionCodeActionComputer :
             AbstractCodeActionComputer<AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax>>
@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
             private readonly ImmutableArray<SyntaxNodeOrToken> _exprsAndOperators;
             private readonly OperatorPlacementWhenWrappingPreference _preference;
 
+            /// <summary>
+            /// trivia to place at the end of a node prior to a chunk that is wrapped.
+            /// For C# this will just be a newline.  For VB this will include a line-
+            /// continuation character.
+            /// </summary>
             private readonly SyntaxTriviaList _newlineBeforeOperatorTrivia;
 
             /// <summary>
@@ -79,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
                 var result = ArrayBuilder<Edit>.GetInstance();
                 var indentationTrivia = align ? _indentAndAlignTrivia : _smartIndentTrivia;
 
-                for (int i = 1; i < _exprsAndOperators.Length; i += 2)
+                for (var i = 1; i < _exprsAndOperators.Length; i += 2)
                 {
                     var left = _exprsAndOperators[i - 1].AsNode();
                     var opToken = _exprsAndOperators[i].AsToken();
@@ -114,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
 
-                for (int i = 0; i < _exprsAndOperators.Length - 1; i++)
+                for (var i = 0; i < _exprsAndOperators.Length - 1; i++)
                 {
                     result.Add(Edit.UpdateBetween(
                         _exprsAndOperators[i], SingleWhitespaceTrivia,

@@ -27,6 +27,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
     [ExportIncrementalAnalyzerProvider(WorkspaceKind.Host), Shared]
     internal sealed class ProjectTelemetryIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
+        [ImportingConstructor]
+        public ProjectTelemetryIncrementalAnalyzerProvider()
+        {
+        }
+
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Microsoft.CodeAnalysis.Workspace workspace)
         {
             return new Analyzer();
@@ -84,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                 {
                     lock (_lockObject)
                     {
-                        Inputs newInputs = new Inputs(
+                        var newInputs = new Inputs(
                             language,
                             analyzerReferenceCount,
                             projectReferencesCount,

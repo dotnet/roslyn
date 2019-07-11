@@ -21,24 +21,22 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal abstract partial class VisualStudioBaseDiagnosticListTable
     {
-        protected class LiveTableDataSource : AbstractRoslynTableDataSource<DiagnosticData>
+        protected class LiveTableDataSource : AbstractRoslynTableDataSource<DiagnosticTableItem>
         {
             private readonly string _identifier;
             private readonly IDiagnosticService _diagnosticService;
             private readonly Workspace _workspace;
-            private readonly OpenDocumentTracker<DiagnosticData> _tracker;
+            private readonly OpenDocumentTracker<DiagnosticTableItem> _tracker;
 
-            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier) :
-                base(workspace)
+            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier)
+                : base(workspace)
             {
                 _workspace = workspace;
                 _identifier = identifier;
 
-                _tracker = new OpenDocumentTracker<DiagnosticData>(_workspace);
+                _tracker = new OpenDocumentTracker<DiagnosticTableItem>(_workspace);
 
                 _diagnosticService = diagnosticService;
 
@@ -50,20 +48,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public override string Identifier => _identifier;
             public override object GetItemKey(object data) => ((UpdatedEventArgs)data).Id;
 
-            public override ImmutableArray<TableItem<DiagnosticData>> Deduplicate(IEnumerable<IList<TableItem<DiagnosticData>>> groupedItems)
-            {
-                return groupedItems.MergeDuplicatesOrderedBy(Order);
-            }
-
-            public override ITrackingPoint CreateTrackingPoint(DiagnosticData data, ITextSnapshot snapshot)
-            {
-                return snapshot.CreateTrackingPoint(data.DataLocation?.OriginalStartLine ?? 0, data.DataLocation?.OriginalStartColumn ?? 0);
-            }
-
-            public override AbstractTableEntriesSnapshot<DiagnosticData> CreateSnapshot(
-                AbstractTableEntriesSource<DiagnosticData> source,
+            public override AbstractTableEntriesSnapshot<DiagnosticTableItem> CreateSnapshot(
+                AbstractTableEntriesSource<DiagnosticTableItem> source,
                 int version,
-                ImmutableArray<TableItem<DiagnosticData>> items,
+                ImmutableArray<DiagnosticTableItem> items,
                 ImmutableArray<ITrackingPoint> trackingPoints)
             {
                 var diagnosticSource = (DiagnosticTableEntriesSource)source;
@@ -123,8 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return GetItemKey(data);
                 }
 
-                var liveArgsId = args.Id as LiveDiagnosticUpdateArgsId;
-                if (liveArgsId == null)
+                if (!(args.Id is LiveDiagnosticUpdateArgsId liveArgsId))
                 {
                     return GetItemKey(data);
                 }
@@ -167,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
-            public override AbstractTableEntriesSource<DiagnosticData> CreateTableEntriesSource(object data)
+            public override AbstractTableEntriesSource<DiagnosticTableItem> CreateTableEntriesSource(object data)
             {
                 var item = (UpdatedEventArgs)data;
                 return new TableEntriesSource(this, item.Workspace, item.ProjectId, item.DocumentId, item.Id);
@@ -207,15 +194,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
-            private static IEnumerable<TableItem<DiagnosticData>> Order(IEnumerable<TableItem<DiagnosticData>> groupedItems)
+            public override IEqualityComparer<DiagnosticTableItem> GroupingComparer
+                => DiagnosticTableItem.GroupingComparer.Instance;
+
+            public override IEnumerable<DiagnosticTableItem> Order(IEnumerable<DiagnosticTableItem> groupedItems)
             {
-                // this should make order of result always deterministic. we only need these 6 values since data with all these same will merged to one.
-                return groupedItems.OrderBy(d => d.Primary.DataLocation?.OriginalStartLine ?? 0)
-                                   .ThenBy(d => d.Primary.DataLocation?.OriginalStartColumn ?? 0)
-                                   .ThenBy(d => d.Primary.Id)
-                                   .ThenBy(d => d.Primary.Message)
-                                   .ThenBy(d => d.Primary.DataLocation?.OriginalEndLine ?? 0)
-                                   .ThenBy(d => d.Primary.DataLocation?.OriginalEndColumn ?? 0);
+                // this should make order of result always deterministic. we only need these 6 values since data with 
+                // all these same will merged to one.
+                return groupedItems.OrderBy(d => d.Data.DataLocation?.OriginalStartLine ?? 0)
+                                   .ThenBy(d => d.Data.DataLocation?.OriginalStartColumn ?? 0)
+                                   .ThenBy(d => d.Data.Id)
+                                   .ThenBy(d => d.Data.Message)
+                                   .ThenBy(d => d.Data.DataLocation?.OriginalEndLine ?? 0)
+                                   .ThenBy(d => d.Data.DataLocation?.OriginalEndColumn ?? 0);
             }
 
             private class TableEntriesSource : DiagnosticTableEntriesSource
@@ -242,44 +233,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 public override bool SupportSpanTracking => _documentId != null;
                 public override DocumentId TrackingDocumentId => _documentId;
 
-                public override ImmutableArray<TableItem<DiagnosticData>> GetItems()
+                public override ImmutableArray<DiagnosticTableItem> GetItems()
                 {
                     var provider = _source._diagnosticService;
                     var items = provider.GetDiagnostics(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, cancellationToken: CancellationToken.None)
-                                        .Where(ShouldInclude).Select(d => new TableItem<DiagnosticData>(d, GenerateDeduplicationKey));
+                                        .Where(ShouldInclude)
+                                        .Select(data => DiagnosticTableItem.Create(_workspace, data));
 
-                    return items.ToImmutableArrayOrEmpty();
+                    return items.ToImmutableArray();
                 }
 
-                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TableItem<DiagnosticData>> items)
+                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<DiagnosticTableItem> items)
                 {
-                    return _workspace.CreateTrackingPoints(_documentId, items, _source.CreateTrackingPoint);
-                }
-
-                private int GenerateDeduplicationKey(DiagnosticData diagnostic)
-                {
-                    if (diagnostic.DataLocation == null)
-                    {
-                        return diagnostic.GetHashCode();
-                    }
-
-                    return Hash.Combine(diagnostic.DataLocation.OriginalStartColumn,
-                           Hash.Combine(diagnostic.DataLocation.OriginalStartLine,
-                           Hash.Combine(diagnostic.DataLocation.OriginalEndColumn,
-                           Hash.Combine(diagnostic.DataLocation.OriginalEndLine,
-                           Hash.Combine(diagnostic.IsSuppressed,
-                           Hash.Combine(diagnostic.Id.GetHashCode(), diagnostic.Message.GetHashCode()))))));
+                    return _workspace.CreateTrackingPoints(_documentId, items);
                 }
             }
 
-            private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticData>, IWpfTableEntriesSnapshot
+            private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticTableItem>, IWpfTableEntriesSnapshot
             {
                 private readonly DiagnosticTableEntriesSource _source;
                 private FrameworkElement[] _descriptions;
 
                 public TableEntriesSnapshot(
-                DiagnosticTableEntriesSource source, int version, ImmutableArray<TableItem<DiagnosticData>> items, ImmutableArray<ITrackingPoint> trackingPoints) :
-                base(version, items, trackingPoints)
+                    DiagnosticTableEntriesSource source,
+                    int version,
+                    ImmutableArray<DiagnosticTableItem> items,
+                    ImmutableArray<ITrackingPoint> trackingPoints)
+                    : base(version, items, trackingPoints)
                 {
                     _source = source;
                 }
@@ -289,14 +269,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     // REVIEW: this method is too-chatty to make async, but otherwise, how one can implement it async?
                     //         also, what is cancellation mechanism?
                     var item = GetItem(index);
-
-                    var data = item?.Primary;
-                    if (data == null)
+                    if (item == null)
                     {
                         content = null;
                         return false;
                     }
 
+                    var data = item.Data;
                     switch (columnName)
                     {
                         case StandardTableKeyNames.ErrorRank:
@@ -309,13 +288,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = data.Id;
                             return content != null;
                         case StandardTableKeyNames.ErrorCodeToolTip:
-                            content = GetHelpLinkToolTipText(data);
+                            content = GetHelpLinkToolTipText(item.Workspace, data);
                             return content != null;
                         case StandardTableKeyNames.HelpKeyword:
                             content = data.Id;
                             return content != null;
                         case StandardTableKeyNames.HelpLink:
-                            content = GetHelpLink(data);
+                            content = GetHelpLink(item.Workspace, data);
                             return content != null;
                         case StandardTableKeyNames.ErrorCategory:
                             content = data.Category;
@@ -342,14 +321,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = item.ProjectName;
                             return content != null;
                         case ProjectNames:
-                            content = item.ProjectNames;
-                            return ((string[])content).Length > 0;
+                            var names = item.ProjectNames;
+                            content = names;
+                            return names.Length > 0;
                         case StandardTableKeyNames.ProjectGuid:
                             content = ValueTypeCache.GetOrCreate(item.ProjectGuid);
                             return (Guid)content != Guid.Empty;
                         case ProjectGuids:
-                            content = item.ProjectGuids;
-                            return ((Guid[])content).Length > 0;
+                            var guids = item.ProjectGuids;
+                            content = guids;
+                            return guids.Length > 0;
                         case SuppressionStateColumnDefinition.ColumnName:
                             content = data.IsSuppressed ? ServicesVSResources.Suppressed : ServicesVSResources.Active;
                             return true;
@@ -426,46 +407,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
 
                 public override bool TryNavigateTo(int index, bool previewTab)
-                {
-                    var item = GetItem(index)?.Primary;
-                    if (item == null)
-                    {
-                        return false;
-                    }
-
-                    // this item is not navigatable
-                    if (item.DocumentId == null)
-                    {
-                        return false;
-                    }
-
-                    var trackingLinePosition = GetTrackingLineColumn(item.Workspace, item.DocumentId, index);
-                    if (trackingLinePosition != LinePosition.Zero)
-                    {
-                        return TryNavigateTo(item.Workspace, item.DocumentId, trackingLinePosition.Line, trackingLinePosition.Character, previewTab);
-                    }
-
-                    return TryNavigateTo(item.Workspace, item.DocumentId,
-                            item.DataLocation?.OriginalStartLine ?? 0, item.DataLocation?.OriginalStartColumn ?? 0, previewTab);
-                }
-
-                protected override bool IsEquivalent(DiagnosticData item1, DiagnosticData item2)
-                {
-                    // everything same except location
-                    return item1.Id == item2.Id &&
-                           item1.ProjectId == item2.ProjectId &&
-                           item1.DocumentId == item2.DocumentId &&
-                           item1.Category == item2.Category &&
-                           item1.Severity == item2.Severity &&
-                           item1.WarningLevel == item2.WarningLevel &&
-                           item1.Message == item2.Message;
-                }
+                    => TryNavigateToItem(index, previewTab);
 
                 #region IWpfTableEntriesSnapshot
 
                 public bool CanCreateDetailsContent(int index)
                 {
-                    var item = GetItem(index)?.Primary;
+                    var item = GetItem(index)?.Data;
                     if (item == null)
                     {
                         return false;
@@ -476,7 +424,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public bool TryCreateDetailsContent(int index, out FrameworkElement expandedContent)
                 {
-                    var item = GetItem(index)?.Primary;
+                    var item = GetItem(index)?.Data;
                     if (item == null)
                     {
                         expandedContent = default;
@@ -489,7 +437,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public bool TryCreateDetailsStringContent(int index, out string content)
                 {
-                    var item = GetItem(index)?.Primary;
+                    var item = GetItem(index)?.Data;
                     if (item == null)
                     {
                         content = default;

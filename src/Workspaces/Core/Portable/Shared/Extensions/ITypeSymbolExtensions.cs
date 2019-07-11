@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static async Task<ImmutableArray<SymbolAndProjectId>> FindImplementationsForInterfaceMemberAsync(
             this SymbolAndProjectId<ITypeSymbol> typeSymbolAndProjectId,
-            ISymbol interfaceMember,
+            SymbolAndProjectId interfaceMemberAndProjectId,
             Solution solution,
             CancellationToken cancellationToken)
         {
@@ -109,6 +110,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // results in C.
 
             var arrBuilder = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+            var interfaceMember = interfaceMemberAndProjectId.Symbol;
 
             // TODO(cyrusn): Implement this using the actual code for
             // TypeSymbol.FindImplementationForInterfaceMember
@@ -167,20 +169,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // if they are considered to be the same type, which provides a more accurate
             // implementations list for interfaces. 
             var typeSymbolProject = solution.GetProject(typeSymbolAndProjectId.ProjectId);
-            var typeSymbolCompilation = typeSymbolProject == null ?
-                                        null :
-                                        await typeSymbolProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var interfaceMemberProject = solution.GetProject(interfaceMemberAndProjectId.ProjectId);
+
+            var typeSymbolCompilation = await GetCompilationOrNullAsync(typeSymbolProject, cancellationToken).ConfigureAwait(false);
+            var interfaceMemberCompilation = await GetCompilationOrNullAsync(interfaceMemberProject, cancellationToken).ConfigureAwait(false);
 
             foreach (var constructedInterface in constructedInterfaces)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var constructedInterfaceMember = constructedInterface.GetMembers().FirstOrDefault(m =>
+                var constructedInterfaceMember = constructedInterface.GetMembers().FirstOrDefault(typeSymbol =>
                     SymbolFinder.OriginalSymbolsMatch(
-                        m,
+                        typeSymbol,
                         interfaceMember,
                         solution,
                         typeSymbolCompilation,
-                        symbolToMatchCompilation: null,
+                        interfaceMemberCompilation,
                         cancellationToken));
 
                 if (constructedInterfaceMember == null)
@@ -198,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                     if (seenTypeDeclaringInterface)
                     {
-                        var result = FindImplementations(solution.Workspace, constructedInterfaceMember, currentType);
+                        var result = currentType.FindImplementations(constructedInterfaceMember, solution.Workspace);
 
                         if (result != null)
                         {
@@ -210,25 +213,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return arrBuilder.ToImmutableAndFree();
+
+            // local functions
+
+            static Task<Compilation> GetCompilationOrNullAsync(Project project, CancellationToken cancellationToken)
+                => project?.GetCompilationAsync(cancellationToken) ?? SpecializedTasks.Default<Compilation>();
         }
 
-        private static ISymbol FindImplementations(Workspace workspace, ISymbol constructedInterfaceMember, ITypeSymbol currentType)
-        {
-            switch (constructedInterfaceMember)
-            {
-                case IEventSymbol eventSymbol: return FindImplementations(currentType, eventSymbol, workspace, e => e.ExplicitInterfaceImplementations);
-                case IMethodSymbol methodSymbol: return FindImplementations(currentType, methodSymbol, workspace, m => m.ExplicitInterfaceImplementations);
-                case IPropertySymbol propertySymbol: return FindImplementations(currentType, propertySymbol, workspace, p => p.ExplicitInterfaceImplementations);
-            }
-
-            return null;
-        }
 
         private static HashSet<INamedTypeSymbol> GetOriginalInterfacesAndTheirBaseInterfaces(
             this ITypeSymbol type,
             HashSet<INamedTypeSymbol> symbols = null)
         {
-            symbols = symbols ?? new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
+            symbols ??= new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
 
             foreach (var interfaceType in type.Interfaces)
             {
@@ -239,19 +236,32 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbols;
         }
 
+        public static ISymbol FindImplementations(
+            this ITypeSymbol typeSymbol,
+            ISymbol constructedInterfaceMember,
+            Workspace workspace)
+        {
+            switch (constructedInterfaceMember)
+            {
+                case IEventSymbol eventSymbol: return typeSymbol.FindImplementations(eventSymbol, workspace);
+                case IMethodSymbol methodSymbol: return typeSymbol.FindImplementations(methodSymbol, workspace);
+                case IPropertySymbol propertySymbol: return typeSymbol.FindImplementations(propertySymbol, workspace);
+            }
+
+            return null;
+        }
+
         private static ISymbol FindImplementations<TSymbol>(
-            ITypeSymbol typeSymbol,
-            TSymbol interfaceSymbol,
-            Workspace workspace,
-            Func<TSymbol, ImmutableArray<TSymbol>> getExplicitInterfaceImplementations) where TSymbol : class, ISymbol
+            this ITypeSymbol typeSymbol,
+            TSymbol constructedInterfaceMember,
+            Workspace workspace) where TSymbol : class, ISymbol
         {
             // Check the current type for explicit interface matches.  Otherwise, check
             // the current type and base types for implicit matches.
             var explicitMatches =
                 from member in typeSymbol.GetMembers().OfType<TSymbol>()
-                where getExplicitInterfaceImplementations(member).Length > 0
-                from explicitInterfaceMethod in getExplicitInterfaceImplementations(member)
-                where SymbolEquivalenceComparer.Instance.Equals(explicitInterfaceMethod, interfaceSymbol)
+                from explicitInterfaceMethod in member.ExplicitInterfaceImplementations()
+                where SymbolEquivalenceComparer.Instance.Equals(explicitInterfaceMethod, constructedInterfaceMember)
                 select member;
 
             var provider = workspace.Services.GetLanguageServices(typeSymbol.Language);
@@ -272,10 +282,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var syntaxFacts = provider.GetService<ISyntaxFactsService>();
             var implicitMatches =
                 from baseType in typeSymbol.GetBaseTypesAndThis()
-                from member in baseType.GetMembers(interfaceSymbol.Name).OfType<TSymbol>()
+                from member in baseType.GetMembers(constructedInterfaceMember.Name).OfType<TSymbol>()
                 where member.DeclaredAccessibility == Accessibility.Public &&
                       !member.IsStatic &&
-                      SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(member, interfaceSymbol, syntaxFacts.IsCaseSensitive)
+                      SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(member, constructedInterfaceMember, syntaxFacts.IsCaseSensitive)
                 select member;
 
             return explicitMatches.FirstOrDefault() ?? implicitMatches.FirstOrDefault();
@@ -465,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IList<ITypeParameterSymbol> GetReferencedMethodTypeParameters(
             this ITypeSymbol type, IList<ITypeParameterSymbol> result = null)
         {
-            result = result ?? new List<ITypeParameterSymbol>();
+            result ??= new List<ITypeParameterSymbol>();
             type?.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: true));
             return result;
         }
@@ -473,7 +483,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IList<ITypeParameterSymbol> GetReferencedTypeParameters(
             this ITypeSymbol type, IList<ITypeParameterSymbol> result = null)
         {
-            result = result ?? new List<ITypeParameterSymbol>();
+            result ??= new List<ITypeParameterSymbol>();
             type?.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: false));
             return result;
         }
@@ -714,7 +724,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // and more specific in at least one.
 
             bool? result = null;
-            for (int i = 0; i < t1.Count; ++i)
+            for (var i = 0; i < t1.Count; ++i)
             {
                 var r = t1[i].IsMoreSpecificThan(t2[i]);
                 if (r == null)
@@ -885,6 +895,34 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 type = type.GetTypeArguments()[0];
             }
 
+            switch (type.SpecialType)
+            {
+                case SpecialType.System_Boolean:
+                case SpecialType.System_Char:
+                case SpecialType.System_SByte:
+                case SpecialType.System_Byte:
+                case SpecialType.System_Int16:
+                case SpecialType.System_UInt16:
+                case SpecialType.System_Int32:
+                case SpecialType.System_UInt32:
+                case SpecialType.System_Int64:
+                case SpecialType.System_UInt64:
+                case SpecialType.System_Decimal:
+                case SpecialType.System_Single:
+                case SpecialType.System_Double:
+                    return false;
+
+                case SpecialType.System_IntPtr:
+                case SpecialType.System_UIntPtr:
+                    return false;
+
+                case SpecialType.System_DateTime:
+                    return false;
+
+                default:
+                    break;
+            }
+
             if (type.IsErrorType())
             {
                 return null;
@@ -895,16 +933,41 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return false;
             }
 
+            var hasPrivateField = false;
             foreach (var member in type.GetMembers())
             {
-                if (member is IFieldSymbol fieldSymbol &&
-                    !(fieldSymbol.IsConst || fieldSymbol.IsReadOnly || fieldSymbol.IsStatic))
+                if (!(member is IFieldSymbol fieldSymbol))
+                {
+                    continue;
+                }
+
+                hasPrivateField |= fieldSymbol.DeclaredAccessibility == Accessibility.Private;
+                if (!fieldSymbol.IsConst && !fieldSymbol.IsReadOnly && !fieldSymbol.IsStatic)
                 {
                     return true;
                 }
             }
 
+            if (!hasPrivateField)
+            {
+                // Some reference assemblies omit information about private fields. If we can't be sure the field is
+                // immutable, treat it as potentially mutable.
+                foreach (var attributeData in type.ContainingAssembly.GetAttributes())
+                {
+                    if (attributeData.AttributeClass.Name == nameof(ReferenceAssemblyAttribute)
+                        && attributeData.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName)
+                    {
+                        return null;
+                    }
+                }
+            }
+
             return false;
         }
+
+        public static bool IsDisposable(this ITypeSymbol type, ITypeSymbol iDisposableType)
+            => iDisposableType != null &&
+               (Equals(iDisposableType, type) ||
+                type?.AllInterfaces.Contains(iDisposableType) == true);
     }
 }

@@ -161,6 +161,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.ReturnType.IsVoidType(); }
         }
 
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
         public override bool IsVararg
         {
             get { return false; }

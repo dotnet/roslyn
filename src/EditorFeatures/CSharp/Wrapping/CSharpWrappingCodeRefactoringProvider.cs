@@ -5,6 +5,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Editor.Wrapping.SeparatedSyntaxList;
 using Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.BinaryExpression;
+using Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.ChainedExpression;
 using Microsoft.CodeAnalysis.Editor.Wrapping;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping
@@ -16,8 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping
             ImmutableArray.Create<ISyntaxWrapper>(
                 new CSharpArgumentWrapper(),
                 new CSharpParameterWrapper(),
-                new CSharpBinaryExpressionWrapper());
+                new CSharpBinaryExpressionWrapper(),
+                new CSharpChainedExpressionWrapper());
 
+        [ImportingConstructor]
         public CSharpWrappingCodeRefactoringProvider()
             : base(s_wrappers)
         {

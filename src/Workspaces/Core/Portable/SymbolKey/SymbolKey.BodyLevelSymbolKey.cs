@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
                 SymbolKind kind, string localName,
                 CancellationToken cancellationToken)
             {
-                int ordinal = 0;
+                var ordinal = 0;
 
                 foreach (var declaringLocation in containingSymbol.DeclaringSyntaxReferences)
                 {

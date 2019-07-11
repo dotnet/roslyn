@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
                 EatSpace();
                 Debug.Assert(char.IsNumber(Data[Position]));
 
-                int value = 0;
+                var value = 0;
 
                 var start = Position;
                 while (char.IsNumber(Data[Position]))
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis
                 // compare method type parameters by ordinal.
                 var signatureComparer = Comparer.SignatureTypeEquivalenceComparer;
 
-                for (int i = 0; i < originalParameterTypes.Length; i++)
+                for (var i = 0; i < originalParameterTypes.Length; i++)
                 {
                     if (!signatureComparer.Equals(originalParameterTypes[i], parameters[i].Type))
                     {

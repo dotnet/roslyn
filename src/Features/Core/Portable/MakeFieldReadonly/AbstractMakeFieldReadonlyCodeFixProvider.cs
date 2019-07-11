@@ -87,15 +87,15 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                         editor.InsertAfter(fieldDeclarators.Key, newDeclaration);
                     }
 
-                    editor.RemoveNode(fieldDeclarators.Key);
+                    editor.RemoveNode(fieldDeclarators.Key, SyntaxRemoveOptions.KeepLeadingTrivia);
                 }
             }
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(FeaturesResources.Add_readonly_modifier, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Add_readonly_modifier, createChangedDocument)
             {
             }
         }

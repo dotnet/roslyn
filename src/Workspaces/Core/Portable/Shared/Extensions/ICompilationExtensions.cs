@@ -175,5 +175,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol SystemComponentModelCompositionImportingConstructorAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ImportingConstructorAttribute");
+
+        public static INamedTypeSymbol SystemIDisposableType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(IDisposable).FullName);
     }
 }

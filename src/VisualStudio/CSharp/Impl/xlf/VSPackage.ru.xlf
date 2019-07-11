@@ -285,13 +285,13 @@ Show name suggestions;</source>
         <note />
       </trans-unit>
       <trans-unit id="2358">
-        <source>CSharp Editor</source>
-        <target state="translated">Редактор CSharp</target>
+        <source>C# Editor</source>
+        <target state="needs-review-translation">Редактор CSharp</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
-        <source>CSharp Editor with Encoding</source>
-        <target state="translated">Редактор CSharp с кодировкой</target>
+        <source>C# Editor with Encoding</source>
+        <target state="needs-review-translation">Редактор CSharp с кодировкой</target>
         <note />
       </trans-unit>
       <trans-unit id="113">

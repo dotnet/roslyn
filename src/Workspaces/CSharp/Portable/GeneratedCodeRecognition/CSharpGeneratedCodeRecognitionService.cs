@@ -9,5 +9,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GeneratedCodeRecognition
     [ExportLanguageService(typeof(IGeneratedCodeRecognitionService), LanguageNames.CSharp), Shared]
     internal class CSharpGeneratedCodeRecognitionService : AbstractGeneratedCodeRecognitionService
     {
+        [ImportingConstructor]
+        public CSharpGeneratedCodeRecognitionService()
+        {
+        }
     }
 }

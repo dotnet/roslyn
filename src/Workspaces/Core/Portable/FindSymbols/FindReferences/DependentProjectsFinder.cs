@@ -403,18 +403,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return project.ProjectReferences.Any(p => p.ProjectId == sourceProject.Id);
             }
 
-            return project.HasReferenceToAssembly(containingAssembly);
+            return project.HasReferenceToAssembly(containingAssembly, cancellationToken);
         }
 
-        public static bool HasReferenceToAssembly(this Project project, IAssemblySymbol assemblySymbol)
+        public static bool HasReferenceToAssembly(this Project project, IAssemblySymbol assemblySymbol, CancellationToken cancellationToken)
         {
-            return project.HasReferenceToAssembly(assemblySymbol.Name);
+            return project.HasReferenceToAssembly(assemblySymbol.Name, cancellationToken);
         }
 
-        public static bool HasReferenceToAssembly(this Project project, string assemblyName)
+        public static bool HasReferenceToAssembly(this Project project, string assemblyName, CancellationToken cancellationToken)
         {
-            bool? hasMatch = project.GetAssemblyReferenceType(
-                a => a.Name == assemblyName ? true : (bool?)null);
+            var hasMatch = project.GetAssemblyReferenceType(
+                a => a.Name == assemblyName ? true : (bool?)null,
+                cancellationToken);
 
             return hasMatch == true;
         }
@@ -427,7 +428,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private static T? GetAssemblyReferenceType<T>(
             this Project project,
-            Func<IAssemblySymbol, T?> predicate) where T : struct
+            Func<IAssemblySymbol, T?> predicate,
+            CancellationToken cancellationToken) where T : struct
         {
             // If the project we're looking at doesn't even support compilations, then there's no 
             // way for it to have an IAssemblySymbol.  And without that, there is no way for it
@@ -449,6 +451,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             foreach (var reference in project.MetadataReferences)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol symbol)
                 {
                     var result = predicate(symbol);

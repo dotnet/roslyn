@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
     internal sealed class CSharpGenerateMethodService :
         AbstractGenerateMethodService<CSharpGenerateMethodService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpGenerateMethodService()
+        {
+        }
+
         protected override bool IsExplicitInterfaceGeneration(SyntaxNode node)
             => node is MethodDeclarationSyntax;
 

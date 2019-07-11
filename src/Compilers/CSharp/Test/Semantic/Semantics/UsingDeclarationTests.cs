@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
@@ -767,6 +768,30 @@ class C4
                 // (40,15): warning CS0612: 'S3.Dispose()' is obsolete
                 //         using S3 S3 = new S3();
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "using S3 S3 = new S3();").WithArguments("S3.Dispose()").WithLocation(40, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(36413, "https://github.com/dotnet/roslyn/issues/36413")]
+        public void UsingDeclarationsWithInvalidModifiers()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        using public readonly var x = (IDisposable)null;
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (7,15): error CS0106: The modifier 'public' is not valid for this item
+                //         using public readonly var x = (IDisposable)null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(7, 15),
+                // (7,22): error CS0106: The modifier 'readonly' is not valid for this item
+                //         using public readonly var x = (IDisposable)null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(7, 22)
                 );
         }
     }

@@ -224,7 +224,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         LoadKeyword = 8485,
         NullableKeyword = 8486,
         EnableKeyword = 8487,
-        SafeOnlyKeyword = 8488,
+
+        // targets for #nullable directive
+        WarningsKeyword = 8488,
+        AnnotationsKeyword = 8489,
 
         // Other
         VarKeyword = 8490,

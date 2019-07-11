@@ -1672,7 +1672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // accessor, the result is the same as a member access of the form this.I. This can only
             // happen when K is zero.
 
-            if (member.IsStatic)
+            if (!member.RequiresInstanceReceiver())
             {
                 return null;
             }
@@ -1737,7 +1737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression TryBindInteractiveReceiver(SyntaxNode syntax, Symbol currentMember, NamedTypeSymbol currentType, NamedTypeSymbol memberDeclaringType)
         {
-            if (currentType.TypeKind == TypeKind.Submission && !currentMember.IsStatic)
+            if (currentType.TypeKind == TypeKind.Submission && currentMember.RequiresInstanceReceiver())
             {
                 if (memberDeclaringType.TypeKind == TypeKind.Submission)
                 {
@@ -1902,7 +1902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_NoBaseClass, node);
                 hasErrors = true;
             }
-            else if (this.ContainingType is null || (node.Parent.Kind() != SyntaxKind.SimpleMemberAccessExpression && node.Parent.Kind() != SyntaxKind.ElementAccessExpression))
+            else if (this.ContainingType is null || node.Parent is null || (node.Parent.Kind() != SyntaxKind.SimpleMemberAccessExpression && node.Parent.Kind() != SyntaxKind.ElementAccessExpression))
             {
                 Error(diagnostics, ErrorCode.ERR_BaseIllegal, node.Token);
                 hasErrors = true;
@@ -6286,20 +6286,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Arguments will be null if the caller is resolving to the first method group that can accept
                 // that receiver, regardless of arguments, when the signature cannot
                 // be inferred. (In the case of nameof(o.M) or the error case of o.M = null; for instance.)
-                if (analyzedArguments == null)
+                if (analyzedArguments == null && methodGroup.Methods.Count != 0)
                 {
-                    if (expression == EnclosingNameofArgument)
-                    {
-                        for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
-                        {
-                            if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type) == null) methodGroup.Methods.RemoveAt(i);
-                        }
-                    }
-
-                    if (methodGroup.Methods.Count != 0)
-                    {
-                        return new MethodGroupResolution(methodGroup, diagnostics.ToReadOnlyAndFree());
-                    }
+                    return new MethodGroupResolution(methodGroup, diagnostics.ToReadOnlyAndFree());
                 }
 
                 if (methodGroup.Methods.Count == 0)
@@ -6650,7 +6639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool? instanceReceiver = IsInstanceReceiver(receiver);
 
-            if (symbol.IsStatic)
+            if (!symbol.RequiresInstanceReceiver())
             {
                 if (instanceReceiver == true)
                 {
@@ -7556,6 +7545,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         substring,
                         arguments[0],
                         substring.ReturnType);
+                    checkWellKnown(WellKnownMember.System_Range__get_Start);
+                    checkWellKnown(WellKnownMember.System_Range__get_End);
                 }
             }
             else
@@ -7593,6 +7584,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 method,
                                 arguments[0],
                                 method.ReturnType);
+                            checkWellKnown(WellKnownMember.System_Range__get_Start);
+                            checkWellKnown(WellKnownMember.System_Range__get_End);
                             break;
                         }
                     }
@@ -7606,10 +7599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax.Location);
-            // Check for some required well-known members. They may not be needed
-            // during lowering, but it's simpler to always require them to prevent
-            // the user from getting surprising errors when optimizations fail
-            _ = GetWellKnownTypeMember(Compilation, WellKnownMember.System_Index__GetOffset, diagnostics, syntax: syntax);
+            checkWellKnown(WellKnownMember.System_Index__GetOffset);
             return true;
 
             static void cleanup(LookupResult lookupResult, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -7621,6 +7611,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             static bool isIntNotByRef(ParameterSymbol param)
                 => param.Type.SpecialType == SpecialType.System_Int32 &&
                    param.RefKind == RefKind.None;
+
+            void checkWellKnown(WellKnownMember member)
+            {
+                // Check required well-known member. They may not be needed
+                // during lowering, but it's simpler to always require them to prevent
+                // the user from getting surprising errors when optimizations fail
+                _ = GetWellKnownTypeMember(Compilation, member, diagnostics, syntax: syntax);
+            }
 
             bool tryLookupLengthOrCount(string propertyName, out PropertySymbol valid)
             {

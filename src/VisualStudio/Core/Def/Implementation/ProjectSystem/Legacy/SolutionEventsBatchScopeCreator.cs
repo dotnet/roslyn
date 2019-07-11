@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         {
             AssertIsForeground();
 
-            for (int i = 0; i < _fullSolutionLoadScopes.Count; i++)
+            for (var i = 0; i < _fullSolutionLoadScopes.Count; i++)
             {
                 if (_fullSolutionLoadScopes[i].hierarchy == hierarchy)
                 {
@@ -193,6 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
             int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
             {
+                _scopeCreator._solutionLoaded = true;
                 _scopeCreator.StopTrackingAllProjects();
 
                 return VSConstants.S_OK;

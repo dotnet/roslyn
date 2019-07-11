@@ -889,4 +889,20 @@ Do you want to proceed?</value>
   <data name="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail" xml:space="preserve">
     <value>Operation is not ready for "{0}" yet. See bottom left corner for more details.</value>
   </data>
+  <data name="The_symbol_has_no_base" xml:space="preserve">
+    <value>The symbol has no base.</value>
+  </data>
+  <data name="_0_bases" xml:space="preserve">
+    <value>'{0}' bases</value>
+  </data>
+  <data name="Rename_file" xml:space="preserve">
+    <value>Rename _file</value>
+  </data>
+  <data name="Rename_file_partial_type" xml:space="preserve">
+    <value>Rename _file (not allowed on partial types)</value>
+    <comment>Disabled text status for file rename</comment>
+  </data>
+  <data name="Rename_file_name_doesnt_match" xml:space="preserve">
+    <value>Rename _file (type does not match file name)</value>
+  </data>
 </root>

@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Composition;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -37,10 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         public static readonly CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer Instance = new CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer();
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         public CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId,
+                   option: null,    // Analyzer is currently disabled
                    new LocalizableResourceString(
                        nameof(FeaturesResources.Use_pattern_matching), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -59,18 +59,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var syntaxTree = semanticModel.SyntaxTree;
 
             // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
-            // in projects targetting a lesser version.
+            // in projects targeting a lesser version.
             if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
             {
                 return;
             }
 
-            var root = syntaxTree.GetRoot(cancellationToken);
             var isExpression = (BinaryExpressionSyntax)context.Node;
 
-            var workspace = (context.Options as WorkspaceAnalyzerOptions)?.Services.Workspace;
+            var options = context.Options as WorkspaceAnalyzerOptions;
+            var workspace = options?.Services.Workspace;
             if (workspace == null)
             {
+                return;
+            }
+
+            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+
+            var styleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck);
+            if (!styleOption.Value)
+            {
+                // User has disabled this feature.
                 return;
             }
 
@@ -89,8 +102,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             context.ReportDiagnostic(
-                Diagnostic.Create(
-                    this.Descriptor, isExpression.GetLocation()));
+                DiagnosticHelper.Create(
+                    this.Descriptor, isExpression.GetLocation(),
+                    styleOption.Notification.Severity,
+                    SpecializedCollections.EmptyCollection<Location>(),
+                    ImmutableDictionary<string, string>.Empty));
         }
 
         public (HashSet<CastExpressionSyntax>, string localName) AnalyzeExpression(
@@ -126,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             // Find a reasonable name for the local we're going to make.  It should ideally 
-            // relate to the type the user is casting to, and it should not collisde with anything
+            // relate to the type the user is casting to, and it should not collide with anything
             // in scope.
             var reservedNames = semanticModel.LookupSymbols(isExpression.SpanStart)
                                              .Concat(semanticModel.GetExistingSymbols(container, cancellationToken))
@@ -231,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         private void AddMatches(
             SyntaxNode node, ExpressionSyntax expr, TypeSyntax type, HashSet<CastExpressionSyntax> matches)
         {
-            // Don't bother recursing down nodes that are before the type in the is-expressoin.
+            // Don't bother recursing down nodes that are before the type in the is-expression.
             if (node.Span.End >= type.Span.End)
             {
                 if (node.IsKind(SyntaxKind.CastExpression))

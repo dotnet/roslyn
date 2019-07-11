@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.Packaging
 
         void ShowManagePackagesDialog(string packageName);
 
-        ImmutableArray<PackageSource> PackageSources { get; }
+        ImmutableArray<PackageSource> GetPackageSources();
+
         event EventHandler PackageSourcesChanged;
     }
 

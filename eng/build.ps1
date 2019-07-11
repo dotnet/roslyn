@@ -345,6 +345,8 @@ function TestUsingOptimizedRunner() {
     $env:ROSLYN_TEST_LEGACY_COMPLETION = "true"
   }
 
+  $secondaryLogDir = Join-Path (Join-Path $ArtifactsDir "log2") $configuration
+  Create-Directory $secondaryLogDir
   $testResultsDir = Join-Path $ArtifactsDir "TestResults\$configuration"
   $binDir = Join-Path $ArtifactsDir "bin" 
   $runTests = GetProjectOutputBinary "RunTests.exe"
@@ -358,6 +360,7 @@ function TestUsingOptimizedRunner() {
   $args = "`"$xunitDir`""
   $args += " `"-out:$testResultsDir`""
   $args += " `"-logs:$LogDir`""
+  $args += " `"-secondaryLogs:$secondaryLogDir`""
   $args += " -nocache"
   $args += " -tfm:net472"
 
@@ -375,6 +378,7 @@ function TestUsingOptimizedRunner() {
     }
 
     $dlls += @(Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir)
+    $args += " -testVsi"
   } else {
     $dlls = Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir
     $args += " -trait:Feature=NetCore"
@@ -421,6 +425,22 @@ function TestUsingOptimizedRunner() {
       Remove-Item env:\ROSLYN_TEST_LEGACY_COMPLETION
     }
   }
+}
+
+function EnablePreviewSdks() {
+  $vsInfo = LocateVisualStudio
+  if ($vsInfo -eq $null) {
+    # Preview SDKs are allowed when no Visual Studio instance is installed
+    return
+  }
+
+  $vsId = $vsInfo.instanceId
+  $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
+
+  $instanceDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$vsId"
+  Create-Directory $instanceDir
+  $sdkFile = Join-Path $instanceDir "sdk.txt"
+  'UsePreviews=True' | Set-Content $sdkFile
 }
 
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to
@@ -577,6 +597,7 @@ try {
   if ($ci) {
     List-Processes
     Prepare-TempDir
+    EnablePreviewSdks
     if ($testVsi) {
       Setup-IntegrationTestRun 
     }

@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         /// </summary>
         private const string CS1624 = nameof(CS1624);
 
+        [ImportingConstructor]
+        public CSharpChangeToIEnumerableCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
         {
             get { return ImmutableArray.Create(CS1624); }
@@ -121,8 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Document newDocument) :
-                base(title, c => Task.FromResult(newDocument))
+            public MyCodeAction(string title, Document newDocument)
+                : base(title, c => Task.FromResult(newDocument))
             {
             }
         }

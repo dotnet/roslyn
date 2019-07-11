@@ -61,6 +61,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; bases.
+        /// </summary>
+        internal static string _0_bases {
+            get {
+                return ResourceManager.GetString("_0_bases", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} conflict(s) will be resolved.
         /// </summary>
         internal static string _0_conflict_s_will_be_resolved {
@@ -1602,6 +1611,33 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Rename _file.
+        /// </summary>
+        internal static string Rename_file {
+            get {
+                return ResourceManager.GetString("Rename_file", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename _file (type does not match file name).
+        /// </summary>
+        internal static string Rename_file_name_doesnt_match {
+            get {
+                return ResourceManager.GetString("Rename_file_name_doesnt_match", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename _file (not allowed on partial types).
+        /// </summary>
+        internal static string Rename_file_partial_type {
+            get {
+                return ResourceManager.GetString("Rename_file_partial_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Rename operation was cancelled or is not valid.
         /// </summary>
         internal static string Rename_operation_was_cancelled_or_is_not_valid {
@@ -1842,6 +1878,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string The_rename_tracking_session_was_cancelled_and_is_no_longer_available {
             get {
                 return ResourceManager.GetString("The_rename_tracking_session_was_cancelled_and_is_no_longer_available", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The symbol has no base..
+        /// </summary>
+        internal static string The_symbol_has_no_base {
+            get {
+                return ResourceManager.GetString("The_symbol_has_no_base", resourceCulture);
             }
         }
         

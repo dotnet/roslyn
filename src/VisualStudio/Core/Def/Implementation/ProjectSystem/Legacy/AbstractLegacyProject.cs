@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
@@ -30,6 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         internal VisualStudioProjectOptionsProcessor VisualStudioProjectOptionsProcessor { get; set; }
         protected IProjectCodeModel ProjectCodeModel { get; set; }
         protected VisualStudioWorkspace Workspace { get; }
+
+        internal VisualStudioProject Test_VisualStudioProject => VisualStudioProject;
 
         /// <summary>
         /// The path to the directory of the project. Read-only, since although you can rename
@@ -108,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             // TODO: remove this terrible hack, which is working around shims throwing in not-good ways
             try
             {
-                _externalErrorReporter = new ProjectExternalErrorReporter(VisualStudioProject.Id, externalErrorReportingPrefix, serviceProvider);
+                _externalErrorReporter = new ProjectExternalErrorReporter(VisualStudioProject.Id, externalErrorReportingPrefix, (VisualStudioWorkspaceImpl)Workspace);
                 _editAndContinueProject = new VsENCRebuildableProjectImpl(Workspace, VisualStudioProject, serviceProvider);
             }
             catch (Exception)
@@ -206,8 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         protected void RefreshBinOutputPath()
         {
-            var storage = Hierarchy as IVsBuildPropertyStorage;
-            if (storage == null)
+            if (!(Hierarchy is IVsBuildPropertyStorage storage))
             {
                 return;
             }
@@ -304,32 +304,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         {
             AssertIsForeground();
 
-            using (var pooledObject = SharedPools.Default<List<string>>().GetPooledObject())
+            using var pooledObject = SharedPools.Default<List<string>>().GetPooledObject();
+
+            var newFolderNames = pooledObject.Object;
+
+            if (!_folderNameMap.TryGetValue(folderItemID, out var folderNames))
             {
-                var newFolderNames = pooledObject.Object;
-                ImmutableArray<string> folderNames;
-
-                if (!_folderNameMap.TryGetValue(folderItemID, out folderNames))
-                {
-                    ComputeFolderNames(folderItemID, newFolderNames, Hierarchy);
-                    folderNames = newFolderNames.ToImmutableArray();
-                    _folderNameMap.Add(folderItemID, folderNames);
-                }
-                else
-                {
-                    // verify names, and change map if we get a different set.
-                    // this is necessary because we only get document adds/removes from the project system
-                    // when a document name or folder name changes.
-                    ComputeFolderNames(folderItemID, newFolderNames, Hierarchy);
-                    if (!Enumerable.SequenceEqual(folderNames, newFolderNames))
-                    {
-                        folderNames = newFolderNames.ToImmutableArray();
-                        _folderNameMap[folderItemID] = folderNames;
-                    }
-                }
-
-                return folderNames;
+                ComputeFolderNames(folderItemID, newFolderNames, Hierarchy);
+                folderNames = newFolderNames.ToImmutableArray();
+                _folderNameMap.Add(folderItemID, folderNames);
             }
+            else
+            {
+                // verify names, and change map if we get a different set.
+                // this is necessary because we only get document adds/removes from the project system
+                // when a document name or folder name changes.
+                ComputeFolderNames(folderItemID, newFolderNames, Hierarchy);
+                if (!Enumerable.SequenceEqual(folderNames, newFolderNames))
+                {
+                    folderNames = newFolderNames.ToImmutableArray();
+                    _folderNameMap[folderItemID] = folderNames;
+                }
+            }
+
+            return folderNames;
         }
 
         // Different hierarchies are inconsistent on whether they return ints or uints for VSItemIds.

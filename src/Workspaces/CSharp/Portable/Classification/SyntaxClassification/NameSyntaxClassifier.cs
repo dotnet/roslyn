@@ -170,14 +170,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 }
             }
 
-            if (name.IsUnmanaged && name.Parent.IsKind(SyntaxKind.TypeConstraint))
+            if ((name.IsUnmanaged || name.IsNotNull) && name.Parent.IsKind(SyntaxKind.TypeConstraint))
             {
+                var nameToCheck = name.IsUnmanaged ? "unmanaged" : "notnull";
                 var alias = semanticModel.GetAliasInfo(name, cancellationToken);
-                if (alias == null || alias.Name != "unmanaged")
+                if (alias == null || alias.Name != nameToCheck)
                 {
-                    if (!IsSymbolWithName(symbol, "unmanaged"))
+                    if (!IsSymbolWithName(symbol, nameToCheck))
                     {
-                        // We bound to a symbol.  If we bound to a symbol called "unmanaged" then we want to
+                        // We bound to a symbol.  If we bound to a symbol called "unmanaged"/"notnull" then we want to
                         // classify this appropriately as a type.  Otherwise, we want to classify this as
                         // a keyword.
                         classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);

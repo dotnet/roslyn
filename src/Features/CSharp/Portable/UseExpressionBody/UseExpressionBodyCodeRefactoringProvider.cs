@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     {
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
+        [ImportingConstructor]
         public UseExpressionBodyCodeRefactoringProvider()
         {
         }
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
             var document = context.Document;
 
-            bool succeeded = false;
+            var succeeded = false;
             if (helper.CanOfferUseExpressionBody(optionSet, declaration, forAnalyzer: false))
             {
                 context.RegisterRefactoring(new MyCodeAction(

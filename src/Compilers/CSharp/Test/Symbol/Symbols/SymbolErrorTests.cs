@@ -913,21 +913,15 @@ public interface I1
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,27): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+                // (6,28): error CS0071: An explicit interface implementation of an event must use event accessor syntax
                 //     event System.Action I2.P10;
-                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(6, 27),
-                // (6,31): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-                //     event System.Action I2.P10;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(6, 31),
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "P10").WithLocation(6, 28),
                 // (6,25): error CS0540: 'I1.P10': containing type does not implement interface 'I2'
                 //     event System.Action I2.P10;
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.P10", "I2").WithLocation(6, 25),
                 // (6,28): error CS0539: 'I1.P10' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     event System.Action I2.P10;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P10").WithArguments("I1.P10").WithLocation(6, 28),
-                // (6,28): error CS0065: 'I1.P10': event property must have both add and remove accessors
-                //     event System.Action I2.P10;
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P10").WithArguments("I1.P10").WithLocation(6, 28)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P10").WithArguments("I1.P10").WithLocation(6, 28)
                 );
         }
 
@@ -947,18 +941,12 @@ P10;
                 // (6,25): error CS0540: 'I1.P10': containing type does not implement interface 'I2'
                 //     event System.Action I2.
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.P10", "I2").WithLocation(6, 25),
-                // (6,27): error CS0071: An explicit interface implementation of an event must use event accessor syntax
-                //     event System.Action I2.
-                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(6, 27),
-                // (7,4): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // (7,1): error CS0071: An explicit interface implementation of an event must use event accessor syntax
                 // P10;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(7, 4),
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "P10").WithLocation(7, 1),
                 // (7,1): error CS0539: 'I1.P10' in explicit interface declaration is not found among members of the interface that can be implemented
                 // P10;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P10").WithArguments("I1.P10").WithLocation(7, 1),
-                // (7,1): error CS0065: 'I1.P10': event property must have both add and remove accessors
-                // P10;
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P10").WithArguments("I1.P10").WithLocation(7, 1)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P10").WithArguments("I1.P10").WithLocation(7, 1)
                 );
         }
 
@@ -7829,18 +7817,12 @@ class MyClass : I
                 // (8,57): error CS0500: 'clx.P.set' cannot declare a body because it is marked abstract
                 //         public abstract object P { get { return null; } set { } }
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("NS.clx.P.set").WithLocation(8, 57),
-                // (9,49): error CS0500: 'clx.E.add' cannot declare a body because it is marked abstract
+                // (9,47): error CS8712: 'clx.E': abstract event cannot use event accessor syntax
                 //         public abstract event System.Action E { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("NS.clx.E.add").WithLocation(9, 49),
-                // (9,57): error CS0500: 'clx.E.remove' cannot declare a body because it is marked abstract
-                //         public abstract event System.Action E { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "remove").WithArguments("NS.clx.E.remove").WithLocation(9, 57),
-                // (10,49): error CS0500: 'clx.X.add' cannot declare a body because it is marked abstract
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("NS.clx.E").WithLocation(9, 47),
+                // (10,47): error CS8712: 'clx.X': abstract event cannot use event accessor syntax
                 //         public abstract event System.Action X { add => throw null; remove => throw null; }
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("NS.clx.X.add").WithLocation(10, 49),
-                // (10,68): error CS0500: 'clx.X.remove' cannot declare a body because it is marked abstract
-                //         public abstract event System.Action X { add => throw null; remove => throw null; }
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "remove").WithArguments("NS.clx.X.remove").WithLocation(10, 68));
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("NS.clx.X").WithLocation(10, 47));
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
@@ -9544,7 +9526,7 @@ public class Clx
     }
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
                 // (11,20): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         void IFace.F();   // CS0541
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "F").WithArguments("default interface implementation").WithLocation(11, 20),
@@ -12513,6 +12495,12 @@ interface IB<T> where T : System.Object { }
 interface IC<T, U> where T : ValueType { }
 interface ID<T> where T : Array { }";
             CreateCompilation(source).VerifyDiagnostics(
+                // (2,27): error CS0702: Constraint cannot be special class 'object'
+                // interface IA<T> where T : object { }
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object").WithArguments("object").WithLocation(2, 27),
+                // (3,27): error CS0702: Constraint cannot be special class 'object'
+                // interface IB<T> where T : System.Object { }
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "System.Object").WithArguments("object").WithLocation(3, 27),
                 // (4,30): error CS0702: Constraint cannot be special class 'System.ValueType'
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "ValueType").WithArguments("System.ValueType").WithLocation(4, 30),
                 // (5,27): error CS0702: Constraint cannot be special class 'System.Array'

@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace</RootNamespace>
+    <TargetFramework>net472</TargetFramework>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace</PackageId>
+    <PackageDescription>
+      A supporting package for IntelliTrace:
+      https://devdiv.visualstudio.com/DevDiv/_git/VS?path=%2Fsrc%2Fdebugger%2FProductionDebug%2FCodeAnalysis
+    </PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      ⚠ ONLY INTELLITRACE ASSEMBLIES MAY BE ADDED HERE ⚠
+    -->
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProductionBreakpoints.CodeAnalysis" Key="$(VisualStudioDebuggerKey)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+
+</Project>

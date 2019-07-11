@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
     internal class AsyncKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
     {
-        public AsyncKeywordRecommender() :
-            base(SyntaxKind.AsyncKeyword, isValidInPreprocessorContext: false)
+        public AsyncKeywordRecommender()
+            : base(SyntaxKind.AsyncKeyword, isValidInPreprocessorContext: false)
         {
         }
 
