@@ -1503,12 +1503,14 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             Assert.Equal(CodeAnalysis.NullableAnnotation.NotApplicable, arrayType.ElementNullableAnnotation)
 
             Assert.Throws(Of ArgumentException)(Function() comp.CreateArrayTypeSymbol(elementType, Nothing))
+            Assert.Throws(Of ArgumentException)(Function() comp.CreateArrayTypeSymbol(elementType, 0))
 
             arrayType = comp.CreateArrayTypeSymbol(elementType, 1, Nothing)
             Assert.Equal(1, arrayType.Rank)
             Assert.Equal(CodeAnalysis.NullableAnnotation.NotApplicable, arrayType.ElementNullableAnnotation)
 
             Assert.Throws(Of ArgumentException)(Function() comp.CreateArrayTypeSymbol(elementType, rank:=Nothing))
+            Assert.Throws(Of ArgumentException)(Function() comp.CreateArrayTypeSymbol(elementType, rank:=0))
 
             arrayType = comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=Nothing)
             Assert.Equal(1, arrayType.Rank)

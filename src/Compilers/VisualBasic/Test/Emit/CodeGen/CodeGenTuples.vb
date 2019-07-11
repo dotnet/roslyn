@@ -7206,7 +7206,6 @@ End Class
             Assert.Contains(VBResources.NotAVbSymbol, ex.Message)
         End Sub
 
-
         <Fact>
         Public Sub CreateTupleTypeSymbol2_BadArguments()
 
