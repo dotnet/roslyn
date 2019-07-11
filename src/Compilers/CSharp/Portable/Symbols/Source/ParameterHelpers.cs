@@ -218,6 +218,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.RefKeyword), SyntaxFacts.GetText(SyntaxKind.InKeyword));
                         }
+                        else if (parameter.ExclamationToken.Kind() != SyntaxKind.None)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_NullCheckingOnByRefParameter, parameter.ExclamationToken.GetLocation(), parameter);
+                        }
                         else
                         {
                             seenRef = true;
@@ -247,8 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else if (parameter.ExclamationToken.Kind() != SyntaxKind.None)
                         {
-                            // Add error that null checking doesn't make sense on an out parameter.
-                            diagnostics.Add(ErrorCode.ERR_NullCheckingOnOutParameter, parameter.ExclamationToken.GetLocation(), parameter);
+                            diagnostics.Add(ErrorCode.ERR_NullCheckingOnByRefParameter, parameter.ExclamationToken.GetLocation(), parameter);
                         }
                         else
                         {
@@ -299,6 +302,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else if (seenParams)
                         {
                             diagnostics.Add(ErrorCode.ERR_ParamsCantBeWithModifier, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword));
+                        }
+                        else if (parameter.ExclamationToken.Kind() != SyntaxKind.None)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_NullCheckingOnByRefParameter, parameter.ExclamationToken.GetLocation(), parameter);
                         }
                         else
                         {

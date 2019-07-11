@@ -1590,9 +1590,44 @@ class C
 }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                    // (5,31): error CS8720: Out parameter 'out string x!' cannot be null-checked.
+                    // (5,31): error CS8720: By-reference parameter 'out string x!' cannot be null-checked.
                     //     public void M(out string x!)
-                    Diagnostic(ErrorCode.ERR_NullCheckingOnOutParameter, "!").WithArguments("out string x!").WithLocation(5, 31));
+                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!").WithArguments("out string x!").WithLocation(5, 31));
+        }
+
+        [Fact]
+        public void TestNullCheckedRefString()
+        {
+            var source = @"
+class C
+{
+    public static void Main() { }
+    public void M(ref string x!)
+    {
+        x = ""hello world"";
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                    // (5,31): error CS8720: By-reference parameter 'ref string x!' cannot be null-checked.
+                    //     public void M(ref string x!)
+                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!").WithArguments("ref string x!").WithLocation(5, 31));
+        }
+
+        [Fact]
+        public void TestNullCheckedInString()
+        {
+            var source = @"
+class C
+{
+    public static void Main() { }
+    public void M(in string x!) { }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics( 
+                    // (5,30): error CS8720: By-reference parameter 'in string x!' cannot be null-checked.
+                    //     public void M(in string x!)
+                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!").WithArguments("in string x!").WithLocation(5, 30));
         }
 
         [Fact]
