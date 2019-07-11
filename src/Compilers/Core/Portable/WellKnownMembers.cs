@@ -3446,7 +3446,7 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type,
 
-                // System_ArgumentNullException__ctor
+                // System_ArgumentNullException__ctorString
                 (byte)MemberFlags.Constructor,                                                                              // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ArgumentNullException - WellKnownType.ExtSentinel), // DeclaringTypeId
                 0,                                                                                                          // Arity

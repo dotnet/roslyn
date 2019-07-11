@@ -223,15 +223,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // in which case the declaring compilation is the wrong one.
         protected ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics, Binder binder)
         {
-            if (this.IsNullChecked && this.Type.IsValueType)
+            if (this.IsNullChecked)
             {
-                if (!this.Type.IsNullableTypeOrTypeParameter())
+                if (Binder.GetWellKnownTypeMember(this.DeclaringCompilation, WellKnownMember.System_ArgumentNullException__ctorString, out DiagnosticInfo diag) is null)
                 {
-                    diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, this.Locations.FirstOrNone(), this);
+                    diagnostics.Add(diag, this.Locations.FirstOrNone());
+
                 }
-                else
+                if (this.Type.IsValueType)
                 {
-                    diagnostics.Add(ErrorCode.WRN_NullCheckingOnNullableValueType, this.Locations.FirstOrNone(), this);
+                    if (!this.Type.IsNullableTypeOrTypeParameter())
+                    {
+                        diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, this.Locations.FirstOrNone(), this);
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.WRN_NullCheckingOnNullableValueType, this.Locations.FirstOrNone(), this);
+                    }
                 }
             }
             var parameterSyntax = this.CSharpSyntaxNode;
