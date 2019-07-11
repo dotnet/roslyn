@@ -43,6 +43,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     {
                         concreteInfosBuilder[namedTypeSymbol] = info;
                     }
+
+                    if (info.RequiresValueContentAnalysis())
+                    {
+                        RequiresValueContentAnalysis = true;
+                    }
                 }
             }
 
@@ -64,6 +69,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Indicates that this mapping is empty, i.e. there are no types referenced by the compilation represented by the <see cref="WellKnownTypeProvider"/>.
         /// </summary>
         public bool IsEmpty { get { return this.ConcreteInfos.IsEmpty && this.InterfaceInfos.IsEmpty; } }
+
+        public bool RequiresValueContentAnalysis { get; }
 
         /// <summary>
         /// Gets an enumeration of infos for the given type.

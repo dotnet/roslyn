@@ -78,5 +78,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && this.SinkProperties == other.SinkProperties
                 && this.SinkMethodParameters == other.SinkMethodParameters;
         }
+
+        public bool RequiresValueContentAnalysis()
+        {
+            return false;
+        }
     }
 }

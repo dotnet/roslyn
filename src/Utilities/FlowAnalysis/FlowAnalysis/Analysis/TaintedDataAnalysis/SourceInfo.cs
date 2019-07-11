@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
-    public delegate bool IsInvocationTaintedWithPointsToAnalysis(IEnumerable<PointsToAbstractValue> argumentPonitsTos);
+    public delegate bool IsInvocationTaintedWithPointsToAnalysis(IEnumerable<PointsToAbstractValue> argumentPointsTo);
     public delegate bool IsInvocationTaintedWithValueContentAnalysis(IEnumerable<PointsToAbstractValue> argumentPonitsTos, IEnumerable<ValueContentAbstractValue> argumentValueContents);
 
     /// <summary>
@@ -94,6 +94,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && this.TaintedMethodsNeedPointsToAnalysis == other.TaintedMethodsNeedPointsToAnalysis
                 && this.TaintedMethodsNeedsValueContentAnalysis == other.TaintedMethodsNeedsValueContentAnalysis
                 && this.TaintConstantArray == other.TaintConstantArray;
+        }
+
+        public bool RequiresValueContentAnalysis()
+        {
+            return this.TaintedMethodsNeedsValueContentAnalysis != null;
         }
     }
 }

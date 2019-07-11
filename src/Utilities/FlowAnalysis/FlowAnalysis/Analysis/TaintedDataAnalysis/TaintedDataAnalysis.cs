@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
@@ -32,13 +33,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
             TaintedDataSymbolMap<SanitizerInfo> taintedSanitizerInfos,
             TaintedDataSymbolMap<SinkInfo> taintedSinkInfos,
-            CancellationToken cancellationToken,
-            bool needValueContentAnalysis = false)
+            CancellationToken cancellationToken)
         {
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                 analyzerOptions, rule, InterproceduralAnalysisKind.ContextSensitive, cancellationToken);
             return TryGetOrComputeResult(cfg, compilation, containingMethod, taintedSourceInfos,
-                taintedSanitizerInfos, taintedSinkInfos, interproceduralAnalysisConfig, needValueContentAnalysis);
+                taintedSanitizerInfos, taintedSinkInfos, interproceduralAnalysisConfig);
         }
 
         private static TaintedDataAnalysisResult TryGetOrComputeResult(
@@ -48,14 +48,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
             TaintedDataSymbolMap<SanitizerInfo> taintedSanitizerInfos,
             TaintedDataSymbolMap<SinkInfo> taintedSinkInfos,
-            InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
-            bool needValueContentAnalysis)
+            InterproceduralAnalysisConfiguration interproceduralAnalysisConfig)
         {
             WellKnownTypeProvider wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
             ValueContentAnalysisResult valueContentAnalysisResult = null;
             CopyAnalysisResult copyAnalysisResult = null;
             PointsToAnalysisResult pointsToAnalysisResult = null;
-            if (needValueContentAnalysis)
+            if (taintedSourceInfos.RequiresValueContentAnalysis || taintedSanitizerInfos.RequiresValueContentAnalysis || taintedSinkInfos.RequiresValueContentAnalysis)
             {
                 valueContentAnalysisResult = ValueContentAnalysis.TryGetOrComputeResult(
                         cfg,

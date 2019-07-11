@@ -230,10 +230,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     return TaintedDataAbstractValue.NotTainted;
                 }
-                else if (this.DataFlowAnalysisContext.SourceInfos.IsSourceMethod(method, out var evaluateWithPointsToAnalysis, out var evaluateWithValueContentAnslysis))
+                else if (this.DataFlowAnalysisContext.SourceInfos.IsSourceMethod(
+                    method,
+                    out PooledHashSet<IsInvocationTaintedWithPointsToAnalysis> evaluateWithPointsToAnalysis,
+                    out PooledHashSet<IsInvocationTaintedWithValueContentAnalysis> evaluateWithValueContentAnalysis))
                 {
                     ImmutableArray<IArgumentOperation> argumentOperation = (originalOperation as IInvocationOperation).Arguments;
-                    if (evaluateWithPointsToAnalysis.Count != 0)
+                    if (evaluateWithPointsToAnalysis != null)
                     {
                         IEnumerable<PointsToAbstractValue> pointsToAnalysisResultOpt = argumentOperation.Select(o => GetPointsToAbstractValue(o.Value));
                         if (pointsToAnalysisResultOpt == null
@@ -242,13 +245,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                             return TaintedDataAbstractValue.NotTainted;
                         }
                     }
-                    else if (evaluateWithValueContentAnslysis.Count != 0)
+                    else if (evaluateWithValueContentAnalysis != null)
                     {
                         IEnumerable<PointsToAbstractValue> pointsToAnalysisResultOpt = argumentOperation.Select(o => GetPointsToAbstractValue(o.Value));
                         IEnumerable<ValueContentAbstractValue> valueContentAnalysisResultOpt = argumentOperation.Select(o => GetValueContentAbstractValue(o.Value));
                         if (valueContentAnalysisResultOpt == null
                             || pointsToAnalysisResultOpt == null
-                            || !evaluateWithValueContentAnslysis.Any(o => o(pointsToAnalysisResultOpt, valueContentAnalysisResultOpt)))
+                            || !evaluateWithValueContentAnalysis.Any(o => o(pointsToAnalysisResultOpt, valueContentAnalysisResultOpt)))
                         {
                             return TaintedDataAbstractValue.NotTainted;
                         }
@@ -340,7 +343,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     result = TaintedDataAbstractValue.MergeTainted(taintedAbstractValues);
                 }
 
-                if (this.DataFlowAnalysisContext.SourceInfos.IsSourceArray(operation.Parent.Type as IArrayTypeSymbol)
+                if (this.DataFlowAnalysisContext.SourceInfos.IsSourceConstantArrayOfType(operation.Parent.Type as IArrayTypeSymbol)
                     && operation.ElementValues.All(s => GetValueContentAbstractValue(s).IsLiteralState))
                 {
                     TaintedDataAbstractValue taintedDataAbstractValue = TaintedDataAbstractValue.CreateTainted(operation.Parent.Type, operation.Syntax, this.OwningSymbol);

@@ -65,5 +65,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && this.SanitizingMethods == other.SanitizingMethods
                 && this.SanitizingInstanceMethods == other.SanitizingInstanceMethods;
         }
+
+        public bool RequiresValueContentAnalysis()
+        {
+            return false;
+        }
     }
 }
