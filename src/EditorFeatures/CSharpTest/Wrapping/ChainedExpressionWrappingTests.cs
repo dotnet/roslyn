@@ -2,7 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.CSharp.Wrapping;
+using Microsoft.CodeAnalysis.CSharp.Wrapping;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
