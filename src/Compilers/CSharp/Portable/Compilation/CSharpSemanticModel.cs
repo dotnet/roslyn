@@ -1962,7 +1962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 break;
                             }
-                        case BoundConvertedTupleLiteral { SourceTuple: BoundTupleLiteral original } tupleLiteral:
+                        case BoundConvertedTupleLiteral { SourceTuple: BoundTupleLiteral original }:
                             {
                                 // The bound tree fully binds tuple literals. From the language point of
                                 // view, however, converted tuple literals represent tuple conversions

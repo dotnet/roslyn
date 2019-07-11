@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return (_attributes & BoundNodeAttributes.HasErrors) != 0;
             }
-            protected set
+            private set
             {
                 if (value)
                 {

@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var variables = node.Variable;
                         if (variables.IsDeconstructionLeft())
                         {
-                            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, collectionEscape, iterationVariableType.Type) { WasCompilerGenerated = true };
+                            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, collectionEscape, iterationVariableType.Type).MakeCompilerGenerated();
                             DeclarationExpressionSyntax declaration = null;
                             ExpressionSyntax expression = null;
                             BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(

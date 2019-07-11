@@ -813,6 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // If the expression is of nullable type then call GetValueOrDefault. If not,
             // then just use its value.
+
             if (expression.Type.IsNullableType())
             {
                 return BoundCall.Synthesized(syntax, expression, UnsafeGetNullableMethod(syntax, expression.Type, SpecialMember.System_Nullable_T_GetValueOrDefault));

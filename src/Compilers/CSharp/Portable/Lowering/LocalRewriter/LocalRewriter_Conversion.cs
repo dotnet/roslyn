@@ -644,20 +644,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool explicitCastInCode,
             NamedTypeSymbol rewrittenType)
         {
-            (LocalSymbol temp, BoundAssignmentOperator assignmentToTemp, ImmutableArray<BoundExpression> fieldAccesses) =
-                RewriteTupleConversionCore(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode, rewrittenType);
-            var result = MakeTupleCreationExpression(syntax, rewrittenType, fieldAccesses);
-            return _factory.MakeSequence(temp, assignmentToTemp, result);
-        }
-
-        private (LocalSymbol temp, BoundAssignmentOperator assignmentToTemp, ImmutableArray<BoundExpression> fieldAccesses)
-        RewriteTupleConversionCore(SyntaxNode syntax,
-            BoundExpression rewrittenOperand,
-            Conversion conversion,
-            bool @checked,
-            bool explicitCastInCode,
-            NamedTypeSymbol rewrittenType)
-        {
             var destElementTypes = rewrittenType.GetElementTypesOfTupleOrCompatible();
             var numElements = destElementTypes.Length;
 
@@ -694,7 +680,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 fieldAccessorsBuilder.Add(convertedFieldAccess);
             }
 
-            return (savedTuple.LocalSymbol, assignmentToTemp, fieldAccessorsBuilder.ToImmutableAndFree());
+            var result = MakeTupleCreationExpression(syntax, rewrittenType, fieldAccessorsBuilder.ToImmutableAndFree());
+            return _factory.MakeSequence(savedTuple.LocalSymbol, assignmentToTemp, result);
         }
 
         private static bool NullableNeverHasValue(BoundExpression expression)
@@ -709,7 +696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return nullableNeverHasValue(expression);
 
-            bool nullableNeverHasValue(BoundExpression expression)
+            static bool nullableNeverHasValue(BoundExpression expression)
             {
                 Debug.Assert(expression.Type.IsNullableType());
                 switch (expression)
@@ -747,14 +734,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Detect the unlowered nullable conversion from value type K to type Nullable<K>
                 // This arises in lowering tuple equality operators
-                case BoundConversion
-                { Conversion: { Kind: ConversionKind.ImplicitNullable }, Operand: var convertedArgument }
+                case BoundConversion { Conversion: { Kind: ConversionKind.ImplicitNullable }, Operand: var convertedArgument }
                         when convertedArgument.Type.Equals(expression.Type.StrippedType(), TypeCompareKind.AllIgnoreOptions):
                     return convertedArgument;
 
                 // Detect the unlowered nullable conversion from a tuple type T1 to Nullable<T2> for a tuple type T2.
-                case BoundConversion
-                { Conversion: { Kind: ConversionKind.ImplicitNullable, UnderlyingConversions: var underlying }, Operand: var convertedArgument } conversion
+                case BoundConversion { Conversion: { Kind: ConversionKind.ImplicitNullable, UnderlyingConversions: var underlying }, Operand: var convertedArgument } conversion
                         when underlying.Length == 1 && underlying[0].Kind == ConversionKind.ImplicitTuple && !convertedArgument.Type.IsNullableType():
                     return new BoundConversion(
                         syntax: expression.Syntax,

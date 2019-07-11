@@ -858,45 +858,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expression;
         }
 
-        internal BoundExpression BindToNaturalType(BoundExpression expression, DiagnosticBag diagnostics)
-        {
-            BoundExpression result;
-            switch (expression)
-            {
-                case BoundConvertedSwitchExpression _:
-                case BoundConvertedTupleLiteral _:
-                    result = expression;
-                    break;
-                case BoundUnconvertedSwitchExpression expr:
-                    var commonType = expr.Type;
-                    var exprSyntax = (SwitchExpressionSyntax)expr.Syntax;
-                    bool hasErrors = expression.HasErrors;
-                    if (commonType is null)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_SwitchExpressionNoBestType, exprSyntax.SwitchKeyword.GetLocation());
-                        commonType = CreateErrorType();
-                        hasErrors = true;
-                    }
-                    result = ConvertSwitchExpression(expr, commonType, diagnostics, hasErrors);
-                    break;
-                case BoundTupleLiteral sourceTuple:
-                    result = new BoundConvertedTupleLiteral(
-                        sourceTuple.Syntax,
-                        sourceTuple,
-                        sourceTuple.Arguments.SelectAsArray(e => BindToNaturalType(e, diagnostics)),
-                        sourceTuple.ArgumentNamesOpt,
-                        sourceTuple.InferredNamesOpt,
-                        sourceTuple.Type, // same type to keep original element names
-                        sourceTuple.HasErrors).WithSuppression(sourceTuple.IsSuppressed);
-                    break;
-                default:
-                    result = expression;
-                    break;
-            }
-
-            return result?.WithWasConverted();
-        }
-
         private static bool IsInitializerRefKindValid(
             EqualsValueClauseSyntax initializer,
             CSharpSyntaxNode node,
@@ -2193,12 +2154,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         Debug.Assert(reportedError);
-                        if (!reportedError)
-                        {
-                            var switchSyntax = (SwitchExpressionSyntax)operand.Syntax;
-                            Error(diagnostics, ErrorCode.ERR_SwitchExpressionNoBestType, switchSyntax.SwitchKeyword);
-                        }
-
                         return;
                     }
             }

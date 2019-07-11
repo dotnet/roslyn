@@ -30,7 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             // We track the WasConverted flag for locals and parameters only, as many other
             // kinds of bound nodes have special behavior that prevents this from working for them.
-            if (Kind != BoundKind.Local && Kind != BoundKind.Parameter || this.WasConverted)
+            // Also we want to minimize the GC pressure, even in Debug, and we have excellent
+            // test coverage for locals and parameters.
+            if ((Kind != BoundKind.Local && Kind != BoundKind.Parameter) || this.WasConverted)
                 return this;
 
             var result = (BoundExpression)MemberwiseClone();

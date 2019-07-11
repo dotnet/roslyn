@@ -225,7 +225,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal BoundExpression BindValue(ExpressionSyntax node, DiagnosticBag diagnostics, BindValueKind valueKind)
         {
-            // PROTOTYPE(ngafter): Should we have a version of this that does the BindToNaturalType treatment?
             var result = this.BindExpression(node, diagnostics: diagnostics, invoked: false, indexed: false);
             return CheckValue(result, valueKind, diagnostics);
         }
@@ -233,6 +232,48 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundExpression BindRValueWithoutTargetType(ExpressionSyntax node, DiagnosticBag diagnostics)
         {
             return BindToNaturalType(BindValue(node, diagnostics, BindValueKind.RValue), diagnostics);
+        }
+
+        /// <summary>
+        /// Bind an rvalue expression to its natural type.  For example, a switch expression that has not been
+        /// converted to another type has to be converted to its own natural type by applying a conversion to
+        /// that type to each of the arms of the switch expression.  This method is a bottleneck for ensuring
+        /// that such a conversion occurs when needed.  It also handles tuple expressions which need to be
+        /// converted to their own natural type because they may contain switch expressions.
+        /// </summary>
+        internal BoundExpression BindToNaturalType(BoundExpression expression, DiagnosticBag diagnostics)
+        {
+            BoundExpression result;
+            switch (expression)
+            {
+                case BoundUnconvertedSwitchExpression expr:
+                    var commonType = expr.Type;
+                    var exprSyntax = (SwitchExpressionSyntax)expr.Syntax;
+                    bool hasErrors = expression.HasErrors;
+                    if (commonType is null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_SwitchExpressionNoBestType, exprSyntax.SwitchKeyword.GetLocation());
+                        commonType = CreateErrorType();
+                        hasErrors = true;
+                    }
+                    result = ConvertSwitchExpression(expr, commonType, diagnostics, hasErrors);
+                    break;
+                case BoundTupleLiteral sourceTuple:
+                    result = new BoundConvertedTupleLiteral(
+                        sourceTuple.Syntax,
+                        sourceTuple,
+                        sourceTuple.Arguments.SelectAsArray(e => BindToNaturalType(e, diagnostics)),
+                        sourceTuple.ArgumentNamesOpt,
+                        sourceTuple.InferredNamesOpt,
+                        sourceTuple.Type, // same type to keep original element names
+                        sourceTuple.HasErrors).WithSuppression(sourceTuple.IsSuppressed);
+                    break;
+                default:
+                    result = expression;
+                    break;
+            }
+
+            return result?.WithWasConverted();
         }
 
         internal BoundExpression BindValueAllowArgList(ExpressionSyntax node, DiagnosticBag diagnostics, BindValueKind valueKind)
@@ -2735,7 +2776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var kind = result.ConversionForArg(arg);
                 BoundExpression argument = arguments[arg];
 
-                // CONSIDER: should we create an (Identity) conversion when the kind is Identity but the types differ?
+                // https://github.com/dotnet/roslyn/issues/37119 : should we create an (Identity) conversion when the kind is Identity but the types differ?
                 if (!kind.IsIdentity)
                 {
                     TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
@@ -2772,7 +2813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (argument is BoundTupleLiteral sourceTuple)
                     {
                         TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
-                        TupleTypeSymbol.ReportNamesMismatchesIfAny(parameterTypeWithAnnotations.Type, sourceTuple, diagnostics);
+                        // CreateConversion reports tuple literal name mismatches, and constructs the expected pattern of bound nodes.
                         arguments[arg] = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, parameterTypeWithAnnotations.Type, diagnostics);
                     }
                     else

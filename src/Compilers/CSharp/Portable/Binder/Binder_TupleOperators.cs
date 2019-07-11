@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression comparison = BindSimpleBinaryOperator(node, diagnostics, left, right, ref ignored);
             switch (comparison)
             {
-                case BoundLiteral literal:
+                case BoundLiteral _:
                     // this case handles `null == null` and the like
                     return new TupleBinaryOperatorInfo.NullNull(kind);
 

@@ -1922,6 +1922,7 @@ public class C
         [Fact]
         public void TestBadConstraintOnTuple()
         {
+            // https://github.com/dotnet/roslyn/issues/37121 : This test appears to produce a duplicate diagnostic at (6, 35)
             var source = @"
 ref struct S
 {
@@ -1932,18 +1933,18 @@ ref struct S
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                    // (6,35): error CS0306: The type 'S' may not be used as a type argument
-                    //         System.Console.Write(("", s1) == (null, s2));
-                    Diagnostic(ErrorCode.ERR_BadTypeArgument, "s1").WithArguments("S").WithLocation(6, 35),
-                    // (6,30): error CS0019: Operator '==' cannot be applied to operands of type 'S' and 'S'
-                    //         System.Console.Write(("", s1) == (null, s2));
-                    Diagnostic(ErrorCode.ERR_BadBinaryOps, @"("""", s1) == (null, s2)").WithArguments("==", "S", "S").WithLocation(6, 30),
-                    // (6,35): error CS0306: The type 'S' may not be used as a type argument
-                    //         System.Console.Write(("", s1) == (null, s2));
-                    Diagnostic(ErrorCode.ERR_BadTypeArgument, "s1").WithArguments("S").WithLocation(6, 35),
-                    // (6,49): error CS0306: The type 'S' may not be used as a type argument
-                    //         System.Console.Write(("", s1) == (null, s2));
-                    Diagnostic(ErrorCode.ERR_BadTypeArgument, "s2").WithArguments("S").WithLocation(6, 49)
+                // (6,35): error CS0306: The type 'S' may not be used as a type argument
+                //         System.Console.Write(("", s1) == (null, s2));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "s1").WithArguments("S").WithLocation(6, 35),
+                // (6,30): error CS0019: Operator '==' cannot be applied to operands of type 'S' and 'S'
+                //         System.Console.Write(("", s1) == (null, s2));
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"("""", s1) == (null, s2)").WithArguments("==", "S", "S").WithLocation(6, 30),
+                // (6,35): error CS0306: The type 'S' may not be used as a type argument
+                //         System.Console.Write(("", s1) == (null, s2));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "s1").WithArguments("S").WithLocation(6, 35),
+                // (6,49): error CS0306: The type 'S' may not be used as a type argument
+                //         System.Console.Write(("", s1) == (null, s2));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "s2").WithArguments("S").WithLocation(6, 49)
                 );
         }
 

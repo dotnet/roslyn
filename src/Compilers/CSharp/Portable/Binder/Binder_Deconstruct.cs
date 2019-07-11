@@ -220,7 +220,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundRHS = GenerateConversionForAssignment(mergedTupleType, boundRHS, diagnostics);
                 }
             }
-
             else if ((object)boundRHS.Type == null)
             {
                 Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, boundRHS.Syntax);

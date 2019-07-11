@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindArgListOperator(InvocationExpressionSyntax node, DiagnosticBag diagnostics, AnalyzedArguments analyzedArguments)
         {
-            bool wasError = analyzedArguments.HasErrors;
+            bool hasErrors = analyzedArguments.HasErrors;
 
             // We allow names, oddly enough; M(__arglist(x : 123)) is legal. We just ignore them.
             TypeSymbol objType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (argument.Type.IsVoidType())
                 {
                     Error(diagnostics, ErrorCode.ERR_CantUseVoidInArglist, argument.Syntax);
-                    wasError = true;
+                    hasErrors = true;
                 }
                 else if (analyzedArguments.RefKind(i) == RefKind.None)
                 {
@@ -216,14 +216,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default:
                         // Disallow "in" or "out" arguments
                         Error(diagnostics, ErrorCode.ERR_CantUseInOrOutInArglist, argument.Syntax);
-                        wasError = true;
+                        hasErrors = true;
                         break;
                 }
             }
 
             ImmutableArray<BoundExpression> arguments = analyzedArguments.Arguments.ToImmutable();
             ImmutableArray<RefKind> refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
-            return new BoundArgListOperator(node, arguments, refKinds, null, wasError);
+            return new BoundArgListOperator(node, arguments, refKinds, null, hasErrors);
         }
 
         /// <summary>
@@ -408,8 +408,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder[i] = builder[i] switch
                 {
-                    OutVariablePendingInference ovpi => ovpi.FailInference(this, diagnostics),
-                    BoundDiscardExpression bde when !bde.HasExpressionType() => bde.FailInference(this, diagnostics),
+                    OutVariablePendingInference outvar => outvar.FailInference(this, diagnostics),
+                    BoundDiscardExpression discard when !discard.HasExpressionType() => discard.FailInference(this, diagnostics),
                     var arg => BindToNaturalType(arg, diagnostics)
                 };
             }

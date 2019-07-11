@@ -1182,7 +1182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // Writing through the (reference) value of a reference local
                             // requires us to read the reference itself.
-                            if (written) VisitRvalue(local, true);
+                            if (written) VisitRvalue(local, isKnownToBeAnLvalue: true);
                         }
                         else
                         {

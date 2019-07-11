@@ -1209,7 +1209,6 @@
     <Field Name="NaturalTypeOpt" Type="TypeSymbol" Null="allow"/>
   </Node>
 
-
   <Node Name="BoundDecisionDag" Base="BoundNode">
     <Field Name="RootNode" Type="BoundDecisionDagNode" Null="disallow"/>
   </Node>
@@ -1537,7 +1536,8 @@
   Converted tuple literal always has a type.
   -->
   <Node Name="BoundConvertedTupleLiteral" Base="BoundTupleExpression">
-    <!-- Original tuple is preserved for the purpose of semantic model -->
+    <!-- Original tuple is preserved for the purpose of semantic model.
+         When tuples are created as part of lowering, this could be null. -->
     <Field Name="SourceTuple" Type="BoundTupleLiteral" Null="allow" SkipInVisitor="ExceptNullabilityRewriter" />
   </Node>
 

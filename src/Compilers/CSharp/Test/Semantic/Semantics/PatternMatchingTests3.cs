@@ -694,6 +694,49 @@ class Source2
         }
 
         [Fact]
+        public void TargetTypedSwitch_Assignment_03()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source1();
+        var s2 = new Source2();
+        foreach (var b in new bool[] { false, true })
+        {
+            Target t = b switch { false => s1, true => s2 };
+            Console.Write(t);
+            t = b switch { false => s1, true => s2 };
+            Console.Write(t);
+        }
+    }
+}
+class Target
+{
+    private readonly string Value;
+    public Target(string value) => Value = value;
+    public override string ToString() => Value;
+    public static implicit operator Target(Source1 self) => new Target(""Source1 "");
+    public static implicit operator Target(Source2 self) => new Target(""Source2 "");
+}
+class Source1
+{
+}
+class Source2
+{
+}
+";
+            var expectedOutput = "Source1 Source1 Source2 Source2 ";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
         public void TargetTypedSwitch_Overload()
         {
             var source = @"
@@ -955,6 +998,211 @@ class Program
                 // (6,18): error CS8506: No best type was found for the switch expression.
                 //         _ = true switch { true => 1, false => string.Empty };
                 Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(6, 18));
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Assignment_04()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source();
+        var s2 = new TargetSubtype();
+        foreach (var b in new bool[] { false, true })
+        {
+            Target t = b switch { false => s1, true => s2 };
+            Console.WriteLine(t);
+        }
+    }
+}
+class Source
+{
+    public static implicit operator TargetSubtype(Source self)
+    {
+        Console.WriteLine(""Source->TargetSubtype"");
+        return new TargetSubtype();
+    }
+    public override string ToString() => ""Source"";
+}
+class Target
+{
+    public override string ToString() => ""Target"";
+}
+class TargetSubtype : Target
+{
+    public override string ToString() => ""TargetSubtype"";
+}
+";
+            var expectedOutput = @"Source->TargetSubtype
+TargetSubtype
+TargetSubtype";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Assignment_05()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source();
+        var s2 = new Target();
+        foreach (var b in new bool[] { false, true })
+        {
+            Ultimate t = b switch { false => s1, true => s2 };
+            Console.WriteLine(t);
+        }
+    }
+}
+class Source
+{
+    public static implicit operator Target(Source self)
+    {
+        Console.WriteLine(""Source->Target"");
+        return new Target();
+    }
+    public override string ToString() => ""Source"";
+}
+class Target
+{
+    public static implicit operator Ultimate(Target self)
+    {
+        Console.WriteLine(""Target->Ultimate"");
+        return new Ultimate();
+    }
+    public override string ToString() => ""Target"";
+}
+class Ultimate
+{
+    public override string ToString() => ""Ultimate"";
+}
+";
+            var expectedOutput = @"Source->Target
+Target->Ultimate
+Ultimate
+Target->Ultimate
+Ultimate";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Assignment_06()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source();
+        var s2 = new Target();
+        foreach (var b in new bool[] { false, true })
+        {
+            (int i, Ultimate t) t = (1, b switch { false => s1, true => s2 });
+            Console.WriteLine(t.t);
+        }
+    }
+}
+class Source
+{
+    public static implicit operator Target(Source self)
+    {
+        Console.WriteLine(""Source->Target"");
+        return new Target();
+    }
+    public override string ToString() => ""Source"";
+}
+class Target
+{
+    public static implicit operator Ultimate(Target self)
+    {
+        Console.WriteLine(""Target->Ultimate"");
+        return new Ultimate();
+    }
+    public override string ToString() => ""Target"";
+}
+class Ultimate
+{
+    public override string ToString() => ""Ultimate"";
+}
+";
+            var expectedOutput = @"Source->Target
+Target->Ultimate
+Ultimate
+Target->Ultimate
+Ultimate";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Assignment_07()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source();
+        var s2 = new Target();
+        foreach (var b in new bool[] { false, true })
+        {
+            (int i, Ultimate t) t = b switch { false => (1, s1), true => (2, s2) };
+            Console.WriteLine(t);
+        }
+    }
+}
+class Source
+{
+    public static implicit operator Target(Source self)
+    {
+        Console.WriteLine(""Source->Target"");
+        return new Target();
+    }
+    public override string ToString() => ""Source"";
+}
+class Target
+{
+    public static implicit operator Ultimate(Target self)
+    {
+        Console.WriteLine(""Target->Ultimate"");
+        return new Ultimate();
+    }
+    public override string ToString() => ""Target"";
+}
+class Ultimate
+{
+    public override string ToString() => ""Ultimate"";
+}
+";
+            var expectedOutput = @"Source->Target
+Target->Ultimate
+(1, Ultimate)
+Target->Ultimate
+(2, Ultimate)";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
     }
 }

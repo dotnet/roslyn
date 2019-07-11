@@ -599,7 +599,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// assigned (or not). That is, we will not be needing AssignedWhenTrue and
         /// AssignedWhenFalse.
         /// </summary>
-        /// <param name="node"></param>
+        /// <param name="isKnownToBeAnLvalue">True when visiting an rvalue that will actually be used as an lvalue,
+        /// for example a ref parameter when simulating a read of it, or an argument corresponding to an in parameter</param>
         protected virtual void VisitRvalue(BoundExpression node, bool isKnownToBeAnLvalue = false)
         {
             Visit(node);

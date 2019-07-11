@@ -62,7 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.IsIdentity)
             {
                 if (source is BoundTupleLiteral sourceTuple)
+                {
                     TupleTypeSymbol.ReportNamesMismatchesIfAny(destination, sourceTuple, diagnostics);
+                }
 
                 // identity tuple and switch conversions result in a converted expression
                 // to indicate that such conversions are no longer applicable.
@@ -153,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression ConvertSwitchExpression(BoundUnconvertedSwitchExpression source, TypeSymbol destination, DiagnosticBag diagnostics, bool hasErrors = false)
         {
-            var builder = ArrayBuilder<BoundSwitchExpressionArm>.GetInstance();
+            var builder = ArrayBuilder<BoundSwitchExpressionArm>.GetInstance(source.SwitchArms.Length);
             foreach (var oldCase in source.SwitchArms)
             {
                 var oldValue = oldCase.Value;

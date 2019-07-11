@@ -839,8 +839,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Sequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression result)
         {
             return
-                locals.IsDefaultOrEmpty && sideEffects.IsDefaultOrEmpty ? result :
-                new BoundSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
+                locals.IsDefaultOrEmpty && sideEffects.IsDefaultOrEmpty
+                ? result
+                : new BoundSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
         }
 
         public BoundSpillSequence SpillSequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> sideEffects, BoundExpression result)

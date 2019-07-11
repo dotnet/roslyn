@@ -99,23 +99,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundExpression> initEffects,
             ArrayBuilder<LocalSymbol> temps)
         {
-            if (expr is BoundConversion { ConversionKind: ConversionKind.ImplicitTuple, Conversion: var conversion } conv)
+            if (expr is BoundConversion { ConversionKind: ConversionKind.ImplicitTuple, Conversion: var conversion } boundConversion)
             {
                 // We push an implicit tuple converion down to its elements
-                var syntax = conv.Syntax;
+                var syntax = boundConversion.Syntax;
                 var destElementTypes = expr.Type.GetElementTypesOfTupleOrCompatible();
                 var numElements = destElementTypes.Length;
-                TypeSymbol srcType = (TupleTypeSymbol)conv.Operand.Type;
+                TypeSymbol srcType = (TupleTypeSymbol)boundConversion.Operand.Type;
                 var srcElementFields = srcType.TupleElements;
                 var fieldAccessorsBuilder = ArrayBuilder<BoundExpression>.GetInstance(numElements);
-                var savedTuple = DeferSideEffectingArgumentToTempForTupleEquality(LowerConversions(conv.Operand), initEffects, temps);
+                var savedTuple = DeferSideEffectingArgumentToTempForTupleEquality(LowerConversions(boundConversion.Operand), initEffects, temps);
                 var elementConversions = conversion.UnderlyingConversions;
 
                 for (int i = 0; i < numElements; i++)
                 {
                     var fieldAccess = MakeTupleFieldAccessAndReportUseSiteDiagnostics(savedTuple, syntax, srcElementFields[i]);
                     var convertedFieldAccess = new BoundConversion(
-                        syntax, fieldAccess, elementConversions[i], conv.Checked, conv.ExplicitCastInCode, null, null, destElementTypes[i].Type, conv.HasErrors);
+                        syntax, fieldAccess, elementConversions[i], boundConversion.Checked, boundConversion.ExplicitCastInCode, null, null, destElementTypes[i].Type, boundConversion.HasErrors);
                     fieldAccessorsBuilder.Add(convertedFieldAccess);
                 }
 
@@ -432,11 +432,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         int tupleCardinality = operand.Type.TupleElementTypesWithAnnotations.Length;
                         var underlyingConversions = tupleConversion.UnderlyingConversions;
                         Debug.Assert(underlyingConversions.Length == tupleCardinality);
+                        var argumentBuilder = ArrayBuilder<BoundExpression>.GetInstance(tupleCardinality);
+                        for (int i = 0; i < tupleCardinality; i++)
+                        {
+                            argumentBuilder.Add(MakeBoundConversion(GetTuplePart(operand, i), underlyingConversions[i], types[i], conv));
+                        }
                         return new BoundConvertedTupleLiteral(
                             syntax: operand.Syntax,
                             sourceTuple: null,
-                            arguments: Enumerable.Range(0, tupleCardinality)
-                                .Select(i => MakeBoundConversion(GetTuplePart(operand, i), underlyingConversions[i], types[i], conv)).AsImmutable(),
+                            arguments: argumentBuilder.ToImmutableAndFree(),
                             argumentNamesOpt: ImmutableArray<string>.Empty,
                             inferredNamesOpt: ImmutableArray<bool>.Empty,
                             type: expr.Type,

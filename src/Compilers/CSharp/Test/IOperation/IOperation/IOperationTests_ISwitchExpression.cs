@@ -170,7 +170,7 @@ ISwitchExpressionOperation (3 arms) (OperationKind.SwitchExpression, Type: Syste
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact]
-        public void SwitchExpression_NoCommonType()
+        public void SwitchExpression_NoCommonType_01()
         {
             string source = @"
 using System;
@@ -207,6 +207,52 @@ ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: Syste
               ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Z"") (Syntax: '""Z""')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {};
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void SwitchExpression_NoCommonType_02()
+        {
+            string source = @"
+using System;
+class X
+{
+    void M(int? x, object y)
+    {
+        var z = /*<bind>*/x switch { 1 => 2, _ => ""Z"" }/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+    ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: 'x switch {  ...  _ => ""Z"" }')
+      Value: 
+        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
+      Arms(2):
+          ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '1 => 2')
+            Pattern: 
+              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32?)
+                Value: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            Value: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '2')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+          ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '_ => ""Z""')
+            Pattern: 
+              IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32?)
+            Value: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '""Z""')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Z"") (Syntax: '""Z""')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(7,29): error CS8506: No best type was found for the switch expression.
+                //         var z = /*<bind>*/x switch { 1 => 2, _ => "Z" }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(7, 29)
+            };
             VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
