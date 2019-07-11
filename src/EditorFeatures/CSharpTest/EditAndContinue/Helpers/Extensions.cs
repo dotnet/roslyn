@@ -60,7 +60,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             this EditScript<SyntaxNode> editScript,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
-            VerifySemanticDiagnostics(editScript, null, expectedDiagnostics);
+            VerifySemantics(
+                editScript,
+                expectedDiagnostics: expectedDiagnostics);
+        }
+
+        internal static void VerifySemanticDiagnostics(
+            this EditScript<SyntaxNode> editScript,
+            TargetFramework[] targetFrameworks,
+            params RudeEditDiagnosticDescription[] expectedDiagnostics)
+        {
+            VerifySemantics(
+                editScript,
+                targetFrameworks: targetFrameworks,
+                expectedDiagnostics: expectedDiagnostics);
         }
 
         internal static void VerifySemanticDiagnostics(
@@ -94,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             DiagnosticDescription expectedDeclarationError = null,
             RudeEditDiagnosticDescription[] expectedDiagnostics = null)
         {
-            foreach (var targetFramework in targetFrameworks ?? new[] { TargetFramework.NetStandard20 })
+            foreach (var targetFramework in targetFrameworks ?? new[] { TargetFramework.NetStandard20, TargetFramework.NetCoreApp30 })
             {
                 new CSharpEditAndContinueTestHelpers(targetFramework).VerifySemantics(
                     editScript,

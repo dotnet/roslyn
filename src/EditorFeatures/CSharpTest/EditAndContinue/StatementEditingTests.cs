@@ -6811,14 +6811,10 @@ interface I
             var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
 
             // lambdas are ok as they are emitted to a nested type
-            edits.VerifySemantics(
-                targetFrameworks: new[] { TargetFramework.NetCoreApp30 },
-                expectedDiagnostics: new[]
-                {
-                    Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f1"),
-                    Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f2"),
-                    Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f3")
-                });
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f1"),
+                Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f2"),
+                Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f3"));
         }
 
         #endregion
