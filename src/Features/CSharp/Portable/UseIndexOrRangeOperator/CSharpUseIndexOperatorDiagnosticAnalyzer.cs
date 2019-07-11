@@ -58,6 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 var compilation = startContext.Compilation;
                 var infoCache = new InfoCache(compilation);
 
+                // The System.Index type is always required to offer this fix.
+                if (infoCache.IndexType == null)
+                {
+                    return;
+                }
+
                 // Register to hear property references, so we can hear about calls to indexers
                 // like: s[s.Length - n]
                 context.RegisterOperationAction(

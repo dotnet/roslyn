@@ -22,8 +22,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     [Export(typeof(MiscellaneousFilesWorkspace))]
     internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IRunningDocumentTableEventListener
     {
@@ -101,18 +99,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void RegisterLanguage(Guid languageGuid, string languageName, string scriptExtension)
         {
             _languageInformationByLanguageGuid.Add(languageGuid, new LanguageInformation(languageName, scriptExtension));
-        }
-
-        internal void StartSolutionCrawler()
-        {
-            // misc workspace will enable syntax errors and semantic errors for script files for
-            // all participating projects in the workspace
-            DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax | DiagnosticProvider.Options.ScriptSemantic);
-        }
-
-        internal void StopSolutionCrawler()
-        {
-            DiagnosticProvider.Disable(this);
         }
 
         private LanguageInformation TryGetLanguageInformation(string filename)
@@ -393,12 +379,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 return;
             }
-        }
-
-        protected override void Dispose(bool finalize)
-        {
-            StopSolutionCrawler();
-            base.Dispose(finalize);
         }
 
         public override bool CanApplyChange(ApplyChangesKind feature)

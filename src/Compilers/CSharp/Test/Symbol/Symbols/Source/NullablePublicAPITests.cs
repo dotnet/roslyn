@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -32,7 +34,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,20): warning CS8619: Nullability of reference types in value of type 'C?[]' doesn't match target type 'C[]'.
                 //         C[] arr2 = (C[])arr1;
@@ -70,7 +72,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -385,14 +387,14 @@ public static class CExt
 }
 ";
 
-            var comp1 = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            var comp1 = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics(
                 // (20,33): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public static void M8(this C? c) {}
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(20, 33));
             verifyCompilation(comp1);
 
-            var comp2 = CreateCompilation(source, options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            var comp2 = CreateCompilation(source, options: WithNonNullTypesFalse());
             comp2.VerifyDiagnostics(
                 // (20,33): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public static void M8(this C? c) {}
@@ -422,12 +424,12 @@ public static class CExt
             verifyCompilation(comp3);
 
             var comp1Emit = comp1.EmitToImageReference();
-            var comp4 = CreateCompilation("", references: new[] { comp1Emit }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            var comp4 = CreateCompilation("", references: new[] { comp1Emit }, options: WithNonNullTypesTrue());
             comp4.VerifyDiagnostics();
             verifyCompilation(comp4);
 
             var comp2Emit = comp2.EmitToImageReference();
-            var comp5 = CreateCompilation("", references: new[] { comp2Emit }, options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            var comp5 = CreateCompilation("", references: new[] { comp2Emit }, options: WithNonNullTypesFalse());
             comp5.VerifyDiagnostics();
             verifyCompilation(comp5);
 
@@ -596,11 +598,11 @@ public class C
                                                  params PublicNullableAnnotation[] expectedNullabilities)
         {
 
-            var comp1 = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            var comp1 = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics(nullableEnabledErrors);
             verifyCompilation(comp1);
 
-            var comp2 = CreateCompilation(source, options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            var comp2 = CreateCompilation(source, options: WithNonNullTypesFalse());
             comp2.VerifyDiagnostics(nullableEnabledErrors);
             verifyCompilation(comp2);
 
@@ -611,12 +613,12 @@ public class C
             if (!testMetadata) return;
 
             var comp1Emit = comp1.EmitToImageReference();
-            var comp4 = CreateCompilation("", references: new[] { comp1Emit }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            var comp4 = CreateCompilation("", references: new[] { comp1Emit }, options: WithNonNullTypesTrue());
             comp4.VerifyDiagnostics();
             verifyCompilation(comp4);
 
             var comp2Emit = comp2.EmitToImageReference();
-            var comp5 = CreateCompilation("", references: new[] { comp2Emit }, options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            var comp5 = CreateCompilation("", references: new[] { comp2Emit }, options: WithNonNullTypesFalse());
             comp5.VerifyDiagnostics();
             verifyCompilation(comp5);
 
@@ -650,7 +652,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -678,7 +680,7 @@ enum E2
     A2 = E1.A1
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
@@ -702,7 +704,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
 
             comp.VerifyDiagnostics();
             comp.VerifyAnalyzerDiagnostics(new[] { new NullabilityPrinter() }, null, null, true,
@@ -749,7 +751,7 @@ class E
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         var d = (D)(C?)new B();
@@ -801,7 +803,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,21): error CS0246: The type or namespace name 'Undefined' could not be found (are you missing a using directive or an assembly reference?)
                 //         var x = new Undefined() ? new object() : null;
@@ -902,7 +904,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -982,7 +984,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -1055,7 +1057,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -1084,6 +1086,113 @@ class C
                 Assert.Equal(expectedFlowState, specTypeInfo.Nullability.FlowState);
                 specTypeInfo = model.GetSpeculativeTypeInfo(position, newCoalesce, SpeculativeBindingOption.BindAsExpression);
                 Assert.Equal(PublicNullableFlowState.NotNull, specTypeInfo.Nullability.FlowState);
+            }
+        }
+
+        [Fact]
+        public void FeatureFlagTurnsOffNullableAnalysis()
+        {
+            var source =
+@"
+#nullable enable
+class C
+{
+    void M()
+    {
+        object o = null;
+    }
+}
+";
+
+            var featureFlagOff = TestOptions.Regular8.WithFeature("run-nullable-analysis", "false");
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: featureFlagOff);
+            comp.VerifyDiagnostics(
+                    // (7,16): warning CS0219: The variable 'o' is assigned but its value is never used
+                    //         object o = null;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(7, 16),
+                    // (7,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                    //         object o = null;
+                    Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 20));
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled);
+        }
+
+        [Fact]
+        public void SymbolInfo_Invocation_InferredArguments()
+        {
+            var source = @"
+class C
+{
+    T Identity<T>(T t) => t;
+
+    void M(string? s)
+    {
+        _ = Identity(s);
+        if (s is null) return;
+        _ = Identity(s);
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var invocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+
+            var symbolInfo = model.GetSymbolInfo(invocations[0]);
+            verifySymbolInfo((IMethodSymbol)symbolInfo.Symbol, PublicNullableAnnotation.Annotated);
+            symbolInfo = model.GetSymbolInfo(invocations[1]);
+            verifySymbolInfo((IMethodSymbol)symbolInfo.Symbol, PublicNullableAnnotation.NotAnnotated);
+
+            static void verifySymbolInfo(IMethodSymbol methodSymbol, PublicNullableAnnotation expectedAnnotation)
+            {
+                Assert.Equal(expectedAnnotation, methodSymbol.TypeArgumentsNullableAnnotations.Single());
+                Assert.Equal(expectedAnnotation, methodSymbol.Parameters.Single().NullableAnnotation);
+                Assert.Equal(expectedAnnotation, methodSymbol.ReturnNullableAnnotation);
+            }
+        }
+
+        [Fact]
+        public void SymbolInfo_Invocation_LocalFunction()
+        {
+            var source = @"
+using System.Collections.Generic;
+class C
+{
+
+    void M(string? s)
+    {
+        _ = CreateList(s);
+        if (s is null) return;
+        _ = CreateList(s);
+
+        List<T> CreateList<T>(T t) => null!;
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var invocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+
+            var symbolInfo = model.GetSymbolInfo(invocations[0]);
+            verifySymbolInfo((IMethodSymbol)symbolInfo.Symbol, PublicNullableAnnotation.Annotated);
+            symbolInfo = model.GetSymbolInfo(invocations[1]);
+            verifySymbolInfo((IMethodSymbol)symbolInfo.Symbol, PublicNullableAnnotation.NotAnnotated);
+
+            static void verifySymbolInfo(IMethodSymbol methodSymbol, PublicNullableAnnotation expectedAnnotation)
+            {
+                Assert.Equal(expectedAnnotation, methodSymbol.TypeArgumentsNullableAnnotations.Single());
+                Assert.Equal(expectedAnnotation, methodSymbol.Parameters.Single().NullableAnnotation);
+                Assert.Equal(expectedAnnotation, ((INamedTypeSymbol)methodSymbol.ReturnType).TypeArgumentsNullableAnnotations.Single());
             }
         }
     }

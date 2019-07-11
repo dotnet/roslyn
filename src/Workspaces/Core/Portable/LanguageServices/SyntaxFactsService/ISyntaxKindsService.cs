@@ -4,8 +4,15 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
+    /// <summary>
+    /// Provides a uniform view of SyntaxKinds over C# and VB for constructs they have
+    /// in common.
+    /// </summary>
     internal interface ISyntaxKindsService : ILanguageService
     {
+        int DotToken { get; }
+        int QuestionToken { get; }
+
         int IfKeyword { get; }
 
         /// <summary>
@@ -17,5 +24,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// A short-circuiting logical 'or'. In C#, 'LogicalOrExpression'. In VB, 'OrElseExpression'.
         /// </summary>
         int LogicalOrExpression { get; }
+    }
+
+    internal abstract class AbstractSyntaxKindsService : ISyntaxKindsService
+    {
+        public abstract int DotToken { get; }
+        public abstract int QuestionToken { get; }
+
+        public abstract int IfKeyword { get; }
+
+        public abstract int LogicalAndExpression { get; }
+        public abstract int LogicalOrExpression { get; }
     }
 }
