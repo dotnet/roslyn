@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ImmutableArray<BoundExpression> exceptionName = ArrayBuilder<BoundExpression>.GetInstance(1, factory.StringLiteral(parameter.Name)).ToImmutableAndFree();
-            BoundObjectCreationExpression ex = factory.New(factory.WellKnownMethod(WellKnownMember.System_ArgumentNullException__ctor), exceptionName);
+            BoundObjectCreationExpression ex = factory.New(factory.WellKnownMethod(WellKnownMember.System_ArgumentNullException__ctorString), exceptionName);
             BoundThrowStatement throwArgNullStatement = factory.Throw(ex);
 
             return factory.HiddenSequencePoint(factory.If(paramIsNullCondition, throwArgNullStatement));
