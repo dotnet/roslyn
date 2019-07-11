@@ -906,6 +906,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns a new ArrayTypeSymbol representing an array type tied to the base types of the
         /// COR Library in this Compilation.
         /// </summary>
+        /// <remarks>This overload is for backwards compatibility. Do not remove.</remarks>
         public IArrayTypeSymbol CreateArrayTypeSymbol(ITypeSymbol elementType, int rank)
         {
             return CreateArrayTypeSymbol(elementType, rank, elementNullableAnnotation: default);
@@ -1000,6 +1001,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns a new INamedTypeSymbol with the given element types, names, and locations.
         /// </summary>
+        /// <remarks>This overload is for backwards compatibility. Do not remove.</remarks>
         public INamedTypeSymbol CreateTupleTypeSymbol(
             ImmutableArray<ITypeSymbol> elementTypes,
             ImmutableArray<string> elementNames,
@@ -1095,6 +1097,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns a new INamedTypeSymbol with the given underlying type and element names and locations.
         /// The underlying type needs to be tuple-compatible.
         /// </summary>
+        /// <remarks>This overload is for backwards compatibility. Do not remove.</remarks>
         public INamedTypeSymbol CreateTupleTypeSymbol(
             INamedTypeSymbol underlyingType,
             ImmutableArray<string> elementNames,
@@ -1183,6 +1186,7 @@ namespace Microsoft.CodeAnalysis
         /// supported in VB and can be created by passing in <see langword="false"/> in the
         /// appropriate locations in <paramref name="memberIsReadOnly"/>.
         /// </summary>
+        /// <remarks>This overload is for backwards compatibility. Do not remove.</remarks>
         public INamedTypeSymbol CreateAnonymousTypeSymbol(
             ImmutableArray<ITypeSymbol> memberTypes,
             ImmutableArray<string> memberNames,
