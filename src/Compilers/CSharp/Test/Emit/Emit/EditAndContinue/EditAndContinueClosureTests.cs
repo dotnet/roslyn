@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -201,6 +202,7 @@ class C
 
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var reader0 = md0.MetadataReader;
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
@@ -222,6 +224,14 @@ class C
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+
+            var testData0 = new CompilationTestData();
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            var localFunction0 = testData0.GetMethodData("C.<F>g__x|0_0").Method;
+            Assert.True(localFunction0.IsStatic);
+
+            var localFunction1 = diff1.TestData.GetMethodData("C.<F>g__x|0_0").Method;
+            Assert.True(localFunction1.IsStatic);
         }
 
         [Fact]

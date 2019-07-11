@@ -6773,7 +6773,7 @@ class Program
         }
 
         [Fact]
-        public void LocalFunction_ChangeToStatic_Update()
+        public void LocalFunction_AddStatic()
         {
             var src1 = @"class Test { void M() { int local() { throw null; } } }";
             var src2 = @"class Test { void M() { static int local() { throw null; } } }";
@@ -6787,7 +6787,7 @@ class Program
         }
 
         [Fact]
-        public void LocalFunction_ChangeToNonStatic_Update()
+        public void LocalFunction_RemoveStatic()
         {
             var src1 = @"class Test { void M() { static int local() { throw null; } } }";
             var src2 = @"class Test { void M() { int local() { throw null; } } }";
@@ -6798,6 +6798,64 @@ class Program
                 "Update [void M() { static int local() { throw null; } }]@13 -> [void M() { int local() { throw null; } }]@13");
 
             edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunction_AddUnsafe()
+        {
+            var src1 = @"class Test { void M() { int local() { throw null; } } }";
+            var src2 = @"class Test { void M() { unsafe int local() { throw null; } } }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            edits.VerifyEdits(
+                "Update [void M() { int local() { throw null; } }]@13 -> [void M() { unsafe int local() { throw null; } }]@13");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunction_RemoveUnsafe()
+        {
+            var src1 = @"class Test { void M() { unsafe int local() { throw null; } } }";
+            var src2 = @"class Test { void M() { int local() { throw null; } } }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            edits.VerifyEdits(
+                "Update [void M() { unsafe int local() { throw null; } }]@13 -> [void M() { int local() { throw null; } }]@13");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37054")]
+        public void LocalFunction_AddAsync()
+        {
+            var src1 = @"class Test { void M() { int local() { throw null; } } }";
+            var src2 = @"class Test { void M() { async int local() { throw null; } } }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            edits.VerifyEdits(
+                "Update [void M() { int local() { throw null; } }]@13 -> [void M() { async int local() { throw null; } }]@13");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "async int local() ", FeaturesResources.method));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37054")]
+        public void LocalFunction_RemoveAsync()
+        {
+            var src1 = @"class Test { void M() { async int local() { throw null; } } }";
+            var src2 = @"class Test { void M() { int local() { throw null; } } }";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            edits.VerifyEdits(
+                "Update [void M() { async int local() { throw null; } }]@13 -> [void M() { int local() { throw null; } }]@13");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "int local() ", FeaturesResources.method));
         }
 
         #endregion
