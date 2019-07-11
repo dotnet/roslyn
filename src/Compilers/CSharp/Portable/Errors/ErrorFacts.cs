@@ -412,6 +412,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
                 case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
+                case ErrorCode.WRN_NullCheckedHasDefaultNull:
+                case ErrorCode.WRN_NullCheckingOnNullableValueType:
                     return 1;
                 default:
                     return 0;

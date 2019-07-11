@@ -7855,6 +7855,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Out parameter &apos;{0}&apos; cannot be null-checked..
+        /// </summary>
+        internal static string ERR_NullCheckingOnOutParameter {
+            get {
+                return ResourceManager.GetString("ERR_NullCheckingOnOutParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use of null is not valid in this context.
         /// </summary>
         internal static string ERR_NullNotValid {
@@ -15724,6 +15733,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_NullCheckedHasDefaultNull_Title {
             get {
                 return ResourceManager.GetString("WRN_NullCheckedHasDefaultNull_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullable value type &apos;{0}&apos; is null-checked and will throw if null..
+        /// </summary>
+        internal static string WRN_NullCheckingOnNullableValueType {
+            get {
+                return ResourceManager.GetString("WRN_NullCheckingOnNullableValueType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullable value type is null-checked and will throw if null..
+        /// </summary>
+        internal static string WRN_NullCheckingOnNullableValueType_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullCheckingOnNullableValueType_Title", resourceCulture);
             }
         }
         

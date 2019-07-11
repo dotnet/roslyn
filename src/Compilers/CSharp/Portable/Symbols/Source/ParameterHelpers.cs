@@ -245,6 +245,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.OutKeyword), SyntaxFacts.GetText(SyntaxKind.InKeyword));
                         }
+                        else if (parameter.ExclamationToken.Kind() != SyntaxKind.None)
+                        {
+                            // Add error that null checking doesn't make sense on an out parameter.
+                            diagnostics.Add(ErrorCode.ERR_NullCheckingOnOutParameter, parameter.ExclamationToken.GetLocation(), parameter);
+                        }
                         else
                         {
                             seenOut = true;

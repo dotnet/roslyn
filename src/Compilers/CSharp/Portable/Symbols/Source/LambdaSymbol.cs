@@ -358,7 +358,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var location = unboundLambda.ParameterLocation(p);
                 var locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create<Location>(location);
                 var parameter = new SourceSimpleParameterSymbol(this, type, p, refKind, name, locations);
-
+                if (parameter.IsNullChecked && parameter.Type.IsValueType)
+                {
+                    if (!parameter.Type.IsNullableTypeOrTypeParameter())
+                    {
+                        diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, parameter.Locations.FirstOrNone(), parameter);
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.WRN_NullCheckingOnNullableValueType, parameter.Locations.FirstOrNone(), parameter);
+                    }
+                }
                 builder.Add(parameter);
             }
 

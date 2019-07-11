@@ -302,6 +302,11 @@
         <target state="new">The 'notnull' constraint must come before any other constraints</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NullCheckingOnOutParameter">
+        <source>Out parameter '{0}' cannot be null-checked.</source>
+        <target state="new">Out parameter '{0}' cannot be null-checked.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'disable', or 'restore'</source>
         <target state="needs-review-translation">Esperado 'enable', 'safeonly', 'disable' ou 'restore'</target>
@@ -1435,6 +1440,16 @@
       <trans-unit id="WRN_NullCheckedHasDefaultNull_Title">
         <source>Parameter is null-checked but is null by default.</source>
         <target state="new">Parameter is null-checked but is null by default.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckingOnNullableValueType">
+        <source>Nullable value type '{0}' is null-checked and will throw if null.</source>
+        <target state="new">Nullable value type '{0}' is null-checked and will throw if null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckingOnNullableValueType_Title">
+        <source>Nullable value type is null-checked and will throw if null.</source>
+        <target state="new">Nullable value type is null-checked and will throw if null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT">

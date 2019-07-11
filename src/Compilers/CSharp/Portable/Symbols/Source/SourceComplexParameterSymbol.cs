@@ -223,6 +223,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // in which case the declaring compilation is the wrong one.
         protected ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics, Binder binder)
         {
+            if (this.IsNullChecked && this.Type.IsValueType)
+            {
+                if (!this.Type.IsNullableTypeOrTypeParameter())
+                {
+                    diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, this.Locations.FirstOrNone(), this);
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.WRN_NullCheckingOnNullableValueType, this.Locations.FirstOrNone(), this);
+                }
+            }
             var parameterSyntax = this.CSharpSyntaxNode;
             if (parameterSyntax == null)
             {
@@ -275,7 +286,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         valueBeforeConversion, diagnostics, isDefaultParameter: true);
                 }
             }
-
+            if (this.IsNullChecked && convertedExpression.ConstantValue?.IsNull == true)
+            {
+                diagnostics.Add(ErrorCode.WRN_NullCheckedHasDefaultNull, Locations.FirstOrNone(), this);
+            }
             if (parameterType.Type.IsReferenceType &&
                 parameterType.NullableAnnotation.IsNotAnnotated() &&
                 convertedExpression.ConstantValue?.IsNull == true &&
@@ -283,17 +297,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclaringCompilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
             {
                 diagnostics.Add(ErrorCode.WRN_NullAsNonNullable, parameterSyntax.Default.Value.Location);
-            }
-            if (this.IsNullChecked)
-            {
-                if (convertedExpression.ConstantValue?.IsNull == true)
-                {
-                    diagnostics.Add(ErrorCode.WRN_NullCheckedHasDefaultNull, this.Locations.FirstOrNone(), new object[] { this });
-                }
-                if (this.Type.IsValueType && !this.Type.IsNullableTypeOrTypeParameter())
-                {
-                    diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, this.Locations.FirstOrNone(), new object[] { this });
-                }
             }
             // represent default(struct) by a Null constant:
             var value = convertedExpression.ConstantValue ?? ConstantValue.Null;

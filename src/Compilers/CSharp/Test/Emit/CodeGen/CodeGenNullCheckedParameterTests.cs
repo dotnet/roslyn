@@ -409,19 +409,11 @@ class C
     public static void Main() { }
 }";
             // Release
-            var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("C.M(int?)", @"
-{
-    // Code size       21 (0x15)
-    .maxstack  1
-    IL_0000:  ldarga.s   V_0
-    IL_0002:  call       ""bool int?.HasValue.get""
-    IL_0007:  brtrue.s   IL_0014
-    IL_0009:  ldstr      ""i""
-    IL_000e:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_0013:  throw
-    IL_0014:  ret
-}");
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                    // (4,24): error CS8721: Nullable value type 'int?' is null-checked and will throw if null.
+                    //     static void M(int? i!) { }
+                    Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "i").WithArguments("int?").WithLocation(4, 24));
         }
 
         [Fact]
@@ -1579,10 +1571,9 @@ class C
 }");
         }
 
-        [Fact(Skip = "PROTOTYPE")]
+        [Fact]
         public void TestNullCheckedOutString()
         {
-            // PROTOTYPE : Should be error or warning.
             var source = @"
 class C
 {
@@ -1592,7 +1583,11 @@ class C
         x = ""hello world"";
     }
 }";
-            CompileAndVerify(source).VerifyIL("C.M(out string)", @"");
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                    // (5,31): error CS8720: Out parameter 'out string x!' cannot be null-checked.
+                    //     public void M(out string x!)
+                    Diagnostic(ErrorCode.ERR_NullCheckingOnOutParameter, "!").WithArguments("out string x!").WithLocation(5, 31));
         }
 
         [Fact]

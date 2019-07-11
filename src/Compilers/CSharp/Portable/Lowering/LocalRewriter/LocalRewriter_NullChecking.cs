@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -26,15 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (param.IsNullChecked)
                 {
-                    if (param.Type.IsValueType && !param.Type.IsNullableTypeOrTypeParameter())
-                    {
-                        factory.Diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, param.Locations.FirstOrNone(), new object[] { param });
-                        continue;
-                    }
-                    if (param.ExplicitDefaultConstantValue?.IsNull == true)
-                    {
-                        factory.Diagnostics.Add(ErrorCode.WRN_NullCheckedHasDefaultNull, param.Locations.FirstOrNone(), new object[] { param });
-                    }
+                    Debug.Assert(!param.Type.IsValueType || param.Type.IsNullableTypeOrTypeParameter());
                     statementList ??= ArrayBuilder<BoundStatement>.GetInstance();
                     var constructedIf = ConstructIfStatementForParameter(param, factory);
                     statementList.Add(constructedIf);
