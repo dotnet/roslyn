@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -246,53 +245,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return true;
-        }
-
-        private ref struct PooledArrayBuilder<T>
-        {
-            public readonly ArrayBuilder<T> Builder;
-
-            private PooledArrayBuilder(ArrayBuilder<T> builder)
-                => Builder = builder;
-
-            public int Count => Builder.Count;
-            public T this[int index] => Builder[index];
-
-            public void AddIfNotNull(T value)
-            {
-                if (value != null)
-                {
-                    Builder.Add(value);
-                }
-            }
-
-            public void Dispose() => Builder.Free();
-
-            public ImmutableArray<T> ToImmutable() => Builder.ToImmutable();
-
-            public ArrayBuilder<T>.Enumerator GetEnumerator() => Builder.GetEnumerator();
-
-            public static PooledArrayBuilder<T> GetInstance()
-                => new PooledArrayBuilder<T>(ArrayBuilder<T>.GetInstance());
-
-            public static PooledArrayBuilder<T> GetInstance(int capacity)
-                => new PooledArrayBuilder<T>(ArrayBuilder<T>.GetInstance(capacity));
-
-            public void AddValuesIfNotNull(IEnumerable<T> values)
-            {
-                foreach (var value in values)
-                {
-                    AddIfNotNull(value);
-                }
-            }
-
-            public void AddValuesIfNotNull(ImmutableArray<T> values)
-            {
-                foreach (var value in values)
-                {
-                    AddIfNotNull(value);
-                }
-            }
         }
     }
 }
