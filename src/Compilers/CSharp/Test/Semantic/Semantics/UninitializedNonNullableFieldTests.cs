@@ -9,6 +9,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public class UninitializedNonNullableFieldTests : CSharpTestBase
     {
         [Fact]
+        public void UninitializedEvents()
+        {
+            var src = @"
+using System;
+class C
+{
+    public event Action<object?> E1;
+    public event Action<object?> E2 { add { } remove { } }
+#pragma warning disable 0414
+    public event Action<object?> E3 = null!;
+    public event Action<object?>? E4 = null;
+#pragma warning restore 0414
+#pragma warning disable 0626
+    public extern event Action<object?> E5;
+#pragma warning restore 0626
+
+    internal C()
+    {
+    }
+
+    internal C(Action<object?> e)
+    {
+        E1 = e;
+        E2 += e;
+    }
+
+    internal C(object o)
+    {
+        E1 += p => {};
+        E2 += p => {};
+    }
+}";
+            var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                    // (15,14): warning CS8618: Non-nullable event 'E1' is uninitialized.
+                    //     internal C()
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("event", "E1").WithLocation(15, 14));
+        }
+
+        [Fact]
         public void NoNonNullWarnings_CSharp7()
         {
             var source =
