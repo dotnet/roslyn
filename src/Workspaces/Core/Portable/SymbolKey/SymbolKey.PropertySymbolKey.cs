@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var metadataName = reader.ReadString();
-                var containingSymbolResolution = reader.ReadSymbolKey();
+                var containingTypeResolution = reader.ReadSymbolKey();
                 var isIndexer = reader.ReadBoolean();
 
-                using var refKinds = reader.ReadRefKindArray();;
+                using var refKinds = reader.ReadRefKindArray(); ;
                 using var parameterTypes = reader.ReadSymbolArray<ITypeSymbol>();
 
                 if (refKinds.Count != parameterTypes.Count)
@@ -29,25 +29,17 @@ namespace Microsoft.CodeAnalysis
                     return default;
                 }
 
+                using var properties = GetMembersOfNamedType<IPropertySymbol>(containingTypeResolution, metadataNameOpt: null);
                 using var result = PooledArrayBuilder<IPropertySymbol>.GetInstance();
-                foreach (var containingSymbol in containingSymbolResolution)
+                foreach (var property in properties)
                 {
-                    if (containingSymbol is INamedTypeSymbol containingNamedType)
+                    if (property.Parameters.Length == refKinds.Count &&
+                        property.MetadataName == metadataName &&
+                        property.IsIndexer == isIndexer &&
+                        ParameterRefKindsMatch(property.OriginalDefinition.Parameters, refKinds) &&
+                        reader.ParameterTypesMatch(property.OriginalDefinition.Parameters, parameterTypes))
                     {
-                        foreach (var member in containingNamedType.GetMembers())
-                        {
-                            if (member is IPropertySymbol property)
-                            {
-                                if (property.Parameters.Length == refKinds.Count &&
-                                    property.MetadataName == metadataName &&
-                                    property.IsIndexer == isIndexer &&
-                                    ParameterRefKindsMatch(property.OriginalDefinition.Parameters, refKinds) &&
-                                    reader.ParameterTypesMatch(property.OriginalDefinition.Parameters, parameterTypes))
-                                {
-                                    result.AddIfNotNull(property);
-                                }
-                            }
-                        }
+                        result.AddIfNotNull(property);
                     }
                 }
 
