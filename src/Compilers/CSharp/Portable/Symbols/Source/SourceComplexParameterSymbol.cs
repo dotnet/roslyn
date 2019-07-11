@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             if (this.IsNullChecked && convertedExpression.ConstantValue?.IsNull == true)
             {
-                diagnostics.Add(ErrorCode.WRN_NullCheckedHasDefaultNull, Locations.FirstOrNone(), this);
+                diagnostics.Add(ErrorCode.WRN_NullCheckedHasDefaultNull, parameterSyntax.Default.Value.Location, this);
             }
             if (parameterType.Type.IsReferenceType &&
                 parameterType.NullableAnnotation.IsNotAnnotated() &&

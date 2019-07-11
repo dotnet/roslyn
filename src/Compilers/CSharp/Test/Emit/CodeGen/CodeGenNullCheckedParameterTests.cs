@@ -100,9 +100,9 @@ class C
 
             // Release
             CreateCompilation(source).VerifyEmitDiagnostics(
-                    // (5,19): warning CS8719: Parameter 'string' is null-checked but is null by default.
+                    // (5,27): warning CS8719: Parameter 'string' is null-checked but is null by default.
                     //     void M(string name! = null) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("string").WithLocation(5, 19));
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "null").WithArguments("string").WithLocation(5, 27));
         }
 
         [Fact]
