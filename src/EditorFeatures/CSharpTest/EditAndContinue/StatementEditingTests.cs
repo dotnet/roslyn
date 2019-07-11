@@ -8271,6 +8271,9 @@ class C
 
         #region Await
 
+        /// <summary>
+        /// Tests logic provided in ReportStateMachineSuspensionPointRudeEdits
+        /// </summary>
         [Fact]
         public void Await_Update_OK()
         {
@@ -8328,6 +8331,9 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
+        /// <summary>
+        /// Tests logic provided in ReportStateMachineSuspensionPointRudeEdits
+        /// </summary>
         [Fact]
         public void Await_Update_Errors()
         {
@@ -8344,10 +8350,6 @@ class C
         var a = F(1, await F(1)), b = F(1, await G(1));
         b = F(1, await F(1));
         b += await F(1);
-        var r = (x, y) switch {
-            (Task<object> obj, 3) => await obj,
-            _ => 0
-        };
     }
 }
 ";
@@ -8364,10 +8366,6 @@ class C
         var a = F(1, await F(2)), b = F(1, await G(2));
         b = F(1, await F(2));
         b += await F(2);
-        var r = (x, y) switch {
-            (Task<int> t, 3) => await t,
-            _ => 0
-        };
     }
 }
 ";
@@ -8383,8 +8381,7 @@ class C
                 Diagnostic(RudeEditKind.AwaitStatementUpdate, "var a = F(1, await F(2)), b = F(1, await G(2));"),
                 Diagnostic(RudeEditKind.AwaitStatementUpdate, "var a = F(1, await F(2)), b = F(1, await G(2));"),
                 Diagnostic(RudeEditKind.AwaitStatementUpdate, "b = F(1, await F(2));"),
-                Diagnostic(RudeEditKind.AwaitStatementUpdate, "b += await F(2);"),
-                Diagnostic(RudeEditKind.AwaitStatementUpdate, "var r = (x, y) switch {\r\n            (Task<int> t, 3) => await t,\r\n            _ => 0\r\n        };"));
+                Diagnostic(RudeEditKind.AwaitStatementUpdate, "b += await F(2);"));
         }
 
         [Fact]
@@ -8913,48 +8910,75 @@ if (!(c is int)) return;
         public void VarPattern_Update()
         {
             var src1 = @"
-if (!(o is (var x, var y))) return;
-if (!(o4 is (string a, var (b, c)))) return;
-if (!(o2 is var (e, f, g))) return;
-if (!(o3 is var (k, l, m))) return;
+if (o is (var x, var y)) return;
+if (o4 is (string a, var (b, c))) return;
+if (o2 is var (e, f, g)) return;
+if (o3 is var (k, l, m)) return;
 ";
 
             var src2 = @"
-if (!(o is (int x, int y1))) return;
-if (!(o1 is (var a, (var b, string c1)))) return;
-if (!(o7 is var (g, e, f))) return;
-if (!(o3 is (string k, int l2, int m))) return;
+if (o is (int x, int y1)) return;
+if (o1 is (var a, (var b, string c1))) return;
+if (o7 is var (g, e, f)) return;
+if (o3 is (string k, int l2, int m)) return;
 ";
 
             var edits = GetMethodEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
 
             edits.VerifyEdits(
-                "Update [if (!(o is (var x, var y))) return;]@4 -> [if (!(o is (int x, int y1))) return;]@4",
-                "Update [if (!(o4 is (string a, var (b, c)))) return;]@41 -> [if (!(o1 is (var a, (var b, string c1)))) return;]@42",
-                "Update [if (!(o2 is var (e, f, g))) return;]@87 -> [if (!(o7 is var (g, e, f))) return;]@93",
-                "Reorder [g]@110 -> @110",
-                "Update [if (!(o3 is var (k, l, m))) return;]@124 -> [if (!(o3 is (string k, int l2, int m))) return;]@130",
-                "Update [y]@27 -> [y1]@27",
-                "Update [c]@72 -> [c1]@77",
-                "Update [l]@144 -> [l2]@157");
+                "Update [if (o is (var x, var y)) return;]@4 -> [if (o is (int x, int y1)) return;]@4",
+                "Update [if (o4 is (string a, var (b, c))) return;]@38 -> [if (o1 is (var a, (var b, string c1))) return;]@39",
+                "Update [if (o2 is var (e, f, g)) return;]@81 -> [if (o7 is var (g, e, f)) return;]@87",
+                "Reorder [g]@102 -> @102",
+                "Update [if (o3 is var (k, l, m)) return;]@115 -> [if (o3 is (string k, int l2, int m)) return;]@121",
+                "Update [y]@25 -> [y1]@25",
+                "Update [c]@67 -> [c1]@72",
+                "Update [l]@133 -> [l2]@146");
         }
 
         [Fact]
-        public void PositionalPattern_Update()
+        public void PositionalPattern_Update1()
         {
             var src1 = @"var r = (x, y, z) switch {
-(1, 2, 3) => 0,
-(var a, 3, 4) => a,
 (0, var b, int c) when c > 1 => 2,
+_ => 4
+};
+";
+
+            var src2 = @"var r = ((x, y, z)) switch {
+(_, int b1, double c1) when c1 > 2 => c1,
+_ => 4
+};
+";
+
+            var edits = GetMethodEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            edits.VerifyEdits(
+                @"Update [r = (x, y, z) switch {
+(0, var b, int c) when c > 1 => 2,
+_ => 4
+}]@6 -> [r = ((x, y, z)) switch {
+(_, int b1, double c1) when c1 > 2 => c1,
+_ => 4
+}]@6",
+                "Reorder [c]@45 -> @40",
+                "Update [c]@45 -> [b1]@40",
+                "Update [b]@38 -> [c1]@51",
+                "Update [when c > 1]@48 -> [when c1 > 2]@55");
+        }
+
+        [Fact]
+        public void PositionalPattern_Update2()
+        {
+            var src1 = @"var r = (x, y, z) switch {
+(var a, 3, 4) => a,
 (1, 1, Point { X: 0 } p) => 3,
 _ => 4
 };
 ";
 
             var src2 = @"var r = ((x, y, z)) switch {
-(1, 2, 3) => 0,
 (var a1, 3, 4) => a1 * 2,
-(_, int b1, double c1) when c1 > 2 => c1,
 (1, 1, Point { Y: 0 } p1) => 3,
 _ => 4
 };
@@ -8964,24 +8988,16 @@ _ => 4
 
             edits.VerifyEdits(
                 @"Update [r = (x, y, z) switch {
-(1, 2, 3) => 0,
 (var a, 3, 4) => a,
-(0, var b, int c) when c > 1 => 2,
 (1, 1, Point { X: 0 } p) => 3,
 _ => 4
 }]@6 -> [r = ((x, y, z)) switch {
-(1, 2, 3) => 0,
 (var a1, 3, 4) => a1 * 2,
-(_, int b1, double c1) when c1 > 2 => c1,
 (1, 1, Point { Y: 0 } p1) => 3,
 _ => 4
 }]@6",
-                "Reorder [c]@83 -> @84",
-                "Update [a]@52 -> [a1]@54",
-                "Update [c]@83 -> [b1]@84",
-                "Update [b]@76 -> [c1]@95",
-                "Update [when c > 1]@86 -> [when c1 > 2]@99",
-                "Update [p]@126 -> [p1]@141");
+                "Update [a]@35 -> [a1]@37",
+                "Update [p]@73 -> [p1]@81");
         }
 
         [Fact]
@@ -9049,59 +9065,6 @@ if (o is string { Length: 7 } s7) return 5;
                 "Update [return 1;]@36 -> [return 4;]@39",
                 "Update [s]@124 -> [s7]@120",
                 "Update [return 3;]@127 -> [return 5;]@124");
-        }
-
-        [Fact]
-        public void RecursivePatterns_Update()
-        {
-            var src1 = @"var r = await GetObj() switch
-{
-    string s when s.Length > 0 => (s, obj1) switch
-    {
-        (""a"", int i) => i,
-        _ => 0
-    },
-    int i => i * i,
-    _ => -1
-};
-";
-
-            var src2 = @"var r = await GetObj() switch
-{
-    string s when s.Length > 0 => (s, obj1) switch
-    {
-        (""b"", decimal i1) => i1,
-        _ => 0
-    },
-    double i => i * i,
-    _ => -1
-};
-";
-
-            var edits = GetMethodEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
-
-            edits.VerifyEdits(
-                @"Update [r = await GetObj() switch
-{
-    string s when s.Length > 0 => (s, obj1) switch
-    {
-        (""a"", int i) => i,
-        _ => 0
-    },
-    int i => i * i,
-    _ => -1
-}]@6 -> [r = await GetObj() switch
-{
-    string s when s.Length > 0 => (s, obj1) switch
-    {
-        (""b"", decimal i1) => i1,
-        _ => 0
-    },
-    double i => i * i,
-    _ => -1
-}]@6",
-                "Reorder [i]@155 -> @117",
-                "Update [i]@155 -> [i1]@117");
         }
 
         [Fact]
