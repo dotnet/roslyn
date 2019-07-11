@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote
            NavigateToItemKind.Structure);
 
         [JsonRpcMethod(MSLSPMethods.WorkspaceBeginSymbolName)]
-        public int WorkspaceBeginSymbol(string query)
+        public int WorkspaceBeginSymbol(string query, CancellationToken cancellationToken)
         {
             int searchId = searchIds++;
             Task.Run(async () =>

@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         [JsonRpcMethod(Methods.InitializeName)]
-        public object Initialize(int? processId, string rootPath, Uri rootUri, ClientCapabilities capabilities, TraceSetting trace)
+        public object Initialize(int? processId, string rootPath, Uri rootUri, ClientCapabilities capabilities, TraceSetting trace, CancellationToken cancellationToken)
         {
             return new InitializeResult()
             {
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         [JsonRpcMethod(Methods.ShutdownName)]
-        public void Shutdown()
+        public void Shutdown(CancellationToken cancellationToken)
         {
         }
 
