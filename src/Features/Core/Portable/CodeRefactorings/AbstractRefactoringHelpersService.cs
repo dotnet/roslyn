@@ -445,6 +445,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 yield return node.GetAncestorOrThis<TMethodDeclaration>();
             }
 
+            // Header: `static C([Test]int a = 42)` {}
             if (syntaxFacts.IsInLocalFunctionHeader(node, syntaxFacts))
             {
                 yield return node.GetAncestorOrThis<TLocalFunctionStatementSyntax>();
