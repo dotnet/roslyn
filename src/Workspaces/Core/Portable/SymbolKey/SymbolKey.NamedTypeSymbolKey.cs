@@ -1,8 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -19,11 +18,13 @@ namespace Microsoft.CodeAnalysis
 
                 if (!symbol.Equals(symbol.ConstructedFrom) && !symbol.IsUnboundGenericType)
                 {
+                    visitor.WriteBoolean(/*instantiate*/true);
                     visitor.WriteSymbolKeyArray(symbol.TypeArguments);
                 }
                 else
                 {
-                    visitor.WriteSymbolKeyArray(default(ImmutableArray<ITypeSymbol>));
+                    visitor.WriteBoolean(/*instantiate*/false);
+                    visitor.WriteSymbolKeyArray(ImmutableArray<ITypeSymbol>.Empty);
                 }
             }
 
@@ -33,25 +34,49 @@ namespace Microsoft.CodeAnalysis
                 var containingSymbolResolution = reader.ReadSymbolKey();
                 var arity = reader.ReadInteger();
                 var isUnboundGenericType = reader.ReadBoolean();
-                var typeArgumentsOpt = reader.ReadSymbolKeyArray();
+                var instantiate = reader.ReadBoolean();
 
-                var types = GetAllSymbols<INamespaceOrTypeSymbol>(containingSymbolResolution).SelectMany(
-                    s => Resolve(s, metadataName, arity, isUnboundGenericType, typeArgumentsOpt));
-                return CreateSymbolInfo(types);
+                using var typeArguments = PooledArrayBuilder<ITypeSymbol>.GetInstance();
+                reader.FillSymbolArray(typeArguments);
+
+                if (instantiate && arity != typeArguments.Count)
+                {
+                    return default;
+                }
+
+                var typeArgumentArray = typeArguments.Count == 0
+                    ? Array.Empty<ITypeSymbol>()
+                    : typeArguments.Builder.ToArray();
+                using var result = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
+                foreach (var resolution in containingSymbolResolution)
+                {
+                    if (resolution is INamespaceOrTypeSymbol nsOrType)
+                    {
+                        Resolve(
+                            result, nsOrType, metadataName, arity,
+                            isUnboundGenericType, instantiate, typeArgumentArray);
+                    }
+                }
+
+                return CreateSymbolInfo(result);
             }
-            private static IEnumerable<INamedTypeSymbol> Resolve(
+
+            private static void Resolve(
+                PooledArrayBuilder<INamedTypeSymbol> result,
                 INamespaceOrTypeSymbol container,
                 string metadataName,
                 int arity,
                 bool isUnboundGenericType,
-                ImmutableArray<SymbolKeyResolution> typeArguments)
+                bool instantiate,
+                ITypeSymbol[] typeArguments)
             {
-                var types = container.GetTypeMembers(GetName(metadataName), arity);
-                var result = InstantiateTypes(types, arity, typeArguments);
+                foreach (var type in container.GetTypeMembers(GetName(metadataName), arity))
+                {
+                    var currentType = instantiate ? type.Construct(typeArguments) : type;
+                    currentType = isUnboundGenericType ? currentType.ConstructUnboundGenericType() : currentType;
 
-                return isUnboundGenericType
-                    ? result.Select(t => t.ConstructUnboundGenericType())
-                    : result;
+                    result.AddIfNotNull(currentType);
+                }
             }
         }
     }

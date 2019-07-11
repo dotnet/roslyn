@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis
@@ -15,24 +17,34 @@ namespace Microsoft.CodeAnalysis
     /// If no symbol can be found <see cref="Symbol"/> will be <c>null</c> and <see cref="CandidateSymbols"/>
     /// will be empty.
     /// </summary>
-    internal struct SymbolKeyResolution
+    internal partial struct SymbolKeyResolution
     {
-        internal SymbolKeyResolution(ISymbol symbol) : this()
+        private readonly ImmutableArray<ISymbol> _candidateSymbols;
+
+        internal SymbolKeyResolution(ISymbol symbol)
         {
             Symbol = symbol;
-            CandidateSymbols = ImmutableArray<ISymbol>.Empty;
+            _candidateSymbols = default;
             CandidateReason = CandidateReason.None;
         }
 
         internal SymbolKeyResolution(ImmutableArray<ISymbol> candidateSymbols, CandidateReason candidateReason)
         {
             Symbol = null;
-            CandidateSymbols = candidateSymbols.NullToEmpty();
+            _candidateSymbols = candidateSymbols;
             CandidateReason = candidateReason;
+            Debug.Assert(CandidateSymbols.All(s => s != null));
         }
 
+        internal int SymbolCount => Symbol != null ? 1 : CandidateSymbols.Length;
+
         public ISymbol Symbol { get; }
-        public ImmutableArray<ISymbol> CandidateSymbols { get; }
         public CandidateReason CandidateReason { get; }
+        public ImmutableArray<ISymbol> CandidateSymbols => _candidateSymbols.NullToEmpty();
+
+        public Enumerator GetEnumerator()
+        {
+            return new Enumerator(this);
+        }
     }
 }

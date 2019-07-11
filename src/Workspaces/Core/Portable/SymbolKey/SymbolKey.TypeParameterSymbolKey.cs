@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -20,22 +21,18 @@ namespace Microsoft.CodeAnalysis
                 var metadataName = reader.ReadString();
                 var containingSymbolResolution = reader.ReadSymbolKey();
 
-                var result = containingSymbolResolution.GetAllSymbols()
-                    .SelectMany(s =>
+                using var result = PooledArrayBuilder<ITypeParameterSymbol>.GetInstance();
+                foreach (var containingSymbol in containingSymbolResolution)
+                {
+                    foreach (var typeParam in containingSymbol.GetTypeParameters())
                     {
-                        if (s is INamedTypeSymbol namedType)
+                        if (typeParam.MetadataName == metadataName)
                         {
-                            return namedType.TypeParameters.Where(p => p.MetadataName == metadataName);
+                            result.AddIfNotNull(typeParam);
                         }
-                        else if (s is IMethodSymbol method)
-                        {
-                            return method.TypeParameters.Where(p => p.MetadataName == metadataName);
-                        }
-                        else
-                        {
-                            return SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
-                        }
-                    });
+                    }
+                }
+
                 return CreateSymbolInfo(result);
             }
         }

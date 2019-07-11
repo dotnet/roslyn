@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -54,16 +53,20 @@ namespace Microsoft.CodeAnalysis
                 var isError = reader.ReadBoolean();
                 if (isError)
                 {
-                    var elementTypes = reader.ReadSymbolKeyArray().SelectAsArray(r => r.GetAnySymbol() as ITypeSymbol);
-                    var elementNames = reader.ReadStringArray();
+                    using var elementTypes = PooledArrayBuilder<ITypeSymbol>.GetInstance();
+                    using var elementNames = PooledArrayBuilder<string>.GetInstance();
+
+                    reader.FillSymbolArray(elementTypes);
+                    reader.FillStringArray(elementNames);
+
                     var elementLocations = ReadElementLocations(reader);
 
-                    if (!elementTypes.Any(t => t == null))
+                    if (elementTypes.Count == elementNames.Count)
                     {
                         try
                         {
                             var result = reader.Compilation.CreateTupleTypeSymbol(
-                                elementTypes, elementNames, elementLocations);
+                                elementTypes.ToImmutable(), elementNames.ToImmutable(), elementLocations);
                             return new SymbolKeyResolution(result);
                         }
                         catch (ArgumentException)
@@ -73,14 +76,26 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
+                    using var elementNamesBuilder = PooledArrayBuilder<string>.GetInstance();
+
                     var underlyingTypeResolution = reader.ReadSymbolKey();
-                    var elementNames = reader.ReadStringArray();
+                    reader.FillStringArray(elementNamesBuilder);
                     var elementLocations = ReadElementLocations(reader);
 
                     try
                     {
-                        var result = GetAllSymbols<INamedTypeSymbol>(underlyingTypeResolution).Select(
-                            t => reader.Compilation.CreateTupleTypeSymbol(t, elementNames, elementLocations));
+                        using var result = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
+
+                        var elementNames = elementNamesBuilder.ToImmutable();
+                        foreach (var symbol in underlyingTypeResolution)
+                        {
+                            if (symbol is INamedTypeSymbol namedType)
+                            {
+                                result.AddIfNotNull(reader.Compilation.CreateTupleTypeSymbol(
+                                    namedType, elementNames, elementLocations));
+                            }
+                        }
+
                         return CreateSymbolInfo(result);
                     }
                     catch (ArgumentException)
@@ -93,15 +108,17 @@ namespace Microsoft.CodeAnalysis
 
             private static ImmutableArray<Location> ReadElementLocations(SymbolKeyReader reader)
             {
+                using var elementLocations = PooledArrayBuilder<Location>.GetInstance();
+
                 // Compiler API requires that all the locations are non-null, or that there is a default
                 // immutable array passed in.
-                var elementLocations = reader.ReadLocationArray();
-                if (elementLocations.All(loc => loc == null))
+                reader.FillLocationArray(elementLocations);
+                if (elementLocations.Builder.All(loc => loc == null))
                 {
-                    elementLocations = default;
+                    return default;
                 }
 
-                return elementLocations;
+                return elementLocations.ToImmutable();
             }
         }
     }

@@ -22,26 +22,41 @@ namespace Microsoft.CodeAnalysis
                 var metadataName = reader.ReadString();
                 var containingSymbolResolution = reader.ReadSymbolKey();
                 var isIndexer = reader.ReadBoolean();
-                var refKinds = reader.ReadRefKindArray();
-                var originalParameterTypes = reader.ReadSymbolKeyArray().Select(
-                    r => GetFirstSymbol<ITypeSymbol>(r)).ToArray();
 
-                if (originalParameterTypes.Any(s_typeIsNull))
+                using var refKinds = PooledArrayBuilder<RefKind>.GetInstance();
+                using var parameterTypes = PooledArrayBuilder<ITypeSymbol>.GetInstance();
+
+                reader.FillRefKindArray(refKinds);
+                reader.FillSymbolArray(parameterTypes);
+
+                if (refKinds.Count != parameterTypes.Count)
                 {
                     return default;
                 }
 
-                var properties = containingSymbolResolution.GetAllSymbols().OfType<INamedTypeSymbol>()
-                    .SelectMany(t => t.GetMembers())
-                    .OfType<IPropertySymbol>()
-                    .Where(p => p.Parameters.Length == refKinds.Length &&
-                                p.MetadataName == metadataName &&
-                                p.IsIndexer == isIndexer);
-                var matchingProperties = properties.Where(p =>
-                    ParameterRefKindsMatch(p.OriginalDefinition.Parameters, refKinds) &&
-                    reader.ParameterTypesMatch(p.OriginalDefinition.Parameters, originalParameterTypes));
+                using var result = PooledArrayBuilder<IPropertySymbol>.GetInstance();
+                foreach (var containingSymbol in containingSymbolResolution)
+                {
+                    if (containingSymbol is INamedTypeSymbol containingNamedType)
+                    {
+                        foreach (var member in containingNamedType.GetMembers())
+                        {
+                            if (member is IPropertySymbol property)
+                            {
+                                if (property.Parameters.Length == refKinds.Count &&
+                                    property.MetadataName == metadataName &&
+                                    property.IsIndexer == isIndexer &&
+                                    ParameterRefKindsMatch(property.OriginalDefinition.Parameters, refKinds) &&
+                                    reader.ParameterTypesMatch(property.OriginalDefinition.Parameters, parameterTypes))
+                                {
+                                    result.AddIfNotNull(property);
+                                }
+                            }
+                        }
+                    }
+                }
 
-                return CreateSymbolInfo(matchingProperties);
+                return CreateSymbolInfo(result);
             }
         }
     }

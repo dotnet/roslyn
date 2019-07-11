@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -24,12 +25,20 @@ namespace Microsoft.CodeAnalysis
                 var reducedFromResolution = reader.ReadSymbolKey();
                 var receiverTypeResolution = reader.ReadSymbolKey();
 
-                var q = from m in reducedFromResolution.GetAllSymbols().OfType<IMethodSymbol>()
-                        from t in receiverTypeResolution.GetAllSymbols().OfType<ITypeSymbol>()
-                        let r = m.ReduceExtensionMethod(t)
-                        select r;
+                using var result = PooledArrayBuilder<IMethodSymbol>.GetInstance();
+                foreach (var reducedFromSymbol in reducedFromResolution)
+                {
+                    foreach (var receiverSymbol in receiverTypeResolution)
+                    {
+                        if (reducedFromSymbol is IMethodSymbol reducedFrom &&
+                            receiverSymbol is ITypeSymbol receiverType)
+                        {
+                            result.AddIfNotNull(reducedFrom.ReduceExtensionMethod(receiverType));
+                        }
+                    }
+                }
 
-                return CreateSymbolInfo(q);
+                return CreateSymbolInfo(result);
             }
         }
     }
@@ -46,21 +55,23 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
+                using var typeArguments = PooledArrayBuilder<ITypeSymbol>.GetInstance();
+
                 var constructedFromResolution = reader.ReadSymbolKey();
-                var typeArgumentResolutions = reader.ReadSymbolKeyArray();
+                reader.FillSymbolArray(typeArguments);
 
-                Debug.Assert(!typeArgumentResolutions.IsDefault);
-                var typeArguments = typeArgumentResolutions.Select(
-                    r => GetFirstSymbol<ITypeSymbol>(r)).ToArray();
-
-                if (typeArguments.Any(s_typeIsNull))
+                var typeArgumentArray = typeArguments.Builder.ToArray();
+                using var result = PooledArrayBuilder<IMethodSymbol>.GetInstance();
+                foreach (var symbol in constructedFromResolution)
                 {
-                    return default;
+                    if (symbol is IMethodSymbol method)
+                    {
+                        if (method.TypeParameters.Length == typeArguments.Count)
+                        {
+                            result.AddIfNotNull(method.Construct(typeArgumentArray));
+                        }
+                    }
                 }
-
-                var result = constructedFromResolution.GetAllSymbols()
-                       .OfType<IMethodSymbol>()
-                       .Select(m => m.Construct(typeArguments));
 
                 return CreateSymbolInfo(result);
             }
@@ -105,11 +116,13 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
+                using var parameterRefKinds = PooledArrayBuilder<RefKind>.GetInstance();
+
                 var metadataName = reader.ReadString();
                 var containingSymbolResolution = reader.ReadSymbolKey();
                 var arity = reader.ReadInteger();
                 var isPartialMethodImplementationPart = reader.ReadBoolean();
-                var parameterRefKinds = reader.ReadRefKindArray();
+                reader.FillRefKindArray(parameterRefKinds);
 
                 // For each method that we look at, we'll have to resolve the parameter list and
                 // return type in the context of that method.  i.e. if we have Goo<T>(IList<T> list)
@@ -121,21 +134,23 @@ namespace Microsoft.CodeAnalysis
                 // point.
                 var beforeParametersPosition = reader.Position;
 
-                var result = new List<IMethodSymbol>();
+                using var result = PooledArrayBuilder<IMethodSymbol>.GetInstance();
 
-                var namedTypes = containingSymbolResolution.GetAllSymbols().OfType<INamedTypeSymbol>();
-                foreach (var namedType in namedTypes)
+                foreach (var symbol in containingSymbolResolution)
                 {
-                    var method = Resolve(reader, metadataName, arity, isPartialMethodImplementationPart,
-                        parameterRefKinds, beforeParametersPosition, namedType);
-
-                    // Note: after finding the first method that matches we stop.  That's necessary
-                    // as we cache results while searching.  We don't want to override these positive
-                    // matches with a negative ones if we were to continue searching.
-                    if (method != null)
+                    if (symbol is INamedTypeSymbol namedType)
                     {
-                        result.Add(method);
-                        break;
+                        var method = Resolve(reader, metadataName, arity, isPartialMethodImplementationPart,
+                            parameterRefKinds, beforeParametersPosition, namedType);
+
+                        // Note: after finding the first method that matches we stop.  That's necessary
+                        // as we cache results while searching.  We don't want to override these positive
+                        // matches with a negative ones if we were to continue searching.
+                        if (method != null)
+                        {
+                            result.AddIfNotNull(method);
+                            break;
+                        }
                     }
                 }
 
@@ -150,8 +165,10 @@ namespace Microsoft.CodeAnalysis
 
                     // read out the values.  We don't actually need to use them, but we have
                     // to effectively read past them in the string.
-                    _ = reader.ReadSymbolKeyArray();
-                    _ = GetFirstSymbol<ITypeSymbol>(reader.ReadSymbolKey());
+
+                    using var parameterTypes = PooledArrayBuilder<ITypeSymbol>.GetInstance();
+                    reader.FillSymbolArray(parameterTypes);
+                    _ = reader.ReadSymbolKey();
                     reader.PopMethod(methodOpt: null);
                 }
 
@@ -160,7 +177,7 @@ namespace Microsoft.CodeAnalysis
 
             private static IMethodSymbol Resolve(
                 SymbolKeyReader reader, string metadataName, int arity, bool isPartialMethodImplementationPart,
-                ImmutableArray<RefKind> parameterRefKinds, int beforeParametersPosition,
+                PooledArrayBuilder<RefKind> parameterRefKinds, int beforeParametersPosition,
                 INamedTypeSymbol namedType)
             {
                 foreach (var method in namedType.GetMembers().OfType<IMethodSymbol>())
@@ -179,7 +196,7 @@ namespace Microsoft.CodeAnalysis
 
             private static IMethodSymbol Resolve(
                 SymbolKeyReader reader, string metadataName, int arity, bool isPartialMethodImplementationPart,
-                ImmutableArray<RefKind> parameterRefKinds, int beforeParametersPosition,
+                PooledArrayBuilder<RefKind> parameterRefKinds, int beforeParametersPosition,
                 IMethodSymbol method)
             {
                 if (method.Arity == arity &&
@@ -213,30 +230,24 @@ namespace Microsoft.CodeAnalysis
             }
 
             private static IMethodSymbol Resolve(
-                SymbolKeyReader reader, bool isPartialMethodImplementationPart,
-                IMethodSymbol method)
+                SymbolKeyReader reader, bool isPartialMethodImplementationPart, IMethodSymbol method)
             {
-                var originalParameterTypeResolutions = reader.ReadSymbolKeyArray();
-                var returnType = GetFirstSymbol<ITypeSymbol>(reader.ReadSymbolKey());
+                using var originalParameterTypes = PooledArrayBuilder<ITypeSymbol>.GetInstance();
+                reader.FillSymbolArray(originalParameterTypes);
+                var returnType = (ITypeSymbol)reader.ReadSymbolKey().GetAnySymbol();
 
-                var originalParameterTypes = originalParameterTypeResolutions.Select(
-                    r => GetFirstSymbol<ITypeSymbol>(r)).ToArray();
-
-                if (!originalParameterTypes.Any(s_typeIsNull))
+                if (reader.ParameterTypesMatch(method.OriginalDefinition.Parameters, originalParameterTypes))
                 {
-                    if (reader.ParameterTypesMatch(method.OriginalDefinition.Parameters, originalParameterTypes))
+                    if (returnType == null ||
+                        reader.Comparer.Equals(returnType, method.ReturnType))
                     {
-                        if (returnType == null ||
-                            reader.Comparer.Equals(returnType, method.ReturnType))
+                        if (isPartialMethodImplementationPart)
                         {
-                            if (isPartialMethodImplementationPart)
-                            {
-                                method = method.PartialImplementationPart ?? method;
-                            }
-
-                            Debug.Assert(method != null);
-                            return method;
+                            method = method.PartialImplementationPart ?? method;
                         }
+
+                        Debug.Assert(method != null);
+                        return method;
                     }
                 }
 

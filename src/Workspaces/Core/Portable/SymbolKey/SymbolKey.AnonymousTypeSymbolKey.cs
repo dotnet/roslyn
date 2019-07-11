@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -29,18 +30,23 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                var propertyTypeSymbols = reader.ReadSymbolKeyArray();
-                var propertyTypes = propertyTypeSymbols.Select(r => GetFirstSymbol<ITypeSymbol>(r)).ToImmutableArray();
-                var propertyNames = reader.ReadStringArray();
-                var propertyIsReadOnly = reader.ReadBooleanArray();
-                var propertyLocations = reader.ReadLocationArray();
+                using var propertyTypes = PooledArrayBuilder<ITypeSymbol>.GetInstance();
+                using var propertyNames = PooledArrayBuilder<string>.GetInstance();
+                using var propertyIsReadOnly = PooledArrayBuilder<bool>.GetInstance();
+                using var propertyLocations = PooledArrayBuilder<Location>.GetInstance();
 
-                if (propertyTypes.Length == propertyNames.Length)
+                reader.FillSymbolArray(propertyTypes);
+                reader.FillStringArray(propertyNames);
+                reader.FillBooleanArray(propertyIsReadOnly);
+                reader.FillLocationArray(propertyLocations);
+
+                if (propertyTypes.Count == propertyNames.Count)
                 {
                     try
                     {
                         var anonymousType = reader.Compilation.CreateAnonymousTypeSymbol(
-                            propertyTypes, propertyNames, propertyIsReadOnly, propertyLocations);
+                            propertyTypes.ToImmutable(), propertyNames.ToImmutable(),
+                            propertyIsReadOnly.ToImmutable(), propertyLocations.ToImmutable());
                         return new SymbolKeyResolution(anonymousType);
                     }
                     catch (ArgumentException)

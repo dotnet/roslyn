@@ -173,46 +173,36 @@ namespace Microsoft.CodeAnalysis
                 Eat(DoubleQuoteChar);
             }
 
-            public ImmutableArray<TStringResult> ReadStringArray()
-            {
-                return ReadArray(_readString);
-            }
+            public void FillStringArray(PooledArrayBuilder<TStringResult> builder)
+                => FillArray(builder, _readString);
 
-            public ImmutableArray<bool> ReadBooleanArray()
-            {
-                return ReadArray(_readBoolean);
-            }
+            public void FillBooleanArray(PooledArrayBuilder<bool> builder)
+                => FillArray(builder, _readBoolean);
 
-            public ImmutableArray<RefKind> ReadRefKindArray()
-            {
-                return ReadArray(_readRefKind);
-            }
+            public void FillRefKindArray(PooledArrayBuilder<RefKind> builder)
+                => FillArray(builder, _readRefKind);
 
-            public ImmutableArray<T> ReadArray<T>(Func<T> readFunction)
+            /// <summary>
+            /// Returns false if this was an encoded 'null' (as opposed to an empty array).
+            /// </summary>
+            public void FillArray<T>(
+                PooledArrayBuilder<T> builder, Func<T> readFunction)
             {
                 EatSpace();
 
-                if ((SymbolKeyType)Data[Position] == SymbolKeyType.Null)
-                {
-                    Eat(SymbolKeyType.Null);
-                    return default;
-                }
+                Debug.Assert((SymbolKeyType)Data[Position] != SymbolKeyType.Null);
 
                 EatOpenParen();
                 Eat(SymbolKeyType.Array);
 
                 var length = ReadInteger();
-                var builder = ImmutableArray.CreateBuilder<T>(length);
-
                 for (var i = 0; i < length; i++)
                 {
                     CancellationToken.ThrowIfCancellationRequested();
-                    builder.Add(readFunction());
+                    builder.Builder.Add(readFunction());
                 }
 
                 EatCloseParen();
-
-                return builder.MoveToImmutable();
             }
         }
 
@@ -351,9 +341,9 @@ namespace Microsoft.CodeAnalysis
 
             internal bool ParameterTypesMatch(
                 ImmutableArray<IParameterSymbol> parameters,
-                ITypeSymbol[] originalParameterTypes)
+                PooledArrayBuilder<ITypeSymbol> originalParameterTypes)
             {
-                if (parameters.Length != originalParameterTypes.Length)
+                if (parameters.Length != originalParameterTypes.Count)
                 {
                     return false;
                 }
@@ -364,7 +354,7 @@ namespace Microsoft.CodeAnalysis
                 // compare method type parameters by ordinal.
                 var signatureComparer = Comparer.SignatureTypeEquivalenceComparer;
 
-                for (var i = 0; i < originalParameterTypes.Length; i++)
+                for (var i = 0; i < originalParameterTypes.Count; i++)
                 {
                     if (!signatureComparer.Equals(originalParameterTypes[i], parameters[i].Type))
                     {
@@ -456,8 +446,19 @@ namespace Microsoft.CodeAnalysis
                     _ => throw new NotImplementedException(),
                 };
 
-            public ImmutableArray<SymbolKeyResolution> ReadSymbolKeyArray()
-                => ReadArray(_readSymbolKey);
+            public void FillSymbolArray<TSymbol>(PooledArrayBuilder<TSymbol> builder) where TSymbol : ISymbol
+            {
+                using var resolutions = PooledArrayBuilder<SymbolKeyResolution>.GetInstance();
+                FillArray(resolutions, _readSymbolKey);
+
+                foreach (var resolution in resolutions)
+                {
+                    if (resolution.GetAnySymbol() is TSymbol castedSymbol)
+                    {
+                        builder.AddIfNotNull(castedSymbol);
+                    }
+                }
+            }
 
             #endregion
 
@@ -532,8 +533,8 @@ namespace Microsoft.CodeAnalysis
                 return Location.None;
             }
 
-            public ImmutableArray<Location> ReadLocationArray()
-                => ReadArray(_readLocation);
+            public void FillLocationArray(PooledArrayBuilder<Location> builder)
+                => FillArray(builder, _readLocation);
 
             #endregion
         }

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    visitor.WriteSymbolKeyArray(default(ImmutableArray<ITypeSymbol>));
+                    visitor.WriteSymbolKeyArray(ImmutableArray<ITypeSymbol>.Empty);
                 }
             }
 
@@ -31,42 +29,54 @@ namespace Microsoft.CodeAnalysis
                 var name = reader.ReadString();
                 var containingSymbolResolution = reader.ReadSymbolKey();
                 var arity = reader.ReadInteger();
-                var typeArgumentResolutions = reader.ReadSymbolKeyArray();
 
-                var errorTypes = ResolveErrorTypes(reader, containingSymbolResolution, name, arity);
+                using var typeArguments = PooledArrayBuilder<ITypeSymbol>.GetInstance();
+                using var errorTypes = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
 
-                if (typeArgumentResolutions.IsDefault)
-                {
-                    return CreateSymbolInfo(errorTypes);
-                }
+                reader.FillSymbolArray(typeArguments);
+                ResolveErrorTypes(errorTypes, reader, containingSymbolResolution, name, arity);
 
-                var typeArguments = typeArgumentResolutions.Select(
-                    r => GetFirstSymbol<ITypeSymbol>(r)).ToArray();
-                if (typeArguments.Any(s_typeIsNull))
+                if (typeArguments.Count != arity)
                 {
                     return default;
                 }
 
-                return CreateSymbolInfo(errorTypes.Select(t => t.Construct(typeArguments)));
+                if (arity == 0)
+                {
+                    return CreateSymbolInfo(errorTypes);
+                }
+
+                using var result = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
+                var typeArgumentsArray = typeArguments.Builder.ToArray();
+                foreach (var type in errorTypes)
+                {
+                    result.AddIfNotNull(type.Construct(typeArgumentsArray));
+                }
+
+                return CreateSymbolInfo(result);
             }
 
-            private static IEnumerable<INamedTypeSymbol> ResolveErrorTypes(
+            private static void ResolveErrorTypes(
+                PooledArrayBuilder<INamedTypeSymbol> errorTypes,
                 SymbolKeyReader reader,
-                SymbolKeyResolution containingSymbolResolution, string name, int arity)
+                SymbolKeyResolution containingSymbolResolution,
+                string name, int arity)
             {
                 if (containingSymbolResolution.GetAnySymbol() == null)
                 {
-                    yield return reader.Compilation.CreateErrorTypeSymbol(null, name, arity);
+                    errorTypes.AddIfNotNull(reader.Compilation.CreateErrorTypeSymbol(null, name, arity));
                 }
                 else
                 {
-                    foreach (var container in containingSymbolResolution.GetAllSymbols().OfType<INamespaceOrTypeSymbol>())
+                    foreach (var container in containingSymbolResolution)
                     {
-                        yield return reader.Compilation.CreateErrorTypeSymbol(container, name, arity);
+                        if (container is INamespaceOrTypeSymbol containerTypeOrNS)
+                        {
+                            errorTypes.AddIfNotNull(reader.Compilation.CreateErrorTypeSymbol(containerTypeOrNS, name, arity));
+                        }
                     }
                 }
             }
-
         }
     }
 }

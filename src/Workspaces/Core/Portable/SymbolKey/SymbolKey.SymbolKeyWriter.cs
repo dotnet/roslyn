@@ -297,11 +297,7 @@ namespace Microsoft.CodeAnalysis
                 where T : U
             {
                 WriteSpace();
-                if (array.IsDefault)
-                {
-                    WriteType(SymbolKeyType.Null);
-                    return;
-                }
+                Debug.Assert(!array.IsDefault);
 
                 StartKey();
                 WriteType(SymbolKeyType.Array);

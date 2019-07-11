@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -201,24 +202,48 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static IEnumerable<TType> GetAllSymbols<TType>(SymbolKeyResolution info)
-            => GetAllSymbols(info).OfType<TType>();
+        //private static IEnumerable<TType> GetAllSymbols<TType>(SymbolKeyResolution info)
+        //    => GetAllSymbols(info).OfType<TType>();
 
-        private static SymbolKeyResolution CreateSymbolInfo(IEnumerable<ISymbol> symbols)
+        private static SymbolKeyResolution CreateSymbolInfo<TSymbol>(PooledArrayBuilder<TSymbol> symbols)
+            where TSymbol : class, ISymbol
         {
-            return symbols == null
-                ? default
-                : CreateSymbolInfo(symbols.WhereNotNull().ToArray());
+            foreach (var symbol in symbols)
+            {
+                Debug.Assert(symbol != null);
+            }
+
+            if (symbols.Builder.Count == 0)
+            {
+                return default;
+            }
+            else if (symbols.Builder.Count == 1)
+            {
+                return new SymbolKeyResolution(symbols.Builder[0]);
+            }
+            else
+            {
+                return new SymbolKeyResolution(
+                    ImmutableArray<ISymbol>.CastUp(symbols.Builder.ToImmutable()),
+                    CandidateReason.Ambiguous);
+            }
         }
 
-        private static SymbolKeyResolution CreateSymbolInfo(ISymbol[] symbols)
-        {
-            return symbols.Length == 0
-                ? default
-                : symbols.Length == 1
-                    ? new SymbolKeyResolution(symbols[0])
-                    : new SymbolKeyResolution(ImmutableArray.Create<ISymbol>(symbols), CandidateReason.Ambiguous);
-        }
+        //private static SymbolKeyResolution CreateSymbolInfo(IEnumerable<ISymbol> symbols)
+        //{
+        //    return symbols == null
+        //        ? default
+        //        : CreateSymbolInfo(symbols.WhereNotNull().ToArray());
+        //}
+
+        //private static SymbolKeyResolution CreateSymbolInfo(ISymbol[] symbols)
+        //{
+        //    return symbols.Length == 0
+        //        ? default
+        //        : symbols.Length == 1
+        //            ? new SymbolKeyResolution(symbols[0])
+        //            : new SymbolKeyResolution(ImmutableArray.Create<ISymbol>(symbols), CandidateReason.Ambiguous);
+        //}
 
         private static bool Equals(Compilation compilation, string name1, string name2)
             => Equals(compilation.IsCaseSensitive, name1, name2);
@@ -234,41 +259,16 @@ namespace Microsoft.CodeAnalysis
                 : metadataName;
         }
 
-        private static IEnumerable<INamedTypeSymbol> InstantiateTypes(
-            ImmutableArray<INamedTypeSymbol> types,
-            int arity,
-            ImmutableArray<SymbolKeyResolution> typeArgumentKeys)
-        {
-            if (arity == 0 || typeArgumentKeys.IsDefault || typeArgumentKeys.IsEmpty)
-            {
-                return types;
-            }
-
-            // TODO(cyrusn): We're only accepting a type argument if it resolves unambiguously.
-            // However, we could consider the case where they resolve ambiguously and return
-            // different named type instances when that happens.
-            var typeArguments = typeArgumentKeys.Select(a => GetFirstSymbol<ITypeSymbol>(a)).ToArray();
-            return typeArguments.Any(s_typeIsNull)
-                ? SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>()
-                : types.Select(t => t.Construct(typeArguments));
-        }
-
-        private static TSymbol GetFirstSymbol<TSymbol>(SymbolKeyResolution resolution)
-            where TSymbol : ISymbol
-        {
-            return resolution.GetAllSymbols().OfType<TSymbol>().FirstOrDefault();
-        }
-
         private static bool ParameterRefKindsMatch(
             ImmutableArray<IParameterSymbol> parameters,
-            ImmutableArray<RefKind> refKinds)
+            PooledArrayBuilder<RefKind> refKinds)
         {
-            if (parameters.Length != refKinds.Length)
+            if (parameters.Length != refKinds.Count)
             {
                 return false;
             }
 
-            for (var i = 0; i < refKinds.Length; i++)
+            for (var i = 0; i < refKinds.Count; i++)
             {
                 // The ref-out distinction is not interesting for SymbolKey because you can't overload
                 // based on the difference.
@@ -280,6 +280,53 @@ namespace Microsoft.CodeAnalysis
             }
 
             return true;
+        }
+
+        private ref struct PooledArrayBuilder<T>
+        {
+            public readonly ArrayBuilder<T> Builder;
+
+            private PooledArrayBuilder(ArrayBuilder<T> builder)
+                => Builder = builder;
+
+            public int Count => Builder.Count;
+            public T this[int index] => Builder[index];
+
+            public void AddIfNotNull(T value)
+            {
+                if (value != null)
+                {
+                    Builder.Add(value);
+                }
+            }
+
+            public void Dispose() => Builder.Free();
+
+            public ImmutableArray<T> ToImmutable() => Builder.ToImmutable();
+
+            public ArrayBuilder<T>.Enumerator GetEnumerator() => Builder.GetEnumerator();
+
+            public static PooledArrayBuilder<T> GetInstance()
+                => new PooledArrayBuilder<T>(ArrayBuilder<T>.GetInstance());
+
+            public static PooledArrayBuilder<T> GetInstance(int capacity)
+                => new PooledArrayBuilder<T>(ArrayBuilder<T>.GetInstance(capacity));
+
+            public void AddValuesIfNotNull(IEnumerable<T> values)
+            {
+                foreach (var value in values)
+                {
+                    AddIfNotNull(value);
+                }
+            }
+
+            public void AddValuesIfNotNull(ImmutableArray<T> values)
+            {
+                foreach (var value in values)
+                {
+                    AddIfNotNull(value);
+                }
+            }
         }
     }
 }
