@@ -11,12 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
-    internal abstract class AbstractRefactoringHelpersService<TPropertyDeclaration, TParameter, TMethodDeclaration, TLocalDeclaration, TLocalFunctionStatementSyntax> : IRefactoringHelpersService
-        where TPropertyDeclaration : SyntaxNode
-        where TParameter : SyntaxNode
-        where TMethodDeclaration : SyntaxNode
-        where TLocalDeclaration : SyntaxNode
-        where TLocalFunctionStatementSyntax : SyntaxNode
+    internal abstract class AbstractRefactoringHelpersService : IRefactoringHelpersService
     {
         public async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
             Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
@@ -399,33 +394,33 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         protected virtual IEnumerable<SyntaxNode> ExtractNodesIfInHeader(SyntaxToken token, ISyntaxFactsService syntaxFacts)
         {
             // Header: [Test] `public int a` { get; set; }
-            if (syntaxFacts.IsInPropertyDeclarationHeader(token))
+            if (syntaxFacts.IsInPropertyDeclarationHeader(token, out var propertyDeclaration))
             {
-                yield return token.GetAncestor<TPropertyDeclaration>();
+                yield return propertyDeclaration;
             }
 
             // Header: public C([Test]`int a = 42`) {}
-            if (syntaxFacts.IsInParameterHeader(token))
+            if (syntaxFacts.IsInParameterHeader(token, out var parameter))
             {
-                yield return token.GetAncestor<TParameter>();
+                yield return parameter;
             }
 
             // Header: `public I.C([Test]int a = 42)` {}
-            if (syntaxFacts.IsInMethodHeader(token))
+            if (syntaxFacts.IsInMethodHeader(token, out var method))
             {
-                yield return token.GetAncestor<TMethodDeclaration>();
+                yield return method;
             }
 
             // Header: `static C([Test]int a = 42)` {}
-            if (syntaxFacts.IsInLocalFunctionHeader(token))
+            if (syntaxFacts.IsInLocalFunctionHeader(token, out var localFunction))
             {
-                yield return token.GetAncestor<TLocalFunctionStatementSyntax>();
+                yield return localFunction;
             }
 
             // Header: `var a = `3,` b = `5,` c = `7 + 3``;
-            if (syntaxFacts.IsInLocalDelcalrationHeader(token))
+            if (syntaxFacts.IsInLocalDeclarationHeader(token, out var localDeclaration))
             {
-                yield return token.GetAncestor<TLocalDeclaration>();
+                yield return localDeclaration;
             }
         }
     }
