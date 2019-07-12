@@ -745,5 +745,41 @@ class C
                     //     void M<T>(T value!) where T : unmanaged { }
                     Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "value").WithArguments("T").WithLocation(4, 17));
         }
+
+        [Fact]
+        public void TestNullCheckedNullableValueTypeInLocalFunction()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        M((int?)5);
+        void M(int? x!) { }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (7,21): warning CS8721: Nullable value type 'int?' is null-checked and will throw if null.
+                    //         void M(int? x!) { }
+                    Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "x").WithArguments("int?").WithLocation(7, 21));
+        }
+
+        [Fact]
+        public void TestNullCheckedParameterWithDefaultNullValueInLocalFunction()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        M(""ok"");
+        void M(string x! = null) { }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (7,23): warning CS8719: Parameter 'string' is null-checked but is null by default.
+                    //         void M(string x! = null) { }
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "x").WithArguments("string").WithLocation(7, 23));
+        }
     }
 }
