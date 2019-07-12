@@ -8339,7 +8339,7 @@ class C
         <encLocalSlotMap>
           <slot kind=""0"" offset=""13"" />
           <slot kind=""35"" offset=""3"" />
-          <slot kind=""35"" offset=""3"" />
+          <slot kind=""35"" offset=""3"" ordinal=""1"" />
           <slot kind=""28"" offset=""33"" />
           <slot kind=""35"" offset=""33"" />
           <slot kind=""28"" offset=""33"" ordinal=""1"" />
@@ -8624,10 +8624,10 @@ expectedIL: @"{
         </using>
         <encLocalSlotMap>
           <slot kind=""35"" offset=""11"" />
-          <slot kind=""35"" offset=""11"" />
+          <slot kind=""35"" offset=""11"" ordinal=""1"" />
           <slot kind=""1"" offset=""11"" />
           <slot kind=""35"" offset=""378"" />
-          <slot kind=""35"" offset=""378"" />
+          <slot kind=""35"" offset=""378"" ordinal=""1"" />
           <slot kind=""1"" offset=""378"" />
           <slot kind=""35"" offset=""511"" />
           <slot kind=""1"" offset=""511"" />
@@ -9107,6 +9107,272 @@ class Program
                     // error CS2021: File name 'test\?.pdb' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
                     Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("test\\?.pdb").WithLocation(1, 1));
             }
+        }
+
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void PatternSwitchSequencePoints_02()
+        {
+            string source =
+@"public class C
+{
+    static int F(int i)
+    {
+        return N(out var x) switch 
+        {
+            0 => 0,
+            _ => x
+        };
+    }
+
+    static int N(out int x) => x = 1;
+}";
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CompileAndVerify(c).VerifyIL(qualifiedMethodName: "C.F", sequencePoints: "C.F", source: source,
+expectedIL:
+@"    {
+      // Code size       32 (0x20)
+      .maxstack  1
+      .locals init (int V_0, //x
+                    int V_1,
+                    int V_2,
+                    int V_3,
+                    int V_4)
+      // sequence point: {
+      IL_0000:  nop
+      // sequence point: return N(out ...         };
+      IL_0001:  ldloca.s   V_0
+      IL_0003:  call       ""int C.N(out int)""
+      IL_0008:  stloc.2
+      IL_0009:  ldloc.2
+      IL_000a:  brfalse.s  IL_000e
+      IL_000c:  br.s       IL_0012
+      IL_000e:  ldc.i4.0
+      IL_000f:  stloc.1
+      IL_0010:  br.s       IL_0016
+      IL_0012:  ldloc.0
+      IL_0013:  stloc.1
+      IL_0014:  br.s       IL_0016
+      IL_0016:  ldloc.1
+      IL_0017:  stloc.3
+      IL_0018:  ldloc.3
+      IL_0019:  stloc.s    V_4
+      IL_001b:  br.s       IL_001d
+      // sequence point: }
+      IL_001d:  ldloc.s    V_4
+      IL_001f:  ret
+    }
+");
+            c.VerifyPdb(
+@"    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method containingType=""C"" name=""F"" parameterNames=""i"">
+          <customDebugInfo>
+            <using>
+              <namespace usingCount=""0"" />
+            </using>
+            <encLocalSlotMap>
+              <slot kind=""0"" offset=""28"" />
+              <slot kind=""35"" offset=""18"" />
+              <slot kind=""35"" offset=""18"" ordinal=""1"" />
+              <slot kind=""28"" offset=""18"" />
+              <slot kind=""21"" offset=""0"" />
+            </encLocalSlotMap>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" document=""1"" />
+            <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""9"" endColumn=""11"" document=""1"" />
+            <entry offset=""0x1d"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+          </sequencePoints>
+          <scope startOffset=""0x0"" endOffset=""0x20"">
+            <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x20"" attributes=""0"" />
+          </scope>
+        </method>
+        <method containingType=""C"" name=""N"" parameterNames=""x"">
+          <customDebugInfo>
+            <forward declaringType=""C"" methodName=""F"" parameterNames=""i"" />
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""12"" startColumn=""32"" endLine=""12"" endColumn=""37"" document=""1"" />
+          </sequencePoints>
+        </method>
+      </methods>
+    </symbols>
+");
+        }
+
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void PatternSwitchSequencePoints_03()
+        {
+            string source =
+@"public class C
+{
+    static int F(int i)
+    {
+        return N(out var x) switch 
+        {
+            (0, 0) => 0,
+            _ => x
+        };
+    }
+
+    static (object, object) N(out int x)
+    {
+        x = 1;
+        return (2, 3);
+    }
+}";
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var cv = CompileAndVerify(c);
+//            cv.VerifyIL(qualifiedMethodName: "C.F", sequencePoints: "C.F", source: source,
+//expectedIL:
+//@"
+//");
+            c.VerifyPdb(
+@"
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method containingType=""C"" name=""F"" parameterNames=""i"">
+          <customDebugInfo>
+            <using>
+              <namespace usingCount=""0"" />
+            </using>
+            <encLocalSlotMap>
+              <slot kind=""0"" offset=""28"" />
+              <slot kind=""35"" offset=""18"" />
+              <slot kind=""35"" offset=""18"" ordinal=""1"" />
+              <slot kind=""35"" offset=""18"" ordinal=""2"" />
+              <slot kind=""35"" offset=""18"" ordinal=""3"" />
+              <slot kind=""35"" offset=""18"" ordinal=""4"" />
+              <slot kind=""35"" offset=""18"" ordinal=""5"" />
+              <slot kind=""28"" offset=""18"" />
+              <slot kind=""21"" offset=""0"" />
+            </encLocalSlotMap>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" document=""1"" />
+            <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""9"" endColumn=""11"" document=""1"" />
+            <entry offset=""0x55"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+          </sequencePoints>
+          <scope startOffset=""0x0"" endOffset=""0x58"">
+            <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x58"" attributes=""0"" />
+          </scope>
+        </method>
+        <method containingType=""C"" name=""N"" parameterNames=""x"">
+          <customDebugInfo>
+            <forward declaringType=""C"" methodName=""F"" parameterNames=""i"" />
+            <encLocalSlotMap>
+              <slot kind=""21"" offset=""0"" />
+            </encLocalSlotMap>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""1"" />
+            <entry offset=""0x1"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""15"" document=""1"" />
+            <entry offset=""0x4"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""23"" document=""1"" />
+            <entry offset=""0x18"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""1"" />
+          </sequencePoints>
+        </method>
+      </methods>
+    </symbols>
+");
+        }
+
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void PatternSwitchSequencePoints_04()
+        {
+            string source =
+@"public class C
+{
+    static int F(int i)
+    {
+        return N(out var x) switch 
+        {
+            (0, 0) => 0,
+            _ => x
+        };
+    }
+
+    static System.Runtime.CompilerServices.ITuple N(out int x)
+    {
+        x = 1;
+        return null;
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public interface ITuple
+    {
+        int Length { get; }
+        object this[int index] { get; }
+    }
+}
+";
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            var cv = CompileAndVerify(c);
+            //            cv.VerifyIL(qualifiedMethodName: "C.F", sequencePoints: "C.F", source: source,
+            //expectedIL:
+            //@"
+            //");
+            c.VerifyPdb(
+@"
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method containingType=""C"" name=""F"" parameterNames=""i"">
+          <customDebugInfo>
+            <using>
+              <namespace usingCount=""0"" />
+            </using>
+            <encLocalSlotMap>
+              <slot kind=""0"" offset=""28"" />
+              <slot kind=""35"" offset=""18"" />
+              <slot kind=""35"" offset=""18"" ordinal=""1"" />
+              <slot kind=""35"" offset=""18"" ordinal=""2"" />
+              <slot kind=""35"" offset=""18"" ordinal=""3"" />
+              <slot kind=""35"" offset=""18"" ordinal=""4"" />
+              <slot kind=""35"" offset=""18"" ordinal=""5"" />
+              <slot kind=""35"" offset=""18"" ordinal=""6"" />
+              <slot kind=""35"" offset=""18"" ordinal=""7"" />
+              <slot kind=""28"" offset=""18"" />
+              <slot kind=""21"" offset=""0"" />
+            </encLocalSlotMap>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" document=""1"" />
+            <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""9"" endColumn=""11"" document=""1"" />
+            <entry offset=""0x71"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+          </sequencePoints>
+          <scope startOffset=""0x0"" endOffset=""0x74"">
+            <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x74"" attributes=""0"" />
+          </scope>
+        </method>
+        <method containingType=""C"" name=""N"" parameterNames=""x"">
+          <customDebugInfo>
+            <forward declaringType=""C"" methodName=""F"" parameterNames=""i"" />
+            <encLocalSlotMap>
+              <slot kind=""21"" offset=""0"" />
+            </encLocalSlotMap>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""1"" />
+            <entry offset=""0x1"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""15"" document=""1"" />
+            <entry offset=""0x4"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""21"" document=""1"" />
+            <entry offset=""0x8"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""1"" />
+          </sequencePoints>
+        </method>
+      </methods>
+    </symbols>
+");
         }
     }
 }
