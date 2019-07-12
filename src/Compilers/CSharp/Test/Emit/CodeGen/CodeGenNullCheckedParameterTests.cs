@@ -1577,50 +1577,5 @@ class C
     IL_000e:  ret
 }");
         }
-
-        [Fact]
-        public void TestNullCheckedGenericWithDefault()
-        {
-            var source = @"
-class C
-{
-    static void M1<T>(T t! = default) { }
-}";
-            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M1<T>(T)", @"
-{
-    // Code size       21 (0x15)
-    .maxstack  1
-    IL_0000:  ldarg.0
-    IL_0001:  box        ""T""
-    IL_0006:  brtrue.s   IL_0013
-    IL_0008:  ldstr      ""t""
-    IL_000d:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_0012:  throw
-    IL_0013:  nop
-    IL_0014:  ret
-}");
-        }
-
-        [Fact]
-        public void TestNullCheckedGenericWithDefaultClass()
-        {
-            var source = @"
-class C
-{
-    static void M2<T>(T t! = default) where T : class { }
-}";
-            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M2<T>(T)", @"
-{
-    // Code size       21 (0x15)
-    .maxstack  1
-    IL_0000:  ldarg.0
-    IL_0001:  box        ""T""
-    IL_0006:  brtrue.s   IL_0013
-    IL_0008:  ldstr      ""t""
-    IL_000d:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_0012:  throw
-    IL_0013:  nop
-    IL_0014:  ret
-}");
-        }
+    }
 }

@@ -580,18 +580,24 @@ class C
         }
 
         [Fact]
-        public void TestNullCheckedGenericWithDefaultStruct()
+        public void TestNullCheckedGenericWithDefault()
         {
             var source = @"
 class C
 {
+    
+    static void M1<T>(T t! = default) { }
     static void M2<T>(T t! = default) where T : struct { }
+    static void M3<T>(T t! = default) where T : class { }
 }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                    // (4,25): error CS8718: Parameter 'T' is a non-nullable value type and cannot be null-checked.
+                    // (6,25): error CS8718: Parameter 'T' is a non-nullable value type and cannot be null-checked.
                     //     static void M2<T>(T t! = default) where T : struct { }
-                    Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "t").WithArguments("T").WithLocation(4, 25));
+                    Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "t").WithArguments("T").WithLocation(6, 25),
+                    // (7,30): warning CS8719: Parameter 'T' is null-checked but is null by default.
+                    //     static void M3<T>(T t! = default) where T : class { }
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "default").WithArguments("T").WithLocation(7, 30));
         }
 
         [Fact]
