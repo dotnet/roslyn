@@ -2,6 +2,8 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -30,12 +32,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
 
         [JsonRpcMethod(MSLSPMethods.WorkspaceBeginSymbolName)]
-        public int WorkspaceBeginSymbol(string query, CancellationToken cancellationToken)
+        public MSLSPBeginSymbolParams WorkspaceBeginSymbol(string query, CancellationToken cancellationToken)
         {
             int searchId = searchIds++;
             // Fire and forget
             SearchAsync(query, searchId, cancellationToken).ConfigureAwait(false);
-            return searchId;
+            return new MSLSPBeginSymbolParams() { SearchId = searchId };
         }
 
         private async Task SearchAsync(string query, int searchId, CancellationToken cancellationToken)
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         return;
                     }
 
-                    SymbolInformation[] convertedResults = await Convert(result, cancellationToken).ConfigureAwait(false);
+                    VSSymbolInformation[] convertedResults = await Convert(result, cancellationToken).ConfigureAwait(false);
 
                     await InvokeAsync(
                         MSLSPMethods.WorkspacePublishSymbolName,
@@ -66,30 +68,68 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            await InvokeAsync(MSLSPMethods.WorkspaceCompleteSymbolName, new object[] { searchId }, cancellationToken).ConfigureAwait(false);
+            await InvokeAsync(MSLSPMethods.WorkspaceCompleteSymbolName,
+                new object[] { new MSLSPCompleteSymbolParams() { SearchId = searchId } },
+                cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<SymbolInformation[]> Convert(ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken)
+        private static async Task<VSSymbolInformation[]> Convert(ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken)
         {
-            var symbols = new SymbolInformation[results.Length];
+            var symbols = new VSSymbolInformation[results.Length];
 
             for (int i = 0; i < results.Length; i++)
             {
                 var symbolText = await results[i].NavigableItem.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                symbols[i] = new SymbolInformation()
+                symbols[i] = new VSSymbolInformation()
                 {
                     Name = results[i].Name,
                     ContainerName = results[i].AdditionalInformation,
-                    Kind = LSP.SymbolKind.Method,
+                    Kind = ToLSPSymbolKind(results[i].Kind),
                     Location = new LSP.Location()
                     {
                         Uri = new Uri(results[i].NavigableItem.Document.FilePath),
                         Range = TextSpanToRange(results[i].NavigableItem.SourceSpan, symbolText)
-                    }
+                    },
+                    Icon = new VisualStudio.Text.Adornments.ImageElement(results[i].NavigableItem.Glyph.GetImageId())
                 };
             }
 
             return symbols;
+        }
+
+        private static LSP.SymbolKind ToLSPSymbolKind(string kind)
+        {
+            switch (kind)
+            {
+                case NavigateToItemKind.Class:
+                    return LSP.SymbolKind.Class;
+                case NavigateToItemKind.Constant:
+                    return LSP.SymbolKind.Constant;
+                case NavigateToItemKind.Delegate:
+                    return LSP.SymbolKind.Method;
+                case NavigateToItemKind.Enum:
+                    return LSP.SymbolKind.Enum;
+                case NavigateToItemKind.EnumItem:
+                    return LSP.SymbolKind.EnumMember;
+                case NavigateToItemKind.Event:
+                    return LSP.SymbolKind.Event;
+                case NavigateToItemKind.Field:
+                    return LSP.SymbolKind.Field;
+                case NavigateToItemKind.File:
+                    return LSP.SymbolKind.File;
+                case NavigateToItemKind.Interface:
+                    return LSP.SymbolKind.Interface;
+                case NavigateToItemKind.Method:
+                    return LSP.SymbolKind.Method;
+                case NavigateToItemKind.Module:
+                    return LSP.SymbolKind.Module;
+                case NavigateToItemKind.Property:
+                    return LSP.SymbolKind.Property;
+                case NavigateToItemKind.Structure:
+                    return LSP.SymbolKind.Struct;
+                default:
+                    return default;
+            }
         }
 
         private static Range TextSpanToRange(TextSpan textSpan, SourceText text)
