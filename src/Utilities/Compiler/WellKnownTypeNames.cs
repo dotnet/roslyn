@@ -322,5 +322,6 @@ namespace Analyzer.Utilities
         public const string SystemString = "System.String";
         public const string SystemRuntimeInteropServicesDllImportAttribute = "System.Runtime.InteropServices.DllImportAttribute";
         public const string SystemRuntimeInteropServicesDefaultDllImportSearchPathsAttribute = "System.Runtime.InteropServices.DefaultDllImportSearchPathsAttribute";
+        public const string NewtonsoftJsonTypeNameHandling = "Newtonsoft.Json.TypeNameHandling";
     }
 }
