@@ -592,14 +592,14 @@ class C
 {
     
     static void M1<T>(T t! = default) { }
-    static void M2<T>(T t! = default) where T : struct { }
+    static void M2<T>(T? t! = default) where T : struct { }
     static void M3<T>(T t! = default) where T : class { }
 }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                    // (6,25): error CS8718: Parameter 'T' is a non-nullable value type and cannot be null-checked.
-                    //     static void M2<T>(T t! = default) where T : struct { }
-                    Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "t").WithArguments("T").WithLocation(6, 25),
+                    // (6,26): warning CS8721: Nullable value type 'T?' is null-checked and will throw if null.
+                    //     static void M2<T>(T? t! = default) where T : struct { }
+                    Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "t").WithArguments("T?").WithLocation(6, 26),
                     // (7,30): warning CS8719: Parameter 'T' is null-checked but is null by default.
                     //     static void M3<T>(T t! = default) where T : class { }
                     Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "default").WithArguments("T").WithLocation(7, 30));
@@ -621,6 +621,36 @@ class C
                     // (4,24): error CS8721: Nullable value type 'int?' is null-checked and will throw if null.
                     //     static void M(int? i!) { }
                     Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "i").WithArguments("int?").WithLocation(4, 24));
+        }
+
+        [Fact]
+        public void TestNullableGenericsImplementingGenericAbstractClass()
+        {
+            var source = @"
+abstract class A<T>
+{
+    internal abstract void F<U>(U u) where U : T;
+}
+class B1 : A<object>
+{
+    internal override void F<U>(U u! = default) { }
+}
+class B2 : A<string>
+{
+    internal override void F<U>(U u! = default) { }
+}
+class B3 : A<int?>
+{
+    internal override void F<U>(U u! = default) { }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                    // (12,40): warning CS8719: Parameter 'U' is null-checked but is null by default.
+                    //     internal override void F<U>(U u! = default) { }
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "default").WithArguments("U").WithLocation(12, 40),
+                    // (16,35): warning CS8721: Nullable value type 'U' is null-checked and will throw if null.
+                    //     internal override void F<U>(U u! = default) { }
+                    Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "u").WithArguments("U").WithLocation(16, 35));
         }
     }
 }
