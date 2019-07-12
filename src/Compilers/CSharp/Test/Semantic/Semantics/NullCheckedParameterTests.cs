@@ -652,5 +652,106 @@ class B3 : A<int?>
                     //     internal override void F<U>(U u! = default) { }
                     Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "u").WithArguments("U").WithLocation(16, 35));
         }
+
+        [Fact]
+        public void NoGeneratedNullCheckIfNonNullableTest()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        Func<int, int> func1 = x! => x;
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                    // (7,32): error CS8718: Parameter 'int' is a non-nullable value type and therefore cannot be null-checked.
+                    //         Func<int, int> func1 = x! => x;
+                    Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "x").WithArguments("int").WithLocation(7, 32));
+        }
+
+        [Fact]
+        public void TestNullCheckedParamWithOptionalNullParameter()
+        {
+            var source = @"
+class C
+{
+    public static void Main() { }
+    void M(string name! = null) { }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (5,27): warning CS8719: Parameter 'string' is null-checked but is null by default.
+                    //     void M(string name! = null) { }
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "null").WithArguments("string").WithLocation(5, 27));
+        }
+
+        [Fact]
+        public void TestManyNullCheckedArgs()
+        {
+            var source = @"
+class C
+{
+    public void M(int x!, string y!) { }
+    public static void Main() { }
+}";
+
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (4,23): error CS8718: Parameter 'int' is a non-nullable value type and therefore cannot be null-checked.
+                    //     public void M(int x!, string y!) { }
+                    Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "x").WithArguments("int").WithLocation(4, 23));
+        }
+
+        [Fact]
+        public void TestNullCheckedSubstitution2()
+        {
+            var source = @"
+class A<T>
+{
+    internal virtual void M<U>(U u!) where U : T { }
+}
+class B2<T> : A<T> where T : struct
+{
+    internal override void M<U>(U u!) { }
+}";
+
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (8,35): error CS8718: Parameter 'U' is a non-nullable value type and therefore cannot be null-checked.
+                    //     internal override void M<U>(U u!) { }
+                    Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "u").WithArguments("U").WithLocation(8, 35));
+        }
+
+        [Fact]
+        public void TestNullCheckedSubstitution4()
+        {
+            var source = @"
+class A<T>
+{
+    internal virtual void M<U>(U u!) where U : T { }
+}
+class B4 : A<int>
+{
+    internal override void M<U>(U u!) { }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (8,35): error CS8718: Parameter 'U' is a non-nullable value type and therefore cannot be null-checked.
+                    //     internal override void M<U>(U u!) { }
+                    Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "u").WithArguments("U").WithLocation(8, 35));
+        }
+
+        [Fact]
+        public void TestNullCheckedSubstitution6()
+        {
+            var source = @"
+class C
+{
+    void M<T>(T value!) where T : unmanaged { }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (4,17): error CS8718: Parameter 'T' is a non-nullable value type and cannot be null-checked.
+                    //     void M<T>(T value!) where T : unmanaged { }
+                    Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "value").WithArguments("T").WithLocation(4, 17));
+        }
     }
 }
