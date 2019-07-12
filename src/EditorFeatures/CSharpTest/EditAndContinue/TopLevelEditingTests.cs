@@ -913,7 +913,7 @@ interface I
     interface J { }
 }
 ";
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.InsertVirtual, "void VirtualMethod1()", FeaturesResources.method),

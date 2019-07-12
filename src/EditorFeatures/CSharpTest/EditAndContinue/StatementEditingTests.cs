@@ -6803,12 +6803,12 @@ interface I
     }
 }
 ";
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetTopEdits(src1, src2);
 
             // lambdas are ok as they are emitted to a nested type
             edits.VerifySemanticDiagnostics(
                 targetFrameworks: new[] { TargetFramework.NetCoreApp30 },
-                expectedDiagnostics: new[] 
+                expectedDiagnostics: new[]
                 {
                     Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f1"),
                     Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f2"),
