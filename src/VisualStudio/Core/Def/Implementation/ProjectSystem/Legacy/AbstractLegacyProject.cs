@@ -43,8 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         #region Mutable fields that should only be used from the UI thread
 
-        private readonly VsENCRebuildableProjectImpl _editAndContinueProject;
-
         private readonly SolutionEventsBatchScopeCreator _batchScopeCreator;
 
         #endregion
@@ -106,11 +104,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             ConnectHierarchyEvents();
             RefreshBinOutputPath();
 
-            // TODO: remove this terrible hack, which is working around shims throwing in not-good ways
+            // TODO: https://github.com/dotnet/roslyn/issues/36065
+            // The ctor of ExternalErrorDiagnosticUpdateSource throws when running in tests since UIContextImpl calls:
+            //   (IVsMonitorSelection)ServiceProvider.GlobalProvider.GetService(typeof(IVsMonitorSelection))),
+            // which returns null.
             try
             {
                 _externalErrorReporter = new ProjectExternalErrorReporter(VisualStudioProject.Id, externalErrorReportingPrefix, (VisualStudioWorkspaceImpl)Workspace);
-                _editAndContinueProject = new VsENCRebuildableProjectImpl(Workspace, VisualStudioProject, serviceProvider);
             }
             catch (Exception)
             {

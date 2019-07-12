@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../CodeLensVSResources.resx">
+    <body>
+      <trans-unit id="CSharp_VisualBasic_References">
+        <source>C# and Visual Basic References</source>
+        <target state="translated">C# 및 Visual Basic 참조</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_0_has_1_references">
+        <source>This {0} has {1} reference(s).</source>
+        <target state="translated">이 {0}에는 {1}개의 참조가 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_reference">
+        <source>{0} reference</source>
+        <target state="translated">참조 {0}개</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_references">
+        <source>{0} references</source>
+        <target state="translated">참조 {0}개</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="method">
+        <source>method</source>
+        <target state="translated">메서드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="property">
+        <source>property</source>
+        <target state="translated">속성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="type">
+        <source>type</source>
+        <target state="translated">형식</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
