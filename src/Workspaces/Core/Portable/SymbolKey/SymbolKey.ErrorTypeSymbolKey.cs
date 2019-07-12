@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis
 
                 if (!symbol.Equals(symbol.ConstructedFrom))
                 {
-                    visitor.WriteSymbolKeyArray(symbol.TypeArguments);
+                    visitor.WriteSymbolArray(symbol.TypeArguments);
                 }
                 else
                 {
-                    visitor.WriteSymbolKeyArray(ImmutableArray<ITypeSymbol>.Empty);
+                    visitor.WriteSymbolArray(ImmutableArray<ITypeSymbol>.Empty);
                 }
             }
 

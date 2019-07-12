@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis
                     using var elementNames = reader.ReadStringArray();
                     var elementLocations = ReadElementLocations(reader);
 
+                    Debug.Assert(elementTypes.Count == 0 || elementTypes.Count == elementNames.Count);
                     if (elementTypes.Count == elementNames.Count)
                     {
                         try

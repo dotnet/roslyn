@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
             public static void Create(IMethodSymbol symbol, SymbolKeyWriter visitor)
             {
                 visitor.WriteSymbolKey(symbol.ConstructedFrom);
-                visitor.WriteSymbolKeyArray(symbol.TypeArguments);
+                visitor.WriteSymbolArray(symbol.TypeArguments);
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)

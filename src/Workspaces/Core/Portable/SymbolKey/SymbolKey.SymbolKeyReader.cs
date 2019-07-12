@@ -453,6 +453,13 @@ namespace Microsoft.CodeAnalysis
                     _ => throw new NotImplementedException(),
                 };
 
+            /// <summary>
+            /// Reads an array of symbols out from the key.  Note: the number of symbols returned 
+            /// will either be the same as the original amount writtern, or it will be zero. It will
+            /// never be less or more.  Zero will be returned if the original array written had zero
+            /// elements, <b>or</b> if any elements could not be resolved to the requested
+            /// <typeparamref name="TSymbol"/> type in the provided <see cref="Compilation"/>.
+            /// </summary>
             public PooledArrayBuilder<TSymbol> ReadSymbolArray<TSymbol>() where TSymbol : ISymbol
             {
                 using var resolutions = ReadArray(_readSymbolKey);
@@ -463,6 +470,11 @@ namespace Microsoft.CodeAnalysis
                     if (resolution.GetAnySymbol() is TSymbol castedSymbol)
                     {
                         result.AddIfNotNull(castedSymbol);
+                    }
+                    else
+                    {
+                        result.Builder.Clear();
+                        break;
                     }
                 }
 

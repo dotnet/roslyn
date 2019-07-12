@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis
                 if (!symbol.Equals(symbol.ConstructedFrom) && !symbol.IsUnboundGenericType)
                 {
                     visitor.WriteBoolean(/*instantiate*/true);
-                    visitor.WriteSymbolKeyArray(symbol.TypeArguments);
+                    visitor.WriteSymbolArray(symbol.TypeArguments);
                 }
                 else
                 {
                     visitor.WriteBoolean(/*instantiate*/false);
-                    visitor.WriteSymbolKeyArray(ImmutableArray<ITypeSymbol>.Empty);
+                    visitor.WriteSymbolArray(ImmutableArray<ITypeSymbol>.Empty);
                 }
             }
 
