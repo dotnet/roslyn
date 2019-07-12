@@ -1048,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        ImmutableArray<CodeAnalysis.NullableAnnotation> IMethodSymbol.TypeArgumentsNullableAnnotations => TypeArgumentsWithAnnotations.SelectAsArray(arg => arg.NullableAnnotation.ToPublicAnnotation());
+        ImmutableArray<CodeAnalysis.NullableAnnotation> IMethodSymbol.TypeArgumentNullableAnnotations => TypeArgumentsWithAnnotations.SelectAsArray(arg => arg.NullableAnnotation.ToPublicAnnotation());
 
         ImmutableArray<ITypeParameterSymbol> IMethodSymbol.TypeParameters
         {

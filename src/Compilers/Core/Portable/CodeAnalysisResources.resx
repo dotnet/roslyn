@@ -585,6 +585,9 @@
   <data name="TupleElementLocationCountMismatch" xml:space="preserve">
     <value>If tuple element locations are specified, the number of locations must match the cardinality of the tuple.</value>
   </data>
+  <data name="TupleElementNullableAnnotationCountMismatch" xml:space="preserve">
+    <value>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</value>
+  </data>
   <data name="TuplesNeedAtLeastTwoElements" xml:space="preserve">
     <value>Tuples must have at least two elements.</value>
   </data>

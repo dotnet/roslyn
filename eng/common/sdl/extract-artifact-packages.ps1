@@ -44,6 +44,10 @@ $ExtractPackage = {
   }
  }
  function ExtractArtifacts {
+  if (!(Test-Path $InputPath)) {
+    Write-Host "Input Path does not exist: $InputPath"
+    ExitWithExitCode 0
+  }
   $Jobs = @()
   Get-ChildItem "$InputPath\*.nupkg" |
     ForEach-Object {

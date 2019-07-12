@@ -82,9 +82,9 @@ class C
             var invocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>().ToList();
             var expressionTypes = invocations.Select(inv => model.GetTypeInfo(inv).Type).Cast<INamedTypeSymbol>().ToList();
 
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, expressionTypes[0].TypeArgumentsNullableAnnotations.Single());
-            Assert.Equal(PublicNullableAnnotation.Annotated, expressionTypes[1].TypeArgumentsNullableAnnotations.Single());
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, expressionTypes[2].TypeArgumentsNullableAnnotations.Single());
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, expressionTypes[0].TypeArgumentNullableAnnotations.Single());
+            Assert.Equal(PublicNullableAnnotation.Annotated, expressionTypes[1].TypeArgumentNullableAnnotations.Single());
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, expressionTypes[2].TypeArgumentNullableAnnotations.Single());
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34412")]
@@ -558,6 +558,9 @@ public class C
             VerifyAcrossCompilations(
                 source,
                 new[] { 
+                    // (8,20): warning CS8618: Non-nullable event 'D1' is uninitialized.
+                    //     public event D D1;
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "D1").WithArguments("event", "D1").WithLocation(8, 20),
                     // (13,19): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                     //     public event D? D4;
                     Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 19)
@@ -1150,7 +1153,7 @@ class C
 
             static void verifySymbolInfo(IMethodSymbol methodSymbol, PublicNullableAnnotation expectedAnnotation)
             {
-                Assert.Equal(expectedAnnotation, methodSymbol.TypeArgumentsNullableAnnotations.Single());
+                Assert.Equal(expectedAnnotation, methodSymbol.TypeArgumentNullableAnnotations.Single());
                 Assert.Equal(expectedAnnotation, methodSymbol.Parameters.Single().NullableAnnotation);
                 Assert.Equal(expectedAnnotation, methodSymbol.ReturnNullableAnnotation);
             }
@@ -1190,9 +1193,9 @@ class C
 
             static void verifySymbolInfo(IMethodSymbol methodSymbol, PublicNullableAnnotation expectedAnnotation)
             {
-                Assert.Equal(expectedAnnotation, methodSymbol.TypeArgumentsNullableAnnotations.Single());
+                Assert.Equal(expectedAnnotation, methodSymbol.TypeArgumentNullableAnnotations.Single());
                 Assert.Equal(expectedAnnotation, methodSymbol.Parameters.Single().NullableAnnotation);
-                Assert.Equal(expectedAnnotation, ((INamedTypeSymbol)methodSymbol.ReturnType).TypeArgumentsNullableAnnotations.Single());
+                Assert.Equal(expectedAnnotation, ((INamedTypeSymbol)methodSymbol.ReturnType).TypeArgumentNullableAnnotations.Single());
             }
         }
     }

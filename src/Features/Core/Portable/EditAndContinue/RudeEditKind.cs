@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         UpdatingStateMachineMethodMissingAttribute = 75,
 
         SwitchBetweenLambdaAndLocalFunction = 76,
-        RefStruct = 77,
-        ReadOnlyStruct = 78,
-        ReadOnlyReferences = 79,
+        //RefStruct = 77,
+        //ReadOnlyStruct = 78,
+        //ReadOnlyReferences = 79,
 
         InternalError = 80,
 
