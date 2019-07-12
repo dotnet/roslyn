@@ -1493,6 +1493,45 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         End Sub
 
         <Fact()>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateArrayType_DefaultArgs()
+            Dim comp = DirectCast(VisualBasicCompilation.Create(""), Compilation)
+            Dim elementType = comp.GetSpecialType(SpecialType.System_Object)
+
+            Dim arrayType = comp.CreateArrayTypeSymbol(elementType)
+            Assert.Equal(1, arrayType.Rank)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotApplicable, arrayType.ElementNullableAnnotation)
+
+            Assert.Throws(Of ArgumentException)(Function() comp.CreateArrayTypeSymbol(elementType, Nothing))
+            Assert.Throws(Of ArgumentException)(Function() comp.CreateArrayTypeSymbol(elementType, 0))
+
+            arrayType = comp.CreateArrayTypeSymbol(elementType, 1, Nothing)
+            Assert.Equal(1, arrayType.Rank)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotApplicable, arrayType.ElementNullableAnnotation)
+
+            Assert.Throws(Of ArgumentException)(Function() comp.CreateArrayTypeSymbol(elementType, rank:=Nothing))
+            Assert.Throws(Of ArgumentException)(Function() comp.CreateArrayTypeSymbol(elementType, rank:=0))
+
+            arrayType = comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=Nothing)
+            Assert.Equal(1, arrayType.Rank)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotApplicable, arrayType.ElementNullableAnnotation)
+        End Sub
+
+        <Fact()>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateArrayType_ElementNullableAnnotation()
+            Dim comp = DirectCast(VisualBasicCompilation.Create(""), Compilation)
+            Dim elementType = comp.GetSpecialType(SpecialType.System_Object)
+
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotApplicable, comp.CreateArrayTypeSymbol(elementType).ElementNullableAnnotation)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotApplicable, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=Nothing).ElementNullableAnnotation)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotApplicable, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=CodeAnalysis.NullableAnnotation.NotApplicable).ElementNullableAnnotation)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotApplicable, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=CodeAnalysis.NullableAnnotation.Disabled).ElementNullableAnnotation)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotApplicable, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=CodeAnalysis.NullableAnnotation.NotAnnotated).ElementNullableAnnotation)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotApplicable, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=CodeAnalysis.NullableAnnotation.Annotated).ElementNullableAnnotation)
+        End Sub
+
+        <Fact()>
         Public Sub CreateAnonymousType_IncorrectLengths()
             Dim compilation = VisualBasicCompilation.Create("HelloWorld")
             Assert.Throws(Of ArgumentException)(
@@ -1619,6 +1658,66 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             Assert.All(type.GetMembers().OfType(Of IPropertySymbol)().Select(Function(p) p.Locations.FirstOrDefault()),
                 Sub(loc) Assert.Equal(loc, Location.None))
         End Sub
+
+        <Fact()>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateAnonymousType_DefaultArgs()
+            Dim comp = DirectCast(CreateCompilation(""), Compilation)
+            Dim memberTypes = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
+            Dim memberNames = ImmutableArray.Create("P", "Q")
+
+            Dim type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, Nothing)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, Nothing, Nothing)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, Nothing, Nothing, Nothing)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberIsReadOnly:=Nothing)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberLocations:=Nothing)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberNullableAnnotations:=Nothing)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+        End Sub
+
+        <Fact()>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateAnonymousType_MemberNullableAnnotations_Empty()
+            Dim comp = DirectCast(VisualBasicCompilation.Create(""), Compilation)
+            Dim type = comp.CreateAnonymousTypeSymbol(ImmutableArray(Of ITypeSymbol).Empty, ImmutableArray(Of String).Empty, memberNullableAnnotations:=ImmutableArray(Of CodeAnalysis.NullableAnnotation).Empty)
+            Assert.Equal("<empty anonymous type>", type.ToTestDisplayString())
+            AssertEx.Equal(Array.Empty(Of CodeAnalysis.NullableAnnotation)(), GetAnonymousTypeNullableAnnotations(type))
+        End Sub
+
+        <Fact()>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateAnonymousType_MemberNullableAnnotations()
+            Dim comp = DirectCast(CreateCompilation(""), Compilation)
+            Dim memberTypes = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
+            Dim memberNames = ImmutableArray.Create("P", "Q")
+
+            Dim type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+            AssertEx.Equal({CodeAnalysis.NullableAnnotation.NotApplicable, CodeAnalysis.NullableAnnotation.NotApplicable}, GetAnonymousTypeNullableAnnotations(type))
+
+            Assert.Throws(Of ArgumentException)(Function() comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberNullableAnnotations:=ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated)))
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberNullableAnnotations:=ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableAnnotation.Annotated))
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+            AssertEx.Equal({CodeAnalysis.NullableAnnotation.NotApplicable, CodeAnalysis.NullableAnnotation.NotApplicable}, GetAnonymousTypeNullableAnnotations(type))
+        End Sub
+
+        Private Shared Function GetAnonymousTypeNullableAnnotations(type As ITypeSymbol) As ImmutableArray(Of CodeAnalysis.NullableAnnotation)
+            Return type.GetMembers().OfType(Of IPropertySymbol)().SelectAsArray(Function(p) p.NullableAnnotation)
+        End Function
 
         <Fact()>
         Public Sub GetEntryPoint_Exe()

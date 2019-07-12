@@ -155,6 +155,75 @@ class C
         }
 
         [Fact]
+        public void AttributeFromInternalsVisibleTo_01()
+        {
+            var sourceA =
+@"using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo(""B"")]
+#nullable enable
+class A
+{
+    object? F = null;
+}";
+            var options = TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All);
+            var comp = CreateCompilation(sourceA, assemblyName: "A", options: options);
+            CompileAndVerify(comp, symbolValidator: m => CheckAttribute(m.GlobalNamespace.GetMember("A.F").GetAttributes().Single(), "A"));
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"#nullable enable
+class B
+{
+    object? G = new A();
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, assemblyName: "B", options: options);
+            CompileAndVerify(comp, symbolValidator: m => CheckAttribute(m.GlobalNamespace.GetMember("B.G").GetAttributes().Single(), "B"));
+        }
+
+        [Fact]
+        public void AttributeFromInternalsVisibleTo_02()
+        {
+            var sourceAttribute =
+@"namespace System.Runtime.CompilerServices
+{
+    internal sealed class NullableAttribute : Attribute
+    {
+        public NullableAttribute(byte b) { }
+        public NullableAttribute(byte[] b) { }
+    }
+}";
+            var sourceA =
+@"using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo(""B"")]
+#nullable enable
+class A
+{
+    object? F = null;
+}";
+            var options = TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All);
+            var comp = CreateCompilation(new[] { sourceAttribute, sourceA }, assemblyName: "A", options: options);
+            CompileAndVerify(comp, symbolValidator: m => CheckAttribute(m.GlobalNamespace.GetMember("A.F").GetAttributes().Single(), "A"));
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"#nullable enable
+class B
+{
+    object? G = new A();
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, assemblyName: "B", options: options);
+            CompileAndVerify(comp, symbolValidator: m => CheckAttribute(m.GlobalNamespace.GetMember("B.G").GetAttributes().Single(), "A"));
+        }
+
+        private static void CheckAttribute(CSharpAttributeData attribute, string assemblyName)
+        {
+            var attributeType = attribute.AttributeClass;
+            Assert.Equal("System.Runtime.CompilerServices", attributeType.ContainingNamespace.QualifiedName);
+            Assert.Equal("NullableAttribute", attributeType.Name);
+            Assert.Equal(assemblyName, attributeType.ContainingAssembly.Name);
+        }
+
+        [Fact]
         public void NullableAttribute_MissingByte()
         {
             var source0 =
@@ -183,8 +252,20 @@ class C
                 // (3,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     object? F() => null;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 11),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Byte' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Byte").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Byte' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Byte").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Int32' is not defined or imported
@@ -216,15 +297,27 @@ class C
                 references: new[] { ref0 },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyEmitDiagnostics(
-                // (3,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                // (3,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     object? F() => null;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 11),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1));
         }
 
         [Fact]
@@ -257,9 +350,21 @@ class C
                 references: new[] { ref0 },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyEmitDiagnostics(
-                // (3,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                // (3,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     object? F() => null;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 11),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1),
                 // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
                 // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
@@ -268,6 +373,57 @@ class C
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
                 // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void MissingAttributeUsageAttribute()
+        {
+            var source =
+@"#nullable enable
+class Program
+{
+    object? F() => null;
+}";
+
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_AttributeUsageAttribute);
+            comp.VerifyEmitDiagnostics(
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1));
+
+            comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_AttributeUsageAttribute__ctor);
+            comp.VerifyEmitDiagnostics(
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1));
+
+            comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_AttributeUsageAttribute__AllowMultiple);
+            comp.VerifyEmitDiagnostics(
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1));
+
+            comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_AttributeUsageAttribute__Inherited);
+            comp.VerifyEmitDiagnostics(
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1));
         }
 
         [Fact]
@@ -2593,6 +2749,9 @@ internal class B : I<object>
                 // (10,30): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     private event D<object?> E;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(10, 30),
+                // (10,30): warning CS8618: Non-nullable event 'E' is uninitialized.
+                //     private event D<object?> E;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E").WithArguments("event", "E").WithLocation(10, 30),
                 // (13,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //         object? f(object arg) => arg;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(13, 9),
@@ -2629,6 +2788,9 @@ internal class B : I<object>
                 // (23,29): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     public event D<object?> E;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(23, 29),
+                // (23,29): warning CS8618: Non-nullable event 'E' is uninitialized.
+                //     public event D<object?> E;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E").WithArguments("event", "E").WithLocation(23, 29),
                 // (24,31): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     private (object, object?) F;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(24, 31));
@@ -2649,7 +2811,14 @@ internal class B : I<object>
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object? y").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(9, 36),
                 // (10,30): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     private event D<object?> E;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(10, 30));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(10, 30),
+                // (10,30): warning CS8618: Non-nullable event 'E' is uninitialized.
+                //     private event D<object?> E;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E").WithArguments("event", "E").WithLocation(10, 30),
+                // (23,29): warning CS8618: Non-nullable event 'E' is uninitialized.
+                //     public event D<object?> E;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E").WithArguments("event", "E").WithLocation(23, 29)
+                );
         }
 
         [Fact]
@@ -3988,6 +4157,29 @@ public class B<T> :
             Assert.Equal(
                 "(dynamic? _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic? _5, System.Object _6, dynamic? _7, System.Object _8, dynamic? _9) B<T>.Property { get; set; }",
                 type.GetMember<PropertySymbol>("Property").ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(36934, "https://github.com/dotnet/roslyn/issues/36934")]
+        public void AttributeUsage()
+        {
+            var source =
+@"#nullable enable
+public class Program
+{
+    public object? F;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var attributeType = module.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Runtime.CompilerServices.NullableAttribute");
+                AttributeUsageInfo attributeUsage = attributeType.GetAttributeUsageInfo();
+                Assert.False(attributeUsage.Inherited);
+                Assert.False(attributeUsage.AllowMultiple);
+                Assert.True(attributeUsage.HasValidAttributeTargets);
+                var expectedTargets = AttributeTargets.Class | AttributeTargets.Event | AttributeTargets.Field | AttributeTargets.GenericParameter | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue;
+                Assert.Equal(expectedTargets, attributeUsage.ValidTargets);
+            });
         }
 
         [Fact]

@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// - Whole node of a type <typeparamref name="TSyntaxNode"/> is selected.
         /// </para>
         /// <para>
-        /// Attempts extracting a Node of type <typeparamref name="TSyntaxNode"/> for each Node it consideres (see above).
-        /// By default extracts initializer expressions from declarations and assignments.
+        /// Attempts extracting a Node of type <typeparamref name="TSyntaxNode"/> for each Node it considers (see above).
+        /// E.g. extracts initializer expressions from declarations and assignments, Property declaration from any header node, etc.
         /// </para>
         /// <para>
         /// Note: this function trims all whitespace from both the beginning and the end of given <paramref name="selection"/>.
         /// The trimmed version is then used to determine relevant <see cref="SyntaxNode"/>. It also handles incomplete selections
-        /// of tokens gracefully.
+        /// of tokens gracefully. Over-selection containing leading comments is also handled correctly. 
         /// </para>
         /// </summary>
         Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;

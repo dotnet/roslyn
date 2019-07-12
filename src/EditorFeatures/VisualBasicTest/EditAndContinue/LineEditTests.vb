@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public Class LineEditTests
-        Inherits RudeEditTestBase
+        Inherits EditingTestBase
 
         Private Function ToCode(element As XElement) As String
             Return element.Value.Replace(vbLf, vbCrLf)

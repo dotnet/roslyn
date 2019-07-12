@@ -19,8 +19,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal class VisualStudioBaseTodoListTable : AbstractTable
     {
         private static readonly string[] s_columns = new string[]

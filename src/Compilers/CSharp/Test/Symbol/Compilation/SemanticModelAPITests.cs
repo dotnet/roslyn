@@ -17,6 +17,61 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class SemanticTests : CSharpTestBase
     {
         [Fact]
+        public void UnmanagedConstraintOnExtensionMethod()
+        {
+            var src = @"
+public static class Ext
+{
+    public static T GenericExtension<T>(ref this T self) where T : unmanaged
+    {
+        return self;
+    }
+}
+";
+            var src2 = @"
+public class Program
+{
+    public struct S<T> where T : unmanaged
+    {
+        public T t;
+    }
+
+    static void M<T>(S<T> s) where T : unmanaged
+    {
+        s.GenericExtension();
+    }
+}";
+            var comp1 = CreateCompilation(src, parseOptions: TestOptions.Regular8);
+
+            var comp2 = CreateCompilation(src2, parseOptions: TestOptions.Regular8,
+                references: new[] { comp1.ToMetadataReference() });
+            comp2.VerifyDiagnostics();
+            Assert.NotNull(checkSymbolInfo(comp2).Symbol);
+
+            comp2 = CreateCompilation(src2, parseOptions: TestOptions.Regular7_3,
+                references: new[] { comp1.ToMetadataReference() });
+            comp2.VerifyDiagnostics(
+                // (11,11): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         s.GenericExtension();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "GenericExtension").WithArguments("unmanaged constructed types").WithLocation(11, 11));
+
+            var info = checkSymbolInfo(comp2);
+            Assert.Null(info.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason);
+
+            static SymbolInfo checkSymbolInfo(CSharpCompilation comp)
+            {
+                SyntaxTree tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                SyntaxNode root = tree.GetRoot();
+                var invoke = root.DescendantNodes().OfType<MemberAccessExpressionSyntax>()
+                    .Where(e => e.Name.ToString() == "GenericExtension").First();
+
+                return model.GetSymbolInfo(invoke);
+            }
+        }
+
+        [Fact]
         public void PatternIndexAndRangeIndexers()
         {
             var comp = CreateCompilationWithIndexAndRange(@"

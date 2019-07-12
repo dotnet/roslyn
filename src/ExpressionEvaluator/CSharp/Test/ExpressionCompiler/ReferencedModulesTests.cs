@@ -1536,9 +1536,9 @@ namespace System
                 _objectType = new NamespaceTypeDefinitionNoBase(objectType);
             }
 
-            internal override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context)
+            public override IEnumerable<INamespaceTypeDefinition> GetTopLevelSourceTypeDefinitions(EmitContext context)
             {
-                foreach (var type in base.GetTopLevelTypesCore(context))
+                foreach (var type in base.GetTopLevelSourceTypeDefinitions(context))
                 {
                     yield return (type == _objectType.UnderlyingType) ? _objectType : type;
                 }
