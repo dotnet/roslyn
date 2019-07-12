@@ -288,6 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.WRN_NullAsNonNullable, parameterSyntax.Default.Value.Location);
             }
+
             // represent default(struct) by a Null constant:
             var value = convertedExpression.ConstantValue ?? ConstantValue.Null;
             VerifyParamDefaultValueMatchesAttributeIfAny(value, defaultSyntax.Value, diagnostics);

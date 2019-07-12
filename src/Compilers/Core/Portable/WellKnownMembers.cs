@@ -3886,7 +3886,7 @@ namespace Microsoft.CodeAnalysis
                 "CreateLinkedTokenSource",                  // System_Threading_CancellationTokenSource__CreateLinkedTokenSource
                 "Token",                                    // System_Threading_CancellationTokenSource__Token
                 "Dispose",                                  // System_Threading_CancellationTokenSource__Dispose
-                ".ctor",                    // System_ArgumentNullException__ctorString
+                ".ctor",                                    // System_ArgumentNullException__ctorString
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
