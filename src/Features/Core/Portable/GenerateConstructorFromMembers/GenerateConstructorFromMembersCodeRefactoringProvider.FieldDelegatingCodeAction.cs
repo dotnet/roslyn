@@ -13,17 +13,17 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
-    internal partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider
+    internal partial class GenerateConstructorFromMembersCodeRefactoringProvider
     {
         private class FieldDelegatingCodeAction : CodeAction
         {
-            private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service;
+            private readonly GenerateConstructorFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly State _state;
             private readonly bool _addNullChecks;
 
             public FieldDelegatingCodeAction(
-                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
+                GenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 State state,
                 bool addNullChecks)
