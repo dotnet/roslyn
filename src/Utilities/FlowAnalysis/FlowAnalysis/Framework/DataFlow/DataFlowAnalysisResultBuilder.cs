@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             TAnalysisData exceptionPathsExitBlockDataOpt,
             TAnalysisData mergedDataForUnhandledThrowOperationsOpt,
             Dictionary<ThrownExceptionInfo, TAnalysisData> analysisDataForUnhandledThrowOperationsOpt,
+            Dictionary<PointsToAbstractValue, TAbstractAnalysisValue> taskWrappedValuesMapOpt,
             ControlFlowGraph cfg,
             TAbstractAnalysisValue defaultUnknownValue)
             where TBlockAnalysisResult : AbstractBlockAnalysisResult
@@ -73,7 +75,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return new DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>(resultBuilder.ToImmutableDictionaryAndFree(), stateMap,
                 predicateValueKindMap, returnValueAndPredicateKindOpt, interproceduralResultsMap,
                 entryBlockOutputResult, exitBlockOutputResult, exceptionPathsExitBlockOutputResultOpt,
-                mergedStateForUnhandledThrowOperationsOpt, analysisDataForUnhandledThrowOperationsOpt, cfg, defaultUnknownValue);
+                mergedStateForUnhandledThrowOperationsOpt, analysisDataForUnhandledThrowOperationsOpt,
+                taskWrappedValuesMapOpt, cfg, defaultUnknownValue);
         }
 
         public void Dispose()
