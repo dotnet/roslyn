@@ -4,6 +4,7 @@ steps:
   inputs:
     artifactName: deployables-Windows
     downloadPath: $(System.DefaultWorkingDirectory)/bin
+
 - task: DotNetCoreCLI@2
   displayName: Push packages to CI feed
   inputs:
@@ -12,4 +13,4 @@ steps:
     nuGetFeedType: internal
     publishVstsFeed: $(ci_feed)
     allowPackageConflicts: true
-  condition: and(succeeded(), ne(variables['ci_feed'], ''))
+  condition: and(succeeded(), ne(variables['ci_feed'], ''), ne(variables['Build.Reason'], 'PullRequest'))
