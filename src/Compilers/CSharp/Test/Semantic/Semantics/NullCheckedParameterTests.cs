@@ -19,15 +19,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void NullCheckedDelegateDeclaration()
         {
             var source = @"
-delegate void Del(int x!, int y);
+delegate void Del(string x!, int y);
 class C
 {
-    Del d = delegate(int k!, int j) { /* ... */ };
+    Del d = delegate(string k!, int j) { /* ... */ };
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                    // (2,23): error CS8714: Parameter 'x' can only have exclamation-point null checking in implementation methods.
+                    // (2,26): error CS8714: Parameter 'x' can only have exclamation-point null checking in implementation methods.
                     // delegate void Del(int x!, int y);
-                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "x").WithArguments("x").WithLocation(2, 23));
+                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "x").WithArguments("x").WithLocation(2, 26));
         }
 
         [Fact]
@@ -36,12 +36,12 @@ class C
             var source = @"
 abstract class C
 {
-    abstract public int M(int x!);
+    abstract public int M(string x!);
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                    // (4,31): error CS8714: Parameter 'x' can only have exclamation-point null checking in implementation methods.
+                    // (4,34): error CS8714: Parameter 'x' can only have exclamation-point null checking in implementation methods.
                     //     abstract public int M(int x!);
-                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "x").WithArguments("x").WithLocation(4, 31));
+                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "x").WithArguments("x").WithLocation(4, 34));
         }
 
         [Fact]
@@ -50,12 +50,12 @@ abstract class C
             var source = @"
 interface C
 {
-    public int M(int x!);
+    public int M(string x!);
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                    // (4,22): error CS8714: Parameter 'x' can only have exclamation-point null checking in implementation methods.
+                    // (4,25): error CS8714: Parameter 'x' can only have exclamation-point null checking in implementation methods.
                     //     public int M(int x!);
-                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "x").WithArguments("x").WithLocation(4, 22));
+                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "x").WithArguments("x").WithLocation(4, 25));
         }
 
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]
@@ -64,7 +64,7 @@ interface C
             var source = @"
 interface C
 {
-    public void M(int x!) { }
+    public void M(string x!) { }
 }";
             var compilation = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest,
                                                          parseOptions: TestOptions.Regular);
@@ -112,12 +112,12 @@ abstract class C
             var source = @"
 partial class C
 {
-    partial void M(int x!);
+    partial void M(string x!);
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                    // (4,24): error CS8714: Parameter 'x' can only have exclamation-point null checking in implementation methods.
-                    //     partial void M(int x!);
-                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "x").WithArguments("x").WithLocation(4, 24));
+                    // (4,27): error CS8717: Parameter 'x' can only have exclamation-point null checking in implementation methods.
+                    //     partial void M(string x!);
+                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "x").WithArguments("x").WithLocation(4, 27));
         }
 
         [Fact]
@@ -126,12 +126,12 @@ partial class C
             var source = @"
 interface C
 {
-    public string this[int index!] { get; set; }
+    public string this[string index!] { get; set; }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                    // (4,28): error CS8714: Parameter 'index' can only have exclamation-point null checking in implementation methods.
+                    // (4,31): error CS8714: Parameter 'index' can only have exclamation-point null checking in implementation methods.
                     //     public string this[int index!] { get; set; }
-                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "index").WithArguments("index").WithLocation(4, 28));
+                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "index").WithArguments("index").WithLocation(4, 31));
         }
 
         [Fact]
@@ -140,12 +140,12 @@ interface C
             var source = @"
 abstract class C
 {
-    public abstract string this[int index!] { get; }
+    public abstract string this[string index!] { get; }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                    // (4,37): error CS8714: Parameter 'index' can only have exclamation-point null checking in implementation methods.
+                    // (4,40): error CS8714: Parameter 'index' can only have exclamation-point null checking in implementation methods.
                     //     public abstract string this[int index!] { get; }
-                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "index").WithArguments("index").WithLocation(4, 37));
+                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "index").WithArguments("index").WithLocation(4, 40));
         }
 
         [Fact]
@@ -154,7 +154,7 @@ abstract class C
             var source = @"
 class C
 {
-    public string this[int index!] => null;
+    public string this[string index!] => null;
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
@@ -170,12 +170,12 @@ using System.Runtime.InteropServices;
 class C
 {
     [DllImport(""User32.dll"")]
-    public static extern int M(int x!);
+    public static extern int M(string x!);
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                    // (6,36): error CS8714: Parameter 'x' can only have exclamation-point null checking in implementation methods.
+                    // (6,39): error CS8714: Parameter 'x' can only have exclamation-point null checking in implementation methods.
                     //     public static extern int M(int x!);
-                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "x").WithArguments("x").WithLocation(6, 36));
+                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "x").WithArguments("x").WithLocation(6, 39));
         }
 
         [Fact]
@@ -243,13 +243,15 @@ class C
     void M(string name! = null) { }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-
-            // Warning attached in emit diagnostics.
-            comp.VerifyEmitDiagnostics(
-                    // (4,19): error CS8719: Parameter 'string' is null-checked but is null by default.
+            comp.VerifyDiagnostics(
+                    // (4,27): warning CS8719: Parameter 'string' is null-checked but is null by default.
                     //     void M(string name! = null) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("string").WithLocation(4, 19));
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "null").WithArguments("string").WithLocation(4, 27));
+
+            comp.VerifyEmitDiagnostics(
+                    // (4,27): warning CS8719: Parameter 'string' is null-checked but is null by default.
+                    //     void M(string name! = null) { }
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "null").WithArguments("string").WithLocation(4, 27));
 
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
             Assert.True(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
@@ -278,7 +280,10 @@ class C
     void M(string name! =null) { }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                    // (4,26): warning CS8719: Parameter 'string' is null-checked but is null by default.
+                    //     void M(string name! =null) { }
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "null").WithArguments("string").WithLocation(4, 26));
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
             Assert.True(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
         }
@@ -351,7 +356,7 @@ class C
 {
     public void M()
     {
-        Func<int, int, bool> func1 = (x!, y) => x == y;
+        Func<string, string, bool> func1 = (x!, y) => x == y;
     }
 }";
             var tree = Parse(source);
@@ -379,7 +384,7 @@ class C
 {
     public void M()
     {
-        Func<int, int> func1 = (x!) => x;
+        Func<string, string> func1 = (x!) => x;
     }
 }";
             var tree = Parse(source);
@@ -406,13 +411,13 @@ class C
 {
     public void M()
     {
-        Func<int, int> func1 = x!=> x;
+        Func<string, string> func1 = x!=> x;
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                    // (7,33): error CS8713: Space required between '!' and '=' here.
+                    // (7,39): error CS8713: Space required between '!' and '=' here.
                     //         Func<int, int> func1 = x!=> x;
-                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(7, 33));
+                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(7, 39));
         }
 
         [Fact]
@@ -424,7 +429,7 @@ class C
 {
     public void M()
     {
-        Func<int, int> func1 = (int x!) => x;
+        Func<string, string> func1 = (string x!) => x;
     }
 }";
             var tree = Parse(source);
@@ -451,7 +456,7 @@ class C
 {
     public void M()
     {
-        Func<int, int, int> func1 = (int x!, int y) => x;
+        Func<string, string, string> func1 = (string x!, string y) => x;
     }
 }";
             var tree = Parse(source);
@@ -479,7 +484,7 @@ class C
 {
     public void M()
     {
-        Func<int, int, int> func1 = (int x!, int y!) => x;
+        Func<string, string, string> func1 = (string x!, string y!) => x;
     }
 }";
             var tree = Parse(source);
@@ -507,7 +512,7 @@ class C
 {
     public void M()
     {
-        Func<int, int> func1 = (_!) => 42;
+        Func<string, int> func1 = (_!) => 42;
     }
 }";
             var tree = Parse(source);
@@ -539,9 +544,9 @@ class C
 }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                    // (5,31): error CS8720: By-reference parameter 'out string x!' cannot be null-checked.
+                    // (5,31): error CS8720: By-reference parameter 'x' cannot be null-checked.
                     //     public void M(out string x!)
-                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!").WithArguments("out string x!").WithLocation(5, 31));
+                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!").WithArguments("x").WithLocation(5, 31));
         }
 
         [Fact]
@@ -558,9 +563,9 @@ class C
 }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                    // (5,31): error CS8720: By-reference parameter 'ref string x!' cannot be null-checked.
+                    // (5,31): error CS8720: By-reference parameter 'x' cannot be null-checked.
                     //     public void M(ref string x!)
-                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!").WithArguments("ref string x!").WithLocation(5, 31));
+                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!").WithArguments("x").WithLocation(5, 31));
         }
 
         [Fact]
@@ -574,9 +579,9 @@ class C
 }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                    // (5,30): error CS8720: By-reference parameter 'in string x!' cannot be null-checked.
-                    //     public void M(in string x!)
-                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!").WithArguments("in string x!").WithLocation(5, 30));
+                    // (5,30): error CS8720: By-reference parameter 'x' cannot be null-checked.
+                    //     public void M(in string x!) { }
+                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!").WithArguments("x").WithLocation(5, 30));
         }
 
         [Fact]
