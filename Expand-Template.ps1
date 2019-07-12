@@ -128,10 +128,12 @@ try {
         "(?m)^.*\[codecov\].*`r?`n"=""
     }
 
-    # Specially handle azure-pipelines.yml edits
-    $YmlReplacements = @{
+    # Specially handle azure-pipelines .yml edits
+    Replace-Placeholders -Path "azure-pipelines/build.yml" -Replacements @{
         "(?m).*expand-template\.yml(?:\r)?\n" = ""
     }
+
+    $YmlReplacements = @{}
     if ($CodeCovToken) {
         $YmlReplacements['(codecov_token: ).*(#.*)'] = "`$1$CodeCovToken"
     } else {

@@ -18,45 +18,4 @@ variables:
   ci_feed: /a5a3bad0-e566-4c53-be83-6458be8d1653 # find guid used by Azure DevOps Artifacts for the feed
 
 jobs:
-- job: Windows
-  pool: Hosted Windows 2019 with VS2019
-  steps:
-  - template: azure-pipelines/install-dependencies.yml
-
-  - powershell: |
-      dotnet tool install --tool-path .. nbgv --ignore-failed-sources
-      ../nbgv cloud
-    displayName: Set build number
-    workingDirectory: src
-
-  - template: azure-pipelines/dotnet.yml
-  - template: azure-pipelines/expand-template.yml
-
-- job: Linux
-  pool:
-    vmImage: Ubuntu 16.04
-  steps:
-  - template: azure-pipelines/install-dependencies.yml
-  - template: azure-pipelines/dotnet.yml
-  - template: azure-pipelines/expand-template.yml
-
-- job: macOS
-  pool:
-    vmImage: macOS 10.13
-  steps:
-  - template: azure-pipelines/install-dependencies.yml
-  - template: azure-pipelines/dotnet.yml
-  - template: azure-pipelines/expand-template.yml
-
-- job: WrapUp
-  dependsOn:
-  - Windows
-  - Linux
-  - macOS
-  pool:
-    vmImage: Ubuntu 16.04
-  condition: succeededOrFailed()
-  steps:
-  - template: azure-pipelines/install-dependencies.yml
-  - template: azure-pipelines/publish-codecoverage.yml
-  - template: azure-pipelines/publish-deployables.yml
+- template: azure-pipelines/build.yml
