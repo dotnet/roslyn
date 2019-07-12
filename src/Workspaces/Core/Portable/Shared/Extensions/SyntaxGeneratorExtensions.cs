@@ -258,7 +258,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // already declared as nullable to indicate that null is ok.  Adding a null check
             // just disallows something that should be allowed.
             var shouldAddNullCheck = addNullChecks && parameter.Type.CanAddNullCheck() && !parameter.Type.IsNullable();
-            if (shouldAddNullCheck && preferThrowExpression)
+
+            // Throw expressions are not supported in VB, so even if they are preferred we can't
+            // correctly generate one
+            var useThrowExpression = preferThrowExpression && semanticModel.Language != LanguageNames.VisualBasic;
+            
+            if (shouldAddNullCheck && useThrowExpression)
             {
                 // Generate: this.x = x ?? throw ...
                 assignStatements.Add(CreateAssignWithNullCheckStatement(
