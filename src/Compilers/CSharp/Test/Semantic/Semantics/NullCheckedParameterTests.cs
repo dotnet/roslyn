@@ -247,12 +247,6 @@ class C
                     // (4,27): warning CS8719: Parameter 'string' is null-checked but is null by default.
                     //     void M(string name! = null) { }
                     Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "null").WithArguments("string").WithLocation(4, 27));
-
-            comp.VerifyEmitDiagnostics(
-                    // (4,27): warning CS8719: Parameter 'string' is null-checked but is null by default.
-                    //     void M(string name! = null) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "null").WithArguments("string").WithLocation(4, 27));
-
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
             Assert.True(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
         }
