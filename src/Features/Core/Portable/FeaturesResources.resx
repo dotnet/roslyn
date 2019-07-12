@@ -1589,6 +1589,15 @@ This version used in: {2}</value>
   <data name="Use_expression_body_for_local_functions" xml:space="preserve">
     <value>Use expression body for local functions</value>
   </data>
+  <data name="Unwrap_call_chain" xml:space="preserve">
+    <value>Unwrap call chain</value>
+  </data>
+  <data name="Wrap_call_chain" xml:space="preserve">
+    <value>Wrap call chain</value>
+  </data>
+  <data name="Wrap_long_call_chain" xml:space="preserve">
+    <value>Wrap long call chain</value>
+  </data>
   <data name="Pull_0_up_to_1" xml:space="preserve">
     <value>Pull '{0}' up to '{1}'</value>
   </data>
@@ -1683,5 +1692,11 @@ This version used in: {2}</value>
   </data>
   <data name="DisposableFieldsShouldBeDisposedDescription" xml:space="preserve">
     <value>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</value>
+  </data>
+  <data name="Wrap_and_align_call_chain" xml:space="preserve">
+    <value>Wrap and align call chain</value>
+  </data>
+  <data name="Wrap_and_align_long_call_chain" xml:space="preserve">
+    <value>Wrap and align long call chain</value>
   </data>
 </root>

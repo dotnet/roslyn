@@ -36,7 +36,7 @@ stages:
             /p:BlobBasePath='$(Build.ArtifactStagingDirectory)/BlobArtifacts/'
             /p:Configuration=Release
 
-  - job:
+  - job: publish_assets
     displayName: Publish Assets
     dependsOn: setupMaestroVars
     variables:
@@ -111,7 +111,10 @@ stages:
             -PersonalAccessToken $(dn-bot-dnceng-unviersal-packages-rw)
         enabled: false
 
-
+      - template: ../trigger-subscription.yml
+        parameters:
+          ChannelId: ${{ variables.InternalServicing_30_Channel_Id }}
+        
 - stage: IS_PublishValidation
   displayName: Publish Validation
   variables:

@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.VisualStudio.Text;
 using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
+using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
+using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
         }
 
-        internal static bool IsFilterCharacter(CompletionItem item, char ch, string textTypedSoFar)
+        internal static bool IsFilterCharacter(RoslynCompletionItem item, char ch, string textTypedSoFar)
         {
             // First see if the item has any specific filter rules it wants followed.
             foreach (var rule in item.Rules.FilterCharacterRules)
@@ -110,5 +112,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             return false;
         }
+
+        // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
+        // We expect that Editor will intorduce this support and we will get rid of relying on the "★" then.
+        internal static bool IsPreferredItem(this RoslynCompletionItem completionItem)
+            => completionItem.DisplayText.StartsWith("★");
+
+        // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
+        // We expect that Editor will intorduce this support and we will get rid of relying on the "★" then.
+        internal static bool IsPreferredItem(this VSCompletionItem completionItem)
+            => completionItem.DisplayText.StartsWith("★");
     }
 }

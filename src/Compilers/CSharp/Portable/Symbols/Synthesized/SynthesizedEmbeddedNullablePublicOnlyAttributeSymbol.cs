@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol(
             CSharpCompilation compilation,
             DiagnosticBag diagnostics)
-            : base(AttributeDescription.NullablePublicOnlyAttribute, compilation, diagnostics)
+            : base(AttributeDescription.NullablePublicOnlyAttribute, compilation, diagnostics, includeAttributeUsageAttribute: true)
         {
             var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
             Binder.ReportUseSiteDiagnostics(boolType, diagnostics, Location.None);
@@ -43,6 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit() => _fields;
 
         public override ImmutableArray<MethodSymbol> Constructors => _constructors;
+
+        internal override AttributeUsageInfo GetAttributeUsageInfo()
+        {
+            return new AttributeUsageInfo(AttributeTargets.Module, allowMultiple: false, inherited: false);
+        }
 
         private void GenerateConstructorBody(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, ImmutableArray<ParameterSymbol> parameters)
         {

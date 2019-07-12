@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedEmbeddedNullableAttributeSymbol(
             CSharpCompilation compilation,
             DiagnosticBag diagnostics)
-            : base(AttributeDescription.NullableAttribute, compilation, diagnostics)
+            : base(AttributeDescription.NullableAttribute, compilation, diagnostics, includeAttributeUsageAttribute: true)
         {
             var byteType = TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Byte));
             _byteTypeSymbol = byteType.Type;
@@ -62,6 +62,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit() => _fields;
 
         public override ImmutableArray<MethodSymbol> Constructors => _constructors;
+
+        internal override AttributeUsageInfo GetAttributeUsageInfo()
+        {
+            return new AttributeUsageInfo(
+                AttributeTargets.Class | AttributeTargets.Event | AttributeTargets.Field | AttributeTargets.GenericParameter | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue,
+                allowMultiple: false,
+                inherited: false);
+        }
 
         private void GenerateByteArrayConstructorBody(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, ImmutableArray<ParameterSymbol> parameters)
         {
