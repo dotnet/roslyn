@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -31,13 +32,12 @@ namespace Microsoft.CodeAnalysis
                 var arity = reader.ReadInteger();
 
                 using var typeArguments = reader.ReadSymbolArray<ITypeSymbol>();
-                using var errorTypes = ResolveErrorTypes(reader, containingSymbolResolution, name, arity);
-
                 if (typeArguments.Count != arity)
                 {
                     return default;
                 }
 
+                using var errorTypes = CreateErrorTypes(reader, containingSymbolResolution, name, arity);
                 if (arity == 0)
                 {
                     return CreateSymbolInfo(errorTypes);
@@ -53,25 +53,24 @@ namespace Microsoft.CodeAnalysis
                 return CreateSymbolInfo(result);
             }
 
-            private static PooledArrayBuilder<INamedTypeSymbol> ResolveErrorTypes(
+            private static PooledArrayBuilder<INamedTypeSymbol> CreateErrorTypes(
                 SymbolKeyReader reader,
                 SymbolKeyResolution containingSymbolResolution, string name, int arity)
             {
                 var errorTypes = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
 
-                if (containingSymbolResolution.GetAnySymbol() == null)
+                foreach (var container in containingSymbolResolution)
+                {
+                    if (container is INamespaceOrTypeSymbol containerTypeOrNS)
+                    {
+                        errorTypes.AddIfNotNull(reader.Compilation.CreateErrorTypeSymbol(containerTypeOrNS, name, arity));
+                    }
+                }
+
+                // Always ensure at least one error type was created.
+                if (errorTypes.Count == 0)
                 {
                     errorTypes.AddIfNotNull(reader.Compilation.CreateErrorTypeSymbol(null, name, arity));
-                }
-                else
-                {
-                    foreach (var container in containingSymbolResolution)
-                    {
-                        if (container is INamespaceOrTypeSymbol containerTypeOrNS)
-                        {
-                            errorTypes.AddIfNotNull(reader.Compilation.CreateErrorTypeSymbol(containerTypeOrNS, name, arity));
-                        }
-                    }
                 }
 
                 return errorTypes;
