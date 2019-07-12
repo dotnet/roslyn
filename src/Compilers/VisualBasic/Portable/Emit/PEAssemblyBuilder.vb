@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection
-Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -45,9 +44,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Debug.Assert(sourceAssembly IsNot Nothing)
             Debug.Assert(manifestResources IsNot Nothing)
 
-            Me.m_SourceAssembly = sourceAssembly
-            Me._additionalTypes = additionalTypes.NullToEmpty()
-            Me._metadataName = If(emitOptions.OutputNameOverride Is Nothing, sourceAssembly.MetadataName, FileNameUtilities.ChangeExtension(emitOptions.OutputNameOverride, extension:=Nothing))
+            m_SourceAssembly = sourceAssembly
+            _additionalTypes = additionalTypes.NullToEmpty()
+            _metadataName = If(emitOptions.OutputNameOverride Is Nothing, sourceAssembly.MetadataName, FileNameUtilities.ChangeExtension(emitOptions.OutputNameOverride, extension:=Nothing))
             m_AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, Me)
         End Sub
 
@@ -57,8 +56,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Friend Overrides Function GetAdditionalTopLevelTypes() As ImmutableArray(Of NamedTypeSymbol)
-            Return Me._additionalTypes
+        Public Overrides Function GetAdditionalTopLevelTypes(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+            Return _additionalTypes
+        End Function
+
+        Public Overrides Function GetEmbeddedTypes(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+            Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
         Public NotOverridable Overrides Function GetFiles(context As EmitContext) As IEnumerable(Of Cci.IFileReference)
@@ -135,13 +138,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Public ReadOnly Property Identity As AssemblyIdentity Implements IAssemblyReference.Identity
+        Public ReadOnly Property Identity As AssemblyIdentity Implements Cci.IAssemblyReference.Identity
             Get
                 Return m_SourceAssembly.Identity
             End Get
         End Property
 
-        Public ReadOnly Property AssemblyVersionPattern As Version Implements IAssemblyReference.AssemblyVersionPattern
+        Public ReadOnly Property AssemblyVersionPattern As Version Implements Cci.IAssemblyReference.AssemblyVersionPattern
             Get
                 Return m_SourceAssembly.AssemblyVersionPattern
             End Get

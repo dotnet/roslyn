@@ -2460,21 +2460,6 @@ Questa versione è usata {2}</target>
         <target state="translated">Aggiungi il nome di argomento '{0}' (inclusi gli argomenti finali)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Using_readonly_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly structs will prevent the debug session from continuing.</source>
-        <target state="translated">Se si usano struct di sola lettura, la sessione di debug non potrà continuare.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_ref_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using ref structs will prevent the debug session from continuing.</source>
-        <target state="translated">Se si usano struct ref, la sessione di debug non potrà continuare.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_readonly_references_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly references will prevent the debug session from continuing.</source>
-        <target state="translated">Se si usano riferimenti di sola lettura, la sessione di debug non potrà continuare.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="local_function">
         <source>local function</source>
         <target state="translated">funzione locale</target>

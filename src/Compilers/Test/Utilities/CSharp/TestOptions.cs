@@ -98,6 +98,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return options;
         }
 
+        public static CSharpParseOptions WithNullablePublicOnly(this CSharpParseOptions options)
+        {
+            return options.WithFeature("nullablePublicOnly");
+        }
+
         public static CSharpParseOptions WithFeature(this CSharpParseOptions options, string feature, string value = "true")
         {
             return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>(feature, value) }));

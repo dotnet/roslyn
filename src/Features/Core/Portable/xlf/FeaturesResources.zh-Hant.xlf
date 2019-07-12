@@ -2460,21 +2460,6 @@ This version used in: {2}</source>
         <target state="translated">新增引數名稱 '{0}' (包括結尾的引數)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Using_readonly_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly structs will prevent the debug session from continuing.</source>
-        <target state="translated">使用唯讀結構會阻礙偵錯工作階段繼續進行。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_ref_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using ref structs will prevent the debug session from continuing.</source>
-        <target state="translated">使用 ref struct 會阻礙偵錯工作階段繼續進行。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_readonly_references_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly references will prevent the debug session from continuing.</source>
-        <target state="translated">使用唯讀參考會阻礙偵錯工作階段繼續進行。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="local_function">
         <source>local function</source>
         <target state="translated">區域函式</target>

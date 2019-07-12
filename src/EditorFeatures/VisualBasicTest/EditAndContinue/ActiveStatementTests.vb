@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public Class ActiveStatementTests
-        Inherits RudeEditTestBase
+        Inherits EditingTestBase
 
         <Fact>
         Public Sub Update_Inner()
