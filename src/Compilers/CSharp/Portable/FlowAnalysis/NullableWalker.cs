@@ -3541,7 +3541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (maybeNullWhenTrue && !(maybeNullWhenFalse && notNullWhenTrue))
                 {
-                    // [MaybeNull, NotNullwhen(true)] means [MaybeNullWhen(false)]
+                    // [MaybeNull, NotNullWhen(true)] means [MaybeNullWhen(false)]
                     return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeNull);
                 }
                 else if (notNullWhenTrue)
@@ -3560,7 +3560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (maybeNullWhenFalse && !(maybeNullWhenTrue && notNullWhenFalse))
                 {
-                    // [MaybeNull, NotNullwhen(false)] means [MaybeNullWhen(true)]
+                    // [MaybeNull, NotNullWhen(false)] means [MaybeNullWhen(true)]
                     return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeNull);
                 }
                 else if (notNullWhenFalse)
