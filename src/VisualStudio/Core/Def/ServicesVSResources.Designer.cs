@@ -470,11 +470,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Build + Live Analysis (NuGet Package).
+        ///   Looks up a localized string similar to Build + live analysis (NuGet package).
         /// </summary>
-        internal static string Build_plus_Live_Analysis_NuGet_Package {
+        internal static string Build_plus_live_analysis_NuGet_package {
             get {
-                return ResourceManager.GetString("Build_plus_Live_Analysis_NuGet_Package", resourceCulture);
+                return ResourceManager.GetString("Build_plus_live_analysis_NuGet_package", resourceCulture);
             }
         }
         
@@ -1351,7 +1351,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Install Microsoft recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues.
+        ///   Looks up a localized string similar to Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues.
         /// </summary>
         internal static string Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues {
             get {
@@ -1480,11 +1480,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Live Analysis (VSIX Extension).
+        ///   Looks up a localized string similar to Live analysis (VSIX extension).
         /// </summary>
-        internal static string Live_Analysis_VSIX_Extension {
+        internal static string Live_analysis_VSIX_extension {
             get {
-                return ResourceManager.GetString("Live_Analysis_VSIX_Extension", resourceCulture);
+                return ResourceManager.GetString("Live_analysis_VSIX_extension", resourceCulture);
             }
         }
         

@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         {
             // Candidates fill the following critera:
             //     1: Are a Dotnet user (as evidenced by the fact that this code is being run)
-            //     2: Have triggered a lightbulb on 3 separate days
+            //     2: Have triggered a lightbulb on 3 separate days or if this is a code quality suggested action.
 
             // If the user hasn't met candidacy conditions, then we check them. Otherwise, proceed
             // to info bar check
@@ -180,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     var usageCount = options.GetOption(FxCopAnalyzersInstallOptions.UsedSuggestedActionCount);
                     options = options.WithChangedOption(FxCopAnalyzersInstallOptions.UsedSuggestedActionCount, ++usageCount);
 
-                    // Candidate if user has invoked the light bulb 3 times, or if this is a code quality suggested action.
+                    // Candidate if user has invoked the light bulb 3 times or if this is a code quality suggested action.
                     if (usageCount >= 3 || action.IsForCodeQualityImprovement)
                     {
                         isCandidate = true;
@@ -226,7 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 {
                     // Open NuGet package manager with FxCopAnalyzers search string
                     yield return new InfoBarUI(
-                        title: ServicesVSResources.Build_plus_Live_Analysis_NuGet_Package,
+                        title: ServicesVSResources.Build_plus_live_analysis_NuGet_package,
                         kind: InfoBarUI.UIKind.HyperLink,
                         action: OpenNuGetPackageManagerHyperlink,
                         closeAfterAction: false);
@@ -234,7 +234,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
                 // FxCop Analyzers VSIX install link
                 yield return new InfoBarUI(
-                    title: ServicesVSResources.Live_Analysis_VSIX_Extension,
+                    title: ServicesVSResources.Live_analysis_VSIX_extension,
                     kind: InfoBarUI.UIKind.HyperLink,
                     action: OpenVSIXInstallHyperlink,
                     closeAfterAction: false);
