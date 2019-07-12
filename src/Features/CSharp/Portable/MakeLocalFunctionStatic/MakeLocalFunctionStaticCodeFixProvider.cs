@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixes.CodeQuality;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -15,7 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeLocalFunctionStaticCodeFixProvider)), Shared]
-    internal class MakeLocalFunctionStaticCodeFixProvider : SyntaxEditorBasedCodeQualityCodeFixProvider
+    internal class MakeLocalFunctionStaticCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
         public MakeLocalFunctionStaticCodeFixProvider()
@@ -24,6 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.MakeLocalFunctionStaticDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
