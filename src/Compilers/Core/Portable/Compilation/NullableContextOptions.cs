@@ -14,18 +14,18 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The nullable analysis feature is disabled.
         /// </summary>
-        Disable = 0b00,
+        Disable = 0,
 
         /// <summary>
         /// Nullable warnings are enabled and will be reported by default.
         /// </summary>
-        Warnings = 0b01,
+        Warnings = 1,
 
         /// <summary>
         /// Nullable annotations are enabled and will be shown when APIs
         /// defined in this project are used in other contexts.
         /// </summary>
-        Annotations = 0b10,
+        Annotations = 1 << 1,
 
         /// <summary>
         /// The nullable analysis feature is fully enabled.
