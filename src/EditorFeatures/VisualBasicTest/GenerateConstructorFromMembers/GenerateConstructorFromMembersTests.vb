@@ -362,7 +362,7 @@ End Class", chosenSymbols:={"i"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
-        Public Async Function TestWithDialog1WithNullCHeck() As Task
+        Public Async Function TestWithDialog1WithNullCheck() As Task
             Dim options = New Dictionary(Of OptionKey, Object)
             options(New OptionKey(GenerateConstructorFromMembersOptions.AddNullChecks, language:=LanguageNames.VisualBasic)) = True
 
@@ -374,10 +374,16 @@ End Class", chosenSymbols:={"i"})
     Private s As String
     [||]
 End Class",
-"Class Program
+"Imports System
+
+Class Program
     Private s As String
 
     Public Sub New(s As String{|Navigation:)|}
+        If s Is Nothing Then
+            Throw New ArgumentNullException(NameOf(s))
+        End If
+
         Me.s = s
     End Sub
 End Class", chosenSymbols:={"s"}, parameters:=parameters)
