@@ -1824,7 +1824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsInHeader(node, containingMethod, containingMethod.ParameterList);
         }
 
-        public bool IsInLocalFunctionHeader(SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        public bool IsInLocalFunctionHeader(SyntaxNode node)
         {
             var containingLocalFunction = node.GetAncestorOrThis<LocalFunctionStatementSyntax>();
             if (containingLocalFunction == null)
@@ -1832,7 +1832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return syntaxFacts.IsInHeader(node, containingLocalFunction, containingLocalFunction.ParameterList);
+            return IsInHeader(node, containingLocalFunction, containingLocalFunction.ParameterList);
         }
 
         public bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position)

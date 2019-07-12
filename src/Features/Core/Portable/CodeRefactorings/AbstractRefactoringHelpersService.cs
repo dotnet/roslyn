@@ -362,10 +362,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 foreach (var headerNode in ExtractNodesOfHeader(node, syntaxFacts))
                 {
                     yield return headerNode;
-                    foreach (var extractedNode in ExtractNodesSimple(headerNode, syntaxFacts))
-                    {
-                        yield return extractedNode;
-                    }
                 }
             }
         }
@@ -403,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             // var `a = b`;
             // -> `var a = b`;
-            if (node.Parent != null && syntaxFacts.IsLocalDeclarationStatement(node.Parent))
+            if (syntaxFacts.IsLocalDeclarationStatement(node?.Parent))
             {
                 // Check if there's only one variable being declared, otherwise following transformation
                 // would go through which isn't reasonable. If there's specifically selected just one, 
@@ -446,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
 
             // Header: `static C([Test]int a = 42)` {}
-            if (syntaxFacts.IsInLocalFunctionHeader(node, syntaxFacts))
+            if (syntaxFacts.IsInLocalFunctionHeader(node))
             {
                 yield return node.GetAncestorOrThis<TLocalFunctionStatementSyntax>();
             }

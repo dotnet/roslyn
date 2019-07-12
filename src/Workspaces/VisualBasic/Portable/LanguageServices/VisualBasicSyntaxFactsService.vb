@@ -1785,7 +1785,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return IsInHeader(node, method, method)
         End Function
 
-        Public Function IsInLocalFunctionHeader(node As SyntaxNode, syntaxFacts As ISyntaxFactsService) As Boolean Implements ISyntaxFactsService.IsInLocalFunctionHeader
+        Public Function IsInLocalFunctionHeader(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInLocalFunctionHeader
             ' No local functions in VisualBasic
             Return False
         End Function
