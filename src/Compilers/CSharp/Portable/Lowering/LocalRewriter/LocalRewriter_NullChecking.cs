@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 paramIsNullCondition = factory.MakeNullCheck(loweredLeft.Syntax, loweredLeft, BinaryOperatorKind.Equal);
             }
 
-            ImmutableArray<BoundExpression> exceptionName = ImmutableArray.Create(factory.StringLiteral(parameter.Name));
+            var exceptionName = ImmutableArray.Create<BoundExpression>(factory.StringLiteral(parameter.Name));
             BoundObjectCreationExpression ex = factory.New(factory.WellKnownMethod(WellKnownMember.System_ArgumentNullException__ctorString), exceptionName);
             BoundThrowStatement throwArgNullStatement = factory.Throw(ex);
 
