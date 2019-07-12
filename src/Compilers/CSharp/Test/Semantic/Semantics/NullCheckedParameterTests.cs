@@ -608,7 +608,6 @@ class C
         [Fact]
         public void TestNullableInteraction()
         {
-            // PROTOTYPE : Add warning about combining explicit null checking with a nullable
             var source = @"
 class C
 {
