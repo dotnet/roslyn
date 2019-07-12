@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers;
+using Test.Utilities;
 using Xunit;
 
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
@@ -2138,6 +2139,105 @@ End Class";
 
             await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
                 GetBasicResultAt(3, 24, "N1.C1", "N2"));
+        }
+
+        [Fact]
+        [WorkItem(2655, "https://github.com/dotnet/roslyn-analyzers/issues/2655")]
+        public async Task CSharp_IVT_RestrictedIVT_InternalOperators_Diagnostic()
+        {
+            var apiProviderSource = @"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
+[assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
+
+namespace N1
+{
+    internal class C
+    {
+        public static implicit operator C(int i) => new C();
+        public static explicit operator C(float f) => new C();
+        public static C operator +(C c, int i) => c;
+        public static C operator ++(C c) => c;
+        public static C operator -(C c) => c;
+    }
+}";
+
+            var apiConsumerSource = @"
+using N1;
+class C2
+{
+    void M()
+    {
+        C c = 0;        // implicit conversion.
+        c = (C)1.0f;    // Explicit conversion.
+        c = c + 1;      // Binary operator.
+        c++;            // Increment or decrement.
+        c = -c;         // Unary operator.
+    }
+}";
+
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
+                GetCSharpResultAt(7, 9, "N1.C", "N2"),
+                GetCSharpResultAt(7, 15, "N1.C.implicit operator N1.C", "N2"),
+                GetCSharpResultAt(8, 13, "N1.C.explicit operator N1.C", "N2"),
+                GetCSharpResultAt(8, 14, "N1.C", "N2"),
+                GetCSharpResultAt(9, 13, "N1.C.operator +", "N2"),
+                GetCSharpResultAt(10, 9, "N1.C.operator ++", "N2"),
+                GetCSharpResultAt(11, 13, "N1.C.operator -", "N2"));
+        }
+
+        [Fact]
+        [WorkItem(2655, "https://github.com/dotnet/roslyn-analyzers/issues/2655")]
+        public async Task CSharp_IVT_RestrictedIVT_TypeArgumentUsage_Diagnostic()
+        {
+            var apiProviderSource = @"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
+[assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
+
+namespace N1
+{
+    internal struct C {}
+}";
+
+            var apiConsumerSource = @"
+using N1;
+namespace N2
+{
+    class G<T>
+    {
+        class N<U>
+        { }
+
+        unsafe void M()
+        {
+            var b = new G<C>();
+            var c = new G<C>.N<int>();
+            var d = new G<int>.N<C>();
+            var e = new G<G<int>.N<C>>.N<int>();
+            var f = new G<G<C>.N<int>>.N<int>();
+            var g = new C[42];
+            var h = new G<C[]>();
+            fixed (C* i = &g[0]) { }
+        }
+    }
+}";
+
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
+                // Test0.cs(12,27): error RS0035: External access to internal symbol 'N1.C' is prohibited. Assembly 'ApiProviderProjectName' only allows access to internal symbols defined in the following namespace(s): 'N2'
+                GetCSharpResultAt(12, 27, "N1.C", "N2"),
+                // Test0.cs(13,27): error RS0035: External access to internal symbol 'N1.C' is prohibited. Assembly 'ApiProviderProjectName' only allows access to internal symbols defined in the following namespace(s): 'N2'
+                GetCSharpResultAt(13, 27, "N1.C", "N2"),
+                // Test0.cs(14,34): error RS0035: External access to internal symbol 'N1.C' is prohibited. Assembly 'ApiProviderProjectName' only allows access to internal symbols defined in the following namespace(s): 'N2'
+                GetCSharpResultAt(14, 34, "N1.C", "N2"),
+                // Test0.cs(15,36): error RS0035: External access to internal symbol 'N1.C' is prohibited. Assembly 'ApiProviderProjectName' only allows access to internal symbols defined in the following namespace(s): 'N2'
+                GetCSharpResultAt(15, 36, "N1.C", "N2"),
+                // Test0.cs(16,29): error RS0035: External access to internal symbol 'N1.C' is prohibited. Assembly 'ApiProviderProjectName' only allows access to internal symbols defined in the following namespace(s): 'N2'
+                GetCSharpResultAt(16, 29, "N1.C", "N2"),
+                // Test0.cs(17,25): error RS0035: External access to internal symbol 'N1.C' is prohibited. Assembly 'ApiProviderProjectName' only allows access to internal symbols defined in the following namespace(s): 'N2'
+                GetCSharpResultAt(17, 25, "N1.C", "N2"),
+                // Test0.cs(18,27): error RS0035: External access to internal symbol 'N1.C' is prohibited. Assembly 'ApiProviderProjectName' only allows access to internal symbols defined in the following namespace(s): 'N2'
+                GetCSharpResultAt(18, 27, "N1.C", "N2"),
+                // Test0.cs(19,20): error RS0035: External access to internal symbol 'N1.C' is prohibited. Assembly 'ApiProviderProjectName' only allows access to internal symbols defined in the following namespace(s): 'N2'
+                GetCSharpResultAt(19, 20, "N1.C", "N2"));
         }
     }
 }

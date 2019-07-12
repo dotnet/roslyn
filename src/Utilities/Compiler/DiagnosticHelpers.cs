@@ -92,19 +92,22 @@ namespace Analyzer.Utilities
             Debug.Assert(enumType.TypeKind == TypeKind.Enum);
 
             values = new List<ulong>();
-            foreach (IFieldSymbol field in enumType.GetMembers().Where(m => m.Kind == SymbolKind.Field && !m.IsImplicitlyDeclared))
+            foreach (var member in enumType.GetMembers())
             {
-                if (!field.HasConstantValue)
+                if (!member.IsImplicitlyDeclared && member is IFieldSymbol field)
                 {
-                    return false;
-                }
+                    if (!field.HasConstantValue)
+                    {
+                        return false;
+                    }
 
-                if (!TryConvertToUInt64(field.ConstantValue, enumType.EnumUnderlyingType.SpecialType, out ulong convertedValue))
-                {
-                    return false;
-                }
+                    if (!TryConvertToUInt64(field.ConstantValue, enumType.EnumUnderlyingType.SpecialType, out ulong convertedValue))
+                    {
+                        return false;
+                    }
 
-                values.Add(convertedValue);
+                    values.Add(convertedValue);
+                }
             }
 
             return true;

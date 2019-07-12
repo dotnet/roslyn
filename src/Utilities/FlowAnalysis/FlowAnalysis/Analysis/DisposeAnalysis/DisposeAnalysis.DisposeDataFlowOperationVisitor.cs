@@ -40,11 +40,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 }
             }
 
-            public override int GetHashCode()
-            {
-                return HashUtilities.Combine(_trackedInstanceFieldLocationsOpt.GetHashCodeOrDefault(), base.GetHashCode());
-            }
-
             public ImmutableDictionary<IFieldSymbol, PointsToAbstractValue> TrackedInstanceFieldPointsToMap
             {
                 get

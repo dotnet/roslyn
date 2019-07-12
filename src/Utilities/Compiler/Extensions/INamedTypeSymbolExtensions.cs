@@ -124,9 +124,7 @@ namespace Analyzer.Utilities.Extensions
         public static bool HasFinalizer(this INamedTypeSymbol symbol)
         {
             return symbol.GetMembers()
-                .Where(m => m.Kind == SymbolKind.Method)
-                .Cast<IMethodSymbol>()
-                .Any(m => m.IsFinalizer());
+                .Any(m => m is IMethodSymbol method && method.IsFinalizer());
         }
 
         /// <summary>
@@ -166,9 +164,28 @@ namespace Analyzer.Utilities.Extensions
                 return false;
             }
 
-            IEnumerable<ISymbol> declaredMembers = symbol.GetMembers().Where(m => !m.IsImplicitlyDeclared);
+            // Same as
+            // return declaredMembers.Any(IsQualifyingMember) && !declaredMembers.Any(IsDisqualifyingMember);
+            // but with less enumerations
+            var hasQualifyingMembers = false;
+            foreach (var member in symbol.GetMembers())
+            {
+                if (!member.IsImplicitlyDeclared)
+                {
+                    if (!hasQualifyingMembers && IsQualifyingMember(member))
+                    {
+                        hasQualifyingMembers = true;
+                    }
 
-            return declaredMembers.Any(IsQualifyingMember) && !declaredMembers.Any(IsDisqualifyingMember);
+                    if (IsDisqualifyingMember(member))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+
+            return hasQualifyingMembers;
         }
 
         /// <summary>
