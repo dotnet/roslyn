@@ -609,6 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (parameter.IsNullChecked)
             {
+                Location location = parameter.Locations.FirstOrNone();
                 if (Binder.GetWellKnownTypeMember(parameter.DeclaringCompilation, WellKnownMember.System_ArgumentNullException__ctorString, out DiagnosticInfo diag) is null)
                 {
                     diagnostics.Add(diag, parameter.Locations.FirstOrNone());
@@ -618,17 +619,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (!parameter.Type.IsNullableTypeOrTypeParameter())
                     {
-                        diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, parameter.Locations.FirstOrNone(), parameter);
+                        diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, location, parameter);
                     }
                     else
                     {
-                        diagnostics.Add(ErrorCode.WRN_NullCheckingOnNullableValueType, parameter.Locations.FirstOrNone(), parameter);
+                        diagnostics.Add(ErrorCode.WRN_NullCheckingOnNullableValueType, location, parameter);
                     }
                 }
-            }
-            if (isLambdaOrLocalFunction && parameter.ExplicitDefaultConstantValue?.IsNull == true)
-            {
-                diagnostics.Add(ErrorCode.WRN_NullCheckedHasDefaultNull, parameter.Locations.FirstOrNone(), parameter.Name);
+                if (isLambdaOrLocalFunction && parameter.ExplicitDefaultConstantValue?.IsNull == true)
+                {
+                    diagnostics.Add(ErrorCode.WRN_NullCheckedHasDefaultNull, location, parameter.Name);
+                }
             }
         }
     }
