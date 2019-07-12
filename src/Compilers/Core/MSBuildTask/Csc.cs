@@ -153,28 +153,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set
             {
-                // We merge values into Nullable, prioritizing Nullable value over NullableContextOptions value
                 if (!string.IsNullOrEmpty(value))
                 {
                     _store[nameof(Nullable)] = value;
                 }
             }
             get { return (string)_store[nameof(Nullable)]; }
-        }
-
-        [Obsolete("This property will be removed. Please use 'Nullable' instead")]
-        public string NullableContextOptions
-        {
-            // This property should be removed. https://github.com/dotnet/roslyn/issues/35788
-            set
-            {
-                // We merge values into Nullable, prioritizing Nullable value over NullableContextOptions value
-                if (string.IsNullOrEmpty(Nullable))
-                {
-                    Nullable = value;
-                }
-            }
-            get { return Nullable; }
         }
 
         #endregion
