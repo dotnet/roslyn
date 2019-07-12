@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private TypeSymbol InferResultType(ImmutableArray<BoundSwitchExpressionArm> switchCases, DiagnosticBag diagnostics)
         {
-            var seenTypes = PooledHashSet<TypeSymbol>.GetInstance();
+            var seenTypes = new HashSet<TypeSymbol>(SymbolEqualityComparer.ConsiderEverything);
             var typesInOrder = ArrayBuilder<TypeSymbol>.GetInstance();
             foreach (var @case in switchCases)
             {
@@ -134,7 +134,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var commonType = BestTypeInferrer.GetBestType(typesInOrder, Conversions, ref useSiteDiagnostics);
             diagnostics.Add(SwitchExpressionSyntax, useSiteDiagnostics);
-            seenTypes.Free();
             return commonType;
         }
 

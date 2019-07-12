@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _cache ?? (_cache = new SmallDictionary<NamedTypeSymbol, bool>());
+                return _cache ?? (_cache = new SmallDictionary<NamedTypeSymbol, bool>(SymbolEqualityComparer.ConsiderEverything));
             }
         }
 

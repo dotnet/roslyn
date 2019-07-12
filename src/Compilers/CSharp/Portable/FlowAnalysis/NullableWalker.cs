@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool createSnapshots,
             out SnapshotManager snapshotManager)
         {
-            var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>();
+            var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>(EqualityComparer<BoundExpression>.Default, new NullableWalker.NullabilityInfoTypeComparer());
             var updatedMethodSymbols = ImmutableDictionary.CreateBuilder<BoundCall, MethodSymbol>();
             var methodSymbol = symbol as MethodSymbol;
             // Attributes don't have a symbol, which is what SnapshotBuilder uses as an index for maintaining global state.
@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool takeNewSnapshots,
             out SnapshotManager newSnapshots)
         {
-            var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>();
+            var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>(EqualityComparer<BoundExpression>.Default, new NullableWalker.NullabilityInfoTypeComparer()); //TODO: this. Bleeugggh
             var updatedMethodSymbols = ImmutableDictionary.CreateBuilder<BoundCall, MethodSymbol>();
             var newSnapshotBuilder = takeNewSnapshots ? new SnapshotManager.Builder() : null;
             var (walker, initialState, symbol) = originalSnapshots.RestoreWalkerToAnalyzeNewNode(position, node, binder, analyzedNullabilities, updatedMethodSymbols, newSnapshotBuilder);
@@ -4179,7 +4179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static Symbol AsMemberOfTupleType(TupleTypeSymbol tupleType, Symbol symbol)
         {
-            if (symbol.ContainingType.Equals(tupleType))
+            if (symbol.ContainingType.Equals(tupleType, SymbolEqualityComparer.ConsiderEverything))
             {
                 return symbol;
             }
@@ -7377,6 +7377,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Append(_state[i] ? '?' : '!');
 
                 return pooledBuilder.ToStringAndFree();
+            }
+        }
+
+        internal sealed class NullabilityInfoTypeComparer : IEqualityComparer<(NullabilityInfo info, TypeSymbol type)>
+        {
+            public bool Equals((NullabilityInfo info, TypeSymbol type) x, (NullabilityInfo info, TypeSymbol type) y)
+            {
+                return x.info.Equals(y.info) &&
+                       x.type is object &&
+                       x.type.Equals(y.type, SymbolEqualityComparer.ConsiderEverything);
+            }
+
+            public int GetHashCode((NullabilityInfo info, TypeSymbol type) obj)
+            {
+                return obj.GetHashCode();
             }
         }
     }
