@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             // List of local variables that will be in the order they are declared.
             var localVariables = ArrayBuilder<ISymbol>.GetInstance();
 
-            // Map a symbol to an index into the statementsAfterDeclaration array.
+            // Map a symbol to an index into the statementsFromDeclarationToEnd array.
             var variableDeclarationIndex = PooledDictionary<ISymbol, int>.GetInstance();
             var lastVariableUsageIndex = PooledDictionary<ISymbol, int>.GetInstance();
 
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
 
                 referencedVariables.Free();
 
-                // Determine if new variables where declared in this statement.
+                // Determine if new variables were declared in this statement.
                 var declaredVariables = semanticModel.GetAllDeclaredSymbols(currentStatement, cancellationToken);
                 foreach (var declaredVariable in declaredVariables)
                 {
