@@ -51,7 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl workspace,
             IDiagnosticAnalyzerService diagnosticService,
-            ExternalErrorDiagnosticUpdateSource buildErrorDiagnosticService,
             ICodeFixService codeFixService,
             ICodeActionEditHandlerService editHandlerService,
             IVisualStudioDiagnosticListSuppressionStateService suppressionStateService,
@@ -60,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         {
             _workspace = workspace;
             _diagnosticService = diagnosticService;
-            _buildErrorDiagnosticService = buildErrorDiagnosticService;
+            _buildErrorDiagnosticService = workspace.ExternalErrorDiagnosticUpdateSource;
             _codeFixService = codeFixService;
             _suppressionStateService = (VisualStudioDiagnosticListSuppressionStateService)suppressionStateService;
             _editHandlerService = editHandlerService;
@@ -374,13 +373,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             {
                 var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
                 var cancellationToken = context.CancellationToken;
-                _editHandlerService.ApplyAsync(
+                _editHandlerService.Apply(
                     _workspace,
                     fromDocument: null,
                     operations: operations,
                     title: title,
                     progressTracker: context.ProgressTracker,
-                    cancellationToken: cancellationToken).Wait(cancellationToken);
+                    cancellationToken: cancellationToken);
             }
 
             result = InvokeWithWaitDialog(applyFix, title, waitDialogMessage);

@@ -179,10 +179,9 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 // as in some builds the ICodingConventionsManager captures the thread pool.
                 var conventionsAsync = Task.Run(() => GetConventionContextAsync(path, cancellationToken));
 
-                using (var context = await conventionsAsync.ConfigureAwait(false))
-                {
-                    return new DocumentOptions(context.CurrentConventions, _errorLogger);
-                }
+                using var context = await conventionsAsync.ConfigureAwait(false);
+
+                return new DocumentOptions(context.CurrentConventions, _errorLogger);
             }
         }
 

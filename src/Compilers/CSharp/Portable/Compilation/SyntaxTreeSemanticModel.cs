@@ -718,6 +718,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        internal override BoundExpression GetSpeculativelyBoundExpression(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, out Binder binder, out ImmutableArray<Symbol> crefSymbols)
+        {
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
+            // If the given position is in a member that we can get a semantic model for, we want to defer to that implementation
+            // of GetSpeculativelyBoundExpression so it can take nullability into account.
+            if (bindingOption == SpeculativeBindingOption.BindAsExpression)
+            {
+                position = CheckAndAdjustPosition(position);
+                var model = GetMemberModel(position);
+                if (model is object)
+                {
+                    return model.GetSpeculativelyBoundExpression(position, expression, bindingOption, out binder, out crefSymbols);
+                }
+            }
+
+            return GetSpeculativelyBoundExpressionWithoutNullability(position, expression, bindingOption, out binder, out crefSymbols);
+        }
+
         private MemberSemanticModel GetMemberModel(int position)
         {
             AssertPositionAdjusted(position);

@@ -70,30 +70,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
         private async Task<(TAnonymousObjectCreationExpressionSyntax, INamedTypeSymbol)> TryGetAnonymousObjectAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var position = span.Start;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
 
-            // Span actually has to be within the token (i.e. not in trivia around it).
-            if (!token.Span.IntersectsWith(position))
-            {
-                return default;
-            }
+            // Gets a `TAnonymousObjectCreationExpressionSyntax` for current selection.
+            // Due to the way `TryGetSelectedNodeAsync` works and how `TAnonymousObjectCreationExpressionSyntax` is e.g. for C# constructed
+            // it matches even when caret is next to some tokens within the anonymous object creation node.
+            // E.g.: `var a = new [||]{ b=1,[||] c=2 };` both match due to the caret being next to `,` and `{`.
 
-            if (!span.IsEmpty && span != token.Span)
-            {
-                // if there is a selection, it has to be of the whole token.
-                return default;
-            }
-
-            var anonymousObject = token.Parent as TAnonymousObjectCreationExpressionSyntax;
+            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
+            var anonymousObject = await refactoringHelperService.TryGetSelectedNodeAsync<TAnonymousObjectCreationExpressionSyntax>(document, span, cancellationToken).ConfigureAwait(false);
             if (anonymousObject == null)
-            {
-                return default;
-            }
-
-            // The position/selection must be of the 'new' token of the anonymous object.
-            if (anonymousObject.GetFirstToken() != token)
             {
                 return default;
             }

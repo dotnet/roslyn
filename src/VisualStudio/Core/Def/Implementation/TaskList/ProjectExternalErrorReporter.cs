@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell;
@@ -26,43 +27,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly ProjectId _projectId;
         private readonly string _errorCodePrefix;
 
-        private readonly VisualStudioWorkspace _workspace;
-        private readonly ExternalErrorDiagnosticUpdateSource _diagnosticProvider;
+        private readonly VisualStudioWorkspaceImpl _workspace;
 
         [Obsolete("This is a compatibility shim for F#; please do not use it.")]
         public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, IServiceProvider serviceProvider)
-            : this(projectId, errorCodePrefix, serviceProvider.GetMefService<VisualStudioWorkspace>(), serviceProvider.GetMefService<ExternalErrorDiagnosticUpdateSource>())
+            : this(projectId, errorCodePrefix, (VisualStudioWorkspaceImpl)serviceProvider.GetMefService<VisualStudioWorkspace>())
         {
         }
 
-        public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, VisualStudioWorkspace workspace, ExternalErrorDiagnosticUpdateSource diagnosticProvider)
+        public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, VisualStudioWorkspaceImpl workspace)
         {
             Debug.Assert(projectId != null);
             Debug.Assert(errorCodePrefix != null);
             Debug.Assert(workspace != null);
-            Debug.Assert(diagnosticProvider != null);
 
             _projectId = projectId;
             _errorCodePrefix = errorCodePrefix;
             _workspace = workspace;
-            _diagnosticProvider = diagnosticProvider;
 
             KnownUIContexts.SolutionBuildingContext.WhenActivated(() =>
             {
                 KnownUIContexts.SolutionBuildingContext.UIContextChanged += OnSolutionBuild;
-                _diagnosticProvider.OnSolutionBuildStarted();
+                DiagnosticProvider.OnSolutionBuildStarted();
             });
         }
+
+        private ExternalErrorDiagnosticUpdateSource DiagnosticProvider => _workspace.ExternalErrorDiagnosticUpdateSource;
 
         private void OnSolutionBuild(object sender, UIContextChangedEventArgs e)
         {
             if (e.Activated)
             {
-                _diagnosticProvider.OnSolutionBuildStarted();
+                DiagnosticProvider.OnSolutionBuildStarted();
             }
             else
             {
-                _diagnosticProvider.OnSolutionBuildCompleted();
+                DiagnosticProvider.OnSolutionBuildCompleted();
             }
         }
 
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 return true;
             }
 
-            return _diagnosticProvider.IsSupportedDiagnosticId(_projectId, errorId);
+            return DiagnosticProvider.IsSupportedDiagnosticId(_projectId, errorId);
         }
 
         public int AddNewErrors(IVsEnumExternalErrors pErrors)
@@ -124,13 +124,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     originalEndColumn: 0));
             }
 
-            _diagnosticProvider.AddNewErrors(_projectId, projectErrors, documentErrorsMap);
+            DiagnosticProvider.AddNewErrors(_projectId, projectErrors, documentErrorsMap);
             return VSConstants.S_OK;
         }
 
         public int ClearAllErrors()
         {
-            _diagnosticProvider.ClearErrors(_projectId);
+            DiagnosticProvider.ClearErrors(_projectId);
             return VSConstants.S_OK;
         }
 
@@ -261,17 +261,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             if (documentId == null)
             {
-                _diagnosticProvider.AddNewErrors(_projectId, diagnostic);
+                DiagnosticProvider.AddNewErrors(_projectId, diagnostic);
             }
             else
             {
-                _diagnosticProvider.AddNewErrors(documentId, diagnostic);
+                DiagnosticProvider.AddNewErrors(documentId, diagnostic);
             }
         }
 
         public int ClearErrors()
         {
-            _diagnosticProvider.ClearErrors(_projectId);
+            DiagnosticProvider.ClearErrors(_projectId);
             return VSConstants.S_OK;
         }
 

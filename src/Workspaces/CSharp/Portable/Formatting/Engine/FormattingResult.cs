@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     /// </summary>
     internal class FormattingResult : AbstractFormattingResult
     {
-        internal FormattingResult(TreeData treeInfo, TokenStream tokenStream, TextSpan spanToFormat) :
-            base(treeInfo, tokenStream, spanToFormat)
+        internal FormattingResult(TreeData treeInfo, TokenStream tokenStream, TextSpan spanToFormat)
+            : base(treeInfo, tokenStream, spanToFormat)
         {
         }
 

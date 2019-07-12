@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 var builder = new StringBuilder();
 
                 var ancestors = node.Ancestors().ToArray();
-                for (int i = ancestors.Length - 1; i >= 0; i--)
+                for (var i = ancestors.Length - 1; i >= 0; i--)
                 {
                     var ancestor = ancestors[i];
 

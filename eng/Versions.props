@@ -24,7 +24,7 @@
     <CodeStyleLayerCodeAnalysisVersion>2.8.2</CodeStyleLayerCodeAnalysisVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.0-beta1-63310-01</MicrosoftCodeAnalysisTestingVersion>
     <CodeStyleAnalyzerVersion>3.1.0-beta1-19113-04</CodeStyleAnalyzerVersion>
-    <VisualStudioEditorPackagesVersion>16.2.37-gaef481e7d3</VisualStudioEditorPackagesVersion>
+    <VisualStudioEditorPackagesVersion>16.3.27</VisualStudioEditorPackagesVersion>
   </PropertyGroup>
   <!-- 
     Dependency versions
@@ -72,7 +72,6 @@
     <MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>14.3.25407-alpha</MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>
     <MicrosoftMetadataVisualizerVersion>1.0.0-beta1-63011-01</MicrosoftMetadataVisualizerVersion>
     <MicrosoftMSXMLVersion>8.0.0.0-alpha</MicrosoftMSXMLVersion>
-    <MicrosoftNetCompilersToolsetVersion>3.2.0-beta4-19312-15</MicrosoftNetCompilersToolsetVersion>
     <MicrosoftNetCoreAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftNetCoreAnalyzersVersion>
     <MicrosoftNetCoreILAsmVersion>3.0.0-preview6-27721-71</MicrosoftNetCoreILAsmVersion>
     <MicrosoftNetCoreILDasmVersion>3.0.0-preview6-27721-71</MicrosoftNetCoreILDasmVersion>

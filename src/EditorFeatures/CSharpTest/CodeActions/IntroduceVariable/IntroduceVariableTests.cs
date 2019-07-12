@@ -3133,7 +3133,7 @@ class C
     void M2(string? s)
     {
     }
-}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+}");
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public Task TestIntroduceLocal_NullableType_FlowStateNull()
@@ -3166,7 +3166,7 @@ class C
     void M2(string? s)
     {
     }
-}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+}");
 
         [WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]

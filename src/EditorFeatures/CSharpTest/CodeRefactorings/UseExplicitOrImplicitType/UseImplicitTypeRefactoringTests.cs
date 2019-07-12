@@ -250,6 +250,25 @@ class C
             await TestMissingInRegularAndScriptAsync(code);
         }
 
+        [Fact]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task NoSuggestionWithinAnExpression()
+        {
+            var code = @"using System;
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        int a = 40 [||]+ 2;
+    }
+}";
+
+            // We never want to get offered here under any circumstances.
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
         private async Task TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(string initialMarkup, string expectedMarkup)
         {
             // Enabled because the diagnostic is disabled
