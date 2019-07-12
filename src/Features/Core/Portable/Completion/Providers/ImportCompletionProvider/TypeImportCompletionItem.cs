@@ -16,8 +16,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly string[] s_aritySuffixesOneToNine = { "`1", "`2", "`3", "`4", "`5", "`6", "`7", "`8", "`9" };
 
         private const string TypeAritySuffixName = nameof(TypeAritySuffixName);
+        private const string AttributeFullName = nameof(AttributeFullName);
 
-        public static CompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace)
+        public static CompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace, string genericTypeSuffix)
         {
             PooledDictionary<string, string> propertyBuilder = null;
 
@@ -27,17 +28,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 propertyBuilder.Add(TypeAritySuffixName, GetAritySuffix(typeSymbol.Arity));
             }
 
-            // Hack: add tildes (ASCII: 126) to name and namespace as sort text:
+            // Add tildes (ASCII: 126) to name and namespace as sort text:
             // 1. '~' before type name makes import items show after in-scope items
             // 2. ' ' before namespace makes types with identical type name but from different namespace all show up in the list,
             //    it also makes sure type with shorter name shows first, e.g. 'SomeType` before 'SomeTypeWithLongerName'.  
             var sortTextBuilder = PooledStringBuilder.GetInstance();
             sortTextBuilder.Builder.AppendFormat(SortTextFormat, typeSymbol.Name, containingNamespace);
-
-            // TODO: 
-            // 1. Suffix should be language specific, i.e. `(Of ...)` if triggered from VB.
-            // 2. Sort the import items to be after in-scope symbols in a less hacky way.
-            // 3. Editor support for resolving item text conflicts?
+            
             var item = CompletionItem.Create(
                  displayText: typeSymbol.Name,
                  filterText: typeSymbol.Name,
@@ -46,11 +43,38 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  tags: GlyphTags.GetTags(typeSymbol.GetGlyph()),
                  rules: CompletionItemRules.Default,
                  displayTextPrefix: null,
-                 displayTextSuffix: typeSymbol.Arity == 0 ? string.Empty : "<>",
+                 displayTextSuffix: typeSymbol.Arity == 0 ? string.Empty : genericTypeSuffix,
                  inlineDescription: containingNamespace);
 
             item.Flags = CompletionItemFlags.CachedAndExpanded;
             return item;
+        }
+
+        public static CompletionItem CreateAttributeItemWithoutSuffix(CompletionItem attributeItem, string attributeNameWithoutSuffix)
+        {
+            Debug.Assert(!attributeItem.Properties.ContainsKey(AttributeFullName));
+
+            // Remember the full type name so we can get the symbol when description is displayed.
+            var newProperties = attributeItem.Properties.Add(AttributeFullName, attributeItem.DisplayText);
+
+            var sortTextBuilder = PooledStringBuilder.GetInstance();
+            sortTextBuilder.Builder.AppendFormat(SortTextFormat, attributeNameWithoutSuffix, attributeItem.InlineDescription);
+
+            return CompletionItem.Create(
+                 displayText: attributeNameWithoutSuffix,
+                 filterText: attributeNameWithoutSuffix,
+                 sortText: sortTextBuilder.ToStringAndFree(),
+                 properties: newProperties,
+                 tags: attributeItem.Tags,
+                 rules: attributeItem.Rules,
+                 displayTextPrefix: attributeItem.DisplayTextPrefix,
+                 displayTextSuffix: attributeItem.DisplayTextSuffix,
+                 inlineDescription: attributeItem.InlineDescription);
+        }
+
+        public static CompletionItem CreateItemWithGenericDisplaySuffix(CompletionItem item, string genericTypeSuffix)
+        {
+            return item.WithDisplayTextSuffix(genericTypeSuffix);
         }
 
         public static string GetContainingNamespace(CompletionItem item)
@@ -98,7 +122,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static string GetMetadataName(CompletionItem item)
         {
             var containingNamespace = GetContainingNamespace(item);
-            var fullyQualifiedName = GetFullyQualifiedName(containingNamespace, item.DisplayText);
+            var typeName = item.Properties.TryGetValue(AttributeFullName, out var attributeFullName) ? attributeFullName : item.DisplayText;
+            var fullyQualifiedName = GetFullyQualifiedName(containingNamespace, typeName);
             if (item.Properties.TryGetValue(TypeAritySuffixName, out var aritySuffix))
             {
                 return fullyQualifiedName + aritySuffix;

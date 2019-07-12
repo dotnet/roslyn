@@ -487,6 +487,11 @@
         <target state="translated">Desencapsular a lista de argumentos</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_call_chain">
+        <source>Unwrap call chain</source>
+        <target state="new">Unwrap call chain</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">Desencapsular a expressão</target>
@@ -572,9 +577,24 @@
         <target state="translated">Aviso: a alteração do namespace pode produzir código inválido e mudar o significado do código.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_and_align_call_chain">
+        <source>Wrap and align call chain</source>
+        <target state="new">Wrap and align call chain</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_and_align_expression">
         <source>Wrap and align expression</source>
         <target state="translated">Encapsular e alinhar expressão</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_and_align_long_call_chain">
+        <source>Wrap and align long call chain</source>
+        <target state="new">Wrap and align long call chain</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_call_chain">
+        <source>Wrap call chain</source>
+        <target state="new">Wrap call chain</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -595,6 +615,11 @@
       <trans-unit id="Wrap_long_argument_list">
         <source>Wrap long argument list</source>
         <target state="translated">Encapsular a lista de argumentos longa</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_call_chain">
+        <source>Wrap long call chain</source>
+        <target state="new">Wrap long call chain</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">

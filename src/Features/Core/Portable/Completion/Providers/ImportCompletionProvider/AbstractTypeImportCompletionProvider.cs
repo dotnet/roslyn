@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.Completion.Log;
+using Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editing;
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var document = completionContext.Document;
             var project = document.Project;
             var workspace = project.Solution.Workspace;
-            var typeImportCompletionService = workspace.Services.GetService<ITypeImportCompletionService>();
+            var typeImportCompletionService = document.GetLanguageService<ITypeImportCompletionService>();
 
             // Find all namespaces in scope at current cursor location, 
             // which will be used to filter so the provider only returns out-of-scope types.
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // Get completion items from current project. 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            await typeImportCompletionService.GetTopLevelTypesAsync(project, HandlePublicAndInternalItem, cancellationToken)
+            await typeImportCompletionService.GetTopLevelTypesAsync(project, syntaxContext, HandlePublicAndInternalItem, cancellationToken)
                 .ConfigureAwait(false);
 
             // Get declarations from directly referenced projects and PEs
@@ -116,6 +117,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     {
                         await typeImportCompletionService.GetTopLevelTypesAsync(
                             assemblyProject,
+                            syntaxContext,
                             GetHandler(compilation.Assembly, assembly),
                             cancellationToken).ConfigureAwait(false);
                     }
@@ -125,6 +127,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                             project.Solution,
                             compilation,
                             peReference,
+                            syntaxContext,
                             GetHandler(compilation.Assembly, assembly),
                             cancellationToken);
                     }
@@ -136,24 +139,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return;
 
             // Decide which item handler to use based on IVT
-            Action<TypeImportCompletionItemInfo> GetHandler(IAssemblySymbol assembly, IAssemblySymbol referencedAssembly)
+            Action<CompletionItem, bool> GetHandler(IAssemblySymbol assembly, IAssemblySymbol referencedAssembly)
                 => assembly.IsSameAssemblyOrHasFriendAccessTo(referencedAssembly)
-                        ? (Action<TypeImportCompletionItemInfo>)HandlePublicAndInternalItem
+                        ? (Action<CompletionItem, bool>)HandlePublicAndInternalItem
                         : HandlePublicItem;
 
             // Add only public types to completion list
-            void HandlePublicItem(TypeImportCompletionItemInfo itemInfo)
-                => AddItems(itemInfo, isInternalsVisible: false, completionContext, namespacesInScope, telemetryCounter);
+            void HandlePublicItem(CompletionItem item, bool isPublic)
+                => AddItems(item, isPublic, isInternalsVisible: false, completionContext, namespacesInScope, telemetryCounter);
 
             // Add both public and internal types to completion list
-            void HandlePublicAndInternalItem(TypeImportCompletionItemInfo itemInfo)
-                => AddItems(itemInfo, isInternalsVisible: true, completionContext, namespacesInScope, telemetryCounter);
+            void HandlePublicAndInternalItem(CompletionItem item, bool isPublic)
+                => AddItems(item, isPublic, isInternalsVisible: true, completionContext, namespacesInScope, telemetryCounter);
 
-            static void AddItems(TypeImportCompletionItemInfo itemInfo, bool isInternalsVisible, CompletionContext completionContext, HashSet<string> namespacesInScope, TelemetryCounter counter)
+            static void AddItems(CompletionItem item, bool isPublic, bool isInternalsVisible, CompletionContext completionContext, HashSet<string> namespacesInScope, TelemetryCounter counter)
             {
-                if (itemInfo.IsPublic || isInternalsVisible)
+                if (isPublic || isInternalsVisible)
                 {
-                    var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(itemInfo.Item);
+                    var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(item);
                     if (!namespacesInScope.Contains(containingNamespace))
                     {
                         // We can return cached item directly, item's span will be fixed by completion service.
@@ -161,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         // On the other hand, because of this (i.e. mutating the  span of cached item for each run),
                         // the provider can not be used as a service by components that might be run in parallel 
                         // with completion, which would be a race.
-                        completionContext.AddItem(itemInfo.Item);
+                        completionContext.AddItem(item);
                         counter.ItemsCount++; ;
                     }
                 }

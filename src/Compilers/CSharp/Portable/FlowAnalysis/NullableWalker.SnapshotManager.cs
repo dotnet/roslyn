@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundNode nodeToAnalyze,
                 Binder binder,
                 ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMap,
+                ImmutableDictionary<BoundCall, MethodSymbol>.Builder updatedMethodSymbolMap,
                 SnapshotManager.Builder newManagerOpt)
             {
                 var snapshotPosition = _incrementalSnapshots.BinarySearch(position, BinarySearchComparer);
@@ -76,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            variableState,
                                            returnTypesOpt: null,
                                            analyzedNullabilityMap,
+                                           updatedMethodSymbolMap,
                                            snapshotBuilderOpt: newManagerOpt,
                                            isSpeculative: true),
                         variableState,

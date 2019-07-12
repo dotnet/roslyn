@@ -700,6 +700,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, args);
         }
 
+        internal SynthesizedAttributeData SynthesizeAttributeUsageAttribute(AttributeTargets targets, bool allowMultiple, bool inherited)
+        {
+            var attributeTargetsType = GetWellKnownType(WellKnownType.System_AttributeTargets);
+            var boolType = GetSpecialType(SpecialType.System_Boolean);
+            var arguments = ImmutableArray.Create(
+                new TypedConstant(attributeTargetsType, TypedConstantKind.Enum, targets));
+            var namedArguments = ImmutableArray.Create(
+                new KeyValuePair<WellKnownMember, TypedConstant>(WellKnownMember.System_AttributeUsageAttribute__AllowMultiple, new TypedConstant(boolType, TypedConstantKind.Primitive, allowMultiple)),
+                new KeyValuePair<WellKnownMember, TypedConstant>(WellKnownMember.System_AttributeUsageAttribute__Inherited, new TypedConstant(boolType, TypedConstantKind.Primitive, inherited)));
+            return TrySynthesizeAttribute(WellKnownMember.System_AttributeUsageAttribute__ctor, arguments, namedArguments);
+        }
+
         internal static class TupleNamesEncoder
         {
             public static ImmutableArray<string> Encode(TypeSymbol type)

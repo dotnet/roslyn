@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
                 var indentationService = Wrapper.IndentationService;
                 var originalLineNumber = newSourceText.Lines.GetLineFromPosition(nodeOrToken.Span.End).LineNumber;
-                var desiredIndentation = indentationService.GetBlankLineIndentation(
+                var desiredIndentation = indentationService.GetIndentation(
                     newDocument, originalLineNumber + 1,
                     FormattingOptions.IndentStyle.Smart,
                     CancellationToken);
