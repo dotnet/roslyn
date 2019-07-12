@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Editing
             Document document,
             IEnumerable<TextSpan> spans,
             Strategy strategy,
+            bool safe,
             OptionSet options,
             CancellationToken cancellationToken)
         {
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 spansTree.HasIntervalThatOverlapsWith(node.FullSpan.Start, node.FullSpan.Length);
 
             var nodes = root.DescendantNodesAndSelf().Where(isInSpan);
-            var (importDirectivesToAdd, context) = strategy switch
+            var (importDirectivesToAdd, namespaceSymbols, context) = strategy switch
             {
                 Strategy.AddImportsFromSymbolAnnotations
                     => GetImportDirectivesFromAnnotatedNodesAsync(nodes, root, model, addImportsService, generator, cancellationToken),
@@ -55,6 +56,22 @@ namespace Microsoft.CodeAnalysis.Editing
                     => GetImportDirectivesFromSyntaxesAsync(nodes, ref root, model, addImportsService, generator, cancellationToken),
                 _ => throw new InvalidEnumArgumentException(nameof(strategy), (int)strategy, typeof(Strategy)),
             };
+
+            if (importDirectivesToAdd.Count is 0)
+            {
+                return document.WithSyntaxRoot(root); //keep any added simplifier annotations
+            }
+
+            if (safe)
+            {
+                var annotation = new SyntaxAnnotation();
+                root = root.ReplaceNode(context, context.WithAdditionalAnnotations(annotation));
+                document = document.WithSyntaxRoot(root);
+                root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
+                model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                root = MakeSafeToAddNamespaces(root, namespaceSymbols, model, document.Project.Solution.Workspace, cancellationToken);
+                context = root.DescendantNodesAndSelf().FirstOrDefault(x => x.HasAnnotation(annotation)) ?? root;
+            }
 
             var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
 
@@ -70,6 +87,14 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         protected abstract INamespaceSymbol GetContainedNamespace(SyntaxNode node, SemanticModel model);
 
+        protected abstract SyntaxNode MakeSafeToAddNamespaces(
+            SyntaxNode root,
+            IEnumerable<INamespaceOrTypeSymbol> namespaceMembers,
+            IEnumerable<IMethodSymbol> extensionMethods,
+            SemanticModel model,
+            Workspace workspace,
+            CancellationToken cancellationToken);
+
         private SyntaxNode GenerateNamespaceImportDeclaration(INamespaceSymbol namespaceSymbol, SyntaxGenerator generator)
         {
             return generator
@@ -77,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
         }
 
-        private (IEnumerable<SyntaxNode> imports, SyntaxNode context) GetImportDirectivesFromSyntaxesAsync(
+        private (List<SyntaxNode> imports, IEnumerable<INamespaceSymbol> namespaceSymbols, SyntaxNode context) GetImportDirectivesFromSyntaxesAsync(
                 IEnumerable<SyntaxNode> syntaxNodes,
                 ref SyntaxNode root,
                 SemanticModel model,
@@ -125,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
             if (nodesToSimplify.Count is 0)
             {
-                return (importsToAdd, null);
+                return (importsToAdd, addedSymbols, null);
             }
 
             var annotation = new SyntaxAnnotation();
@@ -137,10 +162,10 @@ namespace Microsoft.CodeAnalysis.Editing
             var first = root.DescendantNodesAndSelf().First(x => x.HasAnnotation(annotation));
             var last = root.DescendantNodesAndSelf().Last(x => x.HasAnnotation(annotation));
 
-            return (importsToAdd, first.GetCommonRoot(last));
+            return (importsToAdd, addedSymbols, first.GetCommonRoot(last));
         }
 
-        private (IEnumerable<SyntaxNode> imports, SyntaxNode context) GetImportDirectivesFromAnnotatedNodesAsync(
+        private (List<SyntaxNode> imports, IEnumerable<INamespaceSymbol> namespaceSymbols, SyntaxNode context) GetImportDirectivesFromAnnotatedNodesAsync(
             IEnumerable<SyntaxNode> syntaxNodes,
             SyntaxNode root,
             SemanticModel model,
@@ -208,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 }
             }
 
-            return (importsToAdd, first?.GetCommonRoot(last));
+            return (importsToAdd, addedSymbols, first?.GetCommonRoot(last));
         }
 
         private bool IsBuiltIn(INamedTypeSymbol type)
@@ -254,6 +279,21 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             return false;
+        }
+
+        private SyntaxNode MakeSafeToAddNamespaces(
+            SyntaxNode root,
+            IEnumerable<INamespaceSymbol> namespaceSymbols,
+            SemanticModel model,
+            Workspace workspace,
+            CancellationToken cancellationToken)
+        {
+            var namespaceMembers = namespaceSymbols.SelectMany(x => x.GetMembers());
+            var extensionMethods =
+                namespaceMembers.OfType<ITypeSymbol>().Where(x => x.IsStatic || x.IsModuleType())
+                .SelectMany(x => x.GetMembers().OfType<IMethodSymbol>().Where(x => x.IsExtensionMethod));
+
+            return MakeSafeToAddNamespaces(root, namespaceMembers, extensionMethods, model, workspace, cancellationToken);
         }
     }
 }

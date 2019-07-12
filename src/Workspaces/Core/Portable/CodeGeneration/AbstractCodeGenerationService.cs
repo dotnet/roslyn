@@ -199,6 +199,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             {
                 newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
                     newDocument,
+                    safe: true,
                     await newDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false),
                     cancellationToken).ConfigureAwait(false);
             }
