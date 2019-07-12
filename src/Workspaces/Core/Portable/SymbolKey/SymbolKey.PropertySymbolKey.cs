@@ -24,10 +24,9 @@ namespace Microsoft.CodeAnalysis
                 var isIndexer = reader.ReadBoolean();
 
                 using var refKinds = reader.ReadRefKindArray();
-                using var parameterTypes = reader.ReadSymbolArray<ITypeSymbol>();
+                using var parameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>();
 
-                Debug.Assert(parameterTypes.Count == 0 || parameterTypes.Count == refKinds.Count);
-                if (refKinds.Count != parameterTypes.Count)
+                if (parameterTypes.IsDefault)
                 {
                     return default;
                 }

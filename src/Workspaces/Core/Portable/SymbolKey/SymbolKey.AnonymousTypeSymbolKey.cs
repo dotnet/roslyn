@@ -28,13 +28,12 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                using var propertyTypes = reader.ReadSymbolArray<ITypeSymbol>();
+                using var propertyTypes = reader.ReadSymbolKeyArray<ITypeSymbol>();
                 using var propertyNames = reader.ReadStringArray();
                 using var propertyIsReadOnly = reader.ReadBooleanArray();
                 using var propertyLocations = reader.ReadLocationArray();
 
-                Debug.Assert(propertyTypes.Count == 0 || propertyTypes.Count == propertyNames.Count);
-                if (propertyTypes.Count == propertyNames.Count)
+                if (propertyTypes.IsDefault)
                 {
                     try
                     {

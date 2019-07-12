@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis
             /// Writes out the provided symbols to the key.  The array provided must not
             /// be <c>default</c>.
             /// </summary>
-            internal void WriteSymbolArray<TSymbol>(ImmutableArray<TSymbol> symbols)
+            internal void WriteSymbolKeyArray<TSymbol>(ImmutableArray<TSymbol> symbols)
                 where TSymbol : ISymbol
             {
                 WriteArray(symbols, _writeSymbolKey);

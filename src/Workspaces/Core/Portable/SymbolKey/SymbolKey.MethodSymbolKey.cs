@@ -48,15 +48,16 @@ namespace Microsoft.CodeAnalysis
             public static void Create(IMethodSymbol symbol, SymbolKeyWriter visitor)
             {
                 visitor.WriteSymbolKey(symbol.ConstructedFrom);
-                visitor.WriteSymbolArray(symbol.TypeArguments);
+                visitor.WriteSymbolKeyArray(symbol.TypeArguments);
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var constructedFrom = reader.ReadSymbolKey();
-                using var typeArguments = reader.ReadSymbolArray<ITypeSymbol>();
+                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>();
 
-                if (constructedFrom.SymbolCount == 0)
+                if (constructedFrom.SymbolCount == 0 ||
+                    typeArguments.IsDefault)
                 {
                     return default;
                 }
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis
                     // read out the values.  We don't actually need to use them, but we have
                     // to effectively read past them in the string.
 
-                    using (reader.ReadSymbolArray<ITypeSymbol>())
+                    using (reader.ReadSymbolKeyArray<ITypeSymbol>())
                     {
                         _ = reader.ReadSymbolKey();
                     }
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis
             private static IMethodSymbol Resolve(
                 SymbolKeyReader reader, bool isPartialMethodImplementationPart, IMethodSymbol method)
             {
-                using var originalParameterTypes = reader.ReadSymbolArray<ITypeSymbol>();
+                using var originalParameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>();
                 var returnType = (ITypeSymbol)reader.ReadSymbolKey().GetAnySymbol();
 
                 if (reader.ParameterTypesMatch(method.OriginalDefinition.Parameters, originalParameterTypes))

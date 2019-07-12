@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis
                 ImmutableArray<IParameterSymbol> parameters,
                 PooledArrayBuilder<ITypeSymbol> originalParameterTypes)
             {
-                if (parameters.Length != originalParameterTypes.Count)
+                if (originalParameterTypes.IsDefault || parameters.Length != originalParameterTypes.Count)
                 {
                     return false;
                 }
@@ -455,12 +455,12 @@ namespace Microsoft.CodeAnalysis
 
             /// <summary>
             /// Reads an array of symbols out from the key.  Note: the number of symbols returned 
-            /// will either be the same as the original amount writtern, or it will be zero. It will
-            /// never be less or more.  Zero will be returned if the original array written had zero
-            /// elements, <b>or</b> if any elements could not be resolved to the requested
-            /// <typeparamref name="TSymbol"/> type in the provided <see cref="Compilation"/>.
+            /// will either be the same as the original amount writtern, or <c>default</c> will be 
+            /// returned. It will never be less or more.  <c>default</c> will be returned if any 
+            /// elements could not be resolved to the requested <typeparamref name="TSymbol"/> type 
+            /// in the provided <see cref="Compilation"/>.
             /// </summary>
-            public PooledArrayBuilder<TSymbol> ReadSymbolArray<TSymbol>() where TSymbol : ISymbol
+            public PooledArrayBuilder<TSymbol> ReadSymbolKeyArray<TSymbol>() where TSymbol : ISymbol
             {
                 using var resolutions = ReadArray(_readSymbolKey);
 
@@ -473,8 +473,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     else
                     {
-                        result.Builder.Clear();
-                        break;
+                        return default;
                     }
                 }
 

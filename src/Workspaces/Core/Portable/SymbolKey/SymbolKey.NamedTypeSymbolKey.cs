@@ -18,13 +18,11 @@ namespace Microsoft.CodeAnalysis
 
                 if (!symbol.Equals(symbol.ConstructedFrom) && !symbol.IsUnboundGenericType)
                 {
-                    visitor.WriteBoolean(/*instantiate*/true);
-                    visitor.WriteSymbolArray(symbol.TypeArguments);
+                    visitor.WriteSymbolKeyArray(symbol.TypeArguments);
                 }
                 else
                 {
-                    visitor.WriteBoolean(/*instantiate*/false);
-                    visitor.WriteSymbolArray(ImmutableArray<ITypeSymbol>.Empty);
+                    visitor.WriteSymbolKeyArray(ImmutableArray<ITypeSymbol>.Empty);
                 }
             }
 
@@ -34,10 +32,9 @@ namespace Microsoft.CodeAnalysis
                 var containingSymbolResolution = reader.ReadSymbolKey();
                 var arity = reader.ReadInteger();
                 var isUnboundGenericType = reader.ReadBoolean();
-                var instantiate = reader.ReadBoolean();
-                using var typeArguments = reader.ReadSymbolArray<ITypeSymbol>();
+                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>();
 
-                if (instantiate && arity != typeArguments.Count)
+                if (typeArguments.IsDefault)
                 {
                     return default;
                 }
@@ -52,7 +49,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         Resolve(
                             result, nsOrType, metadataName, arity,
-                            isUnboundGenericType, instantiate, typeArgumentArray);
+                            isUnboundGenericType, typeArgumentArray);
                     }
                 }
 
@@ -65,12 +62,11 @@ namespace Microsoft.CodeAnalysis
                 string metadataName,
                 int arity,
                 bool isUnboundGenericType,
-                bool instantiate,
                 ITypeSymbol[] typeArguments)
             {
                 foreach (var type in container.GetTypeMembers(GetName(metadataName), arity))
                 {
-                    var currentType = instantiate ? type.Construct(typeArguments) : type;
+                    var currentType = typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
                     currentType = isUnboundGenericType ? currentType.ConstructUnboundGenericType() : currentType;
 
                     result.AddIfNotNull(currentType);

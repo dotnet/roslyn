@@ -52,12 +52,11 @@ namespace Microsoft.CodeAnalysis
                 var isError = reader.ReadBoolean();
                 if (isError)
                 {
-                    using var elementTypes = reader.ReadSymbolArray<ITypeSymbol>();
+                    using var elementTypes = reader.ReadSymbolKeyArray<ITypeSymbol>();
                     using var elementNames = reader.ReadStringArray();
                     var elementLocations = ReadElementLocations(reader);
 
-                    Debug.Assert(elementTypes.Count == 0 || elementTypes.Count == elementNames.Count);
-                    if (elementTypes.Count == elementNames.Count)
+                    if (elementTypes.IsDefault)
                     {
                         try
                         {

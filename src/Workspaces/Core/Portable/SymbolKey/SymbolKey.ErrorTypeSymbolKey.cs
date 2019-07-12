@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis
 
                 if (!symbol.Equals(symbol.ConstructedFrom))
                 {
-                    visitor.WriteSymbolArray(symbol.TypeArguments);
+                    visitor.WriteSymbolKeyArray(symbol.TypeArguments);
                 }
                 else
                 {
-                    visitor.WriteSymbolArray(ImmutableArray<ITypeSymbol>.Empty);
+                    visitor.WriteSymbolKeyArray(ImmutableArray<ITypeSymbol>.Empty);
                 }
             }
 
@@ -31,49 +31,38 @@ namespace Microsoft.CodeAnalysis
                 var containingSymbolResolution = reader.ReadSymbolKey();
                 var arity = reader.ReadInteger();
 
-                using var typeArguments = reader.ReadSymbolArray<ITypeSymbol>();
-                if (typeArguments.Count != arity)
+                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>();
+                if (typeArguments.IsDefault)
                 {
                     return default;
                 }
 
-                using var errorTypes = CreateErrorTypes(reader, containingSymbolResolution, name, arity);
-                if (arity == 0)
+                using var result = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
+
+                var typeArgumentsArray = arity > 0 ? typeArguments.Builder.ToArray() : null;
+                foreach (var container in containingSymbolResolution)
                 {
-                    return CreateSymbolInfo(errorTypes);
+                    if (container is INamespaceOrTypeSymbol containerTypeOrNS)
+                    {
+                        result.AddIfNotNull(Construct(
+                            reader, containerTypeOrNS, name, arity, typeArgumentsArray));
+                    }
                 }
 
-                using var result = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
-                var typeArgumentsArray = typeArguments.Builder.ToArray();
-                foreach (var type in errorTypes)
+                // Always ensure at least one error type was created.
+                if (result.Count == 0)
                 {
-                    result.AddIfNotNull(type.Construct(typeArgumentsArray));
+                    result.AddIfNotNull(Construct(
+                        reader, containerTypeOrNS: null, name, arity, typeArgumentsArray));
                 }
 
                 return CreateSymbolInfo(result);
             }
 
-            private static PooledArrayBuilder<INamedTypeSymbol> CreateErrorTypes(
-                SymbolKeyReader reader,
-                SymbolKeyResolution containingSymbolResolution, string name, int arity)
+            private static INamedTypeSymbol Construct(SymbolKeyReader reader, INamespaceOrTypeSymbol containerTypeOrNS, string name, int arity, ITypeSymbol[] typeArguments)
             {
-                var errorTypes = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
-
-                foreach (var container in containingSymbolResolution)
-                {
-                    if (container is INamespaceOrTypeSymbol containerTypeOrNS)
-                    {
-                        errorTypes.AddIfNotNull(reader.Compilation.CreateErrorTypeSymbol(containerTypeOrNS, name, arity));
-                    }
-                }
-
-                // Always ensure at least one error type was created.
-                if (errorTypes.Count == 0)
-                {
-                    errorTypes.AddIfNotNull(reader.Compilation.CreateErrorTypeSymbol(null, name, arity));
-                }
-
-                return errorTypes;
+                var result = reader.Compilation.CreateErrorTypeSymbol(containerTypeOrNS, name, arity);
+                return typeArguments != null ? result.Construct(typeArguments) : result;
             }
         }
     }

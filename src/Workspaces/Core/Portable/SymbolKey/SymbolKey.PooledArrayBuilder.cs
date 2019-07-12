@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis
             private PooledArrayBuilder(ArrayBuilder<T> builder)
                 => Builder = builder;
 
+            public bool IsDefault => Builder == null;
             public int Count => Builder.Count;
             public T this[int index] => Builder[index];
 
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public void Dispose() => Builder.Free();
+            public void Dispose() => Builder?.Free();
 
             public ImmutableArray<T> ToImmutable() => Builder.ToImmutable();
 
