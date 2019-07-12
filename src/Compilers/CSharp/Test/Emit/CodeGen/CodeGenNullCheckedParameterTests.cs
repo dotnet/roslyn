@@ -1400,6 +1400,51 @@ class Program
         }
 
         [Fact]
+        public void TestNullCheckedLambdaWithMissingType()
+        {
+            var source =
+@"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Func<string, string> func = x! => x;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_ArgumentNullException__ctorString);
+            comp.MakeTypeMissing(WellKnownType.System_ArgumentNullException);
+            comp.VerifyEmitDiagnostics(
+                    // (7,37): error CS0656: Missing compiler required member 'System.ArgumentNullException..ctor'
+                    //         Func<string, string> func = x! => x;
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.ArgumentNullException", ".ctor").WithLocation(7, 37));
+        }
+
+        [Fact]
+        public void TestNullCheckedLocalFunctionWithMissingType()
+        {
+            var source =
+@"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        M(""ok"");
+        void M(string x!) { }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_ArgumentNullException__ctorString);
+            comp.MakeTypeMissing(WellKnownType.System_ArgumentNullException);
+            comp.VerifyEmitDiagnostics(
+                    // (8,23): error CS0656: Missing compiler required member 'System.ArgumentNullException..ctor'
+                    //         void M(string x!) { }
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.ArgumentNullException", ".ctor").WithLocation(8, 23));
+        }
+
+        [Fact]
         public void TestEmptyNullCheckedIterator1()
         {
             var source = @"

@@ -117,7 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Force complete parameters to retrieve all diagnostics
                 p.ForceComplete(null, default(CancellationToken));
-                ParameterHelpers.AddNullCheckingErrorsToParameter(addTo, p, isLambdaOrLocalFunction: true);
             }
 
             ComputeReturnType();
