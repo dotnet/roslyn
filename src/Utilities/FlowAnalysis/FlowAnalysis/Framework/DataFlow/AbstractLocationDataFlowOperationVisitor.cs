@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -179,13 +179,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public override TAbstractAnalysisValue VisitDelegateCreation(IDelegateCreationOperation operation, object argument)
         {
             var value = base.VisitDelegateCreation(operation, argument);
-            PointsToAbstractValue instanceLocation = GetPointsToAbstractValue(operation);
-            return HandleInstanceCreation(operation, instanceLocation, value);
-        }
-
-        public override TAbstractAnalysisValue VisitAwait(IAwaitOperation operation, object argument)
-        {
-            var value = base.VisitAwait(operation, argument);
             PointsToAbstractValue instanceLocation = GetPointsToAbstractValue(operation);
             return HandleInstanceCreation(operation, instanceLocation, value);
         }
