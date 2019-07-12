@@ -53,16 +53,22 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                var constructedFromResolution = reader.ReadSymbolKey();
+                var constructedFrom = reader.ReadSymbolKey();
                 using var typeArguments = reader.ReadSymbolArray<ITypeSymbol>();
 
+                if (constructedFrom.SymbolCount == 0)
+                {
+                    return default;
+                }
+
                 var typeArgumentArray = typeArguments.Builder.ToArray();
+
                 using var result = PooledArrayBuilder<IMethodSymbol>.GetInstance();
-                foreach (var symbol in constructedFromResolution)
+                foreach (var symbol in constructedFrom)
                 {
                     if (symbol is IMethodSymbol method)
                     {
-                        if (method.TypeParameters.Length == typeArguments.Count)
+                        if (method.TypeParameters.Length == typeArgumentArray.Length)
                         {
                             result.AddIfNotNull(method.Construct(typeArgumentArray));
                         }
@@ -113,7 +119,7 @@ namespace Microsoft.CodeAnalysis
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var metadataName = reader.ReadString();
-                var containingTypeResolution = reader.ReadSymbolKey();
+                var containingType = reader.ReadSymbolKey();
                 var arity = reader.ReadInteger();
                 var isPartialMethodImplementationPart = reader.ReadBoolean();
                 using var parameterRefKinds = reader.ReadRefKindArray();
@@ -128,7 +134,7 @@ namespace Microsoft.CodeAnalysis
                 // point.
                 var beforeParametersPosition = reader.Position;
 
-                using var methods = GetMembersOfNamedType<IMethodSymbol>(containingTypeResolution, metadataNameOpt: null);
+                using var methods = GetMembersOfNamedType<IMethodSymbol>(containingType, metadataNameOpt: null);
                 using var result = PooledArrayBuilder<IMethodSymbol>.GetInstance();
 
                 foreach (var candidate in methods)
@@ -161,8 +167,9 @@ namespace Microsoft.CodeAnalysis
                     using (reader.ReadSymbolArray<ITypeSymbol>())
                     {
                         _ = reader.ReadSymbolKey();
-                        reader.PopMethod(methodOpt: null);
                     }
+
+                    reader.PopMethod(methodOpt: null);
                 }
 
                 return CreateSymbolInfo(result);
