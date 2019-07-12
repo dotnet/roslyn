@@ -1735,57 +1735,64 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return position >= start AndAlso position <= _end
         End Function
 
-        Private Function ISyntaxFactsService_IsInHeader(node As SyntaxNode, ownerOfHeader As SyntaxNode, lastTokenOrNodeOfHeader As SyntaxNodeOrToken) As Boolean Implements ISyntaxFactsService.IsInHeader
-            Return IsInHeader(node, ownerOfHeader, lastTokenOrNodeOfHeader)
+        Private Function ISyntaxFactsService_IsInHeader(nodeOrToken As SyntaxNodeOrToken, ownerOfHeader As SyntaxNode, lastTokenOrNodeOfHeader As SyntaxNodeOrToken) As Boolean Implements ISyntaxFactsService.IsInHeader
+            Return IsInHeader(nodeOrToken, ownerOfHeader, lastTokenOrNodeOfHeader)
         End Function
 
-        Public Function IsInPropertyDeclarationHeader(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInPropertyDeclarationHeader
-            Dim propertyDeclaration = node.GetAncestorOrThis(Of PropertyStatementSyntax)()
+        Public Function IsInPropertyDeclarationHeader(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsInPropertyDeclarationHeader
+            Dim propertyDeclaration = token.GetAncestor(Of PropertyStatementSyntax)()
 
             If propertyDeclaration Is Nothing Then
                 Return False
             End If
 
             If propertyDeclaration.AsClause IsNot Nothing Then
-                Return IsInHeader(node, propertyDeclaration, propertyDeclaration.AsClause)
+                Return IsInHeader(token, propertyDeclaration, propertyDeclaration.AsClause)
             End If
 
-            Return IsInHeader(node, propertyDeclaration, propertyDeclaration.Identifier)
+            Return IsInHeader(token, propertyDeclaration, propertyDeclaration.Identifier)
         End Function
 
-        Public Function IsInParameterHeader(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInParameterHeader
-            Dim parameter = node.GetAncestorOrThis(Of ParameterSyntax)()
+        Public Function IsInParameterHeader(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsInParameterHeader
+            Dim parameter = token.GetAncestor(Of ParameterSyntax)()
 
             If parameter Is Nothing Then
                 Return False
             End If
 
-            If parameter.AsClause IsNot Nothing Then
-                Return IsInHeader(node, parameter, parameter.AsClause)
-            End If
-
-            Return IsInHeader(node, parameter, parameter.Identifier)
+            Return IsInHeader(token, parameter, parameter)
         End Function
 
-        Public Function IsInMethodHeader(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInMethodHeader
-            Dim method = node.GetAncestorOrThis(Of MethodStatementSyntax)()
+        Public Function IsInMethodHeader(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsInMethodHeader
+            Dim method = token.GetAncestor(Of MethodStatementSyntax)()
 
             If method Is Nothing Then
                 Return False
             End If
 
             If method.HasReturnType() Then
-                Return IsInHeader(node, method, method.GetReturnType())
+                Return IsInHeader(token, method, method.GetReturnType())
             End If
 
             If method.ParameterList IsNot Nothing Then
-                Return IsInHeader(node, method, method.ParameterList)
+                Return IsInHeader(token, method, method.ParameterList)
             End If
 
-            Return IsInHeader(node, method, method)
+            Return IsInHeader(token, method, method)
         End Function
 
-        Public Function IsInLocalFunctionHeader(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInLocalFunctionHeader
+        Public Function IsInLocalDelcalrationHeader(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsInLocalDelcalrationHeader
+            Dim localDeclaration = token.GetAncestor(Of LocalDeclarationStatementSyntax)()
+
+            If localDeclaration Is Nothing Then
+                Return False
+            End If
+
+            Dim initializersExpressions = localDeclaration.Declarators.Where(Function(d) d.Initializer IsNot Nothing).[Select](Function(initializedd) initializedd.Initializer.Value).Cast(Of SyntaxNode).ToImmutableArray()
+            Return IsInHeader(token, localDeclaration, localDeclaration, initializersExpressions)
+        End Function
+
+        Public Function IsInLocalFunctionHeader(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsInLocalFunctionHeader
             ' No local functions in VisualBasic
             Return False
         End Function

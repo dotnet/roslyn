@@ -488,12 +488,28 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private bool SpansPreprocessorDirective(SyntaxTriviaList list)
             => list.Any(t => IsPreprocessorDirective(t));
 
-        public bool IsInHeader(SyntaxNode node, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader)
+        public bool IsInHeader(SyntaxNodeOrToken nodeOrToken, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader)
         {
             var start = GetStartOfNodeExcludingAttributes(ownerOfHeader);
             var end = lastTokenOrNodeOfHeader.FullSpan.End;
 
-            return node.Span.Start >= start && node.Span.End <= end;
+            return nodeOrToken.Span.Start >= start && nodeOrToken.Span.End <= end;
+        }
+
+        public bool IsInHeader(SyntaxNodeOrToken nodeOrToken, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader, ImmutableArray<SyntaxNode> holes)
+        {
+            var inHeader = IsInHeader(nodeOrToken, ownerOfHeader, lastTokenOrNodeOfHeader);
+            if (!inHeader)
+            {
+                return false;
+            }
+
+            if (holes.Any(h => h.Span.IntersectsWith(nodeOrToken.Span)))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         protected int GetStartOfNodeExcludingAttributes(SyntaxNode node)

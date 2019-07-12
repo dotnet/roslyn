@@ -1791,48 +1791,62 @@ namespace Microsoft.CodeAnalysis.CSharp
             return position >= start && position <= end;
         }
 
-        public bool IsInPropertyDeclarationHeader(SyntaxNode node)
+        public bool IsInPropertyDeclarationHeader(SyntaxToken token)
         {
-            var propertyDeclaration = node.GetAncestorOrThis<PropertyDeclarationSyntax>();
+            var propertyDeclaration = token.GetAncestor<PropertyDeclarationSyntax>();
             if (propertyDeclaration == null)
             {
                 return false;
             }
 
-            return IsInHeader(node, propertyDeclaration, propertyDeclaration.Identifier);
+            return IsInHeader(token, propertyDeclaration, propertyDeclaration.Identifier);
         }
 
-        public bool IsInParameterHeader(SyntaxNode node)
+        public bool IsInParameterHeader(SyntaxToken token)
         {
-            var parameter = node.GetAncestorOrThis<ParameterSyntax>();
+            var parameter = token.GetAncestor<ParameterSyntax>();
             if (parameter == null)
             {
                 return false;
             }
 
-            return IsInHeader(node, parameter, parameter.Identifier);
+            return IsInHeader(token, parameter, parameter);
         }
 
-        public bool IsInMethodHeader(SyntaxNode node)
+        public bool IsInMethodHeader(SyntaxToken token)
         {
-            var containingMethod = node.GetAncestorOrThis<MethodDeclarationSyntax>();
+            var containingMethod = token.GetAncestor<MethodDeclarationSyntax>();
             if (containingMethod == null)
             {
                 return false;
             }
 
-            return IsInHeader(node, containingMethod, containingMethod.ParameterList);
+            return IsInHeader(token, containingMethod, containingMethod.ParameterList);
         }
 
-        public bool IsInLocalFunctionHeader(SyntaxNode node)
+        public bool IsInLocalFunctionHeader(SyntaxToken token)
         {
-            var containingLocalFunction = node.GetAncestorOrThis<LocalFunctionStatementSyntax>();
+            var containingLocalFunction = token.GetAncestor<LocalFunctionStatementSyntax>();
             if (containingLocalFunction == null)
             {
                 return false;
             }
 
-            return IsInHeader(node, containingLocalFunction, containingLocalFunction.ParameterList);
+            return IsInHeader(token, containingLocalFunction, containingLocalFunction.ParameterList);
+        }
+
+        public bool IsInLocalDelcalrationHeader(SyntaxToken token)
+        {
+            var localDeclaration = token.GetAncestor<LocalDeclarationStatementSyntax>();
+            if (localDeclaration == null)
+            {
+                return false;
+            }
+
+            var initializersExpressions = localDeclaration.Declaration.Variables
+                .Where(v => v.Initializer != null)
+                .Select(initializedV => initializedV.Initializer.Value).ToImmutableArray<SyntaxNode>();
+            return IsInHeader(token, localDeclaration, localDeclaration, initializersExpressions);
         }
 
         public bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position)

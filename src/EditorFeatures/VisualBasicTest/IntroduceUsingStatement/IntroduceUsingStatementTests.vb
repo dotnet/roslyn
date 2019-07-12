@@ -20,7 +20,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.IntroduceUsingStat
         <InlineData("Dim name[||] = disposable")>
         <InlineData("Dim name [||]= disposable")>
         <InlineData("Dim name =[||] disposable")>
-        <InlineData("Dim name = [||]disposable")>
         <InlineData("[|Dim name = disposable|]")>
         <InlineData("Dim name = disposable[||]")>
         <InlineData("Dim name = disposable[||]")>
@@ -119,6 +118,7 @@ End Class")
         <InlineData("Dim name = d[||]isposable")>
         <InlineData("Dim name = disposabl[||]e")>
         <InlineData("Dim name=[|disposable|]")>
+        <InlineData("Dim name = [||]disposable")>
         Public Async Function RefactoringIsNotAvailableForSelection(ByVal declaration As String) As Task
             Await TestMissingInRegularAndScriptAsync("Class C
     Sub M(disposable As System.IDisposable)

@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         [InlineData("var name[||] = disposable;")]
         [InlineData("var name [||]= disposable;")]
         [InlineData("var name =[||] disposable;")]
-        [InlineData("var name = [||]disposable;")]
         [InlineData("[|var name = disposable;|]")]
         [InlineData("var name = disposable[||];")]
         [InlineData("var name = disposable;[||]")]
@@ -171,6 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         [InlineData("var name = d[||]isposable;")]
         [InlineData("var name = disposabl[||]e;")]
         [InlineData("var name=[|disposable|];")]
+        [InlineData("var name = [||]disposable;")]
         public async Task RefactoringIsNotAvailableForSelection(string declaration)
         {
             await TestMissingInRegularAndScriptAsync(

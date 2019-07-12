@@ -47,11 +47,13 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
 
         private async Task<(TLocalDeclarationSyntax, ILocalSymbol)> FindDisposableLocalDeclaration(Document document, TextSpan selection, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
+            var declarationSyntax = await refactoringHelperService.TryGetSelectedNodeAsync<TLocalDeclarationSyntax>(document, selection, cancellationToken).ConfigureAwait(false);
 
-            var declarationSyntax =
-                root.FindNode(selection)?.GetAncestorOrThis<TLocalDeclarationSyntax>()
-                ?? root.FindTokenOnLeftOfPosition(selection.End).GetAncestor<TLocalDeclarationSyntax>();
+            if (declarationSyntax == null)
+            {
+                return default;
+            }
 
             if (declarationSyntax is null || !CanRefactorToContainBlockStatements(declarationSyntax.Parent))
             {
@@ -90,20 +92,6 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
 
             // Initializer kind is invalid when incomplete declaration syntax ends in an equals token.
             if (initializer is null || initializer.Kind == OperationKind.Invalid)
-            {
-                return default;
-            }
-
-            // Infer the intent of the selection. Offer the refactoring only if the selection
-            // appears to be aimed at the declaration statement but not at its initializer expression.
-            var isValidSelection = await CodeRefactoringHelpers.RefactoringSelectionIsValidAsync(
-                document,
-                selection,
-                node: declarationSyntax,
-                holes: ImmutableArray.Create(initializer.Syntax),
-                cancellationToken).ConfigureAwait(false);
-
-            if (!isValidSelection)
             {
                 return default;
             }

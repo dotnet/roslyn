@@ -811,16 +811,16 @@ class C
         #region Test arguments
         [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        public async Task TestMissingArgumentsExtractionsInInitializer()
+        public async Task TestArgumentsExtractionsInInitializer()
         {
             var testText = @"
 using System;
 class C
 {
     class TestAttribute : Attribute { }
-    public C([Test]int a = [||]42, int b = 41) {}
+    public C({|result:[Test]int a = [||]42|}, int b = 41) {}
 }";
-            await TestMissingAsync<ParameterSyntax>(testText);
+            await TestAsync<ParameterSyntax>(testText);
         }
 
         [Fact]
