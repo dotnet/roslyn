@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
                 var containingTypeResolution = reader.ReadSymbolKey();
                 var isIndexer = reader.ReadBoolean();
 
-                using var refKinds = reader.ReadRefKindArray(); ;
+                using var refKinds = reader.ReadRefKindArray();
                 using var parameterTypes = reader.ReadSymbolArray<ITypeSymbol>();
 
                 if (refKinds.Count != parameterTypes.Count)
