@@ -80,9 +80,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public int ReadFormatVersion()
-            {
-                return ReadIntegerRaw_DoNotCallDirectly();
-            }
+                => ReadIntegerRaw_DoNotCallDirectly();
 
             private int ReadIntegerRaw_DoNotCallDirectly()
             {

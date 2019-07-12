@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
                 using var propertyIsReadOnly = reader.ReadBooleanArray();
                 using var propertyLocations = reader.ReadLocationArray();
 
-                if (propertyTypes.IsDefault)
+                if (!propertyTypes.IsDefault)
                 {
                     try
                     {

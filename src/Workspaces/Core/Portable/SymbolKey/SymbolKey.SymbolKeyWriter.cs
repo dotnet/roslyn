@@ -203,15 +203,16 @@ namespace Microsoft.CodeAnalysis
             }
 
             internal void WriteFormatVersion()
-            {
-                _stringBuilder.AppendFormat(FormatVersion.ToString(CultureInfo.InvariantCulture));
-            }
+                => WriteIntegerRaw_DoNotCallDirectly(FormatVersion);
 
             internal void WriteInteger(int value)
             {
                 WriteSpace();
-                _stringBuilder.Append(value.ToString(CultureInfo.InvariantCulture));
+                WriteIntegerRaw_DoNotCallDirectly(value);
             }
+
+            private void WriteIntegerRaw_DoNotCallDirectly(int value)
+                => _stringBuilder.Append(value.ToString(CultureInfo.InvariantCulture));
 
             internal void WriteBoolean(bool value)
             {

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis
                     using var elementNames = reader.ReadStringArray();
                     var elementLocations = ReadElementLocations(reader);
 
-                    if (elementTypes.IsDefault)
+                    if (!elementTypes.IsDefault)
                     {
                         try
                         {
