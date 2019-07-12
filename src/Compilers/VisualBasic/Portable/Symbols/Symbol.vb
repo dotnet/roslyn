@@ -762,7 +762,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overloads Function [Equals](other As ISymbol) As Boolean Implements IEquatable(Of ISymbol).Equals
-            Return Me.[Equals](CObj(other))
+            Return Me.[Equals](other, SymbolEqualityComparer.Default)
+        End Function
+
+        Public Overloads Function Equals(other As ISymbol, equalityComparer As SymbolEqualityComparer) As Boolean Implements ISymbol.Equals
+            Return equalityComparer.Equals(Me, other)
         End Function
 
         ' By default, we do reference equality. This can be overridden.

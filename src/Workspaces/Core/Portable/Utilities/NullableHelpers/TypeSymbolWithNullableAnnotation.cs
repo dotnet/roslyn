@@ -26,10 +26,20 @@ namespace Microsoft.CodeAnalysis
 
             public bool Equals(ISymbol other)
             {
+                var t2 = other as ITypeSymbol;
+                if (t2 is null)
+                {
+                    return false;
+                }
+                return this.Equals(t2, SymbolEqualityComparer.Default);
+            }
+
+            public bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
+            {
                 if (other is TypeSymbolWithNullableAnnotation otherWrappingSymbol)
                 {
                     return this.Nullability == otherWrappingSymbol.Nullability &&
-                           this.WrappedSymbol.Equals(otherWrappingSymbol.WrappedSymbol);
+                           this.WrappedSymbol.Equals(otherWrappingSymbol.WrappedSymbol, equalityComparer);
                 }
                 else if (other is ITypeSymbol)
                 {
