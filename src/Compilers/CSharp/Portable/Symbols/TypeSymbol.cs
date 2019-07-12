@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> interfacesAndTheirBaseInterfaces;
 
             internal readonly static MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> EmptyInterfacesAndTheirBaseInterfaces =
-                                                new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(0, EqualsCLRSignatureComparer);
+                                                new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(0, SymbolEqualityComparer.CLRSignature);
 
             // Key is implemented member (method, property, or event), value is implementing member (from the 
             // perspective of this type).  Don't allocate until someone needs it.
@@ -114,23 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return info;
         }
 
-        internal static readonly EqualityComparer<TypeSymbol> EqualsConsiderEverything = new TypeSymbolComparer(TypeCompareKind.ConsiderEverything);
-
-        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringTupleNamesAndNullability = new TypeSymbolComparer(TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
-
-        /// <summary>
-        /// A comparer that treats dynamic and object as "the same" types, and also ignores tuple element names differences.
-        /// </summary>
-        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringDynamicTupleNamesAndNullabilityComparer = new TypeSymbolComparer(TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
-
-        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringNullableComparer = new TypeSymbolComparer(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
-
-        internal static readonly EqualityComparer<TypeSymbol> EqualsObliviousNullableModifierMatchesAny = new TypeSymbolComparer(TypeCompareKind.ObliviousNullableModifierMatchesAny);
-
-        internal static readonly EqualityComparer<TypeSymbol> EqualsAllIgnoreOptionsPlusNullableWithUnknownMatchesAnyComparer =
-                                                                  new TypeSymbolComparer(TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-
-        internal static readonly EqualityComparer<TypeSymbol> EqualsCLRSignatureComparer = new TypeSymbolComparer(TypeCompareKind.CLRSignatureCompareOptions);
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
         /// symbol by type substitution then OriginalDefinition gets the original symbol as it was defined in
@@ -335,28 +318,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return RuntimeHelpers.GetHashCode(this);
         }
 
-        internal sealed class TypeSymbolComparer : EqualityComparer<TypeSymbol>
-        {
-            private readonly TypeCompareKind _comparison;
-
-            public TypeSymbolComparer(TypeCompareKind comparison)
-            {
-                _comparison = comparison;
-            }
-
-            public override int GetHashCode(TypeSymbol obj)
-            {
-                return (object)obj == null ? 0 : obj.GetHashCode();
-            }
-
-            public override bool Equals(TypeSymbol x, TypeSymbol y)
-            {
-                return
-                    (object)x == null ? (object)y == null :
-                    x.Equals(y, _comparison);
-            }
-        }
-
         protected virtual ImmutableArray<NamedTypeSymbol> GetAllInterfaces()
         {
             var info = this.GetInterfaceInfo();
@@ -412,8 +373,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Gets the set of interfaces that this type directly implements, plus the base interfaces
-        /// of all such types. Keys are compared using <see cref="EqualsCLRSignatureComparer"/>,
-        /// values are distinct interfaces corresponding to the key, according to <see cref="TypeCompareKind.ConsiderEverything"/> rules.
+        /// of all such types. Keys are compared using <see cref="SymbolEqualityComparer.CLRSignature"/>,
+        /// values are distinct interfaces corresponding to the key, according to <see cref="SymbolEqualityComparer.ConsiderEverything"/> rules.
         /// </summary>
         /// <remarks>
         /// CONSIDER: it probably isn't truly necessary to cache this.  If space gets tight, consider
@@ -457,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // indirectly.
         private static MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> MakeInterfacesAndTheirBaseInterfaces(ImmutableArray<NamedTypeSymbol> declaredInterfaces)
         {
-            var resultBuilder = new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(declaredInterfaces.Length, EqualsCLRSignatureComparer);
+            var resultBuilder = new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(declaredInterfaces.Length, SymbolEqualityComparer.CLRSignature, SymbolEqualityComparer.ConsiderEverything);
             foreach (var @interface in declaredInterfaces)
             {
                 if (resultBuilder.Add(@interface, @interface))

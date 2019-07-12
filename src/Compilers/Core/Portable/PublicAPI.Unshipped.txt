@@ -359,8 +359,8 @@ static Microsoft.CodeAnalysis.NullableContextExtensions.WarningsInherited(this M
 static Microsoft.CodeAnalysis.NullableContextOptionsExtensions.AnnotationsEnabled(this Microsoft.CodeAnalysis.NullableContextOptions context) -> bool
 static Microsoft.CodeAnalysis.NullableContextOptionsExtensions.WarningsEnabled(this Microsoft.CodeAnalysis.NullableContextOptions context) -> bool
 static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetCorrespondingOperation(this Microsoft.CodeAnalysis.Operations.IBranchOperation operation) -> Microsoft.CodeAnalysis.IOperation
-static Microsoft.CodeAnalysis.SymbolEqualityComparer.Default -> Microsoft.CodeAnalysis.SymbolEqualityComparer
-static Microsoft.CodeAnalysis.SymbolEqualityComparer.IncludeNullability -> Microsoft.CodeAnalysis.SymbolEqualityComparer
+static readonly Microsoft.CodeAnalysis.SymbolEqualityComparer.Default -> Microsoft.CodeAnalysis.SymbolEqualityComparer
+static readonly Microsoft.CodeAnalysis.SymbolEqualityComparer.IncludeNullability -> Microsoft.CodeAnalysis.SymbolEqualityComparer
 static readonly Microsoft.CodeAnalysis.SyntaxTree.EmptyDiagnosticOptions -> System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic>
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterSymbolStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext> action, Microsoft.CodeAnalysis.SymbolKind symbolKind) -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterSymbolStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext> action, Microsoft.CodeAnalysis.SymbolKind symbolKind) -> void
