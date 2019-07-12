@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
+
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
@@ -133,6 +136,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _hasEnumeratorCancellationAttribute = value;
                 SetDataStored();
             }
+        }
+
+        private HashSet<string> _notNullIfParameterNotNull;
+        public IImmutableSet<string> NotNullIfParameterNotNull
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _notNullIfParameterNotNull?.ToImmutableHashSet() ?? ImmutableHashSet<string>.Empty;
+            }
+        }
+        public void AddNotNullIfParameterNotNull(string parameterName)
+        {
+            VerifySealed(expected: false);
+            _notNullIfParameterNotNull ??= new HashSet<string>();
+            _notNullIfParameterNotNull.Add(parameterName);
+            SetDataStored();
         }
     }
 }

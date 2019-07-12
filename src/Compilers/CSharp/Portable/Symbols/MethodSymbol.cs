@@ -216,6 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public abstract FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations { get; }
 
+        public abstract IImmutableSet<string> ReturnNotNullIfParameterNotNull { get; }
+
         /// <summary>
         /// Flow analysis annotations on the method itself (ie. DoesNotReturn)
         /// </summary>
