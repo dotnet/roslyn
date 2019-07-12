@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixes.CodeQuality;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -17,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 {
-    internal abstract class AbstractRemoveUnusedMembersCodeFixProvider<TFieldDeclarationSyntax> : SyntaxEditorBasedCodeFixProvider
+    internal abstract class AbstractRemoveUnusedMembersCodeFixProvider<TFieldDeclarationSyntax> : SyntaxEditorBasedCodeQualityCodeFixProvider
         where TFieldDeclarationSyntax : SyntaxNode
     {
         public override ImmutableArray<string> FixableDiagnosticIds

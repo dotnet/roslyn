@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixes.CodeQuality;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedLocalFunction
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnusedLocalFunction), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
-    internal class CSharpRemoveUnusedLocalFunctionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal class CSharpRemoveUnusedLocalFunctionCodeFixProvider : SyntaxEditorBasedCodeQualityCodeFixProvider
     {
         private const string CS8321 = nameof(CS8321); // The local function 'X' is declared but never used
 

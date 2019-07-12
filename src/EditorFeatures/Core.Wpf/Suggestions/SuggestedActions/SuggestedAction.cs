@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixes.CodeQuality;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         internal virtual CodeActionPriority Priority => CodeAction.Priority;
+        internal bool IsForCodeQualityImprovement => Provider is SyntaxEditorBasedCodeQualityCodeFixProvider;
 
         public virtual bool TryGetTelemetryId(out Guid telemetryId)
         {

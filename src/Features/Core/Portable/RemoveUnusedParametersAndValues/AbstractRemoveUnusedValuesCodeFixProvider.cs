@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixes.CodeQuality;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
     internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyntax, TStatementSyntax, TBlockSyntax,
         TExpressionStatementSyntax, TLocalDeclarationStatementSyntax, TVariableDeclaratorSyntax, TForEachStatementSyntax,
         TSwitchCaseBlockSyntax, TSwitchCaseLabelOrClauseSyntax, TCatchStatementSyntax, TCatchBlockSyntax>
-        : SyntaxEditorBasedCodeFixProvider
+        : SyntaxEditorBasedCodeQualityCodeFixProvider
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TBlockSyntax : TStatementSyntax

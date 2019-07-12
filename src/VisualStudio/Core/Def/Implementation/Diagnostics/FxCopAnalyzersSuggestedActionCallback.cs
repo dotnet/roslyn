@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             if (!_infoBarChecked &&
                 !IsVsixInstalled() &&
                 !IsNuGetInstalled() &&
-                IsCandidate())
+                IsCandidate(action))
             {
                 ShowInfoBarIfNecessary();
             }
@@ -154,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             return false;
         }
 
-        private bool IsCandidate()
+        private bool IsCandidate(SuggestedAction action)
         {
             // Candidates fill the following critera:
             //     1: Are a Dotnet user (as evidenced by the fact that this code is being run)
@@ -180,7 +180,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     var usageCount = options.GetOption(FxCopAnalyzersInstallOptions.UsedSuggestedActionCount);
                     options = options.WithChangedOption(FxCopAnalyzersInstallOptions.UsedSuggestedActionCount, ++usageCount);
 
-                    if (usageCount >= 3)
+                    // Candidate if user has invoked the light bulb 3 times, or if this is a code quality suggested action.
+                    if (usageCount >= 3 || action.IsForCodeQualityImprovement)
                     {
                         isCandidate = true;
                         options = options.WithChangedOption(FxCopAnalyzersInstallOptions.HasMetCandidacyRequirements, true);

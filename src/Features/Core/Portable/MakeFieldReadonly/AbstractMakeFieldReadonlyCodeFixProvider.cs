@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixes.CodeQuality;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -16,7 +17,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 {
     internal abstract class AbstractMakeFieldReadonlyCodeFixProvider<TSymbolSyntax, TFieldDeclarationSyntax>
-        : SyntaxEditorBasedCodeFixProvider
+        : SyntaxEditorBasedCodeQualityCodeFixProvider
         where TSymbolSyntax : SyntaxNode
         where TFieldDeclarationSyntax : SyntaxNode
     {
