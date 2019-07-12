@@ -98,8 +98,6 @@ class C
     public static void Main() { }
     void M(string name! = null) { }
 }";
-
-            // Release
             CreateCompilation(source).VerifyEmitDiagnostics(
                     // (5,27): warning CS8719: Parameter 'string' is null-checked but is null by default.
                     //     void M(string name! = null) { }
@@ -1577,60 +1575,6 @@ class C
         }
 
         [Fact]
-        public void TestNullCheckedOutString()
-        {
-            var source = @"
-class C
-{
-    public static void Main() { }
-    public void M(out string x!)
-    {
-        x = ""hello world"";
-    }
-}";
-            var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics(
-                    // (5,31): error CS8720: By-reference parameter 'out string x!' cannot be null-checked.
-                    //     public void M(out string x!)
-                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!").WithArguments("out string x!").WithLocation(5, 31));
-        }
-
-        [Fact]
-        public void TestNullCheckedRefString()
-        {
-            var source = @"
-class C
-{
-    public static void Main() { }
-    public void M(ref string x!)
-    {
-        x = ""hello world"";
-    }
-}";
-            var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics(
-                    // (5,31): error CS8720: By-reference parameter 'ref string x!' cannot be null-checked.
-                    //     public void M(ref string x!)
-                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!").WithArguments("ref string x!").WithLocation(5, 31));
-        }
-
-        [Fact]
-        public void TestNullCheckedInString()
-        {
-            var source = @"
-class C
-{
-    public static void Main() { }
-    public void M(in string x!) { }
-}";
-            var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics( 
-                    // (5,30): error CS8720: By-reference parameter 'in string x!' cannot be null-checked.
-                    //     public void M(in string x!)
-                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!").WithArguments("in string x!").WithLocation(5, 30));
-        }
-
-        [Fact]
         public void TestNullCheckedParams()
         {
             var source = @"
@@ -1697,20 +1641,4 @@ class C
     IL_0014:  ret
 }");
         }
-
-        [Fact]
-        public void TestNullCheckedGenericWithDefaultStruct()
-        {
-            var source = @"
-class C
-{
-    static void M2<T>(T t! = default) where T : struct { }
-}";
-            var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics(
-                    // (4,25): error CS8718: Parameter 'T' is a non-nullable value type and cannot be null-checked.
-                    //     static void M2<T>(T t! = default) where T : struct { }
-                    Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "t").WithArguments("T").WithLocation(4, 25));
-        }
-    }
 }
