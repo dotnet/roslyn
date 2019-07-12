@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Location location = parameter.Locations.FirstOrNone();
                 if (Binder.GetWellKnownTypeMember(parameter.DeclaringCompilation, WellKnownMember.System_ArgumentNullException__ctorString, out DiagnosticInfo diag) is null)
                 {
-                    diagnostics.Add(diag, parameter.Locations.FirstOrNone());
+                    diagnostics.Add(diag, location);
 
                 }
                 if (parameter.Type.IsValueType)

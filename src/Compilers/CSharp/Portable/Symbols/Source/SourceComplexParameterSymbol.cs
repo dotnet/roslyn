@@ -276,10 +276,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         valueBeforeConversion, diagnostics, isDefaultParameter: true);
                 }
             }
+
             if (this.IsNullChecked && convertedExpression.ConstantValue?.IsNull == true)
             {
-                diagnostics.Add(ErrorCode.WRN_NullCheckedHasDefaultNull, parameterSyntax.Default.Value.Location, this);
+                diagnostics.Add(ErrorCode.WRN_NullCheckedHasDefaultNull, Locations.FirstOrNone(), this);
             }
+
             if (parameterType.Type.IsReferenceType &&
                 parameterType.NullableAnnotation.IsNotAnnotated() &&
                 convertedExpression.ConstantValue?.IsNull == true &&
