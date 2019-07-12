@@ -2460,21 +2460,6 @@ Bu sürüm şurada kullanılır: {2}</target>
         <target state="translated">{0}' bağımsız değişken adını ekle (sondaki bağımsız değişkenler dahil)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Using_readonly_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly structs will prevent the debug session from continuing.</source>
-        <target state="translated">Salt okunur yapılar birimleri kullanmak, hata ayıklama oturumunun devam etmesini engeller.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_ref_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using ref structs will prevent the debug session from continuing.</source>
-        <target state="translated">Başvuru yapıları kullanmak, hata ayıklama oturumunun devam etmesini engeller.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_readonly_references_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly references will prevent the debug session from continuing.</source>
-        <target state="translated">Salt okunur başvurular kullanmak, hata ayıklama oturumunun devam etmesini engeller.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="local_function">
         <source>local function</source>
         <target state="translated">yerel işlev</target>
