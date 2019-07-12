@@ -398,24 +398,6 @@ class C
         }
 
         [Fact]
-        public void TestNullableInteraction()
-        {
-            // PROTOTYPE : Add warning about combining explicit null checking with a nullable
-            var source = @"
-class C
-{
-    static void M(int? i!) { }
-    public static void Main() { }
-}";
-            // Release
-            var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics(
-                    // (4,24): error CS8721: Nullable value type 'int?' is null-checked and will throw if null.
-                    //     static void M(int? i!) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "i").WithArguments("int?").WithLocation(4, 24));
-        }
-
-        [Fact]
         public void TestNullCheckedSubstitution1()
         {
             var source = @"
