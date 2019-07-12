@@ -5,6 +5,8 @@ if ($env:BUILD_ARTIFACTSTAGINGDIRECTORY) {
     $artifactsRoot = "$RepoRoot\bin"
 }
 
+if (!(Test-Path $artifactsRoot/build_logs)) { return }
+
 @{
     "$artifactsRoot/build_logs" = (Get-ChildItem -Recurse "$artifactsRoot/build_logs")
 }

@@ -23,23 +23,28 @@ Function EnsureTrailingSlash($path) {
 Get-ChildItem "$PSScriptRoot\*.ps1" -Exclude "_*" -Recurse |% {
     $ArtifactName = $_.BaseName
 
-    (& $_).GetEnumerator() |% {
-        $BaseDirectory = New-Object Uri ((EnsureTrailingSlash $_.Key), [UriKind]::Absolute)
-        $_.Value |% {
-            if ($_.GetType() -eq [IO.FileInfo] -or $_.GetType() -eq [IO.DirectoryInfo]) {
-                $_ = $_.FullName
+    $fileGroups = & $_
+    if (!$fileGroups -or $fileGroups.Count -eq 0) {
+        Write-Warning "No files found for the `"$ArtifactName`" artifact."
+    } else {
+        $fileGroups.GetEnumerator() | % {
+            $BaseDirectory = New-Object Uri ((EnsureTrailingSlash $_.Key), [UriKind]::Absolute)
+            $_.Value | % {
+                if ($_.GetType() -eq [IO.FileInfo] -or $_.GetType() -eq [IO.DirectoryInfo]) {
+                    $_ = $_.FullName
+                }
+
+                $artifact = New-Object -TypeName PSObject
+                Add-Member -InputObject $artifact -MemberType NoteProperty -Name ArtifactName -Value $ArtifactName
+
+                $SourceFullPath = New-Object Uri ($BaseDirectory, $_)
+                Add-Member -InputObject $artifact -MemberType NoteProperty -Name Source -Value $SourceFullPath.LocalPath
+
+                $RelativePath = [Uri]::UnescapeDataString($BaseDirectory.MakeRelative($SourceFullPath))
+                Add-Member -InputObject $artifact -MemberType NoteProperty -Name ContainerFolder -Value (Split-Path $RelativePath)
+
+                Write-Output $artifact
             }
-
-            $artifact = New-Object -TypeName PSObject
-            Add-Member -InputObject $artifact -MemberType NoteProperty -Name ArtifactName -Value $ArtifactName
-
-            $SourceFullPath = New-Object Uri ($BaseDirectory, $_)
-            Add-Member -InputObject $artifact -MemberType NoteProperty -Name Source -Value $SourceFullPath.LocalPath
-
-            $RelativePath = [Uri]::UnescapeDataString($BaseDirectory.MakeRelative($SourceFullPath))
-            Add-Member -InputObject $artifact -MemberType NoteProperty -Name ContainerFolder -Value (Split-Path $RelativePath)
-
-            Write-Output $artifact
         }
     }
 }

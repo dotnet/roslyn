@@ -6,6 +6,8 @@ if (!$BuildConfiguration) {
 
 $PackagesRoot = "$RepoRoot/bin/Packages/$BuildConfiguration"
 
+if (!(Test-Path $PackagesRoot))  { return }
+
 @{
     "$PackagesRoot" = (Get-ChildItem $PackagesRoot -Recurse)
 }

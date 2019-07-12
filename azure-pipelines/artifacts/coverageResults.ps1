@@ -9,8 +9,10 @@ if ($env:SYSTEM_DEFAULTWORKINGDIRECTORY) {
         Set-Content -Path $_ -Value $content -Encoding UTF8
     }
 } else {
-    Write-Warning "Azure Pipelines not detected. Machine-neutral token replacement skipped."
+    Write-Warning "coverageResults: Azure Pipelines not detected. Machine-neutral token replacement skipped."
 }
+
+if (!((Test-Path $RepoRoot\bin) -and (Test-Path $RepoRoot\obj))) { return }
 
 @{
     $RepoRoot = (

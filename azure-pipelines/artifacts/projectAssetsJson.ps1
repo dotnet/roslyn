@@ -1,7 +1,9 @@
-$RepoRoot = [System.IO.Path]::GetFullPath("$PSScriptRoot\..\..")
+$ObjRoot = [System.IO.Path]::GetFullPath("$PSScriptRoot\..\..\obj")
+
+if (!(Test-Path $ObjRoot)) { return }
 
 @{
-    "$RepoRoot\obj" = (
-        (Get-ChildItem "$RepoRoot\obj\project.assets.json" -Recurse)
+    "$ObjRoot" = (
+        (Get-ChildItem "$ObjRoot\project.assets.json" -Recurse)
     );
 }
