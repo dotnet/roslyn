@@ -241,11 +241,6 @@ Friend Module CompilationUtils
             assemblyName = sources.@name
         End If
 
-        ' https://github.com/dotnet/roslyn/issues/29819 remove when VB 16 is latest
-        If parseOptions Is Nothing Then
-            parseOptions = TestOptions.Regular
-        End If
-
         Dim sourcesTreesAndSpans = From f In sources.<file> Select CreateParseTreeAndSpans(f, parseOptions)
         spans = From t In sourcesTreesAndSpans Select s = t.spans
         Return From t In sourcesTreesAndSpans Select t.tree

@@ -116,6 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                        delegateInvokeMethod: delegateType?.DelegateInvokeMethod,
                                        initialState: nullableState,
                                        analyzedNullabilityMapOpt: null,
+                                       updatedMethodSymbolMapOpt: null,
                                        snapshotBuilderOpt: null,
                                        returnTypes);
                 diagnostics.Free();

@@ -55,7 +55,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return _isTargetTypeCompletionFilterExperimentEnabled == true;
         }
 
-        private bool ShouldIncludeInTargetTypedCompletionList(ISymbol symbol, ImmutableArray<ITypeSymbol> inferredTypes, SemanticModel semanticModel, int position)
+        /// <param name="inferredTypes">Should not inlcude nullability information</param>
+        private bool ShouldIncludeInTargetTypedCompletionList(
+            ISymbol symbol,
+            ImmutableArray<ITypeSymbol> inferredTypes,
+            SemanticModel semanticModel,
+            int position,
+            Dictionary<ITypeSymbol, bool> typeConvertibilityCache)
         {
             // When searching for identifiers of type C, exclude the symbol for the `C` type itself.
             if (symbol.Kind == SymbolKind.NamedType)
@@ -86,9 +92,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return false;
             }
 
-            foreach (var inferredType in inferredTypes)
+            type = type.WithoutNullability();
+
+            if (typeConvertibilityCache.TryGetValue(type, out var isConvertible))
             {
-                if (semanticModel.Compilation.ClassifyCommonConversion(type.WithoutNullability(), inferredType.WithoutNullability()).IsImplicit)
+                return isConvertible;
+            }
+
+            typeConvertibilityCache[type] = IsTypeImplicitlyConvertible(semanticModel.Compilation, type, inferredTypes);
+            return typeConvertibilityCache[type];
+        }
+
+        private bool IsTypeImplicitlyConvertible(Compilation compilation, ITypeSymbol sourceType, ImmutableArray<ITypeSymbol> targetTypes)
+        {
+            foreach (var targetType in targetTypes)
+            {
+                if (compilation.ClassifyCommonConversion(sourceType, targetType).IsImplicit)
                 {
                     return true;
                 }
@@ -115,6 +134,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                                select g;
 
             var itemListBuilder = ImmutableArray.CreateBuilder<CompletionItem>();
+            var typeConvertibilityCache = new Dictionary<ITypeSymbol, bool>();
 
             foreach (var symbolGroup in symbolGroups)
             {
@@ -125,10 +145,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (IsTargetTypeCompletionFilterExperimentEnabled(arbitraryFirstContext.Workspace))
                 {
+                    var inferredTypesWithoutNullability = inferredTypes.SelectAsArray(t => t.WithoutNullability());
+
                     foreach (var symbol in symbolGroup)
                     {
                         var syntaxContext = contextLookup(symbol);
-                        if (ShouldIncludeInTargetTypedCompletionList(symbol, inferredTypes, syntaxContext.SemanticModel, syntaxContext.Position))
+                        if (ShouldIncludeInTargetTypedCompletionList(symbol, inferredTypesWithoutNullability, syntaxContext.SemanticModel, syntaxContext.Position, typeConvertibilityCache))
                         {
                             item = item.AddTag(WellKnownTags.TargetTypeMatch);
                             break;

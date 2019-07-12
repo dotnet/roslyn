@@ -1115,7 +1115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return declaration;
         }
 
-        private static SyntaxList<AttributeListSyntax> GetAttributeLists(SyntaxNode declaration)
+        internal static SyntaxList<AttributeListSyntax> GetAttributeLists(SyntaxNode declaration)
             => declaration switch
             {
                 MemberDeclarationSyntax memberDecl => memberDecl.AttributeLists,
@@ -1651,80 +1651,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             foreach (var token in modifierList)
             {
-                switch (token.Kind())
+                accessibility = (token.Kind(), accessibility) switch
                 {
-                    case SyntaxKind.PublicKeyword:
-                        accessibility = Accessibility.Public;
-                        break;
+                    (SyntaxKind.PublicKeyword, _) => Accessibility.Public,
 
-                    case SyntaxKind.PrivateKeyword:
-                        accessibility = accessibility == Accessibility.Protected
-                            ? Accessibility.ProtectedAndInternal
-                            : Accessibility.Private;
-                        break;
+                    (SyntaxKind.PrivateKeyword, Accessibility.Protected) => Accessibility.ProtectedAndInternal,
+                    (SyntaxKind.PrivateKeyword, _) => Accessibility.Private,
 
-                    case SyntaxKind.InternalKeyword:
-                        accessibility = accessibility == Accessibility.Protected
-                            ? Accessibility.ProtectedOrInternal
-                            : Accessibility.Internal;
-                        break;
+                    (SyntaxKind.InternalKeyword, Accessibility.Protected) => Accessibility.ProtectedOrInternal,
+                    (SyntaxKind.InternalKeyword, _) => Accessibility.Internal,
 
-                    case SyntaxKind.ProtectedKeyword:
-                        accessibility = accessibility == Accessibility.Private
-                            ? Accessibility.ProtectedAndInternal
-                            : accessibility == Accessibility.Internal
-                                ? Accessibility.ProtectedOrInternal
-                                : Accessibility.Protected;
-                        break;
+                    (SyntaxKind.ProtectedKeyword, Accessibility.Private) => Accessibility.ProtectedAndInternal,
+                    (SyntaxKind.ProtectedKeyword, Accessibility.Internal) => Accessibility.ProtectedOrInternal,
+                    (SyntaxKind.ProtectedKeyword, _) => Accessibility.Protected,
 
-                    case SyntaxKind.AbstractKeyword:
-                        modifiers |= DeclarationModifiers.Abstract;
-                        break;
+                    _ => accessibility,
+                };
 
-                    case SyntaxKind.NewKeyword:
-                        modifiers |= DeclarationModifiers.New;
-                        break;
-
-                    case SyntaxKind.OverrideKeyword:
-                        modifiers |= DeclarationModifiers.Override;
-                        break;
-
-                    case SyntaxKind.VirtualKeyword:
-                        modifiers |= DeclarationModifiers.Virtual;
-                        break;
-
-                    case SyntaxKind.StaticKeyword:
-                        modifiers |= DeclarationModifiers.Static;
-                        break;
-
-                    case SyntaxKind.AsyncKeyword:
-                        modifiers |= DeclarationModifiers.Async;
-                        break;
-
-                    case SyntaxKind.ConstKeyword:
-                        modifiers |= DeclarationModifiers.Const;
-                        break;
-
-                    case SyntaxKind.ReadOnlyKeyword:
-                        modifiers |= DeclarationModifiers.ReadOnly;
-                        break;
-
-                    case SyntaxKind.SealedKeyword:
-                        modifiers |= DeclarationModifiers.Sealed;
-                        break;
-
-                    case SyntaxKind.UnsafeKeyword:
-                        modifiers |= DeclarationModifiers.Unsafe;
-                        break;
-
-                    case SyntaxKind.PartialKeyword:
-                        modifiers |= DeclarationModifiers.Partial;
-                        break;
-
-                    case SyntaxKind.RefKeyword:
-                        modifiers |= DeclarationModifiers.Ref;
-                        break;
-                }
+                modifiers |= token.Kind() switch
+                {
+                    SyntaxKind.AbstractKeyword => DeclarationModifiers.Abstract,
+                    SyntaxKind.NewKeyword => DeclarationModifiers.New,
+                    SyntaxKind.OverrideKeyword => DeclarationModifiers.Override,
+                    SyntaxKind.VirtualKeyword => DeclarationModifiers.Virtual,
+                    SyntaxKind.StaticKeyword => DeclarationModifiers.Static,
+                    SyntaxKind.AsyncKeyword => DeclarationModifiers.Async,
+                    SyntaxKind.ConstKeyword => DeclarationModifiers.Const,
+                    SyntaxKind.ReadOnlyKeyword => DeclarationModifiers.ReadOnly,
+                    SyntaxKind.SealedKeyword => DeclarationModifiers.Sealed,
+                    SyntaxKind.UnsafeKeyword => DeclarationModifiers.Unsafe,
+                    SyntaxKind.PartialKeyword => DeclarationModifiers.Partial,
+                    SyntaxKind.RefKeyword => DeclarationModifiers.Ref,
+                    _ => DeclarationModifiers.None,
+                };
             }
         }
 

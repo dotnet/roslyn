@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             var clientCapabilities = CreateClientCapabilitiesWithExperimentalValue("supportsWorkspaceEdits", JToken.FromObject(false));
 
             var results = await RunCodeActionsAsync(solution, locations["caret"].Single(), clientCapabilities);
-            AssertJsonEquals(expected, results.Single());
+            var useImplicitTypeResult = results.Single(r => r.Title == CSharpFeaturesResources.Use_implicit_type);
+            AssertJsonEquals(expected, useImplicitTypeResult);
         }
 
         private static async Task<LSP.Command[]> RunCodeActionsAsync(Solution solution, LSP.Location caret, LSP.ClientCapabilities clientCapabilities = null)

@@ -66,6 +66,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             syntaxFacts.GetPartsOfAssignmentStatement(statement, out left, out _, out right);
         }
 
+        public static SyntaxNode GetExpressionOfInvocationExpression(
+            this ISyntaxFactsService syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfInvocationExpression(node, out var expression, out _);
+            return expression;
+        }
+
         public static SyntaxNode Unparenthesize(
             this ISyntaxFactsService syntaxFacts, SyntaxNode node)
         {
@@ -162,5 +169,17 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             syntaxFacts.GetPartsOfConditionalAccessExpression(node, out var expression, out _);
             return expression;
         }
+
+        public static SyntaxToken GetOperatorTokenOfMemberAccessExpression(this ISyntaxFactsService syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfMemberAccessExpression(node, out _, out var operatorToken, out _);
+            return operatorToken;
+        }
+
+        public static void GetPartsOfMemberAccessExpression(this ISyntaxFactsService syntaxFacts, SyntaxNode node, out SyntaxNode expression, out SyntaxNode name)
+            => syntaxFacts.GetPartsOfMemberAccessExpression(node, out expression, out _, out name);
+
+        public static void GetPartsOfConditionalAccessExpression(this ISyntaxFactsService syntaxFacts, SyntaxNode node, out SyntaxNode expression, out SyntaxNode whenNotNull)
+            => syntaxFacts.GetPartsOfConditionalAccessExpression(node, out expression, out _, out whenNotNull);
     }
 }

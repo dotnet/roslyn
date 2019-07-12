@@ -4083,6 +4083,41 @@ class C
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "foreach (var a in G(a => a))", CSharpFeaturesResources.foreach_statement));
         }
 
+        [Fact]
+        public void ForEach_Update_Nullable()
+        {
+            string src1 = @"
+class C
+{
+    static void F()
+    {
+        var arr = new int?[] { 0 };
+        foreach (var s in arr)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F()
+    {
+        var arr = new int[] { 0 };
+        foreach (var s in arr)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
         #endregion
 
         #region For Statement
@@ -8938,6 +8973,64 @@ class C
 
             edits.VerifyRudeDiagnostics(active);
             edits.VerifySemanticDiagnostics();
+        }
+
+        #endregion
+
+        #region Nullable
+
+        [Fact]
+        public void ChangeLocalNullableToNonNullable()
+        {
+            string src1 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>string? s = ""a"";</AS:0>
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>string s = ""a"";</AS:0>
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void ChangeLocalNonNullableToNullable()
+        {
+            string src1 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>string s = ""a"";</AS:0>
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>string? s = ""a"";</AS:0>
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
         }
 
         #endregion

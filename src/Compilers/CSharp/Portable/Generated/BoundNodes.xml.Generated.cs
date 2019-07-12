@@ -9925,10 +9925,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class NullabilityRewriter : BoundTreeRewriter
     {
         private readonly ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> _updatedNullabilities;
+        private readonly ImmutableDictionary<BoundCall, MethodSymbol> _updatedMethodSymbols;
 
-        public NullabilityRewriter(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> updatedNullabilities)
+        public NullabilityRewriter(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> updatedNullabilities, ImmutableDictionary<BoundCall, MethodSymbol> updatedMethodSymbols)
         {
             _updatedNullabilities = updatedNullabilities;
+            _updatedMethodSymbols = updatedMethodSymbols;
         }
 
         public override BoundNode? VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
@@ -11029,24 +11031,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 updatedNode = node.Update(node.Properties, receiverOpt, node.ResultKind);
-            }
-            return updatedNode;
-        }
-
-        public override BoundNode? VisitCall(BoundCall node)
-        {
-            BoundExpression? receiverOpt = (BoundExpression?)this.Visit(node.ReceiverOpt);
-            ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
-            BoundCall updatedNode;
-
-            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
-            {
-                updatedNode = node.Update(receiverOpt, node.Method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.ResultKind, node.BinderOpt, infoAndType.Type);
-                updatedNode.TopLevelNullability = infoAndType.Info;
-            }
-            else
-            {
-                updatedNode = node.Update(receiverOpt, node.Method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.ResultKind, node.BinderOpt, node.Type);
             }
             return updatedNode;
         }

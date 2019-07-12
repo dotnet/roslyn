@@ -344,7 +344,7 @@ class A
 
     static void Main()
     {
-        Bar(x => [||]Goo(x));
+        Bar(x [||]=> Goo(x));
     }
 }", parameters: new TestParameters(TestOptions.Regular7));
         }
@@ -371,7 +371,7 @@ class A
 
     static void Main()
     {
-        Bar(x => [||]Goo(x));
+        Bar(x [||]=> Goo(x));
     }
 }";
 
@@ -553,6 +553,67 @@ class Program
         Action a = [||]() => {
             Console.WriteLine();
         };
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        Action a = Console.WriteLine;
+    }
+}");
+        }
+
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        public async Task TestMissingCaretPositionInside()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        Action a = () => {
+            Console.[||]WriteLine();
+        };
+    }
+}");
+        }
+
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        public async Task TestMissingCaretPositionBeforeBody()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        Action a = () => [||]Console.WriteLine();
+    }
+}");
+        }
+
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        public async Task TestCaretPosition()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        [|Action a = () => {
+            Console.WriteLine();
+        };|]
     }
 }",
 @"using System;

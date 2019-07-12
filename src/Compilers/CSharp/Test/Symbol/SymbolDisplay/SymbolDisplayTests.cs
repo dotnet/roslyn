@@ -5174,7 +5174,7 @@ class C
                 }
             }
 
-            public ImmutableArray<CodeAnalysis.NullableAnnotation> TypeArgumentsNullableAnnotations
+            public ImmutableArray<CodeAnalysis.NullableAnnotation> TypeArgumentNullableAnnotations
             {
                 get
                 {

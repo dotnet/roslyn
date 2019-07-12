@@ -2079,6 +2079,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_IllegalSuppression, expr.Syntax);
                     break;
                 default:
+                    if (expr.IsSuppressed)
+                    {
+                        Debug.Assert(node.Operand.SkipParens().GetLastToken().Kind() == SyntaxKind.ExclamationToken);
+                        Error(diagnostics, ErrorCode.ERR_DuplicateNullSuppression, expr.Syntax);
+                    }
                     break;
             }
 

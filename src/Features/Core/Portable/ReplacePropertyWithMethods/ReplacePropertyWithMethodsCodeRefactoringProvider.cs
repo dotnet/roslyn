@@ -43,22 +43,11 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
             var cancellationToken = context.CancellationToken;
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var position = context.Span.Start;
-            var token = root.FindToken(position);
-
-            if (!token.Span.Contains(context.Span))
-            {
-                return;
-            }
-
-            var propertyDeclaration = service.GetPropertyDeclaration(token);
+            var propertyDeclaration = await service.GetPropertyDeclarationAsync(document, context.Span, cancellationToken).ConfigureAwait(false);
             if (propertyDeclaration == null)
             {
                 return;
             }
-
-            // var propertyName = service.GetPropertyName(propertyDeclaration);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var propertySymbol = semanticModel.GetDeclaredSymbol(propertyDeclaration) as IPropertySymbol;
@@ -72,7 +61,6 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 ? FeaturesResources.Replace_0_with_method
                 : FeaturesResources.Replace_0_with_methods;
 
-            // Looks good!
             context.RegisterRefactoring(new ReplacePropertyWithMethodsCodeAction(
                 string.Format(resourceString, propertyName),
                 c => ReplacePropertyWithMethodsAsync(context.Document, propertySymbol, c),
