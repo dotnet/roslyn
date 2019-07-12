@@ -43,6 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckParameterModifiers(parameterSyntax, diagnostics);
 
                 var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword);
+                if (refKind != RefKind.None && parameterSyntax.ExclamationToken.Kind() != SyntaxKind.None)
+                {
+                    diagnostics.Add(ErrorCode.ERR_NullCheckingOnByRefParameter, parameterSyntax.ExclamationToken.GetLocation(), parameterSyntax.Identifier.ValueText);
+                }
                 if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
                 {
                     diagnostics.Add(ErrorCode.ERR_ThisInBadContext, thisKeyword.GetLocation());
@@ -218,10 +222,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.RefKeyword), SyntaxFacts.GetText(SyntaxKind.InKeyword));
                         }
-                        else if (parameter.ExclamationToken.Kind() != SyntaxKind.None)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_NullCheckingOnByRefParameter, parameter.ExclamationToken.GetLocation(), parameter.Identifier.ValueText);
-                        }
                         else
                         {
                             seenRef = true;
@@ -248,10 +248,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else if (seenIn)
                         {
                             diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.OutKeyword), SyntaxFacts.GetText(SyntaxKind.InKeyword));
-                        }
-                        else if (parameter.ExclamationToken.Kind() != SyntaxKind.None)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_NullCheckingOnByRefParameter, parameter.ExclamationToken.GetLocation(), parameter.Identifier.ValueText);
                         }
                         else
                         {
@@ -302,10 +298,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else if (seenParams)
                         {
                             diagnostics.Add(ErrorCode.ERR_ParamsCantBeWithModifier, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword));
-                        }
-                        else if (parameter.ExclamationToken.Kind() != SyntaxKind.None)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_NullCheckingOnByRefParameter, parameter.ExclamationToken.GetLocation(), parameter.Identifier.ValueText);
                         }
                         else
                         {
