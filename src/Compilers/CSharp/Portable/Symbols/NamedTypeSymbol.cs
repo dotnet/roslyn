@@ -1583,7 +1583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        ImmutableArray<CodeAnalysis.NullableAnnotation> INamedTypeSymbol.TypeArgumentsNullableAnnotations
+        ImmutableArray<CodeAnalysis.NullableAnnotation> INamedTypeSymbol.TypeArgumentNullableAnnotations
         {
             get => this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.SelectAsArray(a => a.NullableAnnotation.ToPublicAnnotation());
         }
