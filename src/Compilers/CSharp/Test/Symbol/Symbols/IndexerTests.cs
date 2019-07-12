@@ -1780,19 +1780,18 @@ interface B
                 // (19,9): error CS0668: Two indexers have different names; the IndexerName attribute must be used with the same name on every indexer within a type
                 //     int this[long x] { get; }
                 Diagnostic(ErrorCode.ERR_InconsistentIndexerNames, "this").WithLocation(19, 9),
-
-                // (12,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (12,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     const string Constant1 = "X";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Constant1").WithArguments("default interface implementation").WithLocation(12, 18),
-                // (13,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant1").WithArguments("default interface implementation", "8.0").WithLocation(12, 18),
+                // (13,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     const string Constant2 = A.Constant2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Constant2").WithArguments("default interface implementation").WithLocation(13, 18),
-                // (6,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant2").WithArguments("default interface implementation", "8.0").WithLocation(13, 18),
+                // (6,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     const string Constant1 = B.Constant1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Constant1").WithArguments("default interface implementation").WithLocation(6, 18),
-                // (7,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant1").WithArguments("default interface implementation", "8.0").WithLocation(6, 18),
+                // (7,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     const string Constant2 = B.Constant2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Constant2").WithArguments("default interface implementation").WithLocation(7, 18)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant2").WithArguments("default interface implementation", "8.0").WithLocation(7, 18)
                 );
         }
 
@@ -1893,19 +1892,18 @@ interface B<T>
                 // (7,18): error CS0110: The evaluation of the constant value for 'A<T>.Constant2' involves a circular definition
                 //     const string Constant2 = B<int>.Constant2;
                 Diagnostic(ErrorCode.ERR_CircConstValue, "Constant2").WithArguments("A<T>.Constant2").WithLocation(7, 18),
-
-                // (15,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (15,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     const string Constant1 = "X";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Constant1").WithArguments("default interface implementation").WithLocation(15, 18),
-                // (16,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant1").WithArguments("default interface implementation", "8.0").WithLocation(15, 18),
+                // (16,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     const string Constant2 = A<bool>.Constant2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Constant2").WithArguments("default interface implementation").WithLocation(16, 18),
-                // (6,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant2").WithArguments("default interface implementation", "8.0").WithLocation(16, 18),
+                // (6,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     const string Constant1 = B<string>.Constant1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Constant1").WithArguments("default interface implementation").WithLocation(6, 18),
-                // (7,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant1").WithArguments("default interface implementation", "8.0").WithLocation(6, 18),
+                // (7,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     const string Constant2 = B<int>.Constant2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Constant2").WithArguments("default interface implementation").WithLocation(7, 18)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant2").WithArguments("default interface implementation", "8.0").WithLocation(7, 18)
                 );
         }
 

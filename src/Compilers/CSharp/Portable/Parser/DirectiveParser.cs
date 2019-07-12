@@ -327,7 +327,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     else
                     {
                         const string versionMarker = "version:";
-                        if (errorText.StartsWith(versionMarker, StringComparison.Ordinal) &&
+                        if (this.Options.LanguageVersion != LanguageVersion.Preview &&
+                            errorText.StartsWith(versionMarker, StringComparison.Ordinal) &&
                             LanguageVersionFacts.TryParse(errorText.Substring(versionMarker.Length), out var languageVersion))
                         {
                             ErrorCode error = this.Options.LanguageVersion.GetErrorCode();

@@ -4209,7 +4209,7 @@ class A
             var text = @"#nullable enable";
             var node = Parse(text, options: TestOptions.Regular7_3);
             TestRoundTripping(node, text, disallowErrors: false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_FeatureInPreview, Status = NodeStatus.IsError });
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7_3, Status = NodeStatus.IsError });
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable" });
         }
 
