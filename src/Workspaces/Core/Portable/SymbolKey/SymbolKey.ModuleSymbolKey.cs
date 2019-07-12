@@ -14,14 +14,11 @@ namespace Microsoft.CodeAnalysis
                 var containingSymbolResolution = reader.ReadSymbolKey();
 
                 using var result = PooledArrayBuilder<IModuleSymbol>.GetInstance();
-                foreach (var containingSymbol in containingSymbolResolution)
+                foreach (var assembly in containingSymbolResolution.OfType<IAssemblySymbol>())
                 {
-                    if (containingSymbol is IAssemblySymbol assembly)
-                    {
-                        // Don't check ModuleIds for equality because in practice, no-one uses them,
-                        // and there is no way to set netmodule name programmatically using Roslyn
-                        result.AddValuesIfNotNull(assembly.Modules);
-                    }
+                    // Don't check ModuleIds for equality because in practice, no-one uses them,
+                    // and there is no way to set netmodule name programmatically using Roslyn
+                    result.AddValuesIfNotNull(assembly.Modules);
                 }
 
                 return CreateSymbolInfo(result);

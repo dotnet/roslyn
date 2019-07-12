@@ -80,13 +80,10 @@ namespace Microsoft.CodeAnalysis
                         using var result = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
 
                         var elementNames = elementNamesBuilder.ToImmutable();
-                        foreach (var symbol in underlyingTypeResolution)
+                        foreach (var namedType in underlyingTypeResolution.OfType<INamedTypeSymbol>())
                         {
-                            if (symbol is INamedTypeSymbol namedType)
-                            {
-                                result.AddIfNotNull(reader.Compilation.CreateTupleTypeSymbol(
-                                    namedType, elementNames, elementLocations));
-                            }
+                            result.AddIfNotNull(reader.Compilation.CreateTupleTypeSymbol(
+                                namedType, elementNames, elementLocations));
                         }
 
                         return CreateSymbolInfo(result);

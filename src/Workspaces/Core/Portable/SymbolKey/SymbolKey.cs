@@ -250,20 +250,17 @@ namespace Microsoft.CodeAnalysis
             string metadataNameOpt) where TSymbol : ISymbol
         {
             var result = PooledArrayBuilder<TSymbol>.GetInstance();
-            foreach (var containingSymbol in containingTypeResolution)
+            foreach (var containingType in containingTypeResolution.OfType<INamedTypeSymbol>())
             {
-                if (containingSymbol is INamedTypeSymbol containingType)
-                {
-                    var members = metadataNameOpt == null
-                        ? containingType.GetMembers()
-                        : containingType.GetMembers(metadataNameOpt);
+                var members = metadataNameOpt == null
+                    ? containingType.GetMembers()
+                    : containingType.GetMembers(metadataNameOpt);
 
-                    foreach (var member in members)
+                foreach (var member in members)
+                {
+                    if (member is TSymbol symbol)
                     {
-                        if (member is TSymbol symbol)
-                        {
-                            result.AddIfNotNull(symbol);
-                        }
+                        result.AddIfNotNull(symbol);
                     }
                 }
             }

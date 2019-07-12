@@ -18,12 +18,9 @@ namespace Microsoft.CodeAnalysis
                 var rank = reader.ReadInteger();
 
                 using var result = PooledArrayBuilder<IArrayTypeSymbol>.GetInstance(elementTypeResolution.SymbolCount);
-                foreach (var symbol in elementTypeResolution)
+                foreach (var typeSymbol in elementTypeResolution.OfType<ITypeSymbol>())
                 {
-                    if (symbol is ITypeSymbol typeSymbol)
-                    {
-                        result.AddIfNotNull(reader.Compilation.CreateArrayTypeSymbol(typeSymbol, rank));
-                    }
+                    result.AddIfNotNull(reader.Compilation.CreateArrayTypeSymbol(typeSymbol, rank));
                 }
 
                 return CreateSymbolInfo(result);

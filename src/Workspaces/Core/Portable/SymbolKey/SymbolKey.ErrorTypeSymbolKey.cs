@@ -40,28 +40,25 @@ namespace Microsoft.CodeAnalysis
                 using var result = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
 
                 var typeArgumentsArray = arity > 0 ? typeArguments.Builder.ToArray() : null;
-                foreach (var container in containingSymbolResolution)
+                foreach (var container in containingSymbolResolution.OfType<INamespaceOrTypeSymbol>())
                 {
-                    if (container is INamespaceOrTypeSymbol containerTypeOrNS)
-                    {
-                        result.AddIfNotNull(Construct(
-                            reader, containerTypeOrNS, name, arity, typeArgumentsArray));
-                    }
+                    result.AddIfNotNull(Construct(
+                        reader, container, name, arity, typeArgumentsArray));
                 }
 
                 // Always ensure at least one error type was created.
                 if (result.Count == 0)
                 {
                     result.AddIfNotNull(Construct(
-                        reader, containerTypeOrNS: null, name, arity, typeArgumentsArray));
+                        reader, container: null, name, arity, typeArgumentsArray));
                 }
 
                 return CreateSymbolInfo(result);
             }
 
-            private static INamedTypeSymbol Construct(SymbolKeyReader reader, INamespaceOrTypeSymbol containerTypeOrNS, string name, int arity, ITypeSymbol[] typeArguments)
+            private static INamedTypeSymbol Construct(SymbolKeyReader reader, INamespaceOrTypeSymbol container, string name, int arity, ITypeSymbol[] typeArguments)
             {
-                var result = reader.Compilation.CreateErrorTypeSymbol(containerTypeOrNS, name, arity);
+                var result = reader.Compilation.CreateErrorTypeSymbol(container, name, arity);
                 return typeArguments != null ? result.Construct(typeArguments) : result;
             }
         }

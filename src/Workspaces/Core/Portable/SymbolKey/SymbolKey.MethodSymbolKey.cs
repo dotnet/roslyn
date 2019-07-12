@@ -22,17 +22,11 @@ namespace Microsoft.CodeAnalysis
                 var receiverTypeResolution = reader.ReadSymbolKey();
 
                 using var result = PooledArrayBuilder<IMethodSymbol>.GetInstance();
-                foreach (var reducedFromSymbol in reducedFromResolution)
+                foreach (var reducedFrom in reducedFromResolution.OfType<IMethodSymbol>())
                 {
-                    if (reducedFromSymbol is IMethodSymbol reducedFrom)
+                    foreach (var receiverType in receiverTypeResolution.OfType<ITypeSymbol>())
                     {
-                        foreach (var receiverSymbol in receiverTypeResolution)
-                        {
-                            if (receiverSymbol is ITypeSymbol receiverType)
-                            {
-                                result.AddIfNotNull(reducedFrom.ReduceExtensionMethod(receiverType));
-                            }
-                        }
+                        result.AddIfNotNull(reducedFrom.ReduceExtensionMethod(receiverType));
                     }
                 }
 
@@ -65,14 +59,11 @@ namespace Microsoft.CodeAnalysis
                 var typeArgumentArray = typeArguments.Builder.ToArray();
 
                 using var result = PooledArrayBuilder<IMethodSymbol>.GetInstance();
-                foreach (var symbol in constructedFrom)
+                foreach (var method in constructedFrom.OfType<IMethodSymbol>())
                 {
-                    if (symbol is IMethodSymbol method)
+                    if (method.TypeParameters.Length == typeArgumentArray.Length)
                     {
-                        if (method.TypeParameters.Length == typeArgumentArray.Length)
-                        {
-                            result.AddIfNotNull(method.Construct(typeArgumentArray));
-                        }
+                        result.AddIfNotNull(method.Construct(typeArgumentArray));
                     }
                 }
 

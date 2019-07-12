@@ -14,12 +14,9 @@ namespace Microsoft.CodeAnalysis
                 var pointedAtTypeResolution = reader.ReadSymbolKey();
 
                 using var result = PooledArrayBuilder<IPointerTypeSymbol>.GetInstance(pointedAtTypeResolution.SymbolCount);
-                foreach (var symbol in pointedAtTypeResolution)
+                foreach (var typeSymbol in pointedAtTypeResolution.OfType<ITypeSymbol>())
                 {
-                    if (symbol is ITypeSymbol typeSymbol)
-                    {
-                        result.AddIfNotNull(reader.Compilation.CreatePointerTypeSymbol(typeSymbol));
-                    }
+                    result.AddIfNotNull(reader.Compilation.CreatePointerTypeSymbol(typeSymbol));
                 }
 
                 return CreateSymbolInfo(result);

@@ -47,9 +47,10 @@ namespace Microsoft.CodeAnalysis
         public CandidateReason CandidateReason { get; }
         public ImmutableArray<ISymbol> CandidateSymbols => _candidateSymbols.NullToEmpty();
 
-        public Enumerator GetEnumerator()
-        {
-            return new Enumerator(this);
-        }
+        public Enumerator<ISymbol> GetEnumerator()
+            => new Enumerator<ISymbol>(this);
+
+        internal Enumerable<TSymbol> OfType<TSymbol>() where TSymbol : ISymbol
+            => new Enumerable<TSymbol>(this);
     }
 }

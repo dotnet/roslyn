@@ -43,14 +43,11 @@ namespace Microsoft.CodeAnalysis
                     ? Array.Empty<ITypeSymbol>()
                     : typeArguments.Builder.ToArray();
                 using var result = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
-                foreach (var resolution in containingSymbolResolution)
+                foreach (var nsOrType in containingSymbolResolution.OfType<INamespaceOrTypeSymbol>())
                 {
-                    if (resolution is INamespaceOrTypeSymbol nsOrType)
-                    {
-                        Resolve(
-                            result, nsOrType, metadataName, arity,
-                            isUnboundGenericType, typeArgumentArray);
-                    }
+                    Resolve(
+                        result, nsOrType, metadataName, arity,
+                        isUnboundGenericType, typeArgumentArray);
                 }
 
                 return CreateSymbolInfo(result);
