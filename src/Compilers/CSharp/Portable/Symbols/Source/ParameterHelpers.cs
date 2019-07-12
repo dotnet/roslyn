@@ -604,5 +604,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return refKind;
         }
+
+        internal static void AddNullCheckingErrorsToParameter(DiagnosticBag diagnostics, ParameterSymbol parameter, bool isLambdaOrLocalFunction)
+        {
+            if (parameter.IsNullChecked)
+            {
+                if (Binder.GetWellKnownTypeMember(parameter.DeclaringCompilation, WellKnownMember.System_ArgumentNullException__ctorString, out DiagnosticInfo diag) is null)
+                {
+                    diagnostics.Add(diag, parameter.Locations.FirstOrNone());
+
+                }
+                if (parameter.Type.IsValueType)
+                {
+                    if (!parameter.Type.IsNullableTypeOrTypeParameter())
+                    {
+                        diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, parameter.Locations.FirstOrNone(), parameter);
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.WRN_NullCheckingOnNullableValueType, parameter.Locations.FirstOrNone(), parameter);
+                    }
+                }
+            }
+            if (isLambdaOrLocalFunction && parameter.ExplicitDefaultConstantValue?.IsNull == true)
+            {
+                diagnostics.Add(ErrorCode.WRN_NullCheckedHasDefaultNull, parameter.Locations.FirstOrNone(), parameter.Name);
+            }
+        }
     }
 }
