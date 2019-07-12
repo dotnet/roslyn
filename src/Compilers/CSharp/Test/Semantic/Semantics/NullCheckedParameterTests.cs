@@ -590,7 +590,6 @@ class C
             var source = @"
 class C
 {
-    
     static void M1<T>(T t! = default) { }
     static void M2<T>(T? t! = default) where T : struct { }
     static void M3<T>(T t! = default) where T : class { }

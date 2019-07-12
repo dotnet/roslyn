@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // in which case the declaring compilation is the wrong one.
         protected ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics, Binder binder)
         {
-            ParameterHelpers.AddNullCheckingErrorsToParameter(diagnostics, this, isLambdaOrLocalFunction: false);
+            ParameterHelpers.AddNullCheckingErrorsToParameter(diagnostics, this);
             var parameterSyntax = this.CSharpSyntaxNode;
             if (parameterSyntax == null)
             {

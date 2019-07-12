@@ -605,30 +605,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return refKind;
         }
 
-        internal static void AddNullCheckingErrorsToParameter(DiagnosticBag diagnostics, ParameterSymbol parameter, bool isLambdaOrLocalFunction)
+        internal static void AddNullCheckingErrorsToParameter(DiagnosticBag diagnostics, ParameterSymbol parameter)
         {
-            if (parameter.IsNullChecked)
+            if (!parameter.IsNullChecked)
             {
-                Location location = parameter.Locations.FirstOrNone();
-                if (Binder.GetWellKnownTypeMember(parameter.DeclaringCompilation, WellKnownMember.System_ArgumentNullException__ctorString, out DiagnosticInfo diag) is null)
+                return;
+            }
+            Location location = parameter.Locations.FirstOrNone();
+            if (Binder.GetWellKnownTypeMember(parameter.DeclaringCompilation, WellKnownMember.System_ArgumentNullException__ctorString, out DiagnosticInfo diag) is null)
+            {
+                diagnostics.Add(diag, location);
+            }
+            if (parameter.Type.IsValueType)
+            {
+                if (!parameter.Type.IsNullableTypeOrTypeParameter())
                 {
-                    diagnostics.Add(diag, location);
-
+                    diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, location, parameter);
                 }
-                if (parameter.Type.IsValueType)
+                else
                 {
-                    if (!parameter.Type.IsNullableTypeOrTypeParameter())
-                    {
-                        diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, location, parameter);
-                    }
-                    else
-                    {
-                        diagnostics.Add(ErrorCode.WRN_NullCheckingOnNullableValueType, location, parameter);
-                    }
-                }
-                if (isLambdaOrLocalFunction && parameter.ExplicitDefaultConstantValue?.IsNull == true)
-                {
-                    diagnostics.Add(ErrorCode.WRN_NullCheckedHasDefaultNull, location, parameter.Name);
+                    diagnostics.Add(ErrorCode.WRN_NullCheckingOnNullableValueType, location, parameter);
                 }
             }
         }

@@ -1212,13 +1212,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (!boundStatementsWithNullCheck.IsDefault)
                                 {
                                     boundStatements = boundStatementsWithNullCheck;
-                                }
-                                hasErrors = boundStatementsWithNullCheck.HasErrors() || diagsForCurrentMethod.HasAnyErrors();
-                                SetGlobalErrorIfTrue(hasErrors);
-                                if (hasErrors)
-                                {
-                                    _diagnostics.AddRange(diagsForCurrentMethod);
-                                    return;
+                                    hasErrors = boundStatementsWithNullCheck.HasErrors() || diagsForCurrentMethod.HasAnyErrors();
+                                    SetGlobalErrorIfTrue(hasErrors);
+                                    if (hasErrors)
+                                    {
+                                        _diagnostics.AddRange(diagsForCurrentMethod);
+                                        return;
+                                    }
                                 }
                             }
                         }
