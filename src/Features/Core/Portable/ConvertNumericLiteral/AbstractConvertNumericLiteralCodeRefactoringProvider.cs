@@ -10,32 +10,21 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
 {
-    internal abstract class AbstractConvertNumericLiteralCodeRefactoringProvider : CodeRefactoringProvider
+    internal abstract class AbstractConvertNumericLiteralCodeRefactoringProvider<TNumericLiteralExpression> : CodeRefactoringProvider where TNumericLiteralExpression : SyntaxNode
     {
+        protected abstract (string hexPrefix, string binaryPrefix) GetNumericLiteralPrefixes();
+
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var numericToken = await root.SyntaxTree.GetTouchingTokenAsync(context.Span.Start,
-                token => syntaxFacts.IsNumericLiteralExpression(token.Parent), cancellationToken).ConfigureAwait(false);
+            var numericToken = await GetNumericTokenAsync(document, context.Span, cancellationToken).ConfigureAwait(false);
 
-            if (numericToken == default)
-            {
-                return;
-            }
-
-            if (numericToken.ContainsDiagnostics)
-            {
-                return;
-            }
-
-            if (context.Span.Length > 0 &&
-                context.Span != numericToken.Span)
+            if (numericToken == default || numericToken.ContainsDiagnostics)
             {
                 return;
             }
@@ -58,6 +47,8 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
             {
                 return;
             }
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var value = IntegerUtilities.ToInt64(valueOpt.Value);
             var numericText = numericToken.ToString();
@@ -124,6 +115,21 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
             }
         }
 
+        internal virtual async Task<SyntaxToken> GetNumericTokenAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        {
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var refactoringService = document.GetLanguageService<IRefactoringHelpersService>();
+
+            var literalNode = await refactoringService.TryGetSelectedNodeAsync<TNumericLiteralExpression>(document, span, cancellationToken).ConfigureAwait(false);
+            var numericLiteralExpressionNode = syntaxFacts.IsNumericLiteralExpression(literalNode)
+                ? literalNode
+                : null;
+
+            return numericLiteralExpressionNode != null
+                ? numericLiteralExpressionNode.GetFirstToken()    // We know that TNumericLiteralExpression has always only one token: NumericLiteralToken
+                : default;
+        }
+
         private static (string prefix, string number, string suffix) GetNumericLiteralParts(string numericText, string hexPrefix, string binaryPrefix)
         {
             // Match literal text and extract out base prefix, type suffix and the number itself.
@@ -157,8 +163,6 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
                     return false;
             }
         }
-
-        protected abstract (string hexPrefix, string binaryPrefix) GetNumericLiteralPrefixes();
 
         private enum NumericKind { Unknown, Decimal, Binary, Hexadecimal }
 
