@@ -17,7 +17,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <para>
         /// A <typeparamref name="TSyntaxNode"/> instance is returned if:
         /// - Selection is zero-width and inside/touching a Token with direct parent of type <typeparamref name="TSyntaxNode"/>.
-        /// - Selection is zero-width and touching a Token whose ancestor ends/starts precisely on current selection .
+        /// - Selection is zero-width and touching a Token whose ancestor of type <typeparamref name="TSyntaxNode"/> ends/starts precisely on current selection.
+        /// - Selection is zero-width and in whitespace that corresponds to a Token whose direct ancestor is of type of type <typeparamref name="TSyntaxNode"/>.
+        /// - Selection is zero-width and in a header (defined by ISyntaxFacts helpers) of an node of type of type <typeparamref name="TSyntaxNode"/>.
         /// - Token whose direct parent of type <typeparamref name="TSyntaxNode"/> is selected.
         /// - Whole node of a type <typeparamref name="TSyntaxNode"/> is selected.
         /// </para>

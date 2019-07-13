@@ -412,12 +412,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         ImmutableArray<SyntaxNode> GetSelectedFieldsAndProperties(SyntaxNode root, TextSpan textSpan, bool allowPartialSelection);
         bool IsOnTypeHeader(SyntaxNode root, int position);
-        bool IsInHeader(SyntaxNodeOrToken nodeOrToken, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader);
-        bool IsInPropertyDeclarationHeader(SyntaxToken token, out SyntaxNode propertyDeclaration);
-        bool IsInParameterHeader(SyntaxToken token, out SyntaxNode parameter);
-        bool IsInMethodHeader(SyntaxToken token, out SyntaxNode method);
-        bool IsInLocalFunctionHeader(SyntaxToken token, out SyntaxNode localFunction);
-        bool IsInLocalDeclarationHeader(SyntaxToken token, out SyntaxNode localDeclaration);
+        bool IsOnHeader(int position, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader);
+        bool IsOnPropertyDeclarationHeader(SyntaxNode root, int position, out SyntaxNode propertyDeclaration);
+        bool IsOnParameterHeader(SyntaxNode root, int position, out SyntaxNode parameter);
+        bool IsOnMethodHeader(SyntaxNode root, int position, out SyntaxNode method);
+        bool IsOnLocalFunctionHeader(SyntaxNode root, int position, out SyntaxNode localFunction);
+        bool IsOnLocalDeclarationHeader(SyntaxNode root, int position, out SyntaxNode localDeclaration);
         bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position);
 
         // Walks the tree, starting from contextNode, looking for the first construct

@@ -488,28 +488,47 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private bool SpansPreprocessorDirective(SyntaxTriviaList list)
             => list.Any(t => IsPreprocessorDirective(t));
 
-        public bool IsInHeader(SyntaxNodeOrToken nodeOrToken, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader)
+        public bool IsOnHeader(int position, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader)
         {
             var start = GetStartOfNodeExcludingAttributes(ownerOfHeader);
             var end = lastTokenOrNodeOfHeader.FullSpan.End;
 
-            return nodeOrToken.Span.Start >= start && nodeOrToken.Span.End <= end;
+            return start <= position && position <= end;
         }
 
-        public bool IsInHeader(SyntaxNodeOrToken nodeOrToken, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader, ImmutableArray<SyntaxNode> holes)
+        public bool IsInHeader(int position, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader, ImmutableArray<SyntaxNode> holes)
         {
-            var inHeader = IsInHeader(nodeOrToken, ownerOfHeader, lastTokenOrNodeOfHeader);
+            var inHeader = IsOnHeader(position, ownerOfHeader, lastTokenOrNodeOfHeader);
             if (!inHeader)
             {
                 return false;
             }
 
-            if (holes.Any(h => h.Span.IntersectsWith(nodeOrToken.Span)))
+            // Holes are exclusive: to return false it needs to be _inside_ a hole not only on the edge
+            // -> to be consistent with other 'being on the edge' of Tokens/Nodes.
+            if (holes.Any(h => (h.Span.Start < position && position < h.Span.End)))
             {
                 return false;
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Tries to get an ancestor of a Token on current position or of Token directly to left:
+        /// e.g.: tokenWithWantedAncestor[||]tokenWithoutWantedAncestor
+        /// </summary>
+        protected static TNode TryGetAncestorForLocation<TNode>(int position, SyntaxNode root) where TNode : SyntaxNode
+        {
+            var token = root.FindToken(position);
+            var node = token.GetAncestor<TNode>();
+            if (node == null && token.FullSpan.Start == position)
+            {
+                token = token.GetPreviousToken();
+                node = token.GetAncestor<TNode>();
+            }
+
+            return node;
         }
 
         protected int GetStartOfNodeExcludingAttributes(SyntaxNode node)
@@ -522,5 +541,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         public abstract SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node);
+
     }
 }

@@ -1784,64 +1784,61 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var start = GetStartOfNodeExcludingAttributes(typeDecl);
-            var end = typeDecl.GetTypeParameterList()?.GetLastToken().FullSpan.End ??
-                        typeDecl.Identifier.FullSpan.End;
-
-            return position >= start && position <= end;
+            return IsOnHeader(position, typeDecl, typeDecl.Identifier);
         }
 
-        public bool IsInPropertyDeclarationHeader(SyntaxToken token, out SyntaxNode propertyDeclaration)
+        public bool IsOnPropertyDeclarationHeader(SyntaxNode root, int position, out SyntaxNode propertyDeclaration)
         {
-            var node = token.GetAncestor<PropertyDeclarationSyntax>();
+            var node = TryGetAncestorForLocation<PropertyDeclarationSyntax>(position, root);
             propertyDeclaration = node;
             if (propertyDeclaration == null)
             {
                 return false;
             }
 
-            return IsInHeader(token, node, node.Identifier);
+            return IsOnHeader(position, node, node.Identifier);
         }
 
-        public bool IsInParameterHeader(SyntaxToken token, out SyntaxNode parameter)
+        public bool IsOnParameterHeader(SyntaxNode root, int position, out SyntaxNode parameter)
         {
-            var node = token.GetAncestor<ParameterSyntax>();
+            var node = TryGetAncestorForLocation<ParameterSyntax>(position, root);
             parameter = node;
             if (parameter == null)
             {
                 return false;
             }
 
-            return IsInHeader(token, node, node);
+            return IsOnHeader(position, node, node);
         }
 
-        public bool IsInMethodHeader(SyntaxToken token, out SyntaxNode method)
+        public bool IsOnMethodHeader(SyntaxNode root, int position, out SyntaxNode method)
         {
-            var node = token.GetAncestor<MethodDeclarationSyntax>();
+            var node = TryGetAncestorForLocation<MethodDeclarationSyntax>(position, root);
             method = node;
             if (method == null)
             {
                 return false;
             }
 
-            return IsInHeader(token, node, node.ParameterList);
+            return IsOnHeader(position, node, node.ParameterList);
         }
 
-        public bool IsInLocalFunctionHeader(SyntaxToken token, out SyntaxNode localFunction)
+        public bool IsOnLocalFunctionHeader(SyntaxNode root, int position, out SyntaxNode localFunction)
         {
-            var node = token.GetAncestor<LocalFunctionStatementSyntax>();
+            var node = TryGetAncestorForLocation<LocalFunctionStatementSyntax>(position, root);
             localFunction = node;
             if (localFunction == null)
             {
                 return false;
             }
 
-            return IsInHeader(token, node, node.ParameterList);
+            return IsOnHeader(position, node, node.ParameterList);
         }
 
-        public bool IsInLocalDeclarationHeader(SyntaxToken token, out SyntaxNode localDeclaration)
+        public bool IsOnLocalDeclarationHeader(SyntaxNode root, int position, out SyntaxNode localDeclaration)
         {
-            var node = token.GetAncestor<LocalDeclarationStatementSyntax>();
+            var node = TryGetAncestorForLocation<LocalDeclarationStatementSyntax>(position, root);
+
             localDeclaration = node;
             if (localDeclaration == null)
             {
@@ -1851,7 +1848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var initializersExpressions = node.Declaration.Variables
                 .Where(v => v.Initializer != null)
                 .Select(initializedV => initializedV.Initializer.Value).ToImmutableArray<SyntaxNode>();
-            return IsInHeader(token, node, node, initializersExpressions);
+            return IsInHeader(position, node, node, initializersExpressions);
         }
 
         public bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position)

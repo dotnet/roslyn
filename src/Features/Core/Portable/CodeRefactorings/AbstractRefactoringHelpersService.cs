@@ -23,35 +23,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 cancellationToken).ConfigureAwait(false);
         }
 
-        //TODO: Rework comment
-        /// <summary>
-        /// <para>
-        /// Returns a Node for refactoring given specified selection that passes <paramref name="predicate"/> 
-        /// or null if no such instance exists.
-        /// </para>
-        /// <para>
-        /// A node instance is return if:
-        /// - Selection is zero-width and inside/touching a Token with direct parent passing <paramref name="predicate"/>.
-        /// - Selection is zero-width and touching a Token whose ancestor Node passing <paramref name="predicate"/> ends/starts precisely on current selection.
-        /// - Token whose direct parent passing <paramref name="predicate"/> is selected.
-        /// - Whole node passing <paramref name="predicate"/> is selected.
-        /// </para>
-        /// <para>
-        /// The <paramref name="extractNodes"/> enables testing with <paramref name="predicate"/> and potentially returning Nodes 
-        /// that are under/above those that might be selected / considered (as described above). It should iterate over all candidate
-        /// nodes.
-        /// </para>
-        /// <para>
-        /// Note: this function trims all whitespace from both the beginning and the end of given <paramref name="selectionRaw"/>.
-        /// The trimmed version is then used to determine relevant <see cref="SyntaxNode"/>. It also handles incomplete selections
-        /// of tokens gracefully. Over-selection containing leading comments is also handled correctly. 
-        /// </para>
-        /// </summary>
         protected async Task<SyntaxNode> TryGetSelectedNodeAsync(
             Document document, TextSpan selectionRaw,
             Func<SyntaxNode, bool> predicate,
             Func<SyntaxNode, ISyntaxFactsService, IEnumerable<SyntaxNode>> extractNodes,
-            Func<SyntaxToken, ISyntaxFactsService, IEnumerable<SyntaxNode>> extracNodestIfInHeader,
+            Func<SyntaxNode, int, ISyntaxFactsService, IEnumerable<SyntaxNode>> extracNodestIfInHeader,
             CancellationToken cancellationToken)
         {
             // Given selection is trimmed first to enable over-selection that spans multiple lines. Since trailing whitespace ends
@@ -73,20 +49,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 return null;
             }
 
-            // Every time a Node is considered by following algorithm (and tested with predicate) and the predicate fails
-            // extractNode is called on the node and the results are tested with predicate again. If any of those succeed
-            // a respective Node gets returned.
+            // Every time a Node is considered by an extractNodes method is called to check & potentially return nodes around the original one
+            // that should also be considered.
             //
             // That enables us to e.g. return node `b` when Node `var a = b;` is being considered without a complex (and potentially 
             // lang. & situation dependent) into Children descending code here.  We can't just try extracted Node because we might 
             // want the whole node `var a = b;`
             //
-            // While we want to do most extractions for both selections and just caret location (empty selection), extractions based 
-            // on type's header node (caret is anywhere in a header of wanted type e.g. `in[||]t A { get; set; }) are limited to 
-            // empty selections. Otherwise `[|int|] A { get; set; }) would trigger all refactorings for Property Decl.
-            // Thus: selection -> extractParentsOfHeader: false; location -> extractParentsOfHeader
-            //
-            // See local function TryGetAcceptedNodeOrExtracted DefaultNodeExtractor for more info.
+            // In addition to per-node extractions we also check if current location (if selection is empty) is in a header of higher level
+            // desired node once. We do that only for locations because otherwise `[|int|] A { get; set; }) would trigger all refactorings for 
+            // Property Decl.
 
             // Handle selections:
             // - The smallest node whose FullSpan includes the whole (trimmed) selection
@@ -159,10 +131,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 ? tokenOnLocation
                 : default;
 
-            // A token can be to the left only when there's either no tokenDirectlyToRightOrIn or there's one 
-            // directly starting at current location. Otherwise  (otherwise tokenToRightOrIn is also left from location, e.g: `tok[||]enToRightOrIn`)
+            // A token can be to the left only when there's either no tokenDirectlyToRightOrIn or there's one  directly starting at current location. 
+            // Otherwise (otherwise tokenToRightOrIn is also left from location, e.g: `tok[||]enToRightOrIn`)
             var tokenToLeft = default(SyntaxToken);
-            if (tokenToRightOrIn == default || tokenToRightOrIn.Span.Start == location)
+            if (tokenToRightOrIn == default || tokenToRightOrIn.FullSpan.Start == location)
             {
                 var tokenPreLocation = (tokenOnLocation.Span.End == location)
                     ? tokenOnLocation
@@ -206,13 +178,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 }
             }
 
+            // First check if we're in a header of some higher-level node what would pass predicate & if we are -> return it
+            // We can't check any sooner because the code above (that figures out tokenToLeft, ...) can change current 
+            // `location`.
+            var acceptedHeaderNode = extracNodestIfInHeader(root, location, syntaxFacts).FirstOrDefault(predicate);
+            if (acceptedHeaderNode != null)
+            {
+                return acceptedHeaderNode;
+            }
+
+
             if (tokenToRightOrIn != default)
             {
-                var acceptedHeaderNode = extracNodestIfInHeader(tokenToRightOrIn, syntaxFacts).FirstOrDefault(predicate);
-                if (acceptedHeaderNode != null)
-                {
-                    return acceptedHeaderNode;
-                }
 
                 var rightNode = tokenOnLocation.Parent;
                 do
@@ -253,12 +230,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             if (tokenToLeft != default)
             {
-                var acceptedHeaderNode = extracNodestIfInHeader(tokenToLeft, syntaxFacts).FirstOrDefault(predicate);
-                if (acceptedHeaderNode != null)
-                {
-                    return acceptedHeaderNode;
-                }
-
                 var leftNode = tokenToLeft.Parent;
                 do
                 {
@@ -323,6 +294,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// with that and only that node. On the other hand placing cursor anywhere in header should still count as selecting the node it's header of.
         /// </para>
         /// </summary>
+        /// 
+
+
+        /// <summary>
+        /// Extractor function that retrieves all nodes that should be considered for <see cref="TryGetSelectedNodeAsync(Document, TextSpan, Func{SyntaxNode, bool}, Func{SyntaxNode, ISyntaxFactsService, IEnumerable{SyntaxNode}}, Func{SyntaxNode, int, ISyntaxFactsService, IEnumerable{SyntaxNode}}, CancellationToken)"/> 
+        /// given current node. 
+        /// <para>
+        /// The rationale is that when user selects e.g. entire local declaration statement [|var a = b;|] it is reasonable
+        /// to provide refactoring for `b` node. Similarly for other types of refactorings.
+        /// </para>
+        /// </summary>
+        /// <remark>
+        /// Should also return given node. 
+        /// </remark>
         protected virtual IEnumerable<SyntaxNode> ExtractNodesSimple(SyntaxNode node, ISyntaxFactsService syntaxFacts)
         {
             if (node == null)
@@ -391,34 +376,37 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        protected virtual IEnumerable<SyntaxNode> ExtractNodesIfInHeader(SyntaxToken token, ISyntaxFactsService syntaxFacts)
+        /// <summary>
+        /// Extractor function that checks and retrieves all nodes current location is in a header of <see cref="TryGetSelectedNodeAsync(Document, TextSpan, Func{SyntaxNode, bool}, Func{SyntaxNode, ISyntaxFactsService, IEnumerable{SyntaxNode}}, Func{SyntaxNode, int, ISyntaxFactsService, IEnumerable{SyntaxNode}}, CancellationToken)"/>.
+        /// </summary>
+        protected virtual IEnumerable<SyntaxNode> ExtractNodesIfInHeader(SyntaxNode root, int location, ISyntaxFactsService syntaxFacts)
         {
             // Header: [Test] `public int a` { get; set; }
-            if (syntaxFacts.IsInPropertyDeclarationHeader(token, out var propertyDeclaration))
+            if (syntaxFacts.IsOnPropertyDeclarationHeader(root, location, out var propertyDeclaration))
             {
                 yield return propertyDeclaration;
             }
 
             // Header: public C([Test]`int a = 42`) {}
-            if (syntaxFacts.IsInParameterHeader(token, out var parameter))
+            if (syntaxFacts.IsOnParameterHeader(root, location, out var parameter))
             {
                 yield return parameter;
             }
 
             // Header: `public I.C([Test]int a = 42)` {}
-            if (syntaxFacts.IsInMethodHeader(token, out var method))
+            if (syntaxFacts.IsOnMethodHeader(root, location, out var method))
             {
                 yield return method;
             }
 
             // Header: `static C([Test]int a = 42)` {}
-            if (syntaxFacts.IsInLocalFunctionHeader(token, out var localFunction))
+            if (syntaxFacts.IsOnLocalFunctionHeader(root, location, out var localFunction))
             {
                 yield return localFunction;
             }
 
             // Header: `var a = `3,` b = `5,` c = `7 + 3``;
-            if (syntaxFacts.IsInLocalDeclarationHeader(token, out var localDeclaration))
+            if (syntaxFacts.IsOnLocalDeclarationHeader(root, location, out var localDeclaration))
             {
                 yield return localDeclaration;
             }

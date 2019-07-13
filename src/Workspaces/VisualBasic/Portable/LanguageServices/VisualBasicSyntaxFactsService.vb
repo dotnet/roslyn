@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Composition
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -1735,12 +1734,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return position >= start AndAlso position <= _end
         End Function
 
-        Private Function ISyntaxFactsService_IsInHeader(nodeOrToken As SyntaxNodeOrToken, ownerOfHeader As SyntaxNode, lastTokenOrNodeOfHeader As SyntaxNodeOrToken) As Boolean Implements ISyntaxFactsService.IsInHeader
-            Return IsInHeader(nodeOrToken, ownerOfHeader, lastTokenOrNodeOfHeader)
+        Private Function ISyntaxFactsService_IsInHeader(position As Integer, ownerOfHeader As SyntaxNode, lastTokenOrNodeOfHeader As SyntaxNodeOrToken) As Boolean Implements ISyntaxFactsService.IsOnHeader
+            Return IsOnHeader(position, ownerOfHeader, lastTokenOrNodeOfHeader)
         End Function
 
-        Public Function IsInPropertyDeclarationHeader(token As SyntaxToken, ByRef propertyDeclaration As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInPropertyDeclarationHeader
-            Dim node = token.GetAncestor(Of PropertyStatementSyntax)()
+        Public Function IsOnPropertyDeclarationHeader(root As SyntaxNode, position As Integer, ByRef propertyDeclaration As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOnPropertyDeclarationHeader
+            Dim node = TryGetAncestorForLocation(Of PropertyStatementSyntax)(position, root)
             propertyDeclaration = node
 
             If propertyDeclaration Is Nothing Then
@@ -1748,25 +1747,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If node.AsClause IsNot Nothing Then
-                Return IsInHeader(token, node, node.AsClause)
+                Return IsOnHeader(position, node, node.AsClause)
             End If
 
-            Return IsInHeader(token, node, node.Identifier)
+            Return IsOnHeader(position, node, node.Identifier)
         End Function
 
-        Public Function IsInParameterHeader(token As SyntaxToken, ByRef parameter As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInParameterHeader
-            Dim node = token.GetAncestor(Of ParameterSyntax)()
+        Public Function IsOnParameterHeader(root As SyntaxNode, position As Integer, ByRef parameter As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOnParameterHeader
+            Dim node = TryGetAncestorForLocation(Of ParameterSyntax)(position, root)
             parameter = node
 
             If parameter Is Nothing Then
                 Return False
             End If
 
-            Return IsInHeader(token, node, node)
+            Return IsOnHeader(position, node, node)
         End Function
 
-        Public Function IsInMethodHeader(token As SyntaxToken, ByRef method As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInMethodHeader
-            Dim node = token.GetAncestor(Of MethodStatementSyntax)()
+        Public Function IsOnMethodHeader(root As SyntaxNode, position As Integer, ByRef method As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOnMethodHeader
+            Dim node = TryGetAncestorForLocation(Of MethodStatementSyntax)(position, root)
             method = node
 
             If method Is Nothing Then
@@ -1774,23 +1773,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If node.HasReturnType() Then
-                Return IsInHeader(token, method, node.GetReturnType())
+                Return IsOnHeader(position, method, node.GetReturnType())
             End If
 
             If node.ParameterList IsNot Nothing Then
-                Return IsInHeader(token, method, node.ParameterList)
+                Return IsOnHeader(position, method, node.ParameterList)
             End If
 
-            Return IsInHeader(token, node, node)
+            Return IsOnHeader(position, node, node)
         End Function
 
-        Public Function IsInLocalFunctionHeader(token As SyntaxToken, ByRef localFunction As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInLocalFunctionHeader
+        Public Function IsOnLocalFunctionHeader(root As SyntaxNode, position As Integer, ByRef localFunction As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOnLocalFunctionHeader
             ' No local functions in VisualBasic
             Return False
         End Function
 
-        Public Function IsInLocalDeclarationHeader(token As SyntaxToken, ByRef localDeclaration As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInLocalDeclarationHeader
-            Dim node = token.GetAncestor(Of LocalDeclarationStatementSyntax)()
+        Public Function IsOnLocalDeclarationHeader(root As SyntaxNode, position As Integer, ByRef localDeclaration As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOnLocalDeclarationHeader
+            Dim node = TryGetAncestorForLocation(Of LocalDeclarationStatementSyntax)(position, root)
             localDeclaration = node
 
             If localDeclaration Is Nothing Then
@@ -1798,7 +1797,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim initializersExpressions = node.Declarators.Where(Function(d) d.Initializer IsNot Nothing).[Select](Function(initializedd) initializedd.Initializer.Value).Cast(Of SyntaxNode).ToImmutableArray()
-            Return IsInHeader(token, node, node, initializersExpressions)
+            Return IsInHeader(position, node, node, initializersExpressions)
         End Function
 
         Public Function IsBetweenTypeMembers(sourceText As SourceText, root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsBetweenTypeMembers
