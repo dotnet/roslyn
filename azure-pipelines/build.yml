@@ -8,8 +8,8 @@ jobs:
   - template: install-dependencies.yml
 
   - powershell: |
-      dotnet tool install --tool-path $(Agent.ToolsDirectory) nbgv --ignore-failed-sources
-      $(Agent.ToolsDirectory)/nbgv cloud
+      dotnet tool install --tool-path $(Agent.TempDirectory) nbgv --ignore-failed-sources
+      $(Agent.TempDirectory)/nbgv cloud
     displayName: Set build number
 
   - template: dotnet.yml
