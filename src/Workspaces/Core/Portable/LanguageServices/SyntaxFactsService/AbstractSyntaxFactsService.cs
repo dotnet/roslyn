@@ -541,6 +541,5 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         public abstract SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node);
-
     }
 }

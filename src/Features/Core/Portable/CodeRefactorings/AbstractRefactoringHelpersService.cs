@@ -277,26 +277,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             return node.Span;
         }
 
-        // TODO: Rework comment
-        /// <summary>
-        /// <para>
-        /// Extractor function for  method 
-        /// that retrieves nodes that should also be considered as refactoring targets given <paramref name="node"/> is considered. 
-        /// Can extract both nodes above and under given <paramref name="node"/>.
-        /// </para>
-        /// <para>
-        /// The rationale is that when user selects e.g. entire local declaration statement [|var a = b;|] it is reasonable
-        /// to provide refactoring for `b` node. Similarly for other types of refactorings.
-        /// </para>
-        /// <para>
-        /// The rationale behind <paramref name="extractParentsOfHeader"/> is following. We want to extract a parent Node of header Node/Token
-        /// if its just for location (empty selection) but not for selection. We assume that if user selects just one node he wants to work
-        /// with that and only that node. On the other hand placing cursor anywhere in header should still count as selecting the node it's header of.
-        /// </para>
-        /// </summary>
-        /// 
-
-
         /// <summary>
         /// Extractor function that retrieves all nodes that should be considered for <see cref="TryGetSelectedNodeAsync(Document, TextSpan, Func{SyntaxNode, bool}, Func{SyntaxNode, ISyntaxFactsService, IEnumerable{SyntaxNode}}, Func{SyntaxNode, int, ISyntaxFactsService, IEnumerable{SyntaxNode}}, CancellationToken)"/> 
         /// given current node. 
