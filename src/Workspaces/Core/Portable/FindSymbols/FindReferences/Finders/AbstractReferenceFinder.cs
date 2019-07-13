@@ -455,12 +455,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInDocumentAsync(symbol, document, isRelevantDocument, collectMatchingReferences, cancellationToken);
+            return FindReferencesInDocumentAsync(symbol, document, IsRelevantDocument, CollectMatchingReferences, cancellationToken);
 
-            bool isRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
+            static bool IsRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
                 => syntaxTreeInfo.ContainsForEachStatement;
 
-            void collectMatchingReferences(ISymbol originalUnreducedSymbolDefinition, SyntaxNode node,
+            void CollectMatchingReferences(ISymbol originalUnreducedSymbolDefinition, SyntaxNode node,
                 ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, ArrayBuilder<FinderLocation> locations)
             {
                 var info = semanticFacts.GetForEachSymbols(semanticModel, node);
@@ -484,12 +484,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInDocumentAsync(symbol, document, isRelevantDocument, collectMatchingReferences, cancellationToken);
+            return FindReferencesInDocumentAsync(symbol, document, IsRelevantDocument, CollectMatchingReferences, cancellationToken);
 
-            bool isRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
+            static bool IsRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
                 => syntaxTreeInfo.ContainsDeconstruction;
 
-            void collectMatchingReferences(ISymbol originalUnreducedSymbolDefinition, SyntaxNode node,
+            void CollectMatchingReferences(ISymbol originalUnreducedSymbolDefinition, SyntaxNode node,
                 ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, ArrayBuilder<FinderLocation> locations)
             {
                 var deconstructMethods = semanticFacts.GetDeconstructionAssignmentMethods(semanticModel, node);
@@ -515,12 +515,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInDocumentAsync(symbol, document, isRelevantDocument, collectMatchingReferences, cancellationToken);
+            return FindReferencesInDocumentAsync(symbol, document, IsRelevantDocument, CollectMatchingReferences, cancellationToken);
 
-            bool isRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
+            static bool IsRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
                 => syntaxTreeInfo.ContainsAwait;
 
-            void collectMatchingReferences(ISymbol originalUnreducedSymbolDefinition, SyntaxNode node,
+            void CollectMatchingReferences(ISymbol originalUnreducedSymbolDefinition, SyntaxNode node,
                 ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, ArrayBuilder<FinderLocation> locations)
             {
                 var awaitExpressionMethod = semanticFacts.GetGetAwaiterMethod(semanticModel, node);
