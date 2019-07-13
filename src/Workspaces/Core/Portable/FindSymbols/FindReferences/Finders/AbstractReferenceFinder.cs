@@ -309,7 +309,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected static async Task<ImmutableArray<FinderLocation>> FindAliasReferencesAsync(
             ImmutableArray<FinderLocation> nonAliasReferences,
-            ISymbol symbol,
             Document document,
             SemanticModel semanticModel,
             Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch,
@@ -321,7 +320,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return ImmutableArray<FinderLocation>.Empty;
             }
 
-            return await FindReferencesThroughAliasSymbolsAsync(symbol, document, semanticModel, aliasSymbols, symbolsMatch, cancellationToken).ConfigureAwait(false);
+            return await FindReferencesThroughAliasSymbolsAsync(document, semanticModel, aliasSymbols, symbolsMatch, cancellationToken).ConfigureAwait(false);
         }
 
         private static ImmutableArray<IAliasSymbol> GetAliasSymbols(
@@ -372,7 +371,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private static async Task<ImmutableArray<FinderLocation>> FindReferencesThroughAliasSymbolsAsync(
-            ISymbol symbol,
             Document document,
             SemanticModel semanticModel,
             ImmutableArray<IAliasSymbol> aliasSymbols,
@@ -832,11 +830,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode, document.Project.Solution, cancellationToken);
-            return FindReferencesInDocumentAsync(symbol, document, semanticModel, tokensMatch, symbolsMatch, cancellationToken);
+            return FindReferencesInDocumentAsync(document, semanticModel, tokensMatch, symbolsMatch, cancellationToken);
         }
 
         protected static async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            TSymbol symbol,
             Document document,
             SemanticModel semanticModel,
             Func<SyntaxToken, bool> tokensMatch,
