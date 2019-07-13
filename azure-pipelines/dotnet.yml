@@ -63,3 +63,4 @@ steps:
   displayName: Publish code coverage results to codecov.io
   condition: ne(variables['codecov_token'], '')
   timeoutInMinutes: 3
+  continueOnError: true
