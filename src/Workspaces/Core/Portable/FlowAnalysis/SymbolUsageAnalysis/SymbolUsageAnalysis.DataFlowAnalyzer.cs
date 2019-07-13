@@ -38,11 +38,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             public static SymbolUsageResult RunAnalysis(ControlFlowGraph cfg, ISymbol owningSymbol, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                using (var analyzer = new DataFlowAnalyzer(cfg, owningSymbol))
-                {
-                    _ = CustomDataFlowAnalysis<BasicBlockAnalysisData>.Run(cfg, analyzer, cancellationToken);
-                    return analyzer._analysisData.ToResult();
-                }
+                using var analyzer = new DataFlowAnalyzer(cfg, owningSymbol);
+                _ = CustomDataFlowAnalysis<BasicBlockAnalysisData>.Run(cfg, analyzer, cancellationToken);
+                return analyzer._analysisData.ToResult();
             }
 
             public override void Dispose()
@@ -57,22 +55,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 Debug.Assert(localFunctionOrLambda.IsLocalFunction() || localFunctionOrLambda.IsAnonymousFunction());
 
                 cancellationToken.ThrowIfCancellationRequested();
-                using (var analyzer = new DataFlowAnalyzer(cfg, localFunctionOrLambda, (FlowGraphAnalysisData)parentAnalysisData))
-                {
-                    var resultBlockAnalysisData = CustomDataFlowAnalysis<BasicBlockAnalysisData>.Run(cfg, analyzer, cancellationToken);
-                    if (resultBlockAnalysisData == null)
-                    {
-                        // Unreachable exit block from lambda/local.
-                        // So use our current analysis data.
-                        return parentAnalysisData.CurrentBlockAnalysisData;
-                    }
+                using var analyzer = new DataFlowAnalyzer(cfg, localFunctionOrLambda, (FlowGraphAnalysisData)parentAnalysisData);
 
-                    // We need to return a cloned basic block analysis data as disposing the DataFlowAnalyzer
-                    // created above will dispose all basic block analysis data instances allocated by it.
-                    var clonedBasicBlockData = parentAnalysisData.CreateBlockAnalysisData();
-                    clonedBasicBlockData.SetAnalysisDataFrom(resultBlockAnalysisData);
-                    return clonedBasicBlockData;
+                var resultBlockAnalysisData = CustomDataFlowAnalysis<BasicBlockAnalysisData>.Run(cfg, analyzer, cancellationToken);
+                if (resultBlockAnalysisData == null)
+                {
+                    // Unreachable exit block from lambda/local.
+                    // So use our current analysis data.
+                    return parentAnalysisData.CurrentBlockAnalysisData;
                 }
+
+                // We need to return a cloned basic block analysis data as disposing the DataFlowAnalyzer
+                // created above will dispose all basic block analysis data instances allocated by it.
+                var clonedBasicBlockData = parentAnalysisData.CreateBlockAnalysisData();
+                clonedBasicBlockData.SetAnalysisDataFrom(resultBlockAnalysisData);
+                return clonedBasicBlockData;
             }
 
             // Don't analyze blocks which are unreachable, as any write
