@@ -56,7 +56,9 @@ if ($IsMacOS -or $IsLinux) {
 
 if (-not (Test-Path $DotNetInstallScriptPath)) {
     Invoke-WebRequest -Uri $DownloadUri -OutFile $DotNetInstallScriptPath
-    chmod +x $DotNetInstallScriptPath
+    if ($IsMacOS -or $IsLinux) {
+        chmod +x $DotNetInstallScriptPath
+    }
 }
 
 if ($PSCmdlet.ShouldProcess(".NET Core SDK $sdkVersion", "Install")) {
