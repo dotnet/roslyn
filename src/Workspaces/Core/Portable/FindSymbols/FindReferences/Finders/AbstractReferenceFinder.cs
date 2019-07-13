@@ -167,13 +167,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var tokens = await document.GetIdentifierOrGlobalNamespaceTokensWithTextAsync(semanticModel, identifier, cancellationToken).ConfigureAwait(false);
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            bool tokensMatch(SyntaxToken t) => IdentifiersMatch(syntaxFacts, identifier, t);
 
             return await FindReferencesInTokensAsync(
                 document,
                 semanticModel,
                 tokens,
-                tokensMatch,
+                (SyntaxToken t) => IdentifiersMatch(syntaxFacts, identifier, t),
                 symbolsMatch,
                 cancellationToken).ConfigureAwait(false);
         }
@@ -183,16 +182,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var nodeMatch = GetStandardSymbolsNodeMatchFunction(symbol, solution, cancellationToken);
             findParentNode ??= (t => t.Parent);
-            (bool matched, CandidateReason reason) symbolsMatch(SyntaxToken token, SemanticModel model)
-                => nodeMatch(findParentNode(token), model);
-
-            return symbolsMatch;
+            return (SyntaxToken token, SemanticModel model) => nodeMatch(findParentNode(token), model);
         }
 
         protected static Func<SyntaxNode, SemanticModel, (bool matched, CandidateReason reason)> GetStandardSymbolsNodeMatchFunction(
             ISymbol searchSymbol, Solution solution, CancellationToken cancellationToken)
         {
-            (bool matched, CandidateReason reason) symbolsMatch(SyntaxNode node, SemanticModel model)
+            return (SyntaxNode node, SemanticModel model) =>
             {
                 var symbolInfoToMatch = FindReferenceCache.GetSymbolInfo(model, node, cancellationToken);
 
@@ -211,9 +207,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     return (matched: false, CandidateReason.None);
                 }
-            }
-
-            return symbolsMatch;
+            };
         }
 
         protected static async Task<ImmutableArray<FinderLocation>> FindReferencesInTokensAsync(
