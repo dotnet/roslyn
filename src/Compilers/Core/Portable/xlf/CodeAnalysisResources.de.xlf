@@ -104,6 +104,11 @@
         <target state="new">A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</target>
         <note />
       </trans-unit>
+      <trans-unit id="TupleElementNullableAnnotationCountMismatch">
+        <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
+        <target state="new">If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unresolved">
         <source>Unresolved: </source>
         <target state="translated">Nicht aufgelöst: </target>

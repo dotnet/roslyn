@@ -122,6 +122,11 @@
         <target state="translated">"{0}" está implementado de forma explícita más de una vez.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateNullSuppression">
+        <source>Duplicate null suppression operator ('!')</source>
+        <target state="new">Duplicate null suppression operator ('!')</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
         <target state="translated">No se pueden especificar modificadores "readonly" en ambos descriptores de acceso de la propiedad o del indizador "{0}". En su lugar, coloque un modificador "readonly" en la propiedad.</target>

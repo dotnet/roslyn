@@ -122,6 +122,11 @@
         <target state="translated">Položka {0} je explicitně implementována více než jednou.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateNullSuppression">
+        <source>Duplicate null suppression operator ('!')</source>
+        <target state="new">Duplicate null suppression operator ('!')</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
         <target state="translated">Pro přístupové objekty vlastnosti i indexeru {0} nelze zadat modifikátory readonly. Místo toho zadejte modifikátor readonly jenom pro vlastnost.</target>

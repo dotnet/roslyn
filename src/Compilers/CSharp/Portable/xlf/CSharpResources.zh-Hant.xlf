@@ -122,6 +122,11 @@
         <target state="translated">'{0}' 已明確實作多次。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateNullSuppression">
+        <source>Duplicate null suppression operator ('!')</source>
+        <target state="new">Duplicate null suppression operator ('!')</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
         <target state="translated">在屬性和索引子 '{0}' 的存取子上均無法指定 'readonly' 修飾詞。請改在屬性自身上放置 'readonly' 修飾詞。</target>
