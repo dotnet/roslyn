@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 var builder = ArrayBuilder<TypeImportCompletionItemInfo>.GetInstance();
                 foreach (var info in ItemInfos)
                 {
-                    CompletionItem item = info.Item;
+                    var item = info.Item;
                     if (isAttributeContext)
                     {
                         if (!info.IsAttribute)

@@ -253,8 +253,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal Solution BaseSolution => _baseSolution;
 
-        private Solution CurrentSolution => _baseSolution.Workspace.CurrentSolution;
-
         public bool StoppedAtException => _stoppedAtException;
 
         public IReadOnlyDictionary<ProjectId, ProjectReadOnlyReason> Projects => _projects;
