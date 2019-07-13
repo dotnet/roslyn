@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         Compilation ICompilationFactoryService.GetCompilationFromCompilationReference(MetadataReference reference)
         {
             var compilationRef = reference as CompilationReference;
-            return (compilationRef != null) ? compilationRef.Compilation : null;
+            return compilationRef?.Compilation;
         }
 
         bool ICompilationFactoryService.IsCompilationReference(MetadataReference reference)
