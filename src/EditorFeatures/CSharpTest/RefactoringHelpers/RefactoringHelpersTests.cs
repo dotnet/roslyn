@@ -726,6 +726,36 @@ class C
 }";
             await TestMissingAsync<PropertyDeclarationSyntax>(testText);
         }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMultipleExtractions()
+        {
+            var localDeclaration = "{|result:string name = \"\", b[||]b = null;|}";
+            var localDeclarator = "string name = \"\", {|result:bb[||] = null|};";
+
+            await TestAsync<LocalDeclarationStatementSyntax>(GetTestText(localDeclaration));
+            await TestAsync<VariableDeclaratorSyntax>(GetTestText(localDeclarator));
+
+            static string GetTestText(string data)
+            {
+                return @"
+class C
+{
+    void M()
+    {
+        
+        C LocalFunction(C c)
+        {
+            " + data + @"return null;
+        }
+        var a = new object();
+    }
+}";
+
+            }
+        }
+
         #endregion
 
         #region Extractions
@@ -1049,6 +1079,66 @@ class CC
 }";
             await TestAsync<MethodDeclarationSyntax>(testText);
         }
+
+        #endregion
+
+        #region TestLocalDeclaration
+        [Theory]
+        [InlineData("{|result:v[||]ar name = \"\";|}")]
+        [InlineData("{|result:string name = \"\", b[||]b = null;|}")]
+        [InlineData("{|result:var[||] name = \"\";|}")]
+        [InlineData("{|result:var [||]name = \"\";|}")]
+        [InlineData("{|result:var na[||]me = \"\";|}")]
+        [InlineData("{|result:var name[||] = \"\";|}")]
+        [InlineData("{|result:var name [||]= \"\";|}")]
+        [InlineData("{|result:var name =[||] \"\";|}")]
+        [InlineData("{|result:var name = [||]\"\";|}")]
+        [InlineData("{|result:[|var name = \"\";|]|}")]
+        [InlineData("{|result:var name = \"\"[||];|}")]
+        [InlineData("{|result:var name = \"\";[||]|}")]
+        [InlineData("{|result:var name = \"\"[||]|}")]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestLocalDeclarationInHeader(string data)
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        
+        C LocalFunction(C c)
+        {
+            " + data + @"return null;
+        }
+        var a = new object();
+    }
+}";
+            await TestAsync<LocalDeclarationStatementSyntax>(testText);
+        }
+
+        [Theory]
+        [InlineData("var name = \"[||]\";")]
+        [InlineData("var name=[|\"\"|];")]
+        [InlineData("string name = \"\", bb = n[||]ull;")]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingLocalDeclarationCaretInHeader(string data)
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        
+        C LocalFunction(C c)
+        {
+            " + data + @"return null;
+        }
+        var a = new object();
+    }
+}";
+            await TestMissingAsync<LocalDeclarationStatementSyntax>(testText);
+        }
+
 
         #endregion
     }
