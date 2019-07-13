@@ -9,7 +9,7 @@ steps:
   displayName: Push packages to CI feed
   inputs:
     command: push
-    packagesToPush: $(System.DefaultWorkingDirectory)/bin/deployables-Windows/*.nupkg
+    packagesToPush: $(System.DefaultWorkingDirectory)/bin/deployables-Windows/NuGet/*.nupkg
     nuGetFeedType: internal
     publishVstsFeed: $(ci_feed)
     allowPackageConflicts: true

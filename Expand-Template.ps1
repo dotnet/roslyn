@@ -139,12 +139,12 @@ try {
     } else {
         $YmlReplacements['(codecov_token: ).*(#.*)'] = "#`$1`$2"
     }
-    if ($CIFeed) {
-        $YmlReplacements['(ci_feed: ).*(#.*)'] = "`$1$CIFeed"
-    } else {
-        $YmlReplacements['(ci_feed: ).*(#.*)'] = "#`$1`$2"
-    }
     Replace-Placeholders -Path "azure-pipelines.yml" -Replacements $YmlReplacements
+
+    Replace-Placeholders -Path "azure-pipelines/variables/InsertVersionsValues.ps1" -Replacements @{
+        'LibraryName' = $LibraryName;
+        'LibraryNoDots' = $LibraryName.Replace('.','');
+    }
 
     # Self destruct
     $Invocation = (Get-Variable MyInvocation -Scope 1).Value
