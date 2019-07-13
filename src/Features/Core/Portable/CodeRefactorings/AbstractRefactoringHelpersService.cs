@@ -187,7 +187,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 return acceptedHeaderNode;
             }
 
-
             if (tokenToRightOrIn != default)
             {
 

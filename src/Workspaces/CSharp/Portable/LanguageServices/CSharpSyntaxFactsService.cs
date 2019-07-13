@@ -1838,7 +1838,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsOnLocalDeclarationHeader(SyntaxNode root, int position, out SyntaxNode localDeclaration)
         {
             var node = TryGetAncestorForLocation<LocalDeclarationStatementSyntax>(position, root);
-
             localDeclaration = node;
             if (localDeclaration == null)
             {

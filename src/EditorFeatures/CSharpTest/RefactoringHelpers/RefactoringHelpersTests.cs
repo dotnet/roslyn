@@ -755,7 +755,6 @@ class C
 
             }
         }
-
         #endregion
 
         #region Extractions
@@ -1138,8 +1137,6 @@ class C
 }";
             await TestMissingAsync<LocalDeclarationStatementSyntax>(testText);
         }
-
-
         #endregion
     }
 }
