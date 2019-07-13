@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.AddQualificationDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(new MyCodeAction(

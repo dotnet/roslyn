@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         where TExpressionSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax
     {
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         protected abstract AbstractFormattingRule GetMultiLineFormattingRule();
         protected abstract TStatementSyntax WrapWithBlockIfAppropriate(TIfStatementSyntax ifStatement, TStatementSyntax statement);
 
