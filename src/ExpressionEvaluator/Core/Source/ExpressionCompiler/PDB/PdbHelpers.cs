@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     return ConstantValue.Create((double)symValue);
 
                 case SpecialType.System_String:
-                    if (symValue is int && (int)symValue == 0)
+                    if (symValue is int intVal1 && intVal1 == 0)
                     {
                         return ConstantValue.Null;
                     }
@@ -204,8 +204,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         return ConstantValue.Create(string.Empty);
                     }
 
-                    var str = symValue as string;
-                    if (str == null)
+                    if (!(symValue is string str))
                     {
                         return ConstantValue.Bad;
                     }
@@ -213,7 +212,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     return ConstantValue.Create(str);
 
                 case SpecialType.System_Object:
-                    if (symValue is int && (int)symValue == 0)
+                    if (symValue is int intVal2 && intVal2 == 0)
                     {
                         return ConstantValue.Null;
                     }
@@ -221,12 +220,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     return ConstantValue.Bad;
 
                 case SpecialType.System_Decimal:
-                    if (!(symValue is decimal))
+                    if (!(symValue is decimal decimalValue))
                     {
                         return ConstantValue.Bad;
                     }
 
-                    return ConstantValue.Create((decimal)symValue);
+                    return ConstantValue.Create(decimalValue);
 
                 case SpecialType.System_DateTime:
                     if (!(symValue is double))
@@ -239,7 +238,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 case SpecialType.None:
                     if (type.IsReferenceType)
                     {
-                        if (symValue is int && (int)symValue == 0)
+                        if (symValue is int intValue3 && intValue3 == 0)
                         {
                             return ConstantValue.Null;
                         }
