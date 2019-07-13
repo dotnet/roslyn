@@ -30,7 +30,11 @@ function Create-SymbolicLink {
     $LinkContainer = Split-Path $Link -Parent
     if (!(Test-Path $LinkContainer)) { mkdir $LinkContainer }
     Write-Verbose "Linking $Link to $Target"
-    ln $Target $Link
+    if ($IsMacOS -or $IsLinux) {
+        ln $Target $Link
+    } else {
+        cmd /c mklink $Link $Target
+    }
 }
 
 # Stage all artifacts
