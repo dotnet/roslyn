@@ -58,8 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return false;
             }
 
-            var expression = token.Parent.Parent as ExpressionSyntax;
-            if (expression == null)
+            if (!(token.Parent.Parent is ExpressionSyntax expression))
             {
                 return false;
             }
@@ -119,8 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // new Goo { bar = $$
             if (token.Parent.Parent.IsKind(SyntaxKind.ObjectCreationExpression))
             {
-                var objectCreation = token.Parent.Parent as ObjectCreationExpressionSyntax;
-                if (objectCreation == null)
+                if (!(token.Parent.Parent is ObjectCreationExpressionSyntax objectCreation))
                 {
                     return null;
                 }
