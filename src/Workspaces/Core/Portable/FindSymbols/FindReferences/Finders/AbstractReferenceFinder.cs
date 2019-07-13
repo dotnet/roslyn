@@ -236,8 +236,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                 if (tokensMatch(token))
                 {
-                    var match = symbolsMatch(token, semanticModel);
-                    if (match.matched)
+                    var (matched, reason) = symbolsMatch(token, semanticModel);
+                    if (matched)
                     {
                         var alias = FindReferenceCache.GetAliasInfo(semanticFacts, semanticModel, token, cancellationToken);
 
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         var isWrittenTo = symbolUsageInfo.IsWrittenTo();
                         locations.Add(new FinderLocation(token.Parent, new ReferenceLocation(
                             document, alias, location, isImplicit: false,
-                            symbolUsageInfo, candidateReason: match.reason)));
+                            symbolUsageInfo, candidateReason: reason)));
                     }
                 }
             }
