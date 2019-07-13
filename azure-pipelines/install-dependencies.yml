@@ -5,5 +5,7 @@ steps:
     failOnStderr: true
   displayName: Set pipeline variables based on source
 
-- powershell: .\init.ps1
+- powershell: |
+    .\init.ps1
+    dotnet --info
   displayName: Install prerequisites
