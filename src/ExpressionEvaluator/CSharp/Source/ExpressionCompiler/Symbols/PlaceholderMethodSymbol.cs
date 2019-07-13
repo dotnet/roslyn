@@ -157,6 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
         bool Cci.ISignature.ReturnValueIsByRef
         {
             get { return true; }

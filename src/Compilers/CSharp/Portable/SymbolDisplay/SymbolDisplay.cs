@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Displays a symbol in the C# style.
     /// </summary>
-    /// <seealso cref="T:Microsoft.CodeAnalysis.VisualBasic.Symbols.SymbolDisplay"/>
+    /// <seealso cref="T:Microsoft.CodeAnalysis.VisualBasic.SymbolDisplay"/>
 #pragma warning restore CA1200 // Avoid using cref tags with a prefix
     public static class SymbolDisplay
     {

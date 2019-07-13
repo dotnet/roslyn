@@ -322,7 +322,7 @@ class Class
     {
         throw new NotImplementedException();
     }
-}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
@@ -356,7 +356,7 @@ class Class
     {
         throw new NotImplementedException();
     }
-}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+}");
         }
 
 
@@ -1138,7 +1138,7 @@ class Class
     {
         throw new NotImplementedException();
     }
-}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
@@ -1174,7 +1174,7 @@ class Class
     {
         throw new NotImplementedException();
     }
-}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+}");
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36044"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
@@ -1212,7 +1212,7 @@ class Class
     {
         throw new NotImplementedException();
     }
-}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]

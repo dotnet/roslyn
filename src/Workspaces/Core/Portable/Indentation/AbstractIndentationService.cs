@@ -26,18 +26,20 @@ namespace Microsoft.CodeAnalysis.Indentation
             return formattingRules;
         }
 
-        public IndentationResult GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken)
+        public IndentationResult GetIndentation(
+            Document document, int lineNumber,
+            FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
         {
             var indenter = GetIndenter(document, lineNumber, cancellationToken);
 
-            var indentStyle = indenter.OptionSet.GetOption(FormattingOptions.SmartIndent, document.Project.Language);
             if (indentStyle == FormattingOptions.IndentStyle.None)
             {
                 // If there is no indent style, then do nothing.
                 return new IndentationResult(basePosition: 0, offset: 0);
             }
 
-            if (indenter.TryGetSmartTokenIndentation(out var indentationResult))
+            if (indentStyle == FormattingOptions.IndentStyle.Smart &&
+                indenter.TryGetSmartTokenIndentation(out var indentationResult))
             {
                 return indentationResult;
             }

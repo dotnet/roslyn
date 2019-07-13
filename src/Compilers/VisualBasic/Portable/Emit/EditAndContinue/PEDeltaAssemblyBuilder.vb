@@ -3,11 +3,11 @@
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     otherSynthesizedMembersOpt:=previousGeneration.SynthesizedMembers)
             End If
 
-            _previousDefinitions = New VisualBasicDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious)
+            _previousDefinitions = New VisualBasicDefinitionMap(edits, metadataDecoder, matchToMetadata, matchToPrevious)
             _previousGeneration = previousGeneration
             _changes = New SymbolChanges(_previousDefinitions, edits, isAddedSymbol)
 
@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return _previousGeneration.GetNextAnonymousTypeIndex(fromDelegates)
         End Function
 
-        Friend Overrides Function TryGetAnonymousTypeName(template As NamedTypeSymbol, <Out()> ByRef name As String, <Out()> ByRef index As Integer) As Boolean
+        Friend Overrides Function TryGetAnonymousTypeName(template As IAnonymousTypeTemplateSymbolInternal, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
             Debug.Assert(Compilation Is template.DeclaringCompilation)
             Return _previousDefinitions.TryGetAnonymousTypeName(template, name, index)
         End Function
@@ -237,8 +237,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Friend Overrides Function GetTopLevelTypesCore(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
-            Return _changes.GetTopLevelTypes(context)
+        Public Overrides Iterator Function GetTopLevelTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
+            For Each typeDef In GetAnonymousTypeDefinitions(context)
+                Yield typeDef
+            Next
+
+            For Each typeDef In GetTopLevelTypeDefinitionsCore(context)
+                Yield typeDef
+            Next
+        End Function
+
+        Public Overrides Function GetTopLevelSourceTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
+            Return _changes.GetTopLevelSourceTypeDefinitions(context)
         End Function
 
         Friend Sub OnCreatedIndices(diagnostics As DiagnosticBag) Implements IPEDeltaAssemblyBuilder.OnCreatedIndices

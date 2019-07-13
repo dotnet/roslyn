@@ -194,6 +194,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return TypeWithAnnotations.Create(_returnType); }
         }
 
+        public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations
+        {
+            get { return FlowAnalysisAnnotations.None; }
+        }
+
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return ImmutableArray<CustomModifier>.Empty; }

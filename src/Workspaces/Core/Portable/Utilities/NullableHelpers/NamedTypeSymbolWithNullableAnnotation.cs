@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
             public IEnumerable<string> MemberNames => WrappedSymbol.MemberNames;
             public ImmutableArray<ITypeParameterSymbol> TypeParameters => WrappedSymbol.TypeParameters;
             public ImmutableArray<ITypeSymbol> TypeArguments => WrappedSymbol.TypeArguments;
-            public ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations => WrappedSymbol.TypeArgumentsNullableAnnotations;
+            public ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => WrappedSymbol.TypeArgumentNullableAnnotations;
             public IMethodSymbol DelegateInvokeMethod => WrappedSymbol.DelegateInvokeMethod;
             public INamedTypeSymbol EnumUnderlyingType => WrappedSymbol.EnumUnderlyingType;
             public INamedTypeSymbol ConstructedFrom => WrappedSymbol.ConstructedFrom;

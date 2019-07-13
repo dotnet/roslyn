@@ -103,34 +103,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private bool _hasAssertsTrueAttribute;
-        public bool HasAssertsTrueAttribute
+        private bool? _doesNotReturnIfAttribute;
+        public bool? DoesNotReturnIfAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return _hasAssertsTrueAttribute;
+                return _doesNotReturnIfAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                _hasAssertsTrueAttribute = value;
-                SetDataStored();
-            }
-        }
-
-        private bool _hasAssertsFalseAttribute;
-        public bool HasAssertsFalseAttribute
-        {
-            get
-            {
-                VerifySealed(expected: true);
-                return _hasAssertsFalseAttribute;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                _hasAssertsFalseAttribute = value;
+                _doesNotReturnIfAttribute = value;
                 SetDataStored();
             }
         }

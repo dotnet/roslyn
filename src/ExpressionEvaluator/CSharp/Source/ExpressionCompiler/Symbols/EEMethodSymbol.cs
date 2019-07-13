@@ -297,6 +297,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
         public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get { return GetTypeParametersAsTypeArguments(); }
