@@ -1531,7 +1531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 issueSpan = name.Span;
 
-                return name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken);
+                return name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel);
             }
             else
             {
@@ -1602,17 +1602,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         }
 
                         // first check if this would be a valid reduction
-                        if (name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken))
+                        if (name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel))
                         {
                             // in case this alias name ends with "Attribute", we're going to see if we can also 
                             // remove that suffix.
                             if (TryReduceAttributeSuffix(
-                                name,
-                                identifierToken,
-                                semanticModel,
-                                out var replacementNodeWithoutAttributeSuffix,
-                                out var issueSpanWithoutAttributeSuffix,
-                                cancellationToken))
+                                    name,
+                                    identifierToken,
+                                    out var replacementNodeWithoutAttributeSuffix,
+                                    out var issueSpanWithoutAttributeSuffix))
                             {
                                 if (name.CanReplaceWithReducedName(replacementNodeWithoutAttributeSuffix, semanticModel, cancellationToken))
                                 {
@@ -1730,7 +1728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             // we need to simplify the whole qualified name at once, because replacing the identifier on the left in
                             // System.Nullable<int> alone would be illegal.
                             // If this fails we want to continue to try at least to remove the System if possible.
-                            if (name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken))
+                            if (name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel))
                             {
                                 return true;
                             }
@@ -1766,7 +1764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         identifier = ((IdentifierNameSyntax)name).Identifier;
 
                         // we can try to remove the Attribute suffix if this is the attribute name
-                        TryReduceAttributeSuffix(name, identifier, semanticModel, out replacementNode, out issueSpan, cancellationToken);
+                        TryReduceAttributeSuffix(name, identifier, out replacementNode, out issueSpan);
                         break;
                 }
             }
@@ -1846,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             issueSpan = name.Span; // we want to show the whole name expression as unnecessary
 
-            var canReduce = name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken);
+            var canReduce = name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel);
 
             if (canReduce)
             {
@@ -1864,10 +1862,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static bool TryReduceAttributeSuffix(
             NameSyntax name,
             SyntaxToken identifierToken,
-            SemanticModel semanticModel,
             out TypeSyntax replacementNode,
-            out TextSpan issueSpan,
-            CancellationToken cancellationToken)
+            out TextSpan issueSpan)
         {
             issueSpan = default;
             replacementNode = default;
@@ -2256,11 +2252,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            return CanReplaceWithReducedNameInContext(name, reducedName, semanticModel, cancellationToken);
+            return CanReplaceWithReducedNameInContext(name, reducedName, semanticModel);
         }
 
         private static bool CanReplaceWithReducedNameInContext(
-            this NameSyntax name, TypeSyntax reducedName, SemanticModel semanticModel, CancellationToken cancellationToken)
+            this NameSyntax name, TypeSyntax reducedName, SemanticModel semanticModel)
         {
             // Check for certain things that would prevent us from reducing this name in this context.
             // For example, you can simplify "using a = System.Int32" to "using a = int" as it's simply

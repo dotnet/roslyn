@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 IsInIntrinsicTypeContext =
                         IsPredefinedTypeInDeclaration(declaration, semanticModel)
-                     || IsInferredPredefinedType(declaration, semanticModel, cancellationToken);
+                     || IsInferredPredefinedType(declaration, semanticModel);
             }
 
             /// <summary>
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 }
             }
 
-            private bool IsInferredPredefinedType(SyntaxNode declarationStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
+            private bool IsInferredPredefinedType(SyntaxNode declarationStatement, SemanticModel semanticModel)
             {
                 var typeSyntax = GetTypeSyntaxFromDeclaration(declarationStatement);
 
