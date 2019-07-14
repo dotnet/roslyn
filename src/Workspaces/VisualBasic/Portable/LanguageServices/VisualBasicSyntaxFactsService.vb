@@ -1734,10 +1734,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return position >= start AndAlso position <= _end
         End Function
 
-        Private Function ISyntaxFactsService_IsInHeader(position As Integer, ownerOfHeader As SyntaxNode, lastTokenOrNodeOfHeader As SyntaxNodeOrToken) As Boolean Implements ISyntaxFactsService.IsOnHeader
-            Return IsOnHeader(position, ownerOfHeader, lastTokenOrNodeOfHeader)
-        End Function
-
         Public Function IsOnPropertyDeclarationHeader(root As SyntaxNode, position As Integer, ByRef propertyDeclaration As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOnPropertyDeclarationHeader
             Dim node = TryGetAncestorForLocation(Of PropertyStatementSyntax)(position, root)
             propertyDeclaration = node
@@ -1796,8 +1792,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End If
 
-            Dim initializersExpressions = node.Declarators.Where(Function(d) d.Initializer IsNot Nothing).[Select](Function(initializedd) initializedd.Initializer.Value).Cast(Of SyntaxNode).ToImmutableArray()
-            Return IsInHeader(position, node, node, initializersExpressions)
+            Dim initializersExpressions = node.Declarators.
+                Where(Function(d) d.Initializer IsNot Nothing).
+                SelectAsArray(Function(initialized) initialized.Initializer.Value)
+            Return IsOnHeader(position, node, node, initializersExpressions)
         End Function
 
         Public Function IsBetweenTypeMembers(sourceText As SourceText, root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsBetweenTypeMembers

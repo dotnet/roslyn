@@ -489,24 +489,25 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             => list.Any(t => IsPreprocessorDirective(t));
 
         public bool IsOnHeader(int position, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader)
-        {
-            var start = GetStartOfNodeExcludingAttributes(ownerOfHeader);
-            var end = lastTokenOrNodeOfHeader.FullSpan.End;
+            => IsOnHeader(position, ownerOfHeader, lastTokenOrNodeOfHeader, ImmutableArray<SyntaxNode>.Empty);
 
-            return start <= position && position <= end;
-        }
-
-        public bool IsInHeader(int position, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader, ImmutableArray<SyntaxNode> holes)
+        public bool IsOnHeader<THoleSyntax>(int position, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader, ImmutableArray<THoleSyntax> holes)
+            where THoleSyntax : SyntaxNode
         {
-            var inHeader = IsOnHeader(position, ownerOfHeader, lastTokenOrNodeOfHeader);
-            if (!inHeader)
+            var headerSpan = TextSpan.FromBounds(
+                start: GetStartOfNodeExcludingAttributes(ownerOfHeader),
+                end: lastTokenOrNodeOfHeader.FullSpan.End);
+
+            // Is in header check is inclusive, being on the end edge of an header still counts
+            if (!headerSpan.IntersectsWith(position))
             {
                 return false;
             }
 
-            // Holes are exclusive: to return false it needs to be _inside_ a hole not only on the edge
-            // -> to be consistent with other 'being on the edge' of Tokens/Nodes.
-            if (holes.Any(h => (h.Span.Start < position && position < h.Span.End)))
+            // Holes are exclusive: 
+            // To be consistent with other 'being on the edge' of Tokens/Nodes a position is 
+            // in a hole (not in a header) only if it's inside _inside_ a hole, not only on the edge.
+            if (holes.Any(h => h.Span.Contains(position) && position > h.Span.Start))
             {
                 return false;
             }
@@ -520,15 +521,20 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         protected static TNode TryGetAncestorForLocation<TNode>(int position, SyntaxNode root) where TNode : SyntaxNode
         {
-            var token = root.FindToken(position);
-            var node = token.GetAncestor<TNode>();
-            if (node == null && token.FullSpan.Start == position)
+            var tokenToRightOrIn = root.FindToken(position);
+            var nodeToRightOrIn = tokenToRightOrIn.GetAncestor<TNode>();
+            if (nodeToRightOrIn != null)
             {
-                token = token.GetPreviousToken();
-                node = token.GetAncestor<TNode>();
+                return nodeToRightOrIn;
             }
 
-            return node;
+            // not at the beginning of a Token -> no (different) token to the left
+            if (tokenToRightOrIn.FullSpan.Start != position)
+            {
+                return null;
+            }
+
+            return tokenToRightOrIn.GetPreviousToken().GetAncestor<TNode>();
         }
 
         protected int GetStartOfNodeExcludingAttributes(SyntaxNode node)

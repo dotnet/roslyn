@@ -1846,8 +1846,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var initializersExpressions = node.Declaration.Variables
                 .Where(v => v.Initializer != null)
-                .Select(initializedV => initializedV.Initializer.Value).ToImmutableArray<SyntaxNode>();
-            return IsInHeader(position, node, node, initializersExpressions);
+                .SelectAsArray(initializedV => initializedV.Initializer.Value);
+            return IsOnHeader(position, node, node, holes: initializersExpressions);
         }
 
         public bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position)

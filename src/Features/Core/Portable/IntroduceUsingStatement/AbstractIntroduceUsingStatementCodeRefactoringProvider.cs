@@ -50,11 +50,6 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
             var declarationSyntax = await refactoringHelperService.TryGetSelectedNodeAsync<TLocalDeclarationSyntax>(document, selection, cancellationToken).ConfigureAwait(false);
 
-            if (declarationSyntax == null)
-            {
-                return default;
-            }
-
             if (declarationSyntax is null || !CanRefactorToContainBlockStatements(declarationSyntax.Parent))
             {
                 return default;
