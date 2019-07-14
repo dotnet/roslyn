@@ -13,6 +13,12 @@ namespace Microsoft.CodeAnalysis.Editing
     public static class ImportAdder
     {
         /// <summary>
+        /// Mark a sub-tree with this annotation in order for imports to be added for symbol annotations attached to nodes in the sub-tree,
+        /// once a code action is complete.
+        /// </summary>
+        public static SyntaxAnnotation Annotation = new SyntaxAnnotation();
+
+        /// <summary>
         /// Adds namespace imports / using directives for namespace references found in the document.
         /// </summary>
         public static Task<Document> AddImportsAsync(Document document, OptionSet options = null, CancellationToken cancellationToken = default)
