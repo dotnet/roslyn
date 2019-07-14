@@ -1367,8 +1367,6 @@ class C
 
             parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "//langversion:?" }, WorkingDirectory, sdkDirectory);
             parsedArgs.Errors.Verify(
-                // error CS2021: File name '//langversion:?' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("//langversion:?").WithLocation(1, 1),
                 // error CS2001: Source file '//langversion:?' could not be found.
                 Diagnostic(ErrorCode.ERR_FileNotFound).WithArguments("//langversion:?").WithLocation(1, 1)
                 );
