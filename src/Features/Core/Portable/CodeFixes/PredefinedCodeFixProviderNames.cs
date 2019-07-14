@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AddBraces = nameof(AddBraces);
         public const string ChangeReturnType = nameof(ChangeReturnType);
         public const string ChangeToYield = nameof(ChangeToYield);
+        public const string ConfigureCodeStyleOption = nameof(ConfigureCodeStyleOption);
+        public const string ConfigureSeverity = nameof(ConfigureSeverity);
         public const string ConvertToAsync = nameof(ConvertToAsync);
         public const string ConvertToIterator = nameof(ConvertToIterator);
         public const string CorrectNextControlVariable = nameof(CorrectNextControlVariable);
@@ -40,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string MakeFieldReadonly = nameof(MakeFieldReadonly);
         public const string MakeStatementAsynchronous = nameof(MakeStatementAsynchronous);
         public const string MakeMethodSynchronous = nameof(MakeMethodSynchronous);
+        public const string MoveMisplacedUsingDirectives = nameof(MoveMisplacedUsingDirectives);
         public const string MoveToTopOfFile = nameof(MoveToTopOfFile);
         public const string PopulateSwitch = nameof(PopulateSwitch);
         public const string QualifyMemberAccess = nameof(QualifyMemberAccess);

@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -22,8 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpAsAndNullCheckCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpAsAndNullCheckCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.InlineAsTypeCheckId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -38,14 +44,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var declaratorLocations = new HashSet<Location>();
+            var statementParentScopes = new HashSet<SyntaxNode>();
+            void RemoveStatement(StatementSyntax statement)
+            {
+                editor.RemoveNode(statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+                if (statement.Parent is BlockSyntax || statement.Parent is SwitchSectionSyntax)
+                {
+                    statementParentScopes.Add(statement.Parent);
+                }
+            }
+
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (declaratorLocations.Add(diagnostic.AdditionalLocations[0]))
                 {
-                    AddEdits(editor, diagnostic, cancellationToken);
+                    AddEdits(editor, diagnostic, RemoveStatement, cancellationToken);
                 }
+            }
+
+            foreach (var parentScope in statementParentScopes)
+            {
+                editor.ReplaceNode(parentScope, (newParentScope, syntaxGenerator) =>
+                {
+                    var firstStatement = newParentScope is BlockSyntax
+                        ? ((BlockSyntax)newParentScope).Statements.First()
+                        : ((SwitchSectionSyntax)newParentScope).Statements.First();
+                    return syntaxGenerator.ReplaceNode(newParentScope, firstStatement, firstStatement.WithoutLeadingBlankLinesInTrivia());
+                });
             }
 
             return Task.CompletedTask;
@@ -54,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         private static void AddEdits(
             SyntaxEditor editor,
             Diagnostic diagnostic,
+            Action<StatementSyntax> removeStatement,
             CancellationToken cancellationToken)
         {
             var declaratorLocation = diagnostic.AdditionalLocations[0];
@@ -61,18 +89,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var asExpressionLocation = diagnostic.AdditionalLocations[2];
 
             var declarator = (VariableDeclaratorSyntax)declaratorLocation.FindNode(cancellationToken);
-            var comparison = (BinaryExpressionSyntax)comparisonLocation.FindNode(cancellationToken);
+            var comparison = (ExpressionSyntax)comparisonLocation.FindNode(cancellationToken);
             var asExpression = (BinaryExpressionSyntax)asExpressionLocation.FindNode(cancellationToken);
+
+            var rightSideOfComparison = comparison is BinaryExpressionSyntax binaryExpression
+                ? (SyntaxNode)binaryExpression.Right
+                : ((IsPatternExpressionSyntax)comparison).Pattern;
             var newIdentifier = declarator.Identifier
-                .WithoutTrivia().WithTrailingTrivia(comparison.Right.GetTrailingTrivia());
+                .WithoutTrivia().WithTrailingTrivia(rightSideOfComparison.GetTrailingTrivia());
 
             ExpressionSyntax isExpression = SyntaxFactory.IsPatternExpression(
                 asExpression.Left, SyntaxFactory.DeclarationPattern(
                     ((TypeSyntax)asExpression.Right).WithoutTrivia(),
                     SyntaxFactory.SingleVariableDesignation(newIdentifier)));
 
-            // We should negate the is-expression if we have something like "x == null"
-            if (comparison.IsKind(SyntaxKind.EqualsExpression))
+            // We should negate the is-expression if we have something like "x == null" or "x is null"
+            if (comparison.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.IsPatternExpression))
             {
                 isExpression = SyntaxFactory.PrefixUnaryExpression(
                     SyntaxKind.LogicalNotExpression,
@@ -89,9 +121,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 editor.ReplaceNode(
                     localDeclaration.GetNextStatement(),
                     (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclaration));
+
+                removeStatement(localDeclaration);
+            }
+            else
+            {
+                editor.RemoveNode(declarator, SyntaxRemoveOptions.KeepUnbalancedDirectives);
             }
 
-            editor.RemoveNode(declarator, SyntaxRemoveOptions.KeepUnbalancedDirectives);
             editor.ReplaceNode(comparison, isExpression.WithTriviaFrom(comparison));
         }
 

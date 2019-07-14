@@ -42,9 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue
         }
 
         public override SyntaxTree ParseText(string source)
-        {
-            return SyntaxFactory.ParseSyntaxTree(source);
-        }
+            => SyntaxFactory.ParseSyntaxTree(source, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
 
         public override SyntaxNode FindNode(SyntaxNode root, TextSpan span)
         {

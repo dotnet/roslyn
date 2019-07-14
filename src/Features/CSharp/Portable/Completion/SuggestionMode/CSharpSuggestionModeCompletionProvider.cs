@@ -81,17 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             return null;
         }
 
-        private bool IsImplicitArrayCreation(SemanticModel semanticModel, SyntaxToken token, int position, ITypeInferenceService typeInferrer, CancellationToken cancellationToken)
-        {
-            if (token.IsKind(SyntaxKind.NewKeyword) && token.Parent.IsKind(SyntaxKind.ObjectCreationExpression))
-            {
-                var type = typeInferrer.InferType(semanticModel, token.Parent, objectAsDefault: false, cancellationToken: cancellationToken);
-                return type != null && type is IArrayTypeSymbol;
-            }
-
-            return false;
-        }
-
         private bool IsAnonymousObjectCreation(SyntaxToken token)
         {
             if (token.Parent is AnonymousObjectCreationExpressionSyntax)
@@ -185,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 
         private ITypeSymbol GetDelegateType(TypeInferenceInfo typeInferenceInfo, Compilation compilation)
         {
-            ITypeSymbol typeSymbol = typeInferenceInfo.InferredType;
+            var typeSymbol = typeInferenceInfo.InferredType;
             if (typeInferenceInfo.IsParams && typeInferenceInfo.InferredType.IsArrayType())
             {
                 typeSymbol = ((IArrayTypeSymbol)typeInferenceInfo.InferredType).ElementType;

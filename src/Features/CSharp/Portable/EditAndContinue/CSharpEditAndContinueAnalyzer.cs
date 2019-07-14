@@ -22,6 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
     [ExportLanguageService(typeof(IEditAndContinueAnalyzer), LanguageNames.CSharp), Shared]
     internal sealed class CSharpEditAndContinueAnalyzer : AbstractEditAndContinueAnalyzer
     {
+        [ImportingConstructor]
+        public CSharpEditAndContinueAnalyzer()
+        {
+        }
         #region Syntax Analysis
 
         private enum ConstructorPart
@@ -472,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override SyntaxNode FindEnclosingLambdaBody(SyntaxNode containerOpt, SyntaxNode node)
         {
-            SyntaxNode root = GetEncompassingAncestor(containerOpt);
+            var root = GetEncompassingAncestor(containerOpt);
 
             while (node != root && node != null)
             {
@@ -526,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // - for query lambdas the root is the query clause containing the lambda (e.g. where).
                 // - for local functions the root is LocalFunctionStatement.
 
-                SyntaxNode GetMatchingRoot(SyntaxNode body)
+                static SyntaxNode GetMatchingRoot(SyntaxNode body)
                 {
                     var parent = body.Parent;
                     // We could apply this change across all ArrowExpressionClause consistently not just for ones with LocalFunctionStatement parents
@@ -667,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override IEnumerable<KeyValuePair<SyntaxNode, int>> EnumerateNearStatements(SyntaxNode statement)
         {
-            int direction = +1;
+            var direction = +1;
             SyntaxNodeOrToken nodeOrToken = statement;
             var fieldOrPropertyModifiers = SyntaxUtilities.TryGetFieldOrPropertyModifiers(statement);
 
@@ -1909,17 +1913,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     case SyntaxKind.StructDeclaration:
                         var typeDeclaration = (TypeDeclarationSyntax)node;
                         ClassifyTypeWithPossibleExternMembersInsert(typeDeclaration);
-                        ClassifyPossibleEmbeddedAttributesForType(typeDeclaration);
                         return;
 
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.EnumDeclaration:
-                        return;
-
                     case SyntaxKind.DelegateDeclaration:
-                        var delegateDeclaration = (DelegateDeclarationSyntax)node;
-                        ClassifyPossibleReadOnlyRefAttributesForType(delegateDeclaration, delegateDeclaration.ReturnType);
-                        ClassifyPossibleInModifierForParameters(delegateDeclaration.ParameterList);
                         return;
 
                     case SyntaxKind.PropertyDeclaration:
@@ -1930,8 +1928,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     case SyntaxKind.IndexerDeclaration:
                         var indexerDeclaration = (IndexerDeclarationSyntax)node;
                         ClassifyModifiedMemberInsert(indexerDeclaration.Modifiers);
-                        ClassifyPossibleReadOnlyRefAttributesForType(indexerDeclaration, indexerDeclaration.Type);
-                        ClassifyPossibleInModifierForParameters(indexerDeclaration.ParameterList);
                         return;
 
                     case SyntaxKind.ConversionOperatorDeclaration:
@@ -1960,7 +1956,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         }
 
                         ClassifyModifiedMemberInsert(method.Modifiers);
-                        ClassifyPossibleInModifierForParameters(method.ParameterList);
                         return;
 
                     case SyntaxKind.GetAccessorDeclaration:
@@ -2022,48 +2017,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return true;
             }
 
-            private void ClassifyPossibleEmbeddedAttributesForType(TypeDeclarationSyntax type)
-            {
-                if (type.Keyword.IsKind(SyntaxKind.StructKeyword))
-                {
-                    foreach (var modifier in type.Modifiers)
-                    {
-                        switch (modifier.Kind())
-                        {
-                            case SyntaxKind.RefKeyword:
-                                ReportError(RudeEditKind.RefStruct, type, type);
-                                return;
-                            case SyntaxKind.ReadOnlyKeyword:
-                                ReportError(RudeEditKind.ReadOnlyStruct, type, type);
-                                return;
-                        }
-                    }
-                }
-            }
-
-            private void ClassifyPossibleInModifierForParameters(BaseParameterListSyntax list)
-            {
-                foreach (var parameter in list.Parameters)
-                {
-                    foreach (var modifier in parameter.Modifiers)
-                    {
-                        if (modifier.IsKind(SyntaxKind.InKeyword))
-                        {
-                            ReportError(RudeEditKind.ReadOnlyReferences, parameter, parameter);
-                            return;
-                        }
-                    }
-                }
-            }
-
-            private void ClassifyPossibleReadOnlyRefAttributesForType(SyntaxNode owner, TypeSyntax type)
-            {
-                if (type is RefTypeSyntax refType && refType.RefKeyword != default && refType.ReadOnlyKeyword != default)
-                {
-                    ReportError(RudeEditKind.ReadOnlyReferences, owner, owner);
-                }
-            }
-
             private void ClassifyTypeWithPossibleExternMembersInsert(TypeDeclarationSyntax type)
             {
                 // extern members are not allowed, even in a new type
@@ -2107,9 +2060,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 {
                     ReportError(RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier);
                 }
-
-                ClassifyPossibleReadOnlyRefAttributesForType(method, method.ReturnType);
-                ClassifyPossibleInModifierForParameters(method.ParameterList);
             }
 
             private void ClassifyAccessorInsert(AccessorDeclarationSyntax accessor)
@@ -2488,7 +2438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
 
                 // Check if a constant field is updated:
-                var fieldDeclaration = (FieldDeclarationSyntax)oldNode.Parent.Parent;
+                var fieldDeclaration = (BaseFieldDeclarationSyntax)oldNode.Parent.Parent;
                 if (fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword))
                 {
                     ReportError(RudeEditKind.Update);
@@ -2877,12 +2827,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         case SyntaxKind.StackAllocArrayCreationExpression:
                             ReportError(RudeEditKind.StackAllocUpdate, node, _newNode);
                             return;
-
-                        case SyntaxKind.LocalFunctionStatement:
-                            var localFunction = (LocalFunctionStatementSyntax)node;
-                            ClassifyPossibleReadOnlyRefAttributesForType(localFunction, localFunction.ReturnType);
-                            ClassifyPossibleInModifierForParameters(localFunction.ParameterList);
-                            break;
                     }
                 }
             }
@@ -3329,7 +3273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return false;
             }
 
-            for (int i = 0; i < oldVariables.Length; i++)
+            for (var i = 0; i < oldVariables.Length; i++)
             {
                 if (!SyntaxFactory.AreEquivalent(oldVariables[i], newVariables[i]))
                 {

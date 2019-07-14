@@ -1,11 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1854,6 +1848,91 @@ class Program
 }";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34233, "https://github.com/dotnet/roslyn/issues/34233")]
+        public void SwitchExpressionResultType_01()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+class Test
+{
+    void Test1(int i, object? x, object y)
+    {
+        _ = i switch { 1 => x, _ => y }/*T:object?*/;
+        _ = i switch { 1 when x != null => x, _ => y }/*T:object!*/;
+        _ = i switch { 1 => y, _ => x }/*T:object?*/;
+        _ = i switch { 1 => x!, _ => y }/*T:object!*/;
+        _ = i switch { 1 => y, _ => x! }/*T:object!*/;
+    }
+
+    void Test2(int i, C x, D y)
+    {
+        _ = i switch { 1 => x, _ => y }/*T:D?*/;
+        _ = i switch { 1 => y, _ => x }/*T:D?*/;
+    }
+
+    void Test3(int i, IIn<string> x, IIn<object>? y)
+    {
+        _ = i switch { 1 => x, _ => y }/*T:IIn<string!>?*/;
+        _ = i switch { 1 => y, _ => x }/*T:IIn<string!>?*/;
+    }
+
+    void Test4(int i, IOut<string> x, IOut<object>? y)
+    {
+        _ = i switch { 1 => x, _ => y }/*T:IOut<object!>?*/;
+        _ = i switch { 1 => y, _ => x }/*T:IOut<object!>?*/;
+    }
+
+    void Test5(int i, I<string> x, I<object>? y)
+    {
+        _ = i switch { 1 => x, _ => y }/*T:!*/; // 1
+        _ = i switch { 1 => y, _ => x }/*T:!*/; // 2
+    }
+
+    void Test6(int i, I<string> x, I<string?> y)
+    {
+        _ = i switch { 1 => x, _ => y }/*T:I<string!>!*/; // 3
+        _ = i switch { 1 => y, _ => x }/*T:I<string!>!*/; // 4
+    }
+
+    void Test7<T>(int i, T x)
+    {
+        _ = i switch { 1 => x, _ => default }/*T:T*/; // 5
+        _ = i switch { 1 => default, _ => x }/*T:T*/; // 6
+    }
+}
+
+class B {
+    public static implicit operator D?(B? b) => throw null!;
+}
+class C : B {}
+class D {}
+
+public interface I<T> { }
+public interface IIn<in T> { }
+public interface IOut<out T> { }
+");
+            c.VerifyTypes();
+            c.VerifyDiagnostics(
+                // (33,13): error CS8506: No best type was found for the switch expression.
+                //         _ = i switch { 1 => x, _ => y }/*T:!*/; // 1
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "i switch { 1 => x, _ => y }").WithLocation(33, 13),
+                // (34,13): error CS8506: No best type was found for the switch expression.
+                //         _ = i switch { 1 => y, _ => x }/*T:!*/; // 2
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "i switch { 1 => y, _ => x }").WithLocation(34, 13),
+                // (39,37): warning CS8619: Nullability of reference types in value of type 'I<string?>' doesn't match target type 'I<string>'.
+                //         _ = i switch { 1 => x, _ => y }/*T:I<string!>!*/; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<string?>", "I<string>").WithLocation(39, 37),
+                // (40,29): warning CS8619: Nullability of reference types in value of type 'I<string?>' doesn't match target type 'I<string>'.
+                //         _ = i switch { 1 => y, _ => x }/*T:I<string!>!*/; // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<string?>", "I<string>").WithLocation(40, 29),
+                // (45,37): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                //         _ = i switch { 1 => x, _ => default }/*T:T*/; // 5
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(45, 37),
+                // (46,29): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                //         _ = i switch { 1 => default, _ => x }/*T:T*/; // 6
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(46, 29));
         }
     }
 }

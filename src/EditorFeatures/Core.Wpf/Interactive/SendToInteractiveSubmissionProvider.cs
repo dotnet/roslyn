@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         string ISendToInteractiveSubmissionProvider.GetSelectedText(IEditorOptions editorOptions, EditorCommandArgs args, CancellationToken cancellationToken)
         {
-            IEnumerable<SnapshotSpan> selectedSpans = args.TextView.Selection.IsEmpty
+            var selectedSpans = args.TextView.Selection.IsEmpty
                 ? GetExpandedLineAsync(editorOptions, args, cancellationToken).WaitAndGetResult(cancellationToken)
                 : args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer).Where(ss => ss.Length > 0);
 
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         /// <summary>Returns the span for the selected line. Extends it if it is a part of a multi line statement or declaration.</summary>
         private Task<IEnumerable<SnapshotSpan>> GetExpandedLineAsync(IEditorOptions editorOptions, EditorCommandArgs args, CancellationToken cancellationToken)
         {
-            IEnumerable<SnapshotSpan> selectedSpans = GetSelectedLine(args.TextView);
+            var selectedSpans = GetSelectedLine(args.TextView);
             var candidateSubmission = GetSubmissionFromSelectedSpans(editorOptions, selectedSpans);
             return CanParseSubmission(candidateSubmission)
                 ? Task.FromResult(selectedSpans)
@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         /// <summary>Returns the span for the currently selected line.</summary>
         private static IEnumerable<SnapshotSpan> GetSelectedLine(ITextView textView)
         {
-            ITextSnapshotLine snapshotLine = textView.Caret.Position.VirtualBufferPosition.Position.GetContainingLine();
-            SnapshotSpan span = new SnapshotSpan(snapshotLine.Start, snapshotLine.LengthIncludingLineBreak);
+            var snapshotLine = textView.Caret.Position.VirtualBufferPosition.Position.GetContainingLine();
+            var span = new SnapshotSpan(snapshotLine.Start, snapshotLine.LengthIncludingLineBreak);
             return new NormalizedSnapshotSpanCollection(span);
         }
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             ITextSnapshot snapshot,
             CancellationToken cancellationToken)
         {
-            Document doc = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var doc = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var semanticDocument = await SemanticDocument.CreateAsync(doc, cancellationToken).ConfigureAwait(false);
             var root = semanticDocument.Root;
 
@@ -75,9 +75,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             var selectedSpansStart = selectedSpans.Min(span => span.Start);
             var selectedSpansEnd = selectedSpans.Max(span => span.End);
-            ITextSnapshot snapshot = args.TextView.TextSnapshot;
+            var snapshot = args.TextView.TextSnapshot;
 
-            IEnumerable<SnapshotSpan> newSpans = await GetExecutableSyntaxTreeNodeSelectionAsync(
+            var newSpans = await GetExecutableSyntaxTreeNodeSelectionAsync(
                 TextSpan.FromBounds(selectedSpansStart, selectedSpansEnd),
                 args,
                 snapshot,

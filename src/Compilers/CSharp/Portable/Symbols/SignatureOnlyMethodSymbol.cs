@@ -59,11 +59,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters { get { return _typeParameters; } }
 
-        public override bool ReturnsVoid { get { return _returnType.SpecialType == SpecialType.System_Void; } }
+        public override bool ReturnsVoid { get { return _returnType.IsVoidType(); } }
 
         public override RefKind RefKind { get { return _refKind; } }
 
         public override TypeWithAnnotations ReturnTypeWithAnnotations { get { return _returnType; } }
+
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get { return _refCustomModifiers; } }
 

@@ -264,6 +264,8 @@ namespace Microsoft.CodeAnalysis
 
         Microsoft_CodeAnalysis_Runtime_Instrumentation,
         System_Runtime_CompilerServices_NullableAttribute,
+        System_Runtime_CompilerServices_NullableContextAttribute,
+        System_Runtime_CompilerServices_NullablePublicOnlyAttribute,
         System_Runtime_CompilerServices_ReferenceAssemblyAttribute,
 
         System_Runtime_CompilerServices_IsReadOnlyAttribute,
@@ -297,9 +299,11 @@ namespace Microsoft.CodeAnalysis
         System_Threading_Tasks_ValueTask,
         System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
         System_Threading_CancellationToken,
+        System_Threading_CancellationTokenSource,
 
         System_InvalidOperationException,
         System_Runtime_CompilerServices_SwitchExpressionException,
+        System_Collections_Generic_IEqualityComparer_T,
 
         NextAvailable,
 
@@ -561,6 +565,8 @@ namespace Microsoft.CodeAnalysis
             "Microsoft.CodeAnalysis.Runtime.Instrumentation",
 
             "System.Runtime.CompilerServices.NullableAttribute",
+            "System.Runtime.CompilerServices.NullableContextAttribute",
+            "System.Runtime.CompilerServices.NullablePublicOnlyAttribute",
             "System.Runtime.CompilerServices.ReferenceAssemblyAttribute",
 
             "System.Runtime.CompilerServices.IsReadOnlyAttribute",
@@ -594,9 +600,11 @@ namespace Microsoft.CodeAnalysis
             "System.Threading.Tasks.ValueTask",
             "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder",
             "System.Threading.CancellationToken",
+            "System.Threading.CancellationTokenSource",
 
             "System.InvalidOperationException",
-            "System.Runtime.CompilerServices.SwitchExpressionException"
+            "System.Runtime.CompilerServices.SwitchExpressionException",
+            "System.Collections.Generic.IEqualityComparer`1",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

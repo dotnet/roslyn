@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -17,26 +18,46 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 {
-    internal class DebuggerIntelliSenseFilter<TPackage, TLanguageService> : AbstractVsTextViewFilter<TPackage, TLanguageService>, IDisposable
+    internal class DebuggerIntelliSenseFilter<TPackage, TLanguageService> : AbstractVsTextViewFilter<TPackage, TLanguageService>, IDisposable, IFeatureController
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
         private readonly ICommandHandlerServiceFactory _commandFactory;
-        private readonly IWpfTextView _wpfTextView;
+        private readonly IFeatureServiceFactory _featureServiceFactory;
         private AbstractDebuggerIntelliSenseContext _context;
         private IOleCommandTarget _originalNextCommandFilter;
-
-        internal bool Enabled { get; set; }
+        private IFeatureDisableToken _completionDisabledToken;
 
         public DebuggerIntelliSenseFilter(
             AbstractLanguageService<TPackage, TLanguageService> languageService,
             IWpfTextView wpfTextView,
             IVsEditorAdaptersFactoryService adapterFactory,
-            ICommandHandlerServiceFactory commandFactory)
+            ICommandHandlerServiceFactory commandFactory,
+            IFeatureServiceFactory featureServiceFactory)
             : base(languageService, wpfTextView, adapterFactory, commandFactory)
         {
-            _wpfTextView = wpfTextView;
             _commandFactory = commandFactory;
+            _featureServiceFactory = featureServiceFactory;
+        }
+
+        internal void EnableCompletion()
+        {
+            if (_completionDisabledToken == null)
+            {
+                return;
+            }
+
+            _completionDisabledToken.Dispose();
+            _completionDisabledToken = null;
+        }
+
+        internal void DisableCompletion()
+        {
+            var featureService = _featureServiceFactory.GetOrCreate(WpfTextView);
+            if (_completionDisabledToken == null)
+            {
+                _completionDisabledToken = featureService.Disable(PredefinedEditorFeatureNames.Completion, this);
+            }
         }
 
         internal void SetNextFilter(IOleCommandTarget nextFilter)
@@ -82,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         // instead of trying to have our command handlers to work.
         public override int Exec(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut)
         {
-            if (_context == null || !Enabled)
+            if (_context == null)
             {
                 return NextCommandTarget.Exec(pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
             }
@@ -99,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             _context.DebuggerTextLines.GetStateFlags(out var bufferFlags);
             _context.DebuggerTextLines.SetStateFlags((uint)((BUFFERSTATEFLAGS)bufferFlags & ~BUFFERSTATEFLAGS.BSF_USER_READONLY));
 
-            int result = VSConstants.S_OK;
+            var result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
 
             // If the caret is outside our projection, defer to the next command target.
@@ -187,6 +208,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             => _context?.SetContentType(install);
 
         public void Dispose()
-            => RemoveContext();
+        {
+            if (_completionDisabledToken != null)
+            {
+                _completionDisabledToken.Dispose();
+            }
+
+            RemoveContext();
+        }
     }
 }

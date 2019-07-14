@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUpgradeProjectCodeFixProvider : AbstractUpgradeProjectCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpUpgradeProjectCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(
             new[]
             {
@@ -50,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             LanguageVersion max = 0;
             foreach (var diagnostic in diagnostics)
             {
-                if (diagnostic.Properties.TryGetValue(DiagnosticPropertyConstants.RequiredLanguageVersion, out string requiredVersion) &&
+                if (diagnostic.Properties.TryGetValue(DiagnosticPropertyConstants.RequiredLanguageVersion, out var requiredVersion) &&
                     LanguageVersionFacts.TryParse(requiredVersion, out var required))
                 {
                     max = max > required ? max : required;
@@ -85,8 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             var parseOptions = (CSharpParseOptions)projectOptions;
             Contract.ThrowIfFalse(LanguageVersionFacts.TryParse(newVersion, out var parsedNewVersion));
 
+            var mappedVersion = parsedNewVersion.MapSpecifiedToEffectiveVersion();
+
             // treat equivalent versions (one generic and one specific) to be a valid upgrade
-            return parsedNewVersion.MapSpecifiedToEffectiveVersion() >= parseOptions.LanguageVersion &&
+            return mappedVersion >= parseOptions.LanguageVersion &&
                 parseOptions.SpecifiedLanguageVersion.ToDisplayString() != newVersion;
         }
     }

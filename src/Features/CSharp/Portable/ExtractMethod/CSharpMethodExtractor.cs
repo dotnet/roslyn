@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpMethodExtractor : MethodExtractor
     {
-        public CSharpMethodExtractor(CSharpSelectionResult result) :
-            base(result)
+        public CSharpMethodExtractor(CSharpSelectionResult result)
+            : base(result)
         {
         }
 

@@ -125,6 +125,11 @@ namespace Microsoft.CodeAnalysis.Options
 
             public void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider)
             {
+                if (documentOptionsProvider == null)
+                {
+                    throw new ArgumentNullException(nameof(documentOptionsProvider));
+                }
+
                 lock (_gate)
                 {
                     _documentOptionsProviders = _documentOptionsProviders.Add(documentOptionsProvider);
@@ -186,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                     foreach (var documentOptionSource in _documentOptions)
                     {
-                        if (documentOptionSource.TryGetDocumentOption(optionKey, _underlyingOptions, out value))
+                        if (documentOptionSource.TryGetDocumentOption(optionKey, out value))
                         {
                             // Cache and return
                             return ImmutableInterlocked.GetOrAdd(ref _values, optionKey, value);

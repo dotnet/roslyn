@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private IVsEnumTaskItems GetErrorItems()
         {
-            return InvokeOnUIThread(() =>
+            return InvokeOnUIThread(cancellationToken =>
             {
                 var errorList = GetGlobalService<SVsErrorList, IVsTaskList>();
                 ErrorHandler.ThrowOnFailure(errorList.EnumTaskItems(out var items));

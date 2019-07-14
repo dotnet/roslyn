@@ -18,8 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeStructFieldsWritable), Shared]
     internal class CSharpMakeStructFieldsWritableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpMakeStructFieldsWritableCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.MakeStructFieldsWritable);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -65,8 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(FeaturesResources.Make_readonly_fields_writable, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Make_readonly_fields_writable, createChangedDocument)
             {
             }
         }

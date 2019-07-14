@@ -34,6 +34,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
     Friend Class GenerateConstructorCodeFixProvider
         Inherits AbstractGenerateMemberCodeFixProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return GenerateConstructorDiagnosticIds.AllDiagnosticIds

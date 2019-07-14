@@ -224,7 +224,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         LoadKeyword = 8485,
         NullableKeyword = 8486,
         EnableKeyword = 8487,
-        SafeOnlyKeyword = 8488,
+
+        // targets for #nullable directive
+        WarningsKeyword = 8488,
+        AnnotationsKeyword = 8489,
 
         // Other
         VarKeyword = 8490,
@@ -344,7 +347,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplicitElementAccess = 8656,
         IsPatternExpression = 8657,
         RangeExpression = 8658,
-        BaseExpressionTypeClause = 8659,
 
         // binary expressions
         AddExpression = 8668,

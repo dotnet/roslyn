@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Pointer types and very special types are not convertible to object.
 
-            return !type.IsPointerType() && !type.IsRestrictedType() && type.SpecialType != SpecialType.System_Void;
+            return !type.IsPointerType() && !type.IsRestrictedType() && !type.IsVoidType();
         }
 
         private BoundExpression BindDynamicBinaryOperator(
@@ -2071,6 +2071,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_IllegalSuppression, expr.Syntax);
                     break;
                 default:
+                    if (expr.IsSuppressed)
+                    {
+                        Debug.Assert(node.Operand.SkipParens().GetLastToken().Kind() == SyntaxKind.ExclamationToken);
+                        Error(diagnostics, ErrorCode.ERR_DuplicateNullSuppression, expr.Syntax);
+                    }
                     break;
             }
 
@@ -2111,7 +2116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 pointedAtType = operandType.PointedAtType;
 
-                if (pointedAtType.SpecialType == SpecialType.System_Void)
+                if (pointedAtType.IsVoidType())
                 {
                     pointedAtType = null;
 
@@ -2828,7 +2833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (operand.ConstantValue == ConstantValue.Null ||
                 operand.Kind == BoundKind.MethodGroup ||
-                operand.Type.SpecialType == SpecialType.System_Void)
+                operand.Type.IsVoidType())
             {
                 // warning for cases where the result is always false:
                 // (a) "null is TYPE" OR operand evaluates to null
@@ -3014,7 +3019,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ConstantValue.False;
                     }
 
-                    // * Otherwise, at least one of them is of an open type. If the operand is of value type 
+                    // * Otherwise, at least one of them is of an open type. If the operand is of value type
                     //   and the target is a class type other than System.Enum, or vice versa, then we are
                     //   in scenario 2, not scenario 1, and can correctly deduce that the result is false.
 
@@ -3264,10 +3269,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (operand.IsLiteralDefault())
             {
                 var defaultLiteral = (BoundDefaultExpression)operand;
+                Debug.Assert((object)defaultLiteral.TargetType == null);
                 Debug.Assert((object)defaultLiteral.Type == null);
                 Debug.Assert((object)defaultLiteral.ConstantValueOpt == null);
 
-                operand = new BoundDefaultExpression(defaultLiteral.Syntax, constantValueOpt: ConstantValue.Null,
+                operand = new BoundDefaultExpression(defaultLiteral.Syntax, targetType: null, constantValueOpt: ConstantValue.Null,
                     type: GetSpecialType(SpecialType.System_Object, diagnostics, node));
             }
 
@@ -3350,7 +3356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Generate an error if there is no possible legal conversion and both the operandType
                     // and the targetType are closed types OR operandType is void type, otherwise we need a runtime check
                     if (!operandType.ContainsTypeParameter() && !targetType.ContainsTypeParameter() ||
-                        operandType.SpecialType == SpecialType.System_Void)
+                        operandType.IsVoidType())
                     {
                         SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, operandType, targetType);
                         Error(diagnostics, ErrorCode.ERR_NoExplicitBuiltinConv, node, distinguisher.First, distinguisher.Second);
@@ -3610,9 +3616,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundNullCoalescingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
             }
 
-            // Unlike a standard null coalescing expression, the resulting type of the expression a ??= b
-            // must be A (where A is the type of a), as it is where the result of the assignment will end up. Therefore,
-            // we must ensure that B (where B is the type of b) is implicitly convertible to A.
+            // Given a ??= b, the type of a is A, the type of B is b, and if A is a nullable value type, the underlying
+            // non-nullable value type of A is A0.
             TypeSymbol leftType = leftOperand.Type;
             Debug.Assert((object)leftType != null);
 
@@ -3622,17 +3627,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GenerateNullCoalescingAssignmentBadBinaryOpsError(node, leftOperand, rightOperand, diagnostics);
             }
 
-            // If the type of the left is Nullable<A0>, and the right is the default literal, the default will be
-            // converted to the default of Nullable<A0>, null, and not the default of A0. This is likely unintended
-            // on the part of the user, so we warn
-            if (leftType.IsNullableType() && rightOperand.IsLiteralDefault())
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+            // If A0 exists and B is implicitly convertible to A0, then the result type of this expression is A0, except if B is dynamic.
+            // This differs from most assignments such that you cannot directly replace a with (a ??= b).
+            // The exception for dynamic is called out in the spec, it's the same behavior that ?? has with respect to dynamic.
+            if (leftType.IsNullableType())
             {
-                Error(diagnostics, ErrorCode.WRN_DefaultLiteralConvertedToNullIsNotIntended, node.Right, leftType.GetNullableUnderlyingType());
+                var underlyingLeftType = leftType.GetNullableUnderlyingType();
+                var underlyingRightConversion = Conversions.ClassifyImplicitConversionFromExpression(rightOperand, underlyingLeftType, ref useSiteDiagnostics);
+                if (underlyingRightConversion.Exists && rightOperand.Type?.IsDynamic() != true)
+                {
+                    diagnostics.Add(node, useSiteDiagnostics);
+                    var convertedRightOperand = CreateConversion(rightOperand, underlyingRightConversion, underlyingLeftType, diagnostics);
+                    return new BoundNullCoalescingAssignmentOperator(node, leftOperand, convertedRightOperand, underlyingLeftType);
+                }
             }
 
             // If an implicit conversion exists from B to A, we store that conversion. At runtime, a is first evaluated. If
             // a is not null, b is not evaluated. If a is null, b is evaluated and converted to type A, and is stored in a.
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            // Reset useSiteDiagnostics because they could have been used populated incorrectly from attempting to bind
+            // as the nullable underlying value type case.
+            useSiteDiagnostics = null;
             var rightConversion = Conversions.ClassifyImplicitConversionFromExpression(rightOperand, leftType, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
             if (rightConversion.Exists)

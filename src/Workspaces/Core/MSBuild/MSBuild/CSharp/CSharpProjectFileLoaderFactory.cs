@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     [ProjectFileExtension("csproj")]
     internal class CSharpProjectFileLoaderFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpProjectFileLoaderFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return new CSharpProjectFileLoader();

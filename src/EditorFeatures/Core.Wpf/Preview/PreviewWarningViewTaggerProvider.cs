@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         : AbstractPreviewTaggerProvider<PreviewWarningTag>
     {
         [ImportingConstructor]
-        public PreviewWarningTaggerProvider() :
-            base(PredefinedPreviewTaggerKeys.WarningSpansKey, PreviewWarningTag.Instance)
+        public PreviewWarningTaggerProvider()
+            : base(PredefinedPreviewTaggerKeys.WarningSpansKey, PreviewWarningTag.Instance)
         {
         }
     }

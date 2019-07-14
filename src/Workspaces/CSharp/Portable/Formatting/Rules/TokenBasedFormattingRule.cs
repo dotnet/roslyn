@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // force to next line for top level attributes
             if (previousToken.Kind() == SyntaxKind.CloseBracketToken && previousToken.Parent is AttributeListSyntax)
             {
-                var attributeOwner = (previousToken.Parent != null) ? previousToken.Parent.Parent : null;
+                var attributeOwner = previousToken.Parent?.Parent;
 
                 if (attributeOwner is CompilationUnitSyntax ||
                     attributeOwner is MemberDeclarationSyntax ||
@@ -253,14 +253,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // empty () or []
             if (previousToken.ParenOrBracketContainsNothing(currentToken))
-            {
-                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-            }
-
-            // empty {} in pattern
-            if (previousToken.Kind() == SyntaxKind.OpenBraceToken &&
-                currentToken.Kind() == SyntaxKind.CloseBraceToken &&
-                currentToken.Parent.IsKind(SyntaxKindEx.PropertyPatternClause))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
@@ -408,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 case SyntaxKind.CloseParenToken:
                 case SyntaxKind.CloseBracketToken:
-                    int space = (previousToken.Kind() == currentToken.Kind()) ? 0 : 1;
+                    var space = (previousToken.Kind() == currentToken.Kind()) ? 0 : 1;
                     return CreateAdjustSpacesOperation(space, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 

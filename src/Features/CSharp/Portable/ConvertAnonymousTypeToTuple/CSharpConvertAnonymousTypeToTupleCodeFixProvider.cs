@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToTuple
             TupleExpressionSyntax,
             AnonymousObjectCreationExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpConvertAnonymousTypeToTupleCodeFixProvider()
+        {
+        }
+
         protected override TupleExpressionSyntax ConvertToTuple(AnonymousObjectCreationExpressionSyntax anonCreation)
             => SyntaxFactory.TupleExpression(
                     SyntaxFactory.Token(SyntaxKind.OpenParenToken).WithTriviaFrom(anonCreation.OpenBraceToken),

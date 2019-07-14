@@ -10,6 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
     Friend NotInheritable Class VisualBasicInvertSingleLineIfCodeRefactoringProvider
         Inherits VisualBasicInvertIfCodeRefactoringProvider(Of SingleLineIfStatementSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetHeaderSpan(ifNode As SingleLineIfStatementSyntax) As TextSpan
             Return TextSpan.FromBounds(
                     ifNode.IfKeyword.SpanStart,

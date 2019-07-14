@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             }
 
             var helpLinkToolTipText = string.Empty;
-            Uri helpLink = GetHelpLink(diagnostic, language, projectType, out helpLinkToolTipText);
+            var helpLink = GetHelpLink(diagnostic, language, projectType, out helpLinkToolTipText);
 
             Guid optionPageGuid = default;
             if (diagnostic.Properties.TryGetValue("OptionName", out var optionName))

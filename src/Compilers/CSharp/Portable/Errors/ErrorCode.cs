@@ -1289,7 +1289,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // available 8041-8049
         ERR_InitializerOnNonAutoProperty = 8050,
         ERR_AutoPropertyMustHaveGetAccessor = 8051,
-        ERR_AutoPropertyInitializerInInterface = 8052,
+        // ERR_AutoPropertyInitializerInInterface = 8052,
+        // available 8053
 
         ERR_EnumsCantContainDefaultConstructor = 8054,
         ERR_EncodinglessSyntaxTree = 8055,
@@ -1582,7 +1583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics introduced for C# 8.0
         ERR_FeatureNotAvailableInVersion8 = 8400,
         ERR_AltInterpolatedVerbatimStringsNotAvailable = 8401,
-        WRN_DefaultLiteralConvertedToNullIsNotIntended = 8402,
+        // Unused 8402
         ERR_IteratorMustBeAsync = 8403,
 
         ERR_NoConvToIAsyncDisp = 8410,
@@ -1599,8 +1600,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StaticLocalFunctionCannotCaptureVariable = 8421,
         ERR_StaticLocalFunctionCannotCaptureThis = 8422,
         ERR_AttributeNotOnEventAccessor = 8423,
+        WRN_UnconsumedEnumeratorCancellationAttributeUsage = 8424,
+        WRN_UndecoratedCancellationTokenParameter = 8425,
+        ERR_MultipleEnumeratorCancellationAttributes = 8426,
+        // available range
+
         #region diagnostics introduced for recursive patterns
-        // 8501, // available
         ERR_WrongNumberOfSubpatterns = 8502,
         ERR_PropertyPatternNameMissing = 8503,
         ERR_MissingPattern = 8504,
@@ -1625,15 +1630,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DiscardPatternInSwitchStatement = 8523,
         #endregion diagnostics introduced for recursive patterns
 
-        WRN_PossibleNull = 8597,
+        WRN_ThrowPossibleNull = 8597,
         ERR_IllegalSuppression = 8598,
-        WRN_IllegalPPWarningSafeOnly = 8599,
+        // available 8599,
         WRN_ConvertingNullableToNonNullable = 8600,
         WRN_NullReferenceAssignment = 8601,
         WRN_NullReferenceReceiver = 8602,
         WRN_NullReferenceReturn = 8603,
         WRN_NullReferenceArgument = 8604,
-        // Unused 8605-8607
+        WRN_UnboxPossibleNull = 8605,
+        WRN_NullReferenceIterationVariable = 8606,
+        WRN_DisallowNullAttributeForbidsMaybeNullAssignment = 8607,
         WRN_NullabilityMismatchInTypeOnOverride = 8608,
         WRN_NullabilityMismatchInReturnTypeOnOverride = 8609,
         WRN_NullabilityMismatchInParameterTypeOnOverride = 8610,
@@ -1665,7 +1672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadNullableContextOption = 8636,
         ERR_NullableDirectiveQualifierExpected = 8637,
         WRN_ConditionalAccessMayReturnNull = 8638,
-        // Unused 8639
+        ERR_BadNullableTypeof = 8639,
         ERR_ExpressionTreeCantContainRefStruct = 8640,
         ERR_ElseCannotStartStatement = 8641,
         ERR_ExpressionTreeCantContainNullCoalescingAssignment = 8642,
@@ -1682,6 +1689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_DefaultExpressionMayIntroduceNullT = 8653,
         WRN_NullLiteralMayIntroduceNullT = 8654,
         WRN_SwitchExpressionNotExhaustiveForNull = 8655,
+
         WRN_ImplicitCopyInReadOnlyMember = 8656,
         ERR_StaticMemberCantBeReadOnly = 8657,
         ERR_AutoSetterCantBeReadOnly = 8658,
@@ -1691,7 +1699,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FieldLikeEventCantBeReadOnly = 8662,
         ERR_PartialMethodReadOnlyDifference = 8663,
         ERR_ReadOnlyModMissingAccessor = 8664,
+        ERR_OverrideRefConstraintNotSatisfied = 8665,
+        ERR_OverrideValConstraintNotSatisfied = 8666,
 
+        WRN_NullabilityMismatchInConstraintsOnPartialImplementation = 8667,
+        ERR_NullableDirectiveTargetExpected = 8668,
+
+        ERR_MultipleAnalyzerConfigsInSameDir = 8700,
 
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation = 8701,
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember = 8702,
@@ -1701,11 +1715,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember = 8706,
 
         ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember = 8707,
-        ERR_NotBaseOrImplementedInterface = 8708,
-        ERR_NotImplementedInBase = 8709,
-        ERR_NotDeclaredInBase = 8710,
+        //ERR_NotBaseOrImplementedInterface = 8708,
+        //ERR_NotImplementedInBase = 8709,
+        //ERR_NotDeclaredInBase = 8710,
 
         ERR_DefaultInterfaceImplementationInNoPIAType = 8711,
+        ERR_AbstractEventHasAccessors = 8712,
+        ERR_NotNullConstraintMustBeFirst = 8713,
+        WRN_NullabilityMismatchInTypeParameterNotNullConstraint = 8714,
+
+        ERR_DuplicateNullSuppression = 8715
 
         #endregion diagnostics introduced for C# 8.0
 

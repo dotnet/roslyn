@@ -31,21 +31,21 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 var semanticModel = document.SemanticModel;
 
-                this.UseInstanceMember = instanceMemberIsUsed;
-                this.EndOfSelectionReachable = endOfSelectionReachable;
-                this.AwaitTaskReturn = awaitTaskReturn;
-                this.SemanticDocument = document;
+                UseInstanceMember = instanceMemberIsUsed;
+                EndOfSelectionReachable = endOfSelectionReachable;
+                AwaitTaskReturn = awaitTaskReturn;
+                SemanticDocument = document;
                 _typeParametersInDeclaration = typeParametersInDeclaration.Select(s => semanticModel.ResolveType(s)).ToList();
                 _typeParametersInConstraintList = typeParametersInConstraintList.Select(s => semanticModel.ResolveType(s)).ToList();
                 _variables = variables;
-                this.ReturnType = semanticModel.ResolveType(returnType);
+                ReturnType = semanticModel.ResolveType(returnType);
                 _variableToUseAsReturnValue = variableToUseAsReturnValue;
-                this.Status = status;
+                Status = status;
             }
 
             public AnalyzerResult With(SemanticDocument document)
             {
-                if (this.SemanticDocument == document)
+                if (SemanticDocument == document)
                 {
                     return this;
                 }
@@ -56,11 +56,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     _typeParametersInConstraintList,
                     _variables,
                     _variableToUseAsReturnValue,
-                    this.ReturnType,
-                    this.AwaitTaskReturn,
-                    this.UseInstanceMember,
-                    this.EndOfSelectionReachable,
-                    this.Status);
+                    ReturnType,
+                    AwaitTaskReturn,
+                    UseInstanceMember,
+                    EndOfSelectionReachable,
+                    Status);
             }
 
             /// <summary>
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 get
                 {
-                    return this.ReturnType.SpecialType != SpecialType.System_Void && !this.AwaitTaskReturn;
+                    return ReturnType.SpecialType != SpecialType.System_Void && !AwaitTaskReturn;
                 }
             }
 

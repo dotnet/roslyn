@@ -12,6 +12,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     [ExportIncrementalAnalyzerProvider(nameof(RemoteSolutionPopulatorProvider), workspaceKinds: new[] { WorkspaceKind.Host }), Shared]
     internal class RemoteSolutionPopulatorProvider : IIncrementalAnalyzerProvider
     {
+        [ImportingConstructor]
+        public RemoteSolutionPopulatorProvider()
+        {
+        }
+
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
             return new RemoteSolutionPopulator();

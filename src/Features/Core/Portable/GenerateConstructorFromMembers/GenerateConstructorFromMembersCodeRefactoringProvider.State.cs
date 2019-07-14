@@ -49,19 +49,19 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     return false;
                 }
 
-                this.SelectedMembers = selectedMembers;
-                this.ContainingType = containingType;
-                this.TextSpan = textSpan;
-                if (this.ContainingType == null || this.ContainingType.TypeKind == TypeKind.Interface)
+                SelectedMembers = selectedMembers;
+                ContainingType = containingType;
+                TextSpan = textSpan;
+                if (ContainingType == null || ContainingType.TypeKind == TypeKind.Interface)
                 {
                     return false;
                 }
 
-                this.Parameters = service.DetermineParameters(selectedMembers);
-                this.MatchingConstructor = GetMatchingConstructorBasedOnParameterTypes(this.ContainingType, this.Parameters);
+                Parameters = service.DetermineParameters(selectedMembers);
+                MatchingConstructor = GetMatchingConstructorBasedOnParameterTypes(ContainingType, Parameters);
                 // We are going to create a new contructor and pass part of the parameters into DelegatedConstructor,
                 // so parameters should be compared based on types since we don't want get a type mismatch error after the new constructor is genreated.
-                this.DelegatedConstructor = GetDelegatedConstructorBasedOnParameterTypes(this.ContainingType, this.Parameters);
+                DelegatedConstructor = GetDelegatedConstructorBasedOnParameterTypes(ContainingType, Parameters);
                 return true;
             }
 

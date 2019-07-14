@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using Humanizer;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -28,8 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             internal static ImmutableArray<Words> GetBaseNames(IAliasSymbol alias)
             {
                 var name = alias.Name;
-                if (alias.Target.IsType && (((INamedTypeSymbol)alias.Target).IsInterfaceType()
-                    && CanRemoveInterfacePrefix(name)))
+                if (alias.Target.IsType &&
+                    ((INamedTypeSymbol)alias.Target).IsInterfaceType() &&
+                    CanRemoveInterfacePrefix(name))
                 {
                     name = name.Substring(1);
                 }

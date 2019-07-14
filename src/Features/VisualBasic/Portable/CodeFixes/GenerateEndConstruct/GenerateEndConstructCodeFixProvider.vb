@@ -11,11 +11,9 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
-#Disable Warning RS1016 ' Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateEndConstruct), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.FixIncorrectExitContinue)>
     Friend Class GenerateEndConstructCodeFixProvider
-#Enable Warning RS1016
         Inherits CodeFixProvider
 
         Friend Const BC30025 As String = "BC30025" ' error BC30025: Property missing 'End Property'.
@@ -42,12 +40,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
         Friend Const BC31117 As String = "BC31117" ' error BC31117: 'RaiseEvent' declaration must end with a matching 'End RaiseEvent'.
         Friend Const BC36008 As String = "BC36008" ' error BC36008: 'Using' must end with a matching 'End Using'.
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return ImmutableArray.Create(BC30025, BC30026, BC30027, BC30081, BC30082, BC30083, BC30084, BC30085, BC30185, BC30253, BC30384, BC30481, BC30624, BC30625,
                     BC30626, BC30631, BC30633, BC30675, BC31114, BC31115, BC31116, BC31117, BC36008)
             End Get
         End Property
+
+        Public Overrides Function GetFixAllProvider() As FixAllProvider
+            ' Fix All is not supported by this code fix
+            ' https://github.com/dotnet/roslyn/issues/34473
+            Return Nothing
+        End Function
 
         Public NotOverridable Overrides Async Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             Dim root = Await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(False)

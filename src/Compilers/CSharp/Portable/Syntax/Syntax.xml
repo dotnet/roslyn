@@ -744,32 +744,6 @@
       <summary>Creates a ThisExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
-  <Node Name="BaseExpressionTypeClauseSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="BaseExpressionTypeClause"/>
-    <Field Name="OpenParenToken" Type="SyntaxToken">
-      <PropertyComment>
-        <summary>Gets the open paren token.</summary>
-      </PropertyComment>
-      <Kind Name="OpenParenToken"/>
-    </Field>
-    <Field Name="BaseType" Type="TypeSyntax">
-      <PropertyComment>
-        <summary>Gets the base type syntax.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="CloseParenToken" Type="SyntaxToken">
-      <PropertyComment>
-        <summary>Gets the close paren token.</summary>
-      </PropertyComment>
-      <Kind Name="CloseParenToken"/>
-    </Field>
-    <TypeComment>
-      <summary>Class which represents the syntax node for type clause in base expression.</summary>
-    </TypeComment>
-    <FactoryComment>
-      <summary>Creates a BaseExpressionTypeSyntax node.</summary>
-    </FactoryComment>
-  </Node>
   <Node Name="BaseExpressionSyntax" Base="InstanceExpressionSyntax">
     <Kind Name="BaseExpression"/>
     <Field Name="Token" Type="SyntaxToken">
@@ -777,9 +751,6 @@
       <PropertyComment>
         <summary>SyntaxToken representing the base keyword.</summary>
       </PropertyComment>
-    </Field>
-    <Field Name="TypeClause" Type="BaseExpressionTypeClauseSyntax" Optional="true">
-      <Kind Name="BaseExpressionTypeClause"/>
     </Field>
     <TypeComment>
       <summary>Class which represents the syntax node for a base expression.</summary>
@@ -1924,6 +1895,12 @@
   <!-- Statements -->
   <Node Name="GlobalStatementSyntax" Base="MemberDeclarationSyntax">
     <Kind Name="GlobalStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true">
+      <summary>Always empty on a global statement.</summary>
+    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true">
+      <summary>Always empty on a global statement.</summary>
+    </Field>
     <Field Name="Statement" Type="StatementSyntax"/>
   </Node>
   <AbstractNode Name="StatementSyntax" Base="CSharpSyntaxNode">
@@ -2764,9 +2741,21 @@
     <TypeComment>
       <summary>Member declaration syntax.</summary>
     </TypeComment>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the attribute declaration list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
+      <PropertyComment>
+        <summary>Gets the modifier list.</summary>
+      </PropertyComment>
+    </Field>
   </AbstractNode>
   <Node Name="NamespaceDeclarationSyntax" Base="MemberDeclarationSyntax">
     <Kind Name="NamespaceDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
     <Field Name="NamespaceKeyword" Type="SyntaxToken">
       <Kind Name="NamespaceKeyword"/>
     </Field>
@@ -2943,16 +2932,6 @@
     <TypeComment>
       <summary>Base class for type declaration syntax.</summary>
     </TypeComment>
-    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;">
-      <PropertyComment>
-        <summary>Gets the attribute declaration list.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
-      <PropertyComment>
-        <summary>Gets the modifier list.</summary>
-      </PropertyComment>
-    </Field>
     <Field Name="Identifier" Type="SyntaxToken">
       <PropertyComment>
         <summary>Gets the identifier.</summary>
@@ -3135,16 +3114,8 @@
       <summary>Delegate declaration syntax.</summary>
     </TypeComment>
     <Kind Name="DelegateDeclaration"/>
-    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;">
-      <PropertyComment>
-        <summary>Gets the attribute declaration list.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
-      <PropertyComment>
-        <summary>Gets the modifier list.</summary>
-      </PropertyComment>
-    </Field>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
     <Field Name="DelegateKeyword" Type="SyntaxToken">
       <PropertyComment>
         <summary>Gets the "delegate" keyword.</summary>
@@ -3182,11 +3153,8 @@
   </Node>
   <Node Name="EnumMemberDeclarationSyntax" Base="MemberDeclarationSyntax">
     <Kind Name="EnumMemberDeclaration"/>
-    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;">
-      <PropertyComment>
-        <summary>Gets the attribute declaration list.</summary>
-      </PropertyComment>
-    </Field>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
     <Field Name="Identifier" Type="SyntaxToken">
       <PropertyComment>
         <summary>Gets the identifier.</summary>
@@ -3314,16 +3282,6 @@
     </Field>
   </Node>
   <AbstractNode Name="BaseFieldDeclarationSyntax" Base="MemberDeclarationSyntax">
-    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;">
-      <PropertyComment>
-        <summary>Gets the attribute declaration list.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
-      <PropertyComment>
-        <summary>Gets the modifier list.</summary>
-      </PropertyComment>
-    </Field>
     <Field Name="Declaration" Type="VariableDeclarationSyntax"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">
       <Kind Name="SemicolonToken"/>
@@ -3331,16 +3289,8 @@
   </AbstractNode>
   <Node Name="FieldDeclarationSyntax" Base="BaseFieldDeclarationSyntax">
     <Kind Name="FieldDeclaration"/>
-    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true">
-      <PropertyComment>
-        <summary>Gets the attribute declaration list.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true">
-      <PropertyComment>
-        <summary>Gets the modifier list.</summary>
-      </PropertyComment>
-    </Field>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
     <Field Name="Declaration" Type="VariableDeclarationSyntax" Override="true"/>
     <Field Name="SemicolonToken" Type="SyntaxToken" Override="true">
       <Kind Name="SemicolonToken"/>
@@ -3348,16 +3298,8 @@
   </Node>
   <Node Name="EventFieldDeclarationSyntax" Base="BaseFieldDeclarationSyntax">
     <Kind Name="EventFieldDeclaration"/>
-    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true">
-      <PropertyComment>
-        <summary>Gets the attribute declaration list.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true">
-      <PropertyComment>
-        <summary>Gets the modifier list.</summary>
-      </PropertyComment>
-    </Field>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
     <Field Name="EventKeyword" Type="SyntaxToken">
       <Kind Name="EventKeyword"/>
     </Field>
@@ -3377,16 +3319,6 @@
     <TypeComment>
       <summary>Base type for method declaration syntax.</summary>
     </TypeComment>
-    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;">
-      <PropertyComment>
-        <summary>Gets the attribute declaration list.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
-      <PropertyComment>
-        <summary>Gets the modifier list.</summary>
-      </PropertyComment>
-    </Field>
     <Field Name="ParameterList" Type="ParameterListSyntax">
       <PropertyComment>
         <summary>Gets the parameter list.</summary>
@@ -3604,16 +3536,6 @@
     <TypeComment>
       <summary>Base type for property declaration syntax.</summary>
     </TypeComment>
-    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;">
-      <PropertyComment>
-        <summary>Gets the attribute declaration list.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
-      <PropertyComment>
-        <summary>Gets the modifier list.</summary>
-      </PropertyComment>
-    </Field>
     <Field Name="Type" Type="TypeSyntax">
       <PropertyComment>
         <summary>Gets the type syntax.</summary>
@@ -3670,7 +3592,10 @@
       </PropertyComment>
       <Kind Name="IdentifierToken"/>
     </Field>
-    <Field Name="AccessorList" Type="AccessorListSyntax" Override="true"/>
+    <Field Name="AccessorList" Type="AccessorListSyntax" Override="true" Optional="true"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
+      <Kind Name="SemicolonToken"/>
+    </Field>
   </Node>
   <Node Name="IndexerDeclarationSyntax" Base="BasePropertyDeclarationSyntax">
     <Kind Name="IndexerDeclaration"/>
@@ -3819,17 +3744,9 @@
     <Field Name="Default" Type="EqualsValueClauseSyntax" Optional="true"/>
   </Node>
   <Node Name="IncompleteMemberSyntax" Base="MemberDeclarationSyntax">
-    <Kind Name="IncompleteMember"/>
-    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;">
-      <PropertyComment>
-        <summary>Gets the attribute declaration list.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
-      <PropertyComment>
-        <summary>Gets the modifier list.</summary>
-      </PropertyComment>
-    </Field>
+    <Kind Name="IncompleteMember"/>n
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
     <Field Name="Type" Type="TypeSyntax" Optional="true"/>
   </Node>
   <Node Name="SkippedTokensTriviaSyntax" Base="StructuredTriviaSyntax">
@@ -4432,10 +4349,6 @@
       <Kind Name="DisableKeyword"/>
       <Kind Name="RestoreKeyword"/>
       <Kind Name="EnableKeyword"/>
-      <Kind Name="SafeOnlyKeyword"/>
-    </Field>
-    <Field Name="NullableKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="NullableKeyword"/>
     </Field>
     <Field Name="ErrorCodes" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;"/>
     <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
@@ -4525,7 +4438,10 @@
       <Kind Name="EnableKeyword"/>
       <Kind Name="DisableKeyword"/>
       <Kind Name="RestoreKeyword"/>
-      <Kind Name="SafeOnlyKeyword"/>
+    </Field>
+    <Field Name="TargetToken" Type="SyntaxToken" Optional="true">
+      <Kind Name="WarningsKeyword"/>
+      <Kind Name="AnnotationsKeyword"/>
     </Field>
     <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
       <Kind Name="EndOfDirectiveToken"/>

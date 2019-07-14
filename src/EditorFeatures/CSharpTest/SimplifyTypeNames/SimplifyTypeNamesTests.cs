@@ -627,7 +627,7 @@ namespace Root
 
             foreach (var pair in builtInTypeMap)
             {
-                int position = content.IndexOf(@"[||]", StringComparison.Ordinal);
+                var position = content.IndexOf(@"[||]", StringComparison.Ordinal);
                 var newContent = content.Replace(@"[||]", pair.Key);
                 var expected = content.Replace(@"[||]", pair.Value);
                 await TestWithPredefinedTypeOptionsAsync(newContent, expected);
@@ -3992,6 +3992,152 @@ namespace Root
         Exception c;
     }
 }", compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: warningLevel));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestGlobalAliasSimplifiesInUsingDirective()
+        {
+            await TestInRegularAndScriptAsync(
+                "using [|global::System.IO|];",
+                "using System.IO;");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Boolean")]
+        [InlineData("Char")]
+        [InlineData("String")]
+        [InlineData("Int8")]
+        [InlineData("UInt8")]
+        [InlineData("Int16")]
+        [InlineData("UInt16")]
+        [InlineData("Int32")]
+        [InlineData("UInt32")]
+        [InlineData("Int64")]
+        [InlineData("UInt64")]
+        [InlineData("Float32")]
+        [InlineData("Float64")]
+        public async Task TestGlobalAliasSimplifiesInUsingAliasDirective(string typeName)
+        {
+            await TestInRegularAndScriptAsync(
+                $"using My{typeName} = [|global::System.{typeName}|];",
+                $"using My{typeName} = System.{typeName};");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestGlobalAliasSimplifiesInUsingStaticDirective()
+        {
+            await TestInRegularAndScriptAsync(
+                "using static [|global::System.Math|];",
+                "using static System.Math;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestGlobalAliasSimplifiesInUsingDirectiveInNamespace()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+namespace N
+{
+    using [|global::System.IO|];
+}",
+@"using System;
+namespace N
+{
+    using System.IO;
+}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Boolean")]
+        [InlineData("Char")]
+        [InlineData("String")]
+        [InlineData("Int8")]
+        [InlineData("UInt8")]
+        [InlineData("Int16")]
+        [InlineData("UInt16")]
+        [InlineData("Int32")]
+        [InlineData("UInt32")]
+        [InlineData("Int64")]
+        [InlineData("UInt64")]
+        [InlineData("Float32")]
+        [InlineData("Float64")]
+        public async Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace(string typeName)
+        {
+            await TestInRegularAndScriptAsync(
+$@"using System;
+namespace N
+{{
+    using My{typeName} = [|global::System.{typeName}|];
+}}",
+$@"using System;
+namespace N
+{{
+    using My{typeName} = System.{typeName};
+}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestGlobalAliasSimplifiesInUsingStaticDirectiveInNamespace()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+namespace N
+{
+    using static [|global::System.Math|];
+}",
+@"using System;
+namespace N
+{
+    using static System.Math;
+}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Boolean")]
+        [InlineData("Char")]
+        [InlineData("String")]
+        [InlineData("Int8")]
+        [InlineData("UInt8")]
+        [InlineData("Int16")]
+        [InlineData("UInt16")]
+        [InlineData("Int32")]
+        [InlineData("UInt32")]
+        [InlineData("Int64")]
+        [InlineData("UInt64")]
+        [InlineData("Float32")]
+        [InlineData("Float64")]
+        public async Task TestDoesNotSimplifyUsingAliasDirectiveToPrimitiveType(string typeName)
+        {
+            await TestMissingAsync(
+$@"using System;
+namespace N
+{{
+    using My{typeName} = [|{typeName}|];
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Boolean")]
+        [InlineData("Char")]
+        [InlineData("String")]
+        [InlineData("Int8")]
+        [InlineData("UInt8")]
+        [InlineData("Int16")]
+        [InlineData("UInt16")]
+        [InlineData("Int32")]
+        [InlineData("UInt32")]
+        [InlineData("Int64")]
+        [InlineData("UInt64")]
+        [InlineData("Float32")]
+        [InlineData("Float64")]
+        public async Task TestDoesNotSimplifyUsingAliasDirectiveToPrimitiveType2(string typeName)
+        {
+            await TestMissingAsync(
+$@"using System;
+namespace N
+{{
+    using My{typeName} = [|System.{typeName}|];
+}}");
         }
 
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)

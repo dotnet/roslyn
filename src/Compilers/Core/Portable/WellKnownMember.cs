@@ -68,6 +68,8 @@ namespace Microsoft.CodeAnalysis
 
         System_IEquatable_T__Equals,
 
+        System_Collections_Generic_IEqualityComparer_T__Equals,
+
         System_Collections_Generic_EqualityComparer_T__Equals,
         System_Collections_Generic_EqualityComparer_T__GetHashCode,
         System_Collections_Generic_EqualityComparer_T__get_Default,
@@ -157,6 +159,7 @@ namespace Microsoft.CodeAnalysis
         System_Activator__CreateInstance,
         System_Activator__CreateInstance_T,
 
+        System_Threading_Interlocked__CompareExchange,
         System_Threading_Interlocked__CompareExchange_T,
 
         System_Threading_Monitor__Enter, //Monitor.Enter(object)
@@ -420,6 +423,8 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_NullableAttribute__ctorByte,
         System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
+        System_Runtime_CompilerServices_NullableContextAttribute__ctor,
+        System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor,
         System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor,
         System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
         System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
@@ -451,6 +456,8 @@ namespace Microsoft.CodeAnalysis
         System_Range__StartAt,
         System_Range__EndAt,
         System_Range__get_All,
+        System_Range__get_Start,
+        System_Range__get_End,
 
         System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
 
@@ -488,6 +495,11 @@ namespace Microsoft.CodeAnalysis
         System_InvalidOperationException__ctor,
         System_Runtime_CompilerServices_SwitchExpressionException__ctor,
         System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
+
+        System_Threading_CancellationToken__Equals,
+        System_Threading_CancellationTokenSource__CreateLinkedTokenSource,
+        System_Threading_CancellationTokenSource__Token,
+        System_Threading_CancellationTokenSource__Dispose,
 
         Count
 

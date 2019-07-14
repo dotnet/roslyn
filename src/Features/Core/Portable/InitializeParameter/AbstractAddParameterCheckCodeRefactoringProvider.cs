@@ -9,8 +9,8 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // If we can't, then just offer to add an "if (s == null)" statement.
             return await AddNullCheckStatementAsync(
                 document, parameter, functionDeclaration, method, blockStatementOpt,
-                (c, g) => CreateNullCheckStatement(c, g, parameter),
+                (s, g) => CreateNullCheckStatement(s, g, parameter),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         {
             return await AddNullCheckStatementAsync(
                 document, parameter, functionDeclaration, method, blockStatementOpt,
-                (c, g) => CreateStringCheckStatement(c, g, parameter, methodName),
+                (s, g) => CreateStringCheckStatement(s.Compilation, g, parameter, methodName),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -226,15 +226,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             SyntaxNode functionDeclaration,
             IMethodSymbol method,
             IBlockOperation blockStatementOpt,
-            Func<Compilation, SyntaxGenerator, TStatementSyntax> generateNullCheck,
+            Func<SemanticModel, SyntaxGenerator, TStatementSyntax> generateNullCheck,
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var compilation = semanticModel.Compilation;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-            var nullCheckStatement = generateNullCheck(compilation, editor.Generator);
+            var nullCheckStatement = generateNullCheck(semanticModel, editor.Generator);
 
             // We may be inserting a statement into a single-line container.  In that case,
             // we don't want the formatting engine to think this construct should stay single-line
@@ -254,18 +253,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private static TStatementSyntax CreateNullCheckStatement(
-            Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter)
-        {
-            // generates: if (s == null) throw new ArgumentNullException(nameof(s))
-            return (TStatementSyntax)generator.IfStatement(
-                generator.ReferenceEqualsExpression(
-                    generator.IdentifierName(parameter.Name),
-                    generator.NullLiteralExpression()),
-                SpecializedCollections.SingletonEnumerable(
-                    generator.ThrowStatement(
-                        CreateArgumentNullException(compilation, generator, parameter))));
-        }
+        private static TStatementSyntax CreateNullCheckStatement(SemanticModel semanticModel, SyntaxGenerator generator, IParameterSymbol parameter)
+            => (TStatementSyntax)generator.CreateNullCheckAndThrowStatement(semanticModel, parameter);
 
         private static TStatementSyntax CreateStringCheckStatement(
             Compilation compilation, SyntaxGenerator generator,

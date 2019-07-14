@@ -2008,7 +2008,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         // Note: The caller needs to verify that replacement doesn't change semantics of the original expression.
         private static bool TrySimplifyMemberAccessOrQualifiedName(
-        ExpressionSyntax left,
+            ExpressionSyntax left,
             ExpressionSyntax right,
             SemanticModel semanticModel,
             OptionSet optionSet,
@@ -2089,7 +2089,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             foreach (var enclosingTypeParameter in enclosingTypeParametersInsideOut)
             {
-                ISymbol newCandidateSymbol = candidateSymbol;
+                var newCandidateSymbol = candidateSymbol;
                 if (candidateSymbol.IsKind(SymbolKind.ArrayType))
                 {
                     newCandidateSymbol = ((IArrayTypeSymbol)candidateSymbol).ElementType;
@@ -2271,12 +2271,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 IsAmbiguousCast(name, reducedName) ||
                 IsNullableTypeInPointerExpression(name, reducedName) ||
                 name.IsNotNullableReplaceable(reducedName) ||
-                IsQualifiedNameInUsingDirective(semanticModel, name, reducedName))
+                IsNonReducableQualifiedNameInUsingDirective(semanticModel, name, reducedName))
             {
                 return false;
             }
 
             return true;
+        }
+
+        private static bool IsNonReducableQualifiedNameInUsingDirective(SemanticModel model, NameSyntax name, TypeSyntax reducedName)
+        {
+            // Whereas most of the time we do not want to reduce namespace names, We will
+            // make an exception for namespaces with the global:: alias.
+            return IsQualifiedNameInUsingDirective(model, name, reducedName) &&
+                !IsGlobalAliasQualifiedName(name);
         }
 
         private static bool IsQualifiedNameInUsingDirective(SemanticModel model, NameSyntax name, TypeSyntax reducedName)
@@ -2299,6 +2307,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return false;
+        }
+
+        private static bool IsGlobalAliasQualifiedName(NameSyntax name)
+        {
+            // Checks whether the `global::` alias is applied to the name
+            return name is AliasQualifiedNameSyntax aliasName &&
+                aliasName.Alias.Identifier.IsKind(SyntaxKind.GlobalKeyword);
         }
 
         private static bool IsInScriptClass(SemanticModel model, NameSyntax name)

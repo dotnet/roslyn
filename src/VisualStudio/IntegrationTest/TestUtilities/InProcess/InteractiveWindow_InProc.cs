@@ -61,6 +61,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string GetReplText()
             => _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText();
 
+        protected override bool HasActiveTextView()
+            => _interactiveWindow.TextView is object;
+
         protected override IWpfTextView GetActiveTextView()
             => _interactiveWindow.TextView;
 
@@ -163,7 +166,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void CloseWindow()
         {
-            InvokeOnUIThread(() =>
+            InvokeOnUIThread(cancellationToken =>
             {
                 var shell = GetGlobalService<SVsUIShell, IVsUIShell>();
                 if (ErrorHandler.Succeeded(shell.FindToolWindow((uint)__VSFINDTOOLWIN.FTW_fFrameOnly, _windowId, out var windowFrame)))

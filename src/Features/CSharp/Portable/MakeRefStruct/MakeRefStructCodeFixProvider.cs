@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -20,6 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
     {
         // Error CS8345: Field or auto-implemented property cannot be of certain type unless it is an instance member of a ref struct.
         private const string CS8345 = nameof(CS8345);
+
+        [ImportingConstructor]
+        public MakeRefStructCodeFixProvider()
+        {
+        }
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(CS8345);

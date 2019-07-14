@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             Workspace workspace, CodeGenerationOptions options,
             ParseOptions parseOptions)
         {
-            options = options ?? CodeGenerationOptions.Default;
+            options ??= CodeGenerationOptions.Default;
 
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<MethodDeclarationSyntax>(method, options);
             if (reusableSyntax != null)
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static SyntaxTokenList GenerateModifiers(
             IMethodSymbol method, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
-            var tokens = new List<SyntaxToken>();
+            var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
             // Only "unsafe" modifier allowed if we're an explicit impl.
             if (method.ExplicitInterfaceImplementations.Any())
@@ -192,6 +193,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (method.IsStatic)
                     {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                    }
+
+                    if (method.IsReadOnly)
+                    {
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
                     }
 
                     if (method.IsOverride)
@@ -234,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 tokens.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword));
             }
 
-            return tokens.ToSyntaxTokenList();
+            return tokens.ToSyntaxTokenListAndFree();
         }
     }
 }

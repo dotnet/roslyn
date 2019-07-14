@@ -60,10 +60,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             if (mefHostServices != null)
             {
+                // Two assemblies may export the same language to content type mapping during development cycles where
+                // a type is moving to a new assembly. Avoid failing during content type discovery by de-duplicating
+                // services with identical metadata, opting to instead fail only in cases where the impacted service
+                // instance is used.
                 var exports = mefHostServices.GetExports<ILanguageService, ContentTypeLanguageMetadata>();
                 return exports
                         .Where(lz => !string.IsNullOrEmpty(lz.Metadata.DefaultContentType))
-                        .ToDictionary(lz => lz.Metadata.Language, lz => lz.Metadata.DefaultContentType);
+                        .Select(lz => (lz.Metadata.Language, lz.Metadata.DefaultContentType))
+                        .Distinct()
+                        .ToDictionary(lz => lz.Language, lz => lz.DefaultContentType);
             }
 
             // We can't do anything special, so fall back to the expensive path

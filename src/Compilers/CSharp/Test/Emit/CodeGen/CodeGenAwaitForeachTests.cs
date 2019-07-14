@@ -30,15 +30,12 @@ class C : IAsyncEnumerable<int>
 }";
             var expected = new[]
             {
-                // (7,9): error CS8652: The feature 'async streams' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,9): error CS8652: The feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         await foreach (int i in new C())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("async streams").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(7, 9)
             };
 
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.Regular7_3);
-            comp.VerifyDiagnostics(expected);
-
-            comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.RegularDefault);
             comp.VerifyDiagnostics(expected);
 
             comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.RegularPreview);
@@ -2585,7 +2582,7 @@ public class C
   }
   catch System.Exception
   {
-    // sequence point: <hidden>
+    // async: catch handler, sequence point: <hidden>
     IL_00d7:  stloc.s    V_4
     IL_00d9:  ldarg.0
     IL_00da:  ldc.i4.s   -2
@@ -4292,7 +4289,7 @@ class C
   }
   catch System.Exception
   {
-    // sequence point: <hidden>
+    // async: catch handler, sequence point: <hidden>
     IL_00d3:  stloc.s    V_4
     IL_00d5:  ldarg.0
     IL_00d6:  ldc.i4.s   -2

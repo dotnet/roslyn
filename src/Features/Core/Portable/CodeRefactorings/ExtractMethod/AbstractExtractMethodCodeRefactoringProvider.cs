@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
         Name = PredefinedCodeRefactoringProviderNames.ExtractMethod), Shared]
     internal class ExtractMethodCodeRefactoringProvider : CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public ExtractMethodCodeRefactoringProvider()
+        {
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             // Don't bother if there isn't a selection
@@ -92,8 +97,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
             {
             }
         }

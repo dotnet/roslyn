@@ -26,7 +26,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 Assert.Equal(rootNamespace, DefaultNamespaceOfSingleProject(environment));
             }
 
-            string DefaultNamespaceOfSingleProject(TestEnvironment environment)
+            static string DefaultNamespaceOfSingleProject(TestEnvironment environment)
                 => environment.Workspace.CurrentSolution.Projects.Single().DefaultNamespace;
         }
     }

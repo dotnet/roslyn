@@ -337,16 +337,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ITypeSymbol GetMemberType(this ISymbol symbol)
         {
-            switch (symbol.Kind)
+            switch (symbol)
             {
-                case SymbolKind.Field:
-                    return ((IFieldSymbol)symbol).Type;
-                case SymbolKind.Property:
-                    return ((IPropertySymbol)symbol).Type;
-                case SymbolKind.Method:
-                    return ((IMethodSymbol)symbol).ReturnType;
-                case SymbolKind.Event:
-                    return ((IEventSymbol)symbol).Type;
+                case IFieldSymbol fieldSymbol:
+                    return fieldSymbol.GetTypeWithAnnotatedNullability();
+                case IPropertySymbol propertySymbol:
+                    return propertySymbol.GetTypeWithAnnotatedNullability();
+                case IMethodSymbol methodSymbol:
+                    return methodSymbol.GetReturnTypeWithAnnotatedNullability();
+                case IEventSymbol eventSymbol:
+                    return eventSymbol.GetTypeWithAnnotatedNullability();
             }
 
             return null;
@@ -526,12 +526,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     var types = method.Parameters
                         .Skip(skip)
-                        .Select(p => p.Type ?? compilation.GetSpecialType(SpecialType.System_Object));
+                        .Select(p => (p.Type ?? compilation.GetSpecialType(SpecialType.System_Object)).WithNullability(p.NullableAnnotation));
 
                     if (!method.ReturnsVoid)
                     {
                         // +1 for the return type.
-                        types = types.Concat(method.ReturnType ?? compilation.GetSpecialType(SpecialType.System_Object));
+                        types = types.Concat((method.ReturnType ?? compilation.GetSpecialType(SpecialType.System_Object)).WithNullability(method.ReturnNullableAnnotation));
                     }
 
                     return delegateType.TryConstruct(types.ToArray());
@@ -711,10 +711,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             attributes = attributes.IsDefault ? symbol.GetAttributes() : attributes;
-            hideModuleNameAttribute = hideModuleNameAttribute ?? compilation.HideModuleNameAttribute();
+            hideModuleNameAttribute ??= compilation.HideModuleNameAttribute();
             foreach (var attribute in attributes)
             {
-                if (attribute.AttributeClass == hideModuleNameAttribute)
+                if (Equals(attribute.AttributeClass, hideModuleNameAttribute))
                 {
                     return true;
                 }
@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static bool IsBrowsingProhibitedByEditorBrowsableAttribute(
             ISymbol symbol, ImmutableArray<AttributeData> attributes, bool hideAdvancedMembers, Compilation compilation, IMethodSymbol constructor)
         {
-            constructor = constructor ?? EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(compilation);
+            constructor ??= EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(compilation);
             if (constructor == null)
             {
                 return false;
@@ -734,7 +734,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             foreach (var attribute in attributes)
             {
-                if (attribute.AttributeConstructor == constructor &&
+                if (Equals(attribute.AttributeConstructor, constructor) &&
                     attribute.ConstructorArguments.Length == 1 &&
                     attribute.ConstructorArguments.First().Value is int)
                 {
@@ -794,7 +794,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     foreach (var constructor in attributeConstructors)
                     {
-                        if (attribute.AttributeConstructor == constructor)
+                        if (Equals(attribute.AttributeConstructor, constructor))
                         {
                             var actualFlags = 0;
 
@@ -867,13 +867,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             switch (symbol)
             {
                 case ILocalSymbol localSymbol:
-                    return localSymbol.Type;
+                    return localSymbol.GetTypeWithAnnotatedNullability();
                 case IFieldSymbol fieldSymbol:
-                    return fieldSymbol.Type;
+                    return fieldSymbol.GetTypeWithAnnotatedNullability();
                 case IPropertySymbol propertySymbol:
-                    return propertySymbol.Type;
+                    return propertySymbol.GetTypeWithAnnotatedNullability();
                 case IParameterSymbol parameterSymbol:
-                    return parameterSymbol.Type;
+                    return parameterSymbol.GetTypeWithAnnotatedNullability();
                 case IAliasSymbol aliasSymbol:
                     return aliasSymbol.Target as ITypeSymbol;
             }
@@ -883,7 +883,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static DocumentationComment GetDocumentationComment(this ISymbol symbol, CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
         {
-            string xmlText = symbol.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
+            var xmlText = symbol.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
             return string.IsNullOrEmpty(xmlText) ? DocumentationComment.Empty : DocumentationComment.FromXmlFragment(xmlText);
         }
 
@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static bool IsAwaitableNonDynamic(this ISymbol symbol, SemanticModel semanticModel, int position)
         {
-            IMethodSymbol methodSymbol = symbol as IMethodSymbol;
+            var methodSymbol = symbol as IMethodSymbol;
             ITypeSymbol typeSymbol = null;
 
             if (methodSymbol == null)

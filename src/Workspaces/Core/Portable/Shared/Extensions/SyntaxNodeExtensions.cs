@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Contract.ThrowIfNull(nodes);
             Contract.ThrowIfFalse(nodes.Any());
 
-            TextSpan fullSpan = nodes.First().Span;
+            var fullSpan = nodes.First().Span;
             foreach (var node in nodes)
             {
                 fullSpan = TextSpan.FromBounds(
@@ -454,9 +454,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     previous = span;
                 }
 
-                bool retryNodes = false;
-                bool retryTokens = false;
-                bool retryTrivia = false;
+                var retryNodes = false;
+                var retryTokens = false;
+                var retryTrivia = false;
 
                 // replace nodes in batch
                 // submit all nodes so we can annotate the ones we don't replace

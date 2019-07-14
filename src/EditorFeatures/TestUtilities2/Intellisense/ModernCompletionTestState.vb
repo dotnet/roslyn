@@ -16,8 +16,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Partial Friend Class ModernCompletionTestState
         Inherits TestStateBase
 
+        Private Const timeoutMs = 10000
         Friend Const RoslynItem = "RoslynItem"
         Friend ReadOnly EditorCompletionCommandHandler As VSCommanding.ICommandHandler
+        Friend ReadOnly CompletionPresenterProvider As ICompletionPresenterProvider
 
         ' Do not call directly. Use TestStateFactory
         Friend Sub New(workspaceElement As XElement,
@@ -35,6 +37,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 includeFormatCommandHandler,
                 workspaceKind:=workspaceKind)
 
+            CompletionPresenterProvider = GetExportedValues(Of ICompletionPresenterProvider)().
+                Single(Function(e As ICompletionPresenterProvider) e.GetType().FullName = "Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.MockCompletionPresenterProvider")
             EditorCompletionCommandHandler = GetExportedValues(Of VSCommanding.ICommandHandler)().
                 Single(Function(e As VSCommanding.ICommandHandler) e.GetType().FullName = "Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Implementation.CompletionCommandHandler")
         End Sub
@@ -149,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim completionItems = session.GetComputedItems(CancellationToken.None)
             ' During the computation we can explicitly dismiss the session or we can return no items.
             ' Each of these conditions mean that there is no active completion.
-            Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0)
+            Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0, "AssertNoCompletionSession")
         End Function
 
         Public Overrides Sub AssertNoCompletionSessionWithNoBlock()
@@ -184,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Await WaitForAsynchronousOperationsAsync()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(view)
-            Assert.NotNull(session)
+            Assert.True(session IsNot Nothing, "AssertCompletionSession")
         End Function
 
         Public Overrides Async Function AssertCompletionSessionAfterTypingHash() As Task
@@ -287,15 +291,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
         End Sub
 
-        Private Function GetRoslynCompletionItemOpt(editorCompletionItem As Data.CompletionItem) As CompletionItem
-            Dim roslynCompletionItem As CompletionItem = Nothing
-            If editorCompletionItem?.Properties.TryGetProperty(RoslynItem, roslynCompletionItem) Then
-                Return roslynCompletionItem
-            End If
-
-            Return Nothing
-        End Function
-
         Public Overrides Function GetCompletionItems() As IList(Of CompletionItem)
             WaitForAsynchronousOperationsAsync()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
@@ -304,15 +299,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Private Shared Function GetRoslynCompletionItem(item As Data.CompletionItem) As CompletionItem
-            Return DirectCast(item.Properties(RoslynItem), CompletionItem)
+            Return If(item IsNot Nothing, DirectCast(item.Properties(RoslynItem), CompletionItem), Nothing)
         End Function
 
         Public Overrides Sub RaiseFiltersChanged(args As CompletionItemFilterStateChangedEventArgs)
-            Throw ExceptionUtilities.Unreachable
+            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
+            Dim newArray = args.FilterState.Select(Function(f) New Data.CompletionFilterWithState(New Data.CompletionFilter(f.Key.DisplayText, f.Key.AccessKey, image:=Nothing), isAvailable:=True, isSelected:=f.Value)).ToImmutableArrayOrEmpty()
+            Dim newArgs = New Data.CompletionFilterChangedEventArgs(newArray)
+            presenter.TriggerFiltersChanged(Me, newArgs)
         End Sub
 
         Public Overrides Function GetCompletionItemFilters() As ImmutableArray(Of CompletionItemFilter)
-            Throw ExceptionUtilities.Unreachable
+            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
+            Return presenter.GetFilters().Select(Function(f) New CompletionItemFilter(f.Filter.DisplayText, "", f.Filter.AccessKey(0))).ToImmutableArray()
         End Function
 
         Public Overrides Function HasSuggestedItem() As Boolean
@@ -341,6 +340,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Overrides Sub SendSelectCompletionItemThroughPresenterSession(item As CompletionItem)
             Throw ExceptionUtilities.Unreachable
         End Sub
+
+        Public Overrides Async Function WaitForUIRenderedAsync() As Task
+            Dim tcs = New TaskCompletionSource(Of Boolean)
+            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(TextView), MockCompletionPresenter)
+            Dim uiUpdated As EventHandler(Of Data.CompletionItemSelectedEventArgs)
+
+            uiUpdated = Sub()
+                            RemoveHandler presenter.UiUpdated, uiUpdated
+                            tcs.TrySetResult(True)
+                        End Sub
+
+            AddHandler presenter.UiUpdated, uiUpdated
+            Dim ct = New CancellationTokenSource(timeoutMs)
+            ct.Token.Register(Sub() tcs.TrySetCanceled(), useSynchronizationContext:=False)
+
+            Await tcs.Task.ConfigureAwait(True)
+        End Function
 
 #End Region
     End Class

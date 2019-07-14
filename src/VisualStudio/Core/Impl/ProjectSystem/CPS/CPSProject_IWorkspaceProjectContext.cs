@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
         private readonly IProjectCodeModel _projectCodeModel;
-        private readonly ProjectExternalErrorReporter _externalErrorReporterOpt;
+        private readonly Lazy<ProjectExternalErrorReporter> _externalErrorReporterOpt;
         private readonly EditAndContinue.VsENCRebuildableProjectImpl _editAndContinueProject;
 
         public string DisplayName
@@ -54,11 +54,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             set => _visualStudioProject.HasAllInformation = value;
         }
 
-        public CPSProject(VisualStudioProject visualStudioProject, VisualStudioWorkspaceImpl visualStudioWorkspace, IProjectCodeModelFactory projectCodeModelFactory, ProjectExternalErrorReporter errorReporterOpt, Guid projectGuid, string binOutputPath)
+        public CPSProject(VisualStudioProject visualStudioProject, VisualStudioWorkspaceImpl visualStudioWorkspace, IProjectCodeModelFactory projectCodeModelFactory, Guid projectGuid, string binOutputPath)
         {
             _visualStudioProject = visualStudioProject;
             _visualStudioWorkspace = visualStudioWorkspace;
-            _externalErrorReporterOpt = errorReporterOpt;
+
+            _externalErrorReporterOpt = new Lazy<ProjectExternalErrorReporter>(() =>
+            {
+                var prefix = visualStudioProject.Language switch
+                {
+                    LanguageNames.CSharp => "CS",
+                    LanguageNames.VisualBasic => "BC",
+                    LanguageNames.FSharp => "FS",
+                    _ => null
+                };
+
+                return (prefix != null) ? new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, visualStudioWorkspace) : null;
+            });
 
             _projectCodeModel = projectCodeModelFactory.CreateProjectCodeModel(visualStudioProject.Id, new CPSCodeModelInstanceFactory(this));
 
@@ -257,12 +269,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         public void AddAnalyzerConfigFile(string filePath)
         {
-            // TODO: implement. Right now this exists to provide a stub for the project system work to be implemented against.
+            _visualStudioProject.AddAnalyzerConfigFile(filePath);
         }
 
         public void RemoveAnalyzerConfigFile(string filePath)
         {
-            // TODO: implement. Right now this exists to provide a stub for the project system work to be implemented against.
+            _visualStudioProject.RemoveAnalyzerConfigFile(filePath);
         }
     }
 }

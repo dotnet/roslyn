@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
         public CSharpRemoveUnreachableCodeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId,
+                   option: null,
                    new LocalizableResourceString(nameof(FeaturesResources.Unreachable_code_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    configurable: false)
         {
@@ -29,9 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSemanticModelAction(AnalyzeSemanticModel);

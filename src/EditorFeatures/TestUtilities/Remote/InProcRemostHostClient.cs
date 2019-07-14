@@ -22,12 +22,13 @@ namespace Roslyn.Test.Utilities.Remote
         private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
         private readonly JsonRpc _rpc;
 
-        public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, bool runCacheCleanup, CancellationToken cancellationToken)
+        public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, bool runCacheCleanup)
         {
             var inprocServices = new InProcRemoteServices(runCacheCleanup);
 
-            var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownRemoteHostServices.RemoteHostService, cancellationToken).ConfigureAwait(false);
-            var remotableDataRpc = new RemotableDataJsonRpc(workspace, inprocServices.Logger, await inprocServices.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService, cancellationToken).ConfigureAwait(false));
+            // Create the RemotableDataJsonRpc before we create the remote host: this call implicitly sets up the remote IExperimentationService so that will be available for later calls
+            var remotableDataRpc = new RemotableDataJsonRpc(workspace, inprocServices.Logger, await inprocServices.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService).ConfigureAwait(false));
+            var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownRemoteHostServices.RemoteHostService).ConfigureAwait(false);
 
             var current = CreateClientId(Process.GetCurrentProcess().Id.ToString());
             var instance = new InProcRemoteHostClient(current, workspace, inprocServices, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc), remoteHostStream);
@@ -53,8 +54,8 @@ namespace Roslyn.Test.Utilities.Remote
             Workspace workspace,
             InProcRemoteServices inprocServices,
             ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc,
-            Stream stream) :
-            base(workspace)
+            Stream stream)
+            : base(workspace)
         {
             Contract.ThrowIfNull(remotableDataRpc);
 
@@ -63,8 +64,7 @@ namespace Roslyn.Test.Utilities.Remote
             _inprocServices = inprocServices;
             _remotableDataRpc = remotableDataRpc;
 
-            _rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target: this);
-            _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
+            _rpc = stream.CreateStreamJsonRpc(target: this, inprocServices.Logger);
 
             // handle disconnected situation
             _rpc.Disconnected += OnRpcDisconnected;
@@ -86,7 +86,7 @@ namespace Roslyn.Test.Utilities.Remote
         {
             // get stream from service hub to communicate service specific information 
             // this is what consumer actually use to communicate information
-            var serviceStream = await _inprocServices.RequestServiceAsync(serviceName, cancellationToken).ConfigureAwait(false);
+            var serviceStream = await _inprocServices.RequestServiceAsync(serviceName).ConfigureAwait(false);
 
             return new JsonRpcConnection(_inprocServices.Logger, callbackTarget, serviceStream, _remotableDataRpc.TryAddReference());
         }
@@ -163,10 +163,9 @@ namespace Roslyn.Test.Utilities.Remote
                 _creatorMap.Add(name, serviceCreator);
             }
 
-            public Task<Stream> RequestServiceAsync(string serviceName, CancellationToken cancellationToken)
+            public Task<Stream> RequestServiceAsync(string serviceName)
             {
-                Func<Stream, IServiceProvider, ServiceHubServiceBase> creator;
-                if (_creatorMap.TryGetValue(serviceName, out creator))
+                if (_creatorMap.TryGetValue(serviceName, out var creator))
                 {
                     var tuple = FullDuplexStream.CreateStreams();
                     return Task.FromResult<Stream>(new WrappedStream(creator(tuple.Item1, _serviceProvider), tuple.Item2));

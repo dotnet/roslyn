@@ -92,13 +92,6 @@ namespace Microsoft.CodeAnalysis.Recommendations
         private ImmutableArray<ITypeSymbol> GetTypeSymbols(ImmutableArray<ISymbol> candidateSymbols, int ordinalInInvocation, int ordinalInLambda)
         {
             var expressionSymbol = _context.SemanticModel.Compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
-            var funcSymbol = _context.SemanticModel.Compilation.GetTypeByMetadataName(typeof(Func<>).FullName);
-            // We cannot help if semantic model is corrupted or incomplete (e.g. during solution loading) and those symbols are not loaded. 
-            // Just bail out.
-            if (expressionSymbol == null || funcSymbol == null)
-            {
-                return default;
-            }
 
             var builder = ArrayBuilder<ITypeSymbol>.GetInstance();
 
@@ -106,40 +99,60 @@ namespace Microsoft.CodeAnalysis.Recommendations
             {
                 if (candidateSymbol is IMethodSymbol method)
                 {
-                    if (method.Parameters.Length > ordinalInInvocation)
+                    ITypeSymbol type;
+                    if (method.IsParams() && (ordinalInInvocation >= method.Parameters.Length - 1))
                     {
-                        var methodParameterSymbool = method.Parameters[ordinalInInvocation];
-                        var type = methodParameterSymbool.Type;
-                        // If type is <see cref="Expression{TDelegate}"/>, ignore <see cref="Expression"/> and use TDelegate.
-                        if (type is INamedTypeSymbol expressionSymbolNamedTypeCandidate &&
-                            Equals(expressionSymbolNamedTypeCandidate.OriginalDefinition, expressionSymbol))
+                        if (method.Parameters.LastOrDefault()?.Type is IArrayTypeSymbol arrayType)
                         {
-                            var allTypeArguments = type.GetAllTypeArguments();
-                            if (allTypeArguments.Length != 1)
-                            {
-                                continue;
-                            }
-
-                            type = allTypeArguments[0];
+                            type = arrayType.ElementType;
                         }
-
-                        // If type is <see cref="Func{TSomeArguments, TResult}"/>, extract TSomeArguments 
-                        // and find the type of thee argument corresponding to the ordinal.
-                        if (type is INamedTypeSymbol funcSymbolNamedTypeCandidate &&
-                            Equals(funcSymbolNamedTypeCandidate.Name, funcSymbol.Name) &&
-                            Equals(funcSymbolNamedTypeCandidate.ContainingNamespace, funcSymbol.ContainingNamespace))
+                        else
                         {
-                            var allTypeArguments = type.GetAllTypeArguments();
-                            if (allTypeArguments.Length < ordinalInLambda)
-                            {
-                                continue;
-                            }
-
-                            type = allTypeArguments[ordinalInLambda];
+                            continue;
                         }
-
-                        builder.Add(type);
                     }
+                    else if (ordinalInInvocation < method.Parameters.Length)
+                    {
+                        type = method.Parameters[ordinalInInvocation].Type;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    // If type is <see cref="Expression{TDelegate}"/>, ignore <see cref="Expression"/> and use TDelegate.
+                    // Ignore this check if expressionSymbol is null, e.g. semantic model is broken or incomplete or if the framework does not contain <see cref="Expression"/>.
+                    if (expressionSymbol != null &&
+                        type is INamedTypeSymbol expressionSymbolNamedTypeCandidate &&
+                        expressionSymbolNamedTypeCandidate.OriginalDefinition.Equals(expressionSymbol))
+                    {
+                        var allTypeArguments = type.GetAllTypeArguments();
+                        if (allTypeArguments.Length != 1)
+                        {
+                            continue;
+                        }
+
+                        type = allTypeArguments[0];
+                    }
+
+                    if (type.IsDelegateType())
+                    {
+                        var methods = type.GetMembers(WellKnownMemberNames.DelegateInvokeName);
+                        if (methods.Length != 1)
+                        {
+                            continue;
+                        }
+
+                        var parameters = methods[0].GetParameters();
+                        if (parameters.Length <= ordinalInLambda)
+                        {
+                            continue;
+                        }
+
+                        type = parameters[ordinalInLambda].Type;
+                    }
+
+                    builder.Add(type);
                 }
             }
 

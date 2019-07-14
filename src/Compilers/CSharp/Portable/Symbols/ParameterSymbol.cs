@@ -410,6 +410,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.Type; }
         }
 
+        CodeAnalysis.NullableAnnotation IParameterSymbol.NullableAnnotation => TypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
+
         ImmutableArray<CustomModifier> IParameterSymbol.CustomModifiers
         {
             get { return this.TypeWithAnnotations.CustomModifiers; }

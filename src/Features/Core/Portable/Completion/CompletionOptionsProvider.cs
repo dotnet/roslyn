@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Completion
     [ExportOptionProvider, Shared]
     internal class CompletionOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public CompletionOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             CompletionOptions.HideAdvancedMembers,
             CompletionOptions.TriggerOnTyping,
@@ -17,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionOptions.ShowCompletionItemFilters,
             CompletionOptions.HighlightMatchingPortionsOfCompletionListItems,
             CompletionOptions.EnterKeyBehavior,
-            CompletionOptions.SnippetsBehavior);
+            CompletionOptions.SnippetsBehavior,
+            CompletionOptions.ShowItemsFromUnimportedNamespaces);
     }
 }

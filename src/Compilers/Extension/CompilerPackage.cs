@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using EnvDTE;
@@ -16,6 +17,7 @@ namespace Roslyn.Compilers.Extension
 {
     [ProvideAutoLoad(UIContextGuids.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
+    [Guid("31C0675E-87A4-4061-A0DD-A4E510FCCF97")]
     public sealed class CompilerPackage : AsyncPackage
     {
         public static string RoslynHive = null;
@@ -75,6 +77,7 @@ namespace Roslyn.Compilers.Extension
 
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""{packagePath}\Microsoft.Build.Tasks.CodeAnalysis.dll"" Condition=""'$(RoslynHive)' == '{hiveName}'"" />
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Vbc"" AssemblyFile=""{packagePath}\Microsoft.Build.Tasks.CodeAnalysis.dll"" Condition=""'$(RoslynHive)' == '{hiveName}'"" />
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.DiscoverEditorConfigFiles"" AssemblyFile=""{packagePath}\Microsoft.Build.Tasks.CodeAnalysis.dll"" Condition=""'$(RoslynHive)' == '{hiveName}'"" />
 </Project>");
 
             // This targets content we want to be included later since the project file might touch UseSharedCompilation

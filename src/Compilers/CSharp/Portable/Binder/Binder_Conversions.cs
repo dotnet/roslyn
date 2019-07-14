@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TupleTypeSymbol.ReportNamesMismatchesIfAny(destination, sourceTuple, diagnostics);
                     source = new BoundConvertedTupleLiteral(
                         sourceTuple.Syntax,
-                        sourceTuple.Type,
+                        sourceTuple,
                         sourceTuple.Arguments,
                         sourceTuple.Type, // same type to keep original element names 
                         sourceTuple.HasErrors).WithSuppression(sourceTuple.IsSuppressed);
@@ -119,7 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
             if (conversion.Kind == ConversionKind.DefaultOrNullLiteral && source.Kind == BoundKind.DefaultExpression)
             {
-                source = ((BoundDefaultExpression)source).Update(constantValue, destination);
+                var defaultExpression = (BoundDefaultExpression)source;
+                Debug.Assert(defaultExpression.TargetType == null);
+                source = defaultExpression.Update(targetType: null, constantValue, destination);
             }
 
             return new BoundConversion(
@@ -189,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion: conversion.UserDefinedFromConversion,
                 isCast: false,
                 conversionGroup,
-                wasCompilerGenerated: true,
+                wasCompilerGenerated: false,
                 destination: conversion.BestUserDefinedConversionAnalysis.FromType,
                 diagnostics: diagnostics);
 
@@ -427,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression result = new BoundConvertedTupleLiteral(
                 sourceTuple.Syntax,
-                sourceTuple.Type,
+                sourceTuple,
                 convertedArguments.ToImmutableAndFree(),
                 targetType).WithSuppression(sourceTuple.IsSuppressed);
 
@@ -483,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiverOpt = group.ReceiverOpt;
             Debug.Assert(receiverOpt != null);
             Debug.Assert((object)conversion.Method != null);
-            receiverOpt = ReplaceTypeOrValueReceiver(receiverOpt, conversion.Method.IsStatic && !conversion.IsExtensionMethod, diagnostics);
+            receiverOpt = ReplaceTypeOrValueReceiver(receiverOpt, !conversion.Method.RequiresInstanceReceiver && !conversion.IsExtensionMethod, diagnostics);
             return group.Update(
                 group.TypeArgumentsOpt,
                 group.Name,
@@ -597,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // None of the checks below apply if the receiver can't be classified as a type or value. 
                 Debug.Assert(!invokedAsExtensionMethod);
             }
-            else if (memberSymbol.IsStatic)
+            else if (!memberSymbol.RequiresInstanceReceiver())
             {
                 Debug.Assert(!invokedAsExtensionMethod || (receiverOpt != null));
 

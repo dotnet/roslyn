@@ -19,9 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly string _name;
         private readonly TypeWithAnnotations _type;
-        private readonly SourceEventFieldSymbol _associatedField;
-        private readonly SynthesizedFieldLikeEventAccessorSymbol _addMethod;
-        private readonly SynthesizedFieldLikeEventAccessorSymbol _removeMethod;
+        private readonly SynthesizedEventAccessorSymbol _addMethod;
+        private readonly SynthesizedEventAccessorSymbol _removeMethod;
 
         internal SourceFieldLikeEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, SyntaxTokenList modifiers, VariableDeclaratorSyntax declaratorSyntax, DiagnosticBag diagnostics)
             : base(containingType, declaratorSyntax, modifiers, isFieldLike: true, interfaceSpecifierSyntaxOpt: null,
@@ -75,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // whether or not the initializer is legal.
             if (hasInitializer || !(this.IsExtern || this.IsAbstract))
             {
-                _associatedField = MakeAssociatedField(declaratorSyntax);
+                AssociatedEventField = MakeAssociatedField(declaratorSyntax);
                 // Don't initialize this.type - we'll just use the type of the field (which is lazy and handles var)
             }
 
@@ -100,8 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Accessors will assume that Type is available.
-            _addMethod = new SynthesizedFieldLikeEventAccessorSymbol(this, isAdder: true);
-            _removeMethod = new SynthesizedFieldLikeEventAccessorSymbol(this, isAdder: false);
+            _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true);
+            _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false);
 
             if (declarationSyntax.Variables[0] == declaratorSyntax)
             {
@@ -116,10 +115,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Backing field for field-like event. Will be null if the event
         /// has no initializer and is either extern or inside an interface.
         /// </summary>
-        internal override FieldSymbol AssociatedField
-        {
-            get { return _associatedField; }
-        }
+        internal override FieldSymbol AssociatedField => AssociatedEventField;
+
+        internal SourceEventFieldSymbol AssociatedEventField { get; }
 
         public override string Name
         {
@@ -150,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (object)_associatedField != null ?
+                return (object)AssociatedEventField != null ?
                     AttributeLocation.Event | AttributeLocation.Method | AttributeLocation.Field :
                     AttributeLocation.Event | AttributeLocation.Method;
             }

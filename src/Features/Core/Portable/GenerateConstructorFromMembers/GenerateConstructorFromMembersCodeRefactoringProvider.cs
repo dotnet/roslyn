@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
         private readonly IPickMembersService _pickMembersService_forTesting;
 
+        [ImportingConstructor]
         public GenerateConstructorFromMembersCodeRefactoringProvider() : this(null)
         {
         }
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 return;
             }
 
-            var actions = await this.GenerateConstructorFromMembersAsync(
+            var actions = await GenerateConstructorFromMembersAsync(
                 document, textSpan, addNullChecks: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
 

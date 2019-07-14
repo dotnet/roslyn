@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             public override EditAndContinueMethodDebugInformation GetDebugInfo(MethodDefinitionHandle methodHandle)
             {
-                int methodToken = MetadataTokens.GetToken(methodHandle);
+                var methodToken = MetadataTokens.GetToken(methodHandle);
 
                 byte[] debugInfo;
                 try
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             /// <exception cref="BadImageFormatException">Invalid data format.</exception>
             private static bool TryGetCustomDebugInformation(MetadataReader reader, EntityHandle handle, Guid kind, out CustomDebugInformation customDebugInfo)
             {
-                bool foundAny = false;
+                var foundAny = false;
                 customDebugInfo = default;
                 foreach (var infoHandle in reader.GetCustomDebugInformation(handle))
                 {
@@ -139,9 +139,33 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public unsafe static EditAndContinueMethodDebugInfoReader Create(ISymUnmanagedReader5 symReader, int version)
+        /// <summary>
+        /// Creates <see cref="EditAndContinueMethodDebugInfoReader"/> backed by a given <see cref="ISymUnmanagedReader5"/>.
+        /// </summary>
+        /// <param name="symReader">SymReader open on a Portable or Windows PDB.</param>
+        /// <param name="version">The version of the PDB to read.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="symReader"/> is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="version"/> is less than 1.</exception>
+        /// <exception cref="COMException">Error reading debug information.</exception>
+        /// <returns>
+        /// The resulting reader does not take ownership of the <paramref name="symReader"/> or the memory it reads.
+        /// </returns>
+        /// <remarks>
+        /// Automatically detects the underlying PDB format and returns the appropriate reader.
+        /// </remarks>
+        public unsafe static EditAndContinueMethodDebugInfoReader Create(ISymUnmanagedReader5 symReader, int version = 1)
         {
-            int hr = symReader.GetPortableDebugMetadataByVersion(version, metadata: out byte* metadata, size: out int size);
+            if (symReader == null)
+            {
+                throw new ArgumentNullException(nameof(symReader));
+            }
+
+            if (version <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(version));
+            }
+
+            var hr = symReader.GetPortableDebugMetadataByVersion(version, metadata: out var metadata, size: out var size);
             Marshal.ThrowExceptionForHR(hr);
 
             if (hr == 0)
@@ -153,5 +177,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return new Native(symReader, version);
             }
         }
+
+        /// <summary>
+        /// Creates <see cref="EditAndContinueMethodDebugInfoReader"/> back by a given <see cref="MetadataReader"/>.
+        /// </summary>
+        /// <param name="pdbReader"><see cref="MetadataReader"/> open on a Portable PDB.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="pdbReader"/> is null.</exception>
+        /// <returns>
+        /// The resulting reader does not take ownership of the <paramref name="pdbReader"/> or the memory it reads.
+        /// </returns>
+        public unsafe static EditAndContinueMethodDebugInfoReader Create(MetadataReader pdbReader)
+           => new Portable(pdbReader ?? throw new ArgumentNullException(nameof(pdbReader)));
     }
 }

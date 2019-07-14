@@ -74,6 +74,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CompletionOptions.ShowCompletionItemFilters, value); }
         }
 
+        public int ShowItemsFromUnimportedNamespaces
+        {
+            get { return GetBooleanOption(CompletionOptions.ShowItemsFromUnimportedNamespaces); }
+            set { SetBooleanOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, value); }
+        }
+
         [Obsolete("This SettingStore option has now been deprecated in favor of CSharpClosedFileDiagnostics")]
         public int ClosedFileDiagnostics
         {
@@ -663,6 +669,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferConditionalDelegateCall); }
             set { SetXmlOption(CSharpCodeStyleOptions.PreferConditionalDelegateCall, value); }
+        }
+
+        public string Style_PreferSwitchExpression
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferSwitchExpression); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferSwitchExpression, value); }
         }
 
         public string Style_PreferPatternMatchingOverAsWithNullCheck

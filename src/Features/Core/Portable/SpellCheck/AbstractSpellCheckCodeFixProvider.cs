@@ -15,12 +15,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SpellCheck
 {
-#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract class AbstractSpellCheckCodeFixProvider<TSimpleName> : CodeFixProvider
-#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
         where TSimpleName : SyntaxNode
     {
         private const int MinTokenLength = 3;
+
+        public override FixAllProvider GetFixAllProvider()
+        {
+            // Fix All is not supported by this code fix 
+            // https://github.com/dotnet/roslyn/issues/34462
+            return null;
+        }
 
         protected abstract bool IsGeneric(SyntaxToken nameToken);
         protected abstract bool IsGeneric(TSimpleName nameNode);
@@ -66,7 +71,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 var nameText = token.ValueText;
                 if (nameText?.Length >= MinTokenLength)
                 {
-                    semanticModel = semanticModel ?? await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    semanticModel ??= await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var symbolInfo = semanticModel.GetSymbolInfo(name, cancellationToken);
                     if (symbolInfo.Symbol == null)
                     {
@@ -100,11 +105,14 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             var document = context.Document;
             var service = CompletionService.GetService(document);
 
-            // Disable snippets from ever appearing in the completion items. It's
-            // very unlikely the user would ever misspell a snippet, then use spell-
-            // checking to fix it, then try to invoke the snippet.
+            // Disable snippets and unimported types from ever appearing in the completion items. 
+            // -    It's very unlikely the user would ever misspell a snippet, then use spell-checking to fix it, 
+            //      then try to invoke the snippet.
+            // -    We believe spell-check should only compare what you have typed to what symbol would be offered here.
             var originalOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var options = originalOptions.WithChangedOption(CompletionOptions.SnippetsBehavior, document.Project.Language, SnippetsRule.NeverInclude);
+            var options = originalOptions
+                .WithChangedOption(CompletionOptions.SnippetsBehavior, document.Project.Language, SnippetsRule.NeverInclude)
+                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language, false);
 
             var completionList = await service.GetCompletionsAsync(
                 document, nameToken.SpanStart, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -150,7 +158,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                     continue;
                 }
 
-                var insertionText = await GetInsertionTextAsync(document, item, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var insertionText = await GetInsertionTextAsync(document, item, completionList.Span, cancellationToken: cancellationToken).ConfigureAwait(false);
                 results.Add(matchCost, insertionText);
             }
 
@@ -175,10 +183,10 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             }
         }
 
-        private async Task<string> GetInsertionTextAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        private async Task<string> GetInsertionTextAsync(Document document, CompletionItem item, TextSpan completionListSpan, CancellationToken cancellationToken)
         {
             var service = CompletionService.GetService(document);
-            var change = await service.GetChangeAsync(document, item, null, cancellationToken).ConfigureAwait(false);
+            var change = await service.GetChangeAsync(document, item, completionListSpan, commitCharacter: null, cancellationToken).ConfigureAwait(false);
 
             return change.TextChange.NewText;
         }

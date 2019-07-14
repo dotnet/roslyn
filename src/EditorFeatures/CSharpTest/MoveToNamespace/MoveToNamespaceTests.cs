@@ -1,8 +1,14 @@
 ﻿// Copyright(c) Microsoft.All Rights Reserved.Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.MoveToNamespace;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.MoveToNamespace;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace;
 using Microsoft.VisualStudio.Composition;
@@ -14,13 +20,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
     [UseExportProvider]
     public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
     {
-        private static readonly IExportProviderFactory CSharpExportProviderFactory =
+        private static readonly IExportProviderFactory ExportProviderFactory =
             ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
-                    .WithPart(typeof(TestMoveToNamespaceOptionsService)));
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestMoveToNamespaceOptionsService)));
 
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions, exportProvider: CSharpExportProviderFactory.CreateExportProvider());
+            => CreateWorkspaceFromFile(initialMarkup, parameters, ExportProviderFactory);
+
+        protected TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters, IExportProviderFactory exportProviderFactory)
+            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions, exportProvider: exportProviderFactory.CreateExportProvider());
 
         protected override ParseOptions GetScriptOptions() => Options.Script;
 
@@ -67,7 +75,11 @@ expectedMarkup: @"namespace {|Warning:A|}
     {
     }
 }",
-targetNamespace: "A");
+targetNamespace: "A",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"A.B.C.MyClass", "A.MyClass" }
+});
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceName()
@@ -86,7 +98,11 @@ expectedMarkup: @"namespace {|Warning:B|}
         void Method() { }
     }
 }",
-targetNamespace: "B");
+targetNamespace: "B",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"A.MyClass", "B.MyClass" }
+});
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceName2()
@@ -105,7 +121,11 @@ expectedMarkup: @"namespace {|Warning:B|}
         void Method() { }
     }
 }",
-targetNamespace: "B");
+targetNamespace: "B",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"A.B.C.MyClass", "B.MyClass" }
+});
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceKeyword()
@@ -124,7 +144,12 @@ expectedMarkup: @"namespace {|Warning:B|}
         void Method() { }
     }
 }",
-targetNamespace: "B");
+targetNamespace: "B",
+expectedSymbolChanges: new Dictionary<string, string>()
+    {
+        {"A.MyClass", "B.MyClass"}
+    }
+);
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceKeyword2()
@@ -143,7 +168,11 @@ expectedMarkup: @"namespace {|Warning:B|}
         void Method() { }
     }
 }",
-targetNamespace: "B");
+targetNamespace: "B",
+expectedSymbolChanges: new Dictionary<string, string>()
+    {
+        {"A.MyClass", "B.MyClass"}
+    });
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceBrace()
@@ -196,7 +225,12 @@ expectedMarkup: @"namespace {|Warning:B|}
         void Method() { }
     }
 }",
-targetNamespace: "B");
+targetNamespace: "B",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"A.MyClass", "B.MyClass" },
+    {"A.MyOtherClass", "B.MyOtherClass" }
+});
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_WithVariousSymbols()
@@ -255,7 +289,16 @@ expectedMarkup: @"namespace {|Warning:B|}
         void Method() { }
     }
 }",
-targetNamespace: "B");
+targetNamespace: "B",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"A.MyDelegate", "B.MyDelegate" },
+    {"A.MyEnum", "B.MyEnum" },
+    {"A.MyStruct", "B.MyStruct" },
+    {"A.MyInterface", "B.MyInterface" },
+    {"A.MyClass", "B.MyClass" },
+    {"A.MyOtherClass", "B.MyOtherClass" }
+});
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_NestedNamespace()
@@ -316,7 +359,11 @@ expectedMarkup: @"namespace {|Warning:B|}
     {
     }
 }",
-targetNamespace: "B");
+targetNamespace: "B",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"A.MyClass", "B.MyClass" }
+});
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_SingleTop()
@@ -344,7 +391,11 @@ namespace A
     {
     }
 }",
-targetNamespace: "B");
+targetNamespace: "B",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"A.MyClass", "B.MyClass" }
+});
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_TopWithReference()
@@ -374,7 +425,11 @@ namespace A
     {
     }
 }",
-targetNamespace: "B");
+targetNamespace: "B",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"A.MyClass", "B.MyClass" }
+});
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_Bottom()
@@ -402,7 +457,11 @@ namespace {|Warning:B|}
     {
     }
 }",
-targetNamespace: "B");
+targetNamespace: "B",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"A.MyClass2", "B.MyClass2" }
+});
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_BottomReference()
@@ -417,7 +476,9 @@ targetNamespace: "B");
     {
     }
 }",
-expectedMarkup: @"namespace A
+expectedMarkup: @"using B;
+
+namespace A
 {
     class MyClass : IMyClass
     {
@@ -430,7 +491,11 @@ namespace {|Warning:B|}
     {
     }
 }",
-targetNamespace: "B");
+targetNamespace: "B",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"A.IMyClass", "B.IMyClass" }
+});
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_Middle()
@@ -469,7 +534,11 @@ namespace A
     {
     }
 }",
-targetNamespace: "B");
+targetNamespace: "B",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"A.MyClass2", "B.MyClass2" }
+});
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_Middle_CaretBeforeClass()
@@ -508,7 +577,11 @@ namespace A
     {
     }
 }",
-targetNamespace: "B");
+targetNamespace: "B",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"A.MyClass2", "B.MyClass2" }
+});
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_Middle_CaretAfterClass()
@@ -547,7 +620,11 @@ namespace A
     {
     }
 }",
-targetNamespace: "B");
+targetNamespace: "B",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"A.MyClass2", "B.MyClass2" }
+});
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_Middle_CaretBeforeClassName()
@@ -586,7 +663,11 @@ namespace A
     {
     }
 }",
-targetNamespace: "B");
+targetNamespace: "B",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"A.MyClass2", "B.MyClass2" }
+});
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_CaretInMethod()
@@ -621,7 +702,9 @@ expectedSuccess: false);
     {
     }
 }",
-expectedMarkup: @"namespace A
+expectedMarkup: @"using B;
+
+namespace A
 {
     class MyClass : IMyClass
     {
@@ -641,7 +724,11 @@ namespace A
     {
     }
 }",
-targetNamespace: "B");
+targetNamespace: "B",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"A.IMyClass", "B.IMyClass" }
+});
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_MiddleReference2()
@@ -690,7 +777,11 @@ namespace A
     {
     }
 }",
-targetNamespace: "B");
+targetNamespace: "B",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"A.MyClass3", "B.MyClass3" }
+});
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_NestedInNamespace()
@@ -797,7 +888,11 @@ namespace A.B.C
     {
     }
 }",
-targetNamespace: "My.New.Namespace");
+targetNamespace: "My.New.Namespace",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"A.B.C.MyClass3", "My.New.Namespace.MyClass3" }
+});
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_MiddleReference_ComplexName2()
@@ -846,7 +941,11 @@ namespace A
     {
     }
 }",
-targetNamespace: "My.New.Namespace");
+targetNamespace: "My.New.Namespace",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"A.MyClass3", "My.New.Namespace.MyClass3" }
+});
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_MiddleReference_ComplexName3()
@@ -895,7 +994,11 @@ namespace A.B.C
     {
     }
 }",
-targetNamespace: "B");
+targetNamespace: "B",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"A.B.C.MyClass3", "B.MyClass3" }
+});
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_Analysis_MoveItems_ComplexNamespace()
@@ -940,5 +1043,76 @@ expectedNamespaceName: "A  .    B   .   C");
     }
 }",
 expectedNamespaceName: "A  .    B   .   C");
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(34736, "https://github.com/dotnet/roslyn/issues/34736")]
+        public Task MoveToNamespace_MoveType_Usings()
+            => TestMoveToNamespaceAsync(
+@"namespace One
+{
+    using Two;
+    class C1
+    {
+        private C2 c2;
+    }
+}
+
+namespace [||]Two
+{
+    class C2
+    {
+
+    }
+}",
+expectedMarkup: @"namespace One
+{
+    using Three;
+    class C1
+    {
+        private C2 c2;
+    }
+}
+
+namespace {|Warning:Three|}
+{
+    class C2
+    {
+
+    }
+}",
+targetNamespace: "Three",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"Two.C2", "Three.C2" }
+});
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(35577, "https://github.com/dotnet/roslyn/issues/35577")]
+        public async Task MoveToNamespace_WithoutOptionsService()
+        {
+            var code = @"namespace A[||]
+{
+class MyClass
+{
+    void Method() { }
+}
+}";
+
+            var exportProviderWithoutOptionsService = ExportProviderCache.GetOrCreateExportProviderFactory(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(typeof(IMoveToNamespaceOptionsService)));
+
+            using (var workspace = CreateWorkspaceFromFile(code, new TestParameters(), exportProviderWithoutOptionsService))
+            using (var testState = new TestState(workspace))
+            {
+                Assert.Null(testState.TestMoveToNamespaceOptionsService);
+
+                var actions = await testState.MoveToNamespaceService.GetCodeActionsAsync(
+                    testState.InvocationDocument,
+                    testState.TestInvocationDocument.SelectedSpans.Single(),
+                    CancellationToken.None);
+
+                Assert.Empty(actions);
+            }
+        }
     }
 }

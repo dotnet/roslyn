@@ -97,6 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
+            public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
             public sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
             {
                 get { return ImmutableArray<TypeWithAnnotations>.Empty; }
@@ -117,7 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return ImmutableArray<MethodSymbol>.Empty; }
             }
 
-            internal sealed override bool IsDeclaredReadOnly => true;
+            // methods on classes are never 'readonly'
+            internal sealed override bool IsDeclaredReadOnly => false;
 
             public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
             {

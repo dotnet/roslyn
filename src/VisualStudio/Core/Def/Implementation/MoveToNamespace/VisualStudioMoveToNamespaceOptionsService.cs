@@ -2,15 +2,19 @@
 
 using System.Collections.Immutable;
 using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.MoveToNamespace;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 {
-    [ExportWorkspaceService(typeof(IMoveToNamespaceOptionsService), layer: ServiceLayer.Host), Shared]
+    [Export(typeof(IMoveToNamespaceOptionsService)), Shared]
     internal class VisualStudioMoveToNamespaceOptionsService : IMoveToNamespaceOptionsService
     {
+        [ImportingConstructor]
+        public VisualStudioMoveToNamespaceOptionsService()
+        {
+        }
+
         public MoveToNamespaceOptionsResult GetChangeNamespaceOptions(
             string defaultNamespace,
             ImmutableArray<string> availableNamespaces,

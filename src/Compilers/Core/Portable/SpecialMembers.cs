@@ -137,6 +137,15 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
 
+                // System_String__Substring
+                (byte)MemberFlags.Method,                                                                                   // Flags
+                (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
                 // System_Double__IsNaN
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)SpecialType.System_Double,                                                                            // DeclaringTypeId
@@ -825,6 +834,15 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
 
+                // System_Object__EqualsObjectObject
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)SpecialType.System_Object,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
+
                 // System_Object__ToString
                 (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                           // Flags
                 (byte)SpecialType.System_Object,                                                                            // DeclaringTypeId
@@ -1005,6 +1023,7 @@ namespace Microsoft.CodeAnalysis
                 "get_Length",                               // System_String__Length
                 "get_Chars",                                // System_String__Chars
                 "Format",                                   // System_String__Format
+                "Substring",                                // System_String__Substring
                 "IsNaN",                                    // System_Double__IsNaN
                 "IsNaN",                                    // System_Single__IsNaN
                 "Combine",                                  // System_Delegate__Combine
@@ -1089,6 +1108,7 @@ namespace Microsoft.CodeAnalysis
                 "GetUpperBound",                            // System_Array__GetUpperBound
                 "GetHashCode",                              // System_Object__GetHashCode
                 "Equals",                                   // System_Object__Equals
+                "Equals",                                   // System_Object__EqualsObjectObject
                 "ToString",                                 // System_Object__ToString
                 "ReferenceEquals",                          // System_Object__ReferenceEquals
                 "op_Explicit",                              // System_IntPtr__op_Explicit_ToPointer

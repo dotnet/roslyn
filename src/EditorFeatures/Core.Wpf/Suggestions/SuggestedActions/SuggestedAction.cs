@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         protected readonly object Provider;
         internal readonly CodeAction CodeAction;
 
+        private bool _isApplied;
+
         private ICodeActionEditHandlerService EditHandler => SourceProvider.EditHandler;
 
         internal SuggestedAction(
@@ -56,6 +58,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         internal virtual CodeActionPriority Priority => CodeAction.Priority;
+
+        internal bool IsForCodeQualityImprovement
+            => (Provider as SyntaxEditorBasedCodeFixProvider)?.CodeFixCategory == CodeFixCategory.CodeQuality;
 
         public virtual bool TryGetTelemetryId(out Guid telemetryId)
         {
@@ -163,9 +168,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
                 {
                     // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
-                    EditHandler.ApplyAsync(Workspace, getFromDocument(),
+                    _isApplied = EditHandler.Apply(Workspace, getFromDocument(),
                         operations.ToImmutableArray(), CodeAction.Title,
-                        progressTracker, cancellationToken).Wait(cancellationToken);
+                        progressTracker, cancellationToken);
                 }
             }
         }
@@ -180,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 map[FixAllLogger.FixAllScope] = fixSome.FixAllState.Scope.ToString();
             }
 
-            if (TryGetTelemetryId(out Guid telemetryId))
+            if (TryGetTelemetryId(out var telemetryId))
             {
                 // Lightbulb correlation info
                 map["TelemetryId"] = telemetryId.ToString();
@@ -308,5 +313,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         #endregion
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly SuggestedAction _suggestedAction;
+
+            public TestAccessor(SuggestedAction suggestedAction)
+                => _suggestedAction = suggestedAction;
+
+            public ref bool IsApplied => ref _suggestedAction._isApplied;
+        }
     }
 }

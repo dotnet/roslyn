@@ -707,8 +707,8 @@ public class SomeClass : Base
 }";
             MarkupTestFile.GetPosition(markup, out var code, out int position);
 
-            await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Regular, false, false, null, null, null, null);
-            await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Script, false, false, null, null, null, null);
+            await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Regular, false, false, null, null, null, null, null, null);
+            await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Script, false, false, null, null, null, null, null, null);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -725,8 +725,8 @@ public class SomeClass : Base
 }";
             MarkupTestFile.GetPosition(markup, out var code, out int position);
 
-            await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Regular, false, false, null, null, null, null);
-            await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Script, false, false, null, null, null, null);
+            await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Regular, false, false, null, null, null, null, null, null);
+            await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Script, false, false, null, null, null, null, null, null);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -967,6 +967,43 @@ public class Derived : Base
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitInaccessibleParameterAttributesAreNotGenerated()
+        {
+            var markupBeforeCommit = @"using System;
+
+public class Class1
+{
+    private class MyPrivate : Attribute { }
+    public class MyPublic : Attribute { }
+    public virtual void M([MyPrivate, MyPublic] int i) { }
+}
+
+public class Class2 : Class1
+{
+    public override void $$
+}";
+
+            var expectedCodeAfterCommit = @"using System;
+
+public class Class1
+{
+    private class MyPrivate : Attribute { }
+    public class MyPublic : Attribute { }
+    public virtual void M([MyPrivate, MyPublic] int i) { }
+}
+
+public class Class2 : Class1
+{
+    public override void M([MyPublic] int i)
+    {
+        base.M(i);$$
+    }
+}";
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "M(int i)", expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1436,6 +1473,69 @@ public class d : c
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo", expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitInsertPropertyInaccessibleParameterAttributesAreNotGenerated()
+        {
+            var markupBeforeCommit = @"using System;
+
+namespace ClassLibrary1
+{
+    public class Class1
+    {
+        private class MyPrivate : Attribute { }
+
+        public class MyPublic : Attribute { }
+
+        public virtual int this[[MyPrivate, MyPublic]int i]
+        {
+            get { return 0; }
+            set { }
+        }
+    }
+
+    public class Class2 : Class1
+    {
+        public override int $$
+    }
+}";
+
+            var expectedCodeAfterCommit = @"using System;
+
+namespace ClassLibrary1
+{
+    public class Class1
+    {
+        private class MyPrivate : Attribute { }
+
+        public class MyPublic : Attribute { }
+
+        public virtual int this[[MyPrivate, MyPublic]int i]
+        {
+            get { return 0; }
+            set { }
+        }
+    }
+
+    public class Class2 : Class1
+    {
+        public override int this[[MyPublic] int i]
+        {
+            get
+            {
+                return base[i];$$
+            }
+
+            set
+            {
+                base[i] = value;
+            }
+        }
+    }
+}";
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "this[int i]", expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2144,7 +2244,7 @@ End Class
                 {
                     var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
                     customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
-                    string actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
+                    var actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                     var caretPosition = textView.Caret.Position.BufferPosition.Position;
                     MarkupTestFile.GetPosition(csharpFileAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
@@ -2400,7 +2500,7 @@ int bar;
                 {
                     var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
                     customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
-                    string actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
+                    var actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                     var caretPosition = textView.Caret.Position.BufferPosition.Position;
                     MarkupTestFile.GetPosition(csharpFileAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
@@ -2455,7 +2555,7 @@ int bar;
                 {
                     var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
                     customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
-                    string actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
+                    var actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                     var caretPosition = textView.Caret.Position.BufferPosition.Position;
                     MarkupTestFile.GetPosition(csharpFileAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
@@ -2744,7 +2844,7 @@ public class SomeClass : Base
                 var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Invoke);
                 var completionItem = completionList.Items.Where(c => c.DisplayText == "M(in int x)").Single();
 
-                var commit = await service.GetChangeAsync(document, completionItem, commitKey: null, CancellationToken.None);
+                var commit = await service.GetChangeAsync(document, completionItem, completionList.Span, commitKey: null, CancellationToken.None);
 
                 var text = await document.GetTextAsync();
                 var newText = text.WithChanges(commit.TextChange);
@@ -2752,7 +2852,7 @@ public class SomeClass : Base
                 document.Project.Solution.Workspace.TryApplyChanges(newDoc.Project.Solution);
 
                 var textBuffer = workspace.Documents.Single().TextBuffer;
-                string actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
+                var actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
 
                 Assert.Equal(after, actualCodeAfterCommit);
             }

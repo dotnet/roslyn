@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var result = results[f];
                 TMember member = result.Member;
-                if (result.Result.IsValid && member.IsStatic != keepStatic)
+                if (result.Result.IsValid && member.RequiresInstanceReceiver() == keepStatic)
                 {
                     results[f] = new MemberResolutionResult<TMember>(member, result.LeastOverriddenMember, MemberAnalysisResult.StaticInstanceMismatch());
                 }
@@ -2242,7 +2242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Kind == BoundKind.UnboundLambda &&
                 (object)(d = t.GetDelegateType()) != null &&
                 (object)(invoke = d.DelegateInvokeMethod) != null &&
-                (y = invoke.ReturnType).SpecialType != SpecialType.System_Void)
+                !(y = invoke.ReturnType).IsVoidType())
             {
                 BoundLambda lambda = ((UnboundLambda)node).BindForReturnTypeInference(d);
 
@@ -2520,15 +2520,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TypeSymbol r2 = invoke2.ReturnType;
                         BetterResult delegateResult = BetterResult.Neither;
 
-                        if (r1.SpecialType != SpecialType.System_Void)
+                        if (!r1.IsVoidType())
                         {
-                            if (r2.SpecialType == SpecialType.System_Void)
+                            if (r2.IsVoidType())
                             {
                                 // - D2 is void returning
                                 delegateResult = BetterResult.Left;
                             }
                         }
-                        else if (r2.SpecialType != SpecialType.System_Void)
+                        else if (!r2.IsVoidType())
                         {
                             // - D2 is void returning
                             delegateResult = BetterResult.Right;
@@ -2641,19 +2641,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
                         if (fromTypeAnalysis)
                         {
-                            Debug.Assert((r1.SpecialType == SpecialType.System_Void) == (r2.SpecialType == SpecialType.System_Void));
+                            Debug.Assert((r1.IsVoidType()) == (r2.IsVoidType()));
 
                             // Since we are dealing with variance delegate conversion and delegates have identical parameter
                             // lists, return types must be different and neither can be void.
-                            Debug.Assert(r1.SpecialType != SpecialType.System_Void);
-                            Debug.Assert(r2.SpecialType != SpecialType.System_Void);
+                            Debug.Assert(!r1.IsVoidType());
+                            Debug.Assert(!r2.IsVoidType());
                             Debug.Assert(!Conversions.HasIdentityConversion(r1, r2));
                         }
 #endif
 
-                        if (r1.SpecialType == SpecialType.System_Void)
+                        if (r1.IsVoidType())
                         {
-                            if (r2.SpecialType == SpecialType.System_Void)
+                            if (r2.IsVoidType())
                             {
                                 return true;
                             }
@@ -2661,7 +2661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(currentResult == BetterResult.Right);
                             return false;
                         }
-                        else if (r2.SpecialType == SpecialType.System_Void)
+                        else if (r2.IsVoidType())
                         {
                             Debug.Assert(currentResult == BetterResult.Left);
                             return false;

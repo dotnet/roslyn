@@ -21,8 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 
     public class CommandLineRunnerTests : TestBase
     {
-        private static readonly string s_compilerVersion =
-            typeof(CSharpInteractiveCompiler).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
+        private static readonly string s_compilerVersion = CommonCompiler.GetProductVersion(typeof(CSharpInteractiveCompiler));
 
         private string LogoAndHelpPrompt => $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
 {CSharpScriptingResources.LogoLine2}
@@ -249,6 +248,7 @@ div(10, 0)
 ");
             Assert.Equal(0, runner.RunInteractive());
 
+            var exception = new DivideByZeroException();
             Assert.Equal(
 $@"{LogoAndHelpPrompt}
 > int div(int a, int b) => a/b;
@@ -256,13 +256,13 @@ $@"{LogoAndHelpPrompt}
 5
 > div(10, 0)
 «Red»
-{new System.DivideByZeroException().Message}
+{exception.GetType()}: {exception.Message}
   + Submission#0.div(int, int)
 «Gray»
 > ", runner.Console.Out.ToString());
 
             Assert.Equal(
-$@"{new System.DivideByZeroException().Message}
+$@"{exception.GetType()}: {exception.Message}
   + Submission#0.div(int, int)
 ", runner.Console.Error.ToString());
         }
@@ -277,6 +277,7 @@ C<string>.div<bool>(10, 0)
 ");
             Assert.Equal(0, runner.RunInteractive());
 
+            var exception = new DivideByZeroException();
             Assert.Equal(
 $@"{LogoAndHelpPrompt}
 > static class C<T> {{ public static int div<U>(int a, int b) => a/b; }}
@@ -284,13 +285,13 @@ $@"{LogoAndHelpPrompt}
 5
 > C<string>.div<bool>(10, 0)
 «Red»
-{new System.DivideByZeroException().Message}
+{exception.GetType()}: {exception.Message}
   + Submission#0.C<T>.div<U>(int, int)
 «Gray»
 > ", runner.Console.Out.ToString());
 
             Assert.Equal(
-$@"{new System.DivideByZeroException().Message}
+$@"{exception.GetType()}: {exception.Message}
   + Submission#0.C<T>.div<U>(int, int)
 ", runner.Console.Error.ToString());
         }
@@ -493,19 +494,19 @@ $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
         {
             var runner = CreateRunner(new[] { "/version" });
             Assert.Equal(0, runner.RunInteractive());
-            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString());
 
             runner = CreateRunner(new[] { "/version", "/help" });
             Assert.Equal(0, runner.RunInteractive());
-            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString());
 
             runner = CreateRunner(new[] { "/version", "/r:somefile" });
             Assert.Equal(0, runner.RunInteractive());
-            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString());
 
             runner = CreateRunner(new[] { "/version", "/nologo" });
             Assert.Equal(0, runner.RunInteractive());
-            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString());
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
@@ -890,7 +891,7 @@ $@"{LogoAndHelpPrompt}
 «Yellow»
 (1,58): warning CS0162: { CSharpResources.WRN_UnreachableCode }
 «Red»
-Bang!
+System.Exception: Bang!
 «Gray»
 > i + j + k
 120
@@ -898,7 +899,7 @@ Bang!
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
 $@"(1,58): warning CS0162: { CSharpResources.WRN_UnreachableCode }
-Bang!",
+System.Exception: Bang!",
                 runner.Console.Error.ToString());
         }
 

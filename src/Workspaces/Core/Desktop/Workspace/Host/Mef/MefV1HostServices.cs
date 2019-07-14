@@ -109,13 +109,12 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             internal readonly string ExtensionTypeName;
             internal readonly string MetadataTypeName;
-            private readonly int _hash;
 
             public ExportKey(string extensionTypeName, string metadataTypeName)
             {
                 this.ExtensionTypeName = extensionTypeName;
                 this.MetadataTypeName = metadataTypeName;
-                _hash = Hash.Combine(metadataTypeName.GetHashCode(), extensionTypeName.GetHashCode());
+                Hash.Combine(metadataTypeName.GetHashCode(), extensionTypeName.GetHashCode());
             }
 
             public bool Equals(ExportKey other)
@@ -125,9 +124,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
 
             public override bool Equals(object obj)
-            {
-                return (obj is ExportKey) && this.Equals((ExportKey)obj);
-            }
+                => obj is ExportKey exportKey && this.Equals(exportKey);
 
             public override int GetHashCode()
             {

@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     [ExportLanguageService(typeof(IClassificationService), LanguageNames.CSharp), Shared]
     internal class CSharpEditorClassificationService : AbstractClassificationService
     {
+        [ImportingConstructor]
+        public CSharpEditorClassificationService()
+        {
+        }
+
         public override void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var temp = ArrayBuilder<ClassifiedSpan>.GetInstance();

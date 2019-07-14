@@ -47,9 +47,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                 RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas,
                 RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
                 RudeEditKind.SwitchBetweenLambdaAndLocalFunction,
-                RudeEditKind.RefStruct,
-                RudeEditKind.ReadOnlyStruct,
-                RudeEditKind.ReadOnlyReferences,
                 RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier,
             };
 

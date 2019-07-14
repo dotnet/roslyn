@@ -87,6 +87,21 @@
         <target state="translated">標點符號</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_file">
+        <source>Rename _file</source>
+        <target state="new">Rename _file</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_file_name_doesnt_match">
+        <source>Rename _file (type does not match file name)</source>
+        <target state="new">Rename _file (type does not match file name)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_file_partial_type">
+        <source>Rename _file (not allowed on partial types)</source>
+        <target state="new">Rename _file (not allowed on partial types)</target>
+        <note>Disabled text status for file rename</note>
+      </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
         <target state="translated">字串 - 逸出字元</target>
@@ -95,6 +110,11 @@
       <trans-unit id="Symbol_Static">
         <source>Symbol - Static</source>
         <target state="translated">符號 - 靜態</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_symbol_has_no_base">
+        <source>The symbol has no base.</source>
+        <target state="new">The symbol has no base.</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
@@ -310,6 +330,11 @@
       <trans-unit id="Rename_will_update_0_references_in_1_files">
         <source>Rename will update {0} references in {1} files.</source>
         <target state="translated">重新命名會更新 {1} 個檔案中的 {0} 個參考。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_bases">
+        <source>'{0}' bases</source>
+        <target state="new">'{0}' bases</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">

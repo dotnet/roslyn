@@ -29,10 +29,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
         // error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS0127", "CS1997", "CS0201");
 
+        [ImportingConstructor]
         public CSharpFixReturnTypeCodeFixProvider()
             : base(supportsFixAll: false)
         {
         }
+
+        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -110,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
             return node.GetAncestors().Select(a => TryGetReturnTypeToFix(a)).FirstOrDefault(p => p != default);
 
             // Local functions
-            (TypeSyntax type, bool useTask) TryGetReturnTypeToFix(SyntaxNode containingMember)
+            static (TypeSyntax type, bool useTask) TryGetReturnTypeToFix(SyntaxNode containingMember)
             {
                 switch (containingMember)
                 {
@@ -129,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
                 }
             }
 
-            bool IsAsync(SyntaxTokenList modifiers)
+            static bool IsAsync(SyntaxTokenList modifiers)
             {
                 return modifiers.Any(SyntaxKind.AsyncKeyword);
             }

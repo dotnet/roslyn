@@ -31,6 +31,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Utilities;
 using UIAutomationClient;
 using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
 using ControlType = System.Windows.Automation.ControlType;
@@ -52,31 +53,47 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public static Editor_InProc Create()
             => new Editor_InProc();
 
+        protected override bool HasActiveTextView()
+            => ErrorHandler.Succeeded(TryGetActiveTextViewHost().hr);
+
         protected override IWpfTextView GetActiveTextView()
             => GetActiveTextViewHost().TextView;
 
         private static IVsTextView GetActiveVsTextView()
         {
+            var (textView, hr) = TryGetActiveVsTextView();
+            Marshal.ThrowExceptionForHR(hr);
+            return textView;
+        }
+
+        private static (IVsTextView textView, int hr) TryGetActiveVsTextView()
+        {
             var vsTextManager = GetGlobalService<SVsTextManager, IVsTextManager>();
-
             var hresult = vsTextManager.GetActiveView(fMustHaveFocus: 1, pBuffer: null, ppView: out var vsTextView);
-            Marshal.ThrowExceptionForHR(hresult);
-
-            return vsTextView;
+            return (vsTextView, hresult);
         }
 
         private static IWpfTextViewHost GetActiveTextViewHost()
         {
+            var (textViewHost, hr) = TryGetActiveTextViewHost();
+            Marshal.ThrowExceptionForHR(hr);
+            return textViewHost;
+        }
+
+        private static (IWpfTextViewHost textViewHost, int hr) TryGetActiveTextViewHost()
+        {
             // The active text view might not have finished composing yet, waiting for the application to 'idle'
             // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text view
-            WaitForApplicationIdle();
+            WaitForApplicationIdle(Helper.HangMitigatingTimeout);
 
-            var activeVsTextView = (IVsUserData)GetActiveVsTextView();
+            var (activeVsTextView, hr) = TryGetActiveVsTextView();
+            if (!ErrorHandler.Succeeded(hr))
+            {
+                return (null, hr);
+            }
 
-            var hresult = activeVsTextView.GetData(IWpfTextViewId, out var wpfTextViewHost);
-            Marshal.ThrowExceptionForHR(hresult);
-
-            return (IWpfTextViewHost)wpfTextViewHost;
+            var hresult = ((IVsUserData)activeVsTextView).GetData(IWpfTextViewId, out var wpfTextViewHost);
+            return ((IWpfTextViewHost)wpfTextViewHost, hresult);
         }
 
         public bool IsUseSuggestionModeOn()
@@ -84,8 +101,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var asyncCompletionService = (AsyncCompletionService)GetComponentModelService<IAsyncCompletionService>();
             return ExecuteOnActiveView(textView =>
             {
+                var featureServiceFactory = GetComponentModelService<IFeatureServiceFactory>();
                 var subjectBuffer = GetBufferContainingCaret(textView);
-                if (asyncCompletionService.GetTestAccessor().UseLegacyCompletion(textView, subjectBuffer))
+                if (asyncCompletionService.GetTestAccessor().UseLegacyCompletion(featureServiceFactory, textView, subjectBuffer))
                 {
                     return GetComponentModelService<VisualStudioWorkspace>().Options.GetOption(EditorCompletionOptions.UseSuggestionMode);
                 }
@@ -536,7 +554,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 try
                 {
                     var mainForm = (Form)designerHost.RootComponent;
-                    InvokeOnUIThread(() =>
+                    InvokeOnUIThread(cancellationToken =>
                     {
                         var newControl = (System.Windows.Forms.Button)designerHost.CreateComponent(typeof(System.Windows.Forms.Button), buttonName);
                         newControl.Parent = mainForm;
@@ -569,7 +587,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 try
                 {
-                    InvokeOnUIThread(() =>
+                    InvokeOnUIThread(cancellationToken =>
                     {
                         designerHost.DestroyComponent(designerHost.Container.Components[buttonName]);
                     });
@@ -621,7 +639,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 try
                 {
-                    InvokeOnUIThread(() =>
+                    InvokeOnUIThread(cancellationToken =>
                     {
                         var button = designerHost.Container.Components[buttonName];
                         var properties = TypeDescriptor.GetProperties(button);
@@ -663,7 +681,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 try
                 {
-                    InvokeOnUIThread(() =>
+                    InvokeOnUIThread(cancellationToken =>
                     {
                         var button = designerHost.Container.Components[buttonName];
                         var eventBindingService = (IEventBindingService)button.Site.GetService(typeof(IEventBindingService));
@@ -702,7 +720,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
-            return view.GetBufferContainingCaret();
+            var caretBuffer = view.GetBufferContainingCaret();
+            if (caretBuffer is null)
+            {
+                throw new InvalidOperationException($"Unable to find the buffer containing the caret. Ensure the Editor is activated berfore calling.");
+            }
+
+            return caretBuffer;
         }
 
         public string[] GetOutliningSpans()
@@ -721,7 +745,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public List<string> GetF1Keywords()
         {
-            return InvokeOnUIThread(() =>
+            return InvokeOnUIThread(cancellationToken =>
             {
                 var results = new List<string>();
                 GetActiveVsTextView().GetBuffer(out var textLines);
@@ -766,7 +790,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         ///     [s1.Start, s1.Length, s2.Start, s2.Length, ...]
         /// </returns>
         public int[] GetTagSpans(string tagId)
-            => InvokeOnUIThread(() =>
+            => InvokeOnUIThread(cancellationToken =>
             {
                 var view = GetActiveTextView();
                 var tagAggregatorFactory = GetComponentModel().GetService<IViewTagAggregatorFactoryService>();
@@ -777,7 +801,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         public void SendExplicitFocus()
-            => InvokeOnUIThread(() =>
+            => InvokeOnUIThread(cancellationToken =>
             {
                 var view = GetActiveVsTextView();
                 view.SendExplicitFocus();

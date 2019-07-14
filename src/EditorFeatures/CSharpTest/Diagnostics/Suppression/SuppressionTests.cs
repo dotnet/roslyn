@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp;
@@ -45,9 +46,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
 
             public class CompilerDiagnosticSuppressionTests : CSharpPragmaWarningDisableSuppressionTests
             {
-                internal override Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
-                    return Tuple.Create<DiagnosticAnalyzer, ISuppressionFixProvider>(null, new CSharpSuppressionCodeFixProvider());
+                    return Tuple.Create<DiagnosticAnalyzer, IConfigurationFixProvider>(null, new CSharpSuppressionCodeFixProvider());
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
@@ -198,7 +199,7 @@ class Class
                         var diagnosticService = new TestDiagnosticAnalyzerService(LanguageNames.CSharp, new CSharpCompilerDiagnosticAnalyzer());
                         var incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace);
                         var suppressionProvider = CreateDiagnosticProviderAndFixer(workspace).Item2;
-                        var suppressionProviderFactory = new Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>(() => suppressionProvider,
+                        var suppressionProviderFactory = new Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>(() => suppressionProvider,
                             new CodeChangeProviderMetadata("SuppressionProvider", languages: new[] { LanguageNames.CSharp }));
                         var fixService = new CodeFixService(
                             workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
@@ -210,7 +211,7 @@ class Class
                         var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(document, span);
                         Assert.Equal(2, diagnostics.Where(d => d.Id == "CS0219").Count());
 
-                        var allFixes = (await fixService.GetFixesAsync(document, span, includeSuppressionFixes: true, cancellationToken: CancellationToken.None))
+                        var allFixes = (await fixService.GetFixesAsync(document, span, includeConfigurationFixes: true, cancellationToken: CancellationToken.None))
                             .SelectMany(fixCollection => fixCollection.Fixes);
 
                         var cs0219Fixes = allFixes.Where(fix => fix.PrimaryDiagnostic.Id == "CS0219");
@@ -421,9 +422,9 @@ C3 {{ }} // comment
 
             public class UserHiddenDiagnosticSuppressionTests : CSharpPragmaWarningDisableSuppressionTests
             {
-                internal override Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
-                    return new Tuple<DiagnosticAnalyzer, ISuppressionFixProvider>(
+                    return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                         new CSharpSimplifyTypeNamesDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
@@ -472,9 +473,9 @@ int Method()
                     }
                 }
 
-                internal override Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
-                    return new Tuple<DiagnosticAnalyzer, ISuppressionFixProvider>(
+                    return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
@@ -511,7 +512,7 @@ class Class
             {
                 private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
                 {
-                    private DiagnosticDescriptor _descriptor =
+                    private readonly DiagnosticDescriptor _descriptor =
                         new DiagnosticDescriptor("ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
                     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -534,9 +535,9 @@ class Class
                     }
                 }
 
-                internal override Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
-                    return new Tuple<DiagnosticAnalyzer, ISuppressionFixProvider>(
+                    return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
@@ -576,7 +577,7 @@ class Class
 
                 private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
                 {
-                    private DiagnosticDescriptor _descriptor =
+                    private readonly DiagnosticDescriptor _descriptor =
                         new DiagnosticDescriptor("@~DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
                     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -599,9 +600,9 @@ class Class
                     }
                 }
 
-                internal override Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
-                    return new Tuple<DiagnosticAnalyzer, ISuppressionFixProvider>(
+                    return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
@@ -651,9 +652,9 @@ using System;
                 }
             }
 
-            internal override Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+            internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
             {
-                return new Tuple<DiagnosticAnalyzer, ISuppressionFixProvider>(
+                return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                     new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
             }
 
@@ -689,9 +690,9 @@ class Class
 
             public class CompilerDiagnosticSuppressionTests : CSharpGlobalSuppressMessageSuppressionTests
             {
-                internal override Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
-                    return Tuple.Create<DiagnosticAnalyzer, ISuppressionFixProvider>(null, new CSharpSuppressionCodeFixProvider());
+                    return Tuple.Create<DiagnosticAnalyzer, IConfigurationFixProvider>(null, new CSharpSuppressionCodeFixProvider());
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
@@ -712,9 +713,9 @@ class Class
 
             public class UserHiddenDiagnosticSuppressionTests : CSharpGlobalSuppressMessageSuppressionTests
             {
-                internal override Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
-                    return new Tuple<DiagnosticAnalyzer, ISuppressionFixProvider>(
+                    return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                         new CSharpSimplifyTypeNamesDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
@@ -799,9 +800,9 @@ class Class
                     }
                 }
 
-                internal override Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
-                    return new Tuple<DiagnosticAnalyzer, ISuppressionFixProvider>(
+                    return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
@@ -1545,6 +1546,304 @@ class Class { }
             }
         }
 
+        public abstract class CSharpLocalSuppressMessageSuppressionTests : CSharpSuppressionTests
+        {
+            protected sealed override int CodeActionIndex
+            {
+                get { return 2; }
+            }
+
+            public class UserInfoDiagnosticSuppressionTests : CSharpLocalSuppressMessageSuppressionTests
+            {
+                private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
+                {
+                    private readonly DiagnosticDescriptor _descriptor =
+                        new DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
+
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                    {
+                        get
+                        {
+                            return ImmutableArray.Create(_descriptor);
+                        }
+                    }
+
+                    public override void Initialize(AnalysisContext context)
+                    {
+                        context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration, SyntaxKind.NamespaceDeclaration, SyntaxKind.MethodDeclaration);
+                    }
+
+                    public void AnalyzeNode(SyntaxNodeAnalysisContext context)
+                    {
+                        switch (context.Node.Kind())
+                        {
+                            case SyntaxKind.ClassDeclaration:
+                                var classDecl = (ClassDeclarationSyntax)context.Node;
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()));
+                                break;
+
+                            case SyntaxKind.NamespaceDeclaration:
+                                var ns = (NamespaceDeclarationSyntax)context.Node;
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, ns.Name.GetLocation()));
+                                break;
+
+                            case SyntaxKind.MethodDeclaration:
+                                var method = (MethodDeclarationSyntax)context.Node;
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, method.Identifier.GetLocation()));
+                                break;
+                        }
+                    }
+                }
+
+                internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                {
+                    return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
+                        new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestSuppressionOnSimpleType()
+                {
+                    var initial = @"
+using System;
+
+// Some trivia
+/* More Trivia */ [|class Class|]
+{
+    int Method()
+    {
+        int x = 0;
+    }
+}";
+                    var expected = $@"
+using System;
+
+// Some trivia
+/* More Trivia */
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"")]
+class Class
+{{
+    int Method()
+    {{
+        int x = 0;
+    }}
+}}";
+                    await TestAsync(initial, expected);
+
+                    // Also verify that the added attribute does indeed suppress the diagnostic.
+                    expected = expected.Replace("class Class", "[|class Class|]");
+                    await TestMissingAsync(expected);
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestSuppressionOnSimpleType2()
+                {
+                    // Type already has attributes.
+                    var initial = @"
+using System;
+
+// Some trivia
+/* More Trivia */
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification = ""<Pending>"")]
+[|class Class|]
+{
+    int Method()
+    {
+        int x = 0;
+    }
+}";
+                    var expected = $@"
+using System;
+
+// Some trivia
+/* More Trivia */
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification = ""<Pending>"")]
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"")]
+class Class
+{{
+    int Method()
+    {{
+        int x = 0;
+    }}
+}}";
+                    await TestAsync(initial, expected);
+
+                    // Also verify that the added attribute does indeed suppress the diagnostic.
+                    expected = expected.Replace("class Class", "[|class Class|]");
+                    await TestMissingAsync(expected);
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestSuppressionOnSimpleType3()
+                {
+                    // Type already has attributes with trailing trivia.
+                    var initial = @"
+using System;
+
+// Some trivia
+/* More Trivia */
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification = ""<Pending>"")]
+/* Some More Trivia */
+[|class Class|]
+{
+    int Method()
+    {
+        int x = 0;
+    }
+}";
+                    var expected = $@"
+using System;
+
+// Some trivia
+/* More Trivia */
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification = ""<Pending>"")]
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"")]
+/* Some More Trivia */
+class Class
+{{
+    int Method()
+    {{
+        int x = 0;
+    }}
+}}";
+                    await TestAsync(initial, expected);
+
+                    // Also verify that the added attribute does indeed suppress the diagnostic.
+                    expected = expected.Replace("class Class", "[|class Class|]");
+                    await TestMissingAsync(expected);
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestSuppressionOnTypeInsideNamespace()
+                {
+                    var initial = @"
+using System;
+
+namespace N1
+{
+    namespace N2
+    {
+        [|class Class|]
+        {
+            int Method()
+            {
+                int x = 0;
+            }
+        }
+    }
+}";
+                    var expected = $@"
+using System;
+
+namespace N1
+{{
+    namespace N2
+    {{
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"")]
+        class Class
+        {{
+            int Method()
+            {{
+                int x = 0;
+            }}
+        }}
+    }}
+}}";
+                    await TestAsync(initial, expected);
+
+                    // Also verify that the added attribute does indeed suppress the diagnostic.
+                    expected = expected.Replace("class Class", "[|class Class|]");
+                    await TestMissingAsync(expected);
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestSuppressionOnNestedType()
+                {
+                    var initial = @"
+using System;
+
+namespace N
+{
+    class Generic<T>
+    {
+        [|class Class|]
+        {
+            int Method()
+            {
+                int x = 0;
+            }
+        }
+    }
+}";
+                    var expected = $@"
+using System;
+
+namespace N
+{{
+    class Generic<T>
+    {{
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"")]
+        class Class
+        {{
+            int Method()
+            {{
+                int x = 0;
+            }}
+        }}
+    }}
+}}";
+                    await TestAsync(initial, expected);
+
+                    // Also verify that the added attribute does indeed suppress the diagnostic.
+                    expected = expected.Replace("class Class", "[|class Class|]");
+                    await TestMissingAsync(expected);
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestSuppressionOnMethod()
+                {
+                    var initial = @"
+using System;
+
+namespace N
+{
+    class Generic<T>
+    {
+        class Class
+        {
+            [|int Method()|]
+            {
+                int x = 0;
+            }
+        }
+    }
+}";
+                    var expected = $@"
+using System;
+
+namespace N
+{{
+    class Generic<T>
+    {{
+        class Class
+        {{
+            [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"")]
+            int Method()
+            {{
+                int x = 0;
+            }}
+        }}
+    }}
+}}";
+                    await TestAsync(initial, expected);
+
+                    // Also verify that the added attribute does indeed suppress the diagnostic.
+                    expected = expected.Replace("int Method()", "[|int Method()|]");
+                    await TestMissingAsync(expected);
+                }
+            }
+        }
+
         #endregion
 
         #region NoLocation Diagnostics tests
@@ -1575,9 +1874,9 @@ class Class { }
                 }
             }
 
-            internal override Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+            internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
             {
-                return new Tuple<DiagnosticAnalyzer, ISuppressionFixProvider>(
+                return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                     new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
             }
 

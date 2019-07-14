@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol nodeType = node.Type;
             TypeSymbol accessExpressionType = loweredAccessExpression.Type;
 
-            if (accessExpressionType.SpecialType == SpecialType.System_Void)
+            if (accessExpressionType.IsVoidType())
             {
                 type = nodeType = accessExpressionType;
             }
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(TypeSymbol.Equals(accessExpressionType, nodeType, TypeCompareKind.ConsiderEverything2) ||
-                    (nodeType.SpecialType == SpecialType.System_Void && !used));
+                    (nodeType.IsVoidType() && !used));
             }
 
             BoundExpression result;

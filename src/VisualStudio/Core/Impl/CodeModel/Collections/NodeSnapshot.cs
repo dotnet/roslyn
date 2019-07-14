@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
     internal class NodeSnapshot : Snapshot
     {
         private readonly CodeModelState _state;
-        private ComHandle<EnvDTE.FileCodeModel, FileCodeModel> _fileCodeModel;
+        private readonly ComHandle<EnvDTE.FileCodeModel, FileCodeModel> _fileCodeModel;
         private readonly SyntaxNode _parentNode;
         private readonly AbstractCodeElement _parentElement;
         private readonly ImmutableArray<SyntaxNode> _nodes;

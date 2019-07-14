@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
     {
         private readonly PerLanguageOption<CodeStyleOption<bool>> _option;
 
-        public sealed override bool OpenFileOnly(Workspace workspace) => false;
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -25,6 +24,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             LocalizableResourceString message,
             PerLanguageOption<CodeStyleOption<bool>> option)
             : base(descriptorId,
+                   option,
                    new LocalizableResourceString(nameof(FeaturesResources.Convert_to_conditional_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    message)
         {
@@ -40,8 +40,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
             var ifOperation = (IConditionalOperation)context.Operation;
-            var ifStatement = ifOperation.Syntax as TIfStatementSyntax;
-            if (ifStatement == null)
+            if (!(ifOperation.Syntax is TIfStatementSyntax ifStatement))
             {
                 return;
             }

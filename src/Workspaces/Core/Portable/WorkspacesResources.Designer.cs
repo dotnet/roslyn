@@ -241,6 +241,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Adding analyzer config documents is not supported..
+        /// </summary>
+        internal static string Adding_analyzer_config_documents_is_not_supported {
+            get {
+                return ResourceManager.GetString("Adding_analyzer_config_documents_is_not_supported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Adding analyzer references is not supported..
         /// </summary>
         internal static string Adding_analyzer_references_is_not_supported {
@@ -490,6 +499,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Changing_additional_documents_is_not_supported {
             get {
                 return ResourceManager.GetString("Changing_additional_documents_is_not_supported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changing analyzer config documents is not supported..
+        /// </summary>
+        internal static string Changing_analyzer_config_documents_is_not_supported {
+            get {
+                return ResourceManager.GetString("Changing_analyzer_config_documents_is_not_supported", resourceCulture);
             }
         }
         
@@ -1138,6 +1156,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Name_can_be_simplified {
             get {
                 return ResourceManager.GetString("Name_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Naming rules.
+        /// </summary>
+        internal static string Naming_rules {
+            get {
+                return ResourceManager.GetString("Naming_rules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Naming styles.
+        /// </summary>
+        internal static string Naming_styles {
+            get {
+                return ResourceManager.GetString("Naming_styles", resourceCulture);
             }
         }
         
@@ -3168,6 +3204,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Removing analyzer config documents is not supported..
+        /// </summary>
+        internal static string Removing_analyzer_config_documents_is_not_supported {
+            get {
+                return ResourceManager.GetString("Removing_analyzer_config_documents_is_not_supported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Removing analyzer references is not supported..
         /// </summary>
         internal static string Removing_analyzer_references_is_not_supported {
@@ -3309,6 +3354,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Symbol_0_is_not_from_source {
             get {
                 return ResourceManager.GetString("Symbol_0_is_not_from_source", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Symbol specifications.
+        /// </summary>
+        internal static string Symbol_specifications {
+            get {
+                return ResourceManager.GetString("Symbol_specifications", resourceCulture);
             }
         }
         

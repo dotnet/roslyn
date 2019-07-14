@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
@@ -25,11 +23,168 @@ using Xunit;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
 using System.Security.Cryptography;
+using static Roslyn.Test.Utilities.TestHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class CompilationAPITests : CSharpTestBase
     {
+        [Fact]
+        public void PerTreeVsGlobalSuppress()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("class C { long _f = 0l;}");
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithGeneralDiagnosticOption(ReportDiagnostic.Suppress);
+            var comp = CreateCompilation(tree, options: options);
+            comp.VerifyDiagnostics();
+
+            tree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("CS0078", ReportDiagnostic.Warn)));
+            comp = CreateCompilation(tree, options: options);
+            // Syntax tree diagnostic options override global settting
+            comp.VerifyDiagnostics(
+                // (1,22): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                // class C { long _f = 0l;}
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 22));
+        }
+
+        [Fact]
+        public void PerTreeDiagnosticOptionsParseWarnings()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("class C { long _f = 0l;}");
+            tree.GetDiagnostics().Verify(
+                // (1,22): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                // class C { long _f = 0l;}
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 22));
+
+            var comp = CreateCompilation(tree);
+            comp.VerifyDiagnostics(
+                // (1,22): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                // class C { long _f = 0l;}
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 22),
+                // (1,16): warning CS0414: The field 'C._f' is assigned but its value is never used
+                // class C { long _f = 0l;}
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(1, 16));
+
+            var newTree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress)));
+            // Diagnostic options on the syntax tree do not affect GetDiagnostics()
+            newTree.GetDiagnostics().Verify(
+                // (1,22): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                // class C { long _f = 0l;}
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 22));
+
+            var comp2 = CreateCompilation(newTree);
+            comp2.VerifyDiagnostics(
+                // (1,16): warning CS0414: The field 'C._f' is assigned but its value is never used
+                // class C { long _f = 0l;}
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(1, 16));
+        }
+
+        [Fact]
+        public void PerTreeDiagnosticOptionsVsPragma()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+class C {
+#pragma warning disable CS0078 
+long _f = 0l;
+#pragma warning restore CS0078
+}");
+            tree.GetDiagnostics().Verify(
+                // (4,12): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                // long _f = 0l;
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(4, 12));
+
+            var comp = CreateCompilation(tree);
+            comp.VerifyDiagnostics(
+                // (4,6): warning CS0414: The field 'C._f' is assigned but its value is never used
+                // long _f = 0l;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(4, 6));
+
+            var newTree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("CS0078", ReportDiagnostic.Error)));
+            var comp2 = CreateCompilation(newTree);
+            // Pragma should have precedence over per-tree options
+            comp2.VerifyDiagnostics(
+                // (4,6): warning CS0414: The field 'C._f' is assigned but its value is never used
+                // long _f = 0l;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(4, 6));
+        }
+
+        [Fact]
+        public void PerTreeDiagnosticOptionsVsSpecificOptions()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@" class C { long _f = 0l; }")
+                .WithDiagnosticOptions(CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress)));
+
+            tree.GetDiagnostics().Verify(
+                // (1,23): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //  class C { long _f = 0l; }
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 23));
+
+            var comp = CreateCompilation(tree);
+            comp.VerifyDiagnostics(
+                // (1,17): warning CS0414: The field 'C._f' is assigned but its value is never used
+                //  class C { long _f = 0l; }
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(1, 17));
+
+            var newTree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("CS0078", ReportDiagnostic.Error)));
+            var options = TestOptions.DebugDll.WithSpecificDiagnosticOptions(
+                CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress)));
+
+            var comp2 = CreateCompilation(newTree, options: options);
+            // Per-tree options should have precedence over specific diagnostic options
+            comp2.VerifyDiagnostics(
+                // (1,23): error CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //  class C { long _f = 0l; }
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 23).WithWarningAsError(true),
+                // (1,17): warning CS0414: The field 'C._f' is assigned but its value is never used
+                //  class C { long _f = 0l; }
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(1, 17));
+        }
+
+        [Fact]
+        public void DifferentDiagnosticOptionsForTrees()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@" class C { long _f = 0l; }")
+                .WithDiagnosticOptions(CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress)));
+            var newTree = SyntaxFactory.ParseSyntaxTree(@" class D { long _f = 0l; }")
+                .WithDiagnosticOptions(CreateImmutableDictionary(("CS0078", ReportDiagnostic.Error)));
+
+            var comp = CreateCompilation(new[] { tree, newTree });
+            comp.VerifyDiagnostics(
+                // (1,23): error CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //  class D { long _f = 0l; }
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 23).WithWarningAsError(true),
+                // (1,17): warning CS0414: The field 'C._f' is assigned but its value is never used
+                //  class C { long _f = 0l; }
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(1, 17),
+                // (1,17): warning CS0414: The field 'D._f' is assigned but its value is never used
+                //  class D { long _f = 0l; }
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("D._f").WithLocation(1, 17));
+        }
+
+        [Fact]
+        public void TreeOptionsComparerRespected()
+        {
+            var options = CreateImmutableDictionary(StringOrdinalComparer.Instance, ("cs0078", ReportDiagnostic.Suppress));
+
+            var tree = SyntaxFactory.ParseSyntaxTree(@" class C { long _f = 0l; }")
+                .WithDiagnosticOptions(options);
+
+            var newTree = SyntaxFactory.ParseSyntaxTree(@" class D { long _f = 0l; }")
+                .WithDiagnosticOptions(options.WithComparers(CaseInsensitiveComparison.Comparer));
+
+            var comp = CreateCompilation(new[] { tree, newTree });
+            comp.VerifyDiagnostics(
+                // (1,23): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //  class C { long _f = 0l; }
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 23),
+                // (1,17): warning CS0414: The field 'C._f' is assigned but its value is never used
+                //  class C { long _f = 0l; }
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(1, 17),
+                // (1,17): warning CS0414: The field 'D._f' is assigned but its value is never used
+                //  class D { long _f = 0l; }
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("D._f").WithLocation(1, 17));
+        }
+
         [WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")]
         [WorkItem(9153, "https://github.com/dotnet/roslyn/issues/9153")]
         [Fact]
@@ -911,7 +1066,7 @@ var a = new C2();
         }
 
         [WorkItem(715872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715872")]
-        [Fact()]
+        [Fact]
         public void MissedModuleC()
         {
             var netModule1 = CreateCompilation(
@@ -2186,7 +2341,47 @@ public class C { public static FrameworkName Goo() { return null; }}";
             Assert.Throws<InvalidOperationException>(() => CreateSubmission("a + 1", previous: s0));
         }
 
-        [Fact()]
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        public void CreateArrayType_DefaultArgs()
+        {
+            var comp = (Compilation)CSharpCompilation.Create("");
+            var elementType = comp.GetSpecialType(SpecialType.System_Object);
+
+            var arrayType = comp.CreateArrayTypeSymbol(elementType);
+            Assert.Equal(1, arrayType.Rank);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.Disabled, arrayType.ElementNullableAnnotation);
+
+            Assert.Throws<ArgumentException>(() => comp.CreateArrayTypeSymbol(elementType, default));
+            Assert.Throws<ArgumentException>(() => comp.CreateArrayTypeSymbol(elementType, 0));
+
+            arrayType = comp.CreateArrayTypeSymbol(elementType, 1, default);
+            Assert.Equal(1, arrayType.Rank);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.Disabled, arrayType.ElementNullableAnnotation);
+
+            Assert.Throws<ArgumentException>(() => comp.CreateArrayTypeSymbol(elementType, rank: default));
+            Assert.Throws<ArgumentException>(() => comp.CreateArrayTypeSymbol(elementType, rank: 0));
+
+            arrayType = comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: default);
+            Assert.Equal(1, arrayType.Rank);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.Disabled, arrayType.ElementNullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        public void CreateArrayType_ElementNullableAnnotation()
+        {
+            var comp = (Compilation)CSharpCompilation.Create("");
+            var elementType = comp.GetSpecialType(SpecialType.System_Object);
+
+            Assert.Equal(CodeAnalysis.NullableAnnotation.Disabled, comp.CreateArrayTypeSymbol(elementType).ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.Disabled, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.NotApplicable).ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.Disabled, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.Disabled).ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.NotAnnotated).ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.Annotated).ElementNullableAnnotation);
+        }
+
+        [Fact]
         public void CreateAnonymousType_IncorrectLengths()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2196,7 +2391,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
                     ImmutableArray.Create("m1", "m2")));
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType_IncorrectLengths_IsReadOnly()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2208,7 +2403,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
                     ImmutableArray.Create(true)));
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType_IncorrectLengths_Locations()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2220,7 +2415,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
                     memberLocations: ImmutableArray.Create(Location.None)));
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType_WritableProperty()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2232,7 +2427,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
                     ImmutableArray.Create(false, false)));
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType_NullLocations()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2244,7 +2439,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
                     memberLocations: ImmutableArray.Create(Location.None, null)));
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType_NullArgument1()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2254,7 +2449,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
                         ImmutableArray.Create("m1")));
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType_NullArgument2()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2264,7 +2459,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
                         default(ImmutableArray<string>)));
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType_NullArgument3()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2274,7 +2469,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
                         ImmutableArray.Create("m1")));
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType_NullArgument4()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2284,7 +2479,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
                         ImmutableArray.Create((string)null)));
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType1()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2299,7 +2494,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
                 loc => Assert.Equal(loc, Location.None));
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType_Locations()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2320,7 +2515,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
             Assert.Equal("<anonymous type: int m1, int m2>", type.ToDisplayString());
         }
 
-        [Fact()]
+        [Fact]
         public void CreateAnonymousType2()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2333,6 +2528,70 @@ public class C { public static FrameworkName Goo() { return null; }}";
             Assert.Equal("<anonymous type: int m1, bool m2>", type.ToDisplayString());
             Assert.All(type.GetMembers().OfType<IPropertySymbol>().Select(p => p.Locations.FirstOrDefault()),
                 loc => Assert.Equal(loc, Location.None));
+        }
+
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        public void CreateAnonymousType_DefaultArgs()
+        {
+            var comp = (Compilation)CSharpCompilation.Create("");
+            var memberTypes = ImmutableArray.Create<ITypeSymbol>(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String));
+            var memberNames = ImmutableArray.Create("P", "Q");
+
+            var type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames);
+            Assert.Equal("<anonymous type: System.Object P, System.String Q>", type.ToTestDisplayString(includeNonNullable: true));
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, default);
+            Assert.Equal("<anonymous type: System.Object P, System.String Q>", type.ToTestDisplayString(includeNonNullable: true));
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, default, default);
+            Assert.Equal("<anonymous type: System.Object P, System.String Q>", type.ToTestDisplayString(includeNonNullable: true));
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, default, default, default);
+            Assert.Equal("<anonymous type: System.Object P, System.String Q>", type.ToTestDisplayString(includeNonNullable: true));
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberIsReadOnly: default);
+            Assert.Equal("<anonymous type: System.Object P, System.String Q>", type.ToTestDisplayString(includeNonNullable: true));
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberLocations: default);
+            Assert.Equal("<anonymous type: System.Object P, System.String Q>", type.ToTestDisplayString(includeNonNullable: true));
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberNullableAnnotations: default);
+            Assert.Equal("<anonymous type: System.Object P, System.String Q>", type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        public void CreateAnonymousType_MemberNullableAnnotations_Empty()
+        {
+            var comp = (Compilation)CSharpCompilation.Create("");
+            var type = comp.CreateAnonymousTypeSymbol(ImmutableArray<ITypeSymbol>.Empty, ImmutableArray<string>.Empty, memberNullableAnnotations: ImmutableArray<CodeAnalysis.NullableAnnotation>.Empty);
+            Assert.Equal("<empty anonymous type>", type.ToTestDisplayString(includeNonNullable: true));
+            AssertEx.Equal(Array.Empty<CodeAnalysis.NullableAnnotation>(), GetAnonymousTypeNullableAnnotations(type));
+        }
+
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        public void CreateAnonymousType_MemberNullableAnnotations()
+        {
+            var comp = (Compilation)CSharpCompilation.Create("");
+            var memberTypes = ImmutableArray.Create<ITypeSymbol>(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String));
+            var memberNames = ImmutableArray.Create("P", "Q");
+
+            var type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames);
+            Assert.Equal("<anonymous type: System.Object P, System.String Q>", type.ToTestDisplayString(includeNonNullable: true));
+            AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.Disabled, CodeAnalysis.NullableAnnotation.Disabled }, GetAnonymousTypeNullableAnnotations(type));
+
+            Assert.Throws<ArgumentException>(() => comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated)));
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableAnnotation.Annotated));
+            Assert.Equal("<anonymous type: System.Object P, System.String Q>", type.ToTestDisplayString(includeNonNullable: true));
+            AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableAnnotation.Annotated }, GetAnonymousTypeNullableAnnotations(type));
+        }
+
+        private static ImmutableArray<CodeAnalysis.NullableAnnotation> GetAnonymousTypeNullableAnnotations(ITypeSymbol type)
+        {
+            return type.GetMembers().OfType<IPropertySymbol>().SelectAsArray(p => p.NullableAnnotation);
         }
 
         #region Script return values
@@ -2582,6 +2841,6 @@ System.Action a = () => { return; };
             compilation.VerifyDiagnostics();
         }
 
-        #endregion
+#endregion
     }
 }

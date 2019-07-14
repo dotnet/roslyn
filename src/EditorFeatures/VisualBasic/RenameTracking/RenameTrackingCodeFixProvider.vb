@@ -32,8 +32,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.RenameTracking
         Inherits AbstractRenameTrackingCodeFixProvider
 
         <ImportingConstructor>
-        Public Sub New(waitIndicator As IWaitIndicator, undoHistoryRegistry As ITextUndoHistoryRegistry, <ImportMany> refactorNotifyServices As IEnumerable(Of IRefactorNotifyService))
-            MyBase.New(waitIndicator, undoHistoryRegistry, refactorNotifyServices)
+        Public Sub New(undoHistoryRegistry As ITextUndoHistoryRegistry, <ImportMany> refactorNotifyServices As IEnumerable(Of IRefactorNotifyService))
+            MyBase.New(undoHistoryRegistry, refactorNotifyServices)
         End Sub
     End Class
 End Namespace

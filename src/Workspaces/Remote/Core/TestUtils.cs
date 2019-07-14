@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Remote.DebugUtil
                 Debug.Fail("Differences detected in solution checksum: " + result);
             }
 
-            void AppendMismatch(List<KeyValuePair<Checksum, object>> items, string title, StringBuilder stringBuilder)
+            static void AppendMismatch(List<KeyValuePair<Checksum, object>> items, string title, StringBuilder stringBuilder)
             {
                 if (items.Count == 0)
                 {
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Remote.DebugUtil
                     var projectChecksums = await assetService.GetAssetAsync<ProjectStateChecksums>(projectChecksum, CancellationToken.None).ConfigureAwait(false);
                     set.AppendChecksums(projectChecksums);
 
-                    foreach (var documentChecksum in projectChecksums.Documents.Concat(projectChecksums.AdditionalDocuments))
+                    foreach (var documentChecksum in projectChecksums.Documents.Concat(projectChecksums.AdditionalDocuments).Concat(projectChecksums.AnalyzerConfigDocuments))
                     {
                         var documentChecksums = await assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, CancellationToken.None).ConfigureAwait(false);
                         set.AppendChecksums(documentChecksums);

@@ -57,6 +57,11 @@
         <target state="translated">后退</target>
         <note />
       </trans-unit>
+      <trans-unit id="Build_plus_live_analysis_NuGet_package">
+        <source>Build + live analysis (NuGet package)</source>
+        <target state="new">Build + live analysis (NuGet package)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">正在计算依赖项...</target>
@@ -64,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Classifications">
         <source>Classifications</source>
-        <target state="new">Classifications</target>
+        <target state="translated">分类</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -75,6 +80,11 @@
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">元素无效。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
+        <source>Enable nullable reference analysis IDE features</source>
+        <target state="new">Enable nullable reference analysis IDE features</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -97,6 +107,11 @@
         <target state="translated">在其他运算符中</target>
         <note />
       </trans-unit>
+      <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
+        <source>Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</source>
+        <target state="new">Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Interface_cannot_have_field">
         <source>Interface cannot have field.</source>
         <target state="translated">接口不可具有字段。</target>
@@ -110,6 +125,16 @@
       <trans-unit id="Kind">
         <source>Kind</source>
         <target state="translated">种类</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_analysis">
+        <source>Live analysis</source>
+        <target state="new">Live analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_analysis_VSIX_extension">
+        <source>Live analysis (VSIX extension)</source>
+        <target state="new">Live analysis (VSIX extension)</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -129,7 +154,7 @@
       </trans-unit>
       <trans-unit id="Modifier_preferences_colon">
         <source>Modifier preferences:</source>
-        <target state="new">Modifier preferences:</target>
+        <target state="translated">修饰符首选项:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -146,6 +171,146 @@
         <source>Namespace: '{0}'</source>
         <target state="translated">命名空间:“{0}”</target>
         <note />
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Class">
+        <source>class</source>
+        <target state="new">class</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Delegate">
+        <source>delegate</source>
+        <target state="new">delegate</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Enum">
+        <source>enum</source>
+        <target state="new">enum</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Event">
+        <source>event</source>
+        <target state="new">event</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Field">
+        <source>field</source>
+        <target state="new">field</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# programming language concept of a "field" (which stores data).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Interface">
+        <source>interface</source>
+        <target state="new">interface</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Local">
+        <source>local</source>
+        <target state="new">local</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local variable".</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_LocalFunction">
+        <source>local function</source>
+        <target state="new">local function</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local function" that exists locally within another function.</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Method">
+        <source>method</source>
+        <target state="new">method</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "method" that can be called by other code.</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Namespace">
+        <source>namespace</source>
+        <target state="new">namespace</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Parameter">
+        <source>parameter</source>
+        <target state="new">parameter</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "parameter" being passed to a method.</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Property">
+        <source>property</source>
+        <target state="new">property</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "property" (which allows for the retrieval of data).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Struct">
+        <source>struct</source>
+        <target state="new">struct</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_TypeParameter">
+        <source>type parameter</source>
+        <target state="new">type parameter</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "type parameter".</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Class">
+        <source>Class</source>
+        <target state="new">Class</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Delegate">
+        <source>Delegate</source>
+        <target state="new">Delegate</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Enum">
+        <source>Enum</source>
+        <target state="new">Enum</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Event">
+        <source>Event</source>
+        <target state="new">Event</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Field">
+        <source>Field</source>
+        <target state="new">Field</target>
+        <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "field" (which stores data).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Interface">
+        <source>Interface</source>
+        <target state="new">Interface</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Local">
+        <source>Local</source>
+        <target state="new">Local</target>
+        <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "local variable".</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Method">
+        <source>Method</source>
+        <target state="new">Method</target>
+        <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "method".</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Module">
+        <source>Module</source>
+        <target state="new">Module</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Namespace">
+        <source>Namespace</source>
+        <target state="new">Namespace</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Parameter">
+        <source>Parameter</source>
+        <target state="new">Parameter</target>
+        <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "parameter" which can be passed to a method.</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Property">
+        <source>Property</source>
+        <target state="new">Property</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Structure">
+        <source>Structure</source>
+        <target state="new">Structure</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_TypeParameter">
+        <source>Type Parameter</source>
+        <target state="new">Type Parameter</target>
+        <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "type parameter".</note>
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
@@ -184,17 +349,17 @@
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
-        <target state="new">Prefer readonly fields</target>
+        <target state="translated">首选只读字段</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
         <source>Prefer simple 'using' statement</source>
-        <target state="new">Prefer simple 'using' statement</target>
+        <target state="translated">首选简单的 “using” 语句</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
-        <target state="new">Prefer static local functions</target>
+        <target state="translated">首选静态本地函数</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_Members_Up">
@@ -209,7 +374,7 @@
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename {0} to {1}</source>
-        <target state="new">Rename {0} to {1}</target>
+        <target state="translated">将 {0} 重命名为 {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
@@ -239,12 +404,12 @@
       </trans-unit>
       <trans-unit id="Select_Dependents">
         <source>Select _Dependents</source>
-        <target state="needs-review-translation">选择依赖项(_S)</target>
+        <target state="translated">选择依赖项(_D)</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_Public">
         <source>Select _Public</source>
-        <target state="needs-review-translation">选择公共(_S)</target>
+        <target state="translated">选择公共(_P)</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination_and_members_to_pull_up">
@@ -269,7 +434,7 @@
       </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
-        <target state="new">Show completion list</target>
+        <target state="translated">显示完成列表</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
@@ -294,7 +459,7 @@
       </trans-unit>
       <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
         <source>Use enhanced colors for C# and Basic</source>
-        <target state="new">Use enhanced colors for C# and Basic</target>
+        <target state="translated">对 C# 和 Basic 使用增强色</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
@@ -324,7 +489,7 @@
       </trans-unit>
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
-        <target state="new">This workspace does not support updating Visual Basic compilation options.</target>
+        <target state="translated">此工作区不支持更新 Visual Basic 完成选项。</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
@@ -1643,11 +1808,6 @@ Additional information: {1}</source>
         <target state="translated">选项</target>
         <note />
       </trans-unit>
-      <trans-unit id="Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues">
-        <source>Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues</source>
-        <target state="translated">尝试我们的预览版实时代码分析扩展，它为常见的 API 设计、命名、性能和可靠性问题提供了更多修复</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Never_show_this_again">
         <source>Never show this again</source>
         <target state="translated">永不再显示</target>
@@ -1799,8 +1959,8 @@ I agree to all of the foregoing:</source>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
-        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
-        <target state="translated">此处配置的设置仅适用于计算机。要配置这些设置以使用解决方案，请使用 .editorconfig 文件。</target>
+        <source>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</source>
+        <target state="needs-review-translation">此处配置的设置仅适用于计算机。要配置这些设置以使用解决方案，请使用 .editorconfig 文件。</target>
         <note />
       </trans-unit>
       <trans-unit id="Sync_Class_View">
@@ -1821,11 +1981,6 @@ I agree to all of the foregoing:</source>
       <trans-unit id="Manage_naming_styles">
         <source>Manage naming styles</source>
         <target state="translated">管理命名样式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Live_code_analysis">
-        <source>Live code analysis</source>
-        <target state="translated">实时代码分析</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">

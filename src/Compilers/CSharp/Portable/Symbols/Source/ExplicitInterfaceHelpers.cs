@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // interface in its base class list that contains a member ..."
             MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>.ValueSet set = containingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics[explicitInterfaceNamedType];
             int setCount = set.Count;
-            if (setCount == 0 || !set.Contains(explicitInterfaceNamedType))
+            if (setCount == 0 || !set.Contains(explicitInterfaceNamedType, TypeSymbol.EqualsObliviousNullableModifierMatchesAny))
             {
                 //we'd like to highlight just the type part of the name
                 var explicitInterfaceSyntax = explicitInterfaceSpecifierSyntax.Name;
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                if (MemberSignatureComparer.ExplicitImplementationLookupComparer.Equals(implementingMember, interfaceMember))
+                if (MemberSignatureComparer.ExplicitImplementationComparer.Equals(implementingMember, interfaceMember))
                 {
                     foundMatchingMember = true;
                     // Cannot implement accessor directly unless

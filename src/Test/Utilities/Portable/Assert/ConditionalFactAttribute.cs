@@ -4,6 +4,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -40,11 +41,6 @@ namespace Roslyn.Test.Utilities
         public const string TestExecutionHasCOMInterop = "Test execution depends on COM Interop";
         public const string TestHasWindowsPaths = "Test depends on Windows style paths";
         public const string TestExecutionNeedsFusion = "Test depends on desktop fusion loader API";
-
-        /// <summary>
-        /// Edit and continue is only supported on desktop at the moment.
-        /// </summary>
-        public const string EditAndContinueRequiresDesktop = "Edit and continue is only supported on desktop";
 
         /// <summary>
         /// Mono issues around Default Interface Methods
@@ -157,6 +153,7 @@ namespace Roslyn.Test.Utilities
 
         public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
         public static bool IsUnix => !IsWindows;
+        public static bool IsMacOS => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
         public static bool IsDesktop => RuntimeUtilities.IsDesktopRuntime;
         public static bool IsWindowsDesktop => IsWindows && IsDesktop;
         public static bool IsMonoDesktop => Type.GetType("Mono.Runtime") != null;
@@ -251,6 +248,12 @@ namespace Roslyn.Test.Utilities
     {
         public override bool ShouldSkip => !PathUtilities.IsUnixLikePlatform;
         public override string SkipReason => "Test not supported on Windows";
+    }
+
+    public class WindowsOrLinuxOnly : ExecutionCondition
+    {
+        public override bool ShouldSkip => ExecutionConditionUtil.IsMacOS;
+        public override string SkipReason => "Test not supported on macOS";
     }
 
     public class ClrOnly : ExecutionCondition

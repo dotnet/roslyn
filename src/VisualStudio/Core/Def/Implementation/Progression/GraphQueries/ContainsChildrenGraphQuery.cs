@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                     if (symbol != null)
                     {
-                        bool containsChildren = SymbolContainment.GetContainedSymbols(symbol).Any();
+                        var containsChildren = SymbolContainment.GetContainedSymbols(symbol).Any();
                         graphBuilder.AddDeferredPropertySet(node, DgmlNodeProperties.ContainsChildren, containsChildren);
                     }
                     else if (node.HasCategory(CodeNodeCategories.File))

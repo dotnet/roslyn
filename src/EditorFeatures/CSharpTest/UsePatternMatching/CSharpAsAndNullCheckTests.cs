@@ -22,14 +22,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [InlineData("null != x", "o is string x")]
         [InlineData("(object)x != null", "o is string x")]
         [InlineData("null != (object)x", "o is string x")]
+        [InlineData("x is object", "o is string x")]
         [InlineData("x == null", "!(o is string x)")]
         [InlineData("null == x", "!(o is string x)")]
         [InlineData("(object)x == null", "!(o is string x)")]
         [InlineData("null == (object)x", "!(o is string x)")]
+        [InlineData("x is null", "!(o is string x)")]
         [InlineData("(x = o as string) != null", "o is string x")]
         [InlineData("null != (x = o as string)", "o is string x")]
+        [InlineData("(x = o as string) is object", "o is string x")]
         [InlineData("(x = o as string) == null", "!(o is string x)")]
         [InlineData("null == (x = o as string)", "!(o is string x)")]
+        [InlineData("(x = o as string) is null", "!(o is string x)")]
         public async Task InlineTypeCheck1(string input, string output)
         {
             await TestStatement($"if ({input}) {{ }}", $"if ({output}) {{ }}");
@@ -40,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         [InlineData("(x = o as string) != null", "o is string x")]
         [InlineData("null != (x = o as string)", "o is string x")]
+        [InlineData("(x = o as string) is object", "o is string x")]
         [InlineData("(x = o as string) == null", "!(o is string x)")]
         [InlineData("null == (x = o as string)", "!(o is string x)")]
         public async Task InlineTypeCheck2(string input, string output)
@@ -124,6 +129,43 @@ $@"class C
         switch (o)
         {
             default:
+                if (o is string x)
+                {
+                }
+        }
+    }
+}");
+        }
+
+        [WorkItem(33345, "https://github.com/dotnet/roslyn/issues/33345")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestRemoveNewLinesInSwitchStatement()
+        {
+            await TestInRegularAndScriptAsync(
+                @"class C
+{
+    void M()
+    {
+        switch (o)
+        {
+            default:
+                [|var|] x = o as string;
+
+                //a comment
+                if (x != null)
+                {
+                }
+        }
+    }
+}",
+                @"class C
+{
+    void M()
+    {
+        switch (o)
+        {
+            default:
+                //a comment
                 if (o is string x)
                 {
                 }
@@ -308,6 +350,96 @@ $@"class C
     {
         // prefix comment
         // suffix comment
+        if (o is string x)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(33345, "https://github.com/dotnet/roslyn/issues/33345")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestRemoveNewLines()
+        {
+            await TestInRegularAndScriptAsync(
+                @"class C
+{
+    void M()
+    {
+        [|var|] x = o as string;
+
+        //suffix comment
+        if (x != null)
+        {
+        }
+    }
+}",
+                @"class C
+{
+    void M()
+    {
+        //suffix comment
+        if (o is string x)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(33345, "https://github.com/dotnet/roslyn/issues/33345")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestRemoveNewLinesWhereBlankLineIsNotEmpty()
+        {
+            await TestInRegularAndScriptAsync(
+                @"class C
+{
+    void M()
+    {
+        [|var|] x = o as string;
+         
+        //suffix comment
+        if (x != null)
+        {
+        }
+    }
+}",
+                @"class C
+{
+    void M()
+    {
+        //suffix comment
+        if (o is string x)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(33345, "https://github.com/dotnet/roslyn/issues/33345")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestRemoveNewLines2()
+        {
+            await TestInRegularAndScriptAsync(
+                @"class C
+{
+    void M()
+    {
+        int a = 0;
+        [|var|] x = o as string;
+
+        //suffix comment
+        if (x != null)
+        {
+        }
+    }
+}",
+                @"class C
+{
+    void M()
+    {
+        int a = 0;
+
+        //suffix comment
         if (o is string x)
         {
         }
