@@ -411,7 +411,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsPropertyPatternClause(SyntaxNode node);
 
         ImmutableArray<SyntaxNode> GetSelectedFieldsAndProperties(SyntaxNode root, TextSpan textSpan, bool allowPartialSelection);
-        bool IsOnTypeHeader(SyntaxNode root, int position);
+        bool IsOnTypeHeader(SyntaxNode root, int position, out SyntaxNode typeDeclaration);
+
         bool IsOnPropertyDeclarationHeader(SyntaxNode root, int position, out SyntaxNode propertyDeclaration);
         bool IsOnParameterHeader(SyntaxNode root, int position, out SyntaxNode parameter);
         bool IsOnMethodHeader(SyntaxNode root, int position, out SyntaxNode method);

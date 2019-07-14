@@ -1770,21 +1770,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public bool IsOnTypeHeader(SyntaxNode root, int position)
+        public bool IsOnTypeHeader(SyntaxNode root, int position, out SyntaxNode typeDeclaration)
         {
-            var token = root.FindToken(position);
-            if (token.Kind() == SyntaxKind.EndOfFileToken)
-            {
-                token = token.GetPreviousToken();
-            }
-
-            var typeDecl = token.GetAncestor<BaseTypeDeclarationSyntax>();
-            if (typeDecl == null)
+            var node = TryGetAncestorForLocation<BaseTypeDeclarationSyntax>(position, root);
+            typeDeclaration = node;
+            if (node == null)
             {
                 return false;
             }
 
-            return IsOnHeader(position, typeDecl, typeDecl.Identifier);
+            return IsOnHeader(position, node, node.Identifier);
         }
 
         public bool IsOnPropertyDeclarationHeader(SyntaxNode root, int position, out SyntaxNode propertyDeclaration)

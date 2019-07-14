@@ -1721,17 +1721,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return trivia.IsElastic()
         End Function
 
-        Public Function IsOnTypeHeader(root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsOnTypeHeader
-            Dim statement = root.FindToken(position).GetAncestor(Of TypeStatementSyntax)
-            If statement Is Nothing Then
+        Public Function IsOnTypeHeader(root As SyntaxNode, position As Integer, ByRef typeDeclaration As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOnTypeHeader
+            Dim node = TryGetAncestorForLocation(Of TypeStatementSyntax)(position, root)
+            typeDeclaration = node
+
+            If node Is Nothing Then
                 Return Nothing
             End If
 
-            Dim start = GetStartOfNodeExcludingAttributes(statement)
-            Dim _end = If(statement.TypeParameterList?.GetLastToken().FullSpan.End,
-                          statement.Identifier.FullSpan.End)
-
-            Return position >= start AndAlso position <= _end
+            Return IsOnHeader(position, node, If(node.TypeParameterList?.GetLastToken(), node.Identifier))
         End Function
 
         Public Function IsOnPropertyDeclarationHeader(root As SyntaxNode, position As Integer, ByRef propertyDeclaration As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOnPropertyDeclarationHeader
