@@ -5816,12 +5816,12 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
-        <source>Expected disable, restore or enable</source>
+        <source>Expected 'disable' or 'restore'</source>
         <target state="needs-review-translation">disable, restore, enable 또는 safeonly가 필요합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
-        <source>Expected disable, restore or enable after #pragma warning</source>
+        <source>Expected 'disable' or 'restore' after #pragma warning</source>
         <target state="needs-review-translation">#pragma warning 뒤에 disable, restore, enable 또는 safeonly가 필요합니다.</target>
         <note />
       </trans-unit>

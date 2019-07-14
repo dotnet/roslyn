@@ -1886,7 +1886,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_IllegalPPWarning, "blah").WithLocation(14, 17));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
         public void PragmaWarning_Enable()
         {
             var text1 = @"

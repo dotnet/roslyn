@@ -5816,12 +5816,12 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
-        <source>Expected disable, restore or enable</source>
+        <source>Expected 'disable' or 'restore'</source>
         <target state="needs-review-translation">disable、restore、enable、または safeonly が必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
-        <source>Expected disable, restore or enable after #pragma warning</source>
+        <source>Expected 'disable' or 'restore' after #pragma warning</source>
         <target state="needs-review-translation">#pragma 警告の後に disable、restore、enable、または safeonly が必要です</target>
         <note />
       </trans-unit>

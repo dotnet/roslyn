@@ -7911,7 +7911,7 @@ static void Main() {
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = CreateCSharpCompiler(null, baseDir, new[] { "/nologo", "/preferreduilang:en", source.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Equal(Path.GetFileName(source) + "(7,17): warning CS1634: Expected disable, restore or enable", outWriter.ToString().Trim());
+            Assert.Equal(Path.GetFileName(source) + "(7,17): warning CS1634: Expected 'disable' or 'restore'", outWriter.ToString().Trim());
 
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             exitCode = CreateCSharpCompiler(null, baseDir, new[] { "/nologo", "/nowarn:1634", source.ToString() }).Run(outWriter);
