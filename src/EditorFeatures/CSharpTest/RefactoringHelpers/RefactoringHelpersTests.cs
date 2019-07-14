@@ -744,7 +744,6 @@ class C
 {
     void M()
     {
-        
         C LocalFunction(C c)
         {
             " + data + @"return null;
@@ -835,6 +834,56 @@ class C
             await TestMissingAsync<PropertyDeclarationSyntax>(testText);
         }
 
+        #endregion
+
+        #region Headers & holes
+        [Theory]
+        [InlineData("var aa = nul[||]l;")]
+        [InlineData("var aa = n[||]ull;")]
+        [InlineData("string aa = null, bb = n[||]ull;")]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingInHeaderHole(string data)
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        C LocalFunction(C c)
+        {
+            " + data + @"return null;
+        }
+        var a = new object();
+    }
+}";
+            await TestMissingAsync<LocalDeclarationStatementSyntax>(testText);
+        }
+
+        [Theory]
+        [InlineData("{|result:[||]var aa = null;|}")]
+        [InlineData("{|result:var aa = [||]null;|}")]
+        [InlineData("{|result:var aa = null[||];|}")]
+        [InlineData("{|result:string aa = null, b[||]b = null;|}")]
+        [InlineData("{|result:string aa = null, bb = [||]null;|}")]
+        [InlineData("{|result:string aa = null, bb = null[||];|}")]
+        [InlineData("{|result:string aa = null, bb = null;[||]|}")]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestInHeader(string data)
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        C LocalFunction(C c)
+        {
+            " + data + @"return null;
+        }
+        var a = new object();
+    }
+}";
+            await TestAsync<LocalDeclarationStatementSyntax>(testText);
+        }
         #endregion
 
         #region Test arguments
