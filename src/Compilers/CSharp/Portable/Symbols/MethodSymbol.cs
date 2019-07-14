@@ -688,10 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            // To give optimal diagnostics, we should really pass the "current" compilation.
-            // However, this is never used in batch scenarios, so it doesn't matter
-            // (modulo future changes to the API).
-            return ReducedExtensionMethodSymbol.Create(this, receiverType, compilation: null);
+            return ReducedExtensionMethodSymbol.Create(this, receiverType);
         }
 
         /// <summary>
