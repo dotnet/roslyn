@@ -2839,8 +2839,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ImmutableArray<VisitArgumentResult> results;
-            ImmutableArray<ParameterSymbol> notNullParameters;
-            (method, results, notNullParameters) = VisitArguments(node, node.Arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt,
+            bool returnNotNull;
+            (method, results, returnNotNull) = VisitArguments(node, node.Arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt,
                 node.Expanded, node.InvokedAsExtensionMethod, method);
 
             LearnFromEqualsMethod(method, node, receiverType, results);
@@ -2853,27 +2853,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReplayReadsAndWrites(localFunc, node.Syntax, writes: true);
             }
 
-            var returnState = notNullBasedOnParameters(GetReturnTypeWithState(method), notNullParameters, method);
+            var returnState = GetReturnTypeWithState(method);
+            if (returnNotNull)
+            {
+                returnState = returnState.WithNotNullState();
+            }
+
             SetResult(node, returnState, method.ReturnTypeWithAnnotations);
             if (_updatedMethodSymbolMapOpt is object)
             {
                 _updatedMethodSymbolMapOpt[node] = method;
-            }
-
-            TypeWithState notNullBasedOnParameters(TypeWithState typeWithState, ImmutableArray<ParameterSymbol> notNullParameters, MethodSymbol method)
-            {
-                if (!IsAnalyzingAttribute)
-                {
-                    var returnNotNullIfParameterNotNull = method.ReturnNotNullIfParameterNotNull;
-                    foreach (var notNullParameter in notNullParameters)
-                    {
-                        if (returnNotNullIfParameterNotNull.Contains(notNullParameter.Name))
-                        {
-                            return typeWithState.WithNotNullState();
-                        }
-                    }
-                }
-                return typeWithState;
             }
         }
 
@@ -3180,7 +3169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// If you pass in a method symbol, its type arguments will be re-inferred and the re-inferred method will be returned.
         /// </summary>
-        private (MethodSymbol method, ImmutableArray<VisitArgumentResult> results, ImmutableArray<ParameterSymbol> notNullParameters) VisitArguments(
+        private (MethodSymbol method, ImmutableArray<VisitArgumentResult> results, bool returnNotNull) VisitArguments(
             BoundExpression node,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
@@ -3191,10 +3180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method = null)
         {
             Debug.Assert(!arguments.IsDefault);
-            bool methodHasNotNullIfNotNull = !IsAnalyzingAttribute &&
-                (method?.ReturnNotNullIfParameterNotNull.IsEmpty() == false ||
-                (!parameters.IsDefault && parameters.Any(p => !p.NotNullIfParameterNotNull.IsEmpty())));
-            var notNullParametersBuilder = methodHasNotNullIfNotNull ? ArrayBuilder<ParameterSymbol>.GetInstance() : null;
+            bool shouldReturnNotNull = false;
 
             (ImmutableArray<BoundExpression> argumentsNoConversions, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
 
@@ -3216,12 +3202,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            bool parameterHasNotNullIfNotNull = !IsAnalyzingAttribute && !parameters.IsDefault && parameters.Any(p => !p.NotNullIfParameterNotNull.IsEmpty);
+            var notNullParametersBuilder = parameterHasNotNullIfNotNull ? ArrayBuilder<ParameterSymbol>.GetInstance() : null;
             if (!node.HasErrors && !parameters.IsDefault)
             {
                 // Visit conversions, inbound assignments including pre-conditions
+                ImmutableHashSet<string> returnNotNullIfParameterNotNull = IsAnalyzingAttribute ? null : method?.ReturnNotNullIfParameterNotNull;
                 for (int i = 0; i < argumentsNoConversions.Length; i++)
                 {
-                    (ParameterSymbol parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
+                    (ParameterSymbol parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, bool isSimpleArgument) =
+                        GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
                     if (parameter is null)
                     {
                         continue;
@@ -3239,22 +3229,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         results[i],
                         invokedAsExtensionMethod && i == 0);
 
-                    if (notNullParametersBuilder is object && results[i].RValueType.IsNotNull && (method.Parameters.Last().Equals(parameter) || !expanded))
+                    if (results[i].RValueType.IsNotNull && isSimpleArgument)
                     {
                         // Note: expanded params parameters don't count
-                        notNullParametersBuilder.Add(parameter);
+                        notNullParametersBuilder?.Add(parameter);
+
+                        if (returnNotNullIfParameterNotNull?.Contains(parameter.Name) == true)
+                        {
+                            shouldReturnNotNull = true;
+                        }
                     }
                 }
             }
 
-            var notNullParameters = notNullParametersBuilder?.ToImmutableAndFree() ?? ImmutableArray<ParameterSymbol>.Empty;
             if (!node.HasErrors && !parameters.IsDefault)
             {
                 // Visit outbound assignments and post-conditions
                 // Note: the state may get split in this step
                 for (int i = 0; i < argumentsNoConversions.Length; i++)
                 {
-                    (ParameterSymbol parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
+                    (ParameterSymbol parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, _) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
                     if (parameter is null)
                     {
                         continue;
@@ -3267,7 +3261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameterType,
                         parameterAnnotations,
                         results[i],
-                        notNullParameters);
+                        notNullParametersBuilder);
                 }
             }
             else
@@ -3288,7 +3282,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetUnreachable();
             }
 
-            return (method, results, notNullParameters);
+            notNullParametersBuilder?.Free();
+            return (method, results, shouldReturnNotNull);
         }
 
         private ImmutableArray<VisitArgumentResult> VisitArgumentsEvaluate(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<int> argsToParamsOpt, bool expanded)
@@ -3452,7 +3447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations parameterType,
             FlowAnalysisAnnotations parameterAnnotations,
             VisitArgumentResult result,
-            ImmutableArray<ParameterSymbol> notNullParameters)
+            ArrayBuilder<ParameterSymbol> notNullParametersOpt)
         {
             // Note: the state may be conditional if a previous argument involved a conditional post-condition
             // The WhenTrue/False states correspond to the invocation returning true/false
@@ -3469,7 +3464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.Ref:
                     {
                         // assign from a fictional value from the parameter to the argument.
-                        parameterAnnotations = notNullBasedOnParameters(parameterAnnotations, notNullParameters, parameter);
+                        parameterAnnotations = notNullBasedOnParameters(parameterAnnotations, notNullParametersOpt, parameter);
                         var parameterWithState = TypeWithState.Create(parameterType, parameterAnnotations);
                         var parameterValue = new BoundParameter(argument.Syntax, parameter);
                         var lValueType = result.LValueType;
@@ -3485,7 +3480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.Out:
                     {
                         // compute the fictional parameter state
-                        parameterAnnotations = notNullBasedOnParameters(parameterAnnotations, notNullParameters, parameter);
+                        parameterAnnotations = notNullBasedOnParameters(parameterAnnotations, notNullParametersOpt, parameter);
                         var parameterWithState = TypeWithState.Create(parameterType, parameterAnnotations);
 
                         // Adjust parameter state if MaybeNull or MaybeNullWhen are present (for `var` type and for assignment warnings)
@@ -3520,16 +3515,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(refKind);
             }
 
-            FlowAnalysisAnnotations notNullBasedOnParameters(FlowAnalysisAnnotations parameterAnnotations, ImmutableArray<ParameterSymbol> notNullParameters, ParameterSymbol parameter)
+            FlowAnalysisAnnotations notNullBasedOnParameters(FlowAnalysisAnnotations parameterAnnotations, ArrayBuilder<ParameterSymbol> notNullParametersOpt, ParameterSymbol parameter)
             {
-                if (!IsAnalyzingAttribute)
+                if (!IsAnalyzingAttribute && notNullParametersOpt is object)
                 {
                     var notNullIfParameterNotNull = parameter.NotNullIfParameterNotNull;
-                    foreach (var notNullParameter in notNullParameters)
+                    if (!notNullIfParameterNotNull.IsEmpty)
                     {
-                        if (notNullIfParameterNotNull.Contains(notNullParameter.Name))
+                        foreach (var notNullParameter in notNullParametersOpt)
                         {
-                            return FlowAnalysisAnnotations.NotNull;
+                            if (notNullIfParameterNotNull.Contains(notNullParameter.Name))
+                            {
+                                return FlowAnalysisAnnotations.NotNull;
+                            }
                         }
                     }
                 }
@@ -3716,7 +3714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localState.HasValue ? localState.Value : this.State.Clone());
         }
 
-        private (ParameterSymbol Parameter, TypeWithAnnotations Type, FlowAnalysisAnnotations Annotations) GetCorrespondingParameter(
+        private (ParameterSymbol Parameter, TypeWithAnnotations Type, FlowAnalysisAnnotations Annotations, bool isSimpleArgument) GetCorrespondingParameter(
             int argumentOrdinal,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<int> argsToParamsOpt,
@@ -3770,10 +3768,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expanded && parameter.Ordinal == n - 1 && type.IsSZArray())
             {
                 type = ((ArrayTypeSymbol)type.Type).ElementTypeWithAnnotations;
-                return (parameter, type, FlowAnalysisAnnotations.None);
+                return (parameter, type, FlowAnalysisAnnotations.None, isSimpleArgument: false);
             }
 
-            return (parameter, type, GetParameterAnnotations(parameter));
+            return (parameter, type, GetParameterAnnotations(parameter), isSimpleArgument: true);
         }
 
         private MethodSymbol InferMethodTypeArguments(BoundCall node, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
@@ -5639,7 +5637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             VisitArgumentOutboundAssignmentsAndPostConditions(
                                 variable.Expression, parameter.RefKind, parameter, parameter.TypeWithAnnotations, GetRValueAnnotations(parameter),
-                                new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default), notNullParameters: ImmutableArray<ParameterSymbol>.Empty);
+                                new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default), notNullParametersOpt: null);
                         }
                     }
                 }

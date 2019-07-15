@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return annotations;
         }
 
-        internal override IImmutableSet<string> NotNullIfParameterNotNull
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
         {
             get
             {
@@ -705,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullIfNotNullAttribute))
                     {
                         set ??= ImmutableHashSet.CreateBuilder<string>();
-                        set.Add(SourceMemberMethodSymbol.DecodeNotNullIfNotNullAttribute(attribute));
+                        set.Add(attribute.DecodeNotNullIfNotNullAttribute());
                     }
                 }
 

@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return FlowAnalysisAnnotations.None; }
         }
 
-        internal override IImmutableSet<string> NotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
         internal override MarshalPseudoCustomAttributeData MarshallingInformation
         {

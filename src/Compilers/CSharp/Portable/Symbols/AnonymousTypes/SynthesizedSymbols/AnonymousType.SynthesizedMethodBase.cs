@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
-            public sealed override IImmutableSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+            public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
             public sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
             {

@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return FlowAnalysisAnnotations.None; }
         }
 
-        internal override IImmutableSet<string> NotNullIfParameterNotNull
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
         {
             get { return ImmutableHashSet<string>.Empty; }
         }

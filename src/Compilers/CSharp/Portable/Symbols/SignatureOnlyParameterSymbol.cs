@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations { get { throw ExceptionUtilities.Unreachable; } }
 
-        internal override IImmutableSet<string> NotNullIfParameterNotNull { get { throw ExceptionUtilities.Unreachable; } }
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull { get { throw ExceptionUtilities.Unreachable; } }
 
         public override Symbol ContainingSymbol { get { throw ExceptionUtilities.Unreachable; } }
 

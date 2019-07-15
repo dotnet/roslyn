@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations =>
             DecodeReturnTypeAnnotationAttributes(GetDecodedReturnTypeWellKnownAttributeData());
 
-        public override IImmutableSet<string> ReturnNotNullIfParameterNotNull
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull
             => GetDecodedReturnTypeWellKnownAttributeData()?.NotNullIfParameterNotNull ?? ImmutableHashSet<string>.Empty;
 
         public sealed override MethodKind MethodKind
@@ -1404,14 +1404,8 @@ done:
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullIfNotNullAttribute))
             {
-                arguments.GetOrCreateData<ReturnTypeWellKnownAttributeData>().AddNotNullIfParameterNotNull(DecodeNotNullIfNotNullAttribute(attribute));
+                arguments.GetOrCreateData<ReturnTypeWellKnownAttributeData>().AddNotNullIfParameterNotNull(attribute.DecodeNotNullIfNotNullAttribute());
             }
-        }
-
-        internal static string DecodeNotNullIfNotNullAttribute(CSharpAttributeData attribute)
-        {
-            var arguments = attribute.CommonConstructorArguments;
-            return arguments.Length == 1 && arguments[0].TryDecodeValue(SpecialType.System_String, out string value) ? value : null;
         }
 
         private void DecodeDllImportAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)

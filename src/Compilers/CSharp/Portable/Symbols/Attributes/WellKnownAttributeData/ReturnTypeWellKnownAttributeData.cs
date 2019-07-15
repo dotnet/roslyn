@@ -39,20 +39,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private HashSet<string> _notNullIfParameterNotNull;
-        public IImmutableSet<string> NotNullIfParameterNotNull
+        private ImmutableHashSet<string> _notNullIfParameterNotNull = ImmutableHashSet<string>.Empty;
+        public ImmutableHashSet<string> NotNullIfParameterNotNull
         {
             get
             {
                 VerifySealed(expected: true);
-                return _notNullIfParameterNotNull?.ToImmutableHashSet() ?? ImmutableHashSet<string>.Empty;
+                return _notNullIfParameterNotNull;
             }
         }
         public void AddNotNullIfParameterNotNull(string parameterName)
         {
             VerifySealed(expected: false);
-            _notNullIfParameterNotNull ??= new HashSet<string>();
-            _notNullIfParameterNotNull.Add(parameterName);
+            // The common case is zero or one attribute
+            _notNullIfParameterNotNull = _notNullIfParameterNotNull.Add(parameterName);
             SetDataStored();
         }
     }

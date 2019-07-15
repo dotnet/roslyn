@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
 
-        internal abstract IImmutableSet<string> NotNullIfParameterNotNull { get; }
+        internal abstract ImmutableHashSet<string> NotNullIfParameterNotNull { get; }
 
         protected sealed override int HighestPriorityUseSiteError
         {
