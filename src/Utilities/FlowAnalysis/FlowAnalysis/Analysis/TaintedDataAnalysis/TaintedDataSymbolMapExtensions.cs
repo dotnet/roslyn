@@ -75,7 +75,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         }
 
         /// <summary>
-        /// Determines if the given array can be a tainted data source when its elements are constant all.
+        /// Determines if the given array can be a tainted data source when its elements are all constant.
         /// </summary>
         /// <param name="sourceSymbolMap"></param>
         /// <param name="arrayTypeSymbol"></param>

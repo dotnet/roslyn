@@ -7,6 +7,7 @@ using System.Diagnostics;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -44,7 +45,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         concreteInfosBuilder[namedTypeSymbol] = info;
                     }
 
-                    if (info.RequiresValueContentAnalysis())
+                    if (info.RequiresValueContentAnalysis)
                     {
                         RequiresValueContentAnalysis = true;
                     }
@@ -70,6 +71,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public bool IsEmpty { get { return this.ConcreteInfos.IsEmpty && this.InterfaceInfos.IsEmpty; } }
 
+        /// <summary>
+        /// Indicates that any <see cref="ITaintedDataInfo"/> in this <see cref="TaintedDataSymbolMap&lt;TInfo&gt;"/> uses <see cref="ValueContentAbstractValue"/>s.
+        /// </summary>
         public bool RequiresValueContentAnalysis { get; }
 
         /// <summary>

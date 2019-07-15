@@ -70,6 +70,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public bool TaintConstantArray { get; }
 
+        /// <summary>
+        /// Indicates that this <see cref="SourceInfo"/> uses <see cref="ValueContentAbstractValue"/>s.
+        /// </summary>
+        public bool RequiresValueContentAnalysis => this.TaintedMethodsNeedsValueContentAnalysis != null;
+
         public override int GetHashCode()
         {
             return HashUtilities.Combine(this.TaintConstantArray.GetHashCode(),
@@ -94,11 +99,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && this.TaintedMethodsNeedPointsToAnalysis == other.TaintedMethodsNeedPointsToAnalysis
                 && this.TaintedMethodsNeedsValueContentAnalysis == other.TaintedMethodsNeedsValueContentAnalysis
                 && this.TaintConstantArray == other.TaintConstantArray;
-        }
-
-        public bool RequiresValueContentAnalysis()
-        {
-            return this.TaintedMethodsNeedsValueContentAnalysis != null;
         }
     }
 }

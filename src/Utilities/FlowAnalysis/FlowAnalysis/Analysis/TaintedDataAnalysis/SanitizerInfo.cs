@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -44,6 +45,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public ImmutableHashSet<string> SanitizingInstanceMethods { get; }
 
+        /// <summary>
+        /// Indicates that this <see cref="SanitizerInfo"/> uses <see cref="ValueContentAbstractValue"/>s.
+        /// </summary>
+        public bool RequiresValueContentAnalysis => false;
+
         public override int GetHashCode()
         {
             return HashUtilities.Combine(this.SanitizingMethods,
@@ -64,11 +70,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && this.IsConstructorSanitizing == other.IsConstructorSanitizing
                 && this.SanitizingMethods == other.SanitizingMethods
                 && this.SanitizingInstanceMethods == other.SanitizingInstanceMethods;
-        }
-
-        public bool RequiresValueContentAnalysis()
-        {
-            return false;
         }
     }
 }
