@@ -15,16 +15,60 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const string s_descriptionSuffix = "_Description";
         private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> s_helpLinksMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateHelpLinks);
         private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> s_categoriesMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateCategoriesMap);
-        public static readonly ImmutableHashSet<string> NullableFlowAnalysisWarnings;
+        public static readonly ImmutableHashSet<string> NullableWarnings;
 
         static ErrorFacts()
         {
             ImmutableHashSet<string>.Builder builder = ImmutableHashSet.CreateBuilder<string>();
+
+            builder.Add(getId(ErrorCode.WRN_ConvertingNullableToNonNullable));
+            builder.Add(getId(ErrorCode.WRN_NullReferenceAssignment));
+            builder.Add(getId(ErrorCode.WRN_NullReferenceReceiver));
+            builder.Add(getId(ErrorCode.WRN_NullReferenceReturn));
+            builder.Add(getId(ErrorCode.WRN_NullReferenceArgument));
+            builder.Add(getId(ErrorCode.WRN_UnboxPossibleNull));
+            builder.Add(getId(ErrorCode.WRN_NullReferenceIterationVariable));
+            builder.Add(getId(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation));
+            builder.Add(getId(ErrorCode.WRN_UninitializedNonNullableField));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInAssignment));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInArgument));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInArgumentForOutput));
+            builder.Add(getId(ErrorCode.WRN_NullAsNonNullable));
+            builder.Add(getId(ErrorCode.WRN_AsOperatorMayReturnNull));
+            builder.Add(getId(ErrorCode.WRN_NullableValueTypeMayBeNull));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint));
+            builder.Add(getId(ErrorCode.WRN_ConditionalAccessMayReturnNull));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase));
+            builder.Add(getId(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList));
+            builder.Add(getId(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT));
+            builder.Add(getId(ErrorCode.WRN_NullLiteralMayIntroduceNullT));
+            builder.Add(getId(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull));
+
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation));
+
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint));
+
             builder.Add(getId(ErrorCode.WRN_NullReferenceAssignment));
             builder.Add(getId(ErrorCode.WRN_NullReferenceReceiver));
             builder.Add(getId(ErrorCode.WRN_NullReferenceReturn));
             builder.Add(getId(ErrorCode.WRN_NullReferenceArgument));
             builder.Add(getId(ErrorCode.WRN_NullReferenceIterationVariable));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride));
             builder.Add(getId(ErrorCode.WRN_UninitializedNonNullableField));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInAssignment));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInArgument));
@@ -47,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add(getId(ErrorCode.WRN_ConvertingNullableToNonNullable));
             builder.Add(getId(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment));
 
-            NullableFlowAnalysisWarnings = builder.ToImmutable();
+            NullableWarnings = builder.ToImmutable();
 
             string getId(ErrorCode errorCode)
             {

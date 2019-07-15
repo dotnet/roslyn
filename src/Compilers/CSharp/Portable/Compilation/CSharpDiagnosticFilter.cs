@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var tree = location?.SourceTree as CSharpSyntaxTree;
             var position = location.SourceSpan.Start;
 
-            bool isNullableFlowAnalysisWarning = ErrorFacts.NullableFlowAnalysisWarnings.Contains(id);
+            bool isNullableFlowAnalysisWarning = ErrorFacts.NullableWarnings.Contains(id);
             if (isNullableFlowAnalysisWarning)
             {
                 var nullableWarningsGloballyEnabled = nullableOption == NullableContextOptions.Enable || nullableOption == NullableContextOptions.Warnings;
