@@ -2708,6 +2708,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // require treatment specifically of nullability as contravariant, so we special case the
                             // behavior here. Normally we use GetWellKnownType for these kinds of checks, but in this
                             // case we don't want just the canonical IEquatable to be special-cased, we want all definitions
+                            // to be treated as contravariant, in case there are other definitions in metadata that were
+                            // compiled with that expectation.
                             if (isTypeIEquatable(destination.OriginalDefinition) &&
                                 TypeSymbol.Equals(destinationTypeArgument.Type, sourceTypeArgument.Type, TypeCompareKind.AllNullableIgnoreOptions) &&
                                 HasAnyNullabilityImplicitConversion(destinationTypeArgument, sourceTypeArgument))
@@ -2742,19 +2744,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destinationTypeArguments.Free();
             }
 
+            return true;
+
             static bool isTypeIEquatable(NamedTypeSymbol type)
             {
                 return type is
                 {
                     IsInterface: true,
                     Name: "IEquatable",
-                    ContainingNamespace:
-                    { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                    ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                    ContainingSymbol: { Kind: SymbolKind.Namespace },
                     TypeParameters: { Length: 1 }
                 };
             }
 
-            return true;
         }
 
         // Spec 6.1.10
