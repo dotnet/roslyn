@@ -248,14 +248,5 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             base.ReportUnassigned(symbol, node, slot, skipIfUseBeforeDeclaration);
         }
-
-        protected override void ReportUnassignedOutParameter(ParameterSymbol parameter, SyntaxNode node, Location location)
-        {
-            if (!_dataFlowsOut.Contains(parameter) && (node == null || node is ReturnStatementSyntax))
-            {
-                _dataFlowsOut.Add(parameter);
-            }
-            base.ReportUnassignedOutParameter(parameter, node, location);
-        }
     }
 }
