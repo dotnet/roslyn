@@ -1353,7 +1353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return NullableContextOptions.Disable
             End Get
             Protected Set(value As NullableContextOptions)
-                Throw ExceptionUtilities.Unreachable
+                Throw New NotImplementedException()
             End Set
         End Property
     End Class

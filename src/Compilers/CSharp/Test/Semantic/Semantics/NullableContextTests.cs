@@ -94,5 +94,56 @@ partial class C
             Assert.Equal(NullableContext.Enable, model1.GetNullableContext(classDecl1));
             Assert.Equal(NullableContext.Enable | NullableContext.ContextInherited, model2.GetNullableContext(classDecl2));
         }
+
+        [Fact]
+        public void NullableContextOptionsFlags()
+        {
+            Assert.True(NullableContextOptions.Enable.AnnotationsEnabled());
+            Assert.True(NullableContextOptions.Enable.WarningsEnabled());
+
+            Assert.True(NullableContextOptions.Annotations.AnnotationsEnabled());
+            Assert.False(NullableContextOptions.Annotations.WarningsEnabled());
+
+            Assert.False(NullableContextOptions.Warnings.AnnotationsEnabled());
+            Assert.True(NullableContextOptions.Warnings.WarningsEnabled());
+
+            Assert.False(NullableContextOptions.Disable.AnnotationsEnabled());
+            Assert.False(NullableContextOptions.Disable.WarningsEnabled());
+        }
+
+        [Fact]
+        public void NullableContextFlags()
+        {
+            AssertEnabledForInheritence(NullableContext.Disable, warningsEnabled: false, annotationsEnabled: false);
+            AssertEnabledForInheritence(NullableContext.WarningsEnable, warningsEnabled: true, annotationsEnabled: false);
+            AssertEnabledForInheritence(NullableContext.AnnotationsEnable, warningsEnabled: false, annotationsEnabled: true);
+            AssertEnabledForInheritence(NullableContext.Enable, warningsEnabled: true, annotationsEnabled: true);
+
+            void AssertEnabledForInheritence(NullableContext context, bool warningsEnabled, bool annotationsEnabled)
+            {
+                Assert.Equal(warningsEnabled, context.WarningsEnabled());
+                Assert.Equal(annotationsEnabled, context.AnnotationsEnabled());
+                Assert.False(context.WarningsInherited());
+                Assert.False(context.AnnotationsInherited());
+
+                var warningsInherited = context | NullableContext.WarningsContextInherited;
+                Assert.Equal(warningsEnabled, warningsInherited.WarningsEnabled());
+                Assert.Equal(annotationsEnabled, warningsInherited.AnnotationsEnabled());
+                Assert.True(warningsInherited.WarningsInherited());
+                Assert.False(warningsInherited.AnnotationsInherited());
+
+                var annotationsInherited = context | NullableContext.AnnotationsContextInherited;
+                Assert.Equal(warningsEnabled, annotationsInherited.WarningsEnabled());
+                Assert.Equal(annotationsEnabled, annotationsInherited.AnnotationsEnabled());
+                Assert.False(annotationsInherited.WarningsInherited());
+                Assert.True(annotationsInherited.AnnotationsInherited());
+
+                var contextInherited = context | NullableContext.ContextInherited;
+                Assert.Equal(warningsEnabled, contextInherited.WarningsEnabled());
+                Assert.Equal(annotationsEnabled, contextInherited.AnnotationsEnabled());
+                Assert.True(contextInherited.WarningsInherited());
+                Assert.True(contextInherited.AnnotationsInherited());
+            }
+        }
     }
 }
