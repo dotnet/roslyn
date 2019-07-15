@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImports
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -70,6 +71,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
                 root As SyntaxNode) As SyntaxNode
 
             Dim compilationUnit = DirectCast(root, CompilationUnitSyntax)
+
+            If Not compilationUnit.CanAddImportsStatements(CancellationToken.None) Then
+                Return compilationUnit
+            End If
 
             Return compilationUnit.AddImportsStatements(
                 usingDirectives.Concat(aliasDirectives).ToList(),

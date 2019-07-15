@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Threading;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -109,6 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 // recurse downwards so we visit inner namespaces first.
                 var rewritten = (NamespaceDeclarationSyntax)base.VisitNamespaceDeclaration(node);
 
+                if (!node.CanAddUsingDirectives(CancellationToken.None))
+                {
+                    return rewritten;
+                }
+
                 if (node == _aliasContainer)
                 {
                     rewritten = rewritten.AddUsingDirectives(_aliasDirectives, _placeSystemNamespaceFirst);
@@ -136,6 +142,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
             {
                 // recurse downwards so we visit inner namespaces first.
                 var rewritten = (CompilationUnitSyntax)base.VisitCompilationUnit(node);
+
+                if (!node.CanAddUsingDirectives(CancellationToken.None))
+                {
+                    return rewritten;
+                }
 
                 if (node == _aliasContainer)
                 {
