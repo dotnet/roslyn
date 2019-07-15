@@ -781,5 +781,23 @@ class C
                     //         void M(string x! = null) { }
                     Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "x").WithArguments("string").WithLocation(7, 23));
         }
+
+        [Fact]
+        public void TestNullCheckedWithMissingType()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main(string[] args!) { }
+}";
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_ArgumentNullException__ctorString);
+            comp.MakeTypeMissing(WellKnownType.System_ArgumentNullException);
+            comp.VerifyDiagnostics(
+                    // (4,31): error CS0656: Missing compiler required member 'System.ArgumentNullException..ctor'
+                    //     static void Main(string[] args!) { }
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "args").WithArguments("System.ArgumentNullException", ".ctor").WithLocation(4, 31));
+        }
     }
 }
