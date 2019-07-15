@@ -355,6 +355,44 @@ public class A<T>
         }
 
 
+        [Fact]
+        public void SemanticModel_Method_Equality()
+        {
+            var source =
+@"
+#nullable enable
+public class A
+{
+    public static T Create<T> (T t) => t;
+
+    public static void M(string? x)
+    {
+        _ = Create(x);
+        if (x is null) return;
+        _ = Create(x);
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var create1Syntax = (InvocationExpressionSyntax)root.DescendantNodes().First(sn => sn.Kind() == SyntaxKind.InvocationExpression);
+            var create2Syntax = (InvocationExpressionSyntax)root.DescendantNodes().Last(sn => sn.Kind() == SyntaxKind.InvocationExpression);
+
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var create1Symbol = model.GetSymbolInfo(create1Syntax).Symbol;
+            var create2Symbol = model.GetSymbolInfo(create2Syntax).Symbol;
+
+            VerifyEquality(create1Symbol, create2Symbol,
+                expectedDefault: true,
+                expectedIncludeNullability: false
+                );
+        }
+
+
         private void VerifyEquality(ISymbol type1, ISymbol type2, bool expectedDefault, bool expectedIncludeNullability)
         {
             // Symbol.Equals
