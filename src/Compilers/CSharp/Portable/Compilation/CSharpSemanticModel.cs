@@ -5030,8 +5030,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableContextState contextState = syntaxTree.GetNullableContextState(position);
             var defaultState = syntaxTree.IsGeneratedCode() ? NullableContextOptions.Disable : Compilation.Options.NullableContextOptions;
 
-            NullableContext context = getFlag(contextState.AnnotationsState, defaultState.AnnotationsEnabled(), NullableContext.AnnotationsContextInherited, NullableContext.AnnotationsEnable);
-            context |= getFlag(contextState.WarningsState, defaultState.WarningsEnabled(), NullableContext.WarningsContextInherited, NullableContext.WarningsEnable);
+            NullableContext context = getFlag(contextState.AnnotationsState, defaultState.AnnotationsEnabled(), NullableContext.AnnotationsContextInherited, NullableContext.AnnotationsEnabled);
+            context |= getFlag(contextState.WarningsState, defaultState.WarningsEnabled(), NullableContext.WarningsContextInherited, NullableContext.WarningsEnabled);
 
             return context;
 
@@ -5041,7 +5041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     null when defaultEnableState => (inheritedFlag | enableFlag),
                     null => inheritedFlag,
                     true => enableFlag,
-                    false => NullableContext.Disable
+                    false => NullableContext.Disabled
                 };
         }
 

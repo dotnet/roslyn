@@ -16,23 +16,23 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Nullable warnings and annotations are explicitly turned off at this location.
         /// </summary>
-        Disable = 0,
+        Disabled = 0,
 
         /// <summary>
         /// Nullable warnings are enabled and will be reported at this file location.
         /// </summary>
-        WarningsEnable = 1,
+        WarningsEnabled = 1,
 
         /// <summary>
         /// Nullable annotations are enabled and will be shown when APIs defined at
         /// this location are used in other contexts.
         /// </summary>
-        AnnotationsEnable = 1 << 1,
+        AnnotationsEnabled = 1 << 1,
 
         /// <summary>
         /// The nullable feature is fully enabled.
         /// </summary>
-        Enable = WarningsEnable | AnnotationsEnable,
+        Enabled = WarningsEnabled | AnnotationsEnabled,
 
         /// <summary>
         /// The nullable warning state is inherited from the project default.
@@ -77,13 +77,13 @@ namespace Microsoft.CodeAnalysis
         /// Returns whether nullable warnings are enabled for this context.
         /// </summary>
         public static bool WarningsEnabled(this NullableContext context) =>
-            IsFlagSet(context, NullableContext.WarningsEnable);
+            IsFlagSet(context, NullableContext.WarningsEnabled);
 
         /// <summary>
         /// Returns whether nullable annotations are enabled for this context.
         /// </summary>
         public static bool AnnotationsEnabled(this NullableContext context) =>
-            IsFlagSet(context, NullableContext.AnnotationsEnable);
+            IsFlagSet(context, NullableContext.AnnotationsEnabled);
 
         /// <summary>
         /// Returns whether the nullable warning state was inherited from the project default for this file type.

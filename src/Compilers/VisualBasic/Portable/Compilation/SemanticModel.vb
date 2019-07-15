@@ -3477,7 +3477,7 @@ _Default:
         End Function
 
         Public NotOverridable Overrides Function GetNullableContext(position As Integer) As NullableContext
-            Return NullableContext.Disable Or NullableContext.ContextInherited
+            Return NullableContext.Disabled Or NullableContext.ContextInherited
         End Function
 #End Region
 

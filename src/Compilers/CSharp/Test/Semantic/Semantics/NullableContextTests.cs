@@ -9,35 +9,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class NullableContextTests : CSharpTestBase
     {
-        [InlineData("#nullable enable", NullableContextOptions.Disable, NullableContext.Enable)]
-        [InlineData("#nullable enable", NullableContextOptions.Annotations, NullableContext.Enable)]
-        [InlineData("#nullable enable", NullableContextOptions.Warnings, NullableContext.Enable)]
-        [InlineData("#nullable enable", NullableContextOptions.Enable, NullableContext.Enable)]
+        [InlineData("#nullable enable", NullableContextOptions.Disable, NullableContext.Enabled)]
+        [InlineData("#nullable enable", NullableContextOptions.Annotations, NullableContext.Enabled)]
+        [InlineData("#nullable enable", NullableContextOptions.Warnings, NullableContext.Enabled)]
+        [InlineData("#nullable enable", NullableContextOptions.Enable, NullableContext.Enabled)]
 
-        [InlineData("#nullable enable warnings", NullableContextOptions.Disable, NullableContext.WarningsEnable | NullableContext.AnnotationsContextInherited)]
-        [InlineData("#nullable enable warnings", NullableContextOptions.Warnings, NullableContext.WarningsEnable | NullableContext.AnnotationsContextInherited)]
-        [InlineData("#nullable enable warnings", NullableContextOptions.Annotations, NullableContext.Enable | NullableContext.AnnotationsContextInherited)]
-        [InlineData("#nullable enable warnings", NullableContextOptions.Enable, NullableContext.Enable | NullableContext.AnnotationsContextInherited)]
+        [InlineData("#nullable enable warnings", NullableContextOptions.Disable, NullableContext.WarningsEnabled | NullableContext.AnnotationsContextInherited)]
+        [InlineData("#nullable enable warnings", NullableContextOptions.Warnings, NullableContext.WarningsEnabled | NullableContext.AnnotationsContextInherited)]
+        [InlineData("#nullable enable warnings", NullableContextOptions.Annotations, NullableContext.Enabled | NullableContext.AnnotationsContextInherited)]
+        [InlineData("#nullable enable warnings", NullableContextOptions.Enable, NullableContext.Enabled | NullableContext.AnnotationsContextInherited)]
 
-        [InlineData("#nullable enable annotations", NullableContextOptions.Disable, NullableContext.AnnotationsEnable | NullableContext.WarningsContextInherited)]
-        [InlineData("#nullable enable annotations", NullableContextOptions.Warnings, NullableContext.Enable | NullableContext.WarningsContextInherited)]
-        [InlineData("#nullable enable annotations", NullableContextOptions.Annotations, NullableContext.AnnotationsEnable | NullableContext.WarningsContextInherited)]
-        [InlineData("#nullable enable annotations", NullableContextOptions.Enable, NullableContext.Enable | NullableContext.WarningsContextInherited)]
+        [InlineData("#nullable enable annotations", NullableContextOptions.Disable, NullableContext.AnnotationsEnabled | NullableContext.WarningsContextInherited)]
+        [InlineData("#nullable enable annotations", NullableContextOptions.Warnings, NullableContext.Enabled | NullableContext.WarningsContextInherited)]
+        [InlineData("#nullable enable annotations", NullableContextOptions.Annotations, NullableContext.AnnotationsEnabled | NullableContext.WarningsContextInherited)]
+        [InlineData("#nullable enable annotations", NullableContextOptions.Enable, NullableContext.Enabled | NullableContext.WarningsContextInherited)]
 
-        [InlineData("#nullable disable", NullableContextOptions.Disable, NullableContext.Disable)]
-        [InlineData("#nullable disable", NullableContextOptions.Annotations, NullableContext.Disable)]
-        [InlineData("#nullable disable", NullableContextOptions.Warnings, NullableContext.Disable)]
-        [InlineData("#nullable disable", NullableContextOptions.Enable, NullableContext.Disable)]
+        [InlineData("#nullable disable", NullableContextOptions.Disable, NullableContext.Disabled)]
+        [InlineData("#nullable disable", NullableContextOptions.Annotations, NullableContext.Disabled)]
+        [InlineData("#nullable disable", NullableContextOptions.Warnings, NullableContext.Disabled)]
+        [InlineData("#nullable disable", NullableContextOptions.Enable, NullableContext.Disabled)]
 
-        [InlineData("#nullable disable warnings", NullableContextOptions.Disable, NullableContext.Disable | NullableContext.AnnotationsContextInherited)]
-        [InlineData("#nullable disable warnings", NullableContextOptions.Warnings, NullableContext.Disable | NullableContext.AnnotationsContextInherited)]
-        [InlineData("#nullable disable warnings", NullableContextOptions.Annotations, NullableContext.AnnotationsEnable | NullableContext.AnnotationsContextInherited)]
-        [InlineData("#nullable disable warnings", NullableContextOptions.Enable, NullableContext.AnnotationsEnable | NullableContext.AnnotationsContextInherited)]
+        [InlineData("#nullable disable warnings", NullableContextOptions.Disable, NullableContext.Disabled | NullableContext.AnnotationsContextInherited)]
+        [InlineData("#nullable disable warnings", NullableContextOptions.Warnings, NullableContext.Disabled | NullableContext.AnnotationsContextInherited)]
+        [InlineData("#nullable disable warnings", NullableContextOptions.Annotations, NullableContext.AnnotationsEnabled | NullableContext.AnnotationsContextInherited)]
+        [InlineData("#nullable disable warnings", NullableContextOptions.Enable, NullableContext.AnnotationsEnabled | NullableContext.AnnotationsContextInherited)]
 
-        [InlineData("#nullable disable annotations", NullableContextOptions.Disable, NullableContext.Disable | NullableContext.WarningsContextInherited)]
-        [InlineData("#nullable disable annotations", NullableContextOptions.Warnings, NullableContext.WarningsEnable | NullableContext.WarningsContextInherited)]
-        [InlineData("#nullable disable annotations", NullableContextOptions.Annotations, NullableContext.Disable | NullableContext.WarningsContextInherited)]
-        [InlineData("#nullable disable annotations", NullableContextOptions.Enable, NullableContext.WarningsEnable | NullableContext.WarningsContextInherited)]
+        [InlineData("#nullable disable annotations", NullableContextOptions.Disable, NullableContext.Disabled | NullableContext.WarningsContextInherited)]
+        [InlineData("#nullable disable annotations", NullableContextOptions.Warnings, NullableContext.WarningsEnabled | NullableContext.WarningsContextInherited)]
+        [InlineData("#nullable disable annotations", NullableContextOptions.Annotations, NullableContext.Disabled | NullableContext.WarningsContextInherited)]
+        [InlineData("#nullable disable annotations", NullableContextOptions.Enable, NullableContext.WarningsEnabled | NullableContext.WarningsContextInherited)]
         [Theory]
         public void NullableContextExplicitlySpecifiedAndRestoredInFile(string pragma, NullableContextOptions globalContext, NullableContext expectedContext)
         {
@@ -91,8 +91,8 @@ partial class C
             var classDecl1 = syntaxTree1.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().Single().SpanStart;
             var classDecl2 = syntaxTree2.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().Single().SpanStart;
 
-            Assert.Equal(NullableContext.Enable, model1.GetNullableContext(classDecl1));
-            Assert.Equal(NullableContext.Enable | NullableContext.ContextInherited, model2.GetNullableContext(classDecl2));
+            Assert.Equal(NullableContext.Enabled, model1.GetNullableContext(classDecl1));
+            Assert.Equal(NullableContext.Enabled | NullableContext.ContextInherited, model2.GetNullableContext(classDecl2));
         }
 
         [Fact]
@@ -114,10 +114,10 @@ partial class C
         [Fact]
         public void NullableContextFlags()
         {
-            AssertEnabledForInheritence(NullableContext.Disable, warningsEnabled: false, annotationsEnabled: false);
-            AssertEnabledForInheritence(NullableContext.WarningsEnable, warningsEnabled: true, annotationsEnabled: false);
-            AssertEnabledForInheritence(NullableContext.AnnotationsEnable, warningsEnabled: false, annotationsEnabled: true);
-            AssertEnabledForInheritence(NullableContext.Enable, warningsEnabled: true, annotationsEnabled: true);
+            AssertEnabledForInheritence(NullableContext.Disabled, warningsEnabled: false, annotationsEnabled: false);
+            AssertEnabledForInheritence(NullableContext.WarningsEnabled, warningsEnabled: true, annotationsEnabled: false);
+            AssertEnabledForInheritence(NullableContext.AnnotationsEnabled, warningsEnabled: false, annotationsEnabled: true);
+            AssertEnabledForInheritence(NullableContext.Enabled, warningsEnabled: true, annotationsEnabled: true);
 
             void AssertEnabledForInheritence(NullableContext context, bool warningsEnabled, bool annotationsEnabled)
             {
