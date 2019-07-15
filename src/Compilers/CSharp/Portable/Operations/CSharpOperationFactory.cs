@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1413,12 +1414,30 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundBlock.WasCompilerGenerated;
+
+            ArrayBuilder<BoundStatement> ifList = null;
             if (_semanticModel is MemberSemanticModel memberModel
                 && memberModel.ContainsNullCheckedParameter
                 && _semanticModel.Root.ChildNodes().Contains(boundBlock.Syntax))
             {
-                //boundBlock = LocalRewriter.ConstructNullCheckedStatementList();
+                foreach (var param in memberModel.MemberSymbol.GetParameters())
+                {
+                    if (LocalRewriter.GetParameterIsNullChecked(param))
+                    {
+                        ifList ??= ArrayBuilder<BoundStatement>.GetInstance();
+
+                        IOperation condition = null; /*replace*/
+                        IOperation whenTrue = null; /*replace*/
+                        BoundStatement newIf = new ConditionalOperation(condition, whenTrue, null, false /*replace*/, _semanticModel, syntax, type, ConstantValue, isImplicit); // new ConditionalOperation();
+                        ifList.Add(newIf);
+                    }
+                }
+                if (!(ifList is null))
+                {
+                    boundBlock.Update(boundBlock.Statements.InsertRange(0, ifList.ToImmutableAndFree()));
+                }
             }
+
             return new CSharpLazyBlockOperation(this, boundBlock, locals, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
