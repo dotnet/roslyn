@@ -25,7 +25,7 @@ public class C
             var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
-IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ...  input) { }')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ...  input!) { }')
     BlockBody: 
     IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
     ExpressionBody: 
