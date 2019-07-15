@@ -4,6 +4,7 @@
 # your libraries as defined in the src\ProductData\AssemblyVersions.tt file.
 return
 
+$nbgv = & "$PSScriptRoot\..\Get-nbgv.ps1"
 [string]::join(',',(@{
-    ('LibraryNoDotsVersion') = & { (nbgv get-version --project "$PSScriptRoot\..\..\src\LibraryName" --format json | ConvertFrom-Json).AssemblyVersion };
+    ('LibraryNoDotsVersion') = & { (& $nbgv get-version --project "$PSScriptRoot\..\..\src\LibraryName" --format json | ConvertFrom-Json).AssemblyVersion };
 }.GetEnumerator() |% { "$($_.key)=$($_.value)" }))
