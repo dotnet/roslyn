@@ -2534,6 +2534,16 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains a switch expression will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_fro" +
+                        "m_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing..
         /// </summary>
         internal static string Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_will_prevent_the_debug_session_from_continuing {

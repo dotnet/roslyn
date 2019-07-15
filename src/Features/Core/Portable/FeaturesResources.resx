@@ -544,6 +544,9 @@
   <data name="Modifying_0_which_contains_the_stackalloc_operator_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Modifying '{0}' which contains the 'stackalloc' operator will prevent the debug session from continuing.</value>
   </data>
+  <data name="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</value>
+  </data>
   <data name="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Modifying an active '{0}' which contains 'On Error' or 'Resume' statements will prevent the debug session from continuing.</value>
   </data>

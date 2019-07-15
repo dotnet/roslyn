@@ -282,6 +282,11 @@
         <target state="new">{0} must return a stream that supports read and seek operations.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
+        <target state="new">Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
         <source>Move contents to namespace...</source>
         <target state="new">Move contents to namespace...</target>

@@ -103,6 +103,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         InsertIntoInterface = 82,
         InsertLocalFunctionIntoInterfaceMethod = 83,
 
+
+        SwitchExpressionUpdate = 84,
+
         // TODO: remove values below
         RUDE_EDIT_COMPLEX_QUERY_EXPRESSION = 0x103,
     }

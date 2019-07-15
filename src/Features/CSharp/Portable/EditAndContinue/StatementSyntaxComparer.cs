@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -456,15 +457,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.TypeArgumentList:
                 case SyntaxKind.AliasQualifiedName:
                 case SyntaxKind.PredefinedType:
-                case SyntaxKind.ArrayType:
-                case SyntaxKind.ArrayRankSpecifier:
                 case SyntaxKind.PointerType:
                 case SyntaxKind.NullableType:
                 case SyntaxKind.TupleType:
                 case SyntaxKind.RefType:
                 case SyntaxKind.OmittedTypeArgument:
                 case SyntaxKind.NameColon:
-                case SyntaxKind.StackAllocArrayCreationExpression:
                 case SyntaxKind.OmittedArraySizeExpression:
                 case SyntaxKind.ThisExpression:
                 case SyntaxKind.BaseExpression:

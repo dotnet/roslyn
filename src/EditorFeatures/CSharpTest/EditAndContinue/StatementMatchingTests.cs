@@ -825,6 +825,86 @@ F(a =>
             expected.AssertEqual(actual);
         }
 
+        [Fact]
+        public void LambdasInArrayType()
+        {
+            var src1 = "var x = new int[F(a => 1)];";
+            var src2 = "var x = new int[F(a => 2)];";
+
+            var match = GetMethodMatch(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "var x = new int[F(a => 1)];", "var x = new int[F(a => 2)];" },
+                { "var x = new int[F(a => 1)]", "var x = new int[F(a => 2)]" },
+                { "x = new int[F(a => 1)]", "x = new int[F(a => 2)]" },
+                { "a => 1", "a => 2" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void LambdasInArrayInitializer()
+        {
+            var src1 = "var x = new int[] { F(a => 1) };";
+            var src2 = "var x = new int[] { F(a => 2) };";
+
+            var match = GetMethodMatch(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "var x = new int[] { F(a => 1) };", "var x = new int[] { F(a => 2) };" },
+                { "var x = new int[] { F(a => 1) }", "var x = new int[] { F(a => 2) }" },
+                { "x = new int[] { F(a => 1) }", "x = new int[] { F(a => 2) }" },
+                { "a => 1", "a => 2" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void LambdasInStackalloc()
+        {
+            var src1 = "var x = stackalloc int[F(a => 1)];";
+            var src2 = "var x = stackalloc int[F(a => 2)];";
+
+            var match = GetMethodMatch(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "var x = stackalloc int[F(a => 1)];", "var x = stackalloc int[F(a => 2)];" },
+                { "var x = stackalloc int[F(a => 1)]", "var x = stackalloc int[F(a => 2)]" },
+                { "x = stackalloc int[F(a => 1)]", "x = stackalloc int[F(a => 2)]" },
+                { "a => 1", "a => 2" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void LambdasInStackalloc_Initializer()
+        {
+            var src1 = "var x = stackalloc[] { F(a => 1) };";
+            var src2 = "var x = stackalloc[] { F(a => 2) };";
+
+            var match = GetMethodMatch(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "var x = stackalloc[] { F(a => 1) };", "var x = stackalloc[] { F(a => 2) };" },
+                { "var x = stackalloc[] { F(a => 1) }", "var x = stackalloc[] { F(a => 2) }" },
+                { "x = stackalloc[] { F(a => 1) }", "x = stackalloc[] { F(a => 2) }" },
+                { "a => 1", "a => 2" },
+            };
+
+            expected.AssertEqual(actual);
+        }
+
         #endregion
 
         #region Local Functions

@@ -1303,6 +1303,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.StackAllocArrayCreationExpression:
                     return ((StackAllocArrayCreationExpressionSyntax)node).StackAllocKeyword.Span;
 
+                case SyntaxKind.ImplicitStackAllocArrayCreationExpression:
+                    return ((ImplicitStackAllocArrayCreationExpressionSyntax)node).StackAllocKeyword.Span;
+
                 case SyntaxKind.TryStatement:
                     return ((TryStatementSyntax)node).TryKeyword.Span;
 
@@ -1439,6 +1442,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.SingleVariableDesignation:
                 case SyntaxKind.CasePatternSwitchLabel:
                     return node.Span;
+
+                case SyntaxKind.SwitchExpression:
+                    return ((SwitchExpressionSyntax)node).SwitchKeyword.Span;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
@@ -2836,21 +2842,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             public void ClassifyDeclarationBodyRudeUpdates(SyntaxNode newDeclarationOrBody)
             {
-                foreach (var node in newDeclarationOrBody.DescendantNodesAndSelf(ChildrenCompiledInBody))
+                foreach (var node in newDeclarationOrBody.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda))
                 {
                     switch (node.Kind())
                     {
                         case SyntaxKind.StackAllocArrayCreationExpression:
+                        case SyntaxKind.ImplicitStackAllocArrayCreationExpression:
                             ReportError(RudeEditKind.StackAllocUpdate, node, _newNode);
                             return;
+
+                        case SyntaxKind.SwitchExpression:
+                            ReportError(RudeEditKind.SwitchExpressionUpdate, node, _newNode);
+                            break;
                     }
                 }
-            }
-
-            private static bool ChildrenCompiledInBody(SyntaxNode node)
-            {
-                return node.Kind() != SyntaxKind.ParenthesizedLambdaExpression
-                    && node.Kind() != SyntaxKind.SimpleLambdaExpression;
             }
 
             #endregion
