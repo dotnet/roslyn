@@ -1428,7 +1428,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                         IOperation condition = null; /*replace*/
                         IOperation whenTrue = null; /*replace*/
-                        BoundStatement newIf = new ConditionalOperation(condition, whenTrue, null, false /*replace*/, _semanticModel, syntax, type, ConstantValue, isImplicit); // new ConditionalOperation();
+                        BoundStatement newIf = null; // new ConditionalOperation();
                         ifList.Add(newIf);
                     }
                 }
