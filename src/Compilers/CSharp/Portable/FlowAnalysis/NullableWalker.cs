@@ -3536,9 +3536,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool notNullWhenTrue = (annotations & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
                 bool maybeNullWhenTrue = (annotations & FlowAnalysisAnnotations.MaybeNullWhenTrue) != 0;
+                bool maybeNullWhenFalse = (annotations & FlowAnalysisAnnotations.MaybeNullWhenFalse) != 0;
 
-                if (maybeNullWhenTrue)
+                if (maybeNullWhenTrue && !(maybeNullWhenFalse && notNullWhenTrue))
                 {
+                    // [MaybeNull, NotNullWhen(true)] means [MaybeNullWhen(false)]
                     return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeNull);
                 }
                 else if (notNullWhenTrue)
@@ -3552,10 +3554,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             static TypeWithState applyPostConditionsWhenFalse(TypeWithState typeWithState, FlowAnalysisAnnotations annotations)
             {
                 bool notNullWhenFalse = (annotations & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
+                bool maybeNullWhenTrue = (annotations & FlowAnalysisAnnotations.MaybeNullWhenTrue) != 0;
                 bool maybeNullWhenFalse = (annotations & FlowAnalysisAnnotations.MaybeNullWhenFalse) != 0;
 
-                if (maybeNullWhenFalse)
+                if (maybeNullWhenFalse && !(maybeNullWhenTrue && notNullWhenFalse))
                 {
+                    // [MaybeNull, NotNullWhen(false)] means [MaybeNullWhen(true)]
                     return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeNull);
                 }
                 else if (notNullWhenFalse)

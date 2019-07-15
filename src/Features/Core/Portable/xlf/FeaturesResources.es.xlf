@@ -2485,21 +2485,6 @@ Esta versión se utiliza en: {2}</target>
         <target state="translated">Agregar el nombre de argumento "{0}" (incluidos los argumentos finales)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Using_readonly_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly structs will prevent the debug session from continuing.</source>
-        <target state="translated">El uso de estructuras readonly impedirá que la sesión de depuración continúe.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_ref_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using ref structs will prevent the debug session from continuing.</source>
-        <target state="translated">El uso de estructuras ref impedirá que la sesión de depuración continúe.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_readonly_references_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly references will prevent the debug session from continuing.</source>
-        <target state="translated">El uso de referencias readonly impedirá que la sesión de depuración continúe.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="local_function">
         <source>local function</source>
         <target state="translated">función local</target>

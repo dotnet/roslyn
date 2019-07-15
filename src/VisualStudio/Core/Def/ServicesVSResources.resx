@@ -699,6 +699,12 @@ Additional information: {1}</value>
   <data name="Learn_more" xml:space="preserve">
     <value>Learn more</value>
   </data>
+  <data name="Build_plus_live_analysis_NuGet_package" xml:space="preserve">
+    <value>Build + live analysis (NuGet package)</value>
+  </data>
+  <data name="Live_analysis_VSIX_extension" xml:space="preserve">
+    <value>Live analysis (VSIX extension)</value>
+  </data>
   <data name="Prefer_framework_type" xml:space="preserve">
     <value>Prefer framework type</value>
   </data>
@@ -921,8 +927,8 @@ Additional information: {1}</value>
   <data name="Options" xml:space="preserve">
     <value>Options</value>
   </data>
-  <data name="Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues" xml:space="preserve">
-    <value>Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues</value>
+  <data name="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues" xml:space="preserve">
+    <value>Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</value>
   </data>
   <data name="Never_show_this_again" xml:space="preserve">
     <value>Never show this again</value>

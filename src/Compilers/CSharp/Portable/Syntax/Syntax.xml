@@ -4348,7 +4348,6 @@
     <Field Name="DisableOrRestoreKeyword" Type="SyntaxToken">
       <Kind Name="DisableKeyword"/>
       <Kind Name="RestoreKeyword"/>
-      <Kind Name="EnableKeyword"/>
     </Field>
     <Field Name="ErrorCodes" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;"/>
     <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
