@@ -5,12 +5,12 @@ jobs:
 - job: Windows
   pool: ${{ parameters.windowsPool }}
   steps:
+  - checkout: self
+    clean: true # "all" doesn't work, but "true" does, despite YAML docs
   - template: clear-packagecaches.yml
   - template: install-dependencies.yml
 
-  - powershell: |
-      dotnet tool install --tool-path $(Agent.TempDirectory) nbgv --ignore-failed-sources
-      $(Agent.TempDirectory)/nbgv cloud
+  - powershell: '& (azure-pipelines\Get-nbgv.ps1) cloud'
     displayName: Set build number
 
   - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
@@ -27,6 +27,8 @@ jobs:
   pool:
     vmImage: Ubuntu 16.04
   steps:
+  - checkout: self
+    clean: true # "all" doesn't work, but "true" does, despite YAML docs
   - template: install-dependencies.yml
   - template: dotnet.yml
   - template: expand-template.yml
@@ -48,6 +50,8 @@ jobs:
     vmImage: Ubuntu 16.04
   condition: succeededOrFailed()
   steps:
+  - checkout: self
+    clean: true # "all" doesn't work, but "true" does, despite YAML docs
   - template: install-dependencies.yml
   - template: publish-codecoverage.yml
   - template: publish-deployables.yml

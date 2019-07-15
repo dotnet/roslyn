@@ -93,12 +93,15 @@ $runtimeVersions | Get-Unique |% {
     }
 }
 
-Write-Host "Environment variables to be set:" -ForegroundColor Blue
-$envVars
-
 if ($PSCmdlet.ShouldProcess("Set DOTNET environment variables to discover these installed runtimes?")) {
     if ($env:TF_BUILD) {
         Write-Host "Azure Pipelines detected. Logging commands will be used to propagate environment variables and prepend path."
+    }
+
+    if ($IsMacOS -or $IsLinux) {
+        $envVars['PATH'] = "${DotNetInstallDir}:$env:PATH"
+    } else {
+        $envVars['PATH'] = "$DotNetInstallDir;$env:PATH"
     }
 
     $envVars.GetEnumerator() |% {
@@ -110,13 +113,22 @@ if ($PSCmdlet.ShouldProcess("Set DOTNET environment variables to discover these 
         }
     }
 
-    if ($IsMacOS -or $IsLinux) {
-        $env:PATH = "${DotNetInstallDir}:$env:PATH"
-    } else {
-        $env:PATH = "$DotNetInstallDir;$env:PATH"
-    }
-
     if ($env:TF_BUILD) {
         Write-Host "##vso[task.prependpath]$DotNetInstallDir"
     }
+}
+
+if ($env:PS1UnderCmd -eq '1') {
+    Write-Warning "Environment variable changes will be lost because you're running under cmd.exe. Run these commands manually:"
+    $envVars.GetEnumerator() |% {
+        if ($_.Key -eq 'PATH') {
+            # Special case this one for readability
+            Write-Host "SET PATH=$DotNetInstallDir;%PATH%"
+        } else {
+            Write-Host "SET $($_.Key)=$($_.Value)"
+        }
+    }
+} else {
+    Write-Host "Environment variables set:" -ForegroundColor Blue
+    $envVars
 }
