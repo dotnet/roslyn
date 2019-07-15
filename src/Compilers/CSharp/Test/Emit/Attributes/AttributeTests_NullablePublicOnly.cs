@@ -31,7 +31,7 @@ public class B : A<object?>
             var comp = CreateCompilation(sources, options: options, parseOptions: parseOptions);
             CompileAndVerify(comp, symbolValidator: m => AssertNullablePublicOnlyAttribute(m, includesAttributeDefinition: true, includesAttributeUse: false, publicDefinition: true));
 
-            comp = CreateCompilation(sources, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
+            comp = CreateCompilation(sources, options: options, parseOptions: parseOptions.WithNullablePublicOnly());
             CompileAndVerify(comp, symbolValidator: m => AssertNullablePublicOnlyAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, publicDefinition: true));
         }
 
@@ -55,7 +55,7 @@ public class B : A<object?>
             comp = CreateCompilation(source, references: new[] { ref1 }, options: options, parseOptions: parseOptions);
             CompileAndVerify(comp, symbolValidator: m => AssertNullablePublicOnlyAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false, publicDefinition: true));
 
-            comp = CreateCompilation(source, references: new[] { ref1 }, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
+            comp = CreateCompilation(source, references: new[] { ref1 }, options: options, parseOptions: parseOptions.WithNullablePublicOnly());
             CompileAndVerify(comp, symbolValidator: m => AssertNullablePublicOnlyAttribute(m, includesAttributeDefinition: false, includesAttributeUse: true, publicDefinition: true));
         }
 
@@ -82,7 +82,7 @@ public class B : A<object?>
             var comp = CreateCompilation(new[] { source1, source2 }, options: options, parseOptions: parseOptions);
             comp.VerifyEmitDiagnostics();
 
-            comp = CreateCompilation(new[] { source1, source2 }, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
+            comp = CreateCompilation(new[] { source1, source2 }, options: options, parseOptions: parseOptions.WithNullablePublicOnly());
             comp.VerifyEmitDiagnostics(
                 // error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullablePublicOnlyAttribute..ctor'
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Runtime.CompilerServices.NullablePublicOnlyAttribute", ".ctor").WithLocation(1, 1));
@@ -98,7 +98,7 @@ public class B : A<object?>
             var comp = CreateCompilation(source, options: options, parseOptions: parseOptions);
             CompileAndVerify(comp, symbolValidator: AssertNoNullablePublicOnlyAttribute);
 
-            comp = CreateCompilation(source, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
+            comp = CreateCompilation(source, options: options, parseOptions: parseOptions.WithNullablePublicOnly());
             CompileAndVerify(comp, symbolValidator: AssertNoNullablePublicOnlyAttribute);
         }
 
@@ -118,7 +118,7 @@ public class B : A<object>
             var comp = CreateCompilation(source, options: options, parseOptions: parseOptions);
             CompileAndVerify(comp, symbolValidator: AssertNoNullablePublicOnlyAttribute);
 
-            comp = CreateCompilation(source, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
+            comp = CreateCompilation(source, options: options, parseOptions: parseOptions.WithNullablePublicOnly());
             CompileAndVerify(comp, symbolValidator: AssertNoNullablePublicOnlyAttribute);
         }
 
@@ -138,7 +138,7 @@ public class B : A<object?>
             var comp = CreateCompilation(source, options: options, parseOptions: parseOptions);
             CompileAndVerify(comp, symbolValidator: AssertNoNullablePublicOnlyAttribute);
 
-            comp = CreateCompilation(source, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
+            comp = CreateCompilation(source, options: options, parseOptions: parseOptions.WithNullablePublicOnly());
             CompileAndVerify(comp, symbolValidator: AssertNullablePublicOnlyAttribute);
         }
 
@@ -158,7 +158,7 @@ class B : A<object?>
             var comp = CreateCompilation(source, options: options, parseOptions: parseOptions);
             CompileAndVerify(comp, symbolValidator: AssertNoNullablePublicOnlyAttribute);
 
-            comp = CreateCompilation(source, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
+            comp = CreateCompilation(source, options: options, parseOptions: parseOptions.WithNullablePublicOnly());
             CompileAndVerify(comp, symbolValidator: AssertNoNullablePublicOnlyAttribute);
         }
 
@@ -178,7 +178,7 @@ public class B : A<object>
             var comp = CreateCompilation(source, options: options, parseOptions: parseOptions);
             CompileAndVerify(comp, symbolValidator: AssertNoNullablePublicOnlyAttribute);
 
-            comp = CreateCompilation(source, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
+            comp = CreateCompilation(source, options: options, parseOptions: parseOptions.WithNullablePublicOnly());
             CompileAndVerify(comp, symbolValidator: AssertNoNullablePublicOnlyAttribute);
         }
 
@@ -198,7 +198,7 @@ public class B : A<object?>
             var comp = CreateCompilation(source, options: options, parseOptions: parseOptions);
             CompileAndVerify(comp, symbolValidator: AssertNoNullablePublicOnlyAttribute);
 
-            comp = CreateCompilation(source, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
+            comp = CreateCompilation(source, options: options, parseOptions: parseOptions.WithNullablePublicOnly());
             CompileAndVerify(comp, symbolValidator: AssertNullablePublicOnlyAttribute);
         }
 
@@ -216,7 +216,7 @@ public class B : A<object?>
             var comp = CreateCompilation(sources, options: options, parseOptions: parseOptions);
             CompileAndVerify(comp, symbolValidator: AssertNoNullablePublicOnlyAttribute);
 
-            comp = CreateCompilation(sources, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
+            comp = CreateCompilation(sources, options: options, parseOptions: parseOptions.WithNullablePublicOnly());
             CompileAndVerify(comp, symbolValidator: AssertNoNullablePublicOnlyAttribute);
         }
 
@@ -247,7 +247,7 @@ public class A
                 source1,
                 references: new[] { ref0 },
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                parseOptions: TestOptions.Regular8.WithFeature("nullablePublicOnly"));
+                parseOptions: TestOptions.Regular8.WithNullablePublicOnly());
             comp.VerifyDiagnostics(
                 // (6,13): warning CS8604: Possible null reference argument for parameter 'o' in 'void A.M(object o)'.
                 //         A.M(A.F);
@@ -270,7 +270,7 @@ public class Program
             var comp = CreateCompilation(sources, options: options, parseOptions: parseOptions);
             CompileAndVerify(comp, symbolValidator: m => AssertNullablePublicOnlyAttribute(m, includesAttributeDefinition: true, includesAttributeUse: false, publicDefinition: true));
 
-            comp = CreateCompilation(sources, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
+            comp = CreateCompilation(sources, options: options, parseOptions: parseOptions.WithNullablePublicOnly());
             CompileAndVerify(comp, symbolValidator: m => AssertNullablePublicOnlyAttribute(m, includesAttributeDefinition: true, includesAttributeUse: false, publicDefinition: true));
         }
 
@@ -290,7 +290,7 @@ public class Program
             var comp = CreateCompilation(sources, options: options, parseOptions: parseOptions);
             CompileAndVerify(comp, symbolValidator: m => AssertNullablePublicOnlyAttribute(m, includesAttributeDefinition: true, includesAttributeUse: false, publicDefinition: true));
 
-            comp = CreateCompilation(sources, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
+            comp = CreateCompilation(sources, options: options, parseOptions: parseOptions.WithNullablePublicOnly());
             CompileAndVerify(comp, symbolValidator: m => AssertNullablePublicOnlyAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, publicDefinition: true));
         }
 
@@ -309,7 +309,7 @@ public class Program
             var comp = CreateCompilation(sources, options: options, parseOptions: parseOptions);
             CompileAndVerify(comp, symbolValidator: AssertNoNullablePublicOnlyAttribute);
 
-            comp = CreateCompilation(sources, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
+            comp = CreateCompilation(sources, options: options, parseOptions: parseOptions.WithNullablePublicOnly());
             CompileAndVerify(comp, symbolValidator: AssertNoNullablePublicOnlyAttribute);
         }
 
@@ -329,7 +329,7 @@ public class Program
             var comp = CreateCompilation(sources, options: options, parseOptions: parseOptions);
             CompileAndVerify(comp, symbolValidator: AssertNoNullablePublicOnlyAttribute);
 
-            comp = CreateCompilation(sources, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
+            comp = CreateCompilation(sources, options: options, parseOptions: parseOptions.WithNullablePublicOnly());
             CompileAndVerify(comp, symbolValidator: AssertNullablePublicOnlyAttribute);
         }
 
@@ -352,7 +352,7 @@ public class Program
             var comp = CreateCompilation(source, options: options, parseOptions: parseOptions);
             CompileAndVerify(comp, symbolValidator: AssertNoNullablePublicOnlyAttribute);
 
-            comp = CreateCompilation(source, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
+            comp = CreateCompilation(source, options: options, parseOptions: parseOptions.WithNullablePublicOnly());
             CompileAndVerify(comp, symbolValidator: AssertNoNullablePublicOnlyAttribute);
         }
 
@@ -376,7 +376,7 @@ public class Program
             var comp = CreateCompilation(sources, options: options, parseOptions: parseOptions);
             CompileAndVerify(comp, symbolValidator: m => AssertNullablePublicOnlyAttribute(m, includesAttributeDefinition: true, includesAttributeUse: false, publicDefinition: true));
 
-            comp = CreateCompilation(sources, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
+            comp = CreateCompilation(sources, options: options, parseOptions: parseOptions.WithNullablePublicOnly());
             CompileAndVerify(comp, symbolValidator: m => AssertNullablePublicOnlyAttribute(m, includesAttributeDefinition: true, includesAttributeUse: false, publicDefinition: true));
         }
 
@@ -494,7 +494,7 @@ public class Program
 {
     public object? F;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("nullablePublicOnly"), options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithNullablePublicOnly(), options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
             CompileAndVerify(comp, symbolValidator: module =>
             {
                 var attributeType = module.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Runtime.CompilerServices.NullablePublicOnlyAttribute");
@@ -515,7 +515,7 @@ public class Program
 {
     public object? F;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("nullablePublicOnly"));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithNullablePublicOnly());
             comp.MakeTypeMissing(WellKnownType.System_AttributeUsageAttribute);
             comp.VerifyEmitDiagnostics(
                 // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
@@ -561,9 +561,9 @@ public class Program
 
             var parseOptions = TestOptions.Regular8;
             CompileAndVerify(source, parseOptions: parseOptions, expectedOutput: "<null>");
-            CompileAndVerify(source, parseOptions: parseOptions.WithFeature("nullablePublicOnly"), expectedOutput: "False");
+            CompileAndVerify(source, parseOptions: parseOptions.WithNullablePublicOnly(), expectedOutput: "False");
             CompileAndVerify(new[] { source, sourceIVTs }, parseOptions: parseOptions, expectedOutput: "<null>");
-            CompileAndVerify(new[] { source, sourceIVTs }, parseOptions: parseOptions.WithFeature("nullablePublicOnly"), expectedOutput: "True");
+            CompileAndVerify(new[] { source, sourceIVTs }, parseOptions: parseOptions.WithNullablePublicOnly(), expectedOutput: "True");
         }
 
         private static void AssertNoNullablePublicOnlyAttribute(ModuleSymbol module)

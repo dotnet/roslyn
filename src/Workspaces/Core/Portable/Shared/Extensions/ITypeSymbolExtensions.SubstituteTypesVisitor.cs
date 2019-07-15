@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     symbol = updatedContainingType.GetTypeMembers(symbol.Name, symbol.Arity).First(m => m.TypeKind == symbol.TypeKind);
                 }
 
-                var typeArgumentsWithNullability = symbol.TypeArguments.ZipAsArray(symbol.TypeArgumentsNullableAnnotations, (t, n) => t.WithNullability(n));
+                var typeArgumentsWithNullability = symbol.TypeArguments.ZipAsArray(symbol.TypeArgumentNullableAnnotations, (t, n) => t.WithNullability(n));
                 var substitutedArguments = typeArgumentsWithNullability.Select(t => t.Accept(this));
                 if (typeArgumentsWithNullability.SequenceEqual(substitutedArguments))
                 {

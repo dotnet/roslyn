@@ -2485,21 +2485,6 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">Přidat název argumentu {0} (včetně koncových argumentů)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Using_readonly_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly structs will prevent the debug session from continuing.</source>
-        <target state="translated">Použití struktur jen pro čtení zabrání ladicí relaci dál pokračovat.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_ref_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using ref structs will prevent the debug session from continuing.</source>
-        <target state="translated">Použití struktur REF zabrání ladicí relaci dál pokračovat.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_readonly_references_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly references will prevent the debug session from continuing.</source>
-        <target state="translated">Použití odkazů jen pro čtení zabrání ladicí relaci dál pokračovat.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="local_function">
         <source>local function</source>
         <target state="translated">lokální funkce</target>

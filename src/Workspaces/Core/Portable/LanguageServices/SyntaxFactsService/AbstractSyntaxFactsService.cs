@@ -491,5 +491,24 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         private bool SpansPreprocessorDirective(SyntaxTriviaList list)
             => list.Any(t => IsPreprocessorDirective(t));
+
+        public bool IsInHeader(SyntaxNode node, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader)
+        {
+            var start = GetStartOfNodeExcludingAttributes(ownerOfHeader);
+            var end = lastTokenOrNodeOfHeader.FullSpan.End;
+
+            return node.Span.Start >= start && node.Span.End <= end;
+        }
+
+        protected int GetStartOfNodeExcludingAttributes(SyntaxNode node)
+        {
+            var attributeLists = GetAttributeLists(node);
+            var start = attributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart ??
+                        node.SpanStart;
+
+            return start;
+        }
+
+        public abstract SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node);
     }
 }

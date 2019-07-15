@@ -127,9 +127,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, nameof(FeaturesResources.Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, nameof(FeaturesResources.Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.SwitchBetweenLambdaAndLocalFunction, nameof(FeaturesResources.Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing));
-            AddRudeEdit(RudeEditKind.RefStruct, nameof(FeaturesResources.Using_ref_structs_will_prevent_the_debug_session_from_continuing));
-            AddRudeEdit(RudeEditKind.ReadOnlyStruct, nameof(FeaturesResources.Using_readonly_structs_will_prevent_the_debug_session_from_continuing));
-            AddRudeEdit(RudeEditKind.ReadOnlyReferences, nameof(FeaturesResources.Using_readonly_references_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier, nameof(FeaturesResources.Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.InternalError, nameof(FeaturesResources.Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error));
             AddRudeEdit(RudeEditKind.ComplexQueryExpression, nameof(FeaturesResources.Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_will_prevent_the_debug_session_from_continuing));

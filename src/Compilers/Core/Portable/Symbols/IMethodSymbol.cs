@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis
         /// for the type parameters. If nothing has been substituted for a given type parameter,
         /// then <see cref="NullableAnnotation.NotApplicable"/> is returned.
         /// </summary>
-        ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations { get; }
+        ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations { get; }
 
         /// <summary>
         /// Get the type parameters on this method. If the method has not generic,

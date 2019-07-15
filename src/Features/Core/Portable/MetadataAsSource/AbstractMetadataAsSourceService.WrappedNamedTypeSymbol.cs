@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public ImmutableArray<ITypeParameterSymbol> TypeParameters => _symbol.TypeParameters;
             public ImmutableArray<ITypeSymbol> TypeArguments => _symbol.TypeArguments;
-            public ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations => _symbol.TypeArgumentsNullableAnnotations;
+            public ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => _symbol.TypeArgumentNullableAnnotations;
             public ImmutableArray<IMethodSymbol> InstanceConstructors => _symbol.InstanceConstructors;
             public ImmutableArray<IMethodSymbol> StaticConstructors => _symbol.StaticConstructors;
             public ImmutableArray<IMethodSymbol> Constructors => _symbol.Constructors;

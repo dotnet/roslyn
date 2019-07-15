@@ -20,14 +20,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentCodeActionName)]
-    internal class CodeActionsHandler : CodeActionsHandlerBase, IRequestHandler<LSP.CodeActionParams, LSP.Command[]>
+    internal class CodeActionsHandler : CodeActionsHandlerBase, IRequestHandler<LSP.CodeActionParams, object[]>
     {
         [ImportingConstructor]
         public CodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService) : base(codeFixService, codeRefactoringService)
         {
         }
 
-        public async Task<LSP.Command[]> HandleRequestAsync(Solution solution, LSP.CodeActionParams request,
+        public async Task<object[]> HandleRequestAsync(Solution solution, LSP.CodeActionParams request,
             LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             var codeActions = await GetCodeActionsAsync(solution,
