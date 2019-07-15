@@ -7376,10 +7376,6 @@ class Program
             var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp30);
             var verifier = CompileAndVerify(c, verify: Verification.Skipped);
 
-            // TODO: https://github.com/dotnet/roslyn/issues/37172
-            // Synthesized temp variables used for patterns have the same type, syntax offset and kind.
-            // This breaks Enc mapping.
-
             verifier.VerifyIL("Program.Main", sequencePoints: "Program.Main", expectedIL: @"
 {
   // Code size      453 (0x1c5)
@@ -7773,7 +7769,7 @@ class Program
             var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp30);
             var verifier = CompileAndVerify(c, verify: Verification.Skipped);
 
-            // note not sequence points emitted within the switch expression
+            // note no sequence points emitted within the switch expression
 
             verifier.VerifyIL("Program.Main", sequencePoints: "Program.Main", expectedIL: @"
 {

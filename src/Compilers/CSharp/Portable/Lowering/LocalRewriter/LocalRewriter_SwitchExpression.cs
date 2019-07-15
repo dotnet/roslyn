@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override bool IsSwitchStatement => false;
 
-            public static BoundExpression Rewrite(LocalRewriter localRewriter, BoundSwitchExpression node)
+            public static BoundExpression Rewrite(LocalRewriter localRewriter, BoundConvertedSwitchExpression node)
             {
                 var rewriter = new SwitchExpressionLocalRewriter(node, localRewriter);
                 BoundExpression result = rewriter.LowerSwitchExpression(node);
