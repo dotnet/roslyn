@@ -5402,11 +5402,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var discarded = left is BoundDiscardExpression;
                     rightState = VisitOptionalImplicitConversion(right, targetTypeOpt: discarded ? default : leftLValueType, UseLegacyWarnings(left, leftLValueType), trackMembers: true, AssignmentKind.Assignment);
-
-                    if (left is BoundDiscardExpression discard)
-                    {
-                        SetAnalyzedNullability(discard, new VisitResult(rightState), isLvalue: true);
-                    }
                 }
                 else
                 {
@@ -5417,8 +5412,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckDisallowedNullAssignment(rightState, leftAnnotations, right.Syntax.Location);
 
                 TrackNullableStateForAssignment(right, leftLValueType, MakeSlot(left), rightState, MakeSlot(right));
-                var resultState = left is BoundDiscardExpression ? rightState : TypeWithState.Create(leftLValueType.Type, rightState.State);
-                SetResult(node, resultState, leftLValueType);
+                if (left is BoundDiscardExpression)
+                {
+                    SetResult(left, rightState, rightState.ToTypeWithAnnotations(), isLvalue: true);
+                    SetResult(node, rightState, rightState.ToTypeWithAnnotations());
+                }
+                else
+                {
+                    SetResult(node, TypeWithState.Create(leftLValueType.Type, rightState.State), leftLValueType);
+                }
             }
 
             return null;
