@@ -697,19 +697,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                // TODO2 cache?
                 var attributes = GetAttributes();
-                ImmutableHashSet<string>.Builder set = null;
+                var result = ImmutableHashSet<string>.Empty;
                 foreach (var attribute in attributes)
                 {
                     if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullIfNotNullAttribute))
                     {
-                        set ??= ImmutableHashSet.CreateBuilder<string>();
-                        set.Add(attribute.DecodeNotNullIfNotNullAttribute());
+                        if (attribute.DecodeNotNullIfNotNullAttribute() is string parameterName)
+                        {
+                            result = result.Add(parameterName);
+                        }
                     }
                 }
 
-                return set?.ToImmutableHashSet() ?? ImmutableHashSet<string>.Empty;
+                return result;
             }
         }
 

@@ -686,6 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(attribute is SourceAttributeData);
             return ((SourceAttributeData)attribute).GetAttributeArgumentSyntax(parameterIndex, attributeSyntax);
         }
+
         internal static string DecodeNotNullIfNotNullAttribute(this CSharpAttributeData attribute)
         {
             var arguments = attribute.CommonConstructorArguments;

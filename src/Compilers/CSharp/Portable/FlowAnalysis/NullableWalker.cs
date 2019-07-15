@@ -3210,7 +3210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableHashSet<string> returnNotNullIfParameterNotNull = IsAnalyzingAttribute ? null : method?.ReturnNotNullIfParameterNotNull;
                 for (int i = 0; i < argumentsNoConversions.Length; i++)
                 {
-                    (ParameterSymbol parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, bool isSimpleArgument) =
+                    (ParameterSymbol parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, bool isExpandedParamsArgument) =
                         GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
                     if (parameter is null)
                     {
@@ -3229,9 +3229,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         results[i],
                         invokedAsExtensionMethod && i == 0);
 
-                    if (results[i].RValueType.IsNotNull && isSimpleArgument)
+                    if (results[i].RValueType.IsNotNull || isExpandedParamsArgument)
                     {
-                        // Note: expanded params parameters don't count
                         notNullParametersBuilder?.Add(parameter);
 
                         if (returnNotNullIfParameterNotNull?.Contains(parameter.Name) == true)
@@ -3714,7 +3713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localState.HasValue ? localState.Value : this.State.Clone());
         }
 
-        private (ParameterSymbol Parameter, TypeWithAnnotations Type, FlowAnalysisAnnotations Annotations, bool isSimpleArgument) GetCorrespondingParameter(
+        private (ParameterSymbol Parameter, TypeWithAnnotations Type, FlowAnalysisAnnotations Annotations, bool isExpandedParamsArgument) GetCorrespondingParameter(
             int argumentOrdinal,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<int> argsToParamsOpt,
@@ -3768,10 +3767,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expanded && parameter.Ordinal == n - 1 && type.IsSZArray())
             {
                 type = ((ArrayTypeSymbol)type.Type).ElementTypeWithAnnotations;
-                return (parameter, type, FlowAnalysisAnnotations.None, isSimpleArgument: false);
+                return (parameter, type, FlowAnalysisAnnotations.None, isExpandedParamsArgument: true);
             }
 
-            return (parameter, type, GetParameterAnnotations(parameter), isSimpleArgument: true);
+            return (parameter, type, GetParameterAnnotations(parameter), isExpandedParamsArgument: false);
         }
 
         private MethodSymbol InferMethodTypeArguments(BoundCall node, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
