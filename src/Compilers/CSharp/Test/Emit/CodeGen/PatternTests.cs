@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class PatternTests : EmitMetadataTestBase
     {
+        #region Miscallaneous
+
         [Fact, WorkItem(18811, "https://github.com/dotnet/roslyn/issues/18811")]
         public void MissingNullable_01()
         {
@@ -3786,5 +3788,346 @@ public class C
 }
 ");
         }
+
+        #endregion Miscellaneous
+
+        #region Target Typed Switch
+
+        [Fact]
+        public void TargetTypedSwitch_Assignment()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.Write(M(false));
+        Console.Write(M(true));
+    }
+    static object M(bool b)
+    {
+        int result = b switch { false => new A(), true => new B() };
+        return result;
+    }
+}
+class A
+{
+    public static implicit operator int(A a) => (a == null) ? throw null : 4;
+    public static implicit operator B(A a) => throw null;
+}
+class B
+{
+    public static implicit operator int(B b) => (b == null) ? throw null : 2;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"42";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Return()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.Write(M(false));
+        Console.Write(M(true));
+    }
+    static long M(bool b)
+    {
+        return b switch { false => new A(), true => new B() };
+    }
+}
+class A
+{
+    public static implicit operator int(A a) => (a == null) ? throw null : 4;
+    public static implicit operator B(A a) => throw null;
+}
+class B
+{
+    public static implicit operator int(B b) => (b == null) ? throw null : 2;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"42";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Argument_01()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.Write(M1(false));
+        Console.Write(M1(true));
+    }
+    static object M1(bool b)
+    {
+        return M2(b switch { false => new A(), true => new B() });
+    }
+    static Exception M2(Exception ex) => ex;
+    static int M2(int i) => i;
+    static int M2(string s) => s.Length;
+}
+class A : Exception
+{
+    public static implicit operator int(A a) => (a == null) ? throw null : 4;
+    public static implicit operator B(A a) => throw null;
+}
+class B : Exception
+{
+    public static implicit operator int(B b) => (b == null) ? throw null : 2;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                    // (12,16): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M2(Exception)' and 'Program.M2(int)'
+                    //         return M2(b switch { false => new A(), true => new B() });
+                    Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("Program.M2(System.Exception)", "Program.M2(int)").WithLocation(12, 16)
+                );
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Argument_02()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.Write(M1(false));
+        Console.Write(M1(true));
+    }
+    static object M1(bool b)
+    {
+        return M2(b switch { false => new A(), true => new B() });
+    }
+    // static Exception M2(Exception ex) => ex;
+    static int M2(int i) => i;
+    static int M2(string s) => s.Length;
+}
+class A : Exception
+{
+    public static implicit operator int(A a) => (a == null) ? throw null : 4;
+    public static implicit operator B(A a) => throw null;
+}
+class B : Exception
+{
+    public static implicit operator int(B b) => (b == null) ? throw null : 2;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"42";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        public void TargetTypedSwitch_Arglist()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.WriteLine(M1(false));
+        Console.WriteLine(M1(true));
+    }
+    static object M1(bool b)
+    {
+        return M2(__arglist(b switch { false => new A(), true => new B() }));
+    }
+    static int M2(__arglist) => 1;
+}
+class A
+{
+    public A() { Console.Write(""new A; ""); }
+    public static implicit operator B(A a) { Console.Write(""A->""); return new B(); }
+}
+class B
+{
+    public B() { Console.Write(""new B; ""); }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"new A; A->new B; 1
+new B; 1";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_StackallocSize()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        M1(false);
+        M1(true);
+    }
+    static void M1(bool b)
+    {
+        Span<int> s = stackalloc int[b switch { false => new A(), true => new B() }];
+        Console.WriteLine(s.Length);
+    }
+}
+class A
+{
+    public A() { Console.Write(""new A; ""); }
+    public static implicit operator int(A a) { Console.Write(""A->int; ""); return 4; }
+}
+class B
+{
+    public B() { Console.Write(""new B; ""); }
+    public static implicit operator int(B b) { Console.Write(""B->int; ""); return 2; }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"new A; A->int; 4
+new B; B->int; 2";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Attribute()
+        {
+            var source = @"
+using System;
+class Program
+{
+    [My(1 switch { 1 => 1, _ => 2 })]
+    public static void M1() { }
+
+    [My(1 switch { 1 => new A(), _ => new B() })]
+    public static void M2() { }
+
+    [My(1 switch { 1 => 1, _ => string.Empty })]
+    public static void M3() { }
+}
+public class MyAttribute : Attribute
+{
+    public MyAttribute(int Value) { }
+}
+public class A
+{
+    public static implicit operator int(A a) => 4;
+}
+public class B
+{
+    public static implicit operator int(B b) => 2;
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                    // (5,9): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                    //     [My(1 switch { 1 => 1, _ => 2 })]
+                    Diagnostic(ErrorCode.ERR_BadAttributeArgument, "1 switch { 1 => 1, _ => 2 }").WithLocation(5, 9),
+                    // (8,9): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                    //     [My(1 switch { 1 => new A(), _ => new B() })]
+                    Diagnostic(ErrorCode.ERR_BadAttributeArgument, "1 switch { 1 => new A(), _ => new B() }").WithLocation(8, 9),
+                    // (11,9): error CS1503: Argument 1: cannot convert from '<switch expression>' to 'int'
+                    //     [My(1 switch { 1 => 1, _ => string.Empty })]
+                    Diagnostic(ErrorCode.ERR_BadArgType, "1 switch { 1 => 1, _ => string.Empty }").WithArguments("1", "<switch expression>", "int").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_As()
+        {
+            var source = @"
+class Program
+{
+    public static void M(int i, string s)
+    {
+        // we do not target-type the left-hand-side of an as expression
+        _ = i switch { 1 => i, _ => s } as object;
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,15): error CS8506: No best type was found for the switch expression.
+                //         _ = i switch { 1 => i, _ => s } as object;
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(7, 15)
+                );
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_DoubleConversion()
+        {
+            var source = @"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        M(false);
+        M(true);
+    }
+    public static void M(bool b)
+    {
+        C c = b switch { false => new A(), true => new B() };
+        Console.WriteLine(""."");
+    }
+}
+class A
+{
+    public A()
+    {
+        Console.Write(""new A; "");
+    }
+    public static implicit operator B(A a)
+    {
+        Console.Write(""A->"");
+        return new B();
+    }
+}
+class B
+{
+    public B()
+    {
+        Console.Write(""new B; "");
+    }
+    public static implicit operator C(B a)
+    {
+        Console.Write(""B->"");
+        return new C();
+    }
+}
+class C
+{
+    public C()
+    {
+        Console.Write(""new C; "");
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"new A; A->new B; B->new C; .
+new B; B->new C; .";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        #endregion Target Typed Switch
     }
 }

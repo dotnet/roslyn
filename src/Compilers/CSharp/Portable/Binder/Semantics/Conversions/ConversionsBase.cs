@@ -110,6 +110,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            conversion = GetSwitchExpressionConversion(sourceExpression, destination, ref useSiteDiagnostics);
+            if (conversion.Exists)
+            {
+                return conversion;
+            }
+
             return GetImplicitUserDefinedConversion(sourceExpression, sourceType, destination, ref useSiteDiagnostics);
         }
 
@@ -519,7 +525,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // "S s = null;" should be allowed. 
             // 
             // We extend the definition of standard implicit conversions to include
-            // all of the implicit conversions that are allowed based on an expression.
+            // all of the implicit conversions that are allowed based on an expression,
+            // with the exception of the switch expression conversion.
 
             Conversion conversion = ClassifyImplicitBuiltInConversionFromExpression(sourceExpression, source, destination, ref useSiteDiagnostics);
             if (conversion.Exists)
@@ -924,6 +931,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return Conversion.NoConversion;
+        }
+
+        private Conversion GetSwitchExpressionConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            switch (source)
+            {
+                case BoundConvertedSwitchExpression _:
+                    // It has already been subjected to a switch expression conversion.
+                    return Conversion.NoConversion;
+                case BoundUnconvertedSwitchExpression switchExpression:
+                    foreach (var arm in switchExpression.SwitchArms)
+                    {
+                        if (!this.ClassifyConversionFromExpression(arm.Value, destination, ref useSiteDiagnostics).IsImplicit)
+                        {
+                            return Conversion.NoConversion;
+                        }
+                    }
+
+                    return Conversion.SwitchExpression;
+                default:
+                    return Conversion.NoConversion;
+            }
         }
 
         private static Conversion ClassifyNullLiteralConversion(BoundExpression source, TypeSymbol destination)
