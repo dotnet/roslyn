@@ -93,6 +93,16 @@
       "vsBranch": "lab/d16.1stg",
       "vsMajorVersion": 16,
       "ibcSourceBranch": "master-vs-deps"
+    },
+    "features/compilerNext": {
+      "nugetKind": [ "Shipping", "NonShipping" ],
+      "version": "3.4.*",
+      "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+      "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+      "channels": [ "compilerNext" ],
+      "vsBranch": "master",
+      "vsMajorVersion": 16,
+      "ibcSourceBranch": "master-vs-deps"
     }
   },
   "releases": {
