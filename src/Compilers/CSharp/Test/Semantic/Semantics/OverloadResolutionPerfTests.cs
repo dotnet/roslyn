@@ -234,6 +234,7 @@ public static class Class
         public void NotNull_Complexity()
         {
             var source = @"
+#nullable enable
 using System;
 using System.Diagnostics.CodeAnalysis;
 class C
@@ -276,7 +277,7 @@ static class Ext
     public static V NotNull<T, V>([NotNull] this T t, Func<T, V> f) => throw null!;
 }
 ";
-            var comp = CreateNullableCompilation(new[] { NotNullAttributeDefinition, source });
+            var comp = CreateCompilation(new[] { NotNullAttributeDefinition, source });
             comp.VerifyDiagnostics();
         }
     }
