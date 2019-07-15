@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Shared
 {
@@ -40,6 +41,11 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
             }
 
             return Task.FromResult<IList<(Checksum, object)>>(list);
+        }
+
+        public override Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
+        {
+            return SpecializedTasks.False;
         }
     }
 }

@@ -166,13 +166,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             // Commit with completion service assumes that null is provided is case of invoke. VS provides '\0' in the case.
-            char? commitChar = typeChar == '\0' ? null : (char?)typeChar;
+            var commitChar = typeChar == '\0' ? null : (char?)typeChar;
             var commitBehavior = Commit(
                 triggerDocument, completionService, session.TextView, subjectBuffer,
                 roslynItem, completionListSpan, commitChar, triggerSnapshot, serviceRules,
                 filterText, cancellationToken);
 
-            _recentItemsManager.MakeMostRecentItem(roslynItem.DisplayText);
+            _recentItemsManager.MakeMostRecentItem(roslynItem.FilterText);
             return new AsyncCompletionData.CommitResult(isHandled: true, commitBehavior);
         }
 

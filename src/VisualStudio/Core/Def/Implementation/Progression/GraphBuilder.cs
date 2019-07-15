@@ -200,7 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             using (_gate.DisposableWait())
             {
-                GraphNode node = await GetOrCreateNodeAsync(_graph, symbol, _solution, _cancellationToken).ConfigureAwait(false);
+                var node = await GetOrCreateNodeAsync(_graph, symbol, _solution, _cancellationToken).ConfigureAwait(false);
 
                 node[RoslynGraphProperties.SymbolId] = (SymbolKey?)symbol.GetSymbolKey();
                 node[RoslynGraphProperties.ContextProjectId] = GetContextProjectId(contextProject, symbol);

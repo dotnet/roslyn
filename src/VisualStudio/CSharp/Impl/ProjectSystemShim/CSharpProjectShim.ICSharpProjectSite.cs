@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 throw new ArgumentException("optionID was an unexpected value.", nameof(optionID));
             }
 
-            bool embedInteropTypes = optionID == CompilerOptions.OPTID_IMPORTSUSINGNOPIA;
+            var embedInteropTypes = optionID == CompilerOptions.OPTID_IMPORTSUSINGNOPIA;
             VisualStudioProject.AddMetadataReference(filename, new MetadataReferenceProperties(embedInteropTypes: embedInteropTypes));
 
             return VSConstants.S_OK;

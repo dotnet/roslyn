@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ISymbol symbol, Func<SyntaxToken, SyntaxNode> findParentNode, Solution solution, CancellationToken cancellationToken)
         {
             var nodeMatch = GetStandardSymbolsNodeMatchFunction(symbol, solution, cancellationToken);
-            findParentNode = findParentNode ?? (t => t.Parent);
+            findParentNode ??= (t => t.Parent);
             (bool matched, CandidateReason reason) symbolsMatch(SyntaxToken token, SemanticModel model)
                 => nodeMatch(findParentNode(token), model);
 

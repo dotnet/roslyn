@@ -43,12 +43,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
               bool shouldFormatOnCommit = false,
               int? matchPriority = null)
         {
-            this.Keyword = keyword;
-            this.Glyph = glyph;
-            this.DescriptionFactory = descriptionFactory;
-            this.IsIntrinsic = isIntrinsic;
-            this.ShouldFormatOnCommit = shouldFormatOnCommit;
-            this.MatchPriority = matchPriority ?? Completion.MatchPriority.Default;
+            Keyword = keyword;
+            Glyph = glyph;
+            DescriptionFactory = descriptionFactory;
+            IsIntrinsic = isIntrinsic;
+            ShouldFormatOnCommit = shouldFormatOnCommit;
+            MatchPriority = matchPriority ?? Completion.MatchPriority.Default;
         }
     }
 }

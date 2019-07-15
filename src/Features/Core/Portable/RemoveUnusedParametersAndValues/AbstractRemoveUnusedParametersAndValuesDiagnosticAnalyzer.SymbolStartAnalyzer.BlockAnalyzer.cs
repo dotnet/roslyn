@@ -331,6 +331,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             // Skip blocks from attributes (which have OperationKind.None) and parameter initializers.
                             // We don't have any unused values in such operation blocks.
                             return false;
+
+                        default:
+                            if (operationBlock.HasAnyOperationDescendant(o => o.Kind == OperationKind.None))
+                            {
+                                // Workaround for https://github.com/dotnet/roslyn/issues/32100
+                                // Bail out in presence of OperationKind.None - not implemented IOperation.
+                                return false;
+                            }
+
+                            break;
                     }
 
                     // We currently do not support points-to analysis, which is needed to accurately track locations of
@@ -404,9 +414,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     try
                     {
                         // Flag indicating if we found an operation block where all symbol writes were used. 
-                        bool hasBlockWithAllUsedWrites;
-
-                        AnalyzeUnusedValueAssignments(context, isComputingUnusedParams, symbolUsageResultsBuilder, out hasBlockWithAllUsedWrites);
+                        AnalyzeUnusedValueAssignments(context, isComputingUnusedParams, symbolUsageResultsBuilder, out var hasBlockWithAllUsedWrites);
 
                         AnalyzeUnusedParameters(context, isComputingUnusedParams, symbolUsageResultsBuilder, hasBlockWithAllUsedWrites);
                     }
@@ -590,7 +598,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return false;
                     }
 
-                    bool IsRemovableAssignmentValueWithoutSideEffects(IOperation assignmentValue)
+                    static bool IsRemovableAssignmentValueWithoutSideEffects(IOperation assignmentValue)
                     {
                         if (assignmentValue.ConstantValue.HasValue)
                         {
@@ -676,8 +684,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                     foreach (var parameter in method.Parameters)
                     {
-                        bool isUsed = false;
-                        bool isSymbolRead = false;
+                        var isUsed = false;
+                        var isSymbolRead = false;
                         var isRefOrOutParam = parameter.IsRefOrOut();
 
                         // Iterate through symbol usage results for each operation block.

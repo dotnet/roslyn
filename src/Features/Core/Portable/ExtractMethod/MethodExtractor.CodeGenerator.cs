@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -36,15 +35,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 Contract.ThrowIfFalse(insertionPoint.SemanticDocument == analyzerResult.SemanticDocument);
 
-                this.InsertionPoint = insertionPoint;
-                this.SemanticDocument = insertionPoint.SemanticDocument;
+                InsertionPoint = insertionPoint;
+                SemanticDocument = insertionPoint.SemanticDocument;
 
-                this.SelectionResult = selectionResult;
-                this.AnalyzerResult = analyzerResult;
+                SelectionResult = selectionResult;
+                AnalyzerResult = analyzerResult;
 
-                this.MethodNameAnnotation = new SyntaxAnnotation();
-                this.CallSiteAnnotation = new SyntaxAnnotation();
-                this.MethodDefinitionAnnotation = new SyntaxAnnotation();
+                MethodNameAnnotation = new SyntaxAnnotation();
+                CallSiteAnnotation = new SyntaxAnnotation();
+                MethodDefinitionAnnotation = new SyntaxAnnotation();
             }
 
             #region method to be implemented in sub classes
@@ -72,11 +71,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public async Task<GeneratedCode> GenerateAsync(CancellationToken cancellationToken)
             {
-                var root = this.SemanticDocument.Root;
+                var root = SemanticDocument.Root;
 
                 // should I check venus hidden position check here as well?
-                root = root.ReplaceNode(this.GetOutermostCallSiteContainerToProcess(cancellationToken), await this.GenerateBodyForCallSiteContainerAsync(cancellationToken).ConfigureAwait(false));
-                var callSiteDocument = await this.SemanticDocument.WithSyntaxRootAsync(root, cancellationToken).ConfigureAwait(false);
+                root = root.ReplaceNode(GetOutermostCallSiteContainerToProcess(cancellationToken), await GenerateBodyForCallSiteContainerAsync(cancellationToken).ConfigureAwait(false));
+                var callSiteDocument = await SemanticDocument.WithSyntaxRootAsync(root, cancellationToken).ConfigureAwait(false);
 
                 var newCallSiteRoot = callSiteDocument.Root;
                 var previousMemberNode = GetPreviousMember(callSiteDocument);
@@ -84,9 +83,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 // it is possible in a script file case where there is no previous member. in that case, insert new text into top level script
                 var destination = (previousMemberNode.Parent == null) ? previousMemberNode : previousMemberNode.Parent;
 
-                var codeGenerationService = this.SemanticDocument.Document.GetLanguageService<ICodeGenerationService>();
+                var codeGenerationService = SemanticDocument.Document.GetLanguageService<ICodeGenerationService>();
 
-                var result = this.GenerateMethodDefinition(cancellationToken);
+                var result = GenerateMethodDefinition(cancellationToken);
                 var newContainer = codeGenerationService.AddMethod(
                     destination, result.Data,
                     new CodeGenerationOptions(afterThisLocation: previousMemberNode.GetLocation(), generateDefaultAccessibility: true, generateMethodBodies: true),
@@ -98,7 +97,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var finalDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
                 var finalRoot = finalDocument.Root;
 
-                var methodDefinition = finalRoot.GetAnnotatedNodesAndTokens(this.MethodDefinitionAnnotation).FirstOrDefault();
+                var methodDefinition = finalRoot.GetAnnotatedNodesAndTokens(MethodDefinitionAnnotation).FirstOrDefault();
                 if (!methodDefinition.IsNode || methodDefinition.AsNode() == null)
                 {
                     return await CreateGeneratedCodeAsync(
@@ -120,14 +119,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return Task.FromResult(new GeneratedCode(
                     status,
                     newDocument,
-                    this.MethodNameAnnotation,
-                    this.CallSiteAnnotation,
-                    this.MethodDefinitionAnnotation));
+                    MethodNameAnnotation,
+                    CallSiteAnnotation,
+                    MethodDefinitionAnnotation));
             }
 
             protected VariableInfo GetOutermostVariableToMoveIntoMethodDefinition(CancellationToken cancellationToken)
             {
-                var variables = new List<VariableInfo>(this.AnalyzerResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken));
+                var variables = new List<VariableInfo>(AnalyzerResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken));
                 if (variables.Count <= 0)
                 {
                     return null;
@@ -140,12 +139,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected IEnumerable<TStatement> AddReturnIfUnreachable(
                 IEnumerable<TStatement> statements, CancellationToken cancellationToken)
             {
-                if (this.AnalyzerResult.EndOfSelectionReachable)
+                if (AnalyzerResult.EndOfSelectionReachable)
                 {
                     return statements;
                 }
 
-                var type = this.SelectionResult.GetContainingScopeType();
+                var type = SelectionResult.GetContainingScopeType();
                 if (type != null && type.SpecialType != SpecialType.System_Void)
                 {
                     return statements;
@@ -163,43 +162,43 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected async Task<IEnumerable<TStatement>> AddInvocationAtCallSiteAsync(
                 IEnumerable<TStatement> statements, CancellationToken cancellationToken)
             {
-                if (this.AnalyzerResult.HasVariableToUseAsReturnValue)
+                if (AnalyzerResult.HasVariableToUseAsReturnValue)
                 {
                     return statements;
                 }
 
-                Contract.ThrowIfTrue(this.AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken).Any(v => v.UseAsReturnValue));
+                Contract.ThrowIfTrue(AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken).Any(v => v.UseAsReturnValue));
 
                 // add invocation expression
                 return statements.Concat(
-                    (TStatement)(SyntaxNode)await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(this.CallSiteAnnotation, cancellationToken).ConfigureAwait(false));
+                    (TStatement)(SyntaxNode)await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CallSiteAnnotation, cancellationToken).ConfigureAwait(false));
             }
 
             protected IEnumerable<TStatement> AddAssignmentStatementToCallSite(
                 IEnumerable<TStatement> statements,
                 CancellationToken cancellationToken)
             {
-                if (!this.AnalyzerResult.HasVariableToUseAsReturnValue)
+                if (!AnalyzerResult.HasVariableToUseAsReturnValue)
                 {
                     return statements;
                 }
 
-                var variable = this.AnalyzerResult.VariableToUseAsReturnValue;
+                var variable = AnalyzerResult.VariableToUseAsReturnValue;
                 if (variable.ReturnBehavior == ReturnBehavior.Initialization)
                 {
                     // there must be one decl behavior when there is "return value and initialize" variable
-                    Contract.ThrowIfFalse(this.AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken).Single(v => v.ReturnBehavior == ReturnBehavior.Initialization) != null);
+                    Contract.ThrowIfFalse(AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken).Single(v => v.ReturnBehavior == ReturnBehavior.Initialization) != null);
 
                     var declarationStatement = CreateDeclarationStatement(
                         variable, CreateCallSignature(), cancellationToken);
-                    declarationStatement = declarationStatement.WithAdditionalAnnotations(this.CallSiteAnnotation);
+                    declarationStatement = declarationStatement.WithAdditionalAnnotations(CallSiteAnnotation);
 
                     return statements.Concat(declarationStatement);
                 }
 
                 Contract.ThrowIfFalse(variable.ReturnBehavior == ReturnBehavior.Assignment);
                 return statements.Concat(
-                    CreateAssignmentExpressionStatement(CreateIdentifier(variable.Name), CreateCallSignature()).WithAdditionalAnnotations(this.CallSiteAnnotation));
+                    CreateAssignmentExpressionStatement(CreateIdentifier(variable.Name), CreateCallSignature()).WithAdditionalAnnotations(CallSiteAnnotation));
             }
 
             protected IEnumerable<TStatement> CreateDeclarationStatements(
@@ -222,7 +221,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 var list = new List<TStatement>();
 
-                foreach (var variable in this.AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken))
+                foreach (var variable in AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken))
                 {
                     if (variable.UseAsReturnValue)
                     {
@@ -239,17 +238,17 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             protected IEnumerable<TStatement> AppendReturnStatementIfNeeded(IEnumerable<TStatement> statements)
             {
-                if (!this.AnalyzerResult.HasVariableToUseAsReturnValue)
+                if (!AnalyzerResult.HasVariableToUseAsReturnValue)
                 {
                     return statements;
                 }
 
-                var variableToUseAsReturnValue = this.AnalyzerResult.VariableToUseAsReturnValue;
+                var variableToUseAsReturnValue = AnalyzerResult.VariableToUseAsReturnValue;
 
                 Contract.ThrowIfFalse(variableToUseAsReturnValue.ReturnBehavior == ReturnBehavior.Assignment ||
                                       variableToUseAsReturnValue.ReturnBehavior == ReturnBehavior.Initialization);
 
-                return statements.Concat(CreateReturnStatement(this.AnalyzerResult.VariableToUseAsReturnValue.Name));
+                return statements.Concat(CreateReturnStatement(AnalyzerResult.VariableToUseAsReturnValue.Name));
             }
 
             protected HashSet<SyntaxAnnotation> CreateVariableDeclarationToRemoveMap(
@@ -271,15 +270,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             protected ImmutableArray<ITypeParameterSymbol> CreateMethodTypeParameters(CancellationToken cancellationToken)
             {
-                if (this.AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0)
+                if (AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0)
                 {
                     return ImmutableArray<ITypeParameterSymbol>.Empty;
                 }
 
-                var set = new HashSet<ITypeParameterSymbol>(this.AnalyzerResult.MethodTypeParametersInConstraintList);
+                var set = new HashSet<ITypeParameterSymbol>(AnalyzerResult.MethodTypeParametersInConstraintList);
 
                 var typeParameters = ArrayBuilder<ITypeParameterSymbol>.GetInstance();
-                foreach (var parameter in this.AnalyzerResult.MethodTypeParametersInDeclaration)
+                foreach (var parameter in AnalyzerResult.MethodTypeParametersInDeclaration)
                 {
                     if (parameter != null && set.Contains(parameter))
                     {
@@ -289,8 +288,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                     typeParameters.Add(CodeGenerationSymbolFactory.CreateTypeParameter(
                         parameter.GetAttributes(), parameter.Variance, parameter.Name, ImmutableArray.Create<ITypeSymbol>(),
-                        parameter.HasConstructorConstraint, parameter.HasReferenceTypeConstraint, parameter.HasValueTypeConstraint,
-                        parameter.HasUnmanagedTypeConstraint, parameter.Ordinal));
+                        parameter.HasConstructorConstraint, parameter.HasReferenceTypeConstraint, parameter.HasUnmanagedTypeConstraint,
+                        parameter.HasValueTypeConstraint, parameter.HasNotNullConstraint, parameter.Ordinal));
                 }
 
                 return typeParameters.ToImmutableAndFree();
@@ -300,10 +299,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
 
-                foreach (var parameter in this.AnalyzerResult.MethodParameters)
+                foreach (var parameter in AnalyzerResult.MethodParameters)
                 {
                     var refKind = GetRefKind(parameter.ParameterModifier);
-                    var type = parameter.GetVariableType(this.SemanticDocument);
+                    var type = parameter.GetVariableType(SemanticDocument);
 
                     parameters.Add(
                         CodeGenerationSymbolFactory.CreateParameterSymbol(

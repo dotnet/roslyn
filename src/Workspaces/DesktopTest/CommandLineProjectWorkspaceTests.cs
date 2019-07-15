@@ -16,38 +16,34 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public async Task TestAddProject_CommandLineProjectAsync()
         {
-            using (var tempRoot = new TempRoot())
-            {
-                var tempDirectory = tempRoot.CreateDirectory();
-                var tempFile = tempDirectory.CreateFile("CSharpClass.cs");
-                tempFile.WriteAllText("class CSharpClass { }");
+            using var tempRoot = new TempRoot();
+            var tempDirectory = tempRoot.CreateDirectory();
+            var tempFile = tempDirectory.CreateFile("CSharpClass.cs");
+            tempFile.WriteAllText("class CSharpClass { }");
 
-                using (var ws = new AdhocWorkspace(DesktopMefHostServices.DefaultServices))
-                {
-                    string commandLine = @"CSharpClass.cs /out:goo.dll /target:library";
-                    var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, tempDirectory.Path, ws);
-                    ws.AddProject(info);
-                    var project = ws.CurrentSolution.GetProject(info.Id);
+            using var ws = new AdhocWorkspace(DesktopMefHostServices.DefaultServices);
+            var commandLine = @"CSharpClass.cs /out:goo.dll /target:library";
+            var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, tempDirectory.Path, ws);
+            ws.AddProject(info);
+            var project = ws.CurrentSolution.GetProject(info.Id);
 
-                    Assert.Equal("TestProject", project.Name);
-                    Assert.Equal("goo", project.AssemblyName);
-                    Assert.Equal(OutputKind.DynamicallyLinkedLibrary, project.CompilationOptions.OutputKind);
+            Assert.Equal("TestProject", project.Name);
+            Assert.Equal("goo", project.AssemblyName);
+            Assert.Equal(OutputKind.DynamicallyLinkedLibrary, project.CompilationOptions.OutputKind);
 
-                    Assert.Equal(1, project.Documents.Count());
+            Assert.Equal(1, project.Documents.Count());
 
-                    var gooDoc = project.Documents.First(d => d.Name == "CSharpClass.cs");
-                    Assert.Equal(0, gooDoc.Folders.Count);
-                    Assert.Equal(tempFile.Path, gooDoc.FilePath);
+            var gooDoc = project.Documents.First(d => d.Name == "CSharpClass.cs");
+            Assert.Equal(0, gooDoc.Folders.Count);
+            Assert.Equal(tempFile.Path, gooDoc.FilePath);
 
-                    var text = (await gooDoc.GetTextAsync()).ToString();
-                    Assert.Equal(tempFile.ReadAllText(), text);
+            var text = (await gooDoc.GetTextAsync()).ToString();
+            Assert.Equal(tempFile.ReadAllText(), text);
 
-                    var tree = await gooDoc.GetSyntaxRootAsync();
-                    Assert.Equal(false, tree.ContainsDiagnostics);
+            var tree = await gooDoc.GetSyntaxRootAsync();
+            Assert.Equal(false, tree.ContainsDiagnostics);
 
-                    var compilation = await project.GetCompilationAsync();
-                }
-            }
+            var compilation = await project.GetCompilationAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

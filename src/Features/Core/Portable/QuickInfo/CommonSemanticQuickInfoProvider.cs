@@ -225,6 +225,12 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 usageTextBuilder.AddRange(awaitableUsageText);
             }
 
+            var nullableAnalysis = TryGetNullabilityAnalysis(workspace, semanticModel, token, cancellationToken);
+            if (!nullableAnalysis.IsDefaultOrEmpty)
+            {
+                AddSection(QuickInfoSectionKinds.NullabilityAnalysis, nullableAnalysis);
+            }
+
             if (supportedPlatforms != null)
             {
                 usageTextBuilder.AddRange(supportedPlatforms.ToDisplayParts().ToTaggedText());
@@ -298,6 +304,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
         protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, out SyntaxNode found);
 
+        protected virtual ImmutableArray<TaggedText> TryGetNullabilityAnalysis(Workspace workspace, SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken) => default;
+
         private async Task<(SemanticModel semanticModel, ImmutableArray<ISymbol> symbols)> BindTokenAsync(
             Document document, SyntaxToken token, CancellationToken cancellationToken)
         {
@@ -306,7 +314,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             var enclosingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
 
             ImmutableArray<ISymbol> symbols;
-            if (GetBindableNodeForTokenIndicatingLambda(token, out SyntaxNode lambdaSyntax))
+            if (GetBindableNodeForTokenIndicatingLambda(token, out var lambdaSyntax))
             {
                 symbols = ImmutableArray.Create(semanticModel.GetSymbolInfo(lambdaSyntax).Symbol);
             }

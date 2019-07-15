@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             LanguageVersion max = 0;
             foreach (var diagnostic in diagnostics)
             {
-                if (diagnostic.Properties.TryGetValue(DiagnosticPropertyConstants.RequiredLanguageVersion, out string requiredVersion) &&
+                if (diagnostic.Properties.TryGetValue(DiagnosticPropertyConstants.RequiredLanguageVersion, out var requiredVersion) &&
                     LanguageVersionFacts.TryParse(requiredVersion, out var required))
                 {
                     max = max > required ? max : required;
@@ -94,7 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
 
             // treat equivalent versions (one generic and one specific) to be a valid upgrade
             return mappedVersion >= parseOptions.LanguageVersion &&
-                mappedVersion < LanguageVersion.CSharp8 &&
                 parseOptions.SpecifiedLanguageVersion.ToDisplayString() != newVersion;
         }
     }

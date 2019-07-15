@@ -255,18 +255,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         _state.SpinWaitComplete(CompletionPart.FinishValidatingReferencedAssemblies, cancellationToken);
                         break;
 
-                    case CompletionPart.StartMemberChecks:
-                    case CompletionPart.FinishMemberChecks:
-                        if (_state.NotePartComplete(CompletionPart.StartMemberChecks))
-                        {
-                            var diagnostics = DiagnosticBag.GetInstance();
-                            AfterMembersChecks(diagnostics);
-                            AddDeclarationDiagnostics(diagnostics);
-                            diagnostics.Free();
-                            _state.NotePartComplete(CompletionPart.FinishMemberChecks);
-                        }
-                        break;
-
                     case CompletionPart.MembersCompleted:
                         this.GlobalNamespace.ForceComplete(locationOpt, cancellationToken);
 
@@ -523,23 +511,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     arguments.GetOrCreateData<CommonModuleWellKnownAttributeData>().DefaultCharacterSet = charSet;
                 }
             }
-        }
-
-        private bool EmitNullablePublicOnlyAttribute
-        {
-            get
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableContextAttribute))
             {
-                var compilation = DeclaringCompilation;
-                return compilation.EmitNullablePublicOnly &&
-                    compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
+                ReportExplicitUseOfNullabilityAttribute(in arguments, AttributeDescription.NullableContextAttribute);
             }
-        }
-
-        private void AfterMembersChecks(DiagnosticBag diagnostics)
-        {
-            if (EmitNullablePublicOnlyAttribute)
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullablePublicOnlyAttribute))
             {
-                DeclaringCompilation.EnsureNullablePublicOnlyAttributeExists(diagnostics, location: NoLocation.Singleton, modifyCompilation: true);
+                ReportExplicitUseOfNullabilityAttribute(in arguments, AttributeDescription.NullablePublicOnlyAttribute);
             }
         }
 
@@ -558,9 +536,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (EmitNullablePublicOnlyAttribute)
+            if (moduleBuilder.ShouldEmitNullablePublicOnlyAttribute())
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullablePublicOnlyAttribute());
+                var includesInternals = ImmutableArray.Create(
+                    new TypedConstant(compilation.GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, _assemblySymbol.InternalsAreVisible));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullablePublicOnlyAttribute(includesInternals));
             }
         }
 

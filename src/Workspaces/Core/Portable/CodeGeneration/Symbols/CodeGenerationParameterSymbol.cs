@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public RefKind RefKind { get; }
         public bool IsParams { get; }
         public ITypeSymbol Type { get; }
-        public NullableAnnotation NullableAnnotation => throw new NotImplementedException();
+        public NullableAnnotation NullableAnnotation => Type.GetNullability();
         public bool IsOptional { get; }
         public int Ordinal { get; }
 
