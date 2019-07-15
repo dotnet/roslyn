@@ -11255,7 +11255,6 @@ namespace Microsoft.CodeAnalysis.CSharp
       {
         case SyntaxKind.DisableKeyword:
         case SyntaxKind.RestoreKeyword:
-        case SyntaxKind.EnableKeyword:
           break;
         default:
           throw new ArgumentException(nameof(disableOrRestoreKeyword));

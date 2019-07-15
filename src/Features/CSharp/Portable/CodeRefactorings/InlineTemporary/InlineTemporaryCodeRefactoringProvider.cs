@@ -46,26 +46,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(textSpan.Start);
 
-            if (!token.Span.Contains(textSpan))
+            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
+            var variableDeclarator = await refactoringHelperService.TryGetSelectedNodeAsync<VariableDeclaratorSyntax>(document, context.Span, cancellationToken).ConfigureAwait(false);
+            if (variableDeclarator == default)
             {
                 return;
             }
 
-            var node = token.Parent;
-
-            if (!node.IsKind(SyntaxKind.VariableDeclarator) ||
-                !node.IsParentKind(SyntaxKind.VariableDeclaration) ||
-                !node.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement))
+            if (!variableDeclarator.IsParentKind(SyntaxKind.VariableDeclaration) ||
+                !variableDeclarator.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement))
             {
                 return;
             }
 
-            var variableDeclarator = (VariableDeclaratorSyntax)node;
             var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent;
-            if (variableDeclarator.Identifier != token ||
-                variableDeclarator.Initializer == null ||
+            if (variableDeclarator.Initializer == null ||
                 variableDeclarator.Initializer.Value.IsMissing ||
                 variableDeclarator.Initializer.Value.IsKind(SyntaxKind.StackAllocArrayCreationExpression))
             {

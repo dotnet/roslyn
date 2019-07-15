@@ -172,6 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasPragmaSuppression = true;
             }
 
+            // NOTE: this may be removed as part of https://github.com/dotnet/roslyn/issues/36550
             if (pragmaWarningState == Syntax.PragmaWarningState.Enabled)
             {
                 switch (report)

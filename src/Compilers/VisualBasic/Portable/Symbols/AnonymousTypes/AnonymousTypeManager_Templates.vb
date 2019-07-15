@@ -245,10 +245,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             builder.Free()
         End Sub
 
-        Friend Shared Function GetAnonymousTypeKey(type As NamedTypeSymbol) As Microsoft.CodeAnalysis.Emit.AnonymousTypeKey
-            Return DirectCast(type, AnonymousTypeOrDelegateTemplateSymbol).GetAnonymousTypeKey()
-        End Function
-
         Friend Function GetAnonymousTypeMap() As IReadOnlyDictionary(Of Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue)
             Dim result = New Dictionary(Of Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue)
             Dim builder = ArrayBuilder(Of AnonymousTypeOrDelegateTemplateSymbol).GetInstance()
@@ -261,10 +257,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
             builder.Free()
             Return result
-        End Function
-
-        Friend Shared Function IsAnonymousTypeTemplate(type As NamedTypeSymbol) As Boolean
-            Return TypeOf type Is AnonymousTypeOrDelegateTemplateSymbol
         End Function
 
         ''' <summary>

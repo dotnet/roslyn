@@ -2183,27 +2183,27 @@ public struct S
 ";
             var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
-                // (6,12): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,12): error CS8652: The feature 'readonly members' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public readonly void M() {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(6, 12),
-                // (8,12): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "readonly").WithArguments("readonly members", "8.0").WithLocation(6, 12),
+                // (8,12): error CS8652: The feature 'readonly members' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public readonly int P1 => 42;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(8, 12),
-                // (9,21): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "readonly").WithArguments("readonly members", "8.0").WithLocation(8, 12),
+                // (9,21): error CS8652: The feature 'readonly members' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public int P2 { readonly get => 123; set {} }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(9, 21),
-                // (10,33): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "readonly").WithArguments("readonly members", "8.0").WithLocation(9, 21),
+                // (10,33): error CS8652: The feature 'readonly members' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public int P3 { get => 123; readonly set {} }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(10, 33),
-                // (12,12): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "readonly").WithArguments("readonly members", "8.0").WithLocation(10, 33),
+                // (12,12): error CS8652: The feature 'readonly members' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public readonly int this[int i] => i;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(12, 12),
-                // (13,37): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "readonly").WithArguments("readonly members", "8.0").WithLocation(12, 12),
+                // (13,37): error CS8652: The feature 'readonly members' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public int this[int i, int j] { readonly get => i + j; set {} }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(13, 37),
-                // (15,12): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "readonly").WithArguments("readonly members", "8.0").WithLocation(13, 37),
+                // (15,12): error CS8652: The feature 'readonly members' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public readonly event Action<EventArgs> E { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(15, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "readonly").WithArguments("readonly members", "8.0").WithLocation(15, 12));
 
             comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics();

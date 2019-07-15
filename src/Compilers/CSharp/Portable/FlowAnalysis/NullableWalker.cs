@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Field:
                 case SymbolKind.Property:
                 case SymbolKind.Event:
-                    return symbol.GetTypeOrReturnType().ToTypeWithState().State;
+                    return GetDefaultState(symbol);
                 case SymbolKind.ErrorType:
                     return NullableFlowState.NotNull;
                 default:
@@ -1230,10 +1230,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     continue;
                 }
-                SetStateAndTrackForFinally(ref this.State, slot, variable.Symbol.GetTypeOrReturnType().ToTypeWithState().State);
+
+                SetStateAndTrackForFinally(ref this.State, slot, GetDefaultState(variable.Symbol));
                 InheritDefaultState(slot);
             }
         }
+
+        private NullableFlowState GetDefaultState(Symbol symbol)
+            => ApplyUnconditionalAnnotations(symbol.GetTypeOrReturnType().ToTypeWithState(), GetRValueAnnotations(symbol)).State;
 
         private void InheritNullableStateOfTrackableType(int targetSlot, int valueSlot, int skipSlot)
         {
@@ -1252,11 +1256,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Property || member.Kind == SymbolKind.Event);
                 InheritNullableStateOfMember(targetSlot, valueSlot, member, isDefaultValue: false, skipSlot);
             }
-        }
-
-        private TypeSymbol GetSlotType(int slot)
-        {
-            return variableBySlot[slot].Symbol.GetTypeOrReturnType().Type;
         }
 
         protected override LocalState TopState()
@@ -3537,9 +3536,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool notNullWhenTrue = (annotations & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
                 bool maybeNullWhenTrue = (annotations & FlowAnalysisAnnotations.MaybeNullWhenTrue) != 0;
+                bool maybeNullWhenFalse = (annotations & FlowAnalysisAnnotations.MaybeNullWhenFalse) != 0;
 
-                if (maybeNullWhenTrue)
+                if (maybeNullWhenTrue && !(maybeNullWhenFalse && notNullWhenTrue))
                 {
+                    // [MaybeNull, NotNullWhen(true)] means [MaybeNullWhen(false)]
                     return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeNull);
                 }
                 else if (notNullWhenTrue)
@@ -3553,10 +3554,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             static TypeWithState applyPostConditionsWhenFalse(TypeWithState typeWithState, FlowAnalysisAnnotations annotations)
             {
                 bool notNullWhenFalse = (annotations & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
+                bool maybeNullWhenTrue = (annotations & FlowAnalysisAnnotations.MaybeNullWhenTrue) != 0;
                 bool maybeNullWhenFalse = (annotations & FlowAnalysisAnnotations.MaybeNullWhenFalse) != 0;
 
-                if (maybeNullWhenFalse)
+                if (maybeNullWhenFalse && !(maybeNullWhenTrue && notNullWhenFalse))
                 {
+                    // [MaybeNull, NotNullWhen(false)] means [MaybeNullWhen(true)]
                     return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeNull);
                 }
                 else if (notNullWhenFalse)
@@ -6081,7 +6084,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            resultType = ApplyUnconditionalAnnotations(resultType, GetRValueAnnotations(member));
             SetResult(node, resultType, type);
         }
 
@@ -6108,7 +6110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private int GetNullableOfTValueSlot(TypeSymbol containingType, int containingSlot, out Symbol valueProperty, bool forceSlotEvenIfEmpty = false)
         {
             Debug.Assert(containingType.IsNullableType());
-            Debug.Assert(TypeSymbol.Equals(GetSlotType(containingSlot), containingType, TypeCompareKind.ConsiderEverything2));
+            Debug.Assert(TypeSymbol.Equals(variableBySlot[containingSlot].Symbol.GetTypeOrReturnType().Type, containingType, TypeCompareKind.ConsiderEverything2));
 
             var getValue = (MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value);
             valueProperty = getValue?.AsMember((NamedTypeSymbol)containingType)?.AssociatedSymbol;

@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
         // warning CS8600: Converting null literal or possible null value to non-nullable type.
         public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS8603", "CS8600");
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();

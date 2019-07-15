@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Represents an anonymous type 'template' which is a generic type to be used for all 
         /// anonymous type having the same structure, i.e. the same number of fields and field names.
         /// </summary>
-        private sealed class AnonymousTypeTemplateSymbol : NamedTypeSymbol
+        private sealed class AnonymousTypeTemplateSymbol : NamedTypeSymbol, IAnonymousTypeTemplateSymbolInternal
         {
             /// <summary> Name to be used as metadata name during emit </summary>
             private NameAndIndex _nameAndIndex;
@@ -121,9 +122,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal AnonymousTypeKey GetAnonymousTypeKey()
             {
-                var properties = this.Properties.SelectAsArray(p => new AnonymousTypeKeyField(p.Name, isKey: false, ignoreCase: false));
+                var properties = Properties.SelectAsArray(p => new AnonymousTypeKeyField(p.Name, isKey: false, ignoreCase: false));
                 return new AnonymousTypeKey(properties);
             }
+
+            AnonymousTypeKey IAnonymousTypeTemplateSymbolInternal.GetAnonymousTypeKey()
+                => GetAnonymousTypeKey();
 
             /// <summary>
             /// Smallest location of the template, actually contains the smallest location 

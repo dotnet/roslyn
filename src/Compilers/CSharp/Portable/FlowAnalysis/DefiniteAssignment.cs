@@ -341,11 +341,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected static bool HasInitializer(FieldSymbol field)
+        protected static bool HasInitializer(Symbol field) => field switch
         {
-            return (field as SourceMemberFieldSymbol)?.HasInitializer == true ||
-                (field as SynthesizedBackingFieldSymbol)?.HasInitializer == true;
-        }
+            SourceMemberFieldSymbol f => f.HasInitializer,
+            SynthesizedBackingFieldSymbol f => f.HasInitializer,
+            SourceFieldLikeEventSymbol e => e.AssociatedEventField?.HasInitializer == true,
+            _ => false
+        };
 
         /// <summary>
         /// Perform data flow analysis, reporting all necessary diagnostics.
