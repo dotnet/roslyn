@@ -371,11 +371,6 @@ namespace Microsoft.Cci
             }
         }
 
-        protected override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(CommonPEModuleBuilder module)
-        {
-            return module.GetTopLevelTypes(this.Context);
-        }
-
         protected override void CreateIndicesForNonTypeMembers(ITypeDefinition typeDef)
         {
             _typeDefs.Add(typeDef);

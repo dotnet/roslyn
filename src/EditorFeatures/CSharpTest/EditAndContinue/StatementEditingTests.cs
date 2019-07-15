@@ -6703,13 +6703,12 @@ class Program
             var src1 = @"class Test { void M() { } }";
             var src2 = @"class Test { void M() { void local(in int b) { throw null; } } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [void M() { }]@13 -> [void M() { void local(in int b) { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int b", FeaturesResources.parameter));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -6718,13 +6717,12 @@ class Program
             var src1 = @"class Test { void M() { void local() { throw null; } } }";
             var src2 = @"class Test { void M() { void local(in int b) { throw null; } } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [void M() { void local() { throw null; } }]@13 -> [void M() { void local(in int b) { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int b", FeaturesResources.parameter));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -6733,13 +6731,12 @@ class Program
             var src1 = @"class Test { void M() { void local(int b) { throw null; } } }";
             var src2 = @"class Test { void M() { void local(in int b) { throw null; } } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [void M() { void local(int b) { throw null; } }]@13 -> [void M() { void local(in int b) { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int b", FeaturesResources.parameter));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -6748,13 +6745,12 @@ class Program
             var src1 = @"class Test { void M() { } }";
             var src2 = @"class Test { void M() { ref readonly int local() { throw null; } } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [void M() { }]@13 -> [void M() { ref readonly int local() { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "local", FeaturesResources.local_function));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -6763,13 +6759,12 @@ class Program
             var src1 = @"class Test { void M() { int local() { throw null; } } }";
             var src2 = @"class Test { void M() { ref readonly int local() { throw null; } } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [void M() { int local() { throw null; } }]@13 -> [void M() { ref readonly int local() { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "local", FeaturesResources.local_function));
+            edits.VerifyRudeDiagnostics();
         }
 
         #endregion

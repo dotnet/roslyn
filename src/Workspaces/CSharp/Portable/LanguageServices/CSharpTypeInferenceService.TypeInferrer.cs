@@ -1902,7 +1902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We don't care what the type is, as long as it has 1 type argument. This will work for IEnumerable, IEnumerator,
                 // IAsyncEnumerable, IAsyncEnumerator and it's also good for error recovery in case there is a missing using.
                 return memberType is INamedTypeSymbol namedType && namedType.TypeArguments.Length == 1
-                    ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(namedType.TypeArguments[0].WithNullability(namedType.TypeArgumentsNullableAnnotations[0])))
+                    ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(namedType.TypeArguments[0].WithNullability(namedType.TypeArgumentNullableAnnotations[0])))
                     : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
@@ -1916,7 +1916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (type.OriginalDefinition.Equals(this.Compilation.TaskOfTType()))
                     {
                         var namedTypeSymbol = (INamedTypeSymbol)type;
-                        return namedTypeSymbol.TypeArguments[0].WithNullability(namedTypeSymbol.TypeArgumentsNullableAnnotations[0]);
+                        return namedTypeSymbol.TypeArguments[0].WithNullability(namedTypeSymbol.TypeArgumentNullableAnnotations[0]);
                     }
 
                     if (type.OriginalDefinition.Equals(this.Compilation.TaskType()))
@@ -2242,7 +2242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var elementType = parameters.ElementAtOrDefault(0);
                     if (elementType != null)
                     {
-                        return SpecializedCollections.SingletonCollection(new TypeInferenceInfo(elementType.WithNullability(type.TypeArgumentsNullableAnnotations[0])));
+                        return SpecializedCollections.SingletonCollection(new TypeInferenceInfo(elementType.WithNullability(type.TypeArgumentNullableAnnotations[0])));
                     }
                 }
 

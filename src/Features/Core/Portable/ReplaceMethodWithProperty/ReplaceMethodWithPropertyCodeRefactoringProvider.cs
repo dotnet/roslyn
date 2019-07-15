@@ -38,16 +38,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
             var cancellationToken = context.CancellationToken;
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var position = context.Span.Start;
-            var token = root.FindToken(position);
-
-            if (!token.Span.Contains(context.Span))
-            {
-                return;
-            }
-
-            var methodDeclaration = service.GetMethodDeclaration(token);
+            var methodDeclaration = await service.GetMethodDeclarationAsync(document, context.Span, cancellationToken).ConfigureAwait(false);
             if (methodDeclaration == null)
             {
                 return;

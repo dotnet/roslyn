@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (stack.Count > 0);
 
             Debug.Assert(currentBinary != null);
-            return currentBinary;
+            return currentBinary!;
         }
 
         public override BoundNode? VisitCall(BoundCall node)

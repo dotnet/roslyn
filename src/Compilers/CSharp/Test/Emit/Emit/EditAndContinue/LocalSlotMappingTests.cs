@@ -4327,7 +4327,8 @@ class C
         var <N:2>c</N:2> = new[] { b };
         int[] <N:3>array</N:3> = { 1, 2, 3 };
         ref int <N:4>d</N:4> = ref array[0];
-        C1<(int, dynamic)>.E***[,,] <N:5>x</N:5> = null;
+        ref readonly int <N:5>e</N:5> = ref array[0];
+        C1<(int, dynamic)>.E***[,,] <N:6>x</N:6> = null;
     }
 }
 ";
@@ -4346,14 +4347,15 @@ class C
             var v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.G", @"
 {
-  // Code size       72 (0x48)
+  // Code size       81 (0x51)
   .maxstack  4
   .locals init (<>f__AnonymousType0<string, System.Collections.Generic.List<(int, int)>> V_0, //a
                 System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>> V_1, //b
                 (int number, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value> value)[] V_2, //c
                 int[] V_3, //array
                 int& V_4, //d
-                C1<(int, dynamic)>.E***[,,] V_5) //x
+                int& V_5, //e
+                C1<(int, dynamic)>.E***[,,] V_6) //x
   IL_0000:  nop
   IL_0001:  ldstr      ""a""
   IL_0006:  newobj     ""System.Collections.Generic.List<(int, int)>..ctor()""
@@ -4380,9 +4382,13 @@ class C
   IL_003c:  ldc.i4.0
   IL_003d:  ldelema    ""int""
   IL_0042:  stloc.s    V_4
-  IL_0044:  ldnull
-  IL_0045:  stloc.s    V_5
-  IL_0047:  ret
+  IL_0044:  ldloc.3
+  IL_0045:  ldc.i4.0
+  IL_0046:  ldelema    ""int""
+  IL_004b:  stloc.s    V_5
+  IL_004d:  ldnull
+  IL_004e:  stloc.s    V_6
+  IL_0050:  ret
 }
 ");
 
@@ -4396,14 +4402,15 @@ class C
 
             diff1.VerifyIL("C.G", @"
 {
-  // Code size       73 (0x49)
+  // Code size       82 (0x52)
   .maxstack  4
   .locals init (<>f__AnonymousType0<string, System.Collections.Generic.List<(int, int)>> V_0, //a
                 System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>> V_1, //b
                 (int number, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value> value)[] V_2, //c
                 int[] V_3, //array
                 int& V_4, //d
-                C1<(int, dynamic)>.E***[,,] V_5) //x
+                int& V_5, //e
+                C1<(int, dynamic)>.E***[,,] V_6) //x
   IL_0000:  nop
   IL_0001:  ldstr      ""a""
   IL_0006:  newobj     ""System.Collections.Generic.List<(int, int)>..ctor()""
@@ -4439,9 +4446,13 @@ class C
   IL_003d:  ldc.i4.0
   IL_003e:  ldelema    ""int""
   IL_0043:  stloc.s    V_4
-  IL_0045:  ldnull
-  IL_0046:  stloc.s    V_5
-  IL_0048:  ret
+  IL_0045:  ldloc.3
+  IL_0046:  ldc.i4.0
+  IL_0047:  ldelema    ""int""
+  IL_004c:  stloc.s    V_5
+  IL_004e:  ldnull
+  IL_004f:  stloc.s    V_6
+  IL_0051:  ret
 }
 ");
 
@@ -4452,14 +4463,15 @@ class C
 
             diff2.VerifyIL("C.G", @"
 {
-  // Code size       73 (0x49)
+  // Code size       82 (0x52)
   .maxstack  4
   .locals init (<>f__AnonymousType0<string, System.Collections.Generic.List<(int, int)>> V_0, //a
                 System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>> V_1, //b
                 (int number, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value> value)[] V_2, //c
                 int[] V_3, //array
                 int& V_4, //d
-                C1<(int, dynamic)>.E***[,,] V_5) //x
+                int& V_5, //e
+                C1<(int, dynamic)>.E***[,,] V_6) //x
   IL_0000:  nop
   IL_0001:  ldstr      ""a""
   IL_0006:  newobj     ""System.Collections.Generic.List<(int, int)>..ctor()""
@@ -4495,9 +4507,13 @@ class C
   IL_003d:  ldc.i4.0
   IL_003e:  ldelema    ""int""
   IL_0043:  stloc.s    V_4
-  IL_0045:  ldnull
-  IL_0046:  stloc.s    V_5
-  IL_0048:  ret
+  IL_0045:  ldloc.3
+  IL_0046:  ldc.i4.0
+  IL_0047:  ldelema    ""int""
+  IL_004c:  stloc.s    V_5
+  IL_004e:  ldnull
+  IL_004f:  stloc.s    V_6
+  IL_0051:  ret
 }
 ");
         }
