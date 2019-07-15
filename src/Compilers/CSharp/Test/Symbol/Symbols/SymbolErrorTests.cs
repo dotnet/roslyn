@@ -363,7 +363,7 @@ internal class C
                 Diagnostic(ErrorCode.ERR_BadVisPropertyType, "R").WithArguments("C.R", "C.ProtectedStruct").WithLocation(33, 28),
                 // (34,24): error CS0053: Inconsistent accessibility: property return type 'C.PrivateClass' is less accessible than property 'C.S'
                 Diagnostic(ErrorCode.ERR_BadVisPropertyType, "S").WithArguments("C.S", "C.PrivateClass").WithLocation(34, 25),
-                // (37,30): error CS0053: Inconsistent accessibility: property return type 'C.ProtectedStruct' is less accessible than property 'C.V'
+                // (370): error CS0053: Inconsistent accessibility: property return type 'C.ProtectedStruct' is less accessible than property 'C.V'
                 Diagnostic(ErrorCode.ERR_BadVisPropertyType, "V").WithArguments("C.V", "C.ProtectedStruct").WithLocation(37, 30),
                 // (38,27): error CS0053: Inconsistent accessibility: property return type 'C.PrivateClass' is less accessible than property 'C.W'
                 Diagnostic(ErrorCode.ERR_BadVisPropertyType, "W").WithArguments("C.W", "C.PrivateClass").WithLocation(38, 27),
@@ -448,7 +448,7 @@ internal class C
                 Diagnostic(ErrorCode.ERR_BadVisIndexerReturn, "this").WithArguments("C.this[string]", "C.ProtectedStruct").WithLocation(33, 28),
                 // (34,24): error CS0054: Inconsistent accessibility: indexer return type 'C.PrivateClass' is less accessible than indexer 'C.this[double]'
                 Diagnostic(ErrorCode.ERR_BadVisIndexerReturn, "this").WithArguments("C.this[double]", "C.PrivateClass").WithLocation(34, 25),
-                // (37,30): error CS0054: Inconsistent accessibility: indexer return type 'C.ProtectedStruct' is less accessible than indexer 'C.this[string, string]'
+                // (370): error CS0054: Inconsistent accessibility: indexer return type 'C.ProtectedStruct' is less accessible than indexer 'C.this[string, string]'
                 Diagnostic(ErrorCode.ERR_BadVisIndexerReturn, "this").WithArguments("C.this[string, string]", "C.ProtectedStruct").WithLocation(37, 30),
                 // (38,27): error CS0054: Inconsistent accessibility: indexer return type 'C.PrivateClass' is less accessible than indexer 'C.this[double, double]'
                 Diagnostic(ErrorCode.ERR_BadVisIndexerReturn, "this").WithArguments("C.this[double, double]", "C.PrivateClass").WithLocation(38, 27),
@@ -534,7 +534,7 @@ public class MyClass2
 
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-// (7,37): error CS0057: Inconsistent accessibility: parameter type 'MyClass' is less accessible than operator 'MyClass2.implicit operator MyClass2(MyClass)'
+// (77): error CS0057: Inconsistent accessibility: parameter type 'MyClass' is less accessible than operator 'MyClass2.implicit operator MyClass2(MyClass)'
 //     public static implicit operator MyClass2(MyClass iii)   // CS0057
 Diagnostic(ErrorCode.ERR_BadVisOpParam, "MyClass2").WithArguments("MyClass2.implicit operator MyClass2(MyClass)", "MyClass"));
         }
@@ -798,7 +798,7 @@ public class MyClass
                 // (6,31): error CS0065: 'MyClass.E2': event property must have both add and remove accessors
                 //     public event EventHandler E2 { add { } }   // CS0065,
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E2").WithArguments("MyClass.E2"),
-                // (7,31): error CS0065: 'MyClass.E3': event property must have both add and remove accessors
+                // (71): error CS0065: 'MyClass.E3': event property must have both add and remove accessors
                 //     public event EventHandler E3 { remove { } }   // CS0065,
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E3").WithArguments("MyClass.E3"));
         }
@@ -848,12 +848,12 @@ interface i1
                 // (6,43): error CS0073: An add or remove accessor must have a body
                 //     event myDelegate myevent { add; remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 43),
-                // (6,32): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,32): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //     event myDelegate myevent { add; remove; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(6, 32),
-                // (6,37): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(6, 32),
+                // (6,37): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //     event myDelegate myevent { add; remove; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(6, 37)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "8.0").WithLocation(6, 37)
                 );
         }
 
@@ -870,12 +870,12 @@ interface i1
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7,
                               targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
-                // (5,32): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,32): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //     event myDelegate myevent { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(5, 32),
-                // (5,39): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(5, 32),
+                // (5,39): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //     event myDelegate myevent { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(5, 39)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "8.0").WithLocation(5, 39)
                 );
         }
 
@@ -892,9 +892,9 @@ interface i1
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7,
                               targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
-                // (5,32): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,32): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //     event myDelegate myevent { add {} }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(5, 32),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(5, 32),
                 // (5,22): error CS0065: 'i1.myevent': event property must have both add and remove accessors
                 //     event myDelegate myevent { add {} }
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "myevent").WithArguments("i1.myevent").WithLocation(5, 22)
@@ -1721,12 +1721,12 @@ namespace n3
                 // (11,24): warning CS0169: The field 'MyClass.field' is never used
                 //         virtual ushort field;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("MyNamespace.MyClass.field").WithLocation(11, 24),
-                // (6,28): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 'preview' or greater.
+                // (6,28): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //         static public void f();   // CS0106
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "f").WithArguments("static", "7.0", "preview").WithLocation(6, 28),
-                // (6,28): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "f").WithArguments("static", "7.0", "8.0").WithLocation(6, 28),
+                // (6,28): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //         static public void f();   // CS0106
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "f").WithArguments("public", "7.0", "preview").WithLocation(6, 28),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "f").WithArguments("public", "7.0", "8.0").WithLocation(6, 28),
                 // (6,28): error CS0501: 'I.f()' must declare a body because it is not marked abstract, extern, or partial
                 //         static public void f();   // CS0106
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "f").WithArguments("MyNamespace.I.f()").WithLocation(6, 28)
@@ -1756,18 +1756,18 @@ class C
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
-                // (3,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 'preview' or greater.
+                // (3,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     public static int P1 { get; }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("static", "7.0", "preview").WithLocation(3, 23),
-                // (3,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("static", "7.0", "8.0").WithLocation(3, 23),
+                // (3,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     public static int P1 { get; }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("public", "7.0", "preview").WithLocation(3, 23),
-                // (3,28): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("public", "7.0", "8.0").WithLocation(3, 23),
+                // (3,28): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //     public static int P1 { get; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("default interface implementation").WithLocation(3, 28),
-                // (4,18): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "get").WithArguments("default interface implementation", "8.0").WithLocation(3, 28),
+                // (4,18): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     abstract int P2 { static set; }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("abstract", "7.0", "preview").WithLocation(4, 18),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("abstract", "7.0", "8.0").WithLocation(4, 18),
                 // (4,30): error CS0106: The modifier 'static' is not valid for this item
                 //     abstract int P2 { static set; }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("static").WithLocation(4, 30),
@@ -1831,7 +1831,7 @@ class C
     // (6,20): error CS0106: The modifier 'virtual' is not valid for this item
     //     public virtual C(C c) { }
     Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("virtual"),
-    // (7,33): error CS0106: The modifier 'override' is not valid for this item
+    // (73): error CS0106: The modifier 'override' is not valid for this item
     //     protected internal override C(int i, int j) { }
     Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("override"),
     // (8,24): error CS0106: The modifier 'volatile' is not valid for this item
@@ -2099,7 +2099,7 @@ class B : A
 ";
             var tree = Parse(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             CreateCompilation(tree).VerifyDiagnostics(
-    // (7,38): error CS0112: A static member 'B.P' cannot be marked as override, virtual, or abstract
+    // (78): error CS0112: A static member 'B.P' cannot be marked as override, virtual, or abstract
     //     protected static override object P { get { return null; } }
     Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P").WithArguments("B.P").WithLocation(7, 38),
     // (8,34): error CS0112: A static member 'B.Q' cannot be marked as override, virtual, or abstract
@@ -2937,7 +2937,7 @@ Diagnostic(ErrorCode.WRN_EqualityOpWithoutGetHashCode, "MyClass").WithArguments(
                 // (4,33): error CS0216: The operator 'MyClass.operator true(MyClass)' requires a matching operator 'false' to also be defined
                 //     public static bool operator true(MyClass MyInt)   // CS0216
                 Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "true").WithArguments("MyClass.operator true(MyClass)", "false"),
-                // (7,33): error CS0216: The operator 'MyClass.operator <(MyClass, int)' requires a matching operator '>' to also be defined
+                // (73): error CS0216: The operator 'MyClass.operator <(MyClass, int)' requires a matching operator '>' to also be defined
                 //     public static bool operator < (MyClass x, int y) 
                 Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "<").WithArguments("MyClass.operator <(MyClass, int)", ">"),
                 // (10,33): error CS0216: The operator 'MyClass.operator >(MyClass, double)' requires a matching operator '<' to also be defined
@@ -3190,12 +3190,12 @@ class MyClass2 : MyClass
 ";
             //we're diverging from Dev10 - it's a little silly to report two errors saying the same modifier isn't allowed
             CreateCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (3,17): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 'preview' or greater.
+                // (3,17): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     sealed void M();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("sealed", "7.0", "preview").WithLocation(3, 17),
-                // (4,19): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("sealed", "7.0", "8.0").WithLocation(3, 17),
+                // (4,19): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     sealed object P { get; }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P").WithArguments("sealed", "7.0", "preview").WithLocation(4, 19),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P").WithArguments("sealed", "7.0", "8.0").WithLocation(4, 19),
                 // (4,23): error CS0501: 'I.P.get' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed object P { get; }
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I.P.get").WithLocation(4, 23),
@@ -3911,7 +3911,7 @@ namespace N
                 // (26,44): error CS0273: The accessibility modifier of the 'C.T4.get' accessor must be more restrictive than the property or indexer 'C.T4'
                 //     private object T4 { protected internal get; set; } // CS0273
                 Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "get").WithArguments("C.T4.get", "C.T4"),
-                // (27,33): error CS0273: The accessibility modifier of the 'C.T5.get' accessor must be more restrictive than the property or indexer 'C.T5'
+                // (273): error CS0273: The accessibility modifier of the 'C.T5.get' accessor must be more restrictive than the property or indexer 'C.T5'
                 //     private object T5 { private get; set; } // CS0273
                 Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "get").WithArguments("C.T5.get", "C.T5"),
                 // (28,24): error CS0273: The accessibility modifier of the 'C.U1.get' accessor must be more restrictive than the property or indexer 'C.U1'
@@ -4081,15 +4081,15 @@ namespace N
 }
 ", parseOptions: TestOptions.Regular7)
                 .VerifyDiagnostics(
-                // (4,21): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 'preview' or greater.
+                // (4,21): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     int Q { private get; set; } // CS0275
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.0", "preview").WithLocation(4, 21),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.0", "8.0").WithLocation(4, 21),
                 // (4,21): error CS0442: 'I.Q.get': abstract properties cannot have private accessors
                 //     int Q { private get; set; } // CS0275
                 Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "get").WithArguments("I.Q.get").WithLocation(4, 21),
-                // (5,30): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 'preview' or greater.
+                // (5,30): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     object R { get; internal set; } // CS0275
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7.0", "preview").WithLocation(5, 30)
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7.0", "8.0").WithLocation(5, 30)
                 );
         }
 
@@ -4105,15 +4105,15 @@ namespace N
 }
 ", parseOptions: TestOptions.Regular7)
                 .VerifyDiagnostics(
-                // (4,32): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 'preview' or greater.
+                // (4,32): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     int this[char x] { private get; set; } // CS0275
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.0", "preview").WithLocation(4, 32),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.0", "8.0").WithLocation(4, 32),
                 // (4,32): error CS0442: 'I.this[char].get': abstract properties cannot have private accessors
                 //     int this[char x] { private get; set; } // CS0275
                 Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "get").WithArguments("I.this[char].get").WithLocation(4, 32),
-                // (5,43): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 'preview' or greater.
+                // (5,43): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     object this[string x] { get; internal set; } // CS0275
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7.0", "preview").WithLocation(5, 43)
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7.0", "8.0").WithLocation(5, 43)
                 );
         }
 
@@ -7216,9 +7216,9 @@ extern alias FT1;
 
                 //CONSIDER: Dev10 skips these cascading errors
 
-                // (11,39): error CS0713: Static class 'NS.StaticClass' cannot derive from type 'NS.Test'. Static classes must derive from object.
+                // (11,39): error CS07: Static class 'NS.StaticClass' cannot derive from type 'NS.Test'. Static classes must derive from object.
                 Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "Test").WithArguments("NS.StaticClass", "NS.Test"),
-                // (15,28): error CS0713: Static class 'NS.Derived' cannot derive from type 'NS.StaticClass'. Static classes must derive from object.
+                // (15,28): error CS07: Static class 'NS.Derived' cannot derive from type 'NS.StaticClass'. Static classes must derive from object.
                 Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "StaticClass").WithArguments("NS.Derived", "NS.StaticClass"));
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -8877,18 +8877,18 @@ struct S6<T>
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7);
 
             comp.VerifyDiagnostics(
-                // (5,19): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,19): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //         interface IBar { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "IBar").WithArguments("default interface implementation").WithLocation(5, 19),
-                // (6,22): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "IBar").WithArguments("default interface implementation", "8.0").WithLocation(5, 19),
+                // (6,22): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //         public class cly {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "cly").WithArguments("default interface implementation").WithLocation(6, 22),
-                // (7,16): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "cly").WithArguments("default interface implementation", "8.0").WithLocation(6, 22),
+                // (7,16): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //         struct S { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("default interface implementation").WithLocation(7, 16),
-                // (8,22): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "S").WithArguments("default interface implementation", "8.0").WithLocation(7, 16),
+                // (8,22): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //         private enum E { zero,  one }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "E").WithArguments("default interface implementation").WithLocation(8, 22)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "E").WithArguments("default interface implementation", "8.0").WithLocation(8, 22)
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -8913,9 +8913,9 @@ struct S6<T>
                 // (5,16): error CS0525: Interfaces cannot contain instance fields
                 //         string field1;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field1").WithLocation(5, 16),
-                // (6,21): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,21): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //         const ulong field2 = 0;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "field2").WithArguments("default interface implementation").WithLocation(6, 21),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "field2").WithArguments("default interface implementation", "8.0").WithLocation(6, 21),
                 // (7,21): error CS0525: Interfaces cannot contain instance fields
                 //         public IGoo field3;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field3").WithLocation(7, 21)
@@ -9527,12 +9527,12 @@ public class Clx
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
-                // (11,20): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (11,20): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //         void IFace.F();   // CS0541
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F").WithArguments("default interface implementation").WithLocation(11, 20),
-                // (12,23): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F").WithArguments("default interface implementation", "8.0").WithLocation(11, 20),
+                // (12,23): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //         int IFace.P { set; } //CS0541
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("default interface implementation").WithLocation(12, 23),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "8.0").WithLocation(12, 23),
                 // (12,23): error CS0501: 'IFace2.IFace.P.set' must declare a body because it is not marked abstract, extern, or partial
                 //         int IFace.P { set; } //CS0541
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("x.IFace2.x.IFace.P.set").WithLocation(12, 23),
@@ -9827,7 +9827,7 @@ class set_P : A
 }";
             var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
-                // (7,32): error CS0542: 'B1': member names cannot be the same as their enclosing type
+                // (72): error CS0542: 'B1': member names cannot be the same as their enclosing type
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "get").WithArguments("B1").WithLocation(7, 32),
                 // (11,53): error CS0542: 'B2': member names cannot be the same as their enclosing type
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "set").WithArguments("B2").WithLocation(11, 53));
@@ -10232,7 +10232,7 @@ public class C
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (7,37): error CS0552: 'C.implicit operator I(C)': user-defined conversions to or from an interface are not allowed
+                // (77): error CS0552: 'C.implicit operator I(C)': user-defined conversions to or from an interface are not allowed
                 //     public static implicit operator I(C c) // CS0552
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I").WithArguments("C.implicit operator I(C)"),
                 // (11,37): error CS0552: 'C.implicit operator C(I)': user-defined conversions to or from an interface are not allowed
@@ -10390,7 +10390,7 @@ Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "int").WithArguments("x.ii.
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-// (7,35): error CS0558: User-defined operator 'x.ii.iii.implicit operator int(x.ii.iii)' must be declared static and public
+// (75): error CS0558: User-defined operator 'x.ii.iii.implicit operator int(x.ii.iii)' must be declared static and public
 //          static implicit operator int(iii aa)   // CS0558, add public
 Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "int").WithArguments("x.ii.iii.implicit operator int(x.ii.iii)")
                 );
@@ -10809,7 +10809,7 @@ Diagnostic(ErrorCode.ERR_NoVoidHere, "void"),
                 // (6,33): error CS0590: User-defined operators cannot return void
                 //     public static void operator +(C c) { }
                 Diagnostic(ErrorCode.ERR_OperatorCantReturnVoid, "+"),
-                // (7,33): error CS0590: User-defined operators cannot return void
+                // (73): error CS0590: User-defined operators cannot return void
                 //     public static void operator >>(C c, int x) { }
                 Diagnostic(ErrorCode.ERR_OperatorCantReturnVoid, ">>")
                 );
@@ -11309,7 +11309,7 @@ public class Test
                 // (2,39): error CS0643: 'AllowMultiple' duplicate named attribute argument
                 // [AttributeUsage(AllowMultiple = true, AllowMultiple = false)]
                 Diagnostic(ErrorCode.ERR_DuplicateNamedAttributeArgument, "AllowMultiple = false").WithArguments("AllowMultiple").WithLocation(2, 39),
-                // (2,2): error CS7036: There is no argument given that corresponds to the required formal parameter 'validOn' of 'AttributeUsageAttribute.AttributeUsageAttribute(AttributeTargets)'
+                // (2,2): error CS76: There is no argument given that corresponds to the required formal parameter 'validOn' of 'AttributeUsageAttribute.AttributeUsageAttribute(AttributeTargets)'
                 // [AttributeUsage(AllowMultiple = true, AllowMultiple = false)]
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AttributeUsage(AllowMultiple = true, AllowMultiple = false)").WithArguments("validOn", "System.AttributeUsageAttribute.AttributeUsageAttribute(System.AttributeTargets)").WithLocation(2, 2)
                 );
@@ -12508,7 +12508,7 @@ interface ID<T> where T : Array { }";
         }
 
         [Fact]
-        public void CS0703ERR_BadVisBound01()
+        public void CS07ERR_BadVisBound01()
         {
             var source =
 @"public class C1
@@ -12529,28 +12529,28 @@ public class C2 : C1
         where V : A<A<V>> { }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,43): error CS0703: Inconsistent accessibility: constraint type 'C1.A<T>' is less accessible than 'C1.D<T>'
+                // (5,43): error CS07: Inconsistent accessibility: constraint type 'C1.A<T>' is less accessible than 'C1.D<T>'
                 //     public delegate void D<T>() where T : A<T>, I<T>;
                 Diagnostic(ErrorCode.ERR_BadVisBound, "A<T>").WithArguments("C1.D<T>", "C1.A<T>").WithLocation(5, 43),
-                // (5,49): error CS0703: Inconsistent accessibility: constraint type 'C1.I<T>' is less accessible than 'C1.D<T>'
+                // (5,49): error CS07: Inconsistent accessibility: constraint type 'C1.I<T>' is less accessible than 'C1.D<T>'
                 //     public delegate void D<T>() where T : A<T>, I<T>;
                 Diagnostic(ErrorCode.ERR_BadVisBound, "I<T>").WithArguments("C1.D<T>", "C1.I<T>").WithLocation(5, 49),
-                // (14,19): error CS0703: Inconsistent accessibility: constraint type 'C1.A<C1.I<T>>' is less accessible than 'C2.M<T, U, V>()'
+                // (14,19): error CS07: Inconsistent accessibility: constraint type 'C1.A<C1.I<T>>' is less accessible than 'C2.M<T, U, V>()'
                 //         where T : A<I<T>>
                 Diagnostic(ErrorCode.ERR_BadVisBound, "A<I<T>>").WithArguments("C2.M<T, U, V>()", "C1.A<C1.I<T>>").WithLocation(14, 19),
-                // (15,19): error CS0703: Inconsistent accessibility: constraint type 'C1.I<C1.I<U>>' is less accessible than 'C2.M<T, U, V>()'
+                // (15,19): error CS07: Inconsistent accessibility: constraint type 'C1.I<C1.I<U>>' is less accessible than 'C2.M<T, U, V>()'
                 //         where U : I<I<U>>
                 Diagnostic(ErrorCode.ERR_BadVisBound, "I<I<U>>").WithArguments("C2.M<T, U, V>()", "C1.I<C1.I<U>>").WithLocation(15, 19),
-                // (10,19): error CS0703: Inconsistent accessibility: constraint type 'C1.I<C1.A<T>>' is less accessible than 'C2.S<T, U, V>'
+                // (10,19): error CS07: Inconsistent accessibility: constraint type 'C1.I<C1.A<T>>' is less accessible than 'C2.S<T, U, V>'
                 //         where T : I<A<T>>
                 Diagnostic(ErrorCode.ERR_BadVisBound, "I<A<T>>").WithArguments("C2.S<T, U, V>", "C1.I<C1.A<T>>").WithLocation(10, 19),
-                // (12,19): error CS0703: Inconsistent accessibility: constraint type 'C1.A<C1.A<V>>' is less accessible than 'C2.S<T, U, V>'
+                // (12,19): error CS07: Inconsistent accessibility: constraint type 'C1.A<C1.A<V>>' is less accessible than 'C2.S<T, U, V>'
                 //         where V : A<A<V>> { }
                 Diagnostic(ErrorCode.ERR_BadVisBound, "A<A<V>>").WithArguments("C2.S<T, U, V>", "C1.A<C1.A<V>>").WithLocation(12, 19));
         }
 
         [Fact]
-        public void CS0703ERR_BadVisBound02()
+        public void CS07ERR_BadVisBound02()
         {
             var source =
 @"internal interface IA<T> { }
@@ -12567,10 +12567,10 @@ public partial class C
     public partial void M<T>() where T : IA<T> { }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,44): error CS0703: Inconsistent accessibility: constraint type 'IB<U, IA<T>>' is less accessible than 'A.B<T, U>'
+                // (6,44): error CS07: Inconsistent accessibility: constraint type 'IB<U, IA<T>>' is less accessible than 'A.B<T, U>'
                 //     public partial class B<T, U> where U : IB<U, IA<T>> { }
                 Diagnostic(ErrorCode.ERR_BadVisBound, "IB<U, IA<T>>").WithArguments("A.B<T, U>", "IB<U, IA<T>>").WithLocation(6, 44),
-                // (7,44): error CS0703: Inconsistent accessibility: constraint type 'IB<U, IA<T>>' is less accessible than 'A.B<T, U>'
+                // (7,44): error CS07: Inconsistent accessibility: constraint type 'IB<U, IA<T>>' is less accessible than 'A.B<T, U>'
                 //     public partial class B<T, U> where U : IB<U, IA<T>> { }
                 Diagnostic(ErrorCode.ERR_BadVisBound, "IB<U, IA<T>>").WithArguments("A.B<T, U>", "IB<U, IA<T>>").WithLocation(7, 44),
                 // (11,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
@@ -12579,10 +12579,10 @@ public partial class C
                 // (12,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
                 //     public partial void M<T>() where T : IA<T> { }
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M").WithLocation(12, 25),
-                // (11,42): error CS0703: Inconsistent accessibility: constraint type 'IA<T>' is less accessible than 'C.M<T>()'
+                // (11,42): error CS07: Inconsistent accessibility: constraint type 'IA<T>' is less accessible than 'C.M<T>()'
                 //     public partial void M<T>() where T : IA<T>;
                 Diagnostic(ErrorCode.ERR_BadVisBound, "IA<T>").WithArguments("C.M<T>()", "IA<T>").WithLocation(11, 42),
-                // (12,42): error CS0703: Inconsistent accessibility: constraint type 'IA<T>' is less accessible than 'C.M<T>()'
+                // (12,42): error CS07: Inconsistent accessibility: constraint type 'IA<T>' is less accessible than 'C.M<T>()'
                 //     public partial void M<T>() where T : IA<T> { }
                 Diagnostic(ErrorCode.ERR_BadVisBound, "IA<T>").WithArguments("C.M<T>()", "IA<T>").WithLocation(12, 42));
         }
@@ -12743,14 +12743,14 @@ static class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,9): error CS0723: Cannot declare a variable of static type 'C'
+                // (6,9): error CS07: Cannot declare a variable of static type 'C'
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "C").WithArguments("C"),
                 // (6,15): error CS0712: Cannot create an instance of the static class 'C'
                 Diagnostic(ErrorCode.ERR_InstantiatingStaticClass, "new C()").WithArguments("C"));
         }
 
         [Fact]
-        public void CS0713ERR_StaticDerivedFromNonObject01()
+        public void CS07ERR_StaticDerivedFromNonObject01()
         {
             var source =
 @"namespace NS
@@ -12773,16 +12773,16 @@ static class C
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,35): error CS0713: Static class 'Derived' cannot derive from type 'Base'. Static classes must derive from object.
+                // (75): error CS07: Static class 'Derived' cannot derive from type 'Base'. Static classes must derive from object.
                 //     public static class Derived : Base
                 Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "Base").WithArguments("NS.Derived", "NS.Base").WithLocation(7, 35),
-                // (15,25): error CS0713: Static class 'D<V>' cannot derive from type 'Base1<string, V>'. Static classes must derive from object.
+                // (15,25): error CS07: Static class 'D<V>' cannot derive from type 'Base1<string, V>'. Static classes must derive from object.
                 //     static class D<V> : Base1<string, V>
                 Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "Base1<string, V>").WithArguments("NS.D<V>", "NS.Base1<string, V>").WithLocation(15, 25));
         }
 
         [Fact]
-        public void CS0713ERR_StaticDerivedFromNonObject02()
+        public void CS07ERR_StaticDerivedFromNonObject02()
         {
             var source =
 @"delegate void A();
@@ -12791,10 +12791,10 @@ static class C : A { }
 static class D : B { }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,18): error CS0713: Static class 'D' cannot derive from type 'B'. Static classes must derive from object.
+                // (4,18): error CS07: Static class 'D' cannot derive from type 'B'. Static classes must derive from object.
                 // static class D : B { }
                 Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "B").WithArguments("D", "B").WithLocation(4, 18),
-                // (3,18): error CS0713: Static class 'C' cannot derive from type 'A'. Static classes must derive from object.
+                // (3,18): error CS07: Static class 'C' cannot derive from type 'A'. Static classes must derive from object.
                 // static class C : A { }
                 Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "A").WithArguments("C", "A").WithLocation(3, 18));
         }
@@ -13091,10 +13091,10 @@ static class S
                 // (12,9): error CS0719: 'NS.C': array elements cannot be of static type
                 //         C[] X;
                 Diagnostic(ErrorCode.ERR_ArrayOfStaticClass, "C").WithArguments("NS.C"),
-                // (13,11): error CS0723: Cannot declare a variable of static type 'NS.C'
+                // (13,11): error CS07: Cannot declare a variable of static type 'NS.C'
                 //         C Y;
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "Y").WithArguments("NS.C"),
-                // (14,16): error CS0723: Cannot declare a variable of static type 'NS.D<int>'
+                // (14,16): error CS07: Cannot declare a variable of static type 'NS.D<int>'
                 //         D<int> Z;
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "Z").WithArguments("NS.D<int>"),
                 // (12,13): warning CS0169: The field 'NS.Test.X' is never used
@@ -13536,7 +13536,7 @@ public partial class C : Base
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartG"),
                 // (26,22): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartH"),
-                // (27,34): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                // (274): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartI"),
                 // (29,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartJ"),
@@ -13727,7 +13727,7 @@ public partial class C
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M1").WithArguments("C.M1()").WithLocation(3, 18));
         }
 
-        [WorkItem(542703, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542703")]
+        [WorkItem(5427, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/5427")]
         [Fact]
         public void CS0759ERR_PartialMethodMustHaveLatent_02()
         {
@@ -13913,7 +13913,7 @@ namespace N
         }
 
         [Fact]
-        public void CS0763ERR_PartialMethodStaticDifference()
+        public void CS07ERR_PartialMethodStaticDifference()
         {
             var text =
 @"partial class C
@@ -13924,9 +13924,9 @@ namespace N
     partial void M2();
 }";
             CreateCompilation(text).VerifyDiagnostics(
-                // (4,18): error CS0763: Both partial method declarations must be static or neither may be static
+                // (4,18): error CS07: Both partial method declarations must be static or neither may be static
                 Diagnostic(ErrorCode.ERR_PartialMethodStaticDifference, "M1").WithLocation(4, 18),
-                // (5,25): error CS0763: Both partial method declarations must be static or neither may be static
+                // (5,25): error CS07: Both partial method declarations must be static or neither may be static
                 Diagnostic(ErrorCode.ERR_PartialMethodStaticDifference, "M2").WithLocation(5, 25));
         }
 
@@ -14367,9 +14367,9 @@ struct U<T>
     static void M(this object o);
 }", parseOptions: TestOptions.Regular7)
                 .VerifyDiagnostics(
-                    // (3,17): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 'preview' or greater.
+                    // (3,17): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                     //     static void M(this object o);
-                    Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("static", "7.0", "preview").WithLocation(3, 17),
+                    Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("static", "7.0", "8.0").WithLocation(3, 17),
                     // (1,11): error CS1106: Extension method must be defined in a non-generic static class
                     // interface I
                     Diagnostic(ErrorCode.ERR_BadExtensionAgg, "I").WithLocation(1, 11),
@@ -15263,7 +15263,7 @@ class MyClass {}
                 Diagnostic(ErrorCode.ERR_ConditionalOnNonAttributeClass, @"System.Diagnostics.Conditional(""A"")").WithArguments("System.Diagnostics.Conditional").WithLocation(1, 2));
         }
 
-        // CS1703ERR_DuplicateImport:       See ReferenceManagerTests.CS1703ERR_DuplicateImport
+        // CS17ERR_DuplicateImport:       See ReferenceManagerTests.CS17ERR_DuplicateImport
         // CS1704ERR_DuplicateImportSimple: See ReferenceManagerTests.CS1704ERR_DuplicateImportSimple
 
         [Fact(Skip = "530901"), WorkItem(530901, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530901")]
@@ -15545,7 +15545,7 @@ class NamedExample
 
     int CalculateBMI(int weight, int height = y)
     {
-        return (weight * 703) / (height * height);
+        return (weight * 7) / (height * height);
     }
 }
 ";
@@ -15591,7 +15591,7 @@ class NamedExample
         }
 
         [Fact]
-        public void CS1743ERR_DefaultValueForExtensionParameter()
+        public void CS17ERR_DefaultValueForExtensionParameter()
         {
             var text =
 @"static class C
@@ -15602,7 +15602,7 @@ class NamedExample
 }";
             var compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics(
-                // (4,20): error CS1743: Cannot specify a default value for the 'this' parameter
+                // (4,20): error CS17: Cannot specify a default value for the 'this' parameter
                 Diagnostic(ErrorCode.ERR_DefaultValueForExtensionParameter, "this").WithLocation(4, 20),
                 // (5,30): error CS1100: Method 'M3' has a parameter modifier 'this' which is not on the first parameter
                 Diagnostic(ErrorCode.ERR_BadThisParam, "this").WithArguments("M3").WithLocation(5, 30));
@@ -15679,7 +15679,7 @@ class Test
             var comp1 = CreateCompilation(textdll);
             var ref1 = new CSharpCompilationReference(comp1);
             CreateCompilation(text, references: new MetadataReference[] { ref1 }).VerifyDiagnostics(
-                // (7,37): error CS0246: The type or namespace name 'IMyInterface' could not be found (are you missing a using directive or an assembly reference?)
+                // (77): error CS0246: The type or namespace name 'IMyInterface' could not be found (are you missing a using directive or an assembly reference?)
                 //     public static void MyDelegate02(IMyInterface[] ary) { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IMyInterface").WithArguments("IMyInterface")
                 );
@@ -15935,7 +15935,7 @@ End Structure";
                 // (6,41): warning CS0219: The variable 's3' is assigned but its value is never used
                 //         INestedStructure.InnerStructure s3 = default(INestedStructure.InnerStructure);
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s3").WithArguments("s3"),
-                // (7,31): warning CS0219: The variable 's4' is assigned but its value is never used
+                // (71): warning CS0219: The variable 's4' is assigned but its value is never used
                 //         INestedEnum.InnerEnum s4 = default(INestedEnum.InnerEnum);
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s4").WithArguments("s4"),
                 // (8,39): warning CS0219: The variable 's5' is assigned but its value is never used
@@ -15944,7 +15944,7 @@ End Structure";
         }
 
         [Fact]
-        public void CS1763ERR_NotNullRefDefaultParameter()
+        public void CS17ERR_NotNullRefDefaultParameter()
         {
             var text = @"
 public static class ErrorCode 
@@ -15955,9 +15955,9 @@ public static class ErrorCode
   static void M2(System.ValueType y = 123) {}
 }";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                // (5,25): error CS1763: 'x' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
+                // (5,25): error CS17: 'x' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
                 new ErrorDescription { Code = 1763, Line = 5, Column = 25 },
-                // (7,35): error CS1763: 'y' is of type 'System.ValueType'. A default parameter value of a reference type other than string can only be initialized with null
+                // (75): error CS17: 'y' is of type 'System.ValueType'. A default parameter value of a reference type other than string can only be initialized with null
                 new ErrorDescription { Code = 1763, Line = 7, Column = 35 });
         }
 
@@ -16728,7 +16728,7 @@ class B : A
                 // (38,39): warning CS0067: The event 'B.SM3' is never used
                 //     public static event System.Action SM3; //CS0108
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "SM3").WithArguments("B.SM3"),
-                // (27,39): warning CS0067: The event 'A.SE4' is never used
+                // (279): warning CS0067: The event 'A.SE4' is never used
                 //     public static event System.Action SE4;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "SE4").WithArguments("A.SE4"),
                 // (48,39): warning CS0067: The event 'B.SP3' is never used
@@ -18126,7 +18126,7 @@ Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "c").WithArguments("
         // public void CS1698WRN_AssumedMatchThis() => Move to CommandLineTest
 
         [Fact]
-        public void CS1699WRN_UseSwitchInsteadOfAttribute_RoslynWRN7033()
+        public void CS1699WRN_UseSwitchInsteadOfAttribute_RoslynWRN73()
         {
             var text = @"
 [assembly:System.Reflection.AssemblyDelaySign(true)]   // CS1699
@@ -18137,7 +18137,7 @@ Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "c").WithArguments("
             // warning CS1607: Assembly generation -- Delay signing was requested, but no key was given
 
             CreateCompilation(text).VerifyDiagnostics(
-                // warning CS7033: Delay signing was specified and requires a public key, but no public key was specified
+                // warning CS73: Delay signing was specified and requires a public key, but no public key was specified
                 Diagnostic(ErrorCode.WRN_DelaySignButNoKey)
                 );
         }
@@ -19147,10 +19147,10 @@ class A<T>
     struct remove_G { } // CS0102
 }")
             .VerifyDiagnostics(
-                // (7,32): error CS0102: The type 'C' already contains a definition for 'add_E'
+                // (72): error CS0102: The type 'C' already contains a definition for 'add_E'
                 //     public event System.Action E;
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "E").WithArguments("C", "add_E"),
-                // (7,32): error CS0102: The type 'C' already contains a definition for 'remove_E'
+                // (72): error CS0102: The type 'C' already contains a definition for 'remove_E'
                 //     public event System.Action E;
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "E").WithArguments("C", "remove_E"),
                 // (8,25): error CS0102: The type 'C' already contains a definition for 'remove_F'
@@ -19171,7 +19171,7 @@ class A<T>
                 // (4,33): warning CS0067: The event 'C.remove_E' is never used
                 //     private event System.Action remove_E; // CS0102
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "remove_E").WithArguments("C.remove_E"),
-                // (7,32): warning CS0067: The event 'C.E' is never used
+                // (72): warning CS0067: The event 'C.E' is never used
                 //     public event System.Action E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"),
                 // (9,25): warning CS0067: The event 'C.G' is never used
@@ -19775,14 +19775,14 @@ class G<T> where T : C
 
         #endregion
 
-        [WorkItem(783920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/783920")]
+        [WorkItem(7920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/7920")]
         [Fact()]
-        public void Bug783920()
+        public void Bug7920()
         {
             var comp1 = CreateCompilation(@"
 public class MyAttribute1 : System.Attribute
 {}
-", options: TestOptions.ReleaseDll, assemblyName: "Bug783920_CS");
+", options: TestOptions.ReleaseDll, assemblyName: "Bug7920_CS");
 
             var comp2 = CreateCompilation(@"
 public class MyAttribute2 : MyAttribute1
@@ -19790,9 +19790,9 @@ public class MyAttribute2 : MyAttribute1
 ", new[] { new CSharpCompilationReference(comp1) }, options: TestOptions.ReleaseDll);
 
             var expected = new[] {
-                // (2,2): error CS0012: The type 'MyAttribute1' is defined in an assembly that is not referenced. You must add a reference to assembly 'Bug783920_CS, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (2,2): error CS0012: The type 'MyAttribute1' is defined in an assembly that is not referenced. You must add a reference to assembly 'Bug7920_CS, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 // [MyAttribute2]
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "MyAttribute2").WithArguments("MyAttribute1", "Bug783920_CS, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "MyAttribute2").WithArguments("MyAttribute1", "Bug7920_CS, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
                                  };
 
             var source3 = @"

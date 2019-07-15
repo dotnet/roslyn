@@ -29,7 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     {
         public CSharpAsAndNullCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineAsTypeCheckId,
-                    new LocalizableResourceString(
+                   CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck,
+                   LanguageNames.CSharp,
+                   new LocalizableResourceString(
                         nameof(FeaturesResources.Use_pattern_matching), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
@@ -98,9 +100,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             if (!TryGetTypeCheckParts(semanticModel, operand,
-                    out VariableDeclaratorSyntax declarator,
-                    out BinaryExpressionSyntax asExpression,
-                    out ILocalSymbol localSymbol))
+                    out var declarator,
+                    out var asExpression,
+                    out var localSymbol))
             {
                 return;
             }

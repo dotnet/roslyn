@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.ComponentModel
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>

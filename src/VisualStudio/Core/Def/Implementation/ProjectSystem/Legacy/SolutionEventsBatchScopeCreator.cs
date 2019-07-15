@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         {
             AssertIsForeground();
 
-            for (int i = 0; i < _fullSolutionLoadScopes.Count; i++)
+            for (var i = 0; i < _fullSolutionLoadScopes.Count; i++)
             {
                 if (_fullSolutionLoadScopes[i].hierarchy == hierarchy)
                 {

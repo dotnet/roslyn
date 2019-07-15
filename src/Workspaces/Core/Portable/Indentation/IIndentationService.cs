@@ -3,6 +3,7 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Indentation
 {
@@ -41,29 +42,23 @@ namespace Microsoft.CodeAnalysis.Indentation
     internal interface IIndentationService : ILanguageService
     {
         /// <summary>
-        /// Determines the desired indentation of a given line.  May return <see langword="null"/> if the
-        /// <paramref name="document"/> does not want any sort of automatic indentation.  May also return
-        /// <see langword="null"/> if the line in question is not blank and thus indentation should
-        /// be deferred to the formatting command handler to handle.
+        /// Determines the desired indentation of a given line.
         /// </summary>
-        IndentationResult? GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken);
+        IndentationResult GetIndentation(
+            Document document, int lineNumber,
+            FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken);
+    }
 
-        /// <summary>
-        /// Determines indentation for a blank line (i.e. after hitting enter at the end of a line,
-        /// or after moving to a blank line).
-        /// 
-        /// Specifically, this function operates as if the line specified by <paramref name="lineNumber"/>
-        /// is blank.  The actual contents of the line do not matter.  All indentation information is
-        /// determined from the previous lines in the document.
-        /// 
-        /// This is often useful for features which want to insert new code at a certain
-        /// location, indented to the appropriate amount.  This allows those features to
-        /// figure out that position, without having to care about what might already be
-        /// at that line (or further on in the document).
-        /// 
-        /// This function will always succeed.
-        /// </summary>
-        IndentationResult GetBlankLineIndentation(
-            Document document, int lineNumber, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken);
+    internal static class IIndentationServiceExtensions
+    {
+        public static IndentationResult GetIndentation(
+            this IIndentationService service, Document document,
+            int lineNumber, CancellationToken cancellationToken)
+        {
+            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+            var style = options.GetOption(FormattingOptions.SmartIndent, document.Project.Language);
+
+            return service.GetIndentation(document, lineNumber, style, cancellationToken);
+        }
     }
 }

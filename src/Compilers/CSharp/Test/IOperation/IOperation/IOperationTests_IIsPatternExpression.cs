@@ -732,7 +732,7 @@ IBlockOperation (1 statements, 2 locals) (OperationKind.Block, Type: null) (Synt
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                     IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32)
                 PropertySubpatterns (1):
-                    IPropertySubpatternOperation (OperationKind.None, Type: null) (Syntax: 'Item1: var z')
+                    IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null) (Syntax: 'Item1: var z')
                       Member: 
                         IFieldReferenceOperation: System.Int32 (System.Int32 X, System.Int32 Y).Item1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Item1')
                           Instance Receiver: 
@@ -771,7 +771,7 @@ Block[B0] - Entry
                                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                               IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32)
                           PropertySubpatterns (1):
-                              IPropertySubpatternOperation (OperationKind.None, Type: null) (Syntax: 'Item1: var z')
+                              IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null) (Syntax: 'Item1: var z')
                                 Member: 
                                   IFieldReferenceOperation: System.Int32 (System.Int32 X, System.Int32 Y).Item1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Item1')
                                     Instance Receiver: 
@@ -830,14 +830,14 @@ Block[B0] - Entry
                                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                               IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: (System.Int32 Y, System.Int32 Z))
                           PropertySubpatterns (2):
-                              IPropertySubpatternOperation (OperationKind.None, Type: null) (Syntax: 'Item1: var x')
+                              IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null) (Syntax: 'Item1: var x')
                                 Member: 
                                   IFieldReferenceOperation: System.Int32 (System.Int32 X, (System.Int32 Y, System.Int32 Z)).Item1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Item1')
                                     Instance Receiver: 
                                       IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: (System.Int32 X, (System.Int32 Y, System.Int32 Z)), IsImplicit) (Syntax: 'Item1')
                                 Pattern: 
                                   IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var x') (InputType: System.Int32, DeclaredSymbol: System.Int32 x, MatchesNull: True)
-                              IPropertySubpatternOperation (OperationKind.None, Type: null) (Syntax: 'Item2: { Y: ...  Z: var z }')
+                              IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null) (Syntax: 'Item2: { Y: ...  Z: var z }')
                                 Member: 
                                   IFieldReferenceOperation: (System.Int32 Y, System.Int32 Z) (System.Int32 X, (System.Int32 Y, System.Int32 Z)).Item2 (OperationKind.FieldReference, Type: (System.Int32 Y, System.Int32 Z)) (Syntax: 'Item2')
                                     Instance Receiver: 
@@ -846,7 +846,7 @@ Block[B0] - Entry
                                   IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '{ Y: 1, Z: var z }') (InputType: (System.Int32 Y, System.Int32 Z), DeclaredSymbol: null, MatchedType: (System.Int32 Y, System.Int32 Z), DeconstructSymbol: null)
                                     DeconstructionSubpatterns (0)
                                     PropertySubpatterns (2):
-                                        IPropertySubpatternOperation (OperationKind.None, Type: null) (Syntax: 'Y: 1')
+                                        IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null) (Syntax: 'Y: 1')
                                           Member: 
                                             IFieldReferenceOperation: System.Int32 (System.Int32 Y, System.Int32 Z).Y (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Y')
                                               Instance Receiver: 
@@ -855,7 +855,7 @@ Block[B0] - Entry
                                             IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32)
                                               Value: 
                                                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                                        IPropertySubpatternOperation (OperationKind.None, Type: null) (Syntax: 'Z: var z')
+                                        IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null) (Syntax: 'Z: var z')
                                           Member: 
                                             IFieldReferenceOperation: System.Int32 (System.Int32 Y, System.Int32 Z).Z (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Z')
                                               Instance Receiver: 
@@ -1002,7 +1002,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'tu
             Value: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
       PropertySubpatterns (1):
-          IPropertySubpatternOperation (OperationKind.None, Type: null) (Syntax: 'Item1: int x')
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null) (Syntax: 'Item1: int x')
             Member: 
               IFieldReferenceOperation: System.Int32 (System.Int32 X, System.Int32 Y).Item1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Item1')
                 Instance Receiver: 
@@ -1042,7 +1042,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
             Value: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
       PropertySubpatterns (1):
-          IPropertySubpatternOperation (OperationKind.None, Type: null, IsInvalid) (Syntax: 'NotFound: int x')
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'NotFound: int x')
             Member: 
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'NotFound')
                 Children(0)
@@ -1108,7 +1108,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
     IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: 'C1 { Prop[1]: var x }') (InputType: System.Object, DeclaredSymbol: null, MatchedType: C1, DeconstructSymbol: null)
       DeconstructionSubpatterns (0)
       PropertySubpatterns (2):
-          IPropertySubpatternOperation (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Prop[1]')
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'Prop[1]')
             Member: 
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'Prop[1]')
                 Children(0)
@@ -1120,7 +1120,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
                         IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Prop')
                           Children(0)
-          IPropertySubpatternOperation (OperationKind.None, Type: null, IsInvalid) (Syntax: 'var x')
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'var x')
             Member: 
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'var x')
                 Children(0)
@@ -1172,7 +1172,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
     IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: 'C1 { Prop: var x }') (InputType: System.Object, DeclaredSymbol: null, MatchedType: C1, DeconstructSymbol: null)
       DeconstructionSubpatterns (0)
       PropertySubpatterns (1):
-          IPropertySubpatternOperation (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Prop: var x')
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'Prop: var x')
             Member: 
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Prop')
                 Children(0)

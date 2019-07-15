@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.CanImplementImplicitly
+                    return CanImplementImplicitly
                         ? ImmutableArray.Create<IMethodSymbol>()
                         : _symbol.ExplicitInterfaceImplementations;
                 }
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public ImmutableArray<ITypeSymbol> TypeArguments => _symbol.TypeArguments;
 
-            public ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations => _symbol.TypeArgumentsNullableAnnotations;
+            public ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => _symbol.TypeArgumentNullableAnnotations;
 
             public ImmutableArray<ITypeParameterSymbol> TypeParameters => _symbol.TypeParameters;
 

@@ -14,6 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 {
+    // Disabled due to: https://github.com/dotnet/roslyn/issues/5835 & https://github.com/dotnet/roslyn/pull/6642
     // [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.SimplifyLambda)]
     internal partial class LambdaSimplifierCodeRefactoringProvider : CodeRefactoringProvider
     {
@@ -35,9 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var lambda = semanticDocument.Root.FindToken(textSpan.Start).GetAncestor(n =>
-                n is SimpleLambdaExpressionSyntax || n is ParenthesizedLambdaExpressionSyntax);
-            if (lambda == null || !lambda.Span.IntersectsWith(textSpan.Start))
+            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
+            var lambda = await refactoringHelperService.TryGetSelectedNodeAsync<LambdaExpressionSyntax>(document, context.Span, cancellationToken).ConfigureAwait(false);
+            if (lambda == null)
             {
                 return;
             }
@@ -197,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
             }
 
             // Parameter types have to be contravariant.
-            for (int i = 0; i < lambdaMethod.Parameters.Length; i++)
+            for (var i = 0; i < lambdaMethod.Parameters.Length; i++)
             {
                 var conversion = document.SemanticModel.Compilation.ClassifyConversion(
                     lambdaMethod.Parameters[i].Type, invocationMethod.Parameters[i].Type);
@@ -284,8 +285,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
             {
             }
         }

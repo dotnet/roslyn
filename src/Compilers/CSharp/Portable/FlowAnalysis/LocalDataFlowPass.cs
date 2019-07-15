@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     if (TryGetReceiverAndMember(node, out BoundExpression receiver, out Symbol member))
                     {
-                        Debug.Assert((receiver is null) == member.IsStatic);
+                        Debug.Assert((receiver is null) != member.RequiresInstanceReceiver());
                         return MakeMemberSlot(receiver, member);
                     }
                     break;
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected int MakeMemberSlot(BoundExpression receiverOpt, Symbol member)
         {
             int containingSlot = -1;
-            if (!member.IsStatic)
+            if (member.RequiresInstanceReceiver())
             {
                 if (receiverOpt is null)
                 {

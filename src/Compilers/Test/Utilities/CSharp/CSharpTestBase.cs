@@ -51,12 +51,39 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
+        protected const string NullableContextAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(
+        AttributeTargets.Module |
+        AttributeTargets.Class |
+        AttributeTargets.Delegate |
+        AttributeTargets.Interface |
+        AttributeTargets.Method |
+        AttributeTargets.Struct,
+        AllowMultiple = false,
+        Inherited = false)]
+    public sealed class NullableContextAttribute : Attribute
+    {
+        public readonly byte Flag;
+        public NullableContextAttribute(byte flag)
+        {
+            Flag = flag;
+        }
+    }
+}";
+
         protected const string NullablePublicOnlyAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
     [System.AttributeUsage(AttributeTargets.Module, AllowMultiple = false)]
     public sealed class NullablePublicOnlyAttribute : Attribute
     {
+        public readonly bool IncludesInternals;
+        public NullablePublicOnlyAttribute(bool includesInternals)
+        {
+            IncludesInternals = includesInternals;
+        }
     }
 }";
 
@@ -122,24 +149,24 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
-        protected const string AssertsTrueAttributeDefinition = @"
+        protected const string DoesNotReturnIfAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
-    public class AssertsTrueAttribute : Attribute
+    public class DoesNotReturnIfAttribute : Attribute
     {
-        public AssertsTrueAttribute () { }
+        public DoesNotReturnIfAttribute (bool condition) { }
     }
 }
 ";
 
-        protected const string AssertsFalseAttributeDefinition = @"
+        protected const string DoesNotReturnAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
-    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
-    public class AssertsFalseAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    public class DoesNotReturnAttribute : Attribute
     {
-        public AssertsFalseAttribute () { }
+        public DoesNotReturnAttribute () { }
     }
 }
 ";

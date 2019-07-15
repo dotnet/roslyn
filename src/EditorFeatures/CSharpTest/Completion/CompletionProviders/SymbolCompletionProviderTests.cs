@@ -9497,7 +9497,7 @@ class C
             await VerifyItemExistsAsync(markup, "GetType");
             await VerifyItemExistsAsync(markup, "Item2");
             await VerifyItemExistsAsync(markup, "ITEM3");
-            for (int i = 4; i <= 8; i++)
+            for (var i = 4; i <= 8; i++)
             {
                 await VerifyItemExistsAsync(markup, "Item" + i);
             }

@@ -457,8 +457,8 @@ namespace Roslyn.Collections.Immutable
         /// </returns>
         public override string ToString()
         {
-            StringBuilder builder = new StringBuilder("ImmutableHashMap[");
-            bool needComma = false;
+            var builder = new StringBuilder("ImmutableHashMap[");
+            var needComma = false;
             foreach (var kv in this)
             {
                 builder.Append(kv.Key);
@@ -724,7 +724,7 @@ namespace Roslyn.Collections.Immutable
             {
                 if (this.Hash == bucket.Hash)
                 {
-                    int pos = this.Find(bucket.Key, comparer);
+                    var pos = this.Find(bucket.Key, comparer);
                     if (pos >= 0)
                     {
                         // If the value hasn't changed for this key, return the original bucket.
@@ -759,7 +759,7 @@ namespace Roslyn.Collections.Immutable
             {
                 if (this.Hash == hash)
                 {
-                    int pos = this.Find(key, comparer);
+                    var pos = this.Find(key, comparer);
                     if (pos >= 0)
                     {
                         if (_buckets.Length == 1)
@@ -784,7 +784,7 @@ namespace Roslyn.Collections.Immutable
             {
                 if (this.Hash == hash)
                 {
-                    int pos = this.Find(key, comparer);
+                    var pos = this.Find(key, comparer);
                     if (pos >= 0)
                     {
                         return _buckets[pos];
@@ -796,7 +796,7 @@ namespace Roslyn.Collections.Immutable
 
             private int Find(TKey key, IEqualityComparer<TKey> comparer)
             {
-                for (int i = 0; i < _buckets.Length; i++)
+                for (var i = 0; i < _buckets.Length; i++)
                 {
                     if (comparer.Equals(key, _buckets[i].Key))
                     {
@@ -855,7 +855,7 @@ namespace Roslyn.Collections.Immutable
                 var h2 = bucket2.Hash;
                 int s1;
                 int s2;
-                for (int i = 0; i < 32; i++)
+                for (var i = 0; i < 32; i++)
                 {
                     _hashRoll = (suggestedHashRoll + i) & 31;
                     s1 = this.ComputeLogicalSlot(h1);
@@ -878,11 +878,11 @@ namespace Roslyn.Collections.Immutable
 
             internal override Bucket Add(int suggestedHashRoll, ValueBucket bucket, IEqualityComparer<TKey> keyComparer, IEqualityComparer<TValue> valueComparer, bool overwriteExistingValue)
             {
-                int logicalSlot = ComputeLogicalSlot(bucket.Hash);
+                var logicalSlot = ComputeLogicalSlot(bucket.Hash);
                 if (IsInUse(logicalSlot))
                 {
                     // if this slot is in use, then add the new item to the one in this slot
-                    int physicalSlot = ComputePhysicalSlot(logicalSlot);
+                    var physicalSlot = ComputePhysicalSlot(logicalSlot);
                     var existing = _buckets[physicalSlot];
 
                     // suggest hash roll that will cause any nested hash bucket to use entirely new bits for picking logical slot
@@ -900,7 +900,7 @@ namespace Roslyn.Collections.Immutable
                 }
                 else
                 {
-                    int physicalSlot = ComputePhysicalSlot(logicalSlot);
+                    var physicalSlot = ComputePhysicalSlot(logicalSlot);
                     var newBuckets = _buckets.InsertAt(physicalSlot, bucket);
                     var newUsed = InsertBit(logicalSlot, _used);
                     return new HashBucket(_hashRoll, newUsed, newBuckets, _count + bucket.Count);
@@ -909,12 +909,12 @@ namespace Roslyn.Collections.Immutable
 
             internal override Bucket Remove(int hash, TKey key, IEqualityComparer<TKey> comparer)
             {
-                int logicalSlot = ComputeLogicalSlot(hash);
+                var logicalSlot = ComputeLogicalSlot(hash);
                 if (IsInUse(logicalSlot))
                 {
-                    int physicalSlot = ComputePhysicalSlot(logicalSlot);
+                    var physicalSlot = ComputePhysicalSlot(logicalSlot);
                     var existing = _buckets[physicalSlot];
-                    Bucket result = existing.Remove(hash, key, comparer);
+                    var result = existing.Remove(hash, key, comparer);
                     if (result == null)
                     {
                         if (_buckets.Length == 1)
@@ -941,10 +941,10 @@ namespace Roslyn.Collections.Immutable
 
             internal override ValueBucket Get(int hash, TKey key, IEqualityComparer<TKey> comparer)
             {
-                int logicalSlot = ComputeLogicalSlot(hash);
+                var logicalSlot = ComputeLogicalSlot(hash);
                 if (IsInUse(logicalSlot))
                 {
-                    int physicalSlot = ComputePhysicalSlot(logicalSlot);
+                    var physicalSlot = ComputePhysicalSlot(logicalSlot);
                     return _buckets[physicalSlot].Get(hash, key, comparer);
                 }
 
@@ -963,8 +963,8 @@ namespace Roslyn.Collections.Immutable
 
             private int ComputeLogicalSlot(int hc)
             {
-                uint uc = unchecked((uint)hc);
-                uint rotated = RotateRight(uc, _hashRoll);
+                var uc = unchecked((uint)hc);
+                var rotated = RotateRight(uc, _hashRoll);
                 return unchecked((int)(rotated & 31));
             }
 
@@ -994,7 +994,7 @@ namespace Roslyn.Collections.Immutable
                     return 0;
                 }
 
-                uint mask = uint.MaxValue >> (32 - logicalSlot); // only count the bits up to the logical slot #
+                var mask = uint.MaxValue >> (32 - logicalSlot); // only count the bits up to the logical slot #
                 return CountBits(_used & mask);
             }
 
@@ -1003,7 +1003,7 @@ namespace Roslyn.Collections.Immutable
             {
                 unchecked
                 {
-                    v = v - ((v >> 1) & 0x55555555u);
+                    v -= ((v >> 1) & 0x55555555u);
                     v = (v & 0x33333333u) + ((v >> 2) & 0x33333333u);
                     return (int)((v + (v >> 4) & 0xF0F0F0Fu) * 0x1010101u) >> 24;
                 }

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public NullableAnnotation ReceiverNullableAnnotation => ReceiverType.GetNullability();
         public NullableAnnotation ReturnNullableAnnotation => ReturnType.GetNullability();
-        public ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations => TypeArguments.SelectAsArray(a => a.GetNullability());
+        public ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => TypeArguments.SelectAsArray(a => a.GetNullability());
 
         public virtual ITypeSymbol ReceiverType
         {

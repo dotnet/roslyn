@@ -243,9 +243,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return null;
             }
 
-            options = options ?? workspace.Options;
-            rules = rules ?? GetDefaultFormattingRules(workspace, node.Language);
-            spans = spans ?? SpecializedCollections.SingletonEnumerable(node.FullSpan);
+            options ??= workspace.Options;
+            rules ??= GetDefaultFormattingRules(workspace, node.Language);
+            spans ??= SpecializedCollections.SingletonEnumerable(node.FullSpan);
             return languageFormatter.Format(node, spans, options, rules, cancellationToken);
         }
 

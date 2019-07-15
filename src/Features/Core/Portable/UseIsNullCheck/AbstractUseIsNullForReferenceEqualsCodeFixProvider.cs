@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         protected abstract string GetIsNullTitle();
         protected abstract string GetIsNotNullTitle();
         protected abstract SyntaxNode CreateNullCheck(SyntaxNode argument, bool isUnconstrainedGeneric);
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 var title = negated ? GetIsNotNullTitle() : GetIsNullTitle();
 
                 context.RegisterCodeFix(
-                    new MyCodeAction(title, c => this.FixAsync(context.Document, diagnostic, c)),
+                    new MyCodeAction(title, c => FixAsync(context.Document, diagnostic, c)),
                     context.Diagnostics);
             }
 

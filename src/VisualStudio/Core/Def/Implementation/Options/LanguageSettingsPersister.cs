@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 foreach (var option in _supportedOptions)
                 {
                     var keyWithLanguage = new OptionKey(option, languageName);
-                    object newValue = GetValueForOption(option, langPrefs[0]);
+                    var newValue = GetValueForOption(option, langPrefs[0]);
 
                     _optionService.RefreshOption(keyWithLanguage, newValue);
                 }

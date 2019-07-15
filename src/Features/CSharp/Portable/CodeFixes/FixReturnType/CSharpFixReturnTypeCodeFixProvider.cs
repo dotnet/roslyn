@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
         {
         }
 
+        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
@@ -111,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
             return node.GetAncestors().Select(a => TryGetReturnTypeToFix(a)).FirstOrDefault(p => p != default);
 
             // Local functions
-            (TypeSyntax type, bool useTask) TryGetReturnTypeToFix(SyntaxNode containingMember)
+            static (TypeSyntax type, bool useTask) TryGetReturnTypeToFix(SyntaxNode containingMember)
             {
                 switch (containingMember)
                 {
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
                 }
             }
 
-            bool IsAsync(SyntaxTokenList modifiers)
+            static bool IsAsync(SyntaxTokenList modifiers)
             {
                 return modifiers.Any(SyntaxKind.AsyncKeyword);
             }

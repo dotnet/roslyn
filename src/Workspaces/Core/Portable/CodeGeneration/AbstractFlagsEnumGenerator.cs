@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             // boundary checks that can be applied to minimize the comparisons required. This code
             // works the same for the best/worst case. In general the number of items in an enum are
             // sufficiently small and not worth the optimization.
-            for (int index = allFieldsAndValues.Count - 1; index >= 0 && result != 0; index--)
+            for (var index = allFieldsAndValues.Count - 1; index >= 0 && result != 0; index--)
             {
                 var fieldAndValue = allFieldsAndValues[index];
                 var valueAtIndex = fieldAndValue.value;
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             {
                 // We want to emit the fields in lower to higher value.  So we walk backward.
                 SyntaxNode finalNode = null;
-                for (int i = usedFieldsAndValues.Count - 1; i >= 0; i--)
+                for (var i = usedFieldsAndValues.Count - 1; i >= 0; i--)
                 {
                     var field = usedFieldsAndValues[i];
                     var node = CreateMemberAccessExpression(field.field, enumType, underlyingSpecialType);
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private IFieldSymbol GetZeroField(List<(IFieldSymbol field, ulong value)> allFieldsAndValues)
         {
-            for (int i = allFieldsAndValues.Count - 1; i >= 0; i--)
+            for (var i = allFieldsAndValues.Count - 1; i >= 0; i--)
             {
                 var tuple = allFieldsAndValues[i];
                 if (tuple.value == 0)

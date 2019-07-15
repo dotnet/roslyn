@@ -28,44 +28,44 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
             public async Task ComputeRefactoringsAsync(
                 CodeRefactoringContext context, SyntaxNode root, CancellationToken cancellationToken)
             {
-                if (context.Span.Length > 0)
-                {
-                    return;
-                }
+                var document = context.Document;
+                var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
 
-                var position = context.Span.Start;
-                var token = root.FindToken(position);
-                if (token.Span.Start == position &&
-                    IsCloseParenOrComma(token))
+                var argument = await refactoringHelperService.TryGetSelectedNodeAsync<TSimpleArgumentSyntax>(document, context.Span, cancellationToken).ConfigureAwait(false);
+                if (argument == null && context.Span.IsEmpty)
                 {
-                    token = token.GetPreviousToken();
-                    if (token.Span.End != position)
+                    // For arguments we want to enable cursor anywhere in the expressions (even deep within) as long as
+                    // it is on the first line of said expression. Since the `TryGetSelectedNodeAsync` doesn't do such
+                    // traversing up & checking line numbers -> need to do it manually.
+                    // The rationale for only first line is that arg. expressions can be arbitrarily large. 
+                    // see: https://github.com/dotnet/roslyn/issues/18848
+
+                    var position = context.Span.Start;
+                    var token = root.FindToken(position);
+
+                    argument = root.FindNode(token.Span).FirstAncestorOrSelfUntil<TBaseArgumentSyntax>(node => node is TArgumentListSyntax) as TSimpleArgumentSyntax;
+                    if (argument == null)
+                    {
+                        return;
+                    }
+
+                    var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                    var argumentStartLine = sourceText.Lines.GetLineFromPosition(argument.Span.Start).LineNumber;
+                    var caretLine = sourceText.Lines.GetLineFromPosition(position).LineNumber;
+
+                    if (argumentStartLine != caretLine)
                     {
                         return;
                     }
                 }
 
-                var argument = root.FindNode(token.Span).FirstAncestorOrSelfUntil<TBaseArgumentSyntax>(node => node is TArgumentListSyntax) as TSimpleArgumentSyntax;
                 if (argument == null)
                 {
                     return;
                 }
 
                 if (!IsPositionalArgument(argument))
-                {
-                    return;
-                }
-
-                // Arguments can be arbitrarily large.  Only offer this feature if the caret is on hte
-                // line that the argument starts on.
-
-                var document = context.Document;
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                var argumentStartLine = sourceText.Lines.GetLineFromPosition(argument.Span.Start).LineNumber;
-                var caretLine = sourceText.Lines.GetLineFromPosition(position).LineNumber;
-
-                if (argumentStartLine != caretLine)
                 {
                     return;
                 }
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
 
                 var argumentName = parameters[argumentIndex].Name;
 
-                if (this.SupportsNonTrailingNamedArguments(root.SyntaxTree.Options) &&
+                if (SupportsNonTrailingNamedArguments(root.SyntaxTree.Options) &&
                     argumentIndex < argumentCount - 1)
                 {
                     context.RegisterRefactoring(

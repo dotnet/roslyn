@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,11 +30,11 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract partial class Workspace : IDisposable
     {
-        private readonly string _workspaceKind;
+        private readonly string? _workspaceKind;
         private readonly HostWorkspaceServices _services;
         private readonly BranchId _primaryBranchId;
 
-        private readonly IWorkspaceOptionService _workspaceOptionService;
+        private readonly IWorkspaceOptionService? _workspaceOptionService;
 
         // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
         private readonly SemaphoreSlim _serializationLock = new SemaphoreSlim(initialCount: 1);
@@ -50,14 +52,14 @@ namespace Microsoft.CodeAnalysis
 
         internal bool TestHookPartialSolutionsDisabled { get; set; }
 
-        private Action<string> _testMessageLogger;
+        private Action<string>? _testMessageLogger;
 
         /// <summary>
         /// Constructs a new workspace instance.
         /// </summary>
         /// <param name="host">The <see cref="HostServices"/> this workspace uses</param>
         /// <param name="workspaceKind">A string that can be used to identify the kind of workspace. Usually this matches the name of the class.</param>
-        protected Workspace(HostServices host, string workspaceKind)
+        protected Workspace(HostServices host, string? workspaceKind)
         {
             _primaryBranchId = BranchId.GetNextId();
             _workspaceKind = workspaceKind;
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis
         /// Sets an internal logger that will receive some messages.
         /// </summary>
         /// <param name="writeLineMessageLogger">An action called to write a single line to the log.</param>
-        internal void SetTestLogger(Action<string> writeLineMessageLogger)
+        internal void SetTestLogger(Action<string>? writeLineMessageLogger)
         {
             _testMessageLogger = writeLineMessageLogger;
         }
@@ -108,7 +110,8 @@ namespace Microsoft.CodeAnalysis
         /// This is generally <see cref="WorkspaceKind.Host"/> if originating from the host environment, but may be
         /// any other name used for a specific kind of workspace.
         /// </summary>
-        public string Kind => _workspaceKind;
+        // TODO (https://github.com/dotnet/roslyn/issues/37110): decide if Kind should be non-null
+        public string? Kind => _workspaceKind;
 
         /// <summary>
         /// Create a new empty solution instance associated with this workspace.
@@ -152,6 +155,11 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         protected Solution SetCurrentSolution(Solution solution)
         {
+            if (solution is null)
+            {
+                throw new ArgumentNullException(nameof(solution));
+            }
+
             var currentSolution = Volatile.Read(ref _latestSolution);
             if (solution == currentSolution)
             {
@@ -179,12 +187,12 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return _services.GetService<IOptionService>().GetOptions();
+                return _services.GetRequiredService<IOptionService>().GetOptions();
             }
 
             set
             {
-                _services.GetService<IOptionService>().SetOptions(value);
+                _services.GetRequiredService<IOptionService>().SetOptions(value);
             }
         }
 
@@ -225,10 +233,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void ClearSolution()
         {
-            var oldSolution = this.CurrentSolution;
-            this.ClearSolutionData();
+            using (_serializationLock.DisposableWait())
+            {
+                var oldSolution = this.CurrentSolution;
+                this.ClearSolutionData();
 
-            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionCleared, oldSolution, this.CurrentSolution);
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionCleared, oldSolution, this.CurrentSolution);
+            }
         }
 
         /// <summary>
@@ -278,7 +289,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Call this method when the workspace is disposed.
         ///
-        /// Override this method to do addition work when the workspace is disposed.
+        /// Override this method to do additional work when the workspace is disposed.
         /// Call this method at the end of your method.
         /// </summary>
         protected virtual void Dispose(bool finalize)
@@ -286,6 +297,8 @@ namespace Microsoft.CodeAnalysis
             if (!finalize)
             {
                 this.ClearSolutionData();
+
+                this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
             }
 
             _workspaceOptionService?.OnWorkspaceDisposed(this);
@@ -456,7 +469,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Call this method when a project's output file path is changed in the host environment.
         /// </summary>
-        protected internal void OnOutputFilePathChanged(ProjectId projectId, string outputFilePath)
+        protected internal void OnOutputFilePathChanged(ProjectId projectId, string? outputFilePath)
         {
             this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectOutputFilePath(projectId, outputFilePath));
         }
@@ -464,7 +477,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Call this method when a project's output ref file path is changed in the host environment.
         /// </summary>
-        protected internal void OnOutputRefFilePathChanged(ProjectId projectId, string outputFilePath)
+        protected internal void OnOutputRefFilePathChanged(ProjectId projectId, string? outputFilePath)
         {
             this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectOutputRefFilePath(projectId, outputFilePath));
         }
@@ -472,7 +485,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Call this method when a project's name is changed in the host environment.
         /// </summary>
-        protected internal void OnProjectNameChanged(ProjectId projectId, string name, string filePath)
+        // TODO (https://github.com/dotnet/roslyn/issues/37124): decide if we want to allow "name" to be nullable.
+        // As of this writing you can pass null, but rather than updating the project to null it seems it does nothing.
+        // I'm leaving this marked as "non-null" so as not to say we actually support that behavior. The underlying
+        // requirement is ProjectInfo.ProjectAttributes holds a non-null name, so you can't get a null into this even if you tried.
+        protected internal void OnProjectNameChanged(ProjectId projectId, string name, string? filePath)
         {
             this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectName(projectId, name).WithProjectFilePath(projectId, filePath));
         }
@@ -480,7 +497,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Call this method when a project's default namespace is changed in the host environment.
         /// </summary>
-        internal void OnDefaultNamespaceChanged(ProjectId projectId, string defaultNamespace)
+        internal void OnDefaultNamespaceChanged(ProjectId projectId, string? defaultNamespace)
         {
             this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectDefaultNamespace(projectId, defaultNamespace));
         }
@@ -677,7 +694,7 @@ namespace Microsoft.CodeAnalysis
                 var newSolution = oldSolution.WithDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
                 newSolution = this.SetCurrentSolution(newSolution);
 
-                var newDocument = newSolution.GetDocument(documentId);
+                var newDocument = newSolution.GetDocument(documentId)!;
                 this.OnDocumentTextChanged(newDocument);
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
@@ -733,7 +750,7 @@ namespace Microsoft.CodeAnalysis
                 var oldSolution = this.CurrentSolution;
 
                 var newSolution = oldSolution;
-                var oldAttributes = oldSolution.GetDocument(documentId).State.Attributes;
+                var oldAttributes = oldSolution.GetDocument(documentId)!.State.Attributes;
 
                 if (oldAttributes.Name != newInfo.Name)
                 {
@@ -863,6 +880,7 @@ namespace Microsoft.CodeAnalysis
                         foreach (var updatedDocumentId in updatedDocumentIds)
                         {
                             var newDocument = newSolution.GetDocument(updatedDocumentId);
+                            Contract.ThrowIfNull(newDocument);
                             OnDocumentTextChanged(newDocument);
                         }
                     }
@@ -891,7 +909,7 @@ namespace Microsoft.CodeAnalysis
                 var oldSolution = this.CurrentSolution;
                 var newSolution = this.SetCurrentSolution(oldSolution.WithDocumentSourceCodeKind(documentId, sourceCodeKind));
 
-                var newDocument = newSolution.GetDocument(documentId);
+                var newDocument = newSolution.GetDocument(documentId)!;
                 this.OnDocumentTextChanged(newDocument);
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
@@ -1018,7 +1036,7 @@ namespace Microsoft.CodeAnalysis
             // now fix each project if necessary
             foreach (var pid in solution.ProjectIds)
             {
-                var project = solution.GetProject(pid);
+                var project = solution.GetProject(pid)!;
 
                 // convert metadata references to project references if the metadata reference matches some project's output assembly.
                 foreach (var meta in project.MetadataReferences)
@@ -1097,7 +1115,7 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                Solution oldSolution = this.CurrentSolution;
+                var oldSolution = this.CurrentSolution;
 
                 // If the workspace has already accepted an update, then fail
                 if (newSolution.WorkspaceVersion != oldSolution.WorkspaceVersion)
@@ -1771,7 +1789,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void CheckProjectHasProjectReference(ProjectId fromProjectId, ProjectReference projectReference)
         {
-            if (!this.CurrentSolution.GetProject(fromProjectId).ProjectReferences.Contains(projectReference))
+            if (!this.CurrentSolution.GetProject(fromProjectId)!.ProjectReferences.Contains(projectReference))
             {
                 throw new ArgumentException(string.Format(
                     WorkspacesResources._0_is_not_referenced,
@@ -1784,7 +1802,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void CheckProjectDoesNotHaveProjectReference(ProjectId fromProjectId, ProjectReference projectReference)
         {
-            if (this.CurrentSolution.GetProject(fromProjectId).ProjectReferences.Contains(projectReference))
+            if (this.CurrentSolution.GetProject(fromProjectId)!.ProjectReferences.Contains(projectReference))
             {
                 throw new ArgumentException(string.Format(
                     WorkspacesResources._0_is_already_referenced,
@@ -1811,7 +1829,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void CheckProjectHasMetadataReference(ProjectId projectId, MetadataReference metadataReference)
         {
-            if (!this.CurrentSolution.GetProject(projectId).MetadataReferences.Contains(metadataReference))
+            if (!this.CurrentSolution.GetProject(projectId)!.MetadataReferences.Contains(metadataReference))
             {
                 throw new ArgumentException(WorkspacesResources.Metadata_is_not_referenced);
             }
@@ -1822,7 +1840,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void CheckProjectDoesNotHaveMetadataReference(ProjectId projectId, MetadataReference metadataReference)
         {
-            if (this.CurrentSolution.GetProject(projectId).MetadataReferences.Contains(metadataReference))
+            if (this.CurrentSolution.GetProject(projectId)!.MetadataReferences.Contains(metadataReference))
             {
                 throw new ArgumentException(WorkspacesResources.Metadata_is_already_referenced);
             }
@@ -1833,7 +1851,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void CheckProjectHasAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
         {
-            if (!this.CurrentSolution.GetProject(projectId).AnalyzerReferences.Contains(analyzerReference))
+            if (!this.CurrentSolution.GetProject(projectId)!.AnalyzerReferences.Contains(analyzerReference))
             {
                 throw new ArgumentException(string.Format(WorkspacesResources._0_is_not_present, analyzerReference));
             }
@@ -1844,7 +1862,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void CheckProjectDoesNotHaveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
         {
-            if (this.CurrentSolution.GetProject(projectId).AnalyzerReferences.Contains(analyzerReference))
+            if (this.CurrentSolution.GetProject(projectId)!.AnalyzerReferences.Contains(analyzerReference))
             {
                 throw new ArgumentException(string.Format(WorkspacesResources._0_is_already_present, analyzerReference));
             }

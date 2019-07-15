@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
@@ -35,6 +35,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         }
 
         [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void UpdateActiveStatementLeafNode()
         {
             VisualStudio.Editor.SetText(@"
@@ -58,6 +59,7 @@ End Module
             VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             VisualStudio.Debugger.SetBreakPoint(module1FileName, "names(0)");
             VisualStudio.Debugger.Go(waitForBreakMode: true);
+            VisualStudio.Editor.Activate();
             VisualStudio.Editor.ReplaceText("names(0)", "names(1)");
             VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
             VisualStudio.Debugger.CheckExpression("names(1)", "String", "\"goo\"");
@@ -66,6 +68,7 @@ End Module
         }
 
         [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void AddTryCatchAroundActiveStatement()
         {
             VisualStudio.Editor.SetText(@"
@@ -83,6 +86,7 @@ End Module");
             VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             VisualStudio.Debugger.SetBreakPoint(module1FileName, "Console.WriteLine(1)");
             VisualStudio.Debugger.Go(waitForBreakMode: true);
+            VisualStudio.Editor.Activate();
             VisualStudio.Editor.ReplaceText("Console.WriteLine(1)",
                 @"Try
 Console.WriteLine(1)
@@ -94,6 +98,7 @@ End Try");
         }
 
         [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void EditLambdaExpression()
         {
             VisualStudio.Editor.SetText(@"
@@ -111,6 +116,7 @@ End Module");
             VisualStudio.Debugger.SetBreakPoint(module1FileName, "x * x", charsOffset: -1);
 
             VisualStudio.Debugger.Go(waitForBreakMode: true);
+            VisualStudio.Editor.Activate();
             VisualStudio.Editor.ReplaceText("x * x", "x * 2");
 
             VisualStudio.Debugger.StepOver(waitForBreakOrEnd: false);
@@ -118,6 +124,7 @@ End Module");
             VisualStudio.ErrorList.Verify.NoBuildErrors();
 
             VisualStudio.Debugger.Go(waitForBreakMode: true);
+            VisualStudio.Editor.Activate();
             VisualStudio.Editor.ReplaceText("x * 2", "x * x");
             VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
             VisualStudio.Debugger.Stop(waitForDesignMode: true);
@@ -125,6 +132,7 @@ End Module");
         }
 
         [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void EnCWhileDebuggingFromImmediateWindow()
         {
             VisualStudio.Editor.SetText(@"
@@ -139,18 +147,7 @@ End Module");
 
             VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             VisualStudio.Debugger.Go(waitForBreakMode: true);
-            try
-            {
-                VisualStudio.Debugger.SetBreakPoint(module1FileName, "Dim x", charsOffset: 1);
-            }
-            catch (Exception)
-            {
-                var dev16_2_preview1 = "16.0.28917.182 D16.2";
-                var dev16_2_preview2 = "16.0.29006.145 D16.2";
-                Assert.Contains(VisualStudio.Shell.GetVersion(), new[] { dev16_2_preview1, dev16_2_preview2 });
-                return;
-            }
-
+            VisualStudio.Debugger.SetBreakPoint(module1FileName, "Dim x", charsOffset: 1);
             VisualStudio.Debugger.ExecuteStatement("Module1.Main()");
             VisualStudio.Editor.ReplaceText("x = 4", "x = 42");
             VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
@@ -158,7 +155,6 @@ End Module");
             VisualStudio.Debugger.ExecuteStatement("Module1.Main()");
         }
 
-        [WpfFact]
         private void SetupMultiProjectSolution()
         {
             var basicLibrary = new ProjectUtils.Project("BasicLibrary1");
@@ -201,17 +197,20 @@ End Module
         }
 
         [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void MultiProjectDebuggingWhereNotAllModulesAreLoaded()
         {
             SetupMultiProjectSolution();
             VisualStudio.Debugger.SetBreakPoint(module1FileName, "PrintX", charsOffset: 1);
             VisualStudio.Debugger.Go(waitForBreakMode: true);
+            VisualStudio.Editor.Activate();
             VisualStudio.Editor.ReplaceText("5", "42");
             VisualStudio.Debugger.StepOver(waitForBreakOrEnd: false);
             VisualStudio.ErrorList.Verify.NoErrors();
         }
 
         [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         [WorkItem(33829, "https://github.com/dotnet/roslyn/issues/33829")]
         public void DocumentStateTrackingReadonlyInRunMode()
         {
@@ -263,6 +262,7 @@ End Module
         }
 
         [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void LocalsWindowUpdatesAfterLocalGetsItsTypeUpdatedDuringEnC()
         {
             VisualStudio.Editor.SetText(@"
@@ -277,6 +277,7 @@ End Module
             VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             VisualStudio.Debugger.SetBreakPoint(module1FileName, "End Sub");
             VisualStudio.Debugger.Go(waitForBreakMode: true);
+            VisualStudio.Editor.Activate();
             VisualStudio.Editor.ReplaceText("Dim goo As String = \"abc\"", "Dim goo As Single = 10");
             VisualStudio.Editor.SelectTextInCurrentDocument("Sub Main()");
             VisualStudio.Debugger.SetNextStatement();
@@ -286,6 +287,7 @@ End Module
         }
 
         [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void LocalsWindowUpdatesCorrectlyDuringEnC()
         {
             VisualStudio.Editor.SetText(@"
@@ -308,6 +310,7 @@ End Module
             VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             VisualStudio.Debugger.SetBreakPoint(module1FileName, "Function bar(ByVal moo As Long) As Decimal");
             VisualStudio.Debugger.Go(waitForBreakMode: true);
+            VisualStudio.Editor.Activate();
             VisualStudio.Editor.ReplaceText("Dim lLng As Long = 5", "Dim lLng As Long = 444");
             VisualStudio.Debugger.SetBreakPoint(module1FileName, "Return 4");
             VisualStudio.Debugger.Go(waitForBreakMode: true);
@@ -319,6 +322,7 @@ End Module
         }
 
         [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void WatchWindowUpdatesCorrectlyDuringEnC()
         {
             VisualStudio.Editor.SetText(@"
@@ -334,6 +338,7 @@ End Module
 
             VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             VisualStudio.Debugger.Go(waitForBreakMode: true);
+            VisualStudio.Editor.Activate();
 
             VisualStudio.Debugger.CheckExpression("iInt", "Integer", "0");
 

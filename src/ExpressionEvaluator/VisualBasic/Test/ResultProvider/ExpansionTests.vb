@@ -130,7 +130,7 @@ End Class"
                     EvalResult("q", PointerToString(IntPtr.Zero), "Integer*", String.Format("({0}).q", rootExpr)))
             Dim fullName = String.Format("*({0}).p", rootExpr)
             Verify(GetChildren(children(0)),
-                    EvalResult(fullName, "4", "Integer", fullName))
+                    EvalResult(fullName, "4", "Integer", fullName, DkmEvaluationResultFlags.None))
         End Sub
 
         <Fact>
