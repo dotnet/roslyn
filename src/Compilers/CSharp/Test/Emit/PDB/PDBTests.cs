@@ -8799,8 +8799,8 @@ expectedIL: @"{
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void Patterns_SwitchStatement_Tuple()
         {
-            string source =
-@"public class C
+            string source = @"
+public class C
 {
     static int F(int i)
     {
@@ -8880,27 +8880,27 @@ expectedIL: @"{
           <namespace usingCount=""0"" />
         </using>
         <encLocalSlotMap>
-          <slot kind=""35"" offset=""10"" />
-          <slot kind=""35"" offset=""10"" ordinal=""1"" />
-          <slot kind=""35"" offset=""10"" ordinal=""2"" />
-          <slot kind=""35"" offset=""10"" ordinal=""3"" />
-          <slot kind=""35"" offset=""10"" ordinal=""4"" />
-          <slot kind=""1"" offset=""10"" />
+          <slot kind=""35"" offset=""11"" />
+          <slot kind=""35"" offset=""11"" ordinal=""1"" />
+          <slot kind=""35"" offset=""11"" ordinal=""2"" />
+          <slot kind=""35"" offset=""11"" ordinal=""3"" />
+          <slot kind=""35"" offset=""11"" ordinal=""4"" />
+          <slot kind=""1"" offset=""11"" />
           <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""21"" document=""1"" />
         <entry offset=""0x8"" hidden=""true"" document=""1"" />
         <entry offset=""0xb"" hidden=""true"" document=""1"" />
         <entry offset=""0x12"" hidden=""true"" document=""1"" />
         <entry offset=""0x21"" hidden=""true"" document=""1"" />
         <entry offset=""0x2c"" hidden=""true"" document=""1"" />
         <entry offset=""0x3c"" hidden=""true"" document=""1"" />
-        <entry offset=""0x43"" startLine=""7"" startColumn=""26"" endLine=""7"" endColumn=""35"" document=""1"" />
-        <entry offset=""0x48"" startLine=""8"" startColumn=""22"" endLine=""8"" endColumn=""31"" document=""1"" />
-        <entry offset=""0x4d"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x43"" startLine=""8"" startColumn=""26"" endLine=""8"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x48"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x4d"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
