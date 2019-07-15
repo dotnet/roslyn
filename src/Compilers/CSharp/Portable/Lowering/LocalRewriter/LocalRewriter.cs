@@ -94,9 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Presence of sequence points in the tree affects final IL, therefore, we always generate them.
                 var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, statement, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics,
                                                       dynamicInstrumenter != null ? new DebugInfoInjector(dynamicInstrumenter) : DebugInfoInjector.Singleton);
-
                 statement.CheckLocalsDefined();
-                var loweredStatement = (BoundStatement)localRewriter.Visit(statement);
+                var visited = localRewriter.Visit(statement);
+                var loweredStatement = (BoundStatement)visited;
                 loweredStatement.CheckLocalsDefined();
                 sawLambdas = localRewriter._sawLambdas;
                 sawLocalFunctions = localRewriter._sawLocalFunctions;
@@ -237,7 +237,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 _factory.CurrentFunction = node.Symbol;
-                return base.VisitLambda(node);
+                var visited = (BoundLambda)base.VisitLambda(node);
+                if (RewriteNullChecking(visited.Body) is BoundBlock newBody)
+                {
+                    visited = visited.Update(visited.UnboundLambda, visited.Symbol, newBody, visited.Diagnostics, visited.Binder, visited.Type);
+                }
+                return visited;
             }
             finally
             {
@@ -276,7 +281,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 _factory.CurrentFunction = localFunction;
-                return base.VisitLocalFunctionStatement(node);
+                var visited = (BoundLocalFunctionStatement)base.VisitLocalFunctionStatement(node);
+                if (RewriteNullChecking(visited.Body) is BoundBlock newBody)
+                {
+                    visited = visited.Update(localFunction, newBody, null);
+                }
+                return visited;
             }
             finally
             {

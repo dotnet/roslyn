@@ -7072,6 +7072,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parameter &apos;{0}&apos; can only have exclamation-point null checking in implementation methods..
+        /// </summary>
+        internal static string ERR_MustNullCheckInImplementation {
+            get {
+                return ResourceManager.GetString("ERR_MustNullCheckInImplementation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Compilation options &apos;{0}&apos; and &apos;{1}&apos; can&apos;t both be specified at the same time..
         /// </summary>
         internal static string ERR_MutuallyExclusiveOptions {
@@ -7176,6 +7185,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_NamespaceUnexpected {
             get {
                 return ResourceManager.GetString("ERR_NamespaceUnexpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Space required between &apos;!&apos; and &apos;=&apos; here..
+        /// </summary>
+        internal static string ERR_NeedSpaceBetweenExclamationAndEquals {
+            get {
+                return ResourceManager.GetString("ERR_NeedSpaceBetweenExclamationAndEquals", resourceCulture);
             }
         }
         

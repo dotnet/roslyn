@@ -15,5 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return this.Type == null && this.Identifier.ContextualKind() == SyntaxKind.ArgListKeyword;
             }
         }
+
+        public ParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default)
+        {
+            return Update(attributeLists, modifiers, type, identifier, exclamationToken: default, @default);
+        }
     }
 }

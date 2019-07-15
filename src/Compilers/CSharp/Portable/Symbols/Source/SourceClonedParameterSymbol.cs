@@ -76,6 +76,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _suppressOptional);
         }
 
+        internal override bool IsNullChecked => _originalParam.IsNullChecked;
+
         #region Forwarded
 
         public override TypeWithAnnotations TypeWithAnnotations
