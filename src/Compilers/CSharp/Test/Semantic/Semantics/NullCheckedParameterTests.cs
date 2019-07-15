@@ -696,7 +696,7 @@ class C
         }
 
         [Fact]
-        public void TestNullCheckedSubstitution2()
+        public void TestNullCheckedSubstitutionWithDiagnostic1()
         {
             var source = @"
 class A<T>
@@ -715,7 +715,7 @@ class B2<T> : A<T> where T : struct
         }
 
         [Fact]
-        public void TestNullCheckedSubstitution4()
+        public void TestNullCheckedSubstitutionWithDiagnostic2()
         {
             var source = @"
 class A<T>
@@ -733,7 +733,7 @@ class B4 : A<int>
         }
 
         [Fact]
-        public void TestNullCheckedSubstitution6()
+        public void TestNullCheckedSubstitutionWithDiagnostic3()
         {
             var source = @"
 class C

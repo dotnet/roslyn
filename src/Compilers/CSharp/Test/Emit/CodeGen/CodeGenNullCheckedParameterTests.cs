@@ -407,7 +407,7 @@ class B1<T> : A<T> where T : class
         }
 
         [Fact]
-        public void TestNullCheckedSubstitution3()
+        public void TestNullCheckedSubstitution2()
         {
             var source = @"
 class A<T>
@@ -434,7 +434,7 @@ class B3<T> : A<T?> where T : struct
         }
 
         [Fact]
-        public void TestNullCheckedSubstitution5()
+        public void TestNullCheckedSubstitution3()
         {
             var source = @"
 class A<T>
@@ -461,7 +461,7 @@ class B5 : A<object>
         }
 
         [Fact]
-        public void TestNullCheckedSubstitution7()
+        public void TestNullCheckedSubstitution4()
         {
             var source = @"
 class C
