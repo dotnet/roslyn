@@ -2683,6 +2683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 source.GetAllTypeArguments(sourceTypeArguments, ref useSiteDiagnostics);
                 destination.GetAllTypeArguments(destinationTypeArguments, ref useSiteDiagnostics);
 
+                Debug.Assert(TypeSymbol.Equals(source.OriginalDefinition, destination.OriginalDefinition, TypeCompareKind.AllIgnoreOptions));
                 Debug.Assert(typeParameters.Count == sourceTypeArguments.Count);
                 Debug.Assert(typeParameters.Count == destinationTypeArguments.Count);
 
