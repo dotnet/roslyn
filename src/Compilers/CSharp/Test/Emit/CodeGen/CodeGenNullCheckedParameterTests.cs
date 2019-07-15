@@ -1370,7 +1370,6 @@ class Program
         {
             var source =
 @"
-using System;
 class Program
 {
     public static void Main()
@@ -1383,9 +1382,9 @@ class Program
             comp.MakeMemberMissing(WellKnownMember.System_ArgumentNullException__ctorString);
             comp.MakeTypeMissing(WellKnownType.System_ArgumentNullException);
             comp.VerifyDiagnostics(
-                    // (8,23): error CS0656: Missing compiler required member 'System.ArgumentNullException..ctor'
+                    // (7,23): error CS0656: Missing compiler required member 'System.ArgumentNullException..ctor'
                     //         void M(string x!) { }
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.ArgumentNullException", ".ctor").WithLocation(8, 23));
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.ArgumentNullException", ".ctor").WithLocation(7, 23));
         }
 
         [Fact]
