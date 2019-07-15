@@ -2712,6 +2712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 source.GetAllTypeArguments(sourceTypeArguments, ref useSiteDiagnostics);
                 destination.GetAllTypeArguments(destinationTypeArguments, ref useSiteDiagnostics);
 
+                Debug.Assert(TypeSymbol.Equals(source.OriginalDefinition, destination.OriginalDefinition, TypeCompareKind.AllIgnoreOptions));
                 Debug.Assert(typeParameters.Count == sourceTypeArguments.Count);
                 Debug.Assert(typeParameters.Count == destinationTypeArguments.Count);
 
@@ -2732,6 +2733,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (typeParameterSymbol.Variance)
                     {
                         case VarianceKind.None:
+                            // System.IEquatable<T> is invariant for back compat reasons (dynamic type checks could start
+                            // to succeed where they previously failed, creating different runtime behavior), but the uses
+                            // require treatment specifically of nullability as contravariant, so we special case the
+                            // behavior here. Normally we use GetWellKnownType for these kinds of checks, but in this
+                            // case we don't want just the canonical IEquatable to be special-cased, we want all definitions
+                            // to be treated as contravariant, in case there are other definitions in metadata that were
+                            // compiled with that expectation.
+                            if (isTypeIEquatable(destination.OriginalDefinition) &&
+                                TypeSymbol.Equals(destinationTypeArgument.Type, sourceTypeArgument.Type, TypeCompareKind.AllNullableIgnoreOptions) &&
+                                HasAnyNullabilityImplicitConversion(destinationTypeArgument, sourceTypeArgument))
+                            {
+                                return true;
+                            }
                             return false;
 
                         case VarianceKind.Out:
@@ -2761,6 +2775,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return true;
+
+            static bool isTypeIEquatable(NamedTypeSymbol type)
+            {
+                return type is
+                {
+                    IsInterface: true,
+                    Name: "IEquatable",
+                    ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                    ContainingSymbol: { Kind: SymbolKind.Namespace },
+                    TypeParameters: { Length: 1 }
+                };
+            }
+
         }
 
         // Spec 6.1.10
