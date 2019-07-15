@@ -1982,7 +1982,12 @@ class Program
     {
         System.Console.WriteLine([|^1|]);
     }
-}", TestSources.Index + @"
+}",
+@"
+
+using System;" +
+TestSources.Index +
+@"
 class Program
 {
     static void Main(string[] args)
@@ -1990,7 +1995,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static System.Index NewMethod()
+    private static Index NewMethod()
     {
         return ^1;
     }
@@ -2007,7 +2012,12 @@ class Program
     {
         System.Console.WriteLine([|..|]);
     }
-}", TestSources.Index + TestSources.Range + @"
+}",
+@"
+
+using System;" +
+TestSources.Index +
+TestSources.Range + @"
 class Program
 {
     static void Main(string[] args)
@@ -2015,7 +2025,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static System.Range NewMethod()
+    private static Range NewMethod()
     {
         return ..;
     }
@@ -2032,7 +2042,12 @@ class Program
     {
         System.Console.WriteLine([|..1|]);
     }
-}", TestSources.Index + TestSources.Range + @"
+}",
+@"
+
+using System;" +
+TestSources.Index +
+TestSources.Range + @"
 class Program
 {
     static void Main(string[] args)
@@ -2040,7 +2055,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static System.Range NewMethod()
+    private static Range NewMethod()
     {
         return ..1;
     }
@@ -2057,7 +2072,12 @@ class Program
     {
         System.Console.WriteLine([|1..|]);
     }
-}", TestSources.Index + TestSources.Range + @"
+}",
+@"
+
+using System;" +
+TestSources.Index +
+TestSources.Range + @"
 class Program
 {
     static void Main(string[] args)
@@ -2065,7 +2085,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static System.Range NewMethod()
+    private static Range NewMethod()
     {
         return 1..;
     }
@@ -2082,7 +2102,12 @@ class Program
     {
         System.Console.WriteLine([|1..2|]);
     }
-}", TestSources.Index + TestSources.Range + @"
+}",
+@"
+
+using System;" +
+TestSources.Index +
+TestSources.Range + @"
 class Program
 {
     static void Main(string[] args)
@@ -2090,7 +2115,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static System.Range NewMethod()
+    private static Range NewMethod()
     {
         return 1..2;
     }

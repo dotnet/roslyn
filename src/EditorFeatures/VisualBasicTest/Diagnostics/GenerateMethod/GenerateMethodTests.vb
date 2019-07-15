@@ -3902,7 +3902,7 @@ Module M
         Dim x As Boolean = Await [|F|]().ConfigureAwait(False)
     End Sub 
 End Module",
-"Imports System
+"Imports System 
 Imports System.Linq
 Imports System.Threading.Tasks
 

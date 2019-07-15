@@ -1031,6 +1031,8 @@ class Test
     end sub
 end class"
             Dim expected = "
+Imports System.Collections.Generic
+
 class Test
     sub Method()
         dim t1 = New {|Rename:NewStruct|}(a:=1, directcast(New NewStruct(a:=1, directcast(nothing, object)), object))
@@ -1053,13 +1055,13 @@ Friend Structure NewStruct
 
         Dim other = DirectCast(obj, NewStruct)
         Return a = other.a AndAlso
-               System.Collections.Generic.EqualityComparer(Of Object).Default.Equals(b, other.b)
+               EqualityComparer(Of Object).Default.Equals(b, other.b)
     End Function
 
     Public Overrides Function GetHashCode() As Integer
         Dim hashCode As Long = 2118541809
         hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + System.Collections.Generic.EqualityComparer(Of Object).Default.GetHashCode(b)).GetHashCode()
+        hashCode = (hashCode * -1521134295 + EqualityComparer(Of Object).Default.GetHashCode(b)).GetHashCode()
         Return hashCode
     End Function
 
@@ -1089,6 +1091,8 @@ class Test
     end sub
 end class"
             Dim expected = "
+Imports System.Collections.Generic
+
 class Test
     sub Method()
         dim t1 = New NewStruct(a:=1, directcast(New {|Rename:NewStruct|}(a:=1, directcast(nothing, object)), object))
@@ -1111,13 +1115,13 @@ Friend Structure NewStruct
 
         Dim other = DirectCast(obj, NewStruct)
         Return a = other.a AndAlso
-               System.Collections.Generic.EqualityComparer(Of Object).Default.Equals(b, other.b)
+               EqualityComparer(Of Object).Default.Equals(b, other.b)
     End Function
 
     Public Overrides Function GetHashCode() As Integer
         Dim hashCode As Long = 2118541809
         hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + System.Collections.Generic.EqualityComparer(Of Object).Default.GetHashCode(b)).GetHashCode()
+        hashCode = (hashCode * -1521134295 + EqualityComparer(Of Object).Default.GetHashCode(b)).GetHashCode()
         Return hashCode
     End Function
 
@@ -1201,7 +1205,7 @@ End Structure
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
         Public Async Function CapturedMethodTypeParameters() As Task
             Dim text = "
-imports system.collections.generic
+imports System.Collections.Generic
 
 class Test(of X as {structure})
     sub Method(of Y as {class, new})(x as List(of X), y as Y())
@@ -1209,7 +1213,7 @@ class Test(of X as {structure})
     end sub
 end class"
             Dim expected = "
-imports system.collections.generic
+imports System.Collections.Generic
 
 class Test(of X as {structure})
     sub Method(of Y as {class, new})(x as List(of X), y as Y())
@@ -1759,6 +1763,7 @@ class Test(of T)
 end class"
             Dim expected = "
 imports System
+Imports System.Collections.Generic
 
 class Test(of T)
     sub Method(t as T)
@@ -1790,13 +1795,13 @@ Friend Structure NewStruct(Of T)
         End If
 
         Dim other = DirectCast(obj, NewStruct(Of T))
-        Return Collections.Generic.EqualityComparer(Of T).Default.Equals(a, other.a) AndAlso
+        Return EqualityComparer(Of T).Default.Equals(a, other.a) AndAlso
                b = other.b
     End Function
 
     Public Overrides Function GetHashCode() As Integer
         Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + Collections.Generic.EqualityComparer(Of T).Default.GetHashCode(a)).GetHashCode()
+        hashCode = (hashCode * -1521134295 + EqualityComparer(Of T).Default.GetHashCode(a)).GetHashCode()
         hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
         Return hashCode
     End Function

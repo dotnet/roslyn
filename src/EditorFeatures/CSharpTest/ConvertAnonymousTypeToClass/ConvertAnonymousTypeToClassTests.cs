@@ -619,6 +619,8 @@ class Test
 }
 ";
             var expected = @"
+using System.Collections.Generic;
+
 class Test
 {
     void Method()
@@ -642,14 +644,14 @@ internal class NewClass
     {
         return obj is NewClass other &&
                A == other.A &&
-               System.Collections.Generic.EqualityComparer<object>.Default.Equals(B, other.B);
+               EqualityComparer<object>.Default.Equals(B, other.B);
     }
 
     public override int GetHashCode()
     {
         var hashCode = -1817952719;
         hashCode = hashCode * -1521134295 + A.GetHashCode();
-        hashCode = hashCode * -1521134295 + System.Collections.Generic.EqualityComparer<object>.Default.GetHashCode(B);
+        hashCode = hashCode * -1521134295 + EqualityComparer<object>.Default.GetHashCode(B);
         return hashCode;
     }
 }";
