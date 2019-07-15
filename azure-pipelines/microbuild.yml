@@ -14,6 +14,7 @@ variables:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   BuildConfiguration: Release
   BuildPlatform: Any CPU
+  push_to_ci: true
 
 jobs:
 - template: build.yml
