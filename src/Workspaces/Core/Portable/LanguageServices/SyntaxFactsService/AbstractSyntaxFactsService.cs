@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -86,6 +87,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     {
         private readonly static ObjectPool<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>> s_stackPool =
             new ObjectPool<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>>(() => new Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>());
+
+        public abstract ISyntaxKindsService SyntaxKinds { get; }
 
         // Matches the following:
         //
@@ -519,7 +522,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// Tries to get an ancestor of a Token on current position or of Token directly to left:
         /// e.g.: tokenWithWantedAncestor[||]tokenWithoutWantedAncestor
         /// </summary>
-        protected static TNode TryGetAncestorForLocation<TNode>(int position, SyntaxNode root) where TNode : SyntaxNode
+        protected TNode TryGetAncestorForLocation<TNode>(int position, SyntaxNode root) where TNode : SyntaxNode
         {
             var tokenToRightOrIn = root.FindToken(position);
             var nodeToRightOrIn = tokenToRightOrIn.GetAncestor<TNode>();
@@ -529,7 +532,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
 
             // not at the beginning of a Token -> no (different) token to the left
-            if (tokenToRightOrIn.FullSpan.Start != position)
+            if (tokenToRightOrIn.FullSpan.Start != position && tokenToRightOrIn.RawKind != SyntaxKinds.EndOfFileToken)
             {
                 return null;
             }

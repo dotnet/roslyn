@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// A short-circuiting logical 'or'. In C#, 'LogicalOrExpression'. In VB, 'OrElseExpression'.
         /// </summary>
         int LogicalOrExpression { get; }
+
+        int EndOfFileToken { get; }
     }
 
     internal abstract class AbstractSyntaxKindsService : ISyntaxKindsService
@@ -35,5 +37,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public abstract int LogicalAndExpression { get; }
         public abstract int LogicalOrExpression { get; }
+        public abstract int EndOfFileToken { get; }
     }
 }

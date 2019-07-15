@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public ReadOnly Property SyntaxKinds As ISyntaxKindsService = VisualBasicSyntaxKindsService.Instance Implements ISyntaxFactsService.SyntaxKinds
+        Public Overrides ReadOnly Property SyntaxKinds As ISyntaxKindsService = VisualBasicSyntaxKindsService.Instance Implements ISyntaxFactsService.SyntaxKinds
 
         Protected Overrides ReadOnly Property DocumentationCommentService As IDocumentationCommentService
             Get
