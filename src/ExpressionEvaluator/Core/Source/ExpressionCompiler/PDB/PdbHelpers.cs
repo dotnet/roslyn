@@ -81,80 +81,27 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 type = ((INamedTypeSymbol)type).EnumUnderlyingType;
             }
 
-            return type.SpecialType switch
+            return (type.SpecialType, symValue) switch
             {
-                SpecialType.System_Boolean => symValue is short shortVal
-                    ? ConstantValue.Create(shortVal != 0)
-                    : ConstantValue.Bad,
-
-                SpecialType.System_Byte => symValue is short shortVal && unchecked((byte)shortVal) == shortVal
-                    ? ConstantValue.Create((byte)shortVal)
-                    : ConstantValue.Bad,
-
-                SpecialType.System_SByte => symValue is short shortVal && unchecked((sbyte)shortVal) == shortVal
-                    ? ConstantValue.Create((sbyte)shortVal)
-                    : ConstantValue.Bad,
-
-                SpecialType.System_Int16 => symValue is short shortVal
-                    ? ConstantValue.Create(shortVal)
-                    : ConstantValue.Bad,
-
-                SpecialType.System_Char => symValue is ushort ushortVal
-                    ? ConstantValue.Create((char)ushortVal)
-                    : ConstantValue.Bad,
-
-                SpecialType.System_UInt16 => symValue is ushort ushortVal
-                    ? ConstantValue.Create(ushortVal)
-                    : ConstantValue.Bad,
-
-                SpecialType.System_Int32 => symValue is int intVal
-                    ? ConstantValue.Create(intVal)
-                    : ConstantValue.Bad,
-
-                SpecialType.System_UInt32 => symValue is uint uintVal
-                    ? ConstantValue.Create(uintVal)
-                    : ConstantValue.Bad,
-
-                SpecialType.System_Int64 => symValue is long longVal
-                    ? ConstantValue.Create(longVal)
-                    : ConstantValue.Bad,
-
-                SpecialType.System_UInt64 => symValue is ulong ulongVal
-                    ? ConstantValue.Create(ulongVal)
-                    : ConstantValue.Bad,
-
-                SpecialType.System_Single => symValue is float floatVal
-                    ? ConstantValue.Create(floatVal)
-                    : ConstantValue.Bad,
-
-                SpecialType.System_Double => symValue is double doubleVal
-                    ? ConstantValue.Create(doubleVal)
-                    : ConstantValue.Bad,
-
-                SpecialType.System_String => symValue switch
-                {
-                    0 => ConstantValue.Null,
-                    null => ConstantValue.Create(string.Empty),
-                    string str => ConstantValue.Create(str),
-                    _ => ConstantValue.Bad,
-                },
-
-                SpecialType.System_Object => symValue is 0
-                    ? ConstantValue.Null
-                    : ConstantValue.Bad,
-
-                SpecialType.System_Decimal => symValue is decimal decimalValue
-                    ? ConstantValue.Create(decimalValue)
-                    : ConstantValue.Bad,
-
-                SpecialType.System_DateTime => symValue is double doubleVal
-                    ? ConstantValue.Create(DateTimeUtilities.ToDateTime(doubleVal))
-                    : ConstantValue.Bad,
-
-                SpecialType.None => type.IsReferenceType && symValue is 0
-                    ? ConstantValue.Null
-                    : ConstantValue.Bad,
-
+                (SpecialType.System_Boolean, short shortVal) => ConstantValue.Create(shortVal != 0),
+                (SpecialType.System_Byte, short shortVal) when unchecked((byte)shortVal) == shortVal => ConstantValue.Create((byte)shortVal),
+                (SpecialType.System_SByte, short shortVal) when unchecked((sbyte)shortVal) == shortVal => ConstantValue.Create((sbyte)shortVal),
+                (SpecialType.System_Int16, short shortVal) => ConstantValue.Create(shortVal),
+                (SpecialType.System_Char, ushort ushortVal) => ConstantValue.Create((char)ushortVal),
+                (SpecialType.System_UInt16, ushort ushortVal) => ConstantValue.Create(ushortVal),
+                (SpecialType.System_Int32, int intVal) => ConstantValue.Create(intVal),
+                (SpecialType.System_UInt32, uint uintVal) => ConstantValue.Create(uintVal),
+                (SpecialType.System_Int64, long longVal) => ConstantValue.Create(longVal),
+                (SpecialType.System_UInt64, ulong ulongVal) => ConstantValue.Create(ulongVal),
+                (SpecialType.System_Single, float floatVal) => ConstantValue.Create(floatVal),
+                (SpecialType.System_Double, double doubleVal) => ConstantValue.Create(doubleVal),
+                (SpecialType.System_String, 0) => ConstantValue.Null,
+                (SpecialType.System_String, null) => ConstantValue.Create(string.Empty),
+                (SpecialType.System_String, string str) => ConstantValue.Create(str),
+                (SpecialType.System_Object, 0) => ConstantValue.Null,
+                (SpecialType.System_Decimal, decimal decimalValue) => ConstantValue.Create(decimalValue),
+                (SpecialType.System_DateTime, double doubleVal) => ConstantValue.Create(DateTimeUtilities.ToDateTime(doubleVal)),
+                (SpecialType.None, 0) when type.IsReferenceType => ConstantValue.Null,
                 _ => ConstantValue.Bad,
             };
         }
