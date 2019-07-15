@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // EnC: When emitting the baseline (gen 0) the id is stored in a custom debug information attached to the kickoff method.
                             //      When emitting a delta the id is only used to map to the existing field in the previous generation.
                             SyntaxNode declaratorSyntax = local.GetDeclaratorSyntax();
-                            int syntaxOffset = this.method.CalculateLocalSyntaxOffset(declaratorSyntax.SpanStart, declaratorSyntax.SyntaxTree);
+                            int syntaxOffset = method.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(declaratorSyntax), declaratorSyntax.SyntaxTree);
                             int ordinal = synthesizedLocalOrdinals.AssignLocalOrdinal(synthesizedKind, syntaxOffset);
                             id = new LocalDebugId(syntaxOffset, ordinal);
 
