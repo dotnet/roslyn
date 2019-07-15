@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<ISymbol> _dataFlowsIn;
         private ImmutableArray<ISymbol> _dataFlowsOut;
         private ImmutableArray<ISymbol> _alwaysAssigned;
+        private ImmutableArray<ISymbol> _unassigned;
         private ImmutableArray<ISymbol> _readInside;
         private ImmutableArray<ISymbol> _writtenInside;
         private ImmutableArray<ISymbol> _readOutside;
@@ -66,6 +67,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override ImmutableArray<ISymbol> Unassigned
+        {
+            get
+            {
+                if (_unassigned.IsDefault)
+                {
+                    var result = UnassignedVariables.ToImmutableArray<ISymbol>(); ;
+                    ImmutableInterlocked.InterlockedInitialize(ref _unassigned, result);
+                }
+
+                return _unassigned;
+            }
+        }
+
         private HashSet<Symbol> UnassignedVariables
         {
             get
@@ -73,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_unassignedVariables == null)
                 {
                     var result = Succeeded
-                        ? UnassignedVariablesWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode)
+                        ? UnassignedVariablesWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion)
                         : new HashSet<Symbol>();
                     Interlocked.CompareExchange(ref _unassignedVariables, result, null);
                 }
