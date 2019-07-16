@@ -720,26 +720,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestMissingOnNonEmptySpan()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void F()
-    {
-        [|if (a)
-        {
-            a();
-        }
-        else
-        {
-            b();
-        }|]
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestOverlapsHiddenPosition1()
         {
             await TestMissingInRegularAndScriptAsync(
