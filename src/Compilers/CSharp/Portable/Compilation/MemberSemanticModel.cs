@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _parentSemanticModelOpt = parentSemanticModelOpt;
             _parentSnapshotManagerOpt = snapshotManagerOpt;
             _speculatedPosition = speculatedPosition;
-            _containsNullCheckedParameter = _memberSymbol.GetParameters().Any(x => ((SourceParameterSymbolBase)x).IsNullChecked || ((SynthesizedParameterSymbolBase)x).IsNullChecked);
+            _containsNullCheckedParameter = _memberSymbol.GetParameters().Any(x => x.IsNullChecked);
             _operationFactory = new Lazy<CSharpOperationFactory>(() => new CSharpOperationFactory(this));
         }
 
