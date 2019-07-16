@@ -18,9 +18,8 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
 {
-    // https://github.com/dotnet/roslyn/issues/36330 tracks uncommenting the below attributes.
-    //[ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.ConfigureCodeStyleOption, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
-    //[ExtensionOrder(Before = PredefinedCodeFixProviderNames.ConfigureSeverity)]
+    [ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.ConfigureCodeStyleOption, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExtensionOrder(Before = PredefinedCodeFixProviderNames.ConfigureSeverity)]
     internal sealed partial class ConfigureCodeStyleOptionCodeFixProvider : IConfigurationFixProvider
     {
         private static readonly ImmutableArray<bool> s_boolValues = ImmutableArray.Create(true, false);
