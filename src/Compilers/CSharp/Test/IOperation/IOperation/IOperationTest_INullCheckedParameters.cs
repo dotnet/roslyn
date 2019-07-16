@@ -165,7 +165,7 @@ Block[B3] - Exit
             var source = @"
 public class C
 {
-    public void M(string name!) { }
+    public void M(string name! = ""rose"") { }
 }";
             var compilation = CreateCompilation(source);
 
@@ -175,7 +175,7 @@ public class C
             var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
-IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ...  name!) { }')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ... ""rose"") { }')
   BlockBody: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
       IConditionalOperation (OperationKind.Conditional, Type: null, IsImplicit) (Syntax: '{ }')
