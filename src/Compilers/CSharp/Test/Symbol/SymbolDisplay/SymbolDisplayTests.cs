@@ -5237,6 +5237,11 @@ class C
                 throw new NotImplementedException();
             }
 
+            public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
+            {
+                throw new NotImplementedException();
+            }
+
             public INamedTypeSymbol ConstructUnboundGenericType()
             {
                 throw new NotImplementedException();
