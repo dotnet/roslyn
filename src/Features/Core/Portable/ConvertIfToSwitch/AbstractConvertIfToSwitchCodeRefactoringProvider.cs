@@ -67,20 +67,10 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 var cancellationToken = context.CancellationToken;
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var ifStatement = root.FindNode(context.Span).FirstAncestorOrSelf<TIfStatementSyntax>();
-                if (ifStatement == null)
-                {
-                    return;
-                }
+                var helperService = document.GetLanguageService<IRefactoringHelpersService>();
+                var ifStatement = await helperService.TryGetSelectedNodeAsync<TIfStatementSyntax>(context).ConfigureAwait(false);
 
                 if (ifStatement.ContainsDiagnostics)
-                {
-                    return;
-                }
-
-                // To prevent noisiness, only show this feature on the 'if' keyword of the if-statement.
-                var token = ifStatement.GetFirstToken();
-                if (!token.Span.Contains(context.Span))
                 {
                     return;
                 }
