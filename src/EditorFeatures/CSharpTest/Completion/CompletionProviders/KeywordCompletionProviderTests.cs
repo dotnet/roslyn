@@ -414,5 +414,117 @@ class C
 ";
             await VerifyItemExistsAsync(markup, "event");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task SuggestVarInForRefLoop0()
+        {
+            var markup =
+@"class C {
+    void F() {
+        for (ref $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "var");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task SuggestVarInForRefLoop1()
+        {
+            var markup =
+@"class C {
+    void F() {
+        for (ref v$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "var");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task SuggestVarInForRefReadonlyLoop0()
+        {
+            var markup =
+@"class C {
+    void F() {
+        for (ref readonly $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "var");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task SuggestVarInForRefReadonlyLoop1()
+        {
+            var markup =
+@"class C {
+    void F() {
+        for (ref readonly v$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "var");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task SuggestVarInForEachRefLoop0()
+        {
+            var markup =
+@"class C {
+    void F() {
+        foreach (ref $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "var");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task SuggestVarInForEachRefLoop1()
+        {
+            var markup =
+@"class C {
+    void F() {
+        foreach (ref $$ x
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "var");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task SuggestVarInForEachRefLoop2()
+        {
+            var markup =
+@"class C {
+    void F() {
+        foreach (ref v$$ x
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "var");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task SuggestVarInForEachRefReadonlyLoop0()
+        {
+            var markup =
+@"class C {
+    void F() {
+        foreach (ref readonly $$ x
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "var");
+        }
     }
 }
