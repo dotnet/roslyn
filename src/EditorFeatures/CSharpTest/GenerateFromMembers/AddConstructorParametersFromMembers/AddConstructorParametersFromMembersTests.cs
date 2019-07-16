@@ -1407,5 +1407,34 @@ class C
             await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.MergeStyles(
                 options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
         }
+
+        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestManyCommonPrefixes()
+        {
+            var source =
+@"
+class C
+{
+    private int [|______test|];
+    public C()
+    {
+    }
+}
+";
+
+            var expected =
+@"
+class C
+{
+    private int ______test;
+    public C(int p_test)
+    {
+        ______test = p_test;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix);
+        }
     }
 }

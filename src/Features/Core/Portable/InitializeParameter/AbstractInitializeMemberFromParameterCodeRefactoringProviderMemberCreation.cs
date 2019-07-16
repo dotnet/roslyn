@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // if we can't.
 
             var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
-            var parameterNameParts = IdentifierNameParts.GetIdentifierBaseName(parameter, rules);
+            var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules);
             if (parameterNameParts.BaseName == "")
             {
                 return ImmutableArray<CodeAction>.Empty;

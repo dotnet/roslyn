@@ -20,14 +20,14 @@ namespace Microsoft.CodeAnalysis.Shared.Naming
             BaseNameParts = baseNameParts;
         }
 
-        public static IdentifierNameParts GetIdentifierBaseName(ISymbol symbol, ImmutableArray<NamingRule> rules)
+        public static IdentifierNameParts CreateIdentifierNameParts(ISymbol symbol, ImmutableArray<NamingRule> rules)
         {
             var baseName = RemovePrefixesAndSuffixes(symbol, rules, symbol.Name);
 
             var parts = StringBreaker.GetWordParts(baseName);
-            var result = CreateWords(parts, baseName);
+            var words = CreateWords(parts, baseName);
 
-            return new IdentifierNameParts(baseName, result);
+            return new IdentifierNameParts(baseName, words);
         }
 
         private static string RemovePrefixesAndSuffixes(ISymbol symbol, ImmutableArray<NamingRule> rules, string baseName)

@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
                     ? ((IFieldSymbol)symbol).Type
                     : ((IPropertySymbol)symbol).Type;
 
-                var identifierNameParts = IdentifierNameParts.GetIdentifierBaseName(symbol, rules);
+                var identifierNameParts = IdentifierNameParts.CreateIdentifierNameParts(symbol, rules);
                 if (identifierNameParts.BaseName == "")
                 {
                     continue;
