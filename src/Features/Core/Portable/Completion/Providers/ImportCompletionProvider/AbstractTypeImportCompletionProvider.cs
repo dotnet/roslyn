@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion;
-using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Experiments;
@@ -37,10 +36,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             CancellationToken cancellationToken);
 
         internal override bool IsExpandItemProvider => true;
-        
+
         // Telemetry shows that the average processing time with cache warmed up for 99th percentile is ~700ms.
         // Therefore we set the timeout to 1s to ensure it only applies to the case that cache is cold.
-        internal int TimeoutInMilliseconds => 1000;
+        // This is mutable for test purpose only.
+        internal static int TimeoutInMilliseconds { get; set; } = 1000;
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
@@ -58,8 +58,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             completionContext.ExpandItemsAvailable = true;
 
-            // We will trigger import completion regardless of the option/experiment if extended items is being requested explicitly (via extended filter in completion list)
-            if (!completionContext.Options.GetOption(CompletionServiceOptions.IncludeExpandedItemsOnly))
+            // We will trigger import completion regardless of the option/experiment if extended items is being requested explicitly (via expander in completion list)
+            var isExpandedCompletion = completionContext.Options.GetOption(CompletionServiceOptions.IsExpandedCompletion);
+            if (!isExpandedCompletion)
             {
                 var importCompletionOptionValue = completionContext.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
 
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
             using (var telemetryCounter = new TelemetryCounter())
             {
-                await AddCompletionItemsAsync(completionContext, syntaxContext, telemetryCounter, cancellationToken).ConfigureAwait(false);
+                await AddCompletionItemsAsync(completionContext, syntaxContext, isExpandedCompletion, telemetryCounter, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return _isTypeImportCompletionExperimentEnabled == true;
         }
 
-        private async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, TelemetryCounter telemetryCounter, CancellationToken cancellationToken)
+        private async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, bool isExpandedCompletion, TelemetryCounter telemetryCounter, CancellationToken cancellationToken)
         {
             var document = completionContext.Document;
             var project = document.Project;
@@ -117,13 +118,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             tasksToGetCompletionItems.AddRange(
                 referencedAssemblySymbols.Select(symbol => Task.Run(() => HandleReferenceAsync(symbol))));
 
-            // We want to timebox the operation that might need to traverse all the type symbols and populate the cache, 
-            // the idea is not to block completion for too long (likely to happen the first time import completion is triggered).
+            // We want to timebox the operation that might need to traverse all the type symbols and populate the cache. 
+            // The idea is not to block completion for too long (likely to happen the first time import completion is triggered).
             // The trade-off is we might not provide unimported types until the cache is warmed up.
+            // On the other hand, when users explicitly ask for unimported items via expander, we will block until all items can be provided.
             var combinedTask = Task.WhenAll(tasksToGetCompletionItems.ToImmutableAndFree());
-            if (await Task.WhenAny(combinedTask, Task.Delay(TimeoutInMilliseconds, cancellationToken)).ConfigureAwait(false) == combinedTask)
+            if (await Task.WhenAny(combinedTask, Task.Delay(TimeoutInMilliseconds, cancellationToken)).ConfigureAwait(false) == combinedTask
+                || isExpandedCompletion)
             {
-                // No timeout. We now have all completion items ready. 
+                // Either there's no timeout, and we now have all completion items ready,
+                // or user asked for unimported type explicitly so we need to wait until they are calculated.
                 var completionItemsToAdd = await combinedTask.ConfigureAwait(false);
                 foreach (var completionItems in completionItemsToAdd)
                 {

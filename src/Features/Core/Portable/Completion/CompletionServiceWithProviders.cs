@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionTrigger trigger,
             OptionSet options)
         {
-            if (options.GetOption(CompletionServiceOptions.IncludeExpandedItemsOnly))
+            if (options.GetOption(CompletionServiceOptions.IsExpandedCompletion))
             {
                 providers = providers.WhereAsArray(p => p.IsExpandItemProvider);
             }

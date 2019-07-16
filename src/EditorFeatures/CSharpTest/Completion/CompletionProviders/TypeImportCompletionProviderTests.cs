@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -1178,6 +1179,31 @@ namespace Test
             await VerifyTypeImportItemIsAbsentAsync(markup, "MyVBClass", inlineDescription: "Foo");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(36624, "https://github.com/dotnet/roslyn/issues/36624")]
+        public async Task DoNotShowImportItemsIfTimeout()
+        {
+            // Set timeout to 0 so it always timeout
+            AbstractTypeImportCompletionProvider.TimeoutInMilliseconds = 0;
+
+            var file1 = $@"
+namespace NS1
+{{
+    public class Bar
+    {{}}
+}}";
+            var file2 = @"
+namespace NS2
+{
+    class C
+    {
+         $$
+    }
+}";
+
+            var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "NS1");
+        }
 
         private static void AssertRelativeOrder(List<string> expectedTypesInRelativeOrder, ImmutableArray<CompletionItem> allCompletionItems)
         {

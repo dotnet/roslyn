@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal static class CompletionServiceOptions
     {
-        public static readonly Option<bool> IncludeExpandedItemsOnly
-            = new Option<bool>(nameof(CompletionServiceOptions), nameof(IncludeExpandedItemsOnly), defaultValue: false);
+        public static readonly Option<bool> IsExpandedCompletion
+            = new Option<bool>(nameof(CompletionServiceOptions), nameof(IsExpandedCompletion), defaultValue: false);
     }
 }

@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var workspace = document.Project.Solution.Workspace;
 
             var options = _isDebuggerTextView ? workspace.Options.WithDebuggerCompletionOptions() : workspace.Options;
-            options = options.WithChangedOption(CompletionServiceOptions.IncludeExpandedItemsOnly, isExpanded);
+            options = options.WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, isExpanded);
 
             var (completionList, expandItemsAvailable) = await completionService.GetCompletionsInternalAsync(
                 document,
