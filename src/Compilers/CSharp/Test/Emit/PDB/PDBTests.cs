@@ -8907,6 +8907,42 @@ public class C
 </symbols>");
         }
 
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [WorkItem(37261, "https://github.com/dotnet/roslyn/issues/37261")]
+        public void SwitchExpression_MethodBody()
+        {
+            var source = @"
+using System;
+public class C
+{
+    static int M() => F() switch
+    {
+        1 => 1,
+        C { P: int p, Q: C { P: int q } } => G(() => p + q),
+        _ => 0
+    };
+
+    object P { get; set; }
+    object Q { get; set; }
+    static object F() => null;
+    static int G(Func<int> f) => 0;
+}
+";
+            var c = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            // TODO: https://github.com/dotnet/roslyn/issues/37261
+            // No debug info emitted for C.M.
+
+            c.VerifyPdb("C.M", @"
+ <symbols>
+   <files>
+     <file id=""1"" name="""" language=""C#"" />
+   </files>
+   <methods />
+ </symbols>
+", format: DebugInformationFormat.PortablePdb);
+        }
+
         #endregion
 
         #region Tuples
