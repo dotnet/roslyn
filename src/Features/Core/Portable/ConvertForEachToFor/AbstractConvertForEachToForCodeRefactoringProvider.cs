@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertForEachToFor
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
         protected abstract (SyntaxNode start, SyntaxNode end) GetForEachBody(TForEachStatement foreachStatement);
         protected abstract void ConvertToForStatement(
             SemanticModel model, ForEachInfo info, SyntaxEditor editor, CancellationToken cancellationToken);
-        protected abstract bool IsValid(SyntaxNode foreachNode);
+        protected abstract bool IsValid(TForEachStatement foreachNode);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

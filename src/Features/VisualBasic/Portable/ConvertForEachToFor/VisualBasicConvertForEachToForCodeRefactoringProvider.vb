@@ -19,11 +19,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
 
         Protected Overrides ReadOnly Property Title As String = VBFeaturesResources.Convert_to_For
 
-        Protected Overrides Function IsValid(foreachNode As SyntaxNode) As Boolean
-            Dim foreachTyped = CType(foreachNode, ForEachBlockSyntax)
-
+        Protected Overrides Function IsValid(foreachNode As ForEachBlockSyntax) As Boolean
             ' we don't support colon separated statements
-            Return Not foreachTyped.DescendantTrivia().Any(Function(t) t.IsKind(SyntaxKind.ColonTrivia))
+            Return Not foreachNode.DescendantTrivia().Any(Function(t) t.IsKind(SyntaxKind.ColonTrivia))
         End Function
 
         Protected Overrides Function ValidLocation(foreachInfo As ForEachInfo) As Boolean

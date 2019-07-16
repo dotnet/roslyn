@@ -27,8 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
         protected override string Title => CSharpFeaturesResources.Convert_to_for;
 
         // https://github.com/dotnet/roslyn/issues/30584: Add tests for this scenario
-        protected override bool IsValid(SyntaxNode foreachStatement) 
-            => foreachStatement is ForEachStatementSyntax foreachStatementTyped && foreachStatementTyped.AwaitKeyword != default;
+        protected override bool IsValid(ForEachStatementSyntax foreachStatement)
+            => foreachStatement.AwaitKeyword != default;
+
         protected override bool ValidLocation(ForEachInfo foreachInfo)
         {
             if (!foreachInfo.RequireCollectionStatement)
