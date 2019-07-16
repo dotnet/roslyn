@@ -1621,14 +1621,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        INamedTypeSymbol INamedTypeSymbol.Construct(params ITypeSymbol[] arguments)
+        INamedTypeSymbol INamedTypeSymbol.Construct(params ITypeSymbol[] typeArguments)
         {
-            foreach (var arg in arguments)
+            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(typeArguments.Length);
+            foreach (var typeArg in typeArguments)
             {
-                arg.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("typeArguments");
+                var type = typeArg.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(typeArguments));
+                builder.Add(TypeWithAnnotations.Create(type));
+            }
+            return Construct(builder.ToImmutableAndFree(), unbound: false);
+        }
+
+        INamedTypeSymbol INamedTypeSymbol.Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
+        {
+            if (typeArguments.IsDefault)
+            {
+                throw new ArgumentException(nameof(typeArguments));
             }
 
-            return this.Construct(arguments.Cast<TypeSymbol>().ToArray());
+            int n = typeArguments.Length;
+            if (!typeArgumentNullableAnnotations.IsDefault && typeArgumentNullableAnnotations.Length != n)
+            {
+                throw new ArgumentException(nameof(typeArgumentNullableAnnotations));
+            }
+
+            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(n);
+            for (int i = 0; i < n; i++)
+            {
+                var type = typeArguments[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(typeArguments));
+                var annotation = typeArgumentNullableAnnotations.IsDefault ? NullableAnnotation.Oblivious : typeArgumentNullableAnnotations[i].ToInternalAnnotation();
+                builder.Add(TypeWithAnnotations.Create(type, annotation));
+            }
+
+            return Construct(builder.ToImmutableAndFree(), unbound: false);
         }
 
         INamedTypeSymbol INamedTypeSymbol.ConstructUnboundGenericType()
