@@ -15,9 +15,11 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
     internal abstract class AbstractIntroduceLocalForExpressionCodeRefactoringProvider<
+        TExpressionSyntax,
         TStatementSyntax,
         TExpressionStatementSyntax,
         TLocalDeclarationStatementSyntax> : CodeRefactoringProvider
+        where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TExpressionStatementSyntax : TStatementSyntax
         where TLocalDeclarationStatementSyntax : TStatementSyntax
@@ -59,7 +61,16 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         protected async Task<TExpressionStatementSyntax> GetExpressionStatementAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var helpers = document.GetLanguageService<IRefactoringHelpersService>();
+
             var expressionStatement = await helpers.TryGetSelectedNodeAsync<TExpressionStatementSyntax>(document, span, cancellationToken).ConfigureAwait(false);
+            if (expressionStatement == null)
+            {
+                // If an expression-statement wasn't selected, see if they're selecting
+                // an expression belonging to an expression-statement instead.
+                var expression = await helpers.TryGetSelectedNodeAsync<TExpressionSyntax>(document, span, cancellationToken).ConfigureAwait(false);
+                expressionStatement = expression?.Parent as TExpressionStatementSyntax;
+            }
+
             return expressionStatement != null && IsValid(expressionStatement, span)
                 ? expressionStatement
                 : null;
@@ -74,6 +85,18 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var newRoot = root.ReplaceNode(expressionStatement, localDeclaration);
 
             return document.WithSyntaxRoot(newRoot);
+        }
+
+        protected static async Task<SyntaxToken> GenerateUniqueNameAsync(
+            Document document, TExpressionSyntax expression, CancellationToken cancellationToken)
+        {
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+            var baseName = semanticFacts.GenerateNameForExpression(semanticModel, expression, capitalize: false, cancellationToken);
+            var uniqueName = semanticFacts.GenerateUniqueLocalName(semanticModel, expression, containerOpt: null, baseName, cancellationToken)
+                                          .WithAdditionalAnnotations(RenameAnnotation.Create());
+            return uniqueName;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

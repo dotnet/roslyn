@@ -2,12 +2,12 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.IntroduceVariable;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.CodeStyle;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceVariable
 {
@@ -43,6 +43,32 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        public async Task IntroduceLocal_NoSemicolon_SelectExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        [|new DateTime()|]
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        DateTime {|Rename:dateTime|} = new DateTime();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
         public async Task IntroduceLocal_Semicolon()
         {
             await TestInRegularAndScriptAsync(
@@ -54,6 +80,58 @@ class C
     void M()
     {
         new DateTime();[||]
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        DateTime {|Rename:dateTime|} = new DateTime();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        public async Task IntroduceLocal_Semicolon_SelectExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        [|new DateTime()|];
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        DateTime {|Rename:dateTime|} = new DateTime();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        public async Task IntroduceLocal_Semicolon_SelectStatement()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        [|new DateTime();|]
     }
 }",
 @"
@@ -162,6 +240,48 @@ class C
     void M()
     {
         Console.WriteLine();[||]
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        public async Task MissingOnDeclaration()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        var v = new DateTime()[||]
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        public async Task IntroduceLocal_ArithmeticExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        1 + 1[||]
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        int {|Rename:v|} = 1 + 1;
     }
 }");
         }

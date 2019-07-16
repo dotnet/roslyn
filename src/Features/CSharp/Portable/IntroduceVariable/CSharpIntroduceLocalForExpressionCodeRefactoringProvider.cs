@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
     internal class CSharpIntroduceLocalForExpressionCodeRefactoringProvider :
         AbstractIntroduceLocalForExpressionCodeRefactoringProvider<
+            ExpressionSyntax,
             StatementSyntax,
             ExpressionStatementSyntax,
             LocalDeclarationStatementSyntax>
@@ -36,20 +36,15 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return true;
         }
 
-
         protected override async Task<LocalDeclarationStatementSyntax> CreateLocalDeclarationAsync(
             Document document, ExpressionStatementSyntax expressionStatement, CancellationToken cancellationToken)
         {
             var expression = expressionStatement.Expression;
             var semicolon = expressionStatement.SemicolonToken;
 
+            var uniqueName = await GenerateUniqueNameAsync(document, expression, cancellationToken).ConfigureAwait(false);
+
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
-            var baseName = semanticFacts.GenerateNameForExpression(semanticModel, expression, capitalize: false, cancellationToken);
-            var uniqueName = semanticFacts.GenerateUniqueLocalName(semanticModel, expression, containerOpt: null, baseName, cancellationToken)
-                                          .WithAdditionalAnnotations(RenameAnnotation.Create());
-
             var type = semanticModel.GetTypeInfo(expression).Type;
 
             if (semicolon.IsMissing)
@@ -72,14 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                              .WithLeadingTrivia(expression.GetLeadingTrivia());
 
             return localDeclaration;
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
-            }
         }
     }
 }
