@@ -49,10 +49,9 @@
       <PdbFile Condition="'$(PdbFile)' == '' AND '$(OutputType)' == 'winmdobj' AND '$(_DebugSymbolsProduced)' == 'true'">$(IntermediateOutputPath)$(TargetName).compile.pdb</PdbFile>
     </PropertyGroup>
 
-    <PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp' OR '$(TargetFrameworkVersion)' != 'v3.0'">
       <MaxSupportedLangVersion Condition="'$(MaxSupportedLangVersion)' == ''">7.3</MaxSupportedLangVersion>
-      <LangVersion Condition="'$(LangVersion)' == '' AND
-        ('$(TargetFrameworkIdentifier)' != '.NETCoreApp' OR '$(TargetFrameworkVersion)' != 'v3.0')">$(MaxSupportedLangVersion)</LangVersion>
+      <LangVersion Condition="'$(LangVersion)' == ''">$(MaxSupportedLangVersion)</LangVersion>
     </PropertyGroup>
 
     <!-- Condition is to filter out the _CoreCompileResourceInputs so that it doesn't pass in culture resources to the compiler -->
