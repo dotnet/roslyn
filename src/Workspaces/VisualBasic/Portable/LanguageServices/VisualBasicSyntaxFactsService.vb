@@ -2024,5 +2024,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetAttributeLists
             Return VisualBasicSyntaxGenerator.GetAttributeLists(node)
         End Function
+
+        Public Function IsOnForeachHeader(root As SyntaxNode, position As Integer, ByRef foreachStatement As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOnForeachHeader
+            Dim node = TryGetAncestorForLocation(Of ForEachBlockSyntax)(position, root)
+            foreachStatement = node
+
+            If foreachStatement Is Nothing Then
+                Return False
+            End If
+
+            Return IsOnHeader(position, node, node.ForEachStatement)
+        End Function
     End Class
 End Namespace

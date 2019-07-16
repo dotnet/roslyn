@@ -1769,6 +1769,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsOnHeader(position, node, node.CloseParenToken);
         }
 
+        public bool IsOnForeachHeader(SyntaxNode root, int position, out SyntaxNode foreachStatement)
+        {
+            var node = TryGetAncestorForLocation<ForEachStatementSyntax>(position, root);
+            foreachStatement = node;
+            if (foreachStatement == null)
+            {
+                return false;
+            }
+
+            return IsOnHeader(position, node, node.CloseParenToken);
+        }
+
         public bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position)
         {
             var token = root.FindToken(position);
