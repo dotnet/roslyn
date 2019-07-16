@@ -4803,9 +4803,10 @@ class C : IDisposable
         }
 
         [Fact, WorkItem(2212, "https://github.com/dotnet/roslyn-analyzers/issues/2212")]
-        public async Task AwaitedButNotDisposed_Diagnostic()
+        public async Task AwaitedButNotDisposed_NoDiagnostic()
         {
-            await TestDiagnosticsAsync(@"
+            // We are conservative when disposable object gets wrapped in a task and consider it as escaped.
+            await TestDiagnosticMissingAsync(@"
 using System;
 using System.Threading.Tasks;
 
@@ -4826,14 +4827,13 @@ class C : IDisposable
         var c = await M1_Task().ConfigureAwait(false);
     }
     |]
-}",
-            Diagnostic(IDEDiagnosticIds.DisposeObjectsBeforeLosingScopeDiagnosticId, "await M1_Task().ConfigureAwait(false)").WithLocation(19, 17));
+}");
         }
 
         [Fact, WorkItem(2212, "https://github.com/dotnet/roslyn-analyzers/issues/2212")]
-        public async Task AwaitedButNotDisposed_TaskWrappingField_Diagnostic()
+        public async Task AwaitedButNotDisposed_TaskWrappingField_NoDiagnostic()
         {
-            await TestDiagnosticsAsync(@"
+            await TestDiagnosticMissingAsync(@"
 using System;
 using System.Threading.Tasks;
 
@@ -4855,8 +4855,7 @@ class C : IDisposable
         var c = await M1_Task().ConfigureAwait(false);
     }
     |]
-}",
-            Diagnostic(IDEDiagnosticIds.DisposeObjectsBeforeLosingScopeDiagnosticId, "await M1_Task().ConfigureAwait(false)").WithLocation(20, 17));
+}");
         }
 
         [Fact, WorkItem(2347, "https://github.com/dotnet/roslyn-analyzers/issues/2347")]
@@ -4914,7 +4913,7 @@ class C : IDisposable
     }
     |]
 }",
-            Diagnostic(IDEDiagnosticIds.DisposeObjectsBeforeLosingScopeDiagnosticId, "await M1_Task(null).ConfigureAwait(false)").WithLocation(20, 17));
+            Diagnostic(IDEDiagnosticIds.DisposeObjectsBeforeLosingScopeDiagnosticId, "M1_Task(null)").WithLocation(20, 23));
         }
 
         [Fact, WorkItem(2361, "https://github.com/dotnet/roslyn-analyzers/issues/2361")]
