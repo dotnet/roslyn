@@ -8915,32 +8915,62 @@ public class C
 using System;
 public class C
 {
-    static int M() => F() switch
-    {
-        1 => 1,
-        C { P: int p, Q: C { P: int q } } => G(() => p + q),
-        _ => 0
-    };
+    static int M() => F() switch { C { P: int p } => G(() => p), _ => 0 };
 
     object P { get; set; }
-    object Q { get; set; }
     static object F() => null;
     static int G(Func<int> f) => 0;
 }
 ";
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
-
-            // TODO: https://github.com/dotnet/roslyn/issues/37261
-            // No debug info emitted for C.M.
-
-            c.VerifyPdb("C.M", @"
- <symbols>
-   <files>
-     <file id=""1"" name="""" language=""C#"" />
-   </files>
-   <methods />
- </symbols>
-", format: DebugInformationFormat.PortablePdb);
+            var v = CompileAndVerify(c);
+            v.VerifyIL("C.M", source: source, sequencePoints: "C.M", expectedIL: @"
+{
+  // Code size       86 (0x56)
+  .maxstack  2
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                int V_1,
+                object V_2,
+                C V_3,
+                object V_4,
+                int V_5)
+  // sequence point: F() switch { C { P: int p } => G(() => p), _ => 0 }
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  call       ""object C.F()""
+  IL_000b:  stloc.2
+  IL_000c:  ldloc.2
+  IL_000d:  isinst     ""C""
+  IL_0012:  stloc.3
+  IL_0013:  ldloc.3
+  IL_0014:  brfalse.s  IL_004c
+  IL_0016:  ldloc.3
+  IL_0017:  callvirt   ""object C.P.get""
+  IL_001c:  stloc.s    V_4
+  IL_001e:  ldloc.s    V_4
+  IL_0020:  isinst     ""int""
+  IL_0025:  brfalse.s  IL_004c
+  IL_0027:  ldloc.0
+  IL_0028:  ldloc.s    V_4
+  IL_002a:  unbox.any  ""int""
+  IL_002f:  stfld      ""int C.<>c__DisplayClass0_0.<p>5__2""
+  IL_0034:  br.s       IL_0036
+  IL_0036:  br.s       IL_0038
+  IL_0038:  ldloc.0
+  IL_0039:  ldftn      ""int C.<>c__DisplayClass0_0.<M>b__0()""
+  IL_003f:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_0044:  call       ""int C.G(System.Func<int>)""
+  IL_0049:  stloc.1
+  IL_004a:  br.s       IL_0050
+  IL_004c:  ldc.i4.0
+  IL_004d:  stloc.1
+  IL_004e:  br.s       IL_0050
+  IL_0050:  ldloc.1
+  IL_0051:  stloc.s    V_5
+  IL_0053:  ldloc.s    V_5
+  IL_0055:  ret
+}
+");
         }
 
         #endregion

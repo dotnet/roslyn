@@ -1114,7 +1114,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var newStatements = ArrayBuilder<BoundStatement>.GetInstance();
 
-            if (prologue.Count > 0)
+            // Workaround for https://github.com/dotnet/roslyn/issues/37261.
+            // Do not emit hidden sequence point for switch expression.
+            if (prologue.Count > 0 && !(node.Syntax is SwitchExpressionSyntax))
             {
                 newStatements.Add(new BoundSequencePoint(null, null) { WasCompilerGenerated = true });
             }
