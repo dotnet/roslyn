@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.IntroduceVariable;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -15,59 +16,30 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
-    internal class CSharpIntroduceLocalForExpressionCodeRefactoringProvider : CodeRefactoringProvider
+    internal class CSharpIntroduceLocalForExpressionCodeRefactoringProvider :
+        AbstractIntroduceLocalForExpressionCodeRefactoringProvider<
+            StatementSyntax,
+            ExpressionStatementSyntax,
+            LocalDeclarationStatementSyntax>
     {
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        protected override bool IsValid(ExpressionStatementSyntax expressionStatement, TextSpan span)
         {
-            var document = context.Document;
-            var span = context.Span;
-            var cancellationToken = context.CancellationToken;
-
-            var expressionStatement = await GetExpressionStatementAsync(document, span, cancellationToken).ConfigureAwait(false);
-            if (expressionStatement == null)
-            {
-                return;
-            }
-
-            var expression = expressionStatement.Expression;
-
             // Expression is likely too simple to want to offer to generate a local for.
             // This leads to too many false cases where this is offered.
             if (span.IsEmpty &&
                 expressionStatement.SemicolonToken.IsMissing &&
-                expression.IsKind(SyntaxKind.IdentifierName))
+                expressionStatement.Expression.IsKind(SyntaxKind.IdentifierName))
             {
-                return;
+                return false;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var type = semanticModel.GetTypeInfo(expression).Type;
-            if (type == null ||
-                type.SpecialType == SpecialType.System_Void)
-            {
-                return;
-            }
-
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var singleLineExpression = syntaxFacts.ConvertToSingleLine(expression);
-            var nodeString = singleLineExpression.ToString();
-
-            context.RegisterRefactoring(new MyCodeAction(
-                string.Format(FeaturesResources.Introduce_local_for_0, nodeString),
-                c => IntroduceLocalAsync(document, span, c)));
+            return true;
         }
 
-        private static async Task<ExpressionStatementSyntax> GetExpressionStatementAsync(Document document, TextSpan span, CancellationToken cancellationToken)
-        {
-            var helpers = document.GetLanguageService<IRefactoringHelpersService>();
-            var expressionStatement = await helpers.TryGetSelectedNodeAsync<ExpressionStatementSyntax>(document, span, cancellationToken).ConfigureAwait(false);
-            return expressionStatement;
-        }
 
-        private async Task<Document> IntroduceLocalAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        protected override async Task<LocalDeclarationStatementSyntax> CreateLocalDeclarationAsync(
+            Document document, ExpressionStatementSyntax expressionStatement, CancellationToken cancellationToken)
         {
-            var expressionStatement = await GetExpressionStatementAsync(document, span, cancellationToken).ConfigureAwait(false);
-
             var expression = expressionStatement.Expression;
             var semicolon = expressionStatement.SemicolonToken;
 
@@ -99,10 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                              .WithSemicolonToken(semicolon)
                              .WithLeadingTrivia(expression.GetLeadingTrivia());
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newRoot = root.ReplaceNode(expressionStatement, localDeclaration);
-
-            return document.WithSyntaxRoot(newRoot);
+            return localDeclaration;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
