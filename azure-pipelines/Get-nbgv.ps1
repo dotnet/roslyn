@@ -22,7 +22,7 @@ $toolPath = (Resolve-Path $toolPath).Path
 
 if (!(Get-Command $toolPath -ErrorAction SilentlyContinue)) {
     Write-Host "Installing nbgv to $toolInstallDir"
-    dotnet tool install --tool-path "$toolInstallDir" nbgv --configfile "$PSScriptRoot\nbgv.nuget.config" | Out-Null
+    dotnet tool install --tool-path "$toolInstallDir" nbgv --configfile "$PSScriptRoot\justnugetorg.nuget.config" | Out-Null
 }
 
 # Normalize the path on the way out.
