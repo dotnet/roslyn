@@ -78,6 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //             RValueType.Type.Equals(LValueType.TypeSymbol, TypeCompareKind.ConsiderEverything | TypeCompareKind.AllIgnoreOptions));
             }
 
+            public VisitResult(TypeWithState valueType)
+                : this(valueType, valueType.ToTypeWithAnnotations())
+            {
+            }
+
             public VisitResult(TypeSymbol type, NullableAnnotation annotation, NullableFlowState state)
             {
                 RValueType = TypeWithState.Create(type, state);
@@ -3492,6 +3497,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _variableTypes[local.LocalSymbol] = varType;
                             lValueType = varType;
                         }
+                        else if (argument is BoundDiscardExpression discard)
+                        {
+                            SetAnalyzedNullability(discard, new VisitResult(parameterWithState), isLvalue: true);
+                        }
 
                         // track state by assigning from a fictional value from the parameter to the argument.
                         var parameterValue = new BoundParameter(argument.Syntax, parameter);
@@ -5117,7 +5126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void TrackAnalyzedNullabilityThroughConversionGroup(TypeWithState resultType, BoundConversion conversionOpt, BoundExpression convertedNode)
         {
-            var visitResult = new VisitResult(resultType, resultType.ToTypeWithAnnotations());
+            var visitResult = new VisitResult(resultType);
             var conversionGroup = conversionOpt?.ConversionGroupOpt;
             while (conversionOpt != null && conversionOpt != convertedNode)
             {
@@ -5456,7 +5465,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeWithState rightState;
                 if (!node.IsRef)
                 {
-                    rightState = VisitOptionalImplicitConversion(right, leftLValueType, UseLegacyWarnings(left, leftLValueType), trackMembers: true, AssignmentKind.Assignment);
+                    var discarded = left is BoundDiscardExpression;
+                    rightState = VisitOptionalImplicitConversion(right, targetTypeOpt: discarded ? default : leftLValueType, UseLegacyWarnings(left, leftLValueType), trackMembers: true, AssignmentKind.Assignment);
                 }
                 else
                 {
@@ -5467,7 +5477,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckDisallowedNullAssignment(rightState, leftAnnotations, right.Syntax.Location);
 
                 TrackNullableStateForAssignment(right, leftLValueType, MakeSlot(left), rightState, MakeSlot(right));
-                SetResult(node, TypeWithState.Create(leftLValueType.Type, rightState.State), leftLValueType);
+                if (left is BoundDiscardExpression)
+                {
+                    SetResult(left, rightState, rightState.ToTypeWithAnnotations(), isLvalue: true);
+                    SetResult(node, rightState, rightState.ToTypeWithAnnotations());
+                }
+                else
+                {
+                    SetResult(node, TypeWithState.Create(leftLValueType.Type, rightState.State), leftLValueType);
+                }
             }
 
             return null;
@@ -7051,7 +7069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameter,
                 parameter.TypeWithAnnotations,
                 GetParameterAnnotations(parameter),
-                new VisitArgumentResult(new VisitResult(result, result.ToTypeWithAnnotations()),
+                new VisitArgumentResult(new VisitResult(result),
                 stateForLambda: default),
                 extensionMethodThisArgument: true);
         }
