@@ -29,16 +29,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var span = context.Span;
-            var cancellationToken = context.CancellationToken;
-
-            var expressionStatement = await GetExpressionStatementAsync(document, span, cancellationToken).ConfigureAwait(false);
+            var expressionStatement = await GetExpressionStatementAsync(context).ConfigureAwait(false);
             if (expressionStatement == null)
             {
                 return;
             }
 
+            var (document, span, cancellationToken) = context;
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var expression = syntaxFacts.GetExpressionOfExpressionStatement(expressionStatement);
 
@@ -55,30 +52,28 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             context.RegisterRefactoring(new MyCodeAction(
                 string.Format(FeaturesResources.Introduce_local_for_0, nodeString),
-                c => IntroduceLocalAsync(document, span, c)));
+                c => IntroduceLocalAsync(document, expressionStatement, c)));
         }
 
-        protected async Task<TExpressionStatementSyntax> GetExpressionStatementAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        protected async Task<TExpressionStatementSyntax> GetExpressionStatementAsync(CodeRefactoringContext context)
         {
-            var helpers = document.GetLanguageService<IRefactoringHelpersService>();
-
-            var expressionStatement = await helpers.TryGetSelectedNodeAsync<TExpressionStatementSyntax>(document, span, cancellationToken).ConfigureAwait(false);
+            var expressionStatement = await context.TryGetSelectedNodeAsync<TExpressionStatementSyntax>().ConfigureAwait(false);
             if (expressionStatement == null)
             {
                 // If an expression-statement wasn't selected, see if they're selecting
                 // an expression belonging to an expression-statement instead.
-                var expression = await helpers.TryGetSelectedNodeAsync<TExpressionSyntax>(document, span, cancellationToken).ConfigureAwait(false);
+                var expression = await context.TryGetSelectedNodeAsync<TExpressionSyntax>().ConfigureAwait(false);
                 expressionStatement = expression?.Parent as TExpressionStatementSyntax;
             }
 
-            return expressionStatement != null && IsValid(expressionStatement, span)
+            return expressionStatement != null && IsValid(expressionStatement, context.Span)
                 ? expressionStatement
                 : null;
         }
 
-        private async Task<Document> IntroduceLocalAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        private async Task<Document> IntroduceLocalAsync(
+            Document document, TExpressionStatementSyntax expressionStatement, CancellationToken cancellationToken)
         {
-            var expressionStatement = await GetExpressionStatementAsync(document, span, cancellationToken).ConfigureAwait(false);
             var localDeclaration = await CreateLocalDeclarationAsync(document, expressionStatement, cancellationToken).ConfigureAwait(false);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
