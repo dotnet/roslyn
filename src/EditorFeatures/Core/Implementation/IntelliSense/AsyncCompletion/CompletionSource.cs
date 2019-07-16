@@ -213,11 +213,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             SnapshotSpan applicableToSpan,
             CancellationToken cancellationToken)
         {
-            Debug.Assert((object)expander == FilterSet.Expander);
-
-            if (Helpers.TryGetInitialTriggerLocation(session, out var initialTriggerLocation))
+            // We only want to provide expanded items for Roslyn's expander.
+            if ((object)expander == FilterSet.Expander)
             {
-                return await GetCompletionContextWorkerAsync(session, intialTrigger, initialTriggerLocation, applicableToSpan, isExpanded: true, cancellationToken).ConfigureAwait(false);
+                if (Helpers.TryGetInitialTriggerLocation(session, out var initialTriggerLocation))
+                {
+                    return await GetCompletionContextWorkerAsync(session, intialTrigger, initialTriggerLocation, applicableToSpan, isExpanded: true, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             return AsyncCompletionData.CompletionContext.Empty;

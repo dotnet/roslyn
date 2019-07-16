@@ -5377,6 +5377,7 @@ namespace NS2
                 AbstractTypeImportCompletionProvider.TimeoutInMilliseconds = 0
 
                 ' trigger completion with import completion enabled, this should timeout so no unimport types should be shown and expander should be unselected
+                ' (but the caculation should continue in background)
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
 
@@ -5389,6 +5390,52 @@ namespace NS2
                 Await state.WaitForUIRenderedAsync()
 
                 ' timeout is ignored if user asked for unimport types explicitly (via expander)
+                Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestExpanderAndTimeboxWithImportCompletionDisabled() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(CompletionImplementation.Modern,
+                  <Document><![CDATA[
+namespace NS1
+{
+    class C
+    {
+        public void Foo()
+        {
+            Bar$$
+        }
+    }
+}
+
+namespace NS2
+{
+    public class Bar { }
+}
+]]></Document>)
+
+                ' Disable import completion 
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, False)
+
+                ' trigger completion with import completion disabled
+                state.SendInvokeCompletionList()
+                Await state.WaitForUIRenderedAsync()
+
+                state.AssertCompletionItemsDoNotContainAny(displayText:={"Bar"})
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
+
+                ' set timeout to 0
+                AbstractTypeImportCompletionProvider.TimeoutInMilliseconds = 0
+
+                ' select expander
+                state.SetCompletionItemExpanderState(isSelected:=True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                ' timeout should be ignored since user asked for unimport types explicitly (via expander)
                 Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
 
