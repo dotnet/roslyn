@@ -1125,6 +1125,33 @@ dotnet_diagnostic.cs000.some_key = some_val", "/.editorconfig"));
         }
 
         [Fact]
+        public void NestedAnalyzerOptionsWithRoot()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.bad_key = bad_val", "/.editorconfig"));
+            configs.Add(Parse(@"
+root = true
+
+[*.cs]
+dotnet_diagnostic.cs000.some_key = some_val", "/src/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/src/test.cs", "/src/test.vb", "/root.cs" },
+                configs);
+            configs.Free();
+
+            VerifyAnalyzerOptions(
+                new[] {
+                    new[] { ("dotnet_diagnostic.cs000.some_key", "some_val") },
+                    new (string, string) [] { },
+                    new[] { ("dotnet_diagnostic.cs000.bad_key", "bad_val") }
+               },
+                options);
+        }
+
+        [Fact]
         public void FromMultipleSectionsAnalyzerOptions()
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
