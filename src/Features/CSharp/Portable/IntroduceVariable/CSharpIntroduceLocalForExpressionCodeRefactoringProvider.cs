@@ -67,7 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         private async Task<Document> IntroduceLocalAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var expressionStatement = await GetExpressionStatementAsync(document, span, cancellationToken).ConfigureAwait(false);
+
             var expression = expressionStatement.Expression;
+            var semicolon = expressionStatement.SemicolonToken;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -77,6 +79,14 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                                           .WithAdditionalAnnotations(RenameAnnotation.Create());
 
             var type = semanticModel.GetTypeInfo(expression).Type;
+
+            if (semicolon.IsMissing)
+            {
+                semicolon = SyntaxFactory.Token(SyntaxKind.SemicolonToken)
+                                         .WithTrailingTrivia(expression.GetTrailingTrivia());
+                expression = expression.WithoutTrailingTrivia();
+            }
+
             var variableDeclaration =
                 SyntaxFactory.VariableDeclaration(
                     type.GenerateTypeSyntax(),
@@ -86,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                                          expression.WithoutLeadingTrivia()))));
             var localDeclaration =
                 SyntaxFactory.LocalDeclarationStatement(variableDeclaration)
-                             .WithSemicolonToken(expressionStatement.SemicolonToken)
+                             .WithSemicolonToken(semicolon)
                              .WithLeadingTrivia(expression.GetLeadingTrivia());
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
