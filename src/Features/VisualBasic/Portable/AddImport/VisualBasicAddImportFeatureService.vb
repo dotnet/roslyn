@@ -292,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Dim importService = document.GetLanguageService(Of IAddImportsService)
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim newRoot = importService.AddImport(compilation, root, contextNode, importsStatement, placeSystemNamespaceFirst)
+            Dim newRoot = importService.AddImport(compilation, root, contextNode, importsStatement, placeSystemNamespaceFirst, cancellationToken)
             newRoot = newRoot.WithAdditionalAnnotations(CaseCorrector.Annotation, Formatter.Annotation)
             Dim newDocument = document.WithSyntaxRoot(newRoot)
 

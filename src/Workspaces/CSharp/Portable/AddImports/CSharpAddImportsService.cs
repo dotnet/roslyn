@@ -39,12 +39,13 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
             SyntaxNode staticUsingContainer,
             SyntaxNode aliasContainer,
             bool placeSystemNamespaceFirst,
-            SyntaxNode root)
+            SyntaxNode root,
+            CancellationToken cancellationToken)
         {
             var rewriter = new Rewriter(
                 externAliases, usingDirectives, staticUsingDirectives,
                 aliasDirectives, externContainer, usingContainer,
-                staticUsingContainer, aliasContainer, placeSystemNamespaceFirst);
+                staticUsingContainer, aliasContainer, placeSystemNamespaceFirst, cancellationToken);
 
             var newRoot = rewriter.Visit(root);
             return newRoot;
@@ -73,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
         private class Rewriter : CSharpSyntaxRewriter
         {
             private readonly bool _placeSystemNamespaceFirst;
+            private readonly CancellationToken _cancellationToken;
             private readonly SyntaxNode _externContainer;
             private readonly SyntaxNode _usingContainer;
             private readonly SyntaxNode _aliasContainer;
@@ -92,7 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 SyntaxNode usingContainer,
                 SyntaxNode aliasContainer,
                 SyntaxNode staticUsingContainer,
-                bool placeSystemNamespaceFirst)
+                bool placeSystemNamespaceFirst,
+                CancellationToken cancellationToken)
             {
                 _externAliases = externAliases;
                 _usingDirectives = usingDirectives;
@@ -103,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 _aliasContainer = aliasContainer;
                 _staticUsingContainer = staticUsingContainer;
                 _placeSystemNamespaceFirst = placeSystemNamespaceFirst;
+                _cancellationToken = cancellationToken;
             }
 
             public override SyntaxNode VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
@@ -110,7 +114,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 // recurse downwards so we visit inner namespaces first.
                 var rewritten = (NamespaceDeclarationSyntax)base.VisitNamespaceDeclaration(node);
 
-                if (!node.CanAddUsingDirectives(CancellationToken.None))
+                _cancellationToken.ThrowIfCancellationRequested();
+
+                if (!node.CanAddUsingDirectives(_cancellationToken))
                 {
                     return rewritten;
                 }

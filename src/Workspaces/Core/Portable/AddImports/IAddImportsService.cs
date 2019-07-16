@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
@@ -23,17 +24,17 @@ namespace Microsoft.CodeAnalysis.AddImports
 
         SyntaxNode AddImports(
             Compilation compilation, SyntaxNode root, SyntaxNode contextLocation,
-            IEnumerable<SyntaxNode> newImports, bool placeSystemNamespaceFirst);
+            IEnumerable<SyntaxNode> newImports, bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
     }
 
     internal static class IAddImportServiceExtensions
     {
         public static SyntaxNode AddImport(
             this IAddImportsService service, Compilation compilation, SyntaxNode root,
-            SyntaxNode contextLocation, SyntaxNode newImport, bool placeSystemNamespaceFirst)
+            SyntaxNode contextLocation, SyntaxNode newImport, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
         {
             return service.AddImports(compilation, root, contextLocation,
-                SpecializedCollections.SingletonEnumerable(newImport), placeSystemNamespaceFirst);
+                SpecializedCollections.SingletonEnumerable(newImport), placeSystemNamespaceFirst, cancellationToken);
         }
     }
 }

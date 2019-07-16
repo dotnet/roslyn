@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading;
@@ -10,6 +11,7 @@ using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -44,10 +46,7 @@ namespace Microsoft.CodeAnalysis.Editing
             // Create a simple interval tree for simplification spans.
             var spansTree = new SimpleIntervalTree<TextSpan>(TextSpanIntervalIntrospector.Instance, spans);
 
-            bool isInSpan(SyntaxNode node) =>
-                spansTree.HasIntervalThatOverlapsWith(node.FullSpan.Start, node.FullSpan.Length);
-
-            var nodes = root.DescendantNodesAndSelf().Where(isInSpan);
+            var nodes = root.DescendantNodesAndSelf().Where(IsInSpan);
             var (importDirectivesToAdd, namespaceSymbols, context) = strategy switch
             {
                 Strategy.AddImportsFromSymbolAnnotations
@@ -57,36 +56,62 @@ namespace Microsoft.CodeAnalysis.Editing
                 _ => throw new InvalidEnumArgumentException(nameof(strategy), (int)strategy, typeof(Strategy)),
             };
 
-            if (importDirectivesToAdd.Count is 0)
+            if (importDirectivesToAdd.Length == 0)
             {
                 return document.WithSyntaxRoot(root); //keep any added simplifier annotations
             }
 
             if (safe)
             {
+                // Mark the context with an annotation. 
+                // This will allow us to find it after we have called MakeSafeToAddNamespaces.
                 var annotation = new SyntaxAnnotation();
-                root = root.ReplaceNode(context, context.WithAdditionalAnnotations(annotation));
-                document = document.WithSyntaxRoot(root);
+                document = document.WithSyntaxRoot(root.ReplaceNode(context, context.WithAdditionalAnnotations(annotation)));
                 root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
                 model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                root = MakeSafeToAddNamespaces(root, namespaceSymbols, model, document.Project.Solution.Workspace, cancellationToken);
+
+                // Make Safe to add namespaces
+                document = document.WithSyntaxRoot(
+                   MakeSafeToAddNamespaces(root, namespaceSymbols, model, document.Project.Solution.Workspace, cancellationToken));
+                document = document.WithSyntaxRoot(root.ReplaceNode(context, context.WithAdditionalAnnotations(annotation)));
+                root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
+                model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                // Find the context. It might be null if we have removed the context in the process of complexifying the tree.
                 context = root.DescendantNodesAndSelf().FirstOrDefault(x => x.HasAnnotation(annotation)) ?? root;
             }
 
             var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
 
-            root = addImportsService.AddImports(model.Compilation, root, context, importDirectivesToAdd, placeSystemNamespaceFirst);
+            root = addImportsService.AddImports(model.Compilation, root, context, importDirectivesToAdd, placeSystemNamespaceFirst, cancellationToken);
 
             return document.WithSyntaxRoot(root);
+
+            bool IsInSpan(SyntaxNode node) =>
+                spansTree.HasIntervalThatOverlapsWith(node.FullSpan.Start, node.FullSpan.Length);
         }
 
         protected abstract INamespaceSymbol GetExplicitNamespaceSymbol(SyntaxNode node, SemanticModel model);
 
-        /// <summary>
-        /// Gets the namespace <paramref name="node"/> is contained in, or null otherwise
-        /// </summary>
-        protected abstract INamespaceSymbol GetContainedNamespace(SyntaxNode node, SemanticModel model);
+        private SyntaxNode MakeSafeToAddNamespaces(
+            SyntaxNode root,
+            IEnumerable<INamespaceSymbol> namespaceSymbols,
+            SemanticModel model,
+            Workspace workspace,
+            CancellationToken cancellationToken)
+        {
+            var namespaceMembers = namespaceSymbols.SelectMany(x => x.GetMembers());
+            var extensionMethods =
+                namespaceMembers.OfType<INamedTypeSymbol>().Where(t => t.MightContainExtensionMethods)
+                .SelectMany(x => x.GetMembers().OfType<IMethodSymbol>().Where(x => x.IsExtensionMethod));
 
+            return MakeSafeToAddNamespaces(root, namespaceMembers, extensionMethods, model, workspace, cancellationToken);
+        }
+
+        /// <summary>
+        /// Fully qualifies parts of the document that may change meaning if namespaces are added, 
+        /// and marks them with <see cref="Simplifier.Annotation"/> so they can be reduced later.
+        /// </summary>
         protected abstract SyntaxNode MakeSafeToAddNamespaces(
             SyntaxNode root,
             IEnumerable<INamespaceOrTypeSymbol> namespaceMembers,
@@ -97,12 +122,19 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private SyntaxNode GenerateNamespaceImportDeclaration(INamespaceSymbol namespaceSymbol, SyntaxGenerator generator)
         {
+            // We add Simplifier.Annotation so that the import can be removed if it turns out to be unnecessary.
+            // This can happen for a number of reasons (we replace the type with var, inbuilt type, alias, etc.)
             return generator
                 .NamespaceImportDeclaration(namespaceSymbol.ToDisplayString(SymbolDisplayFormats.NameFormat))
                 .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
         }
 
-        private (List<SyntaxNode> imports, IEnumerable<INamespaceSymbol> namespaceSymbols, SyntaxNode context) GetImportDirectivesFromSyntaxesAsync(
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="root">ref as we add simplifier annotations to nodes with explicit namespaces</param>
+        /// <returns></returns>
+        private (ImmutableArray<SyntaxNode> imports, IEnumerable<INamespaceSymbol> namespaceSymbols, SyntaxNode context) GetImportDirectivesFromSyntaxesAsync(
                 IEnumerable<SyntaxNode> syntaxNodes,
                 ref SyntaxNode root,
                 SemanticModel model,
@@ -111,13 +143,13 @@ namespace Microsoft.CodeAnalysis.Editing
                 CancellationToken cancellationToken
             )
         {
-            var importsToAdd = new List<SyntaxNode>();
+            var importsToAdd = ArrayBuilder<SyntaxNode>.GetInstance();
 
             var nodesWithExplicitNamespaces = syntaxNodes
                 .Select(n => (syntaxnode: n, namespaceSymbol: GetExplicitNamespaceSymbol(n, model)))
                 .Where(x => x.namespaceSymbol != null);
 
-            var nodesToSimplify = new List<SyntaxNode>();
+            var nodesToSimplify = ArrayBuilder<SyntaxNode>.GetInstance();
 
             var addedSymbols = new HashSet<INamespaceSymbol>();
 
@@ -139,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editing
                     continue;
                 }
 
-                if (IsInsideNamespace(node, namespaceSymbol, model))
+                if (IsInsideNamespace(node, namespaceSymbol, model, cancellationToken))
                 {
                     continue;
                 }
@@ -148,9 +180,10 @@ namespace Microsoft.CodeAnalysis.Editing
                 importsToAdd.Add(namespaceSyntax);
             }
 
-            if (nodesToSimplify.Count is 0)
+            if (nodesToSimplify.Count == 0)
             {
-                return (importsToAdd, addedSymbols, null);
+                nodesToSimplify.Free();
+                return (importsToAdd.ToImmutableAndFree(), addedSymbols, null);
             }
 
             var annotation = new SyntaxAnnotation();
@@ -162,10 +195,11 @@ namespace Microsoft.CodeAnalysis.Editing
             var first = root.DescendantNodesAndSelf().First(x => x.HasAnnotation(annotation));
             var last = root.DescendantNodesAndSelf().Last(x => x.HasAnnotation(annotation));
 
-            return (importsToAdd, addedSymbols, first.GetCommonRoot(last));
+            nodesToSimplify.Free();
+            return (importsToAdd.ToImmutableAndFree(), addedSymbols, first.GetCommonRoot(last));
         }
 
-        private (List<SyntaxNode> imports, IEnumerable<INamespaceSymbol> namespaceSymbols, SyntaxNode context) GetImportDirectivesFromAnnotatedNodesAsync(
+        private (ImmutableArray<SyntaxNode> imports, IEnumerable<INamespaceSymbol> namespaceSymbols, SyntaxNode context) GetImportDirectivesFromAnnotatedNodesAsync(
             IEnumerable<SyntaxNode> syntaxNodes,
             SyntaxNode root,
             SemanticModel model,
@@ -175,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             SyntaxNode first = null;
             SyntaxNode last = null;
-            var importsToAdd = new List<SyntaxNode>();
+            var importsToAdd = ArrayBuilder<SyntaxNode>.GetInstance();
 
             var annotatedNodes = syntaxNodes.Where(x => x.HasAnnotations(SymbolAnnotation.Kind));
             var addedSymbols = new HashSet<INamespaceSymbol>();
@@ -196,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Editing
                     foreach (var namedType in SymbolAnnotation.GetSymbols(annotation, model.Compilation).OfType<INamedTypeSymbol>())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        if (IsBuiltIn(namedType))
+                        if (namedType.IsSpecialType())
                         {
                             continue;
                         }
@@ -222,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editing
                             continue;
                         }
 
-                        if(IsInsideNamespace(annotatedNode, namespaceSymbol, model))
+                        if(IsInsideNamespace(annotatedNode, namespaceSymbol, model, cancellationToken))
                         {
                             continue;
                         }
@@ -233,43 +267,20 @@ namespace Microsoft.CodeAnalysis.Editing
                 }
             }
 
-            return (importsToAdd, addedSymbols, first?.GetCommonRoot(last));
-        }
+            // we don't add simplifier annotations here, 
+            // since whatever added the symbol annotation probably also added simplifier annotations,
+            // and if not they probably didn't for a reason
 
-        private bool IsBuiltIn(INamedTypeSymbol type)
-        {
-            switch (type.OriginalDefinition.SpecialType)
-            {
-                case SpecialType.System_Object:
-                case SpecialType.System_Void:
-                case SpecialType.System_Boolean:
-                case SpecialType.System_Char:
-                case SpecialType.System_SByte:
-                case SpecialType.System_Byte:
-                case SpecialType.System_Int16:
-                case SpecialType.System_UInt16:
-                case SpecialType.System_Int32:
-                case SpecialType.System_UInt32:
-                case SpecialType.System_Int64:
-                case SpecialType.System_UInt64:
-                case SpecialType.System_Decimal:
-                case SpecialType.System_Single:
-                case SpecialType.System_Double:
-                case SpecialType.System_String:
-                case SpecialType.System_Nullable_T:
-                    return true;
-            }
-
-            return false;
+            return (importsToAdd.ToImmutableAndFree(), addedSymbols, first?.GetCommonRoot(last));
         }
 
         /// <summary>
         /// Checks if the namespace declaration <paramref name="node"/> is contained inside,
         /// or any of its ancestor namespaces are the same as <paramref name="symbol"/>
         /// </summary>
-        private bool IsInsideNamespace(SyntaxNode node, INamespaceSymbol symbol, SemanticModel model)
+        private bool IsInsideNamespace(SyntaxNode node, INamespaceSymbol symbol, SemanticModel model, CancellationToken cancellationToken)
         {
-            var containedNamespace = GetContainedNamespace(node, model);
+            var containedNamespace = model.GetEnclosingNamespace(node.SpanStart, cancellationToken);
 
             while (containedNamespace != null)
             {
@@ -279,21 +290,6 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             return false;
-        }
-
-        private SyntaxNode MakeSafeToAddNamespaces(
-            SyntaxNode root,
-            IEnumerable<INamespaceSymbol> namespaceSymbols,
-            SemanticModel model,
-            Workspace workspace,
-            CancellationToken cancellationToken)
-        {
-            var namespaceMembers = namespaceSymbols.SelectMany(x => x.GetMembers());
-            var extensionMethods =
-                namespaceMembers.OfType<ITypeSymbol>().Where(x => x.IsStatic || x.IsModuleType())
-                .SelectMany(x => x.GetMembers().OfType<IMethodSymbol>().Where(x => x.IsExtensionMethod));
-
-            return MakeSafeToAddNamespaces(root, namespaceMembers, extensionMethods, model, workspace, cancellationToken);
         }
     }
 }

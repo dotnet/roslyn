@@ -33,16 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
             return null;
         }
 
-        protected override INamespaceSymbol GetContainedNamespace(SyntaxNode node, SemanticModel model)
-        {
-            var namespaceSyntax = node.AncestorsAndSelf().OfType<NamespaceDeclarationSyntax>().FirstOrDefault();
-
-            if (namespaceSyntax is null)
-                return null;
-
-            return model.GetDeclaredSymbol(namespaceSyntax);
-        }
-
         protected override SyntaxNode MakeSafeToAddNamespaces(SyntaxNode root, IEnumerable<INamespaceOrTypeSymbol> namespaceMembers, IEnumerable<IMethodSymbol> extensionMethods, SemanticModel model, Workspace workspace, CancellationToken cancellationToken)
         {
             var rewriter = new Rewriter(namespaceMembers, extensionMethods, model, workspace, cancellationToken);
@@ -70,10 +60,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
 
         private class Rewriter : CSharpSyntaxRewriter
         {
-            private Workspace _workspace;
-            private CancellationToken _cancellationToken;
             private readonly SemanticModel _model;
+            private readonly Workspace _workspace;
+            private readonly CancellationToken _cancellationToken;
+
+            /// <summary>
+            /// A hashset containing the short names of all namespace members 
+            /// </summary>
             private readonly HashSet<string> _namespaceMembers;
+
+            /// <summary>
+            /// A hashset containing the short names of all extension methods
+            /// </summary>
             private readonly HashSet<string> _extensionMethods;
 
             public Rewriter(
@@ -94,8 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
 
             public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
             {
-                //Only visit leading trivia, as we only care about xml doc comments
-                var leadingTrivia = VisitList(node.GetLeadingTrivia());
+                // We only care about xml doc comments
+                var leadingTrivia = CanHaveDocComments(node) ? VisitList(node.GetLeadingTrivia()) : node.GetLeadingTrivia();
 
                 if (_namespaceMembers.Contains(node.Identifier.Text))
                 {
@@ -108,12 +106,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
 
             public override SyntaxNode VisitGenericName(GenericNameSyntax node)
             {
-                //Only visit leading trivia, as we only care about xml doc comments
-                var leadingTrivia = VisitList(node.GetLeadingTrivia());
+                // We only care about xml doc comments
+                var leadingTrivia = CanHaveDocComments(node) ? VisitList(node.GetLeadingTrivia()) : node.GetLeadingTrivia();
 
                 if (_namespaceMembers.Contains(node.Identifier.Text))
                 {
-                    // no need to visit type argument list as simplifier will expand everything
+                    // No need to visit type argument list as simplifier will expand everything
                     var expanded = Simplifier.Expand<SyntaxNode>(node, _model, _workspace, cancellationToken: _cancellationToken);
                     return expanded.WithLeadingTrivia(leadingTrivia);
                 }
@@ -125,6 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
             public override SyntaxNode VisitQualifiedName(QualifiedNameSyntax node)
             {
                 var left = (NameSyntax)base.Visit(node.Left);
+                // We don't recurse on the right, as if B is a member of the imported namespace, A.B is still not ambiguous
                 var right = node.Right;
                 if (right is GenericNameSyntax genericName)
                 {
@@ -141,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
                 {
                     if (_extensionMethods.Contains(memberAccess.Name.Identifier.Text))
                     {
-                        // no need to visit this as simplifier will expand everything
+                        // No need to visit this as simplifier will expand everything
                         return Simplifier.Expand<SyntaxNode>(node, _model, _workspace, cancellationToken: _cancellationToken);
                     }
                 }
@@ -155,13 +154,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
 
                 if (_extensionMethods.Contains(node.Name.Identifier.Text))
                 {
-                    // we will not visit this if the parent node is expanded, since we just expand the entire parent node.
-                    // therefore, since this is visited, we haven't expanded, and so we should warn
-                    node = node.WithAdditionalAnnotations(WarningAnnotation.Create(
-                        "Adding imports will bring an extension method into scope with the same name as " + node.Name.Identifier.Text));
+                    // If an extension method is used as a delegate rather than invoked directly,
+                    // there is no semantically valid transformation that will fully qualify the extension method. 
+                    // For example `Func<int> f = x.M;` is not the same as Func<int> f = () => Extensions.M(x);`
+                    // since one captures x by value, and the other by reference.
+                    //
+                    // We will not visit this node if the parent node was an InvocationExpression, 
+                    // since we would have expanded the parent node entirely, rather than visiting it.
+                    // Therefore it's possible that this is an extension method being used as a delegate so we warn.
+                    node = node.WithAdditionalAnnotations(WarningAnnotation.Create(string.Format(
+                        WorkspacesResources.Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access,
+                        node.Name.Identifier.Text)));
                 }
 
                 return node;
+            }
+
+            private bool CanHaveDocComments(NameSyntax node)
+            {
+                // a node can only have doc comments in its leading trivia if it's the first node in a member declaration syntax.
+
+                SyntaxNode current = node;
+                while (current.Parent != null)
+                {
+                    var parent = current.Parent;
+                    if (parent is NameSyntax && parent.ChildNodes().First() == current)
+                    {
+                        current = parent;
+                        continue;
+                    }
+
+                    if (parent is MemberDeclarationSyntax && parent.ChildNodes().First() == current)
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }
+                return false;
             }
         }
     }

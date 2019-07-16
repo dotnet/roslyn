@@ -453,6 +453,73 @@ End Class", safe:=True, useSymbolAnnotations)
         End Function
 
         <Theory, InlineData(True), InlineData(False)>
+        Public Async Function TestSafeWithMatchingSimpleNameDifferentCase(useSymbolAnnotations As Boolean) As Task
+            Await TestAsync(
+"Imports B
+
+Namespace A
+    Class C1
+    End Class
+
+    Class C2
+    End Class
+End Namespace
+
+Namespace B
+    Class C1
+    End Class
+End Namespace
+
+Class C
+    Private Function M(ByVal c2 As A.C2) As c1
+        Return Nothing
+    End Function
+End Class",
+"Imports A
+Imports B
+
+Namespace A
+    Class C1
+    End Class
+
+    Class C2
+    End Class
+End Namespace
+
+Namespace B
+    Class C1
+    End Class
+End Namespace
+
+Class C
+    Private Function M(ByVal c2 As A.C2) As Global.B.c1
+        Return Nothing
+    End Function
+End Class",
+"Imports A
+Imports B
+
+Namespace A
+    Class C1
+    End Class
+
+    Class C2
+    End Class
+End Namespace
+
+Namespace B
+    Class C1
+    End Class
+End Namespace
+
+Class C
+    Private Function M(ByVal c2 As C2) As B.c1
+        Return Nothing
+    End Function
+End Class", safe:=True, useSymbolAnnotations)
+        End Function
+
+        <Theory, InlineData(True), InlineData(False)>
         Public Async Function TestSafeWithMatchingGenericName(useSymbolAnnotations As Boolean) As Task
             Await TestAsync(
 "Imports B

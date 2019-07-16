@@ -2049,7 +2049,6 @@ class C
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
-using System.Runtime.CompilerServices;
 
 public class [|TestType|]<[NullableAttribute(1)]
 T> where T : notnull
@@ -2092,7 +2091,6 @@ class C
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
-using System.Runtime.CompilerServices;
 
 public class TestType
 {{
@@ -2131,7 +2129,6 @@ class C
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
-using System.Runtime.CompilerServices;
 
 public delegate void [|D|]<[NullableAttribute(1)]
 T>() where T : notnull;";

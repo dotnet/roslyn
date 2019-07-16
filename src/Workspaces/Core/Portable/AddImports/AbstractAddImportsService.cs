@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.AddImports
@@ -108,7 +109,8 @@ namespace Microsoft.CodeAnalysis.AddImports
             SyntaxNode root,
             SyntaxNode contextLocation,
             IEnumerable<SyntaxNode> newImports,
-            bool placeSystemNamespaceFirst)
+            bool placeSystemNamespaceFirst,
+            CancellationToken cancellationToken)
         {
             contextLocation ??= root;
 
@@ -128,7 +130,7 @@ namespace Microsoft.CodeAnalysis.AddImports
                 externAliases, usingDirectives, staticUsingDirectives,
                 aliasDirectives, externContainer, usingContainer,
                 staticUsingContainer, aliasContainer,
-                placeSystemNamespaceFirst, root);
+                placeSystemNamespaceFirst, root, cancellationToken);
 
             return newRoot;
         }
@@ -136,7 +138,8 @@ namespace Microsoft.CodeAnalysis.AddImports
         protected abstract SyntaxNode Rewrite(
             TExternSyntax[] externAliases, TUsingOrAliasSyntax[] usingDirectives, TUsingOrAliasSyntax[] staticUsingDirectives,
             TUsingOrAliasSyntax[] aliasDirectives, SyntaxNode externContainer, SyntaxNode usingContainer,
-            SyntaxNode staticUsingContainer, SyntaxNode aliasContainer, bool placeSystemNamespaceFirst, SyntaxNode root);
+            SyntaxNode staticUsingContainer, SyntaxNode aliasContainer, bool placeSystemNamespaceFirst, SyntaxNode root, 
+            CancellationToken cancellationToken);
 
         private void GetContainers(SyntaxNode root, SyntaxNode contextLocation, out SyntaxNode externContainer, out SyntaxNode usingContainer, out SyntaxNode staticUsingContainer, out SyntaxNode aliasContainer)
         {

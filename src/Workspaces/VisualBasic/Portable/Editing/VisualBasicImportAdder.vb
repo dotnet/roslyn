@@ -32,16 +32,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
             Return Nothing
         End Function
 
-        Protected Overrides Function GetContainedNamespace(node As SyntaxNode, model As SemanticModel) As INamespaceSymbol
-            Dim namespaceSyntax = node.AncestorsAndSelf().OfType(Of NamespaceBlockSyntax).FirstOrDefault()
-
-            If namespaceSyntax Is Nothing Then
-                Return Nothing
-            End If
-
-            Return model.GetDeclaredSymbol(namespaceSyntax)
-        End Function
-
         Protected Overrides Function MakeSafeToAddNamespaces(root As SyntaxNode, namespaceMembers As IEnumerable(Of INamespaceOrTypeSymbol), extensionMethods As IEnumerable(Of IMethodSymbol), model As SemanticModel, workspace As Workspace, cancellationToken As CancellationToken) As SyntaxNode
             Dim Rewriter = New Rewriter(namespaceMembers, extensionMethods, model, workspace, cancellationToken)
 
@@ -67,8 +57,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
         Private Class Rewriter
             Inherits VisualBasicSyntaxRewriter
 
-            Private _workspace As Workspace
-            Private _cancellationToken As CancellationToken
+            Private ReadOnly _workspace As Workspace
+            Private ReadOnly _cancellationToken As CancellationToken
             Private ReadOnly _model As SemanticModel
             Private ReadOnly _namespaceMembers As HashSet(Of String)
             Private ReadOnly _extensionMethods As HashSet(Of String)
@@ -77,8 +67,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
                 _model = model
                 _workspace = workspace
                 _cancellationToken = cancellationToken
-                _namespaceMembers = New HashSet(Of String)(namespaceMembers.[Select](Function(x) x.Name))
-                _extensionMethods = New HashSet(Of String)(extensionMethods.[Select](Function(x) x.Name))
+                _namespaceMembers = New HashSet(Of String)(namespaceMembers.[Select](Function(x) x.Name), CaseInsensitiveComparison.Comparer)
+                _extensionMethods = New HashSet(Of String)(extensionMethods.[Select](Function(x) x.Name), CaseInsensitiveComparison.Comparer)
             End Sub
 
             Public Overrides ReadOnly Property VisitIntoStructuredTrivia As Boolean
@@ -106,6 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
 
             Public Overrides Function VisitQualifiedName(node As QualifiedNameSyntax) As SyntaxNode
                 Dim left = CType(MyBase.Visit(node.Left), NameSyntax)
+                ' We don't recurse on the right, as if B is a member of the imported namespace, A.B is still not ambiguous
                 Dim right = node.Right
 
                 If TypeOf right Is GenericNameSyntax Then
@@ -121,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
                 If TypeOf node.Expression Is MemberAccessExpressionSyntax Then
                     Dim memberAccess = DirectCast(node.Expression, MemberAccessExpressionSyntax)
                     If _extensionMethods.Contains(memberAccess.Name.Identifier.Text) Then
-                        ' no need to visit this as simplifier will expand everything
+                        ' No need to visit this as simplifier will expand everything
                         Return Simplifier.Expand(Of SyntaxNode)(node, _model, _workspace, cancellationToken:=_cancellationToken)
                     End If
                 End If
@@ -133,10 +124,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
                 node = DirectCast(MyBase.VisitMemberAccessExpression(node), MemberAccessExpressionSyntax)
 
                 If _extensionMethods.Contains(node.Name.Identifier.Text) Then
-                    ' we will not visit this if the parent node is expanded, since we just expand the entire parent node.
-                    ' therefore, since this is visited, we haven't expanded, and so we should warn
-                    node = node.WithAdditionalAnnotations(WarningAnnotation.Create(
-                        "Adding imports will bring an extension method into scope with the same name as " & node.Name.Identifier.Text))
+                    ' If an extension method is used as a delegate rather than invoked directly,
+                    ' there is no semantically valid transformation that will fully qualify the extension method. 
+                    ' For example `Dim f As Func<int> = x.M;` is not the same as `Dim f As Func<int> = Function(x) Extensions.M(x);`
+                    ' since one captures x by value, and the other by reference.
+                    '
+                    ' We will not visit this node if the parent node was an InvocationExpression, 
+                    ' since we would have expanded the parent node entirely, rather than visiting it.
+                    ' Therefore it's possible that this is an extension method being used as a delegate so we warn.
+                    node = node.WithAdditionalAnnotations(WarningAnnotation.Create(String.Format(
+                        WorkspacesResources.Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access,
+                        node.Name.Identifier.Text)))
                 End If
 
                 Return node

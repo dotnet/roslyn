@@ -43,11 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
                     (o, c) =>
                     {
                         var symbol = model.GetSymbolInfo(o).Symbol;
-                        if (symbol != null)
-                            return c.WithAdditionalAnnotations(SymbolAnnotation.Create(symbol), Simplifier.Annotation);
-                        return c;
-                    }
-                    );
+                        return symbol != null
+                            ? c.WithAdditionalAnnotations(SymbolAnnotation.Create(symbol), Simplifier.Annotation) 
+                            : c;
+                    });
                 doc = doc.WithSyntaxRoot(root);
             }
             return doc;
@@ -634,6 +633,79 @@ class C
     class C
     {
         private List<int> F;
+    }
+}", safe, useSymbolAnnotations);
+        }
+
+        [Theory, MemberData(nameof(TestAllData))]
+        public async Task TestImportNameNotSimplfied(bool safe, bool useSymbolAnnotations)
+        {
+            await TestAsync(
+@"namespace System
+{
+    using System.Threading;
+
+    class C
+    {
+        private System.Collections.Generic.List<int> F;
+    }
+}",
+
+@"namespace System
+{
+    using System.Collections.Generic;
+    using System.Threading;
+
+    class C
+    {
+        private System.Collections.Generic.List<int> F;
+    }
+}",
+
+@"namespace System
+{
+    using System.Collections.Generic;
+    using System.Threading;
+
+    class C
+    {
+        private List<int> F;
+    }
+}", safe, useSymbolAnnotations);
+        }
+
+        [Theory, InlineData(false, true)]
+        public async Task TestUnnecessaryImportAddedAndRemoved(bool safe, bool useSymbolAnnotations)
+        {
+            await TestAsync(
+@"using List = System.Collections.Generic.List<int>;
+
+namespace System
+{
+    class C
+    {
+        private List F;
+    }
+}",
+
+@"using System.Collections.Generic;
+using List = System.Collections.Generic.List<int>;
+
+namespace System
+{
+    class C
+    {
+        private List F;
+    }
+}",
+
+@"using List = System.Collections.Generic.List<int>;
+
+namespace System
+{
+    class C
+    {
+        private List F;
     }
 }", safe, useSymbolAnnotations);
         }

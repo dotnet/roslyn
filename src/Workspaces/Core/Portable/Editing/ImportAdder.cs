@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -13,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Editing
     public static class ImportAdder
     {
         /// <summary>
-        /// Mark a sub-tree with this annotation in order for imports to be added for symbol annotations attached to nodes in the sub-tree,
-        /// once a code action is complete.
+        /// The annotation <see cref="CodeAction.CleanupDocumentAsync"/> uses to identify sub trees to look for symbol annotations on.
+        /// It will then add import directives for these symbol annotations.
         /// </summary>
         public static SyntaxAnnotation Annotation = new SyntaxAnnotation();
 
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public static Task<Document> AddImportsAsync(Document document, OptionSet options = null, CancellationToken cancellationToken = default)
         {
-            return AddImportsFromSyntaxesAsync(document, false, options, cancellationToken);
+            return AddImportsFromSyntaxesAsync(document, safe: false, options, cancellationToken);
         }
 
         /// <summary>
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public static Task<Document> AddImportsAsync(Document document, TextSpan span, OptionSet options = null, CancellationToken cancellationToken = default)
         {
-            return AddImportsFromSyntaxesAsync(document, new[] { span }, false, options, cancellationToken);
+            return AddImportsFromSyntaxesAsync(document, new[] { span }, safe: false, options, cancellationToken);
         }
 
         /// <summary>
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public static Task<Document> AddImportsAsync(Document document, SyntaxAnnotation annotation, OptionSet options = null, CancellationToken cancellationToken = default)
         {
-            return AddImportsFromSyntaxesAsync(document, annotation, false, options, cancellationToken);
+            return AddImportsFromSyntaxesAsync(document, annotation, safe: false, options, cancellationToken);
         }
 
         /// <summary>
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public static Task<Document> AddImportsAsync(Document document, IEnumerable<TextSpan> spans, OptionSet options = null, CancellationToken cancellationToken = default)
         {
-            return AddImportsFromSyntaxesAsync(document, spans, false, options, cancellationToken);
+            return AddImportsFromSyntaxesAsync(document, spans, safe: false, options, cancellationToken);
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
