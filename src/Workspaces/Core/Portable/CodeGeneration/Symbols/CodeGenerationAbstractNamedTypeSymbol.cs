@@ -56,6 +56,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 this, typeArguments.ToImmutableArray(), this.TypeMembers);
         }
 
+        public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)
+        {
+            return new CodeGenerationConstructedNamedTypeSymbol(
+                this, typeArguments, this.TypeMembers);
+        }
+
         public abstract int Arity { get; }
         public abstract bool IsGenericType { get; }
         public abstract bool IsUnboundGenericType { get; }
