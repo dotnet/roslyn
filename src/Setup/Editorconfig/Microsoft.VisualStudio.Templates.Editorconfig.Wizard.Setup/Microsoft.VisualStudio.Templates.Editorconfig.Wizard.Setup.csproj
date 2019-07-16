@@ -5,6 +5,7 @@
 
     <!-- VSIX -->
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
     <EnableDefaultItems>true</EnableDefaultItems>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
