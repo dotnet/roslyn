@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     internal abstract class AbstractRefactoringHelpersService : IRefactoringHelpersService
     {
+        public async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(CodeRefactoringContext context) where TSyntaxNode : SyntaxNode 
+            => await TryGetSelectedNodeAsync<TSyntaxNode>(context.Document, context.Span, context.CancellationToken).ConfigureAwait(false);
+
         public async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
             Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
@@ -388,6 +391,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             if (syntaxFacts.IsOnLocalDeclarationHeader(root, location, out var localDeclaration))
             {
                 yield return localDeclaration;
+            }
+
+            // Header: `if(...)`{ };
+            if (syntaxFacts.IsOnIfStatementHeader(root, location, out var ifStatement))
+            {
+                yield return ifStatement;
             }
         }
     }

@@ -1796,6 +1796,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return IsOnHeader(position, node, node, initializersExpressions)
         End Function
 
+        Public Function IsOnIfStatementHeader(root As SyntaxNode, position As Integer, ByRef ifStatement As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOnIfStatementHeader
+            ifStatement = Nothing
+
+            Dim multipleLineNode = TryGetAncestorForLocation(Of MultiLineIfBlockSyntax)(position, root)
+            If multipleLineNode IsNot Nothing Then
+                ifStatement = multipleLineNode
+                Return IsOnHeader(position, multipleLineNode.IfStatement, multipleLineNode.IfStatement)
+            End If
+
+            Dim singleLineNode = TryGetAncestorForLocation(Of SingleLineIfStatementSyntax)(position, root)
+            If singleLineNode IsNot Nothing Then
+                ifStatement = singleLineNode
+                Return IsOnHeader(position, singleLineNode, singleLineNode.Condition)
+            End If
+
+            Return False
+        End Function
+
         Public Function IsBetweenTypeMembers(sourceText As SourceText, root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsBetweenTypeMembers
             Dim token = root.FindToken(position)
             Dim typeDecl = token.GetAncestor(Of TypeBlockSyntax)
