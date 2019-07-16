@@ -416,7 +416,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/37223")]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
         public async Task SuggestVarInForRefLoop0()
         {
             var markup =
@@ -430,7 +430,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/37223")]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
         public async Task SuggestVarInForRefLoop1()
         {
             var markup =
@@ -444,7 +444,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/37223")]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
         public async Task SuggestVarInForRefReadonlyLoop0()
         {
             var markup =
@@ -458,7 +458,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/37223")]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
         public async Task SuggestVarInForRefReadonlyLoop1()
         {
             var markup =
@@ -472,7 +472,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/37223")]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
         public async Task SuggestVarInForEachRefLoop0()
         {
             var markup =
@@ -486,7 +486,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/37223")]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
         public async Task SuggestVarInForEachRefLoop1()
         {
             var markup =
@@ -500,7 +500,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/37223")]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
         public async Task SuggestVarInForEachRefLoop2()
         {
             var markup =
@@ -514,7 +514,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/37223")]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
         public async Task SuggestVarInForEachRefReadonlyLoop0()
         {
             var markup =
