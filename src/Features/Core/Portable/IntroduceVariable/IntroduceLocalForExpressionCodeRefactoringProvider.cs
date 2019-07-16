@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         where TLocalDeclarationStatementSyntax : TStatementSyntax
     {
         protected abstract bool IsValid(TExpressionStatementSyntax expressionStatement, TextSpan span);
-        protected abstract Task<TLocalDeclarationStatementSyntax> CreateLocalDeclarationAsync(Document document, TExpressionStatementSyntax expressionStatement, CancellationToken cancellationToken);
+        protected abstract TLocalDeclarationStatementSyntax FixupLocalDeclaration(TExpressionStatementSyntax expressionStatement, TLocalDeclarationStatementSyntax localDeclaration);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -71,7 +72,25 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         private async Task<Document> IntroduceLocalAsync(
             Document document, TExpressionStatementSyntax expressionStatement, CancellationToken cancellationToken)
         {
-            var localDeclaration = await CreateLocalDeclarationAsync(document, expressionStatement, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var expression = (TExpressionSyntax)syntaxFacts.GetExpressionOfExpressionStatement(expressionStatement);
+
+            var nameToken = await GenerateUniqueNameAsync(document, expression, cancellationToken).ConfigureAwait(false);
+            var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+            var localDeclaration = (TLocalDeclarationStatementSyntax)generator.LocalDeclarationStatement(
+                generator.TypeExpression(type),
+                nameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
+                expression.WithoutLeadingTrivia());
+
+            localDeclaration = localDeclaration.WithLeadingTrivia(expression.GetLeadingTrivia());
+
+            // Because expr-statements and local decl statements are so close, we can allow
+            // each language to do a little extra work to ensure the resultant local decl 
+            // feels right. For example, C# will want to transport the semicolon from the
+            // expr statement to the local decl if it has one.
+            localDeclaration = FixupLocalDeclaration(expressionStatement, localDeclaration);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(expressionStatement, localDeclaration);

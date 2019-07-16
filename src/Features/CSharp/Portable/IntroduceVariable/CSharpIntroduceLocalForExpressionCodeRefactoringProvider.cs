@@ -1,15 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.IntroduceVariable;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
@@ -36,37 +30,20 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return true;
         }
 
-        protected override async Task<LocalDeclarationStatementSyntax> CreateLocalDeclarationAsync(
-            Document document, ExpressionStatementSyntax expressionStatement, CancellationToken cancellationToken)
+        protected override LocalDeclarationStatementSyntax FixupLocalDeclaration(
+            ExpressionStatementSyntax expressionStatement, LocalDeclarationStatementSyntax localDeclaration)
         {
-            var expression = expressionStatement.Expression;
-            var semicolon = expressionStatement.SemicolonToken;
-
-            var uniqueName = await GenerateUniqueNameAsync(document, expression, cancellationToken).ConfigureAwait(false);
-
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var type = semanticModel.GetTypeInfo(expression).Type;
-
-            if (semicolon.IsMissing)
+            // If there wasn't a semicolon before, ensure the trailing trivia of the expression
+            // becomes the trailing trivia of a new semicolon that we add.
+            var semicolonToken = expressionStatement.SemicolonToken;
+            if (expressionStatement.SemicolonToken.IsMissing)
             {
-                semicolon = SyntaxFactory.Token(SyntaxKind.SemicolonToken)
-                                         .WithTrailingTrivia(expression.GetTrailingTrivia());
-                expression = expression.WithoutTrailingTrivia();
+                var expression = expressionStatement.Expression;
+                localDeclaration = localDeclaration.ReplaceNode(localDeclaration.Declaration.Variables[0].Initializer.Value, expression.WithoutLeadingTrivia());
+                semicolonToken = SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(expression.GetTrailingTrivia());
             }
 
-            var variableDeclaration =
-                SyntaxFactory.VariableDeclaration(
-                    type.GenerateTypeSyntax(),
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(uniqueName)
-                                     .WithInitializer(SyntaxFactory.EqualsValueClause(
-                                         expression.WithoutLeadingTrivia()))));
-            var localDeclaration =
-                SyntaxFactory.LocalDeclarationStatement(variableDeclaration)
-                             .WithSemicolonToken(semicolon)
-                             .WithLeadingTrivia(expression.GetLeadingTrivia());
-
-            return localDeclaration;
+            return localDeclaration.WithSemicolonToken(semicolonToken);
         }
     }
 }
