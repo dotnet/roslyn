@@ -240,5 +240,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("M()", Glyph.MethodPrivate),
                     Item("M()", Glyph.MethodPrivate, grayed:=True)}))
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(37183, "https://github.com/dotnet/roslyn/issues/37183")>
+        Public Async Function TestNullableReferenceTypesInParameters() As Task
+            Await AssertItemsAreAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>#nullable enable
+                        using System.Collections.Generic;
+                        class C { void M(string? s, IEnumerable&lt;string?&gt; e) { }</Document>
+                    </Project>
+                </Workspace>,
+                Item("C", Glyph.ClassInternal, children:={
+                    Item("M(string? s, IEnumerable<string?> e)", Glyph.MethodPrivate)}))
+        End Function
     End Class
 End Namespace
