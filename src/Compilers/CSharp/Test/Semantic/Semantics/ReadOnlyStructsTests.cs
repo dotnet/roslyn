@@ -805,6 +805,27 @@ False");
         }
 
         [Fact]
+        public void ReadOnlyStruct_EventAssignment()
+        {
+            var csharp = @"
+using System;
+
+public struct S
+{
+    public void M()
+    {
+        E += () => {};
+        E -= () => {};
+    }
+
+    public event Action E { add {} remove {} }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void ReadOnlyMethod_ReadOnlyEventAssignment()
         {
             var csharp = @"
@@ -847,8 +868,35 @@ public struct S1
         s2.E += () => {};
         s2.E -= () => {};
     }
+}
+";
 
-    public readonly event Action E { add {} remove {} }
+            // TODO: should warn in warning wave https://github.com/dotnet/roslyn/issues/33968
+            var verifier = CreateCompilation(csharp);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyStruct_Field_EventAssignment()
+        {
+            var csharp = @"
+#pragma warning disable 0067
+using System;
+
+public struct S2
+{
+    public event Action E;
+}
+
+public readonly struct S1
+{
+    public readonly S2 s2;
+
+    public void M()
+    {
+        s2.E += () => {};
+        s2.E -= () => {};
+    }
 }
 ";
 
