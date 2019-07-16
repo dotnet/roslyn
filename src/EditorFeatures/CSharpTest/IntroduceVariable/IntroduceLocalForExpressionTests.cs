@@ -43,6 +43,34 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        public async Task IntroduceLocal_NoSemicolon_BlankLineAfter()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        new DateTime()[||]
+
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        DateTime {|Rename:dateTime|} = new DateTime();
+
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
         public async Task IntroduceLocal_NoSemicolon_SelectExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -90,6 +118,34 @@ class C
     void M()
     {
         DateTime {|Rename:dateTime|} = new DateTime();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        public async Task IntroduceLocal_Semicolon_BlankLineAfter()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        new DateTime();[||]
+
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        DateTime {|Rename:dateTime|} = new DateTime();
+
     }
 }");
         }

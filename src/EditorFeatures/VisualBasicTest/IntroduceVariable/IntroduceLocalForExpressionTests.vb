@@ -40,6 +40,35 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)>
+        Public Async Function IntroduceLocal_TrailingBlankLine() As Task
+            Await TestInRegularAndScriptAsync(
+"
+imports System
+
+class C
+    sub M()
+        N()[||]
+
+    end sub
+
+    function N() as string
+    end function
+end class",
+"
+imports System
+
+class C
+    sub M()
+        Dim {|Rename:v|} = N()
+
+    end sub
+
+    function N() as string
+    end function
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)>
         Public Async Function IntroduceLocal_Selection() As Task
             Await TestInRegularAndScriptAsync(
 "
