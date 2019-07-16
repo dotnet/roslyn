@@ -8326,7 +8326,6 @@ public class C
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var verifier = CompileAndVerify(c);
 
-            // TODO: https://github.com/dotnet/roslyn/issues/37237
             // There should be no sequence points emitted within the switch expressions.
             // 
             // TODO: https://github.com/dotnet/roslyn/issues/37232
@@ -8359,9 +8358,9 @@ public class C
                 int V_20,
                 int V_21)
  -IL_0000:  nop
- ~IL_0001:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+ -IL_0001:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
   IL_0006:  stloc.0
- ~IL_0007:  newobj     ""C.<>c__DisplayClass0_1..ctor()""
+  IL_0007:  newobj     ""C.<>c__DisplayClass0_1..ctor()""
   IL_000c:  stloc.3
   IL_000d:  call       ""object C.F()""
   IL_0012:  stloc.s    V_5
@@ -8395,7 +8394,7 @@ public class C
   IL_0062:  unbox.any  ""int""
   IL_0067:  stfld      ""int C.<>c__DisplayClass0_1.<s>5__3""
   IL_006c:  br         IL_0174
- ~IL_0071:  newobj     ""C.<>c__DisplayClass0_2..ctor()""
+  IL_0071:  newobj     ""C.<>c__DisplayClass0_2..ctor()""
   IL_0076:  stloc.s    V_10
   IL_0078:  call       ""object C.F()""
   IL_007d:  stloc.s    V_12
@@ -8448,7 +8447,7 @@ public class C
   IL_0106:  ldloc.s    V_18
   IL_0108:  stloc.s    V_4
   IL_010a:  br         IL_0190
- ~IL_010f:  newobj     ""C.<>c__DisplayClass0_3..ctor()""
+  IL_010f:  newobj     ""C.<>c__DisplayClass0_3..ctor()""
   IL_0114:  stloc.s    V_19
   IL_0116:  call       ""object C.F()""
   IL_011b:  stloc.s    V_17
@@ -8570,10 +8569,7 @@ public class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x1"" hidden=""true"" document=""1"" />
-        <entry offset=""0x7"" hidden=""true"" document=""1"" />
-        <entry offset=""0x71"" hidden=""true"" document=""1"" />
-        <entry offset=""0x10f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""26"" endColumn=""11"" document=""1"" />
         <entry offset=""0x1c8"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x1cb"">
