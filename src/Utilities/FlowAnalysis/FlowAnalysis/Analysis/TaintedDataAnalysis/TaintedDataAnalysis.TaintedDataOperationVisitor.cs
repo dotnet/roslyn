@@ -239,21 +239,35 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     if (evaluateWithPointsToAnalysis != null)
                     {
                         IEnumerable<PointsToAbstractValue> pointsToAnalysisResultOpt = argumentOperation.Select(o => GetPointsToAbstractValue(o.Value));
-                        if (pointsToAnalysisResultOpt == null
-                            || !evaluateWithPointsToAnalysis.Any(o => o(pointsToAnalysisResultOpt)))
+                        try
                         {
-                            return TaintedDataAbstractValue.NotTainted;
+                            if (pointsToAnalysisResultOpt == null
+                                || !evaluateWithPointsToAnalysis.Any(o => o(pointsToAnalysisResultOpt)))
+                            {
+                                return TaintedDataAbstractValue.NotTainted;
+                            }
+                        }
+                        finally
+                        {
+                            evaluateWithPointsToAnalysis.Free();
                         }
                     }
                     else if (evaluateWithValueContentAnalysis != null)
                     {
                         IEnumerable<PointsToAbstractValue> pointsToAnalysisResultOpt = argumentOperation.Select(o => GetPointsToAbstractValue(o.Value));
                         IEnumerable<ValueContentAbstractValue> valueContentAnalysisResultOpt = argumentOperation.Select(o => GetValueContentAbstractValue(o.Value));
-                        if (valueContentAnalysisResultOpt == null
-                            || pointsToAnalysisResultOpt == null
-                            || !evaluateWithValueContentAnalysis.Any(o => o(pointsToAnalysisResultOpt, valueContentAnalysisResultOpt)))
+                        try
                         {
-                            return TaintedDataAbstractValue.NotTainted;
+                            if (valueContentAnalysisResultOpt == null
+                                || pointsToAnalysisResultOpt == null
+                                || !evaluateWithValueContentAnalysis.Any(o => o(pointsToAnalysisResultOpt, valueContentAnalysisResultOpt)))
+                            {
+                                return TaintedDataAbstractValue.NotTainted;
+                            }
+                        }
+                        finally
+                        {
+                            evaluateWithValueContentAnalysis.Free();
                         }
                     }
                     else
