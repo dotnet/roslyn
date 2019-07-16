@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
 
             var helperService = context.Document.GetLanguageService<IRefactoringHelpersService>();
             var foreachStatement = await helperService.TryGetSelectedNodeAsync<TForEachStatement>(context).ConfigureAwait(false);
-            if (foreachStatement != null && !IsValid(foreachStatement))
+            if (foreachStatement == null || !IsValid(foreachStatement))
             {
                 return;
             }
