@@ -3134,9 +3134,9 @@ class C
             Assert.Empty(errors);
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
-            Assert.Equal(expected: ErrorFacts.NullableFlowAnalysisWarnings.Count, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
 
-            foreach (string warning in ErrorFacts.NullableFlowAnalysisWarnings)
+            foreach (string warning in ErrorFacts.NullableWarnings)
             {
                 Assert.Equal(expected: ReportDiagnostic.Suppress, actual: arguments.CompilationOptions.SpecificDiagnosticOptions[warning]);
             }
@@ -3162,9 +3162,9 @@ class C
             Assert.Empty(errors);
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
-            Assert.Equal(expected: ErrorFacts.NullableFlowAnalysisWarnings.Count, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
 
-            foreach (string warning in ErrorFacts.NullableFlowAnalysisWarnings)
+            foreach (string warning in ErrorFacts.NullableWarnings)
             {
                 Assert.Equal(expected: ReportDiagnostic.Suppress, actual: arguments.CompilationOptions.SpecificDiagnosticOptions[warning]);
             }
@@ -3190,9 +3190,9 @@ class C
             Assert.Empty(errors);
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
-            Assert.Equal(expected: ErrorFacts.NullableFlowAnalysisWarnings.Count + 1, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count + 1, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
 
-            foreach (string warning in ErrorFacts.NullableFlowAnalysisWarnings)
+            foreach (string warning in ErrorFacts.NullableWarnings)
             {
                 Assert.Equal(expected: ReportDiagnostic.Suppress, actual: arguments.CompilationOptions.SpecificDiagnosticOptions[warning]);
             }
@@ -3220,9 +3220,9 @@ class C
             Assert.Empty(errors);
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
-            Assert.Equal(expected: 25, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
 
-            foreach (string warning in ErrorFacts.NullableFlowAnalysisWarnings)
+            foreach (string warning in ErrorFacts.NullableWarnings)
             {
                 Assert.Equal(expected: ReportDiagnostic.Error, actual: arguments.CompilationOptions.SpecificDiagnosticOptions[warning]);
             }
