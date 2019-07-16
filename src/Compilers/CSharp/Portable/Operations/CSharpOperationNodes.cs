@@ -332,17 +332,19 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundBlock _block;
+        private readonly ImmutableArray<ConditionalOperation> _prependedNullChecks;
 
-        internal CSharpLazyBlockOperation(CSharpOperationFactory operationFactory, BoundBlock block, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        internal CSharpLazyBlockOperation(CSharpOperationFactory operationFactory, BoundBlock block, ImmutableArray<ILocalSymbol> locals, ImmutableArray<ConditionalOperation> prependedNullChecks, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _operationFactory = operationFactory;
             _block = block;
+            _prependedNullChecks = prependedNullChecks;
         }
 
         protected override ImmutableArray<IOperation> CreateOperations()
         {
-            return _operationFactory.CreateFromArray<BoundStatement, IOperation>(_block.Statements);
+            return _operationFactory.CreateFromArray<BoundStatement, IOperation>(_block.Statements).InsertRange(0, _prependedNullChecks);
         }
     }
 
