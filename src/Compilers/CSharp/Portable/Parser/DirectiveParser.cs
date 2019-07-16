@@ -327,7 +327,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     else
                     {
                         const string versionMarker = "version:";
-                        if (errorText.StartsWith(versionMarker, StringComparison.Ordinal) &&
+                        if (this.Options.LanguageVersion != LanguageVersion.Preview &&
+                            errorText.StartsWith(versionMarker, StringComparison.Ordinal) &&
                             LanguageVersionFacts.TryParse(errorText.Substring(versionMarker.Length), out var languageVersion))
                         {
                             ErrorCode error = this.Options.LanguageVersion.GetErrorCode();
@@ -467,15 +468,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var warning = this.EatContextualToken(SyntaxKind.WarningKeyword);
                 SyntaxToken style;
-                if (this.CurrentToken.Kind == SyntaxKind.DisableKeyword || this.CurrentToken.Kind == SyntaxKind.RestoreKeyword ||
-                    this.CurrentToken.Kind == SyntaxKind.EnableKeyword)
+                if (this.CurrentToken.Kind == SyntaxKind.DisableKeyword || this.CurrentToken.Kind == SyntaxKind.RestoreKeyword)
                 {
                     style = this.EatToken();
 
-                    if (isActive && style.Kind == SyntaxKind.EnableKeyword)
-                    {
-                        style = CheckFeatureAvailability(style, MessageID.IDS_FeaturePragmaWarningEnable, forceWarning: true);
-                    }
                     var ids = new SeparatedSyntaxListBuilder<ExpressionSyntax>(10);
                     while (this.CurrentToken.Kind != SyntaxKind.EndOfDirectiveToken)
                     {

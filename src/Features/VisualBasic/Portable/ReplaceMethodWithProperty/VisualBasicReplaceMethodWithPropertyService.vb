@@ -8,51 +8,18 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Text
+Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithProperty
     <ExportLanguageService(GetType(IReplaceMethodWithPropertyService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicReplaceMethodWithPropertyService
-        Inherits AbstractReplaceMethodWithPropertyService
+        Inherits AbstractReplaceMethodWithPropertyService(Of MethodStatementSyntax)
         Implements IReplaceMethodWithPropertyService
 
         <ImportingConstructor>
         Public Sub New()
         End Sub
-
-        Public Function GetMethodDeclaration(token As SyntaxToken) As SyntaxNode Implements IReplaceMethodWithPropertyService.GetMethodDeclaration
-            Dim containingMethod = token.Parent.FirstAncestorOrSelf(Of MethodStatementSyntax)
-            If containingMethod Is Nothing Then
-                Return Nothing
-            End If
-
-            Dim start = If(containingMethod.AttributeLists.Count > 0,
-                containingMethod.AttributeLists.Last().GetLastToken().GetNextToken().SpanStart,
-                 containingMethod.SpanStart)
-
-            ' Offer this refactoring anywhere in the signature of the method.
-            Dim position = token.SpanStart
-            If position < start Then
-                Return Nothing
-            End If
-
-            If containingMethod.HasReturnType() AndAlso
-                position > containingMethod.GetReturnType().Span.End Then
-                Return Nothing
-            End If
-
-            ' Parameter lists in VB are optional and may not be provided.
-            If containingMethod.ParameterList Is Nothing Then
-                If position > containingMethod.Span.End Then
-                    Return Nothing
-                End If
-            Else
-                If position > containingMethod.ParameterList.Span.End Then
-                    Return Nothing
-                End If
-            End If
-
-            Return containingMethod
-        End Function
 
         Public Sub RemoveSetMethod(editor As SyntaxEditor, setMethodDeclaration As SyntaxNode) Implements IReplaceMethodWithPropertyService.RemoveSetMethod
             Dim setMethodStatement = TryCast(setMethodDeclaration, MethodStatementSyntax)
@@ -242,16 +209,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 End Function)
         End Sub
 
-        Private Shared Function IsInvocationName(nameNode As IdentifierNameSyntax, invocationExpression As ExpressionSyntax) As Boolean
-            If invocationExpression Is nameNode Then
-                Return True
-            End If
-
-            If nameNode.IsAnyMemberAccessExpressionName() AndAlso nameNode.Parent Is invocationExpression Then
-                Return True
-            End If
-
-            Return False
+        Private Function IReplaceMethodWithPropertyService_GetMethodDeclarationAsync(document As Document, span As TextSpan, cancellationToken As CancellationToken) As Task(Of SyntaxNode) Implements IReplaceMethodWithPropertyService.GetMethodDeclarationAsync
+            Return GetMethodDeclarationAsync(document, span, cancellationToken)
         End Function
     End Class
 End Namespace

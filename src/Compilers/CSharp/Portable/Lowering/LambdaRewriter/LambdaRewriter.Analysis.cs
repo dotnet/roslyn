@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     closureId = new DebugId(closureDebugInfo.Count, _compilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
                 }
 
-                int syntaxOffset = _topLevelMethod.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree);
+                int syntaxOffset = _topLevelMethod.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(syntax), syntax.SyntaxTree);
                 closureDebugInfo.Add(new ClosureDebugInfo(syntaxOffset, closureId));
 
                 return closureId;
