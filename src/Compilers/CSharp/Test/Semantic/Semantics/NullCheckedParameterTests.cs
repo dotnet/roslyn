@@ -244,9 +244,9 @@ class C
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                    // (4,19): warning CS8719: Parameter 'string' is null-checked but is null by default.
+                    // (4,19): warning CS8719: Parameter 'name' is null-checked but is null by default.
                     //     void M(string name! = null) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("string").WithLocation(4, 19));
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(4, 19));
                                 var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
             Assert.True(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
         }
@@ -275,9 +275,9 @@ class C
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                    // (4,19): warning CS8719: Parameter 'string' is null-checked but is null by default.
+                    // (4,19): warning CS8719: Parameter 'name' is null-checked but is null by default.
                     //     void M(string name! =null) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("string").WithLocation(4, 19));
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(4, 19));
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
             Assert.True(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
         }
@@ -590,12 +590,12 @@ class C
 }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                    // (5, 26): warning CS8721: Nullable value type 'T?' is null - checked and will throw if null.
+                    // (5,26): warning CS8721: Nullable value type 'T?' is null-checked and will throw if null.
                     //     static void M2<T>(T? t! = default) where T : struct { }
                     Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "t").WithArguments("T?").WithLocation(5, 26),
-                    // (6,25): warning CS8719: Parameter 'T' is null-checked but is null by default.
+                    // (6,25): warning CS8719: Parameter 't' is null-checked but is null by default.
                     //     static void M3<T>(T t! = default) where T : class { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "t").WithArguments("T").WithLocation(6, 25));
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "t").WithArguments("t").WithLocation(6, 25));
         }
 
         [Fact]
@@ -637,9 +637,9 @@ class B3 : A<int?>
 }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                    // (12,35): warning CS8719: Parameter 'U' is null-checked but is null by default.
+                    // (12,35): warning CS8719: Parameter 'u' is null-checked but is null by default.
                     //     internal override void F<U>(U u! = default) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "u").WithArguments("U").WithLocation(12, 35),
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "u").WithArguments("u").WithLocation(12, 35),
                     // (16,35): warning CS8721: Nullable value type 'U' is null-checked and will throw if null.
                     //     internal override void F<U>(U u! = default) { }
                     Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "u").WithArguments("U").WithLocation(16, 35));
@@ -674,9 +674,9 @@ class C
     void M(string name! = null) { }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                    // (5,19): warning CS8719: Parameter 'string' is null-checked but is null by default.
+                    // (5,19): warning CS8719: Parameter 'name' is null-checked but is null by default.
                     //     void M(string name! = null) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("string").WithLocation(5, 19));
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(5, 19));
         }
 
         [Fact]
@@ -777,9 +777,9 @@ class C
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                    // (7,23): warning CS8719: Parameter 'string' is null-checked but is null by default.
+                    // (7,23): warning CS8719: Parameter 'x' is null-checked but is null by default.
                     //         void M(string x! = null) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "x").WithArguments("string").WithLocation(7, 23));
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "x").WithArguments("x").WithLocation(7, 23));
         }
 
         [Fact]
