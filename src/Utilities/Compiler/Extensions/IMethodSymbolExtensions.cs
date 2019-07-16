@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -389,10 +390,25 @@ namespace Analyzer.Utilities.Extensions
         /// Determine if the specific method is a Task.FromResult method that wraps a result in a task.
         /// </summary>
         /// <param name="method">The method to test.</param>
-        /// <param name="taskType">Task types.</param>
+        /// <param name="taskType">Task type.</param>
         public static bool IsTaskFromResultMethod(this IMethodSymbol method, INamedTypeSymbol taskType)
             => method.Name.Equals("FromResult", StringComparison.Ordinal) &&
                method.ContainingType.Equals(taskType);
+
+        /// <summary>
+        /// Determine if the specific method is a Task.ConfigureAwait(bool) method.
+        /// </summary>
+        /// <param name="method">The method to test.</param>
+        /// <param name="genericTaskType">Generic task type.</param>
+        public static bool IsTaskConfigureAwaitMethod(this IMethodSymbol method, INamedTypeSymbol genericTaskType)
+        {
+            Debug.Assert(genericTaskType.IsGenericType);
+
+            return method.Name.Equals("ConfigureAwait", StringComparison.Ordinal) &&
+               method.Parameters.Length == 1 &&
+               method.Parameters[0].Type.SpecialType == SpecialType.System_Boolean &&
+               method.ContainingType.OriginalDefinition.Equals(genericTaskType);
+        }
 
 #if HAS_IOPERATION
         /// <summary>
