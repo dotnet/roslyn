@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         var location = firstDeclaratingErrorOpt.Location;
                         DocumentAnalysisResults.Log.Write("Declaration errors, first: {0}", location.IsInSource ? location.SourceTree.FilePath : location.MetadataModule.Name);
 
-                        return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), ImmutableArray.Create<RudeEditDiagnostic>(), hasSemanticErrors: true);
+                        return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), ImmutableArray<RudeEditDiagnostic>.Empty, hasSemanticErrors: true);
                     }
 
                     if (diagnostics.Count > 0)
@@ -3795,6 +3795,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #endregion
 
+        #region Testing
+
         internal TestAccessor GetTestAccessor()
             => new TestAccessor(this);
 
@@ -3885,5 +3887,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 _abstractEditAndContinueAnalyzer.AnalyzeSemantics(editScript, editMap, oldText, oldActiveStatements, triviaEdits, updatedMembers, oldModel, newModel, semanticEdits, diagnostics, out firstDeclarationErrorOpt, cancellationToken);
             }
         }
+
+        #endregion
     }
 }

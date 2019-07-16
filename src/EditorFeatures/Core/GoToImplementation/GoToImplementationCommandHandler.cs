@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
@@ -14,7 +15,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
@@ -24,12 +24,16 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
     [Name(PredefinedCommandHandlerNames.GoToImplementation)]
     internal partial class GoToImplementationCommandHandler : VSCommanding.ICommandHandler<GoToImplementationCommandArgs>
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GoToImplementationCommandHandler(IStreamingFindUsagesPresenter streamingPresenter)
+        public GoToImplementationCommandHandler(
+            IThreadingContext threadingContext,
+            IStreamingFindUsagesPresenter streamingPresenter)
         {
+            _threadingContext = threadingContext;
             _streamingPresenter = streamingPresenter;
         }
 
@@ -61,8 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
                     var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
                     if (caret.HasValue)
                     {
-                        var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
-                            context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
+                        var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
+                            context.OperationContext, _threadingContext);
                         if (document != null)
                         {
                             ExecuteCommand(document, caret.Value, findUsagesService, context);
