@@ -77,6 +77,11 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     _service, _document, _textSpan, _containingType,
                     result.Members, cancellationToken).ConfigureAwait(false);
 
+                if (state == null)
+                {
+                    return default;
+                }
+
                 // There was an existing constructor that matched what the user wants to create.
                 // Generate it if it's the implicit, no-arg, constructor, otherwise just navigate
                 // to the existing constructor

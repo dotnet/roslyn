@@ -37,11 +37,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         public IDictionary<OptionKey, object> FieldNamesAreCamelCase =>
             Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), FieldNamesAreCamelCaseOption());
 
-        public IDictionary<OptionKey, object> FieldNamesAreCamelCaseWithUnderscore =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), FieldNamesAreCamelCaseWithUnderscoreOption());
+        public IDictionary<OptionKey, object> FieldNamesAreCamelCaseWithUnderscorePrefix =>
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), FieldNamesAreCamelCaseWithUnderscorePrefixOption());
 
-        public IDictionary<OptionKey, object> FieldNamesAreCamelCaseBeginWithFieldUnderscore =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), FieldNamesAreCamelCaseBeginWithField_Option());
+        public IDictionary<OptionKey, object> FieldNamesAreCamelCaseWithFieldUnderscorePrefix =>
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), FieldNamesAreCamelCaseWithFieldUnderscorePrefixOption());
+
+        public IDictionary<OptionKey, object> FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix =>
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffixOption());
 
         public IDictionary<OptionKey, object> MethodNamesArePascalCase =>
             Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), MethodNamesArePascalCaseOption());
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), ParameterNamesAreCamelCaseWithPUnderscorePrefixOption());
 
         public IDictionary<OptionKey, object> ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), ParameterNamesAreCamelCaseWithPUnderscorePrefixOptionandUnderscoreEndSuffix());
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffixOption());
 
         public IDictionary<OptionKey, object> LocalNamesAreCamelCase =>
             Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), LocalNamesAreCamelCaseOption());
@@ -65,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), PropertyNamesArePascalCaseOption());
 
         public IDictionary<OptionKey, object> InterfaceNamesStartWithI =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), InterfacesNamesStartWithIOption());
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), InterfaceNamesStartWithIOption());
 
         public IDictionary<OptionKey, object> ConstantsAreUpperCase =>
             Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), ConstantsAreUpperCaseOption());
@@ -155,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             return info;
         }
 
-        private NamingStylePreferences FieldNamesAreCamelCaseWithUnderscoreOption()
+        private NamingStylePreferences FieldNamesAreCamelCaseWithUnderscorePrefixOption()
         {
             var symbolSpecification = new SymbolSpecification(
                 null,
@@ -187,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             return info;
         }
 
-        private NamingStylePreferences FieldNamesAreCamelCaseBeginWithField_Option()
+        private NamingStylePreferences FieldNamesAreCamelCaseWithFieldUnderscorePrefixOption()
         {
             var symbolSpecification = new SymbolSpecification(
                 null,
@@ -202,6 +205,38 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
                 name: "Name",
                 prefix: "field_",
                 suffix: "",
+                wordSeparator: "");
+
+            var namingRule = new SerializableNamingRule()
+            {
+                SymbolSpecificationID = symbolSpecification.ID,
+                NamingStyleID = namingStyle.ID,
+                EnforcementLevel = ReportDiagnostic.Error
+            };
+
+            var info = new NamingStylePreferences(
+                ImmutableArray.Create(symbolSpecification),
+                ImmutableArray.Create(namingStyle),
+                ImmutableArray.Create(namingRule));
+
+            return info;
+        }
+
+        private NamingStylePreferences FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffixOption()
+        {
+            var symbolSpecification = new SymbolSpecification(
+                null,
+                "Name",
+                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
+                accessibilityList: default,
+                modifiers: default);
+
+            var namingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme: Capitalization.CamelCase,
+                name: "Name",
+                prefix: "field_",
+                suffix: "_End",
                 wordSeparator: "");
 
             var namingRule = new SerializableNamingRule()
@@ -407,7 +442,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             return info;
         }
 
-        private static NamingStylePreferences ParameterNamesAreCamelCaseWithPUnderscorePrefixOptionandUnderscoreEndSuffix()
+        private static NamingStylePreferences ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffixOption()
         {
             var symbolSpecification = new SymbolSpecification(
                 null,
@@ -421,7 +456,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
                 capitalizationScheme: Capitalization.CamelCase,
                 name: "Name2",
                 prefix: "p_",
-                suffix: "_end",
+                suffix: "_End",
                 wordSeparator: "");
 
             var namingRule = new SerializableNamingRule()
@@ -535,7 +570,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             return info;
         }
 
-        private static NamingStylePreferences InterfacesNamesStartWithIOption()
+        private static NamingStylePreferences InterfaceNamesStartWithIOption()
         {
             var symbolSpecification = new SymbolSpecification(
                 null,

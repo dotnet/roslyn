@@ -60,6 +60,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
             var parameterNameParts = IdentifierNameParts.GetIdentifierBaseName(parameter, rules);
+            if (parameterNameParts.BaseName == "")
+            {
+                return ImmutableArray<CodeAction>.Empty;
+            }
 
             var fieldOrProperty = await TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
                 document, parameter, blockStatementOpt, rules, parameterNameParts.BaseNameParts, cancellationToken).ConfigureAwait(false);

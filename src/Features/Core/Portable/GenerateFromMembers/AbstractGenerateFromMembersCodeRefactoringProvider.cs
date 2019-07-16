@@ -107,6 +107,13 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         private static bool IsViableProperty(IPropertySymbol property)
             => property.Parameters.IsEmpty;
 
+        /// <summary>
+        /// Returns an array of parameter symbols that correspond to selected member symbols.
+        /// If a selected member symbol has an empty base identifier name, the parameter symbol will not be added.
+        /// </summary>
+        /// <param name="selectedMembers"></param>
+        /// <param name="rules"></param>
+        /// <returns></returns>
         protected ImmutableArray<IParameterSymbol> DetermineParameters(
             ImmutableArray<ISymbol> selectedMembers, ImmutableArray<NamingRule> rules)
         {
@@ -119,6 +126,11 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
                     : ((IPropertySymbol)symbol).Type;
 
                 var identifierNameParts = IdentifierNameParts.GetIdentifierBaseName(symbol, rules);
+                if (identifierNameParts.BaseName == "")
+                {
+                    continue;
+                }
+
                 var parameterNamingRule = rules.Where(rule => rule.SymbolSpecification.AppliesTo(SymbolKind.Parameter, Accessibility.NotApplicable)).First();
                 var parameterName = parameterNamingRule.NamingStyle.MakeCompliant(identifierNameParts.BaseName).First();
 

@@ -109,7 +109,7 @@ $@"class C
 {{
     int [|{correctedName}|];
 }}",
-                options: options.FieldNamesAreCamelCaseWithUnderscore);
+                options: options.FieldNamesAreCamelCaseWithUnderscorePrefix);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]

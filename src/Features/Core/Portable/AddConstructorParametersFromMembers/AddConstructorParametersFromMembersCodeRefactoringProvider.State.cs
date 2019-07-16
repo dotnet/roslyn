@@ -42,15 +42,20 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 CancellationToken cancellationToken)
             {
                 ContainingType = selectedMembers[0].ContainingType;
+
+                var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
+                var parametersForSelectedMembers = service.DetermineParameters(selectedMembers, rules);
+
                 if (!selectedMembers.All(IsWritableInstanceFieldOrProperty) ||
                     ContainingType == null ||
-                    ContainingType.TypeKind == TypeKind.Interface)
+                    ContainingType.TypeKind == TypeKind.Interface ||
+                    parametersForSelectedMembers.IsEmpty)
                 {
                     return false;
                 }
 
                 ConstructorCandidates = await GetConstructorCandidatesInfoAsync(
-                    ContainingType, service, selectedMembers, document, cancellationToken).ConfigureAwait(false);
+                    ContainingType, service, selectedMembers, document, parametersForSelectedMembers, cancellationToken).ConfigureAwait(false);
 
                 return !ConstructorCandidates.IsEmpty;
             }
@@ -69,16 +74,15 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 AddConstructorParametersFromMembersCodeRefactoringProvider service,
                 ImmutableArray<ISymbol> selectedMembers,
                 Document document,
+                ImmutableArray<IParameterSymbol> parametersForSelectedMembers,
                 CancellationToken cancellationToken)
             {
-                var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
-                var parametersForSelectedMembers = service.DetermineParameters(selectedMembers, rules);
                 var applicableConstructors = ArrayBuilder<ConstructorCandidate>.GetInstance();
 
                 foreach (var constructor in containingType.InstanceConstructors)
                 {
                     if (await IsApplicableConstructorAsync(
-                        constructor, document, parametersForSelectedMembers.SelectAsArray(p => p.Name), cancellationToken).ConfigureAwait(false))
+                        constructor, document, parametersForSelectedMembers.SelectAsArray(p => p.Name) , cancellationToken).ConfigureAwait(false))
                     {
                         applicableConstructors.Add(CreateConstructorCandidate(parametersForSelectedMembers, selectedMembers, constructor));
                     }
