@@ -31,11 +31,10 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
+            var (document, textSpan, cancellationToken) = context;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var queryExpression = await FindNodeToRefactorAsync(document, context.Span, cancellationToken).ConfigureAwait(false);
+            var queryExpression = await FindNodeToRefactorAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             if (queryExpression == null)
             {
                 return;

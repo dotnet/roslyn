@@ -63,11 +63,10 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             public async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
             {
-                var document = context.Document;
-                var cancellationToken = context.CancellationToken;
+                var (document, textSpan, cancellationToken) = context;
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var ifStatement = root.FindNode(context.Span).FirstAncestorOrSelf<TIfStatementSyntax>();
+                var ifStatement = root.FindNode(textSpan).FirstAncestorOrSelf<TIfStatementSyntax>();
                 if (ifStatement == null)
                 {
                     return;

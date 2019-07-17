@@ -37,14 +37,12 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var textSpan = context.Span;
+            var (document, textSpan, cancellationToken) = context;
             if (!textSpan.IsEmpty)
             {
                 return;
             }
 
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(textSpan.Start);
 

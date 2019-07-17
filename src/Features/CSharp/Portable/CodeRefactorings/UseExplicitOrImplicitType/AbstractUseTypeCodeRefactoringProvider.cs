@@ -25,10 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, textSpan, cancellationToken) = context;
             if (!textSpan.IsEmpty)
             {
                 return;

@@ -33,10 +33,8 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var span = context.Span;
-
-            var declarationSyntax = await FindDisposableLocalDeclaration(document, span, context.CancellationToken).ConfigureAwait(false);
+            var (document, span, cancellationToken) = context;
+            var declarationSyntax = await FindDisposableLocalDeclaration(document, span, cancellationToken).ConfigureAwait(false);
 
             if (declarationSyntax != null)
             {

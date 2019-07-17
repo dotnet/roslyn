@@ -41,11 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, textSpan, cancellationToken) = context;
             var (anonymousObject, anonymousType) = await TryGetAnonymousObjectAsync(
-                document, context.Span, cancellationToken).ConfigureAwait(false);
+                document, textSpan, cancellationToken).ConfigureAwait(false);
 
             if (anonymousObject == null || anonymousType == null)
             {

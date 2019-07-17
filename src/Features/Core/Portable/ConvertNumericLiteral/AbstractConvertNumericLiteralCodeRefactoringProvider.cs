@@ -20,9 +20,8 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-            var numericToken = await GetNumericTokenAsync(document, context.Span, cancellationToken).ConfigureAwait(false);
+            var (document, textSpan, cancellationToken) = context;
+            var numericToken = await GetNumericTokenAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
             if (numericToken == default || numericToken.ContainsDiagnostics)
             {

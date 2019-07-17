@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
     {
         protected interface IAnalyzer
         {
-            Task ComputeRefactoringsAsync(
-                CodeRefactoringContext context, SyntaxNode root, CancellationToken cancellationToken);
+            Task ComputeRefactoringsAsync(CodeRefactoringContext context, SyntaxNode root);
         }
 
         protected abstract class Analyzer<TBaseArgumentSyntax, TSimpleArgumentSyntax, TArgumentListSyntax> : IAnalyzer
@@ -26,12 +25,12 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
             where TArgumentListSyntax : SyntaxNode
         {
             public async Task ComputeRefactoringsAsync(
-                CodeRefactoringContext context, SyntaxNode root, CancellationToken cancellationToken)
+                CodeRefactoringContext context, SyntaxNode root)
             {
-                var document = context.Document;
+                var (document, textSpan, cancellationToken) = context;
                 var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
 
-                var argument = await refactoringHelperService.TryGetSelectedNodeAsync<TSimpleArgumentSyntax>(document, context.Span, cancellationToken).ConfigureAwait(false);
+                var argument = await refactoringHelperService.TryGetSelectedNodeAsync<TSimpleArgumentSyntax>(document, textSpan, cancellationToken).ConfigureAwait(false);
                 if (argument == null && context.Span.IsEmpty)
                 {
                     // For arguments we want to enable cursor anywhere in the expressions (even deep within) as long as
@@ -210,22 +209,19 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
+            var (document, _, cancellationToken) = context;
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
 
-            var cancellationToken = context.CancellationToken;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            await _argumentAnalyzer.ComputeRefactoringsAsync(
-                context, root, cancellationToken).ConfigureAwait(false);
+            await _argumentAnalyzer.ComputeRefactoringsAsync(context, root).ConfigureAwait(false);
 
             if (_attributeArgumentAnalyzer != null)
             {
-                await _attributeArgumentAnalyzer.ComputeRefactoringsAsync(
-                    context, root, cancellationToken).ConfigureAwait(false);
+                await _attributeArgumentAnalyzer.ComputeRefactoringsAsync(context, root).ConfigureAwait(false);
             }
         }
 
