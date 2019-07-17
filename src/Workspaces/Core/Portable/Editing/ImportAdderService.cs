@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<TextSpan> spans,
             Strategy strategy,
             bool safe,
-            OptionSet options,
+            OptionSet? options,
             CancellationToken cancellationToken)
         {
             options ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 spansTree.HasIntervalThatOverlapsWith(node.FullSpan.Start, node.FullSpan.Length);
         }
 
-        protected abstract INamespaceSymbol GetExplicitNamespaceSymbol(SyntaxNode node, SemanticModel model);
+        protected abstract INamespaceSymbol? GetExplicitNamespaceSymbol(SyntaxNode node, SemanticModel model);
 
         private SyntaxNode MakeSafeToAddNamespaces(
             SyntaxNode root,
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         /// <param name="root">ref as we add simplifier annotations to nodes with explicit namespaces</param>
         /// <returns></returns>
-        private (ImmutableArray<SyntaxNode> imports, IEnumerable<INamespaceSymbol> namespaceSymbols, SyntaxNode context) GetImportDirectivesFromSyntaxesAsync(
+        private (ImmutableArray<SyntaxNode> imports, IEnumerable<INamespaceSymbol> namespaceSymbols, SyntaxNode? context) GetImportDirectivesFromSyntaxesAsync(
                 IEnumerable<SyntaxNode> syntaxNodes,
                 ref SyntaxNode root,
                 SemanticModel model,
@@ -198,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return (importsToAdd.ToImmutableAndFree(), addedSymbols, first.GetCommonRoot(last));
         }
 
-        private (ImmutableArray<SyntaxNode> imports, IEnumerable<INamespaceSymbol> namespaceSymbols, SyntaxNode context) GetImportDirectivesFromAnnotatedNodesAsync(
+        private (ImmutableArray<SyntaxNode> imports, IEnumerable<INamespaceSymbol> namespaceSymbols, SyntaxNode? context) GetImportDirectivesFromAnnotatedNodesAsync(
             IEnumerable<SyntaxNode> syntaxNodes,
             SyntaxNode root,
             SemanticModel model,
@@ -206,8 +207,8 @@ namespace Microsoft.CodeAnalysis.Editing
             SyntaxGenerator generator,
             CancellationToken cancellationToken)
         {
-            SyntaxNode first = null;
-            SyntaxNode last = null;
+            SyntaxNode? first = null;
+            SyntaxNode? last = null;
             var importsToAdd = ArrayBuilder<SyntaxNode>.GetInstance();
 
             var annotatedNodes = syntaxNodes.Where(x => x.HasAnnotations(SymbolAnnotation.Kind));
@@ -255,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editing
                             continue;
                         }
 
-                        if(IsInsideNamespace(annotatedNode, namespaceSymbol, model, cancellationToken))
+                        if (IsInsideNamespace(annotatedNode, namespaceSymbol, model, cancellationToken))
                         {
                             continue;
                         }

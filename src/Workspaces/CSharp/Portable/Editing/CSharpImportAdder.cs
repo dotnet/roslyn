@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
         {
         }
 
-        protected override INamespaceSymbol GetExplicitNamespaceSymbol(SyntaxNode node, SemanticModel model)
+        protected override INamespaceSymbol? GetExplicitNamespaceSymbol(SyntaxNode node, SemanticModel model)
         {
             switch (node)
             {
@@ -40,8 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
             return rewriter.Visit(root);
         }
 
-        private INamespaceSymbol GetExplicitNamespaceSymbol(ExpressionSyntax fullName, ExpressionSyntax namespacePart, SemanticModel model)
+        private INamespaceSymbol? GetExplicitNamespaceSymbol(ExpressionSyntax fullName, ExpressionSyntax namespacePart, SemanticModel model)
         {
+
             // name must refer to something that is not a namespace, but be qualified with a namespace.
             var symbol = model.GetSymbolInfo(fullName).Symbol;
             var nsSymbol = model.GetSymbolInfo(namespacePart).Symbol as INamespaceSymbol;
