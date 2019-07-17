@@ -255,7 +255,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NamedTypeSymbol baseType = null;
             SourceLocation baseTypeLocation = null;
-            var interfaceLocations = new Dictionary<NamedTypeSymbol, SourceLocation>(SymbolEqualityComparer.ConsiderEverything);
+
+            var interfaceLocations = SpecializedCollections.GetPooledSymbolDictionaryInstance<NamedTypeSymbol, SourceLocation>();
 
             foreach (var decl in this.declaration.Declarations)
             {
@@ -328,6 +329,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
+
+            interfaceLocations.Free();
 
             diagnostics.Add(Locations[0], useSiteDiagnostics);
 

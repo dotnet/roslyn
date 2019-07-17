@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     usingsBinder = new InContainerBinder(binder.Container, binder.Next, imports);
                 }
 
-                var uniqueUsings = new HashSet<NamespaceOrTypeSymbol>(SymbolEqualityComparer.ConsiderEverything);
+                var uniqueUsings = SpecializedCollections.GetPooledSymbolHashSetInstance<NamespaceOrTypeSymbol>();
 
                 foreach (var usingDirective in usingDirectives)
                 {
@@ -242,6 +242,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+
+                uniqueUsings.Free();
             }
 
             if (diagnostics.IsEmptyWithoutResolution)
