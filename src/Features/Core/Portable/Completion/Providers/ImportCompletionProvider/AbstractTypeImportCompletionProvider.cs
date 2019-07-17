@@ -210,16 +210,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(completionItem);
             Debug.Assert(containingNamespace != null);
 
-            var (shouldFullyQualify, needsSimplification) = await ShouldCompleteWithFullyQualifyTypeName().ConfigureAwait(false);
-            if (shouldFullyQualify)
+            if (await ShouldCompleteWithFullyQualifyTypeName().ConfigureAwait(false))
             {
                 var fullyQualifiedName = $"{containingNamespace}.{completionItem.DisplayText}";
                 var change = new TextChange(completionListSpan, fullyQualifiedName);
-
-                if (needsSimplification)
-                {
-                    change = await GetSimplifiedChange(document, change, cancellationToken).ConfigureAwait(false);
-                }
 
                 return CompletionChange.Create(change);
             }
@@ -268,50 +262,28 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return CompletionChange.Create(Utilities.Collapse(newText, builder.ToImmutableAndFree()));
             }
 
-            // Apply the change of fully qualified type name, then try to simplify it.
-            static async Task<TextChange> GetSimplifiedChange(Document document, TextChange fullyQualifiedChange, CancellationToken cancellationToken)
-            {
-                var originalTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var originalText = await originalTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                var fullyQualifiedText = originalText.WithChanges(fullyQualifiedChange);
-                var fullyQualifiedTree = originalTree.WithChangedText(fullyQualifiedText);
-                var fullyQualifiedRoot = await fullyQualifiedTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                var fullyQualifiedSpan = new TextSpan(fullyQualifiedChange.Span.Start, fullyQualifiedChange.NewText.Length);
-                var fullyQualifiedNode = fullyQualifiedRoot.FindNode(fullyQualifiedSpan);
-                var fullyQualifiedNodeWithAnnotation = fullyQualifiedNode.WithAdditionalAnnotations(Simplifier.Annotation);
-
-                var annotatedRoot = fullyQualifiedRoot.ReplaceNode(fullyQualifiedNode, fullyQualifiedNodeWithAnnotation);
-                var annotatedDocument = document.WithSyntaxRoot(annotatedRoot);
-
-                var simplifiedDocument = await Simplifier.ReduceAsync(annotatedDocument, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                var changes = await simplifiedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-                return Utilities.Collapse(originalText, changes.ToImmutableArray());
-            }
-
-            async Task<(bool shouldFullyQualify, bool needsSimplification)> ShouldCompleteWithFullyQualifyTypeName()
+            async Task<bool> ShouldCompleteWithFullyQualifyTypeName()
             {
                 var workspace = document.Project.Solution.Workspace;
 
                 // Certain types of workspace don't support document change, e.g. DebuggerIntellisense
                 if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
                 {
-                    return (true, false);
+                    return true;
                 }
 
                 // During an EnC session, adding import is not supported.
                 var encService = workspace.Services.GetService<IDebuggingWorkspaceService>()?.EditAndContinueServiceOpt;
                 if (encService?.EditSession != null)
                 {
-                    return (true, false);
+                    return true;
                 }
 
                 // Certain documents, e.g. Razor document, don't support adding imports
                 var documentSupportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
                 if (!documentSupportsFeatureService.SupportsRefactorings(document))
                 {
-                    return (true, false);
+                    return true;
                 }
 
                 // We might need to qualify unimported types to use them in an import directive, because they only affect members of the containing
@@ -336,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 //
                 // Here we will always choose to qualify the unimported type, just to be consistent and keeps things simple.
                 var syntaxContext = await CreateContextAsync(document, completionListSpan.Start, cancellationToken).ConfigureAwait(false);
-                return (syntaxContext.IsInImportsDirective, true);
+                return syntaxContext.IsInImportsDirective;
             }
         }
 

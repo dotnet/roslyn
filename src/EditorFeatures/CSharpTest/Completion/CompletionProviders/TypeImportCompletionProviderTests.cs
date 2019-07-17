@@ -1244,7 +1244,7 @@ namespace Foo
             var expectedCodeAfterCommit = @"
 namespace Foo
 {
-    using CollectionOfStringBuilders = System.Collections.Generic.List<Bar.MyClass$$>
+    using CollectionOfStringBuilders = System.Collections.Generic.List<Foo.Bar.MyClass$$>
 }";
 
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);

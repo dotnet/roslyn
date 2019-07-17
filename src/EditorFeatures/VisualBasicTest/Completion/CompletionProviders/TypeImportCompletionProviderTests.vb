@@ -177,11 +177,9 @@ Namespace Foo
     End Class
 End Namespace</Text>.Value
 
-            Dim file2 = <Text>
-Imports BarAlias = $$</Text>.Value
+            Dim file2 = "Imports BarAlias = $$"
 
-            Dim expectedCodeAfterCommit = <Text>
-Imports BarAlias = Foo.Bar$$</Text>.Value
+            Dim expectedCodeAfterCommit = "Imports BarAlias = Foo.Bar$$"
 
             Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
             Await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit, sourceCodeKind:=kind)
