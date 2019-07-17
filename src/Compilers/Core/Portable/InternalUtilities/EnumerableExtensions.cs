@@ -466,26 +466,26 @@ namespace Roslyn.Utilities
         {
             if (source == null)
             {
-                return default(TSource);
+                return default;
             }
 
             IList<TSource> list = source as IList<TSource>;
             if (list != null)
             {
-                return (list.Count == 1) ? list[0] : default(TSource);
+                return (list.Count == 1) ? list[0] : default;
             }
 
             using (IEnumerator<TSource> e = source.GetEnumerator())
             {
                 if (!e.MoveNext())
                 {
-                    return default(TSource);
+                    return default;
                 }
 
                 TSource result = e.Current;
                 if (e.MoveNext())
                 {
-                    return default(TSource);
+                    return default;
                 }
 
                 return result;
