@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var syntaxTree = context.SyntaxTree;
 
-            if (syntaxTree.IsMemberDeclarationContext(position, context.LeftToken, cancellationToken))
+            if (syntaxTree.IsMemberDeclarationContext(position, context.LeftToken))
             {
                 var token = context.TargetToken;
 

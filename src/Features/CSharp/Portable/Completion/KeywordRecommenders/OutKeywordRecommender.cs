@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 context.TargetToken.IsTypeParameterVarianceContext() ||
                 IsOutParameterModifierContext(position, context) ||
-                syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken, cancellationToken) ||
-                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
+                syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken) ||
+                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken) ||
                 context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
                 context.TargetToken.IsXmlCrefParameterModifierContext();
         }
