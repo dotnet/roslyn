@@ -14,7 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Utilities
         Public Sub New()
         End Sub
 
-        Public Function CanApplyChange(oldOptions As ParseOptions, newOptions As ParseOptions) As Boolean Implements IParseOptionsChangingService.CanApplyChange
+        Public Function CanApplyChange(oldOptions As ParseOptions, newOptions As ParseOptions, maxLangVersion As String) As Boolean Implements IParseOptionsChangingService.CanApplyChange
             Return False
         End Function
 

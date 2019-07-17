@@ -65,6 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private ImmutableDictionary<ProjectId, IVsHierarchy> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy>.Empty;
         private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = ImmutableDictionary<ProjectId, Guid>.Empty;
+        private readonly Dictionary<ProjectId, string> _projectToMaxSupportedLangVersionMap = new Dictionary<ProjectId, string>();
 
         /// <summary>
         /// A map to fetch the path to a rule set file for a project. This right now is only used to implement
@@ -422,9 +423,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return project.LanguageServices.GetRequiredService<ICompilationOptionsChangingService>().CanApplyChange(oldOptions, newOptions);
         }
 
-        protected override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, CodeAnalysis.Project project)
+        public override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, CodeAnalysis.Project project)
         {
-            return project.LanguageServices.GetRequiredService<IParseOptionsChangingService>().CanApplyChange(oldOptions, newOptions);
+            _projectToMaxSupportedLangVersionMap.TryGetValue(project.Id, out var maxSupportLangVersion);
+
+            return project.LanguageServices.GetRequiredService<IParseOptionsChangingService>().CanApplyChange(oldOptions, newOptions, maxSupportLangVersion);
         }
 
         private void AddTextBufferCloneServiceToBuffer(object sender, TextBufferCreatedEventArgs e)
