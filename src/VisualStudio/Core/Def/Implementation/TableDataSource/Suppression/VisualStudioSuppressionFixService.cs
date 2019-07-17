@@ -580,9 +580,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         private async Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, CancellationToken cancellationToken)
         {
-            bool isProjectDiagnostic(DiagnosticData d) => d.DataLocation == null && d.ProjectId != null;
             var builder = ImmutableDictionary.CreateBuilder<ProjectId, List<DiagnosticData>>();
-            foreach (var diagnosticData in diagnosticsToFix.Where(isProjectDiagnostic))
+            foreach (var diagnosticData in diagnosticsToFix.Where(IsProjectDiagnostic))
             {
                 if (!builder.TryGetValue(diagnosticData.ProjectId, out var diagnosticsPerProject))
                 {
@@ -618,7 +617,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                         .ConfigureAwait(false));
 
                     latestDiagnosticsToFixOpt.Clear();
-                    latestDiagnosticsToFixOpt.AddRange(latestDiagnosticsFromDiagnosticService.Where(isProjectDiagnostic));
+                    latestDiagnosticsToFixOpt.AddRange(latestDiagnosticsFromDiagnosticService.Where(IsProjectDiagnostic));
 
                     // Filter out stale diagnostics in error list.
                     projectDiagnosticsToFix = diagnostics.Where(d => latestDiagnosticsFromDiagnosticService.Contains(d) || SuppressionHelpers.IsSynthesizedExternalSourceDiagnostic(d));
@@ -636,6 +635,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
 
             return finalBuilder.ToImmutableDictionary();
+
+            // Local functions
+            static bool IsProjectDiagnostic(DiagnosticData d) => d.DataLocation == null && d.ProjectId != null;
         }
     }
 }
