@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 document,
                 semanticModel,
                 tokens,
-                (SyntaxToken t) => IdentifiersMatch(syntaxFacts, identifier, t),
+                t => IdentifiersMatch(syntaxFacts, identifier, t),
                 symbolsMatch,
                 cancellationToken).ConfigureAwait(false);
         }
