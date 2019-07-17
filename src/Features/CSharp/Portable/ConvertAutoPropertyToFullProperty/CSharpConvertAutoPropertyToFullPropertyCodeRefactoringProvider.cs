@@ -66,9 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             var (getAccessor, setAccessor) = GetExistingAccessors(accessorListSyntax);
 
             var getAccessorStatement = generator.ReturnStatement(generator.IdentifierName(fieldName));
-            var newGetter = GetUpdatedAccessor(
-                options, getAccessor,
-                getAccessorStatement, generator);
+            var newGetter = GetUpdatedAccessor(options, getAccessor, getAccessorStatement);
 
             SyntaxNode newSetter = null;
             if (setAccessor != null)
@@ -76,9 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                 var setAccessorStatement = generator.ExpressionStatement(generator.AssignmentStatement(
                     generator.IdentifierName(fieldName),
                     generator.IdentifierName("value")));
-                newSetter = GetUpdatedAccessor(
-                    options, setAccessor,
-                    setAccessorStatement, generator);
+                newSetter = GetUpdatedAccessor(options, setAccessor, setAccessorStatement);
             }
 
             return (newGetAccessor: newGetter, newSetAccessor: newSetter);
@@ -90,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                 accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.SetAccessorDeclaration)));
 
         private SyntaxNode GetUpdatedAccessor(DocumentOptionSet options,
-            SyntaxNode accessor, SyntaxNode statement, SyntaxGenerator generator)
+            SyntaxNode accessor, SyntaxNode statement)
         {
             var newAccessor = AddStatement(accessor, statement);
             var accessorDeclarationSyntax = (AccessorDeclarationSyntax)newAccessor;

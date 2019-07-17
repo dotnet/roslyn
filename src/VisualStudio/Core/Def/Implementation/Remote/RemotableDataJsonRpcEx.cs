@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
         }
 
-        public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
+        public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken _)
         {
             return Task.FromResult(Workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
         }

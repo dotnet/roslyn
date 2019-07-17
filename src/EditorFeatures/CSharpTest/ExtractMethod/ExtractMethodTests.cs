@@ -10372,7 +10372,6 @@ namespace ClassLibrary9
 
                 var handler = new ExtractMethodCommandHandler(
                     workspace.GetService<ITextBufferUndoManagerProvider>(),
-                    workspace.GetService<IEditorOperationsFactoryService>(),
                     workspace.GetService<IInlineRenameService>());
 
                 var state = handler.GetCommandState(new ExtractMethodCommandArgs(textView, textView.TextBuffer));

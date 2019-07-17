@@ -247,19 +247,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 DifferenceType = StringDifferenceTypes.Line,
             });
         }
-
-        private static bool ContainsBetterDiff(TextDocument left, TextDocument right, IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
-        {
-            var textDiffCount = diffResult.Differences.Count;
-
-            if (!(left is Document leftDocument) ||
-                !(right is Document rightDocument))
-            {
-                return false;
-            }
-
-            var syntaxDiffCount = rightDocument.GetTextChangesAsync(leftDocument, cancellationToken).WaitAndGetResult(cancellationToken).Count();
-            return syntaxDiffCount > textDiffCount;
-        }
     }
 }

@@ -143,7 +143,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
                 var handler = new ExtractMethodCommandHandler(
                     workspace.ExportProvider.GetExportedValue<ITextBufferUndoManagerProvider>(),
-                    workspace.ExportProvider.GetExportedValue<IEditorOperationsFactoryService>(),
                     workspace.ExportProvider.GetExportedValue<IInlineRenameService>());
 
                 handler.ExecuteCommand(new ExtractMethodCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create());

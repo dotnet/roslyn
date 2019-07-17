@@ -93,13 +93,6 @@ namespace Microsoft.CodeAnalysis
             return SymbolKeyComparer.GetComparer(ignoreCase, ignoreAssemblyKeys);
         }
 
-        private static readonly Func<string, string> s_removeAssemblyKeys = (string data) =>
-        {
-            var reader = new RemoveAssemblySymbolKeysReader();
-            reader.Initialize(data);
-            return reader.RemoveAssemblySymbolKeys();
-        };
-
         /// <summary>
         /// Tries to resolve the provided <paramref name="symbolKey"/> in the given 
         /// <paramref name="compilation"/> to a matching symbol.  <paramref name="resolveLocations"/>

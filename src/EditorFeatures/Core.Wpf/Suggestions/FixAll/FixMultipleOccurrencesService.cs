@@ -20,19 +20,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     [ExportWorkspaceService(typeof(IFixMultipleOccurrencesService), ServiceLayer.Host), Shared]
     internal class FixMultipleOccurrencesService : IFixMultipleOccurrencesService
     {
-        private readonly ICodeActionEditHandlerService _editHandler;
-        private readonly IAsynchronousOperationListener _listener;
-        private readonly IWaitIndicator _waitIndicator;
-
         [ImportingConstructor]
-        public FixMultipleOccurrencesService(
-            ICodeActionEditHandlerService editHandler,
-            IWaitIndicator waitIndicator,
-            IAsynchronousOperationListenerProvider listenerProvider)
+        public FixMultipleOccurrencesService(IAsynchronousOperationListenerProvider listenerProvider)
         {
-            _editHandler = editHandler;
-            _waitIndicator = waitIndicator;
-            _listener = listenerProvider.GetListener(FeatureAttribute.LightBulb);
+            listenerProvider.GetListener(FeatureAttribute.LightBulb);
         }
 
         public Solution GetFix(
