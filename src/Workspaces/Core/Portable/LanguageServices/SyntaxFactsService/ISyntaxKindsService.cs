@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public abstract int LogicalAndExpression { get; }
         public abstract int LogicalOrExpression { get; }
-
         public abstract int EndOfFileToken { get; }
         public abstract int IdentifierToken { get; }
 
