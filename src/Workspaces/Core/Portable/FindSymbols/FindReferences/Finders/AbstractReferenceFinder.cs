@@ -182,13 +182,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var nodeMatch = GetStandardSymbolsNodeMatchFunction(symbol, solution, cancellationToken);
             findParentNode ??= (t => t.Parent);
-            return (SyntaxToken token, SemanticModel model) => nodeMatch(findParentNode(token), model);
+            return (token, model) => nodeMatch(findParentNode(token), model);
         }
 
         protected static Func<SyntaxNode, SemanticModel, (bool matched, CandidateReason reason)> GetStandardSymbolsNodeMatchFunction(
             ISymbol searchSymbol, Solution solution, CancellationToken cancellationToken)
         {
-            return (SyntaxNode node, SemanticModel model) =>
+            return (node, model) =>
             {
                 var symbolInfoToMatch = FindReferenceCache.GetSymbolInfo(model, node, cancellationToken);
 
