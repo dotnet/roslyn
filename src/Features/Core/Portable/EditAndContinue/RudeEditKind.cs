@@ -100,6 +100,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         InternalError = 80,
 
         InsertMethodWithExplicitInterfaceSpecifier = 81,
+        InsertIntoInterface = 82,
+        InsertLocalFunctionIntoInterfaceMethod = 83,
 
         // Chagned from 0x103 in 16.1
         ComplexQueryExpression = 82,

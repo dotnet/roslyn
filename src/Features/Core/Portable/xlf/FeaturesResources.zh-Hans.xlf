@@ -42,6 +42,16 @@
         <target state="translated">添加元组元素名称 "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into an interface method will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into an interface will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into an interface will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
         <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
         <target state="translated">添加具有显式接口说明符的方法将阻止调试会话继续。</target>

@@ -1365,6 +1365,12 @@ class C
                 Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/langversion:?").WithLocation(1, 1)
                 );
 
+            parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "//langversion:?" }, WorkingDirectory, sdkDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2001: Source file '//langversion:?' could not be found.
+                Diagnostic(ErrorCode.ERR_FileNotFound).WithArguments("//langversion:?").WithLocation(1, 1)
+                );
+
             parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "/version", "c.csx" }, WorkingDirectory, sdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.True(parsedArgs.DisplayVersion);
@@ -3128,9 +3134,9 @@ class C
             Assert.Empty(errors);
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
-            Assert.Equal(expected: ErrorFacts.NullableFlowAnalysisWarnings.Count, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
 
-            foreach (string warning in ErrorFacts.NullableFlowAnalysisWarnings)
+            foreach (string warning in ErrorFacts.NullableWarnings)
             {
                 Assert.Equal(expected: ReportDiagnostic.Suppress, actual: arguments.CompilationOptions.SpecificDiagnosticOptions[warning]);
             }
@@ -3156,9 +3162,9 @@ class C
             Assert.Empty(errors);
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
-            Assert.Equal(expected: ErrorFacts.NullableFlowAnalysisWarnings.Count, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
 
-            foreach (string warning in ErrorFacts.NullableFlowAnalysisWarnings)
+            foreach (string warning in ErrorFacts.NullableWarnings)
             {
                 Assert.Equal(expected: ReportDiagnostic.Suppress, actual: arguments.CompilationOptions.SpecificDiagnosticOptions[warning]);
             }
@@ -3184,9 +3190,9 @@ class C
             Assert.Empty(errors);
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
-            Assert.Equal(expected: ErrorFacts.NullableFlowAnalysisWarnings.Count + 1, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count + 1, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
 
-            foreach (string warning in ErrorFacts.NullableFlowAnalysisWarnings)
+            foreach (string warning in ErrorFacts.NullableWarnings)
             {
                 Assert.Equal(expected: ReportDiagnostic.Suppress, actual: arguments.CompilationOptions.SpecificDiagnosticOptions[warning]);
             }
@@ -3214,9 +3220,9 @@ class C
             Assert.Empty(errors);
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
-            Assert.Equal(expected: 25, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
 
-            foreach (string warning in ErrorFacts.NullableFlowAnalysisWarnings)
+            foreach (string warning in ErrorFacts.NullableWarnings)
             {
                 Assert.Equal(expected: ReportDiagnostic.Error, actual: arguments.CompilationOptions.SpecificDiagnosticOptions[warning]);
             }

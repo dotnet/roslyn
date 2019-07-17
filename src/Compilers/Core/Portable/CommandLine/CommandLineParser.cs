@@ -911,7 +911,9 @@ namespace Microsoft.CodeAnalysis
             string directory = PathUtilities.GetDirectoryName(path);
             string pattern = PathUtilities.GetFileName(path);
 
-            var resolvedDirectoryPath = (directory.Length == 0) ? baseDirectory : FileUtilities.ResolveRelativePath(directory, baseDirectory);
+            var resolvedDirectoryPath = string.IsNullOrEmpty(directory) ?
+                baseDirectory :
+                FileUtilities.ResolveRelativePath(directory, baseDirectory);
 
             IEnumerator<string> enumerator = null;
             try

@@ -122,8 +122,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         Label,
         StatementList,
         ConditionalGoto,
-        SwitchExpression,
         SwitchExpressionArm,
+        UnconvertedSwitchExpression,
+        ConvertedSwitchExpression,
         DecisionDag,
         EvaluationDecisionDagNode,
         TestDecisionDagNode,
@@ -443,13 +444,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDeconstructValuePlaceholder(this.Syntax, this.ValEscape, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundTupleOperandPlaceholder : BoundValuePlaceholderBase
@@ -485,13 +479,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundTupleOperandPlaceholder(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundAwaitableValuePlaceholder : BoundValuePlaceholderBase
@@ -524,13 +511,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAwaitableValuePlaceholder(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -565,13 +545,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDisposableValuePlaceholder(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundDup : BoundExpression
@@ -603,13 +576,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDup(this.Syntax, this.RefKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundPassByCopy : BoundExpression
@@ -637,13 +603,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundPassByCopy(this.Syntax, this.Expression, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -680,13 +639,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundBadExpression(this.Syntax, this.ResultKind, this.Symbols, this.ChildBoundNodes, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -778,13 +730,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundTypeExpression(this.Syntax, this.AliasOpt, this.BoundContainingTypeOpt, this.BoundDimensionsOpt, this.TypeWithAnnotations, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundTypeOrValueExpression : BoundExpression
@@ -823,13 +768,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundTypeOrValueExpression(this.Syntax, this.Data, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -874,13 +812,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundNamespaceExpression(this.Syntax, this.NamespaceSymbol, this.AliasOpt, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundUnaryOperator : BoundExpression
@@ -924,13 +855,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundUnaryOperator(this.Syntax, this.OperatorKind, this.Operand, this.ConstantValueOpt, this.MethodOpt, this.ResultKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -979,13 +903,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundIncrementOperator(this.Syntax, this.OperatorKind, this.Operand, this.MethodOpt, this.OperandConversion, this.ResultConversion, this.ResultKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundAddressOfOperator : BoundExpression
@@ -1020,13 +937,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAddressOfOperator(this.Syntax, this.Operand, this.IsManaged, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundPointerIndirectionOperator : BoundExpression
@@ -1057,13 +967,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundPointerIndirectionOperator(this.Syntax, this.Operand, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1103,13 +1006,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundPointerElementAccess(this.Syntax, this.Expression, this.Index, this.Checked, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundRefTypeOperator : BoundExpression
@@ -1144,13 +1040,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundRefTypeOperator(this.Syntax, this.Operand, this.GetTypeFromHandle, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundMakeRefOperator : BoundExpression
@@ -1181,13 +1070,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundMakeRefOperator(this.Syntax, this.Operand, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1223,13 +1105,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundRefValueOperator(this.Syntax, this.NullableAnnotation, this.Operand, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundFromEndIndexExpression : BoundExpression
@@ -1263,13 +1138,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundFromEndIndexExpression(this.Syntax, this.Operand, this.MethodOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1306,13 +1174,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundRangeExpression(this.Syntax, this.LeftOperandOpt, this.RightOperandOpt, this.MethodOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1376,32 +1237,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundBinaryOperator(this.Syntax, this.OperatorKind, this.ConstantValueOpt, this.MethodOpt, this.ResultKind, this.Left, this.Right, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundTupleBinaryOperator : BoundExpression
     {
-        public BoundTupleBinaryOperator(SyntaxNode syntax, BoundExpression left, BoundExpression right, BoundExpression convertedLeft, BoundExpression convertedRight, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo.Multiple operators, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.TupleBinaryOperator, syntax, type, hasErrors || left.HasErrors() || right.HasErrors() || convertedLeft.HasErrors() || convertedRight.HasErrors())
+        public BoundTupleBinaryOperator(SyntaxNode syntax, BoundExpression left, BoundExpression right, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo.Multiple operators, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.TupleBinaryOperator, syntax, type, hasErrors || left.HasErrors() || right.HasErrors())
         {
 
             Debug.Assert(left is object, "Field 'left' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             Debug.Assert(right is object, "Field 'right' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-            Debug.Assert(convertedLeft is object, "Field 'convertedLeft' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-            Debug.Assert(convertedRight is object, "Field 'convertedRight' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             Debug.Assert(operators is object, "Field 'operators' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             Debug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Left = left;
             this.Right = right;
-            this.ConvertedLeft = convertedLeft;
-            this.ConvertedRight = convertedRight;
             this.OperatorKind = operatorKind;
             this.Operators = operators;
         }
@@ -1413,32 +1263,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Right { get; }
 
-        public BoundExpression ConvertedLeft { get; }
-
-        public BoundExpression ConvertedRight { get; }
-
         public BinaryOperatorKind OperatorKind { get; }
 
         public TupleBinaryOperatorInfo.Multiple Operators { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitTupleBinaryOperator(this);
 
-        public BoundTupleBinaryOperator Update(BoundExpression left, BoundExpression right, BoundExpression convertedLeft, BoundExpression convertedRight, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo.Multiple operators, TypeSymbol type)
+        public BoundTupleBinaryOperator Update(BoundExpression left, BoundExpression right, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo.Multiple operators, TypeSymbol type)
         {
-            if (left != this.Left || right != this.Right || convertedLeft != this.ConvertedLeft || convertedRight != this.ConvertedRight || operatorKind != this.OperatorKind || operators != this.Operators || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (left != this.Left || right != this.Right || operatorKind != this.OperatorKind || operators != this.Operators || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundTupleBinaryOperator(this.Syntax, left, right, convertedLeft, convertedRight, operatorKind, operators, type, this.HasErrors);
+                var result = new BoundTupleBinaryOperator(this.Syntax, left, right, operatorKind, operators, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundTupleBinaryOperator(this.Syntax, this.Left, this.Right, this.ConvertedLeft, this.ConvertedRight, this.OperatorKind, this.Operators, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1485,13 +1324,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundUserDefinedConditionalLogicalOperator(this.Syntax, this.OperatorKind, this.LogicalOperator, this.TrueOperator, this.FalseOperator, this.ResultKind, this.Left, this.Right, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1541,13 +1373,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundCompoundAssignmentOperator(this.Syntax, this.Operator, this.Left, this.Right, this.LeftConversion, this.FinalConversion, this.ResultKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundAssignmentOperator : BoundExpression
@@ -1581,13 +1406,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAssignmentOperator(this.Syntax, this.Left, this.Right, this.IsRef, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1627,13 +1445,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDeconstructionAssignmentOperator(this.Syntax, this.Left, this.Right, this.IsUsed, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundNullCoalescingOperator : BoundExpression
@@ -1672,13 +1483,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundNullCoalescingOperator(this.Syntax, this.LeftOperand, this.RightOperand, this.LeftConversion, this.OperatorResultKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundNullCoalescingAssignmentOperator : BoundExpression
@@ -1710,13 +1514,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundNullCoalescingAssignmentOperator(this.Syntax, this.LeftOperand, this.RightOperand, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1763,13 +1560,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundConditionalOperator(this.Syntax, this.IsRef, this.Condition, this.Consequence, this.Alternative, this.ConstantValueOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundArrayAccess : BoundExpression
@@ -1805,13 +1595,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundArrayAccess(this.Syntax, this.Expression, this.Indices, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundArrayLength : BoundExpression
@@ -1842,13 +1625,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundArrayLength(this.Syntax, this.Expression, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1884,13 +1660,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAwaitExpression(this.Syntax, this.Expression, this.AwaitableInfo, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -1947,13 +1716,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundTypeOfOperator(this.Syntax, this.SourceType, this.GetTypeFromHandle, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundMethodDefIndex : BoundExpression
@@ -1995,13 +1757,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundMethodDefIndex(this.Syntax, this.Method, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundMaximumMethodDefIndex : BoundExpression
@@ -2036,13 +1791,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundMaximumMethodDefIndex(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2083,13 +1831,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundInstrumentationPayloadRoot(this.Syntax, this.AnalysisKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundModuleVersionId : BoundExpression
@@ -2125,13 +1866,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundModuleVersionId(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundModuleVersionIdString : BoundExpression
@@ -2166,13 +1900,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundModuleVersionIdString(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2214,13 +1941,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundSourceDocumentIndex(this.Syntax, this.Document, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2267,13 +1987,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundMethodInfo(this.Syntax, this.Method, this.GetMethodFromHandle, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundFieldInfo : BoundExpression
@@ -2319,13 +2032,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundFieldInfo(this.Syntax, this.Field, this.GetFieldFromHandle, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundDefaultExpression : BoundExpression
@@ -2355,13 +2061,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDefaultExpression(this.Syntax, this.TargetType, this.ConstantValueOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2401,13 +2100,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundIsOperator(this.Syntax, this.Operand, this.TargetType, this.Conversion, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundAsOperator : BoundExpression
@@ -2446,13 +2138,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAsOperator(this.Syntax, this.Operand, this.TargetType, this.Conversion, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundSizeOfOperator : BoundExpression
@@ -2486,13 +2171,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundSizeOfOperator(this.Syntax, this.SourceType, this.ConstantValueOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2543,13 +2221,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundConversion(this.Syntax, this.Operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValueOpt, this.ConversionGroupOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundReadOnlySpanFromArray : BoundExpression
@@ -2584,13 +2255,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundReadOnlySpanFromArray(this.Syntax, this.Operand, this.ConversionMethod, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2627,13 +2291,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundArgList(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundArgListOperator : BoundExpression
@@ -2666,13 +2323,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundArgListOperator(this.Syntax, this.Arguments, this.ArgumentRefKindsOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -2714,13 +2364,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundFixedLocalCollectionInitializer(this.Syntax, this.ElementPointerType, this.ElementPointerTypeConversion, this.Expression, this.GetPinnableOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -3866,13 +3509,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundLiteral(this.Syntax, this.ConstantValueOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundThisReference : BoundExpression
@@ -3907,13 +3543,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundThisReference(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -3950,13 +3579,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundPreviousSubmissionReference(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundHostObjectMemberReference : BoundExpression
@@ -3992,13 +3614,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundHostObjectMemberReference(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundBaseReference : BoundExpression
@@ -4027,13 +3642,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundBaseReference(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -4088,13 +3696,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundLocal(this.Syntax, this.LocalSymbol, this.DeclarationKind, this.ConstantValueOpt, this.IsNullableUnknown, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundPseudoVariable : BoundExpression
@@ -4142,13 +3743,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundPseudoVariable(this.Syntax, this.LocalSymbol, this.EmitExpressions, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundRangeVariable : BoundExpression
@@ -4183,13 +3777,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundRangeVariable(this.Syntax, this.RangeVariableSymbol, this.Value, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -4231,13 +3818,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundParameter(this.Syntax, this.ParameterSymbol, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -4379,13 +3959,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundLabel(this.Syntax, this.Label, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal partial class BoundStatementList : BoundStatement
@@ -4460,10 +4033,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundSwitchExpression : BoundExpression
+    internal abstract partial class BoundSwitchExpression : BoundExpression
     {
-        public BoundSwitchExpression(SyntaxNode syntax, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.SwitchExpression, syntax, type, hasErrors || expression.HasErrors() || switchArms.HasErrors() || decisionDag.HasErrors())
+        protected BoundSwitchExpression(BoundKind kind, SyntaxNode syntax, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol? type, bool hasErrors = false)
+            : base(kind, syntax, type, hasErrors)
         {
 
             Debug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4487,26 +4060,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public LabelSymbol? DefaultLabel { get; }
 
         public bool ReportedNotExhaustive { get; }
-        [DebuggerStepThrough]
-        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitSwitchExpression(this);
-
-        public BoundSwitchExpression Update(BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol? type)
-        {
-            if (expression != this.Expression || switchArms != this.SwitchArms || decisionDag != this.DecisionDag || defaultLabel != this.DefaultLabel || reportedNotExhaustive != this.ReportedNotExhaustive || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
-            {
-                var result = new BoundSwitchExpression(this.Syntax, expression, switchArms, decisionDag, defaultLabel, reportedNotExhaustive, type, this.HasErrors);
-                result.CopyAttributes(this);
-                return result;
-            }
-            return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundSwitchExpression(this.Syntax, this.Expression, this.SwitchArms, this.DecisionDag, this.DefaultLabel, this.ReportedNotExhaustive, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundSwitchExpressionArm : BoundNode
@@ -4545,6 +4098,66 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (locals != this.Locals || pattern != this.Pattern || whenClause != this.WhenClause || value != this.Value || label != this.Label)
             {
                 var result = new BoundSwitchExpressionArm(this.Syntax, locals, pattern, whenClause, value, label, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundUnconvertedSwitchExpression : BoundSwitchExpression
+    {
+        public BoundUnconvertedSwitchExpression(SyntaxNode syntax, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.UnconvertedSwitchExpression, syntax, expression, switchArms, decisionDag, defaultLabel, reportedNotExhaustive, type, hasErrors || expression.HasErrors() || switchArms.HasErrors() || decisionDag.HasErrors())
+        {
+
+            Debug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            Debug.Assert(!switchArms.IsDefault, "Field 'switchArms' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(decisionDag is object, "Field 'decisionDag' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+        }
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnconvertedSwitchExpression(this);
+
+        public BoundUnconvertedSwitchExpression Update(BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol? type)
+        {
+            if (expression != this.Expression || switchArms != this.SwitchArms || decisionDag != this.DecisionDag || defaultLabel != this.DefaultLabel || reportedNotExhaustive != this.ReportedNotExhaustive || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundUnconvertedSwitchExpression(this.Syntax, expression, switchArms, decisionDag, defaultLabel, reportedNotExhaustive, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundConvertedSwitchExpression : BoundSwitchExpression
+    {
+        public BoundConvertedSwitchExpression(SyntaxNode syntax, TypeSymbol naturalTypeOpt, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ConvertedSwitchExpression, syntax, expression, switchArms, decisionDag, defaultLabel, reportedNotExhaustive, type, hasErrors || expression.HasErrors() || switchArms.HasErrors() || decisionDag.HasErrors())
+        {
+
+            Debug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            Debug.Assert(!switchArms.IsDefault, "Field 'switchArms' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(decisionDag is object, "Field 'decisionDag' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            Debug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.NaturalTypeOpt = naturalTypeOpt;
+        }
+
+
+        public new TypeSymbol Type => base.Type!;
+
+        public TypeSymbol NaturalTypeOpt { get; }
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitConvertedSwitchExpression(this);
+
+        public BoundConvertedSwitchExpression Update(TypeSymbol naturalTypeOpt, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol type)
+        {
+            if (!TypeSymbol.Equals(naturalTypeOpt, this.NaturalTypeOpt, TypeCompareKind.ConsiderEverything) || expression != this.Expression || switchArms != this.SwitchArms || decisionDag != this.DecisionDag || defaultLabel != this.DefaultLabel || reportedNotExhaustive != this.ReportedNotExhaustive || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundConvertedSwitchExpression(this.Syntax, naturalTypeOpt, expression, switchArms, decisionDag, defaultLabel, reportedNotExhaustive, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5175,13 +4788,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundSequencePointExpression(this.Syntax, this.Expression, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundSequence : BoundExpression
@@ -5221,13 +4827,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundSequence(this.Syntax, this.Locals, this.SideEffects, this.Value, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundSpillSequence : BoundExpression
@@ -5266,13 +4865,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundSpillSequence(this.Syntax, this.Locals, this.SideEffects, this.Value, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5317,13 +4909,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDynamicMemberAccess(this.Syntax, this.Receiver, this.TypeArgumentsOpt, this.Name, this.Invoked, this.Indexed, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5383,13 +4968,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDynamicInvocation(this.Syntax, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.ApplicableMethods, this.Expression, this.Arguments, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundConditionalAccess : BoundExpression
@@ -5424,13 +5002,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundConditionalAccess(this.Syntax, this.Receiver, this.AccessExpression, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5476,13 +5047,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundLoweredConditionalAccess(this.Syntax, this.Receiver, this.HasValueMethodOpt, this.WhenNotNull, this.WhenNullOpt, this.Id, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundConditionalReceiver : BoundExpression
@@ -5522,13 +5086,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundConditionalReceiver(this.Syntax, this.Id, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundComplexConditionalReceiver : BoundExpression
@@ -5563,13 +5120,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundComplexConditionalReceiver(this.Syntax, this.ValueTypeReceiver, this.ReferenceTypeReceiver, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5615,13 +5165,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundMethodGroup(this.Syntax, this.TypeArgumentsOpt, this.Name, this.Methods, this.LookupSymbolOpt, this.LookupError, this.Flags, this.ReceiverOpt, this.ResultKind, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundPropertyGroup : BoundMethodOrPropertyGroup
@@ -5649,13 +5192,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundPropertyGroup(this.Syntax, this.Properties, this.ReceiverOpt, this.ResultKind, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5720,13 +5256,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundCall(this.Syntax, this.ReceiverOpt, this.Method, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.IsDelegateCall, this.Expanded, this.InvokedAsExtensionMethod, this.ArgsToParamsOpt, this.ResultKind, this.BinderOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundEventAssignmentOperator : BoundExpression
@@ -5770,13 +5299,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundEventAssignmentOperator(this.Syntax, this.Event, this.IsAddition, this.IsDynamic, this.ReceiverOpt, this.Argument, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5828,13 +5350,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAttribute(this.Syntax, this.Constructor, this.ConstructorArguments, this.ConstructorArgumentNamesOpt, this.ConstructorArgumentsToParamsOpt, this.ConstructorExpanded, this.NamedArguments, this.ResultKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -5896,106 +5411,81 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundObjectCreationExpression(this.Syntax, this.Constructor, this.ConstructorsGroup, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Expanded, this.ArgsToParamsOpt, this.ConstantValueOpt, this.InitializerExpressionOpt, this.BinderOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal abstract partial class BoundTupleExpression : BoundExpression
     {
-        protected BoundTupleExpression(BoundKind kind, SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, TypeSymbol? type, bool hasErrors = false)
+        protected BoundTupleExpression(BoundKind kind, SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol? type, bool hasErrors = false)
             : base(kind, syntax, type, hasErrors)
         {
 
             Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Arguments = arguments;
-        }
-
-
-        public ImmutableArray<BoundExpression> Arguments { get; }
-    }
-
-    internal sealed partial class BoundTupleLiteral : BoundTupleExpression
-    {
-        public BoundTupleLiteral(SyntaxNode syntax, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, ImmutableArray<BoundExpression> arguments, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.TupleLiteral, syntax, arguments, type, hasErrors || arguments.HasErrors())
-        {
-
-            Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-
             this.ArgumentNamesOpt = argumentNamesOpt;
             this.InferredNamesOpt = inferredNamesOpt;
         }
 
 
-        public new TypeSymbol? Type => base.Type!;
+        public ImmutableArray<BoundExpression> Arguments { get; }
 
         public ImmutableArray<string> ArgumentNamesOpt { get; }
 
         public ImmutableArray<bool> InferredNamesOpt { get; }
+    }
+
+    internal sealed partial class BoundTupleLiteral : BoundTupleExpression
+    {
+        public BoundTupleLiteral(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.TupleLiteral, syntax, arguments, argumentNamesOpt, inferredNamesOpt, type, hasErrors || arguments.HasErrors())
+        {
+
+            Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+        }
+
+
+        public new TypeSymbol Type => base.Type!;
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitTupleLiteral(this);
 
-        public BoundTupleLiteral Update(ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, ImmutableArray<BoundExpression> arguments, TypeSymbol? type)
+        public BoundTupleLiteral Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol type)
         {
-            if (argumentNamesOpt != this.ArgumentNamesOpt || inferredNamesOpt != this.InferredNamesOpt || arguments != this.Arguments || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || inferredNamesOpt != this.InferredNamesOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundTupleLiteral(this.Syntax, argumentNamesOpt, inferredNamesOpt, arguments, type, this.HasErrors);
+                var result = new BoundTupleLiteral(this.Syntax, arguments, argumentNamesOpt, inferredNamesOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundTupleLiteral(this.Syntax, this.ArgumentNamesOpt, this.InferredNamesOpt, this.Arguments, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
     internal sealed partial class BoundConvertedTupleLiteral : BoundTupleExpression
     {
-        public BoundConvertedTupleLiteral(SyntaxNode syntax, BoundTupleLiteral sourceTuple, ImmutableArray<BoundExpression> arguments, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ConvertedTupleLiteral, syntax, arguments, type, hasErrors || sourceTuple.HasErrors() || arguments.HasErrors())
+        public BoundConvertedTupleLiteral(SyntaxNode syntax, BoundTupleLiteral sourceTuple, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.ConvertedTupleLiteral, syntax, arguments, argumentNamesOpt, inferredNamesOpt, type, hasErrors || sourceTuple.HasErrors() || arguments.HasErrors())
         {
 
-            Debug.Assert(sourceTuple is object, "Field 'sourceTuple' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.SourceTuple = sourceTuple;
         }
 
 
-        public new TypeSymbol Type => base.Type!;
-
         public BoundTupleLiteral SourceTuple { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitConvertedTupleLiteral(this);
 
-        public BoundConvertedTupleLiteral Update(BoundTupleLiteral sourceTuple, ImmutableArray<BoundExpression> arguments, TypeSymbol type)
+        public BoundConvertedTupleLiteral Update(BoundTupleLiteral sourceTuple, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol? type)
         {
-            if (sourceTuple != this.SourceTuple || arguments != this.Arguments || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (sourceTuple != this.SourceTuple || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || inferredNamesOpt != this.InferredNamesOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundConvertedTupleLiteral(this.Syntax, sourceTuple, arguments, type, this.HasErrors);
+                var result = new BoundConvertedTupleLiteral(this.Syntax, sourceTuple, arguments, argumentNamesOpt, inferredNamesOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundConvertedTupleLiteral(this.Syntax, this.SourceTuple, this.Arguments, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6045,13 +5535,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDynamicObjectCreationExpression(this.Syntax, this.Name, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.InitializerExpressionOpt, this.ApplicableMethods, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundNoPiaObjectCreationExpression : BoundExpression
@@ -6084,13 +5567,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundNoPiaObjectCreationExpression(this.Syntax, this.GuidString, this.InitializerExpressionOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6135,13 +5611,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundObjectInitializerExpression(this.Syntax, this.Initializers, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6200,13 +5669,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundObjectInitializerMember(this.Syntax, this.MemberSymbol, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Expanded, this.ArgsToParamsOpt, this.ResultKind, this.ReceiverType, this.BinderOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundDynamicObjectInitializerMember : BoundExpression
@@ -6254,13 +5716,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDynamicObjectInitializerMember(this.Syntax, this.MemberName, this.ReceiverType, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundCollectionInitializerExpression : BoundObjectInitializerExpressionBase
@@ -6286,13 +5741,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundCollectionInitializerExpression(this.Syntax, this.Initializers, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6348,13 +5796,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundCollectionElementInitializer(this.Syntax, this.AddMethod, this.Arguments, this.ImplicitReceiverOpt, this.Expanded, this.ArgsToParamsOpt, this.InvokedAsExtensionMethod, this.ResultKind, this.BinderOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundDynamicCollectionElementInitializer : BoundDynamicInvocableBase
@@ -6387,13 +5828,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDynamicCollectionElementInitializer(this.Syntax, this.ApplicableMethods, this.Expression, this.Arguments, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6429,13 +5863,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundImplicitReceiver(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6475,13 +5902,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAnonymousObjectCreationExpression(this.Syntax, this.Constructor, this.Arguments, this.Declarations, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6524,13 +5944,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundAnonymousPropertyDeclaration(this.Syntax, this.Property, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundNewT : BoundExpression
@@ -6560,13 +5973,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundNewT(this.Syntax, this.InitializerExpressionOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6605,13 +6011,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDelegateCreationExpression(this.Syntax, this.Argument, this.MethodOpt, this.IsExtensionMethod, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundArrayCreation : BoundExpression
@@ -6646,13 +6045,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundArrayCreation(this.Syntax, this.Bounds, this.InitializerOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundArrayInitialization : BoundExpression
@@ -6682,13 +6074,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundArrayInitialization(this.Syntax, this.Initializers, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6737,13 +6122,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundStackAllocArrayCreation(this.Syntax, this.ElementType, this.Count, this.InitializerOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundConvertedStackAllocExpression : BoundStackAllocArrayCreation
@@ -6772,13 +6150,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundConvertedStackAllocExpression(this.Syntax, this.ElementType, this.Count, this.InitializerOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6827,13 +6198,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundFieldAccess(this.Syntax, this.ReceiverOpt, this.FieldSymbol, this.ConstantValueOpt, this.ResultKind, this.IsByValue, this.IsDeclaration, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundHoistedFieldAccess : BoundExpression
@@ -6875,13 +6239,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundHoistedFieldAccess(this.Syntax, this.FieldSymbol, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundPropertyAccess : BoundExpression
@@ -6919,13 +6276,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundPropertyAccess(this.Syntax, this.ReceiverOpt, this.PropertySymbol, this.ResultKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -6967,13 +6317,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundEventAccess(this.Syntax, this.ReceiverOpt, this.EventSymbol, this.IsUsableAsField, this.ResultKind, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7031,13 +6374,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundIndexerAccess(this.Syntax, this.ReceiverOpt, this.Indexer, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Expanded, this.ArgsToParamsOpt, this.BinderOpt, this.UseSetterForDefaultArgumentGeneration, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundIndexOrRangePatternIndexerAccess : BoundExpression
@@ -7080,13 +6416,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundIndexOrRangePatternIndexerAccess(this.Syntax, this.Receiver, this.LengthOrCountProperty, this.PatternSymbol, this.Argument, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7131,13 +6460,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDynamicIndexerAccess(this.Syntax, this.ReceiverOpt, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.ApplicableIndexers, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7223,13 +6545,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new UnboundLambda(this.Syntax, this.Data, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7329,13 +6644,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundNameOfOperator(this.Syntax, this.Argument, this.ConstantValueOpt, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundInterpolatedString : BoundExpression
@@ -7363,13 +6671,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundInterpolatedString(this.Syntax, this.Parts, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7404,13 +6705,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundStringInsert(this.Syntax, this.Value, this.Alignment, this.Format, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7455,13 +6749,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundIsPatternExpression(this.Syntax, this.Expression, this.Pattern, this.DecisionDag, this.WhenTrueLabel, this.WhenFalseLabel, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7730,13 +7017,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundDiscardExpression(this.Syntax, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class BoundThrowExpression : BoundExpression
@@ -7764,13 +7044,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundThrowExpression(this.Syntax, this.Expression, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7817,13 +7090,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new OutVariablePendingInference(this.Syntax, this.VariableSymbol, this.ReceiverOpt, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
-        }
     }
 
     internal sealed partial class DeconstructionVariablePendingInference : VariablePendingInference
@@ -7848,13 +7114,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new DeconstructionVariablePendingInference(this.Syntax, this.VariableSymbol, this.ReceiverOpt, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -7979,13 +7238,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
-        }
-
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundExpressionWithNullability(this.Syntax, this.Expression, this.NullableAnnotation, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            return result;
         }
     }
 
@@ -8199,10 +7451,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitStatementList((BoundStatementList)node, arg);
                 case BoundKind.ConditionalGoto: 
                     return VisitConditionalGoto((BoundConditionalGoto)node, arg);
-                case BoundKind.SwitchExpression: 
-                    return VisitSwitchExpression((BoundSwitchExpression)node, arg);
                 case BoundKind.SwitchExpressionArm: 
                     return VisitSwitchExpressionArm((BoundSwitchExpressionArm)node, arg);
+                case BoundKind.UnconvertedSwitchExpression: 
+                    return VisitUnconvertedSwitchExpression((BoundUnconvertedSwitchExpression)node, arg);
+                case BoundKind.ConvertedSwitchExpression: 
+                    return VisitConvertedSwitchExpression((BoundConvertedSwitchExpression)node, arg);
                 case BoundKind.DecisionDag: 
                     return VisitDecisionDag((BoundDecisionDag)node, arg);
                 case BoundKind.EvaluationDecisionDagNode: 
@@ -8472,8 +7726,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitLabel(BoundLabel node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitStatementList(BoundStatementList node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitConditionalGoto(BoundConditionalGoto node, A arg) => this.DefaultVisit(node, arg);
-        public virtual R VisitSwitchExpression(BoundSwitchExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSwitchExpressionArm(BoundSwitchExpressionArm node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDecisionDag(BoundDecisionDag node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitEvaluationDecisionDagNode(BoundEvaluationDecisionDagNode node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitTestDecisionDagNode(BoundTestDecisionDagNode node, A arg) => this.DefaultVisit(node, arg);
@@ -8659,8 +7914,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitLabel(BoundLabel node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitStatementList(BoundStatementList node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitConditionalGoto(BoundConditionalGoto node) => this.DefaultVisit(node);
-        public virtual BoundNode? VisitSwitchExpression(BoundSwitchExpression node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDecisionDag(BoundDecisionDag node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitEvaluationDecisionDagNode(BoundEvaluationDecisionDagNode node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitTestDecisionDagNode(BoundTestDecisionDagNode node) => this.DefaultVisit(node);
@@ -9168,17 +8424,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.Condition);
             return null;
         }
-        public override BoundNode? VisitSwitchExpression(BoundSwitchExpression node)
-        {
-            this.Visit(node.Expression);
-            this.VisitList(node.SwitchArms);
-            return null;
-        }
         public override BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
         {
             this.Visit(node.Pattern);
             this.Visit(node.WhenClause);
             this.Visit(node.Value);
+            return null;
+        }
+        public override BoundNode? VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node)
+        {
+            this.Visit(node.Expression);
+            this.VisitList(node.SwitchArms);
+            return null;
+        }
+        public override BoundNode? VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
+        {
+            this.Visit(node.Expression);
+            this.VisitList(node.SwitchArms);
             return null;
         }
         public override BoundNode? VisitDecisionDag(BoundDecisionDag node) => null;
@@ -9736,10 +8998,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression left = (BoundExpression)this.Visit(node.Left);
             BoundExpression right = (BoundExpression)this.Visit(node.Right);
-            BoundExpression convertedLeft = node.ConvertedLeft;
-            BoundExpression convertedRight = node.ConvertedRight;
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(left, right, convertedLeft, convertedRight, node.OperatorKind, node.Operators, type);
+            return node.Update(left, right, node.OperatorKind, node.Operators, type);
         }
         public override BoundNode? VisitUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator node)
         {
@@ -10146,7 +9406,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
             return node.Update(condition, node.JumpIfTrue, node.Label);
         }
-        public override BoundNode? VisitSwitchExpression(BoundSwitchExpression node)
+        public override BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
+        {
+            BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
+            BoundExpression? whenClause = (BoundExpression?)this.Visit(node.WhenClause);
+            BoundExpression value = (BoundExpression)this.Visit(node.Value);
+            return node.Update(node.Locals, pattern, whenClause, value, node.Label);
+        }
+        public override BoundNode? VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             ImmutableArray<BoundSwitchExpressionArm> switchArms = this.VisitList(node.SwitchArms);
@@ -10154,12 +9421,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, type);
         }
-        public override BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
+        public override BoundNode? VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
         {
-            BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
-            BoundExpression? whenClause = (BoundExpression?)this.Visit(node.WhenClause);
-            BoundExpression value = (BoundExpression)this.Visit(node.Value);
-            return node.Update(node.Locals, pattern, whenClause, value, node.Label);
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            ImmutableArray<BoundSwitchExpressionArm> switchArms = this.VisitList(node.SwitchArms);
+            BoundDecisionDag decisionDag = node.DecisionDag;
+            TypeSymbol naturalTypeOpt = this.VisitType(node.NaturalTypeOpt);
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(naturalTypeOpt, expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, type);
         }
         public override BoundNode? VisitDecisionDag(BoundDecisionDag node) => node;
         public override BoundNode? VisitEvaluationDecisionDagNode(BoundEvaluationDecisionDagNode node)
@@ -10352,14 +9621,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.ArgumentNamesOpt, node.InferredNamesOpt, arguments, type);
+            return node.Update(arguments, node.ArgumentNamesOpt, node.InferredNamesOpt, type);
         }
         public override BoundNode? VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
         {
             BoundTupleLiteral sourceTuple = node.SourceTuple;
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(sourceTuple, arguments, type);
+            return node.Update(sourceTuple, arguments, node.ArgumentNamesOpt, node.InferredNamesOpt, type);
         }
         public override BoundNode? VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
@@ -10976,18 +10245,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression left = (BoundExpression)this.Visit(node.Left);
             BoundExpression right = (BoundExpression)this.Visit(node.Right);
-            BoundExpression convertedLeft = node.ConvertedLeft;
-            BoundExpression convertedRight = node.ConvertedRight;
             BoundTupleBinaryOperator updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(left, right, convertedLeft, convertedRight, node.OperatorKind, node.Operators, infoAndType.Type);
+                updatedNode = node.Update(left, right, node.OperatorKind, node.Operators, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(left, right, convertedLeft, convertedRight, node.OperatorKind, node.Operators, node.Type);
+                updatedNode = node.Update(left, right, node.OperatorKind, node.Operators, node.Type);
             }
             return updatedNode;
         }
@@ -11541,12 +10808,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
-        public override BoundNode? VisitSwitchExpression(BoundSwitchExpression node)
+        public override BoundNode? VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             ImmutableArray<BoundSwitchExpressionArm> switchArms = this.VisitList(node.SwitchArms);
             BoundDecisionDag decisionDag = node.DecisionDag;
-            BoundSwitchExpression updatedNode;
+            BoundUnconvertedSwitchExpression updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
@@ -11556,6 +10823,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 updatedNode = node.Update(expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode? VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            ImmutableArray<BoundSwitchExpressionArm> switchArms = this.VisitList(node.SwitchArms);
+            BoundDecisionDag decisionDag = node.DecisionDag;
+            BoundConvertedSwitchExpression updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
+            {
+                updatedNode = node.Update(node.NaturalTypeOpt, expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, infoAndType.Type);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(node.NaturalTypeOpt, expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, node.Type);
             }
             return updatedNode;
         }
@@ -11810,12 +11096,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(node.ArgumentNamesOpt, node.InferredNamesOpt, arguments, infoAndType.Type);
+                updatedNode = node.Update(arguments, node.ArgumentNamesOpt, node.InferredNamesOpt, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(node.ArgumentNamesOpt, node.InferredNamesOpt, arguments, node.Type);
+                updatedNode = node.Update(arguments, node.ArgumentNamesOpt, node.InferredNamesOpt, node.Type);
             }
             return updatedNode;
         }
@@ -11828,12 +11114,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(sourceTuple, arguments, infoAndType.Type);
+                updatedNode = node.Update(sourceTuple, arguments, node.ArgumentNamesOpt, node.InferredNamesOpt, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(sourceTuple, arguments, node.Type);
+                updatedNode = node.Update(sourceTuple, arguments, node.ArgumentNamesOpt, node.InferredNamesOpt, node.Type);
             }
             return updatedNode;
         }
@@ -12458,65 +11744,75 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("field", node.Field, null),
             new TreeDumperNode("locals", node.Locals, null),
-            new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) })
+            new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitPropertyEqualsValue(BoundPropertyEqualsValue node, object? arg) => new TreeDumperNode("propertyEqualsValue", null, new TreeDumperNode[]
         {
             new TreeDumperNode("property", node.Property, null),
             new TreeDumperNode("locals", node.Locals, null),
-            new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) })
+            new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitParameterEqualsValue(BoundParameterEqualsValue node, object? arg) => new TreeDumperNode("parameterEqualsValue", null, new TreeDumperNode[]
         {
             new TreeDumperNode("parameter", node.Parameter, null),
             new TreeDumperNode("locals", node.Locals, null),
-            new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) })
+            new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitGlobalStatementInitializer(BoundGlobalStatementInitializer node, object? arg) => new TreeDumperNode("globalStatementInitializer", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("statement", null, new TreeDumperNode[] { Visit(node.Statement, null) })
+            new TreeDumperNode("statement", null, new TreeDumperNode[] { Visit(node.Statement, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node, object? arg) => new TreeDumperNode("deconstructValuePlaceholder", null, new TreeDumperNode[]
         {
             new TreeDumperNode("valEscape", node.ValEscape, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node, object? arg) => new TreeDumperNode("tupleOperandPlaceholder", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node, object? arg) => new TreeDumperNode("awaitableValuePlaceholder", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node, object? arg) => new TreeDumperNode("disposableValuePlaceholder", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDup(BoundDup node, object? arg) => new TreeDumperNode("dup", null, new TreeDumperNode[]
         {
             new TreeDumperNode("refKind", node.RefKind, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitPassByCopy(BoundPassByCopy node, object? arg) => new TreeDumperNode("passByCopy", null, new TreeDumperNode[]
         {
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitBadExpression(BoundBadExpression node, object? arg) => new TreeDumperNode("badExpression", null, new TreeDumperNode[]
@@ -12525,17 +11821,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("symbols", node.Symbols, null),
             new TreeDumperNode("childBoundNodes", null, from x in node.ChildBoundNodes select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitBadStatement(BoundBadStatement node, object? arg) => new TreeDumperNode("badStatement", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("childBoundNodes", null, from x in node.ChildBoundNodes select Visit(x, null))
+            new TreeDumperNode("childBoundNodes", null, from x in node.ChildBoundNodes select Visit(x, null)),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitExtractedFinallyBlock(BoundExtractedFinallyBlock node, object? arg) => new TreeDumperNode("extractedFinallyBlock", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("finallyBlock", null, new TreeDumperNode[] { Visit(node.FinallyBlock, null) })
+            new TreeDumperNode("finallyBlock", null, new TreeDumperNode[] { Visit(node.FinallyBlock, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitTypeExpression(BoundTypeExpression node, object? arg) => new TreeDumperNode("typeExpression", null, new TreeDumperNode[]
@@ -12545,14 +11844,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("boundDimensionsOpt", null, node.BoundDimensionsOpt.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.BoundDimensionsOpt select Visit(x, null)),
             new TreeDumperNode("typeWithAnnotations", node.TypeWithAnnotations, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitTypeOrValueExpression(BoundTypeOrValueExpression node, object? arg) => new TreeDumperNode("typeOrValueExpression", null, new TreeDumperNode[]
         {
             new TreeDumperNode("data", node.Data, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitNamespaceExpression(BoundNamespaceExpression node, object? arg) => new TreeDumperNode("namespaceExpression", null, new TreeDumperNode[]
@@ -12560,7 +11861,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("namespaceSymbol", node.NamespaceSymbol, null),
             new TreeDumperNode("aliasOpt", node.AliasOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitUnaryOperator(BoundUnaryOperator node, object? arg) => new TreeDumperNode("unaryOperator", null, new TreeDumperNode[]
@@ -12571,7 +11873,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("methodOpt", node.MethodOpt, null),
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitIncrementOperator(BoundIncrementOperator node, object? arg) => new TreeDumperNode("incrementOperator", null, new TreeDumperNode[]
@@ -12583,7 +11886,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("resultConversion", node.ResultConversion, null),
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitAddressOfOperator(BoundAddressOfOperator node, object? arg) => new TreeDumperNode("addressOfOperator", null, new TreeDumperNode[]
@@ -12591,14 +11895,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
             new TreeDumperNode("isManaged", node.IsManaged, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node, object? arg) => new TreeDumperNode("pointerIndirectionOperator", null, new TreeDumperNode[]
         {
             new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitPointerElementAccess(BoundPointerElementAccess node, object? arg) => new TreeDumperNode("pointerElementAccess", null, new TreeDumperNode[]
@@ -12607,7 +11913,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("index", null, new TreeDumperNode[] { Visit(node.Index, null) }),
             new TreeDumperNode("@checked", node.Checked, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitRefTypeOperator(BoundRefTypeOperator node, object? arg) => new TreeDumperNode("refTypeOperator", null, new TreeDumperNode[]
@@ -12615,14 +11922,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
             new TreeDumperNode("getTypeFromHandle", node.GetTypeFromHandle, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitMakeRefOperator(BoundMakeRefOperator node, object? arg) => new TreeDumperNode("makeRefOperator", null, new TreeDumperNode[]
         {
             new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitRefValueOperator(BoundRefValueOperator node, object? arg) => new TreeDumperNode("refValueOperator", null, new TreeDumperNode[]
@@ -12630,7 +11939,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("nullableAnnotation", node.NullableAnnotation, null),
             new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitFromEndIndexExpression(BoundFromEndIndexExpression node, object? arg) => new TreeDumperNode("fromEndIndexExpression", null, new TreeDumperNode[]
@@ -12638,7 +11948,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
             new TreeDumperNode("methodOpt", node.MethodOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitRangeExpression(BoundRangeExpression node, object? arg) => new TreeDumperNode("rangeExpression", null, new TreeDumperNode[]
@@ -12647,7 +11958,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("rightOperandOpt", null, new TreeDumperNode[] { Visit(node.RightOperandOpt, null) }),
             new TreeDumperNode("methodOpt", node.MethodOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitBinaryOperator(BoundBinaryOperator node, object? arg) => new TreeDumperNode("binaryOperator", null, new TreeDumperNode[]
@@ -12659,19 +11971,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("left", null, new TreeDumperNode[] { Visit(node.Left, null) }),
             new TreeDumperNode("right", null, new TreeDumperNode[] { Visit(node.Right, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node, object? arg) => new TreeDumperNode("tupleBinaryOperator", null, new TreeDumperNode[]
         {
             new TreeDumperNode("left", null, new TreeDumperNode[] { Visit(node.Left, null) }),
             new TreeDumperNode("right", null, new TreeDumperNode[] { Visit(node.Right, null) }),
-            new TreeDumperNode("convertedLeft", null, new TreeDumperNode[] { Visit(node.ConvertedLeft, null) }),
-            new TreeDumperNode("convertedRight", null, new TreeDumperNode[] { Visit(node.ConvertedRight, null) }),
             new TreeDumperNode("operatorKind", node.OperatorKind, null),
             new TreeDumperNode("operators", node.Operators, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator node, object? arg) => new TreeDumperNode("userDefinedConditionalLogicalOperator", null, new TreeDumperNode[]
@@ -12684,7 +11996,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("left", null, new TreeDumperNode[] { Visit(node.Left, null) }),
             new TreeDumperNode("right", null, new TreeDumperNode[] { Visit(node.Right, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node, object? arg) => new TreeDumperNode("compoundAssignmentOperator", null, new TreeDumperNode[]
@@ -12696,7 +12009,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("finalConversion", node.FinalConversion, null),
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitAssignmentOperator(BoundAssignmentOperator node, object? arg) => new TreeDumperNode("assignmentOperator", null, new TreeDumperNode[]
@@ -12705,7 +12019,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("right", null, new TreeDumperNode[] { Visit(node.Right, null) }),
             new TreeDumperNode("isRef", node.IsRef, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node, object? arg) => new TreeDumperNode("deconstructionAssignmentOperator", null, new TreeDumperNode[]
@@ -12714,7 +12029,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("right", null, new TreeDumperNode[] { Visit(node.Right, null) }),
             new TreeDumperNode("isUsed", node.IsUsed, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node, object? arg) => new TreeDumperNode("nullCoalescingOperator", null, new TreeDumperNode[]
@@ -12724,7 +12040,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("leftConversion", node.LeftConversion, null),
             new TreeDumperNode("operatorResultKind", node.OperatorResultKind, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node, object? arg) => new TreeDumperNode("nullCoalescingAssignmentOperator", null, new TreeDumperNode[]
@@ -12732,7 +12049,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("leftOperand", null, new TreeDumperNode[] { Visit(node.LeftOperand, null) }),
             new TreeDumperNode("rightOperand", null, new TreeDumperNode[] { Visit(node.RightOperand, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitConditionalOperator(BoundConditionalOperator node, object? arg) => new TreeDumperNode("conditionalOperator", null, new TreeDumperNode[]
@@ -12743,7 +12061,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("alternative", null, new TreeDumperNode[] { Visit(node.Alternative, null) }),
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitArrayAccess(BoundArrayAccess node, object? arg) => new TreeDumperNode("arrayAccess", null, new TreeDumperNode[]
@@ -12751,14 +12070,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("indices", null, from x in node.Indices select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitArrayLength(BoundArrayLength node, object? arg) => new TreeDumperNode("arrayLength", null, new TreeDumperNode[]
         {
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitAwaitExpression(BoundAwaitExpression node, object? arg) => new TreeDumperNode("awaitExpression", null, new TreeDumperNode[]
@@ -12766,7 +12087,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("awaitableInfo", node.AwaitableInfo, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitTypeOfOperator(BoundTypeOfOperator node, object? arg) => new TreeDumperNode("typeOfOperator", null, new TreeDumperNode[]
@@ -12774,46 +12096,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("sourceType", null, new TreeDumperNode[] { Visit(node.SourceType, null) }),
             new TreeDumperNode("getTypeFromHandle", node.GetTypeFromHandle, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitMethodDefIndex(BoundMethodDefIndex node, object? arg) => new TreeDumperNode("methodDefIndex", null, new TreeDumperNode[]
         {
             new TreeDumperNode("method", node.Method, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitMaximumMethodDefIndex(BoundMaximumMethodDefIndex node, object? arg) => new TreeDumperNode("maximumMethodDefIndex", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitInstrumentationPayloadRoot(BoundInstrumentationPayloadRoot node, object? arg) => new TreeDumperNode("instrumentationPayloadRoot", null, new TreeDumperNode[]
         {
             new TreeDumperNode("analysisKind", node.AnalysisKind, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitModuleVersionId(BoundModuleVersionId node, object? arg) => new TreeDumperNode("moduleVersionId", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitModuleVersionIdString(BoundModuleVersionIdString node, object? arg) => new TreeDumperNode("moduleVersionIdString", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSourceDocumentIndex(BoundSourceDocumentIndex node, object? arg) => new TreeDumperNode("sourceDocumentIndex", null, new TreeDumperNode[]
         {
             new TreeDumperNode("document", node.Document, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitMethodInfo(BoundMethodInfo node, object? arg) => new TreeDumperNode("methodInfo", null, new TreeDumperNode[]
@@ -12821,7 +12150,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("method", node.Method, null),
             new TreeDumperNode("getMethodFromHandle", node.GetMethodFromHandle, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitFieldInfo(BoundFieldInfo node, object? arg) => new TreeDumperNode("fieldInfo", null, new TreeDumperNode[]
@@ -12829,7 +12159,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("field", node.Field, null),
             new TreeDumperNode("getFieldFromHandle", node.GetFieldFromHandle, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDefaultExpression(BoundDefaultExpression node, object? arg) => new TreeDumperNode("defaultExpression", null, new TreeDumperNode[]
@@ -12837,7 +12168,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("targetType", null, new TreeDumperNode[] { Visit(node.TargetType, null) }),
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitIsOperator(BoundIsOperator node, object? arg) => new TreeDumperNode("isOperator", null, new TreeDumperNode[]
@@ -12846,7 +12178,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("targetType", null, new TreeDumperNode[] { Visit(node.TargetType, null) }),
             new TreeDumperNode("conversion", node.Conversion, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitAsOperator(BoundAsOperator node, object? arg) => new TreeDumperNode("asOperator", null, new TreeDumperNode[]
@@ -12855,7 +12188,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("targetType", null, new TreeDumperNode[] { Visit(node.TargetType, null) }),
             new TreeDumperNode("conversion", node.Conversion, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSizeOfOperator(BoundSizeOfOperator node, object? arg) => new TreeDumperNode("sizeOfOperator", null, new TreeDumperNode[]
@@ -12863,7 +12197,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("sourceType", null, new TreeDumperNode[] { Visit(node.SourceType, null) }),
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitConversion(BoundConversion node, object? arg) => new TreeDumperNode("conversion", null, new TreeDumperNode[]
@@ -12876,7 +12211,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("conversionGroupOpt", node.ConversionGroupOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node, object? arg) => new TreeDumperNode("readOnlySpanFromArray", null, new TreeDumperNode[]
@@ -12884,13 +12220,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
             new TreeDumperNode("conversionMethod", node.ConversionMethod, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitArgList(BoundArgList node, object? arg) => new TreeDumperNode("argList", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitArgListOperator(BoundArgListOperator node, object? arg) => new TreeDumperNode("argListOperator", null, new TreeDumperNode[]
@@ -12898,7 +12236,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
             new TreeDumperNode("argumentRefKindsOpt", node.ArgumentRefKindsOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitFixedLocalCollectionInitializer(BoundFixedLocalCollectionInitializer node, object? arg) => new TreeDumperNode("fixedLocalCollectionInitializer", null, new TreeDumperNode[]
@@ -12908,37 +12247,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("getPinnableOpt", node.GetPinnableOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSequencePoint(BoundSequencePoint node, object? arg) => new TreeDumperNode("sequencePoint", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("statementOpt", null, new TreeDumperNode[] { Visit(node.StatementOpt, null) })
+            new TreeDumperNode("statementOpt", null, new TreeDumperNode[] { Visit(node.StatementOpt, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSequencePointWithSpan(BoundSequencePointWithSpan node, object? arg) => new TreeDumperNode("sequencePointWithSpan", null, new TreeDumperNode[]
         {
             new TreeDumperNode("statementOpt", null, new TreeDumperNode[] { Visit(node.StatementOpt, null) }),
-            new TreeDumperNode("span", node.Span, null)
+            new TreeDumperNode("span", node.Span, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitBlock(BoundBlock node, object? arg) => new TreeDumperNode("block", null, new TreeDumperNode[]
         {
             new TreeDumperNode("locals", node.Locals, null),
             new TreeDumperNode("localFunctions", node.LocalFunctions, null),
-            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null))
+            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null)),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitScope(BoundScope node, object? arg) => new TreeDumperNode("scope", null, new TreeDumperNode[]
         {
             new TreeDumperNode("locals", node.Locals, null),
-            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null))
+            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null)),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitStateMachineScope(BoundStateMachineScope node, object? arg) => new TreeDumperNode("stateMachineScope", null, new TreeDumperNode[]
         {
             new TreeDumperNode("fields", node.Fields, null),
-            new TreeDumperNode("statement", null, new TreeDumperNode[] { Visit(node.Statement, null) })
+            new TreeDumperNode("statement", null, new TreeDumperNode[] { Visit(node.Statement, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLocalDeclaration(BoundLocalDeclaration node, object? arg) => new TreeDumperNode("localDeclaration", null, new TreeDumperNode[]
@@ -12947,12 +12292,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("declaredTypeOpt", null, new TreeDumperNode[] { Visit(node.DeclaredTypeOpt, null) }),
             new TreeDumperNode("initializerOpt", null, new TreeDumperNode[] { Visit(node.InitializerOpt, null) }),
             new TreeDumperNode("argumentsOpt", null, node.ArgumentsOpt.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.ArgumentsOpt select Visit(x, null)),
-            new TreeDumperNode("inferredType", node.InferredType, null)
+            new TreeDumperNode("inferredType", node.InferredType, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitMultipleLocalDeclarations(BoundMultipleLocalDeclarations node, object? arg) => new TreeDumperNode("multipleLocalDeclarations", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("localDeclarations", null, from x in node.LocalDeclarations select Visit(x, null))
+            new TreeDumperNode("localDeclarations", null, from x in node.LocalDeclarations select Visit(x, null)),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node, object? arg) => new TreeDumperNode("usingLocalDeclarations", null, new TreeDumperNode[]
@@ -12960,52 +12307,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("disposeMethodOpt", node.DisposeMethodOpt, null),
             new TreeDumperNode("iDisposableConversion", node.IDisposableConversion, null),
             new TreeDumperNode("awaitOpt", node.AwaitOpt, null),
-            new TreeDumperNode("localDeclarations", null, from x in node.LocalDeclarations select Visit(x, null))
+            new TreeDumperNode("localDeclarations", null, from x in node.LocalDeclarations select Visit(x, null)),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node, object? arg) => new TreeDumperNode("localFunctionStatement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("symbol", node.Symbol, null),
             new TreeDumperNode("blockBody", null, new TreeDumperNode[] { Visit(node.BlockBody, null) }),
-            new TreeDumperNode("expressionBody", null, new TreeDumperNode[] { Visit(node.ExpressionBody, null) })
+            new TreeDumperNode("expressionBody", null, new TreeDumperNode[] { Visit(node.ExpressionBody, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitNoOpStatement(BoundNoOpStatement node, object? arg) => new TreeDumperNode("noOpStatement", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("flavor", node.Flavor, null)
+            new TreeDumperNode("flavor", node.Flavor, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitReturnStatement(BoundReturnStatement node, object? arg) => new TreeDumperNode("returnStatement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("refKind", node.RefKind, null),
-            new TreeDumperNode("expressionOpt", null, new TreeDumperNode[] { Visit(node.ExpressionOpt, null) })
+            new TreeDumperNode("expressionOpt", null, new TreeDumperNode[] { Visit(node.ExpressionOpt, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitYieldReturnStatement(BoundYieldReturnStatement node, object? arg) => new TreeDumperNode("yieldReturnStatement", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) })
+            new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitYieldBreakStatement(BoundYieldBreakStatement node, object? arg) => new TreeDumperNode("yieldBreakStatement", null, Array.Empty<TreeDumperNode>()
         );
         public override TreeDumperNode VisitThrowStatement(BoundThrowStatement node, object? arg) => new TreeDumperNode("throwStatement", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("expressionOpt", null, new TreeDumperNode[] { Visit(node.ExpressionOpt, null) })
+            new TreeDumperNode("expressionOpt", null, new TreeDumperNode[] { Visit(node.ExpressionOpt, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitExpressionStatement(BoundExpressionStatement node, object? arg) => new TreeDumperNode("expressionStatement", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) })
+            new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitBreakStatement(BoundBreakStatement node, object? arg) => new TreeDumperNode("breakStatement", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("label", node.Label, null)
+            new TreeDumperNode("label", node.Label, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitContinueStatement(BoundContinueStatement node, object? arg) => new TreeDumperNode("continueStatement", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("label", node.Label, null)
+            new TreeDumperNode("label", node.Label, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSwitchStatement(BoundSwitchStatement node, object? arg) => new TreeDumperNode("switchStatement", null, new TreeDumperNode[]
@@ -13016,7 +12372,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("switchSections", null, from x in node.SwitchSections select Visit(x, null)),
             new TreeDumperNode("decisionDag", null, new TreeDumperNode[] { Visit(node.DecisionDag, null) }),
             new TreeDumperNode("defaultLabel", null, new TreeDumperNode[] { Visit(node.DefaultLabel, null) }),
-            new TreeDumperNode("breakLabel", node.BreakLabel, null)
+            new TreeDumperNode("breakLabel", node.BreakLabel, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSwitchDispatch(BoundSwitchDispatch node, object? arg) => new TreeDumperNode("switchDispatch", null, new TreeDumperNode[]
@@ -13024,14 +12381,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("cases", node.Cases, null),
             new TreeDumperNode("defaultLabel", node.DefaultLabel, null),
-            new TreeDumperNode("equalityMethod", node.EqualityMethod, null)
+            new TreeDumperNode("equalityMethod", node.EqualityMethod, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitIfStatement(BoundIfStatement node, object? arg) => new TreeDumperNode("ifStatement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("condition", null, new TreeDumperNode[] { Visit(node.Condition, null) }),
             new TreeDumperNode("consequence", null, new TreeDumperNode[] { Visit(node.Consequence, null) }),
-            new TreeDumperNode("alternativeOpt", null, new TreeDumperNode[] { Visit(node.AlternativeOpt, null) })
+            new TreeDumperNode("alternativeOpt", null, new TreeDumperNode[] { Visit(node.AlternativeOpt, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDoStatement(BoundDoStatement node, object? arg) => new TreeDumperNode("doStatement", null, new TreeDumperNode[]
@@ -13040,7 +12399,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("condition", null, new TreeDumperNode[] { Visit(node.Condition, null) }),
             new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
             new TreeDumperNode("breakLabel", node.BreakLabel, null),
-            new TreeDumperNode("continueLabel", node.ContinueLabel, null)
+            new TreeDumperNode("continueLabel", node.ContinueLabel, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitWhileStatement(BoundWhileStatement node, object? arg) => new TreeDumperNode("whileStatement", null, new TreeDumperNode[]
@@ -13049,7 +12409,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("condition", null, new TreeDumperNode[] { Visit(node.Condition, null) }),
             new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
             new TreeDumperNode("breakLabel", node.BreakLabel, null),
-            new TreeDumperNode("continueLabel", node.ContinueLabel, null)
+            new TreeDumperNode("continueLabel", node.ContinueLabel, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitForStatement(BoundForStatement node, object? arg) => new TreeDumperNode("forStatement", null, new TreeDumperNode[]
@@ -13061,7 +12422,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("increment", null, new TreeDumperNode[] { Visit(node.Increment, null) }),
             new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
             new TreeDumperNode("breakLabel", node.BreakLabel, null),
-            new TreeDumperNode("continueLabel", node.ContinueLabel, null)
+            new TreeDumperNode("continueLabel", node.ContinueLabel, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitForEachStatement(BoundForEachStatement node, object? arg) => new TreeDumperNode("forEachStatement", null, new TreeDumperNode[]
@@ -13077,13 +12439,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
             new TreeDumperNode("@checked", node.Checked, null),
             new TreeDumperNode("breakLabel", node.BreakLabel, null),
-            new TreeDumperNode("continueLabel", node.ContinueLabel, null)
+            new TreeDumperNode("continueLabel", node.ContinueLabel, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitForEachDeconstructStep(BoundForEachDeconstructStep node, object? arg) => new TreeDumperNode("forEachDeconstructStep", null, new TreeDumperNode[]
         {
             new TreeDumperNode("deconstructionAssignment", null, new TreeDumperNode[] { Visit(node.DeconstructionAssignment, null) }),
-            new TreeDumperNode("targetPlaceholder", null, new TreeDumperNode[] { Visit(node.TargetPlaceholder, null) })
+            new TreeDumperNode("targetPlaceholder", null, new TreeDumperNode[] { Visit(node.TargetPlaceholder, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitUsingStatement(BoundUsingStatement node, object? arg) => new TreeDumperNode("usingStatement", null, new TreeDumperNode[]
@@ -13094,20 +12458,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("iDisposableConversion", node.IDisposableConversion, null),
             new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
             new TreeDumperNode("awaitOpt", node.AwaitOpt, null),
-            new TreeDumperNode("disposeMethodOpt", node.DisposeMethodOpt, null)
+            new TreeDumperNode("disposeMethodOpt", node.DisposeMethodOpt, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitFixedStatement(BoundFixedStatement node, object? arg) => new TreeDumperNode("fixedStatement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("locals", node.Locals, null),
             new TreeDumperNode("declarations", null, new TreeDumperNode[] { Visit(node.Declarations, null) }),
-            new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) })
+            new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLockStatement(BoundLockStatement node, object? arg) => new TreeDumperNode("lockStatement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("argument", null, new TreeDumperNode[] { Visit(node.Argument, null) }),
-            new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) })
+            new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitTryStatement(BoundTryStatement node, object? arg) => new TreeDumperNode("tryStatement", null, new TreeDumperNode[]
@@ -13116,7 +12483,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("catchBlocks", null, from x in node.CatchBlocks select Visit(x, null)),
             new TreeDumperNode("finallyBlockOpt", null, new TreeDumperNode[] { Visit(node.FinallyBlockOpt, null) }),
             new TreeDumperNode("finallyLabelOpt", node.FinallyLabelOpt, null),
-            new TreeDumperNode("preferFaultHandler", node.PreferFaultHandler, null)
+            new TreeDumperNode("preferFaultHandler", node.PreferFaultHandler, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitCatchBlock(BoundCatchBlock node, object? arg) => new TreeDumperNode("catchBlock", null, new TreeDumperNode[]
@@ -13126,38 +12494,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("exceptionTypeOpt", node.ExceptionTypeOpt, null),
             new TreeDumperNode("exceptionFilterOpt", null, new TreeDumperNode[] { Visit(node.ExceptionFilterOpt, null) }),
             new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
-            new TreeDumperNode("isSynthesizedAsyncCatchAll", node.IsSynthesizedAsyncCatchAll, null)
+            new TreeDumperNode("isSynthesizedAsyncCatchAll", node.IsSynthesizedAsyncCatchAll, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLiteral(BoundLiteral node, object? arg) => new TreeDumperNode("literal", null, new TreeDumperNode[]
         {
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitThisReference(BoundThisReference node, object? arg) => new TreeDumperNode("thisReference", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitPreviousSubmissionReference(BoundPreviousSubmissionReference node, object? arg) => new TreeDumperNode("previousSubmissionReference", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitHostObjectMemberReference(BoundHostObjectMemberReference node, object? arg) => new TreeDumperNode("hostObjectMemberReference", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitBaseReference(BoundBaseReference node, object? arg) => new TreeDumperNode("baseReference", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLocal(BoundLocal node, object? arg) => new TreeDumperNode("local", null, new TreeDumperNode[]
@@ -13167,7 +12541,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("isNullableUnknown", node.IsNullableUnknown, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitPseudoVariable(BoundPseudoVariable node, object? arg) => new TreeDumperNode("pseudoVariable", null, new TreeDumperNode[]
@@ -13175,7 +12550,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("localSymbol", node.LocalSymbol, null),
             new TreeDumperNode("emitExpressions", node.EmitExpressions, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitRangeVariable(BoundRangeVariable node, object? arg) => new TreeDumperNode("rangeVariable", null, new TreeDumperNode[]
@@ -13183,62 +12559,59 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("rangeVariableSymbol", node.RangeVariableSymbol, null),
             new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitParameter(BoundParameter node, object? arg) => new TreeDumperNode("parameter", null, new TreeDumperNode[]
         {
             new TreeDumperNode("parameterSymbol", node.ParameterSymbol, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLabelStatement(BoundLabelStatement node, object? arg) => new TreeDumperNode("labelStatement", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("label", node.Label, null)
+            new TreeDumperNode("label", node.Label, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitGotoStatement(BoundGotoStatement node, object? arg) => new TreeDumperNode("gotoStatement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("label", node.Label, null),
             new TreeDumperNode("caseExpressionOpt", null, new TreeDumperNode[] { Visit(node.CaseExpressionOpt, null) }),
-            new TreeDumperNode("labelExpressionOpt", null, new TreeDumperNode[] { Visit(node.LabelExpressionOpt, null) })
+            new TreeDumperNode("labelExpressionOpt", null, new TreeDumperNode[] { Visit(node.LabelExpressionOpt, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLabeledStatement(BoundLabeledStatement node, object? arg) => new TreeDumperNode("labeledStatement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("label", node.Label, null),
-            new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) })
+            new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLabel(BoundLabel node, object? arg) => new TreeDumperNode("label", null, new TreeDumperNode[]
         {
             new TreeDumperNode("label", node.Label, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitStatementList(BoundStatementList node, object? arg) => new TreeDumperNode("statementList", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null))
+            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null)),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitConditionalGoto(BoundConditionalGoto node, object? arg) => new TreeDumperNode("conditionalGoto", null, new TreeDumperNode[]
         {
             new TreeDumperNode("condition", null, new TreeDumperNode[] { Visit(node.Condition, null) }),
             new TreeDumperNode("jumpIfTrue", node.JumpIfTrue, null),
-            new TreeDumperNode("label", node.Label, null)
-        }
-        );
-        public override TreeDumperNode VisitSwitchExpression(BoundSwitchExpression node, object? arg) => new TreeDumperNode("switchExpression", null, new TreeDumperNode[]
-        {
-            new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
-            new TreeDumperNode("switchArms", null, from x in node.SwitchArms select Visit(x, null)),
-            new TreeDumperNode("decisionDag", null, new TreeDumperNode[] { Visit(node.DecisionDag, null) }),
-            new TreeDumperNode("defaultLabel", node.DefaultLabel, null),
-            new TreeDumperNode("reportedNotExhaustive", node.ReportedNotExhaustive, null),
-            new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("label", node.Label, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSwitchExpressionArm(BoundSwitchExpressionArm node, object? arg) => new TreeDumperNode("switchExpressionArm", null, new TreeDumperNode[]
@@ -13247,25 +12620,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("pattern", null, new TreeDumperNode[] { Visit(node.Pattern, null) }),
             new TreeDumperNode("whenClause", null, new TreeDumperNode[] { Visit(node.WhenClause, null) }),
             new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
-            new TreeDumperNode("label", node.Label, null)
+            new TreeDumperNode("label", node.Label, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node, object? arg) => new TreeDumperNode("unconvertedSwitchExpression", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
+            new TreeDumperNode("switchArms", null, from x in node.SwitchArms select Visit(x, null)),
+            new TreeDumperNode("decisionDag", null, new TreeDumperNode[] { Visit(node.DecisionDag, null) }),
+            new TreeDumperNode("defaultLabel", node.DefaultLabel, null),
+            new TreeDumperNode("reportedNotExhaustive", node.ReportedNotExhaustive, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node, object? arg) => new TreeDumperNode("convertedSwitchExpression", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("naturalTypeOpt", node.NaturalTypeOpt, null),
+            new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
+            new TreeDumperNode("switchArms", null, from x in node.SwitchArms select Visit(x, null)),
+            new TreeDumperNode("decisionDag", null, new TreeDumperNode[] { Visit(node.DecisionDag, null) }),
+            new TreeDumperNode("defaultLabel", node.DefaultLabel, null),
+            new TreeDumperNode("reportedNotExhaustive", node.ReportedNotExhaustive, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDecisionDag(BoundDecisionDag node, object? arg) => new TreeDumperNode("decisionDag", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("rootNode", node.RootNode, null)
+            new TreeDumperNode("rootNode", node.RootNode, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitEvaluationDecisionDagNode(BoundEvaluationDecisionDagNode node, object? arg) => new TreeDumperNode("evaluationDecisionDagNode", null, new TreeDumperNode[]
         {
             new TreeDumperNode("evaluation", null, new TreeDumperNode[] { Visit(node.Evaluation, null) }),
-            new TreeDumperNode("next", null, new TreeDumperNode[] { Visit(node.Next, null) })
+            new TreeDumperNode("next", null, new TreeDumperNode[] { Visit(node.Next, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitTestDecisionDagNode(BoundTestDecisionDagNode node, object? arg) => new TreeDumperNode("testDecisionDagNode", null, new TreeDumperNode[]
         {
             new TreeDumperNode("test", null, new TreeDumperNode[] { Visit(node.Test, null) }),
             new TreeDumperNode("whenTrue", null, new TreeDumperNode[] { Visit(node.WhenTrue, null) }),
-            new TreeDumperNode("whenFalse", null, new TreeDumperNode[] { Visit(node.WhenFalse, null) })
+            new TreeDumperNode("whenFalse", null, new TreeDumperNode[] { Visit(node.WhenFalse, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitWhenDecisionDagNode(BoundWhenDecisionDagNode node, object? arg) => new TreeDumperNode("whenDecisionDagNode", null, new TreeDumperNode[]
@@ -13273,93 +12675,108 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("bindings", node.Bindings, null),
             new TreeDumperNode("whenExpression", null, new TreeDumperNode[] { Visit(node.WhenExpression, null) }),
             new TreeDumperNode("whenTrue", null, new TreeDumperNode[] { Visit(node.WhenTrue, null) }),
-            new TreeDumperNode("whenFalse", null, new TreeDumperNode[] { Visit(node.WhenFalse, null) })
+            new TreeDumperNode("whenFalse", null, new TreeDumperNode[] { Visit(node.WhenFalse, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLeafDecisionDagNode(BoundLeafDecisionDagNode node, object? arg) => new TreeDumperNode("leafDecisionDagNode", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("label", node.Label, null)
+            new TreeDumperNode("label", node.Label, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDagTemp(BoundDagTemp node, object? arg) => new TreeDumperNode("dagTemp", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("source", null, new TreeDumperNode[] { Visit(node.Source, null) }),
-            new TreeDumperNode("index", node.Index, null)
+            new TreeDumperNode("index", node.Index, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDagTypeTest(BoundDagTypeTest node, object? arg) => new TreeDumperNode("dagTypeTest", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) })
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDagNonNullTest(BoundDagNonNullTest node, object? arg) => new TreeDumperNode("dagNonNullTest", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) })
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDagExplicitNullTest(BoundDagExplicitNullTest node, object? arg) => new TreeDumperNode("dagExplicitNullTest", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) })
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDagValueTest(BoundDagValueTest node, object? arg) => new TreeDumperNode("dagValueTest", null, new TreeDumperNode[]
         {
             new TreeDumperNode("value", node.Value, null),
-            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) })
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDagDeconstructEvaluation(BoundDagDeconstructEvaluation node, object? arg) => new TreeDumperNode("dagDeconstructEvaluation", null, new TreeDumperNode[]
         {
             new TreeDumperNode("deconstructMethod", node.DeconstructMethod, null),
-            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) })
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDagTypeEvaluation(BoundDagTypeEvaluation node, object? arg) => new TreeDumperNode("dagTypeEvaluation", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) })
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDagFieldEvaluation(BoundDagFieldEvaluation node, object? arg) => new TreeDumperNode("dagFieldEvaluation", null, new TreeDumperNode[]
         {
             new TreeDumperNode("field", node.Field, null),
-            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) })
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDagPropertyEvaluation(BoundDagPropertyEvaluation node, object? arg) => new TreeDumperNode("dagPropertyEvaluation", null, new TreeDumperNode[]
         {
             new TreeDumperNode("property", node.Property, null),
-            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) })
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDagIndexEvaluation(BoundDagIndexEvaluation node, object? arg) => new TreeDumperNode("dagIndexEvaluation", null, new TreeDumperNode[]
         {
             new TreeDumperNode("property", node.Property, null),
             new TreeDumperNode("index", node.Index, null),
-            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) })
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSwitchSection(BoundSwitchSection node, object? arg) => new TreeDumperNode("switchSection", null, new TreeDumperNode[]
         {
             new TreeDumperNode("locals", node.Locals, null),
             new TreeDumperNode("switchLabels", null, from x in node.SwitchLabels select Visit(x, null)),
-            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null))
+            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null)),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSwitchLabel(BoundSwitchLabel node, object? arg) => new TreeDumperNode("switchLabel", null, new TreeDumperNode[]
         {
             new TreeDumperNode("label", node.Label, null),
             new TreeDumperNode("pattern", null, new TreeDumperNode[] { Visit(node.Pattern, null) }),
-            new TreeDumperNode("whenClause", null, new TreeDumperNode[] { Visit(node.WhenClause, null) })
+            new TreeDumperNode("whenClause", null, new TreeDumperNode[] { Visit(node.WhenClause, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSequencePointExpression(BoundSequencePointExpression node, object? arg) => new TreeDumperNode("sequencePointExpression", null, new TreeDumperNode[]
         {
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSequence(BoundSequence node, object? arg) => new TreeDumperNode("sequence", null, new TreeDumperNode[]
@@ -13368,7 +12785,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("sideEffects", null, from x in node.SideEffects select Visit(x, null)),
             new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSpillSequence(BoundSpillSequence node, object? arg) => new TreeDumperNode("spillSequence", null, new TreeDumperNode[]
@@ -13377,7 +12795,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("sideEffects", null, from x in node.SideEffects select Visit(x, null)),
             new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDynamicMemberAccess(BoundDynamicMemberAccess node, object? arg) => new TreeDumperNode("dynamicMemberAccess", null, new TreeDumperNode[]
@@ -13388,7 +12807,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("invoked", node.Invoked, null),
             new TreeDumperNode("indexed", node.Indexed, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDynamicInvocation(BoundDynamicInvocation node, object? arg) => new TreeDumperNode("dynamicInvocation", null, new TreeDumperNode[]
@@ -13399,7 +12819,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitConditionalAccess(BoundConditionalAccess node, object? arg) => new TreeDumperNode("conditionalAccess", null, new TreeDumperNode[]
@@ -13407,7 +12828,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("receiver", null, new TreeDumperNode[] { Visit(node.Receiver, null) }),
             new TreeDumperNode("accessExpression", null, new TreeDumperNode[] { Visit(node.AccessExpression, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node, object? arg) => new TreeDumperNode("loweredConditionalAccess", null, new TreeDumperNode[]
@@ -13418,14 +12840,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("whenNullOpt", null, new TreeDumperNode[] { Visit(node.WhenNullOpt, null) }),
             new TreeDumperNode("id", node.Id, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitConditionalReceiver(BoundConditionalReceiver node, object? arg) => new TreeDumperNode("conditionalReceiver", null, new TreeDumperNode[]
         {
             new TreeDumperNode("id", node.Id, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node, object? arg) => new TreeDumperNode("complexConditionalReceiver", null, new TreeDumperNode[]
@@ -13433,7 +12857,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("valueTypeReceiver", null, new TreeDumperNode[] { Visit(node.ValueTypeReceiver, null) }),
             new TreeDumperNode("referenceTypeReceiver", null, new TreeDumperNode[] { Visit(node.ReferenceTypeReceiver, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitMethodGroup(BoundMethodGroup node, object? arg) => new TreeDumperNode("methodGroup", null, new TreeDumperNode[]
@@ -13447,7 +12872,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("receiverOpt", null, new TreeDumperNode[] { Visit(node.ReceiverOpt, null) }),
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitPropertyGroup(BoundPropertyGroup node, object? arg) => new TreeDumperNode("propertyGroup", null, new TreeDumperNode[]
@@ -13456,7 +12882,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("receiverOpt", null, new TreeDumperNode[] { Visit(node.ReceiverOpt, null) }),
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitCall(BoundCall node, object? arg) => new TreeDumperNode("call", null, new TreeDumperNode[]
@@ -13473,7 +12900,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("binderOpt", node.BinderOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node, object? arg) => new TreeDumperNode("eventAssignmentOperator", null, new TreeDumperNode[]
@@ -13484,7 +12912,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("receiverOpt", null, new TreeDumperNode[] { Visit(node.ReceiverOpt, null) }),
             new TreeDumperNode("argument", null, new TreeDumperNode[] { Visit(node.Argument, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitAttribute(BoundAttribute node, object? arg) => new TreeDumperNode("attribute", null, new TreeDumperNode[]
@@ -13497,7 +12926,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("namedArguments", null, from x in node.NamedArguments select Visit(x, null)),
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitObjectCreationExpression(BoundObjectCreationExpression node, object? arg) => new TreeDumperNode("objectCreationExpression", null, new TreeDumperNode[]
@@ -13513,24 +12943,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("initializerExpressionOpt", null, new TreeDumperNode[] { Visit(node.InitializerExpressionOpt, null) }),
             new TreeDumperNode("binderOpt", node.BinderOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitTupleLiteral(BoundTupleLiteral node, object? arg) => new TreeDumperNode("tupleLiteral", null, new TreeDumperNode[]
         {
+            new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
             new TreeDumperNode("argumentNamesOpt", node.ArgumentNamesOpt, null),
             new TreeDumperNode("inferredNamesOpt", node.InferredNamesOpt, null),
-            new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node, object? arg) => new TreeDumperNode("convertedTupleLiteral", null, new TreeDumperNode[]
         {
             new TreeDumperNode("sourceTuple", null, new TreeDumperNode[] { Visit(node.SourceTuple, null) }),
             new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
+            new TreeDumperNode("argumentNamesOpt", node.ArgumentNamesOpt, null),
+            new TreeDumperNode("inferredNamesOpt", node.InferredNamesOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node, object? arg) => new TreeDumperNode("dynamicObjectCreationExpression", null, new TreeDumperNode[]
@@ -13542,7 +12977,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("initializerExpressionOpt", null, new TreeDumperNode[] { Visit(node.InitializerExpressionOpt, null) }),
             new TreeDumperNode("applicableMethods", node.ApplicableMethods, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node, object? arg) => new TreeDumperNode("noPiaObjectCreationExpression", null, new TreeDumperNode[]
@@ -13550,14 +12986,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("guidString", node.GuidString, null),
             new TreeDumperNode("initializerExpressionOpt", null, new TreeDumperNode[] { Visit(node.InitializerExpressionOpt, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitObjectInitializerExpression(BoundObjectInitializerExpression node, object? arg) => new TreeDumperNode("objectInitializerExpression", null, new TreeDumperNode[]
         {
             new TreeDumperNode("initializers", null, from x in node.Initializers select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitObjectInitializerMember(BoundObjectInitializerMember node, object? arg) => new TreeDumperNode("objectInitializerMember", null, new TreeDumperNode[]
@@ -13572,7 +13010,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("receiverType", node.ReceiverType, null),
             new TreeDumperNode("binderOpt", node.BinderOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDynamicObjectInitializerMember(BoundDynamicObjectInitializerMember node, object? arg) => new TreeDumperNode("dynamicObjectInitializerMember", null, new TreeDumperNode[]
@@ -13580,14 +13019,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("memberName", node.MemberName, null),
             new TreeDumperNode("receiverType", node.ReceiverType, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitCollectionInitializerExpression(BoundCollectionInitializerExpression node, object? arg) => new TreeDumperNode("collectionInitializerExpression", null, new TreeDumperNode[]
         {
             new TreeDumperNode("initializers", null, from x in node.Initializers select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitCollectionElementInitializer(BoundCollectionElementInitializer node, object? arg) => new TreeDumperNode("collectionElementInitializer", null, new TreeDumperNode[]
@@ -13601,7 +13042,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("binderOpt", node.BinderOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDynamicCollectionElementInitializer(BoundDynamicCollectionElementInitializer node, object? arg) => new TreeDumperNode("dynamicCollectionElementInitializer", null, new TreeDumperNode[]
@@ -13610,13 +13052,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitImplicitReceiver(BoundImplicitReceiver node, object? arg) => new TreeDumperNode("implicitReceiver", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitAnonymousObjectCreationExpression(BoundAnonymousObjectCreationExpression node, object? arg) => new TreeDumperNode("anonymousObjectCreationExpression", null, new TreeDumperNode[]
@@ -13625,21 +13069,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
             new TreeDumperNode("declarations", null, from x in node.Declarations select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitAnonymousPropertyDeclaration(BoundAnonymousPropertyDeclaration node, object? arg) => new TreeDumperNode("anonymousPropertyDeclaration", null, new TreeDumperNode[]
         {
             new TreeDumperNode("property", node.Property, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitNewT(BoundNewT node, object? arg) => new TreeDumperNode("newT", null, new TreeDumperNode[]
         {
             new TreeDumperNode("initializerExpressionOpt", null, new TreeDumperNode[] { Visit(node.InitializerExpressionOpt, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node, object? arg) => new TreeDumperNode("delegateCreationExpression", null, new TreeDumperNode[]
@@ -13648,7 +13095,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("methodOpt", node.MethodOpt, null),
             new TreeDumperNode("isExtensionMethod", node.IsExtensionMethod, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitArrayCreation(BoundArrayCreation node, object? arg) => new TreeDumperNode("arrayCreation", null, new TreeDumperNode[]
@@ -13656,14 +13104,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("bounds", null, from x in node.Bounds select Visit(x, null)),
             new TreeDumperNode("initializerOpt", null, new TreeDumperNode[] { Visit(node.InitializerOpt, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitArrayInitialization(BoundArrayInitialization node, object? arg) => new TreeDumperNode("arrayInitialization", null, new TreeDumperNode[]
         {
             new TreeDumperNode("initializers", null, from x in node.Initializers select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node, object? arg) => new TreeDumperNode("stackAllocArrayCreation", null, new TreeDumperNode[]
@@ -13672,7 +13122,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("count", null, new TreeDumperNode[] { Visit(node.Count, null) }),
             new TreeDumperNode("initializerOpt", null, new TreeDumperNode[] { Visit(node.InitializerOpt, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node, object? arg) => new TreeDumperNode("convertedStackAllocExpression", null, new TreeDumperNode[]
@@ -13681,7 +13132,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("count", null, new TreeDumperNode[] { Visit(node.Count, null) }),
             new TreeDumperNode("initializerOpt", null, new TreeDumperNode[] { Visit(node.InitializerOpt, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitFieldAccess(BoundFieldAccess node, object? arg) => new TreeDumperNode("fieldAccess", null, new TreeDumperNode[]
@@ -13693,14 +13145,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("isByValue", node.IsByValue, null),
             new TreeDumperNode("isDeclaration", node.IsDeclaration, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitHoistedFieldAccess(BoundHoistedFieldAccess node, object? arg) => new TreeDumperNode("hoistedFieldAccess", null, new TreeDumperNode[]
         {
             new TreeDumperNode("fieldSymbol", node.FieldSymbol, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitPropertyAccess(BoundPropertyAccess node, object? arg) => new TreeDumperNode("propertyAccess", null, new TreeDumperNode[]
@@ -13709,7 +13163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("propertySymbol", node.PropertySymbol, null),
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitEventAccess(BoundEventAccess node, object? arg) => new TreeDumperNode("eventAccess", null, new TreeDumperNode[]
@@ -13719,7 +13174,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("isUsableAsField", node.IsUsableAsField, null),
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitIndexerAccess(BoundIndexerAccess node, object? arg) => new TreeDumperNode("indexerAccess", null, new TreeDumperNode[]
@@ -13734,7 +13190,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("binderOpt", node.BinderOpt, null),
             new TreeDumperNode("useSetterForDefaultArgumentGeneration", node.UseSetterForDefaultArgumentGeneration, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node, object? arg) => new TreeDumperNode("indexOrRangePatternIndexerAccess", null, new TreeDumperNode[]
@@ -13744,7 +13201,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("patternSymbol", node.PatternSymbol, null),
             new TreeDumperNode("argument", null, new TreeDumperNode[] { Visit(node.Argument, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node, object? arg) => new TreeDumperNode("dynamicIndexerAccess", null, new TreeDumperNode[]
@@ -13755,7 +13213,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("argumentRefKindsOpt", node.ArgumentRefKindsOpt, null),
             new TreeDumperNode("applicableIndexers", node.ApplicableIndexers, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitLambda(BoundLambda node, object? arg) => new TreeDumperNode("lambda", null, new TreeDumperNode[]
@@ -13766,14 +13225,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("diagnostics", node.Diagnostics, null),
             new TreeDumperNode("binder", node.Binder, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitUnboundLambda(UnboundLambda node, object? arg) => new TreeDumperNode("unboundLambda", null, new TreeDumperNode[]
         {
             new TreeDumperNode("data", node.Data, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitQueryClause(BoundQueryClause node, object? arg) => new TreeDumperNode("queryClause", null, new TreeDumperNode[]
@@ -13782,12 +13243,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("definedSymbol", node.DefinedSymbol, null),
             new TreeDumperNode("binder", node.Binder, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitTypeOrInstanceInitializers(BoundTypeOrInstanceInitializers node, object? arg) => new TreeDumperNode("typeOrInstanceInitializers", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null))
+            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null)),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitNameOfOperator(BoundNameOfOperator node, object? arg) => new TreeDumperNode("nameOfOperator", null, new TreeDumperNode[]
@@ -13795,14 +13258,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("argument", null, new TreeDumperNode[] { Visit(node.Argument, null) }),
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitInterpolatedString(BoundInterpolatedString node, object? arg) => new TreeDumperNode("interpolatedString", null, new TreeDumperNode[]
         {
             new TreeDumperNode("parts", null, from x in node.Parts select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitStringInsert(BoundStringInsert node, object? arg) => new TreeDumperNode("stringInsert", null, new TreeDumperNode[]
@@ -13811,7 +13276,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("alignment", null, new TreeDumperNode[] { Visit(node.Alignment, null) }),
             new TreeDumperNode("format", null, new TreeDumperNode[] { Visit(node.Format, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitIsPatternExpression(BoundIsPatternExpression node, object? arg) => new TreeDumperNode("isPatternExpression", null, new TreeDumperNode[]
@@ -13822,19 +13288,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("whenTrueLabel", node.WhenTrueLabel, null),
             new TreeDumperNode("whenFalseLabel", node.WhenFalseLabel, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitConstantPattern(BoundConstantPattern node, object? arg) => new TreeDumperNode("constantPattern", null, new TreeDumperNode[]
         {
             new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
             new TreeDumperNode("constantValue", node.ConstantValue, null),
-            new TreeDumperNode("inputType", node.InputType, null)
+            new TreeDumperNode("inputType", node.InputType, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDiscardPattern(BoundDiscardPattern node, object? arg) => new TreeDumperNode("discardPattern", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("inputType", node.InputType, null)
+            new TreeDumperNode("inputType", node.InputType, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDeclarationPattern(BoundDeclarationPattern node, object? arg) => new TreeDumperNode("declarationPattern", null, new TreeDumperNode[]
@@ -13843,7 +13312,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("variableAccess", null, new TreeDumperNode[] { Visit(node.VariableAccess, null) }),
             new TreeDumperNode("declaredType", null, new TreeDumperNode[] { Visit(node.DeclaredType, null) }),
             new TreeDumperNode("isVar", node.IsVar, null),
-            new TreeDumperNode("inputType", node.InputType, null)
+            new TreeDumperNode("inputType", node.InputType, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitRecursivePattern(BoundRecursivePattern node, object? arg) => new TreeDumperNode("recursivePattern", null, new TreeDumperNode[]
@@ -13854,7 +13324,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("properties", null, node.Properties.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.Properties select Visit(x, null)),
             new TreeDumperNode("variable", node.Variable, null),
             new TreeDumperNode("variableAccess", null, new TreeDumperNode[] { Visit(node.VariableAccess, null) }),
-            new TreeDumperNode("inputType", node.InputType, null)
+            new TreeDumperNode("inputType", node.InputType, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitITuplePattern(BoundITuplePattern node, object? arg) => new TreeDumperNode("iTuplePattern", null, new TreeDumperNode[]
@@ -13862,26 +13333,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("getLengthMethod", node.GetLengthMethod, null),
             new TreeDumperNode("getItemMethod", node.GetItemMethod, null),
             new TreeDumperNode("subpatterns", null, from x in node.Subpatterns select Visit(x, null)),
-            new TreeDumperNode("inputType", node.InputType, null)
+            new TreeDumperNode("inputType", node.InputType, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitSubpattern(BoundSubpattern node, object? arg) => new TreeDumperNode("subpattern", null, new TreeDumperNode[]
         {
             new TreeDumperNode("symbol", node.Symbol, null),
-            new TreeDumperNode("pattern", null, new TreeDumperNode[] { Visit(node.Pattern, null) })
+            new TreeDumperNode("pattern", null, new TreeDumperNode[] { Visit(node.Pattern, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDiscardExpression(BoundDiscardExpression node, object? arg) => new TreeDumperNode("discardExpression", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitThrowExpression(BoundThrowExpression node, object? arg) => new TreeDumperNode("throwExpression", null, new TreeDumperNode[]
         {
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitOutVariablePendingInference(OutVariablePendingInference node, object? arg) => new TreeDumperNode("outVariablePendingInference", null, new TreeDumperNode[]
@@ -13889,7 +13364,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("variableSymbol", node.VariableSymbol, null),
             new TreeDumperNode("receiverOpt", null, new TreeDumperNode[] { Visit(node.ReceiverOpt, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDeconstructionVariablePendingInference(DeconstructionVariablePendingInference node, object? arg) => new TreeDumperNode("deconstructionVariablePendingInference", null, new TreeDumperNode[]
@@ -13897,19 +13373,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("variableSymbol", node.VariableSymbol, null),
             new TreeDumperNode("receiverOpt", null, new TreeDumperNode[] { Visit(node.ReceiverOpt, null) }),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node, object? arg) => new TreeDumperNode("outDeconstructVarPendingInference", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node, object? arg) => new TreeDumperNode("nonConstructorMethodBody", null, new TreeDumperNode[]
         {
             new TreeDumperNode("blockBody", null, new TreeDumperNode[] { Visit(node.BlockBody, null) }),
-            new TreeDumperNode("expressionBody", null, new TreeDumperNode[] { Visit(node.ExpressionBody, null) })
+            new TreeDumperNode("expressionBody", null, new TreeDumperNode[] { Visit(node.ExpressionBody, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitConstructorMethodBody(BoundConstructorMethodBody node, object? arg) => new TreeDumperNode("constructorMethodBody", null, new TreeDumperNode[]
@@ -13917,7 +13396,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("locals", node.Locals, null),
             new TreeDumperNode("initializer", null, new TreeDumperNode[] { Visit(node.Initializer, null) }),
             new TreeDumperNode("blockBody", null, new TreeDumperNode[] { Visit(node.BlockBody, null) }),
-            new TreeDumperNode("expressionBody", null, new TreeDumperNode[] { Visit(node.ExpressionBody, null) })
+            new TreeDumperNode("expressionBody", null, new TreeDumperNode[] { Visit(node.ExpressionBody, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitExpressionWithNullability(BoundExpressionWithNullability node, object? arg) => new TreeDumperNode("expressionWithNullability", null, new TreeDumperNode[]
@@ -13925,7 +13405,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("nullableAnnotation", node.NullableAnnotation, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
     }

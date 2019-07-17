@@ -758,6 +758,11 @@
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
+      <trans-unit id="IDS_DefaultInterfaceImplementation">
+        <source>default interface implementation</source>
+        <target state="new">default interface implementation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_Disposable">
         <source>disposable</source>
         <target state="translated">supprimable(s)</target>
@@ -876,6 +881,11 @@
       <trans-unit id="IDS_FeatureStaticLocalFunctions">
         <source>static local functions</source>
         <target state="translated">fonctions locales statiques</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSwitchExpression">
+        <source>&lt;switch expression&gt;</source>
+        <target state="new">&lt;switch expression&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -9687,11 +9697,6 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
         <source>Interfaces cannot contain conversion, equality, or inequality operators</source>
         <target state="translated">Les interfaces ne peuvent pas contenir d'opérateurs de conversion, d'égalité ou d'inégalité</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_DefaultInterfaceImplementation">
-        <source>default interface implementation</source>
-        <target state="translated">implémentation d'interface par défaut</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">

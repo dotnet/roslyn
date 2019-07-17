@@ -49,7 +49,7 @@
     <MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion>
     <MicrosoftCodeAnalysisCSharpCodeStyleVersion>$(CodeStyleAnalyzerVersion)</MicrosoftCodeAnalysisCSharpCodeStyleVersion>
     <MicrosoftCodeAnalysisElfieVersion>0.10.6</MicrosoftCodeAnalysisElfieVersion>
-    <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.17</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
+    <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.18</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>$(CodeStyleAnalyzerVersion)</MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>
     <MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>2.9.4-beta1.19321.5+ffe2b1b5</MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>
@@ -110,7 +110,7 @@
     <MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>16.2.1078</MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>
     <MicrosoftVisualStudioLanguageStandardClassificationVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioLanguageStandardClassificationVersion>
     <MicrosoftVisualStudioLiveShareLanguageServicesVersion>1.0.181</MicrosoftVisualStudioLiveShareLanguageServicesVersion>
-    <MicrosoftVisualStudioLiveShareWebEditorsVersion>2.2.0-preview1-t001</MicrosoftVisualStudioLiveShareWebEditorsVersion> 
+    <MicrosoftVisualStudioLiveShareWebEditorsVersion>2.2.0-preview1-t001</MicrosoftVisualStudioLiveShareWebEditorsVersion>
     <MicrosoftVisualStudioOLEInteropVersion>7.10.6071</MicrosoftVisualStudioOLEInteropVersion>
     <MicrosoftVisualStudioPlatformVSEditorVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioPlatformVSEditorVersion>
     <MicrosoftVisualStudioProgressionCodeSchemaVersion>15.8.27812-alpha</MicrosoftVisualStudioProgressionCodeSchemaVersion>
