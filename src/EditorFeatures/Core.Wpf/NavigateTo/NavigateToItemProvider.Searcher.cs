@@ -65,25 +65,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 try
                 {
-                    using (var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), _cancellationToken))
-                    using (var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search"))
+                    using var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), _cancellationToken);
+                    using var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search");
+                    _progress.AddItems(_solution.Projects.Count());
+
+                    var workspace = _solution.Workspace;
+
+                    // If the workspace is tracking documents, use that to prioritize our search
+                    // order.  That way we provide results for the documents the user is working
+                    // on faster than the rest of the solution.
+                    var docTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
+                    if (docTrackingService != null)
                     {
-                        _progress.AddItems(_solution.Projects.Count());
-
-                        var workspace = _solution.Workspace;
-
-                        // If the workspace is tracking documents, use that to prioritize our search
-                        // order.  That way we provide results for the documents the user is working
-                        // on faster than the rest of the solution.
-                        var docTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
-                        if (docTrackingService != null)
-                        {
-                            await SearchProjectsInPriorityOrder(docTrackingService).ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            await SearchAllProjectsAsync().ConfigureAwait(false);
-                        }
+                        await SearchProjectsInPriorityOrder(docTrackingService).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await SearchAllProjectsAsync().ConfigureAwait(false);
                     }
                 }
                 catch (OperationCanceledException)
