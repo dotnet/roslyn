@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 return;
             }
 
-             var position = textSpan.Start;
+            var position = textSpan.Start;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var node = root.FindToken(position).Parent;
             if (node == null)
