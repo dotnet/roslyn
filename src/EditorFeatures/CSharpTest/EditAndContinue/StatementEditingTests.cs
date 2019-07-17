@@ -6822,7 +6822,7 @@ interface I
             var src1 = @"class Test { void M() { int local() { throw null; } } }";
             var src2 = @"class Test { void M() { static int local() { throw null; } } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [void M() { int local() { throw null; } }]@13 -> [void M() { static int local() { throw null; } }]@13");
@@ -6836,7 +6836,7 @@ interface I
             var src1 = @"class Test { void M() { static int local() { throw null; } } }";
             var src2 = @"class Test { void M() { int local() { throw null; } } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [void M() { static int local() { throw null; } }]@13 -> [void M() { int local() { throw null; } }]@13");
@@ -6850,7 +6850,7 @@ interface I
             var src1 = @"class Test { void M() { int local() { throw null; } } }";
             var src2 = @"class Test { void M() { unsafe int local() { throw null; } } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [void M() { int local() { throw null; } }]@13 -> [void M() { unsafe int local() { throw null; } }]@13");
@@ -6864,7 +6864,7 @@ interface I
             var src1 = @"class Test { void M() { unsafe int local() { throw null; } } }";
             var src2 = @"class Test { void M() { int local() { throw null; } } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [void M() { unsafe int local() { throw null; } }]@13 -> [void M() { int local() { throw null; } }]@13");
@@ -6878,7 +6878,7 @@ interface I
             var src1 = @"class Test { void M() { int local() { throw null; } } }";
             var src2 = @"class Test { void M() { async int local() { throw null; } } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [void M() { int local() { throw null; } }]@13 -> [void M() { async int local() { throw null; } }]@13");
@@ -6893,7 +6893,7 @@ interface I
             var src1 = @"class Test { void M() { async int local() { throw null; } } }";
             var src2 = @"class Test { void M() { int local() { throw null; } } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [void M() { async int local() { throw null; } }]@13 -> [void M() { int local() { throw null; } }]@13");
@@ -8499,7 +8499,7 @@ class C
     }
 }
 ";
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetTopEdits(src1, src2);
 
             // consider: these edits can be allowed if we get more sophisticated
             edits.VerifyRudeDiagnostics(
@@ -9042,7 +9042,7 @@ if (o7 is var (g, e, f)) return;
 if (o3 is (string k, int l2, int m)) return;
 ";
 
-            var edits = GetMethodEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [if (o is (var x, var y)) return;]@4 -> [if (o is (int x, int y1)) return;]@4",
@@ -9070,7 +9070,7 @@ _ => 4
 };
 ";
 
-            var edits = GetMethodEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
                 @"Update [r = (x, y, z) switch {
@@ -9103,7 +9103,7 @@ _ => 4
 };
 ";
 
-            var edits = GetMethodEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
                 @"Update [r = (x, y, z) switch {
@@ -9140,7 +9140,7 @@ _ => 4
 };
 ";
 
-            var edits = GetMethodEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
                 @"Update [r = (x, y, z) switch {
@@ -9175,7 +9175,7 @@ if (obj is { Size: Size.M }) return 2;
 if (o is string { Length: 7 } s7) return 5;
 ";
 
-            var edits = GetMethodEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [if (address is { State: \"WA\" }) return 1;]@4 -> [if (address is { ZipCode: 98052 }) return 4;]@4",
@@ -9213,7 +9213,7 @@ if (o is string { Length: 7 } s7) return 5;
 };
 ";
 
-            var edits = GetMethodEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
                 @"Update [r = obj switch
