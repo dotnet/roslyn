@@ -23,8 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                 return string.Empty;
             }
 
-            var aggregatableProject = vsWorkspace.GetHierarchy(projectId) as IVsAggregatableProject;
-            if (aggregatableProject == null)
+            if (!(vsWorkspace.GetHierarchy(projectId) is IVsAggregatableProject aggregatableProject))
             {
                 return string.Empty;
             }

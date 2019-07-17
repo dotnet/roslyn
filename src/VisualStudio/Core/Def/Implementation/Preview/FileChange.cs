@@ -252,9 +252,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         {
             var textDiffCount = diffResult.Differences.Count;
 
-            var leftDocument = left as Document;
-            var rightDocument = right as Document;
-            if (leftDocument == null || rightDocument == null)
+            if (!(left is Document leftDocument) ||
+                !(right is Document rightDocument))
             {
                 return false;
             }

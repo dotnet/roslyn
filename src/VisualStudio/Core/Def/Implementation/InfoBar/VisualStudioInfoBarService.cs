@@ -69,11 +69,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             if (activeView)
             {
-                var monitorSelectionService = _serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
-
                 // We want to get whichever window is currently in focus (including toolbars) as we could have had an exception thrown from the error list
                 // or interactive window
-                if (monitorSelectionService == null ||
+                if (!(_serviceProvider.GetService(typeof(SVsShellMonitorSelection)) is IVsMonitorSelection monitorSelectionService) ||
                     ErrorHandler.Failed(monitorSelectionService.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, out var value)))
                 {
                     return false;

@@ -1227,19 +1227,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string GetPreferredExtension(DocumentId documentId, SourceCodeKind sourceCodeKind)
         {
             // No extension was provided.  Pick a good one based on the type of host project.
-            switch (CurrentSolution.GetProject(documentId.ProjectId).Language)
+            return CurrentSolution.GetProject(documentId.ProjectId).Language switch
             {
-                case LanguageNames.CSharp:
-                    // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
-                    //return sourceCodeKind == SourceCodeKind.Regular ? ".cs" : ".csx";
-                    return ".cs";
-                case LanguageNames.VisualBasic:
-                    // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
-                    //return sourceCodeKind == SourceCodeKind.Regular ? ".vb" : ".vbx";
-                    return ".vb";
-                default:
-                    throw new InvalidOperationException();
-            }
+                // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
+                //return sourceCodeKind == SourceCodeKind.Regular ? ".cs" : ".csx";
+                LanguageNames.CSharp => ".cs",
+
+                // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
+                //return sourceCodeKind == SourceCodeKind.Regular ? ".vb" : ".vbx";
+                LanguageNames.VisualBasic => ".vb",
+                _ => throw new InvalidOperationException(),
+            };
         }
 
         public override IVsHierarchy GetHierarchy(ProjectId projectId)

@@ -51,8 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public AbstractFormattingRule CreateRule(Document document, int position)
             {
-                var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-                if (visualStudioWorkspace == null)
+                if (!(document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
                 {
                     return NoOpFormattingRule.Instance;
                 }
@@ -112,8 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public IEnumerable<TextChange> FilterFormattedChanges(Document document, TextSpan span, IList<TextChange> changes)
             {
-                var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-                if (visualStudioWorkspace == null)
+                if (!(document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
                 {
                     return changes;
                 }

@@ -176,14 +176,12 @@ namespace Roslyn.Utilities
                 return genericCollection.Count == 0;
             }
 
-            var collection = source as ICollection;
-            if (collection != null)
+            if (source is ICollection collection)
             {
                 return collection.Count == 0;
             }
 
-            var str = source as string;
-            if (str != null)
+            if (source is string str)
             {
                 return str.Length == 0;
             }
@@ -465,8 +463,7 @@ namespace Roslyn.Utilities
                 return default;
             }
 
-            IList<TSource> list = source as IList<TSource>;
-            if (list != null)
+            if (source is IList<TSource> list)
             {
                 return (list.Count == 1) ? list[0] : default;
             }

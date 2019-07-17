@@ -660,15 +660,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
 
             public override bool Equals(object obj)
-            {
-                var other = obj as ArgumentKey;
-                if (other == null)
-                {
-                    return false;
-                }
-
-                return base.Equals(obj);
-            }
+                => obj is ArgumentKey &&
+                   base.Equals(obj);
 
             public override int GetHashCode()
             {

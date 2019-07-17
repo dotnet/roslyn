@@ -379,9 +379,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsNestedQueryExpression(this SyntaxToken token)
         {
-            var fromClause = token.Parent as FromClauseSyntax;
             return token.Kind() == SyntaxKind.InKeyword &&
-                   fromClause != null &&
+                   token.Parent is FromClauseSyntax fromClause &&
                    fromClause.Expression is QueryExpressionSyntax;
         }
 
