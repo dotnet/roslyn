@@ -103,11 +103,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 
         protected override List<string> GetDocumentationCommentStubLines(MemberDeclarationSyntax member)
         {
-            var list = new List<string>();
-
-            list.Add("/// <summary>");
-            list.Add("/// ");
-            list.Add("/// </summary>");
+            var list = new List<string>
+            {
+                "/// <summary>",
+                "/// ",
+                "/// </summary>"
+            };
 
             var typeParameterList = member.GetTypeParameterList();
             if (typeParameterList != null)
