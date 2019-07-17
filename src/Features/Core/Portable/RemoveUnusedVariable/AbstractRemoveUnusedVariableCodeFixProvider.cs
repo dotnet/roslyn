@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
 
         protected abstract SeparatedSyntaxList<SyntaxNode> GetVariables(TLocalDeclarationStatement localDeclarationStatement);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
+
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();

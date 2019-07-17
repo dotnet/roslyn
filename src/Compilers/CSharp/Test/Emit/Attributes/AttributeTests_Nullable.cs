@@ -2566,6 +2566,91 @@ Program
         }
 
         [Fact]
+        [WorkItem(37161, "https://github.com/dotnet/roslyn/issues/37161")]
+        public void EmitPrivateMetadata_ExplicitImplementation()
+        {
+            var source =
+@"public interface I<T>
+{
+    T M(T[] args);
+    T P { get; set; }
+    T[] this[T index] { get; }
+}
+public class C : I<object?>
+{
+    object? I<object?>.M(object?[] args) => throw null!;
+    object? I<object?>.P { get; set; }
+    object?[] I<object?>.this[object? index] => throw null!;
+}";
+            // Attributes emitted for explicitly-implemented property and indexer, but not for accessors.
+            var expectedPublicOnly = @"
+[NullableContext(1)] I<T>
+    [Nullable(2)] T
+    T M(T[]! args)
+        T[]! args
+    T P { get; set; }
+        T P.get
+        void P.set
+            T value
+    T[]! this[T index] { get; }
+        T index
+        T[]! this[T index].get
+            T index
+C
+    [Nullable(2)] System.Object? I<System.Object>.P { get; set; }
+    [Nullable({ 1, 2 })] System.Object?[]! I<System.Object>.Item[System.Object index] { get; }
+";
+            // Attributes emitted for explicitly-implemented property and indexer, but not for accessors.
+            var expectedPublicAndInternal = @"
+[NullableContext(1)] I<T>
+    [Nullable(2)] T
+    T M(T[]! args)
+        T[]! args
+    T P { get; set; }
+        T P.get
+        void P.set
+            T value
+    T[]! this[T index] { get; }
+        T index
+        T[]! this[T index].get
+            T index
+C
+    [Nullable(2)] System.Object? I<System.Object>.P { get; set; }
+    [Nullable({ 1, 2 })] System.Object?[]! I<System.Object>.Item[System.Object index] { get; }
+";
+            var expectedAll = @"
+[NullableContext(1)] I<T>
+    [Nullable(2)] T
+    T M(T[]! args)
+        T[]! args
+    T P { get; set; }
+        T P.get
+        void P.set
+            T value
+    T[]! this[T index] { get; }
+        T index
+        T[]! this[T index].get
+            T index
+[NullableContext(2)] [Nullable(0)] C
+    System.Object? <I<System.Object>.P>k__BackingField
+    System.Object? I<System.Object>.M(System.Object?[]! args)
+        [Nullable({ 1, 2 })] System.Object?[]! args
+    [Nullable({ 1, 2 })] System.Object?[]! I<System.Object>.get_Item(System.Object? index)
+        System.Object? index
+    C()
+    System.Object? I<System.Object>.P { get; set; }
+        System.Object? I<System.Object>.P.get
+        void I<System.Object>.P.set
+            System.Object? value
+    [Nullable({ 1, 2 })] System.Object?[]! I<System.Object>.Item[System.Object? index] { get; }
+        System.Object? index
+    [Nullable({ 1, 2 })] System.Object?[]! I<System.Object>.get_Item(System.Object? index)
+        System.Object? index
+";
+            EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
+        }
+
+        [Fact]
         public void EmitPrivateMetadata_SynthesizedFields()
         {
             var source =
@@ -2749,6 +2834,9 @@ internal class B : I<object>
                 // (10,30): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     private event D<object?> E;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(10, 30),
+                // (10,30): warning CS8618: Non-nullable event 'E' is uninitialized.
+                //     private event D<object?> E;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E").WithArguments("event", "E").WithLocation(10, 30),
                 // (13,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //         object? f(object arg) => arg;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(13, 9),
@@ -2785,6 +2873,9 @@ internal class B : I<object>
                 // (23,29): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     public event D<object?> E;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(23, 29),
+                // (23,29): warning CS8618: Non-nullable event 'E' is uninitialized.
+                //     public event D<object?> E;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E").WithArguments("event", "E").WithLocation(23, 29),
                 // (24,31): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     private (object, object?) F;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(24, 31));
@@ -2805,7 +2896,14 @@ internal class B : I<object>
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object? y").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(9, 36),
                 // (10,30): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     private event D<object?> E;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(10, 30));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(10, 30),
+                // (10,30): warning CS8618: Non-nullable event 'E' is uninitialized.
+                //     private event D<object?> E;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E").WithArguments("event", "E").WithLocation(10, 30),
+                // (23,29): warning CS8618: Non-nullable event 'E' is uninitialized.
+                //     public event D<object?> E;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E").WithArguments("event", "E").WithLocation(23, 29)
+                );
         }
 
         [Fact]

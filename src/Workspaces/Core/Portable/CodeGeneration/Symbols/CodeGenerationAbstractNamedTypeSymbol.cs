@@ -56,6 +56,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 this, typeArguments.ToImmutableArray(), this.TypeMembers);
         }
 
+        public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)
+        {
+            return new CodeGenerationConstructedNamedTypeSymbol(
+                this, typeArguments, this.TypeMembers);
+        }
+
         public abstract int Arity { get; }
         public abstract bool IsGenericType { get; }
         public abstract bool IsUnboundGenericType { get; }
@@ -70,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract ImmutableArray<IMethodSymbol> StaticConstructors { get; }
         public abstract ImmutableArray<IMethodSymbol> Constructors { get; }
         public abstract ImmutableArray<ITypeSymbol> TypeArguments { get; }
-        public abstract ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations { get; }
+        public abstract ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations { get; }
 
         public ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
         {

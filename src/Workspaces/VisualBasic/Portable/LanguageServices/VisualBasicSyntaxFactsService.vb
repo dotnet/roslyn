@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If token.Kind = SyntaxKind.CloseBraceToken Then
                 Dim tuples = token.Parent.GetBraces()
-                openBrace = tuples.Item1
+                openBrace = tuples.openBrace
                 Return openBrace.Kind = SyntaxKind.OpenBraceToken
             End If
 
@@ -1178,7 +1178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return True
                     End If
 
-                    currentId = currentId + 1
+                    currentId += 1
                 End If
             Next
 
@@ -1728,24 +1728,66 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Dim start = If(statement.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart,
-                           statement.SpanStart)
+            Dim start = GetStartOfNodeExcludingAttributes(statement)
             Dim _end = If(statement.TypeParameterList?.GetLastToken().FullSpan.End,
                           statement.Identifier.FullSpan.End)
 
             Return position >= start AndAlso position <= _end
         End Function
 
+        Private Function ISyntaxFactsService_IsInHeader(node As SyntaxNode, ownerOfHeader As SyntaxNode, lastTokenOrNodeOfHeader As SyntaxNodeOrToken) As Boolean Implements ISyntaxFactsService.IsInHeader
+            Return IsInHeader(node, ownerOfHeader, lastTokenOrNodeOfHeader)
+        End Function
+
         Public Function IsInPropertyDeclarationHeader(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInPropertyDeclarationHeader
-            Dim propertyDeclaration = node.GetAncestor(Of PropertyStatementSyntax)()
+            Dim propertyDeclaration = node.GetAncestorOrThis(Of PropertyStatementSyntax)()
 
             If propertyDeclaration Is Nothing Then
                 Return False
             End If
 
-            Dim start = If(propertyDeclaration.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart, propertyDeclaration.SpanStart)
-            Dim [end] = If(propertyDeclaration.AsClause?.FullSpan.[End], propertyDeclaration.Identifier.FullSpan.End)
-            Return node.Span.Start >= start AndAlso node.Span.[End] <= [end]
+            If propertyDeclaration.AsClause IsNot Nothing Then
+                Return IsInHeader(node, propertyDeclaration, propertyDeclaration.AsClause)
+            End If
+
+            Return IsInHeader(node, propertyDeclaration, propertyDeclaration.Identifier)
+        End Function
+
+        Public Function IsInParameterHeader(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInParameterHeader
+            Dim parameter = node.GetAncestorOrThis(Of ParameterSyntax)()
+
+            If parameter Is Nothing Then
+                Return False
+            End If
+
+            If parameter.AsClause IsNot Nothing Then
+                Return IsInHeader(node, parameter, parameter.AsClause)
+            End If
+
+            Return IsInHeader(node, parameter, parameter.Identifier)
+        End Function
+
+        Public Function IsInMethodHeader(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInMethodHeader
+            Dim method = node.GetAncestorOrThis(Of MethodStatementSyntax)()
+
+            If method Is Nothing Then
+                Return False
+            End If
+
+            If method.HasReturnType() Then
+                Return IsInHeader(node, method, method.GetReturnType())
+            End If
+
+            If method.ParameterList IsNot Nothing Then
+                Return IsInHeader(node, method, method.ParameterList)
+            End If
+
+            Return IsInHeader(node, method, method)
+        End Function
+
+        Public Function IsInLocalFunctionHeader(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInLocalFunctionHeader
+            ' No local functions in VisualBasic
+            Return False
         End Function
 
         Public Function IsBetweenTypeMembers(sourceText As SourceText, root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsBetweenTypeMembers
@@ -1955,11 +1997,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Public Function GetContainingPropertyDeclaration(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetContainingPropertyDeclaration
-            Return node.GetAncestor(Of PropertyStatementSyntax)
-        End Function
-
-        Public Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetAttributeLists
+        Public Overrides Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetAttributeLists
             Return VisualBasicSyntaxGenerator.GetAttributeLists(node)
         End Function
     End Class

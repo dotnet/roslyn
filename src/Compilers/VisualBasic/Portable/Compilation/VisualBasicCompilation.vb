@@ -1856,6 +1856,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(elementType))
             End If
 
+            If rank < 1 Then
+                Throw New ArgumentException(NameOf(rank))
+            End If
+
             Return ArrayTypeSymbol.CreateVBArray(elementType, Nothing, rank, Me)
         End Function
 
@@ -2650,13 +2654,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        name)
         End Function
 
-        Protected Overrides Function CommonCreateArrayTypeSymbol(elementType As ITypeSymbol, rank As Integer) As IArrayTypeSymbol
+        Protected Overrides Function CommonCreateArrayTypeSymbol(elementType As ITypeSymbol, rank As Integer, elementNullableAnnotation As NullableAnnotation) As IArrayTypeSymbol
             Return CreateArrayTypeSymbol(elementType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(elementType)), rank)
         End Function
 
         Protected Overrides Function CommonCreateTupleTypeSymbol(elementTypes As ImmutableArray(Of ITypeSymbol),
                                                                  elementNames As ImmutableArray(Of String),
-                                                                 elementLocations As ImmutableArray(Of Location)) As INamedTypeSymbol
+                                                                 elementLocations As ImmutableArray(Of Location),
+                                                                 elementNullableAnnotations As ImmutableArray(Of NullableAnnotation)) As INamedTypeSymbol
             Dim typesBuilder = ArrayBuilder(Of TypeSymbol).GetInstance(elementTypes.Length)
             For i As Integer = 0 To elementTypes.Length - 1
                 typesBuilder.Add(elementTypes(i).EnsureVbSymbolOrNothing(Of TypeSymbol)($"{NameOf(elementTypes)}[{i}]"))
@@ -2673,7 +2678,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function CommonCreateTupleTypeSymbol(
                 underlyingType As INamedTypeSymbol,
                 elementNames As ImmutableArray(Of String),
-                elementLocations As ImmutableArray(Of Location)) As INamedTypeSymbol
+                elementLocations As ImmutableArray(Of Location),
+                elementNullableAnnotations As ImmutableArray(Of NullableAnnotation)) As INamedTypeSymbol
             Dim csharpUnderlyingTuple = underlyingType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(underlyingType))
 
             Dim cardinality As Integer
@@ -2683,6 +2689,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             elementNames = CheckTupleElementNames(cardinality, elementNames)
             CheckTupleElementLocations(cardinality, elementLocations)
+            CheckTupleElementNullableAnnotations(cardinality, elementNullableAnnotations)
 
             Return TupleTypeSymbol.Create(
                 locationOpt:=Nothing,
@@ -2700,7 +2707,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 memberTypes As ImmutableArray(Of ITypeSymbol),
                 memberNames As ImmutableArray(Of String),
                 memberLocations As ImmutableArray(Of Location),
-                memberIsReadOnly As ImmutableArray(Of Boolean)) As INamedTypeSymbol
+                memberIsReadOnly As ImmutableArray(Of Boolean),
+                memberNullableAnnotations As ImmutableArray(Of CodeAnalysis.NullableAnnotation)) As INamedTypeSymbol
 
             Dim i = 0
             For Each t In memberTypes

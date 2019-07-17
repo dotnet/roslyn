@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         // See comments in the analyzer for what these maps are for.
 
         private readonly ImmutableDictionary<TSyntaxKind, TSyntaxKind> _binaryToAssignmentMap;

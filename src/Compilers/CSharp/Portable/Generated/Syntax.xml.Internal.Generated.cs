@@ -42642,7 +42642,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       {
         case SyntaxKind.DisableKeyword:
         case SyntaxKind.RestoreKeyword:
-        case SyntaxKind.EnableKeyword:
           break;
         default:
           throw new ArgumentException(nameof(disableOrRestoreKeyword));
@@ -49970,7 +49969,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       {
         case SyntaxKind.DisableKeyword:
         case SyntaxKind.RestoreKeyword:
-        case SyntaxKind.EnableKeyword:
           break;
         default:
           throw new ArgumentException(nameof(disableOrRestoreKeyword));

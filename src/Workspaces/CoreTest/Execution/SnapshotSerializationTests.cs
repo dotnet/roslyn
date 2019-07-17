@@ -573,7 +573,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
         [Fact]
         public void TestCompilationOptions_NullableAndImport()
         {
-            var csharpOptions = CSharp.CSharpCompilation.Create("dummy").Options.WithNullableContextOptions(CSharp.NullableContextOptions.Warnings).WithMetadataImportOptions(MetadataImportOptions.All);
+            var csharpOptions = CSharp.CSharpCompilation.Create("dummy").Options.WithNullableContextOptions(NullableContextOptions.Warnings).WithMetadataImportOptions(MetadataImportOptions.All);
             var vbOptions = VisualBasic.VisualBasicCompilation.Create("dummy").Options.WithMetadataImportOptions(MetadataImportOptions.Internal);
 
             var hostServices = MefHostServices.Create(MefHostServices.DefaultAssemblies);

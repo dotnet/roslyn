@@ -216,6 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public abstract FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations { get; }
 
+        public abstract ImmutableHashSet<string> ReturnNotNullIfParameterNotNull { get; }
+
         /// <summary>
         /// Flow analysis annotations on the method itself (ie. DoesNotReturn)
         /// </summary>
@@ -688,10 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            // To give optimal diagnostics, we should really pass the "current" compilation.
-            // However, this is never used in batch scenarios, so it doesn't matter
-            // (modulo future changes to the API).
-            return ReducedExtensionMethodSymbol.Create(this, receiverType, compilation: null);
+            return ReducedExtensionMethodSymbol.Create(this, receiverType);
         }
 
         /// <summary>
@@ -1051,7 +1050,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        ImmutableArray<CodeAnalysis.NullableAnnotation> IMethodSymbol.TypeArgumentsNullableAnnotations => TypeArgumentsWithAnnotations.SelectAsArray(arg => arg.NullableAnnotation.ToPublicAnnotation());
+        ImmutableArray<CodeAnalysis.NullableAnnotation> IMethodSymbol.TypeArgumentNullableAnnotations => TypeArgumentsWithAnnotations.SelectAsArray(arg => arg.NullableAnnotation.ToPublicAnnotation());
 
         ImmutableArray<ITypeParameterSymbol> IMethodSymbol.TypeParameters
         {

@@ -1724,6 +1724,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NotNullConstraintMustBeFirst = 8713,
         WRN_NullabilityMismatchInTypeParameterNotNullConstraint = 8714,
 
+        ERR_DuplicateNullSuppression = 8715
+
         #endregion diagnostics introduced for C# 8.0
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

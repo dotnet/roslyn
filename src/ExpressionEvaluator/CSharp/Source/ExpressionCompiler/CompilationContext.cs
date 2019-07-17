@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // base type. Instead, we only allow valid C# expressions.
             var expression = IsDeconstruction(syntax)
                 ? binder.BindDeconstruction((AssignmentExpressionSyntax)syntax, diagnostics, resultIsUsedOverride: true)
-                : binder.BindValue(syntax, diagnostics, Binder.BindValueKind.RValue);
+                : binder.BindRValueWithoutTargetType(syntax, diagnostics);
             if (diagnostics.HasAnyErrors())
             {
                 resultProperties = default;
