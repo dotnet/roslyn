@@ -709,17 +709,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             private static SuggestedActionSetPriority GetSuggestedActionSetPriority(CodeActionPriority key)
-            {
-                switch (key)
+                => key switch
                 {
-                    case CodeActionPriority.None: return SuggestedActionSetPriority.None;
-                    case CodeActionPriority.Low: return SuggestedActionSetPriority.Low;
-                    case CodeActionPriority.Medium: return SuggestedActionSetPriority.Medium;
-                    case CodeActionPriority.High: return SuggestedActionSetPriority.High;
-                    default:
-                        throw new InvalidOperationException();
-                }
-            }
+                    CodeActionPriority.None => SuggestedActionSetPriority.None,
+                    CodeActionPriority.Low => SuggestedActionSetPriority.Low,
+                    CodeActionPriority.Medium => SuggestedActionSetPriority.Medium,
+                    CodeActionPriority.High => SuggestedActionSetPriority.High,
+                    _ => throw new InvalidOperationException(),
+                };
 
             private ImmutableArray<SuggestedActionSet> GetRefactorings(
                 ITextBufferSupportsFeatureService supportsFeatureService,
