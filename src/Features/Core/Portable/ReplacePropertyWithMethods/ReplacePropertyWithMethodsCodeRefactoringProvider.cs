@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 return;
             }
 
-            var propertyDeclaration = await service.GetPropertyDeclarationAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var propertyDeclaration = await service.GetPropertyDeclarationAsync(context).ConfigureAwait(false);
             if (propertyDeclaration == null)
             {
                 return;

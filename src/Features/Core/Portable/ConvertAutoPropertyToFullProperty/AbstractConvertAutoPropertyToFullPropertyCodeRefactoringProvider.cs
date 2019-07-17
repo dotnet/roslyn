@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             var (document, textSpan, cancellationToken) = context;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var property = await GetPropertyAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var property = await GetPropertyAsync(context).ConfigureAwait(false);
             if (property == null)
             {
                 return;
@@ -65,11 +65,9 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             return field != null;
         }
 
-        private async Task<SyntaxNode> GetPropertyAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        private async Task<SyntaxNode> GetPropertyAsync(CodeRefactoringContext context)
         {
-            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-
-            var containingProperty = await refactoringHelperService.TryGetSelectedNodeAsync<TPropertyDeclarationNode>(document, span, cancellationToken).ConfigureAwait(false);
+            var containingProperty = await context.TryGetSelectedNodeAsync<TPropertyDeclarationNode>().ConfigureAwait(false);
             if (!(containingProperty?.Parent is TTypeDeclarationNode))
             {
                 return null;

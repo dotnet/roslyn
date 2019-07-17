@@ -42,8 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            var (anonymousObject, anonymousType) = await TryGetAnonymousObjectAsync(
-                document, textSpan, cancellationToken).ConfigureAwait(false);
+            var (anonymousObject, anonymousType) = await TryGetAnonymousObjectAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
             if (anonymousObject == null || anonymousType == null)
             {
@@ -68,14 +67,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
         private async Task<(TAnonymousObjectCreationExpressionSyntax, INamedTypeSymbol)> TryGetAnonymousObjectAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
-
             // Gets a `TAnonymousObjectCreationExpressionSyntax` for current selection.
             // Due to the way `TryGetSelectedNodeAsync` works and how `TAnonymousObjectCreationExpressionSyntax` is e.g. for C# constructed
             // it matches even when caret is next to some tokens within the anonymous object creation node.
             // E.g.: `var a = new [||]{ b=1,[||] c=2 };` both match due to the caret being next to `,` and `{`.
-
-            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-            var anonymousObject = await refactoringHelperService.TryGetSelectedNodeAsync<TAnonymousObjectCreationExpressionSyntax>(document, span, cancellationToken).ConfigureAwait(false);
+            var helper = document.GetLanguageService<IRefactoringHelpersService>();
+            var anonymousObject = await helper.TryGetSelectedNodeAsync<TAnonymousObjectCreationExpressionSyntax>(
+                document, span, cancellationToken).ConfigureAwait(false);
             if (anonymousObject == null)
             {
                 return default;
@@ -87,11 +85,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             return (anonymousObject, anonymousType);
         }
 
-        private async Task<Document> ConvertToClassAsync(
-            Document document, TextSpan span, CancellationToken cancellationToken)
+        private async Task<Document> ConvertToClassAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var (anonymousObject, anonymousType) = await TryGetAnonymousObjectAsync(
-                document, span, cancellationToken).ConfigureAwait(false);
+            var (anonymousObject, anonymousType) = await TryGetAnonymousObjectAsync(document, span, cancellationToken).ConfigureAwait(false);
 
             Debug.Assert(anonymousObject != null);
             Debug.Assert(anonymousType != null);

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            var numericToken = await GetNumericTokenAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var numericToken = await GetNumericTokenAsync(context).ConfigureAwait(false);
 
             if (numericToken == default || numericToken.ContainsDiagnostics)
             {
@@ -114,12 +114,11 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
             }
         }
 
-        internal virtual async Task<SyntaxToken> GetNumericTokenAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        internal virtual async Task<SyntaxToken> GetNumericTokenAsync(CodeRefactoringContext context)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var refactoringService = document.GetLanguageService<IRefactoringHelpersService>();
+            var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
 
-            var literalNode = await refactoringService.TryGetSelectedNodeAsync<TNumericLiteralExpression>(document, span, cancellationToken).ConfigureAwait(false);
+            var literalNode = await context.TryGetSelectedNodeAsync<TNumericLiteralExpression>().ConfigureAwait(false);
             var numericLiteralExpressionNode = syntaxFacts.IsNumericLiteralExpression(literalNode)
                 ? literalNode
                 : null;

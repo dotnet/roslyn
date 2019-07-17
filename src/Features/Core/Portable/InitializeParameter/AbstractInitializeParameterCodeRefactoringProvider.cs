@@ -42,9 +42,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-
-            var parameterNode = await refactoringHelperService.TryGetSelectedNodeAsync<TParameterSyntax>(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var parameterNode = await context.TryGetSelectedNodeAsync<TParameterSyntax>().ConfigureAwait(false);
             if (parameterNode == null)
             {
                 return;

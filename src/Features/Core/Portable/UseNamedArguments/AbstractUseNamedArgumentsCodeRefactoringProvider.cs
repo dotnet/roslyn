@@ -28,9 +28,8 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                 CodeRefactoringContext context, SyntaxNode root)
             {
                 var (document, textSpan, cancellationToken) = context;
-                var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
 
-                var argument = await refactoringHelperService.TryGetSelectedNodeAsync<TSimpleArgumentSyntax>(document, textSpan, cancellationToken).ConfigureAwait(false);
+                var argument = await context.TryGetSelectedNodeAsync<TSimpleArgumentSyntax>().ConfigureAwait(false);
                 if (argument == null && textSpan.IsEmpty)
                 {
                     // For arguments we want to enable cursor anywhere in the expressions (even deep within) as long as

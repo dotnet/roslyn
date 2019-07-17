@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 return;
             }
 
-            var methodDeclaration = await service.GetMethodDeclarationAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var methodDeclaration = await service.GetMethodDeclarationAsync(context).ConfigureAwait(false);
             if (methodDeclaration == null)
             {
                 return;

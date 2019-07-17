@@ -39,9 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 return;
             }
 
-            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-
-            var localFunction = await refactoringHelperService.TryGetSelectedNodeAsync<LocalFunctionStatementSyntax>(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var localFunction = await context.TryGetSelectedNodeAsync<LocalFunctionStatementSyntax>().ConfigureAwait(false);
             if (localFunction == default)
             {
                 return;
