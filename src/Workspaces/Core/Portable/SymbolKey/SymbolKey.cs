@@ -194,8 +194,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static IEnumerable<INamedTypeSymbol> InstantiateTypes(
-            Compilation compilation,
-            bool ignoreAssemblyKey,
             ImmutableArray<INamedTypeSymbol> types,
             int arity,
             ImmutableArray<SymbolKeyResolution> typeArgumentKeys)

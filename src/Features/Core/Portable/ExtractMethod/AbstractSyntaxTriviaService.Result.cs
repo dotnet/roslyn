@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return map;
             }
 
-            private LeadingTrailingTriviaPair GetTrailingAndLeadingTrivia(TriviaLocation locationKind, PreviousNextTokenPair tokenPair, IEnumerable<SyntaxTrivia> trivia)
+            private LeadingTrailingTriviaPair GetTrailingAndLeadingTrivia(IEnumerable<SyntaxTrivia> trivia)
             {
                 var list = trivia.ToList();
 
@@ -138,7 +138,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                                             .ToDictionary(
                                                 location => location,
                                                 location => CreateTriviaPairs(
-                                                                location,
                                                                 tokenPairs[location],
                                                                 resolver(location, tokenPairs[location], tokenToLeadingTrailingTriviaMap)));
 
@@ -146,7 +145,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             private LeadingTrailingTriviaPair CreateTriviaPairs(
-                TriviaLocation locationKind,
                 PreviousNextTokenPair tokenPair,
                 IEnumerable<SyntaxTrivia> trivia)
             {
@@ -156,7 +154,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return new LeadingTrailingTriviaPair { TrailingTrivia = SpecializedCollections.EmptyEnumerable<SyntaxTrivia>(), LeadingTrivia = trivia };
                 }
 
-                return GetTrailingAndLeadingTrivia(locationKind, tokenPair, trivia);
+                return GetTrailingAndLeadingTrivia(trivia);
             }
 
             private IEnumerable<Tuple<PreviousNextTokenPair, LeadingTrailingTriviaPair>> CreateUniqueTokenTriviaPairs(

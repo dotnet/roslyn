@@ -52,8 +52,7 @@ namespace Microsoft.CodeAnalysis
                 ImmutableArray<SymbolKeyResolution> typeArguments)
             {
                 var types = container.GetTypeMembers(GetName(metadataName), arity);
-                var result = InstantiateTypes(
-                    reader.Compilation, reader.IgnoreAssemblyKey, types, arity, typeArguments);
+                var result = InstantiateTypes(types, arity, typeArguments);
 
                 return isUnboundGenericType
                     ? result.Select(t => t.ConstructUnboundGenericType())
