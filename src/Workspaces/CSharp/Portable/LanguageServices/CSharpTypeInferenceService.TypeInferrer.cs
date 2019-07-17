@@ -2123,8 +2123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                // TODO: pass nullability once https://github.com/dotnet/roslyn/issues/36047 is fixed
-                return Compilation.CreateTupleTypeSymbol(elementTypes.SelectAsArray(t => t.WithoutNullability()), elementNames);
+                return Compilation.CreateTupleTypeSymbol(elementTypes.SelectAsArray(t => t.WithoutNullability()), elementNames, elementNullableAnnotations: elementTypes.SelectAsArray(t => t.GetNullability()));
             }
 
             private bool TryGetTupleTypesAndNames(

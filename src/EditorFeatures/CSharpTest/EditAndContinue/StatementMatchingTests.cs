@@ -1623,6 +1623,166 @@ if (!(a is int s)) return;
         }
 
         [Fact]
+        public void VarPattern()
+        {
+            var src1 = @"
+if (!(o is (var x, var y))) return;
+if (!(o4 is (string a, var (b, c)))) return;
+if (!(o2 is var (e, f, g))) return;
+if (!(o3 is var (k, l, m))) return;
+";
+
+            var src2 = @"
+if (!(o is (int x, int y1)))  return;
+if (!(o1 is (var a, (var b, string c1)))) return;
+if (!(o7 is var (g, e, f))) return;
+if (!(o3 is (string k, int l2, int m))) return;
+";
+            var match = GetMethodMatches(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs {
+                { "if (!(o is (var x, var y))) return;", "if (!(o is (int x, int y1)))  return;" },
+                { "x", "x" },
+                { "y", "y1" },
+                { "return;", "return;" },
+                { "if (!(o4 is (string a, var (b, c)))) return;", "if (!(o1 is (var a, (var b, string c1)))) return;" },
+                { "a", "a" },
+                { "b", "b" },
+                { "c", "c1" },
+                { "return;", "return;" },
+                { "if (!(o2 is var (e, f, g))) return;", "if (!(o7 is var (g, e, f))) return;" },
+                { "e", "e" },
+                { "f", "f" },
+                { "g", "g" },
+                { "return;", "return;" },
+                { "if (!(o3 is var (k, l, m))) return;", "if (!(o3 is (string k, int l2, int m))) return;" },
+                { "k", "k" },
+                { "l", "l2" },
+                { "m", "m" },
+                { "return;", "return;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void PositionalPattern()
+        {
+            var src1 = @"var r = (x, y, z) switch {
+(1, 2, 3) => 0,
+(var a, 3, 4) => a,
+(0, var b, int c) when c > 1 => 2,
+(1, 1, Point { X: 0 } p) => 3,
+_ => 4
+};
+";
+
+            var src2 = @"var r = ((x, y, z)) switch {
+(1, 2, 3) => 0,
+(var a1, 3, 4) => a1 * 2,
+(_, int b1, double c1) when c1 > 2 => c1,
+(1, 1, Point { Y: 0 } p1) => 3,
+_ => 4
+};
+";
+
+            var match = GetMethodMatches(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs {
+                { "var r = (x, y, z) switch { (1, 2, 3) => 0, (var a, 3, 4) => a, (0, var b, int c) when c > 1 => 2, (1, 1, Point { X: 0 } p) => 3, _ => 4 };", "var r = ((x, y, z)) switch { (1, 2, 3) => 0, (var a1, 3, 4) => a1 * 2, (_, int b1, double c1) when c1 > 2 => c1, (1, 1, Point { Y: 0 } p1) => 3, _ => 4 };" },
+                { "var r = (x, y, z) switch { (1, 2, 3) => 0, (var a, 3, 4) => a, (0, var b, int c) when c > 1 => 2, (1, 1, Point { X: 0 } p) => 3, _ => 4 }", "var r = ((x, y, z)) switch { (1, 2, 3) => 0, (var a1, 3, 4) => a1 * 2, (_, int b1, double c1) when c1 > 2 => c1, (1, 1, Point { Y: 0 } p1) => 3, _ => 4 }" },
+                { "r = (x, y, z) switch { (1, 2, 3) => 0, (var a, 3, 4) => a, (0, var b, int c) when c > 1 => 2, (1, 1, Point { X: 0 } p) => 3, _ => 4 }", "r = ((x, y, z)) switch { (1, 2, 3) => 0, (var a1, 3, 4) => a1 * 2, (_, int b1, double c1) when c1 > 2 => c1, (1, 1, Point { Y: 0 } p1) => 3, _ => 4 }" },
+                { "a", "a1" },
+                { "b", "c1" },
+                { "c", "b1" },
+                { "when c > 1", "when c1 > 2" },
+                { "p", "p1" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void PropertyPattern()
+        {
+            var src1 = @"
+if (address is { State: ""WA"" }) return 1;
+if (obj is { Color: Color.Purple }) return 2;
+if (o is string { Length: 5 } s) return 3;
+";
+
+            var src2 = @"
+if (address is { ZipCode: 98052 }) return 4;
+if (obj is { Size: Size.M }) return 2;
+if (o is string { Length: 7 } s7) return 5;
+";
+
+            var match = GetMethodMatches(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs {
+                { "if (address is { State: \"WA\" }) return 1;", "if (address is { ZipCode: 98052 }) return 4;" },
+                { "return 1;", "return 4;" },
+                { "if (obj is { Color: Color.Purple }) return 2;", "if (obj is { Size: Size.M }) return 2;" },
+                { "return 2;", "return 2;" },
+                { "if (o is string { Length: 5 } s) return 3;", "if (o is string { Length: 7 } s7) return 5;" },
+                { "s", "s7" },
+                { "return 3;", "return 5;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void RecursivePatterns()
+        {
+            var src1 = @"var r = obj switch
+{
+    string s when s.Length > 0 => (s, obj1) switch
+    {
+        (""a"", int i) => i,
+        ("""", Task<int> t) => await t,
+        _ => 0
+    },
+    int i => i * i,
+    _ => -1
+};
+";
+
+            var src2 = @"var r = obj switch
+{
+    string s when s.Length > 0 => (s, obj1) switch
+    {
+        (""b"", decimal i1) => i1,
+        ("""", Task<object> obj2) => await obj2,
+        _ => 0
+    },
+    double i => i * i,
+    _ => -1
+};
+";
+
+            var match = GetMethodMatches(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs {
+                { "var r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"a\", int i) => i,         (\"\", Task<int> t) => await t,         _ => 0     },     int i => i * i,     _ => -1 };", "var r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"b\", decimal i1) => i1,         (\"\", Task<object> obj2) => await obj2,         _ => 0     },     double i => i * i,     _ => -1 };" },
+                { "var r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"a\", int i) => i,         (\"\", Task<int> t) => await t,         _ => 0     },     int i => i * i,     _ => -1 }", "var r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"b\", decimal i1) => i1,         (\"\", Task<object> obj2) => await obj2,         _ => 0     },     double i => i * i,     _ => -1 }" },
+                { "r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"a\", int i) => i,         (\"\", Task<int> t) => await t,         _ => 0     },     int i => i * i,     _ => -1 }", "r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"b\", decimal i1) => i1,         (\"\", Task<object> obj2) => await obj2,         _ => 0     },     double i => i * i,     _ => -1 }" },
+                { "s", "s" },
+                { "when s.Length > 0", "when s.Length > 0" },
+                { "i", "i" },
+                { "t", "obj2" },
+                { "await t", "await obj2" },
+                { "i", "i1" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
         public void CasePattern_UpdateInsert()
         {
             var src1 = @"

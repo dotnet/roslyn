@@ -28,25 +28,26 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(context.Span.Start);
+            var (document, textSpan, cancellationToken) = context;
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = root.FindToken(textSpan.Start);
 
-            if (context.Span.Length > 0 &&
-                context.Span != token.Span)
+            if (textSpan.Length > 0 &&
+                textSpan != token.Span)
             {
                 return;
             }
 
-            var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
-            var syntaxKinds = context.Document.GetLanguageService<ISyntaxKindsService>();
-            var ifGenerator = context.Document.GetLanguageService<IIfLikeStatementGenerator>();
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxKinds = document.GetLanguageService<ISyntaxKindsService>();
+            var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
             if (IsPartOfBinaryExpressionChain(token, GetLogicalExpressionKind(syntaxKinds), out var rootExpression) &&
                 ifGenerator.IsCondition(rootExpression, out var ifOrElseIf))
             {
                 context.RegisterRefactoring(
                     CreateCodeAction(
-                        c => RefactorAsync(context.Document, token.Span, ifOrElseIf.Span, c),
+                        c => RefactorAsync(document, token.Span, ifOrElseIf.Span, c),
                         syntaxFacts.GetText(syntaxKinds.IfKeyword)));
             }
         }
