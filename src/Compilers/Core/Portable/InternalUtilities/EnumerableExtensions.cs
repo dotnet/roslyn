@@ -160,10 +160,8 @@ namespace Roslyn.Utilities
 
         public static bool IsSingle<T>(this IEnumerable<T> list)
         {
-            using (var enumerator = list.GetEnumerator())
-            {
-                return enumerator.MoveNext() && !enumerator.MoveNext();
-            }
+            using var enumerator = list.GetEnumerator();
+            return enumerator.MoveNext() && !enumerator.MoveNext();
         }
 
         public static bool IsEmpty<T>(this IEnumerable<T> source)
@@ -325,26 +323,24 @@ namespace Roslyn.Utilities
 
         public static bool IsSorted<T>(this IEnumerable<T> enumerable, IComparer<T> comparer)
         {
-            using (var e = enumerable.GetEnumerator())
+            using var e = enumerable.GetEnumerator();
+            if (!e.MoveNext())
             {
-                if (!e.MoveNext())
-                {
-                    return true;
-                }
-
-                var previous = e.Current;
-                while (e.MoveNext())
-                {
-                    if (comparer.Compare(previous, e.Current) > 0)
-                    {
-                        return false;
-                    }
-
-                    previous = e.Current;
-                }
-
                 return true;
             }
+
+            var previous = e.Current;
+            while (e.MoveNext())
+            {
+                if (comparer.Compare(previous, e.Current) > 0)
+                {
+                    return false;
+                }
+
+                previous = e.Current;
+            }
+
+            return true;
         }
 
         public static bool Contains<T>(this IEnumerable<T> sequence, Func<T, bool> predicate)
@@ -475,21 +471,19 @@ namespace Roslyn.Utilities
                 return (list.Count == 1) ? list[0] : default;
             }
 
-            using (IEnumerator<TSource> e = source.GetEnumerator())
+            using IEnumerator<TSource> e = source.GetEnumerator();
+            if (!e.MoveNext())
             {
-                if (!e.MoveNext())
-                {
-                    return default;
-                }
-
-                TSource result = e.Current;
-                if (e.MoveNext())
-                {
-                    return default;
-                }
-
-                return result;
+                return default;
             }
+
+            TSource result = e.Current;
+            if (e.MoveNext())
+            {
+                return default;
+            }
+
+            return result;
         }
     }
 
