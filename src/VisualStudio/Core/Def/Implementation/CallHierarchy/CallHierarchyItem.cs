@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         private readonly string _containingNamespaceName;
         private readonly string _containingTypeName;
         private readonly SymbolKey _symbolId;
-        private IEnumerable<CallHierarchyDetail> _callsites;
+        private readonly IEnumerable<CallHierarchyDetail> _callsites;
         private readonly IEnumerable<AbstractCallFinder> _finders;
         private readonly Func<ImageSource> _glyphCreator;
         private readonly string _name;

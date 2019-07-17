@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
     {
         // HACK HACK HACK HACK HACK: We'll use this fake ICompletionSession to trick them into
         // routing commands to us for both completion and sighelp
-        private HACK_CompletionSession _hackCompletionSession = new HACK_CompletionSession();
+        private readonly HACK_CompletionSession _hackCompletionSession = new HACK_CompletionSession();
 
         public void HACK_StartCompletionSession(IIntellisenseSession editorSessionOpt)
         {

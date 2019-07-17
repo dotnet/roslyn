@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         private readonly IVsUIShell _uiShell;
 
         private bool _isExpanded;
-        private double _heightForThreeLineTitle;
+        private readonly double _heightForThreeLineTitle;
         private DifferenceViewerPreview _differenceViewerPreview;
 
         public PreviewPane(

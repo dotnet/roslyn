@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
         private readonly IComponentModel _componentModel;
         private readonly string _contentType;
 
-        private Lazy<IResetInteractiveCommand> _resetInteractiveCommand;
+        private readonly Lazy<IResetInteractiveCommand> _resetInteractiveCommand;
 
         private Lazy<IResetInteractiveCommand> ResetInteractiveCommand => _resetInteractiveCommand;
 
