@@ -112,13 +112,11 @@ namespace Microsoft.CodeAnalysis
             bool ignoreAssemblyKey = false, bool resolveLocations = false,
             CancellationToken cancellationToken = default)
         {
-            using (var reader = SymbolKeyReader.GetReader(
-                symbolKey, compilation, ignoreAssemblyKey, resolveLocations, cancellationToken))
-            {
-                var result = reader.ReadFirstSymbolKey();
-                Debug.Assert(reader.Position == symbolKey.Length);
-                return result;
-            }
+            using var reader = SymbolKeyReader.GetReader(
+                symbolKey, compilation, ignoreAssemblyKey, resolveLocations, cancellationToken);
+            var result = reader.ReadFirstSymbolKey();
+            Debug.Assert(reader.Position == symbolKey.Length);
+            return result;
         }
 
         public static SymbolKey Create(ISymbol symbol, CancellationToken cancellationToken = default)
@@ -128,11 +126,9 @@ namespace Microsoft.CodeAnalysis
 
         public static string ToString(ISymbol symbol, CancellationToken cancellationToken = default)
         {
-            using (var writer = SymbolKeyWriter.GetWriter(cancellationToken))
-            {
-                writer.WriteFirstSymbolKey(symbol);
-                return writer.CreateKey();
-            }
+            using var writer = SymbolKeyWriter.GetWriter(cancellationToken);
+            writer.WriteFirstSymbolKey(symbol);
+            return writer.CreateKey();
         }
 
         public SymbolKeyResolution Resolve(
