@@ -1152,6 +1152,59 @@ dotnet_diagnostic.cs000.some_key = some_val", "/src/.editorconfig"));
         }
 
         [Fact]
+        public void NestedAnalyzerOptionsWithOverrides()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.some_key = a_val", "/.editorconfig"));
+            configs.Add(Parse(@"
+[test.*]
+dotnet_diagnostic.cs000.some_key = b_val", "/src/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/src/test.cs", "/src/test.vb", "/root.cs" },
+                configs);
+            configs.Free();
+
+            VerifyAnalyzerOptions(
+                new[] {
+                    new[] { ("dotnet_diagnostic.cs000.some_key", "b_val") },
+                    new[] { ("dotnet_diagnostic.cs000.some_key", "b_val") },
+                    new[] { ("dotnet_diagnostic.cs000.some_key", "a_val") }
+               },
+                options);
+        }
+
+        [Fact]
+        public void NestedAnalyzerOptionsWithSectionOverrides()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.some_key = a_val", "/.editorconfig"));
+            configs.Add(Parse(@"
+[test.*]
+dotnet_diagnostic.cs000.some_key = b_val
+
+[*.cs]
+dotnet_diagnostic.cs000.some_key = c_val", "/src/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/src/test.cs", "/src/test.vb", "/root.cs" },
+                configs);
+            configs.Free();
+
+            VerifyAnalyzerOptions(
+                new[] {
+                    new[] { ("dotnet_diagnostic.cs000.some_key", "c_val") },
+                    new[] { ("dotnet_diagnostic.cs000.some_key", "b_val") },
+                    new[] { ("dotnet_diagnostic.cs000.some_key", "a_val") }
+               },
+                options);
+        }
+
+        [Fact]
         public void FromMultipleSectionsAnalyzerOptions()
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
