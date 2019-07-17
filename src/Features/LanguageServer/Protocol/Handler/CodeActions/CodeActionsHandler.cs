@@ -38,20 +38,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
             codeActions = codeActions.Where(c => !(c is CodeActionWithOptions));
 
-            var commands = new ArrayBuilder<LSP.Command>();
+            var clientSupportsWorkspaceEdits = true;
+            if (clientCapabilities?.Experimental is JObject clientCapabilitiesExtensions)
+            {
+                clientSupportsWorkspaceEdits = clientCapabilitiesExtensions.SelectToken("supportsWorkspaceEdits")?.Value<bool>() ?? clientSupportsWorkspaceEdits;
+            }
 
+            var result = new ArrayBuilder<object>();
             foreach (var codeAction in codeActions)
             {
-                object[] remoteCommandArguments;
                 // If we have a codeaction with a single applychangesoperation, we want to send the codeaction with the edits.
                 var operations = await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
-
-                var clientSupportsWorkspaceEdits = true;
-                if (clientCapabilities?.Experimental is JObject clientCapabilitiesExtensions)
-                {
-                    clientSupportsWorkspaceEdits = clientCapabilitiesExtensions.SelectToken("supportsWorkspaceEdits")?.Value<bool>() ?? clientSupportsWorkspaceEdits;
-                }
-
                 if (clientSupportsWorkspaceEdits && operations.Length == 1 && operations.First() is ApplyChangesOperation applyChangesOperation)
                 {
                     var workspaceEdit = new LSP.WorkspaceEdit { Changes = new Dictionary<string, LSP.TextEdit[]>() };
@@ -74,7 +71,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         workspaceEdit.Changes.Add(newDoc.FilePath, edits.ToArray());
                     }
 
-                    remoteCommandArguments = new object[] { new LSP.CodeAction { Title = codeAction.Title, Edit = workspaceEdit } };
+                    result.Add(new LSP.CodeAction { Title = codeAction.Title, Edit = workspaceEdit });
                 }
                 // Otherwise, send the original request to be executed on the host.
                 else
@@ -82,8 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     // Note that we can pass through the params for this
                     // request (like range, filename) because between getcodeaction and runcodeaction there can be no
                     // changes on the IDE side (it will requery for codeactions if there are changes).
-                    remoteCommandArguments = new object[]
-                    {
+                    result.Add(
                         new LSP.Command
                         {
                             CommandIdentifier = RunCodeActionCommandName,
@@ -96,24 +92,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                                     Title = codeAction.Title
                                 }
                             }
-                        }
-                    };
+                        });
                 }
-
-                // We need to return a command that is a generic wrapper that VS Code can execute.
-                // The argument to this wrapper will either be a RunCodeAction command which will carry
-                // enough information to run the command or a CodeAction with the edits.
-                var command = new LSP.Command
-                {
-                    Title = codeAction.Title,
-                    CommandIdentifier = $"{RemoteCommandNamePrefix}.{ProviderName}",
-                    Arguments = remoteCommandArguments
-                };
-
-                commands.Add(command);
             }
 
-            return commands.ToArrayAndFree();
+            return result.ToArrayAndFree();
         }
     }
 }

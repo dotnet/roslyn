@@ -18,10 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
 
-        // TODO - this should not be liveshare.
-        protected const string RemoteCommandNamePrefix = "_liveshare.remotecommand";
         protected const string RunCodeActionCommandName = "Roslyn.RunCodeAction";
-        protected const string ProviderName = "Roslyn";
 
         public CodeActionsHandlerBase(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
         {

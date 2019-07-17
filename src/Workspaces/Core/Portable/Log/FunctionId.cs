@@ -458,5 +458,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Intellisense_CompletionProviders_Data,
 
         SnapshotService_IsExperimentEnabledAsync,
+
+        Liveshare_UnknownCodeAction,
     }
 }
