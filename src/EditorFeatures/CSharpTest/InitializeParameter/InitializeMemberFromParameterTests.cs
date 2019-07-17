@@ -1004,7 +1004,7 @@ class C
     @"
 class C
 {
-    public C([||]string p_s_end)
+    public C([||]string p_s_End)
     {
     }
 }",
@@ -1013,9 +1013,9 @@ class C
 {
     private readonly string _s;
 
-    public C(string p_s_end)
+    public C(string p_s_End)
     {
-        _s = p_s_end;
+        _s = p_s_End;
     }
 }", index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
         }
@@ -1027,7 +1027,7 @@ class C
     @"
 class C
 {
-    public C([||]string t_p_s_end)
+    public C([||]string t_p_s_End)
     {
     }
 }",
@@ -1036,9 +1036,9 @@ class C
 {
     private readonly string _s;
 
-    public C(string t_p_s_end)
+    public C(string t_p_s_End)
     {
-        _s = t_p_s_end;
+        _s = t_p_s_End;
     }
 }", index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
         }
@@ -1119,16 +1119,16 @@ class C
     @"
 class C
 {
-    public C([||]string p_s_end)
+    public C([||]string p_s_End)
     {
     }
 }",
     @"
 class C
 {
-    public C(string p_s_end)
+    public C(string p_s_End)
     {
-        S = p_s_end;
+        S = p_s_End;
     }
 
     public string S { get; }
@@ -1142,16 +1142,16 @@ class C
     @"
 class C
 {
-    public C([||]string t_p_s_end)
+    public C([||]string t_p_s_End)
     {
     }
 }",
     @"
 class C
 {
-    public C(string t_p_s_end)
+    public C(string t_p_s_End)
     {
-        S = t_p_s_end;
+        S = t_p_s_End;
     }
 
     public string S { get; }
@@ -1165,16 +1165,16 @@ class C
     @"
 class C
 {
-    public C([||]string p_t_s_end)
+    public C([||]string p_t_s_End)
     {
     }
 }",
         @"
 class C
 {
-    public C([||]string p_t_s_end)
+    public C([||]string p_t_s_End)
     {
-        S = p_t_s_end;
+        S = p_t_s_End;
     }
 
     public string S { get; }
@@ -1240,7 +1240,7 @@ class C
 {
     private readonly string _s;
 
-    public C([||]string p_s_end)
+    public C([||]string p_s_End)
     {
     }
 }",
@@ -1249,9 +1249,9 @@ class C
 {
     private readonly string _s;
 
-    public C(string p_s_end)
+    public C(string p_s_End)
     {
-        _s = p_s_end;
+        _s = p_s_End;
     }
 }", index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
         }
@@ -1265,7 +1265,7 @@ class C
 {
     private readonly string _s;
 
-    public C([||]string t_p_s_end)
+    public C([||]string t_p_s_End)
     {
     }
 }",
@@ -1274,9 +1274,9 @@ class C
 {
     private readonly string _s;
 
-    public C(string t_p_s_end)
+    public C(string t_p_s_End)
     {
-        _s = t_p_s_end;
+        _s = t_p_s_End;
     }
 }", index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
         }
@@ -1290,7 +1290,7 @@ class C
 {
     private readonly string _s;
 
-    public C([||]string p_t_s_end)
+    public C([||]string p_t_s_End)
     {
     }
 }",
@@ -1299,9 +1299,9 @@ class C
 {
     private readonly string _s;
 
-    public C([||]string p_t_s_end)
+    public C([||]string p_t_s_End)
     {
-        _s = p_t_s_end;
+        _s = p_t_s_End;
     }
 }", index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
         }
@@ -1363,7 +1363,7 @@ class C
     @"
 class C
 {
-    public C([||]string p_s_end)
+    public C([||]string p_s_End)
     {
     }
 
@@ -1372,9 +1372,9 @@ class C
     @"
 class C
 {
-    public C(string p_s_end)
+    public C(string p_s_End)
     {
-        S = p_s_end;
+        S = p_s_End;
     }
 
     public string S { get; }
@@ -1388,7 +1388,7 @@ class C
     @"
 class C
 {
-    public C([||]string t_p_s_end)
+    public C([||]string t_p_s_End)
     {
     }
 
@@ -1397,9 +1397,9 @@ class C
     @"
 class C
 {
-    public C(string t_p_s_end)
+    public C(string t_p_s_End)
     {
-        S = t_p_s_end;
+        S = t_p_s_End;
     }
 
     public string S { get; }
@@ -1413,7 +1413,7 @@ class C
     @"
 class C
 {
-    public C([||]string p_t_s_end)
+    public C([||]string p_t_s_End)
     {
     }
 
@@ -1422,9 +1422,9 @@ class C
         @"
 class C
 {
-    public C([||]string p_t_s_end)
+    public C([||]string p_t_s_End)
     {
-        S = p_t_s_end;
+        S = p_t_s_End;
     }
 
     public string S { get; }
@@ -1438,7 +1438,7 @@ class C
     @"
 class C
 {
-    public C([||]string p__end)
+    public C([||]string p__End)
     {
     }
 
@@ -1456,7 +1456,7 @@ class C
     @"
 class C
 {
-    public C([|string p__end, string p_test_t|])
+    public C([|string p__End, string p_test_t|])
     {
     }
 }", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
