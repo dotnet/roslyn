@@ -3,15 +3,15 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 {
     internal interface IReplacePropertyWithMethodsService : ILanguageService
     {
-        Task<SyntaxNode> GetPropertyDeclarationAsync(Document document, TextSpan span, CancellationToken cancellationToken);
+        Task<SyntaxNode> GetPropertyDeclarationAsync(CodeRefactoringContext context);
 
         Task ReplaceReferenceAsync(
             Document document,

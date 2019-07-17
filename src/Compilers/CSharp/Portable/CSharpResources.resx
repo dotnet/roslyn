@@ -123,6 +123,9 @@
   <data name="IDS_ThrowExpression" xml:space="preserve">
     <value>&lt;throw expression&gt;</value>
   </data>
+  <data name="IDS_FeatureSwitchExpression" xml:space="preserve">
+    <value>&lt;switch expression&gt;</value>
+  </data>
   <data name="IDS_RELATEDERROR" xml:space="preserve">
     <value>(Location of symbol related to previous error)</value>
   </data>
@@ -2822,10 +2825,10 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Unrecognized #pragma directive</value>
   </data>
   <data name="WRN_IllegalPPWarning" xml:space="preserve">
-    <value>Expected disable, restore or enable</value>
+    <value>Expected 'disable' or 'restore'</value>
   </data>
   <data name="WRN_IllegalPPWarning_Title" xml:space="preserve">
-    <value>Expected disable, restore or enable after #pragma warning</value>
+    <value>Expected 'disable' or 'restore' after #pragma warning</value>
   </data>
   <data name="WRN_BadRestoreNumber" xml:space="preserve">
     <value>Cannot restore warning 'CS{0}' because it was disabled globally</value>

@@ -37,12 +37,10 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
+            var (document, textSpan, cancellationToken) = context;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var helperService = document.GetLanguageService<IRefactoringHelpersService>();
-            var ifNode = await helperService.TryGetSelectedNodeAsync<TIfStatementSyntax>(context).ConfigureAwait(false);
+            var ifNode = await context.TryGetSelectedNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
 
             if (ifNode == null || ifNode.OverlapsHiddenPosition(cancellationToken))
             {

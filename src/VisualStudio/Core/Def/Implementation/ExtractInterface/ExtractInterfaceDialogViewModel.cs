@@ -4,15 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Windows.Media;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface
@@ -55,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             _generatedNameTypeParameterSuffix = generatedNameTypeParameterSuffix;
             _languageName = languageName;
 
-            MemberContainers = extractableMembers.Select(m => new MemberSymbolViewModel(m, glyphService)).OrderBy(s => s.MemberName).ToList();
+            MemberContainers = extractableMembers.Select(m => new MemberSymbolViewModel(m, glyphService)).OrderBy(s => s.SymbolName).ToList();
         }
 
         internal bool TrySubmit()
@@ -173,45 +169,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
         public bool FileNameEnabled => Destination == InterfaceDestination.NewFile;
 
-        internal class MemberSymbolViewModel : AbstractNotifyPropertyChanged
+        internal class MemberSymbolViewModel : SymbolViewModel<ISymbol>
         {
-            private readonly IGlyphService _glyphService;
-
-            public ISymbol MemberSymbol { get; }
-
-            private static readonly SymbolDisplayFormat s_memberDisplayFormat = new SymbolDisplayFormat(
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
-                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeOptionalBrackets,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-
-            public MemberSymbolViewModel(ISymbol symbol, IGlyphService glyphService)
+            public MemberSymbolViewModel(ISymbol symbol, IGlyphService glyphService) : base(symbol, glyphService)
             {
-                MemberSymbol = symbol;
-                _glyphService = glyphService;
-                _isChecked = true;
-            }
-
-            private bool _isChecked;
-            public bool IsChecked
-            {
-                get { return _isChecked; }
-                set { SetProperty(ref _isChecked, value); }
-            }
-
-            public string MemberName
-            {
-                get { return MemberSymbol.ToDisplayString(s_memberDisplayFormat); }
-            }
-
-            public ImageSource Glyph
-            {
-                get { return MemberSymbol.GetGlyph().GetImageSource(_glyphService); }
-            }
-
-            public string MemberAutomationText
-            {
-                get { return MemberSymbol.Kind + " " + MemberName; }
             }
         }
     }

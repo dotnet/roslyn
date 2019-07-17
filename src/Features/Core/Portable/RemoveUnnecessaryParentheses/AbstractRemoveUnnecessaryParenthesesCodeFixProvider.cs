@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         public override ImmutableArray<string> FixableDiagnosticIds
            => ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         protected abstract bool CanRemoveParentheses(TParenthesizedExpressionSyntax current, SemanticModel semanticModel);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)

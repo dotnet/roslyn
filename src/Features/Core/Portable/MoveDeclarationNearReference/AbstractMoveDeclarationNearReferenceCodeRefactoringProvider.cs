@@ -22,12 +22,8 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
-            var helperService = document.GetLanguageService<IRefactoringHelpersService>();
-            var statement = await helperService.TryGetSelectedNodeAsync<TLocalDeclaration>(context).ConfigureAwait(false);
+            var (document, textSpan, cancellationToken) = context;
+            var statement = await context.TryGetSelectedNodeAsync<TLocalDeclaration>().ConfigureAwait(false);
             if (statement == null)
             {
                 return;

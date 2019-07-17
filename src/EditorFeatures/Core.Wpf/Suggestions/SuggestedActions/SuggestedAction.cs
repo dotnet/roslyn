@@ -59,6 +59,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         internal virtual CodeActionPriority Priority => CodeAction.Priority;
 
+        internal bool IsForCodeQualityImprovement
+            => (Provider as SyntaxEditorBasedCodeFixProvider)?.CodeFixCategory == CodeFixCategory.CodeQuality;
+
         public virtual bool TryGetTelemetryId(out Guid telemetryId)
         {
             telemetryId = CodeAction.GetType().GetTelemetryId();
