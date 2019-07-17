@@ -217,23 +217,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             }
 
             private PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)
-            {
-                switch (matchKind)
+                => matchKind switch
                 {
-                    case NavigateToMatchKind.Exact: return PatternMatchKind.Exact;
-                    case NavigateToMatchKind.Prefix: return PatternMatchKind.Prefix;
-                    case NavigateToMatchKind.Substring: return PatternMatchKind.Substring;
-                    case NavigateToMatchKind.Regular: return PatternMatchKind.Fuzzy;
-                    case NavigateToMatchKind.None: return PatternMatchKind.Fuzzy;
-                    case NavigateToMatchKind.CamelCaseExact: return PatternMatchKind.CamelCaseExact;
-                    case NavigateToMatchKind.CamelCasePrefix: return PatternMatchKind.CamelCasePrefix;
-                    case NavigateToMatchKind.CamelCaseNonContiguousPrefix: return PatternMatchKind.CamelCaseNonContiguousPrefix;
-                    case NavigateToMatchKind.CamelCaseSubstring: return PatternMatchKind.CamelCaseSubstring;
-                    case NavigateToMatchKind.CamelCaseNonContiguousSubstring: return PatternMatchKind.CamelCaseNonContiguousSubstring;
-                    case NavigateToMatchKind.Fuzzy: return PatternMatchKind.Fuzzy;
-                    default: throw ExceptionUtilities.UnexpectedValue(matchKind);
-                }
-            }
+                    NavigateToMatchKind.Exact => PatternMatchKind.Exact,
+                    NavigateToMatchKind.Prefix => PatternMatchKind.Prefix,
+                    NavigateToMatchKind.Substring => PatternMatchKind.Substring,
+                    NavigateToMatchKind.Regular => PatternMatchKind.Fuzzy,
+                    NavigateToMatchKind.None => PatternMatchKind.Fuzzy,
+                    NavigateToMatchKind.CamelCaseExact => PatternMatchKind.CamelCaseExact,
+                    NavigateToMatchKind.CamelCasePrefix => PatternMatchKind.CamelCasePrefix,
+                    NavigateToMatchKind.CamelCaseNonContiguousPrefix => PatternMatchKind.CamelCaseNonContiguousPrefix,
+                    NavigateToMatchKind.CamelCaseSubstring => PatternMatchKind.CamelCaseSubstring,
+                    NavigateToMatchKind.CamelCaseNonContiguousSubstring => PatternMatchKind.CamelCaseNonContiguousSubstring,
+                    NavigateToMatchKind.Fuzzy => PatternMatchKind.Fuzzy,
+                    _ => throw ExceptionUtilities.UnexpectedValue(matchKind),
+                };
 
             /// <summary>
             /// Returns the name for the language used by the old Navigate To providers.
@@ -241,17 +239,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             /// <remarks> It turns out this string is used for sorting and for some SQM data, so it's best
             /// to keep it unchanged.</remarks>
             private static string GetNavigateToLanguage(string languageName)
-            {
-                switch (languageName)
+                => languageName switch
                 {
-                    case LanguageNames.CSharp:
-                        return "csharp";
-                    case LanguageNames.VisualBasic:
-                        return "vb";
-                    default:
-                        return languageName;
-                }
-            }
+                    LanguageNames.CSharp => "csharp",
+                    LanguageNames.VisualBasic => "vb",
+                    _ => languageName,
+                };
         }
     }
 }

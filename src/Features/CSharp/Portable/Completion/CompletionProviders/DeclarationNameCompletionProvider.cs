@@ -111,33 +111,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private Glyph GetGlyph(SymbolKind kind, Accessibility? declaredAccessibility)
         {
-            Glyph publicIcon;
-            switch (kind)
+            var publicIcon = kind switch
             {
-                case SymbolKind.Field:
-                    publicIcon = Glyph.FieldPublic;
-                    break;
-                case SymbolKind.Local:
-                    publicIcon = Glyph.Local;
-                    break;
-                case SymbolKind.Method:
-                    publicIcon = Glyph.MethodPublic;
-                    break;
-                case SymbolKind.Parameter:
-                    publicIcon = Glyph.Parameter;
-                    break;
-                case SymbolKind.Property:
-                    publicIcon = Glyph.PropertyPublic;
-                    break;
-                case SymbolKind.RangeVariable:
-                    publicIcon = Glyph.RangeVariable;
-                    break;
-                case SymbolKind.TypeParameter:
-                    publicIcon = Glyph.TypeParameter;
-                    break;
-                default:
-                    throw new ArgumentException();
-            }
+                SymbolKind.Field => Glyph.FieldPublic,
+                SymbolKind.Local => Glyph.Local,
+                SymbolKind.Method => Glyph.MethodPublic,
+                SymbolKind.Parameter => Glyph.Parameter,
+                SymbolKind.Property => Glyph.PropertyPublic,
+                SymbolKind.RangeVariable => Glyph.RangeVariable,
+                SymbolKind.TypeParameter => Glyph.TypeParameter,
+                _ => throw new ArgumentException(),
+            };
 
             switch (declaredAccessibility)
             {

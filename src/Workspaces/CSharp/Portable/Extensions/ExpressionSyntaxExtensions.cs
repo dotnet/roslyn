@@ -2582,45 +2582,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// <param name="specialType">The <see cref="SpecialType"/> of this type.</param>
         /// <returns>The keyword kind for a given special type, or SyntaxKind.None if the type name is not a predefined type.</returns>
         public static SyntaxKind GetPredefinedKeywordKind(SpecialType specialType)
-        {
-            switch (specialType)
+            => specialType switch
             {
-                case SpecialType.System_Boolean:
-                    return SyntaxKind.BoolKeyword;
-                case SpecialType.System_Byte:
-                    return SyntaxKind.ByteKeyword;
-                case SpecialType.System_SByte:
-                    return SyntaxKind.SByteKeyword;
-                case SpecialType.System_Int32:
-                    return SyntaxKind.IntKeyword;
-                case SpecialType.System_UInt32:
-                    return SyntaxKind.UIntKeyword;
-                case SpecialType.System_Int16:
-                    return SyntaxKind.ShortKeyword;
-                case SpecialType.System_UInt16:
-                    return SyntaxKind.UShortKeyword;
-                case SpecialType.System_Int64:
-                    return SyntaxKind.LongKeyword;
-                case SpecialType.System_UInt64:
-                    return SyntaxKind.ULongKeyword;
-                case SpecialType.System_Single:
-                    return SyntaxKind.FloatKeyword;
-                case SpecialType.System_Double:
-                    return SyntaxKind.DoubleKeyword;
-                case SpecialType.System_Decimal:
-                    return SyntaxKind.DecimalKeyword;
-                case SpecialType.System_String:
-                    return SyntaxKind.StringKeyword;
-                case SpecialType.System_Char:
-                    return SyntaxKind.CharKeyword;
-                case SpecialType.System_Object:
-                    return SyntaxKind.ObjectKeyword;
-                case SpecialType.System_Void:
-                    return SyntaxKind.VoidKeyword;
-                default:
-                    return SyntaxKind.None;
-            }
-        }
+                SpecialType.System_Boolean => SyntaxKind.BoolKeyword,
+                SpecialType.System_Byte => SyntaxKind.ByteKeyword,
+                SpecialType.System_SByte => SyntaxKind.SByteKeyword,
+                SpecialType.System_Int32 => SyntaxKind.IntKeyword,
+                SpecialType.System_UInt32 => SyntaxKind.UIntKeyword,
+                SpecialType.System_Int16 => SyntaxKind.ShortKeyword,
+                SpecialType.System_UInt16 => SyntaxKind.UShortKeyword,
+                SpecialType.System_Int64 => SyntaxKind.LongKeyword,
+                SpecialType.System_UInt64 => SyntaxKind.ULongKeyword,
+                SpecialType.System_Single => SyntaxKind.FloatKeyword,
+                SpecialType.System_Double => SyntaxKind.DoubleKeyword,
+                SpecialType.System_Decimal => SyntaxKind.DecimalKeyword,
+                SpecialType.System_String => SyntaxKind.StringKeyword,
+                SpecialType.System_Char => SyntaxKind.CharKeyword,
+                SpecialType.System_Object => SyntaxKind.ObjectKeyword,
+                SpecialType.System_Void => SyntaxKind.VoidKeyword,
+                _ => SyntaxKind.None,
+            };
 
         public static SimpleNameSyntax GetRightmostName(this ExpressionSyntax node)
         {
