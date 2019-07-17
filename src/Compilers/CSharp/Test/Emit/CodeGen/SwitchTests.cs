@@ -8281,27 +8281,24 @@ public class Program
                 expectedOutput: "RemoveEmptyEntries");
             compVerifier.VerifyIL("Program.Main",
 @"{
-  // Code size       25 (0x19)
+  // Code size       23 (0x17)
   .maxstack  1
   .locals init (object V_0, //o
-                bool V_1,
-                System.StringSplitOptions V_2)
+                bool V_1)
   IL_0000:  nop
   IL_0001:  ldc.i4.1
-  IL_0002:  stloc.2
-  IL_0003:  ldloc.2
-  IL_0004:  box        ""System.StringSplitOptions""
-  IL_0009:  stloc.0
-  IL_000a:  ldc.i4.1
-  IL_000b:  stloc.1
-  IL_000c:  ldloc.1
-  IL_000d:  brfalse.s  IL_0018
-  IL_000f:  nop
-  IL_0010:  ldloc.0
-  IL_0011:  call       ""void System.Console.WriteLine(object)""
-  IL_0016:  nop
-  IL_0017:  nop
-  IL_0018:  ret
+  IL_0002:  box        ""System.StringSplitOptions""
+  IL_0007:  stloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stloc.1
+  IL_000a:  ldloc.1
+  IL_000b:  brfalse.s  IL_0016
+  IL_000d:  nop
+  IL_000e:  ldloc.0
+  IL_000f:  call       ""void System.Console.WriteLine(object)""
+  IL_0014:  nop
+  IL_0015:  nop
+  IL_0016:  ret
 }"
             );
         }

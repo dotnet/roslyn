@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsInsertMissingTokens = "CodeActions.InsertMissingTokens";
             public const string CodeActionsIntroduceUsingStatement = "CodeActions.IntroduceUsingStatement";
             public const string CodeActionsIntroduceVariable = "CodeActions.IntroduceVariable";
+            public const string CodeActionsIntroduceLocalForExpression = "CodeActions.IntroduceLocalForExpression";
             public const string CodeActionsInvertConditional = "CodeActions.InvertConditional";
             public const string CodeActionsInvertIf = "CodeActions.InvertIf";
             public const string CodeActionsInvertLogical = "CodeActions.InvertLogical";

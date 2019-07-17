@@ -104,6 +104,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 return _symbol.Construct(typeArguments);
             }
 
+            public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)
+            {
+                return _symbol.Construct(typeArguments, typeArgumentNullableAnnotations);
+            }
+
             public INamedTypeSymbol ConstructUnboundGenericType()
             {
                 return _symbol.ConstructUnboundGenericType();
