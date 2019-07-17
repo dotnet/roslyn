@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             var diffService = diffSelector.GetTextDifferencingService(
                 left.Project.LanguageServices.GetService<IContentTypeLanguageService>().GetDefaultContentType());
 
-            diffService = diffService ?? diffSelector.DefaultTextDifferencingService;
+            diffService ??= diffSelector.DefaultTextDifferencingService;
 
             var diff = ComputeDiffSpans(diffService, left, right, cancellationToken);
             if (diff.Differences.Count == 0)

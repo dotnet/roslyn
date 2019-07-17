@@ -265,7 +265,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 continue;
                             }
 
-                            filePathToDocumentMapOpt = filePathToDocumentMapOpt ?? new Dictionary<Project, ImmutableDictionary<string, Document>>();
+                            filePathToDocumentMapOpt ??= new Dictionary<Project, ImmutableDictionary<string, Document>>();
                             if (!filePathToDocumentMapOpt.TryGetValue(project, out var filePathMap))
                             {
                                 filePathMap = await GetFilePathToDocumentMapAsync(project, cancellationToken).ConfigureAwait(false);

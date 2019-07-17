@@ -461,7 +461,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 var document = newSolution.GetDocument(kvp.Key.Id);
                 if (document != null)
                 {
-                    builder = builder ?? ImmutableDictionary.CreateBuilder<Document, ImmutableArray<Diagnostic>>();
+                    builder ??= ImmutableDictionary.CreateBuilder<Document, ImmutableArray<Diagnostic>>();
                     builder.Add(document, kvp.Value);
                 }
             }
@@ -482,7 +482,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 var project = newSolution.GetProject(kvp.Key.Id);
                 if (project != null)
                 {
-                    projectDiagsBuilder = projectDiagsBuilder ?? ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();
+                    projectDiagsBuilder ??= ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();
                     projectDiagsBuilder.Add(project, kvp.Value);
                 }
             }

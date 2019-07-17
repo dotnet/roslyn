@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Debugging
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var snapshot = text.FindCorrespondingEditorTextSnapshot();
-            locationName = locationName ?? string.Empty;
+            locationName ??= string.Empty;
 
             // Get the prior values we've computed.
             var locationToExpressionsMap = snapshot != null
