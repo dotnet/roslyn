@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 {
     public static class EditorServicesUtil
     {
-        private static Lazy<IExportProviderFactory> s_exportProviderFactory = new Lazy<IExportProviderFactory>(CreateExportProviderFactory);
+        private static readonly Lazy<IExportProviderFactory> s_exportProviderFactory = new Lazy<IExportProviderFactory>(CreateExportProviderFactory);
 
         public static ExportProvider ExportProvider => s_exportProviderFactory.Value.CreateExportProvider();
 

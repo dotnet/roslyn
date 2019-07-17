@@ -1484,7 +1484,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new Dictionary<ProjectId, ProjectReferenceInformation>();
+        private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new Dictionary<ProjectId, ProjectReferenceInformation>();
 
         private ProjectReferenceInformation GetReferenceInfo_NoLock(ProjectId projectId)
         {
