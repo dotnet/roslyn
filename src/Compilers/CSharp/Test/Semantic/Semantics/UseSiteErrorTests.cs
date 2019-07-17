@@ -2201,12 +2201,12 @@ class Test
 
             DiagnosticDescription[] expected =
             {
-                // (9,23): error CS0155: The type caught or thrown must be derived from System.Exception
-                //                 throw e;
-                Diagnostic(ErrorCode.ERR_BadExceptionType, "e").WithLocation(9, 23),
                 // (9,23): error CS0012: The type 'GeneralException' is defined in an assembly that is not referenced. You must add a reference to assembly 'Base, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //                 throw e;
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "e").WithArguments("GeneralException", "Base, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 23),
+                // (9,23): error CS0029: Cannot implicitly convert type 'SpecificException' to 'System.Exception'
+                //                 throw e;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("SpecificException", "System.Exception").WithLocation(9, 23),
                 // (11,20): error CS0155: The type caught or thrown must be derived from System.Exception
                 //             catch (SpecificException) 
                 Diagnostic(ErrorCode.ERR_BadExceptionType, "SpecificException").WithLocation(11, 20),

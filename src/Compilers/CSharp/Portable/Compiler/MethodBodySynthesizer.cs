@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < numTemps; i++)
             {
                 tmps[i] = new SynthesizedLocal(accessor, TypeWithAnnotations.Create(delegateType), SynthesizedLocalKind.LoweringTemp);
-                boundTmps[i] = new BoundLocal(syntax, tmps[i], null, delegateType);
+                boundTmps[i] = new BoundLocal(syntax, tmps[i], null, delegateType) { WasCompilerGenerated = true };
             }
 
             // tmp0 = _event;

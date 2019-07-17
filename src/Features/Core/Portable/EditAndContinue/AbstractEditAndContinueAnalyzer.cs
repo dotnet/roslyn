@@ -242,7 +242,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal abstract bool IsMethod(SyntaxNode declaration);
         internal abstract bool IsLambda(SyntaxNode node);
+        internal abstract bool IsInterfaceDeclaration(SyntaxNode node);
         internal abstract bool IsNestedFunction(SyntaxNode node);
+        internal abstract bool IsLocalFunction(SyntaxNode node);
         internal abstract bool IsClosureScope(SyntaxNode node);
         internal abstract bool ContainsLambda(SyntaxNode declaration);
         internal abstract SyntaxNode GetLambda(SyntaxNode lambdaBody);
@@ -268,7 +270,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal abstract bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode body1, out SyntaxNode body2);
 
         internal abstract bool IsStateMachineMethod(SyntaxNode declaration);
-        internal abstract SyntaxNode TryGetContainingTypeDeclaration(SyntaxNode memberDeclaration);
+        internal abstract SyntaxNode TryGetContainingTypeDeclaration(SyntaxNode node);
 
         internal abstract bool HasBackingField(SyntaxNode propertyDeclaration);
 
@@ -3145,12 +3147,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             newBodyHasLambdas = false;
 
+            var containingTypeDeclaration = TryGetContainingTypeDeclaration(newMemberBody);
+            var isInInterfaceDeclaration = containingTypeDeclaration != null && IsInterfaceDeclaration(containingTypeDeclaration);
+
             foreach (var newLambda in newMemberBody.DescendantNodesAndSelf())
             {
                 if (TryGetLambdaBodies(newLambda, out var newLambdaBody1, out var newLambdaBody2))
                 {
                     if (!map.Reverse.ContainsKey(newLambda))
                     {
+                        // TODO: https://github.com/dotnet/roslyn/issues/37128
+                        // Local functions are emitted directly to the type containing the containing method.
+                        // Although local functions are non-virtual the Core CLR currently does not support adding any method to an interface.
+                        if (isInInterfaceDeclaration && IsLocalFunction(newLambda))
+                        {
+                            diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, GetDiagnosticSpan(newLambda, EditKind.Insert), newLambda));
+                        }
+
                         ReportMultiScopeCaptures(newLambdaBody1, newModel, newCaptures, newCaptures, newCapturesToClosureScopes, newCapturesIndex, reverseCapturesMap, diagnostics, isInsert: true, cancellationToken: cancellationToken);
 
                         if (newLambdaBody2 != null)

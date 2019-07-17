@@ -2594,6 +2594,32 @@ public class C { public static FrameworkName Goo() { return null; }}";
             return type.GetMembers().OfType<IPropertySymbol>().SelectAsArray(p => p.NullableAnnotation);
         }
 
+        [Fact]
+        [WorkItem(36046, "https://github.com/dotnet/roslyn/issues/36046")]
+        public void ConstructWithNullability()
+        {
+            var source =
+@"class Pair<T, U>
+{
+}";
+            var comp = (Compilation)CreateCompilation(source);
+            var genericType = (INamedTypeSymbol)comp.GetMember("Pair");
+            var typeArguments = ImmutableArray.Create<ITypeSymbol>(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String));
+
+            Assert.Throws<ArgumentException>(() => genericType.Construct(default(ImmutableArray<ITypeSymbol>), default(ImmutableArray<CodeAnalysis.NullableAnnotation>)));
+            Assert.Throws<ArgumentException>(() => genericType.Construct(typeArguments: default, typeArgumentNullableAnnotations: default));
+
+            var type = genericType.Construct(typeArguments, default);
+            Assert.Equal("Pair<System.Object, System.String>", type.ToTestDisplayString(includeNonNullable: true));
+            AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.Disabled, CodeAnalysis.NullableAnnotation.Disabled }, type.TypeArgumentNullableAnnotations);
+
+            Assert.Throws<ArgumentException>(() => genericType.Construct(typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation>.Empty));
+
+            type = genericType.Construct(typeArguments, ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotAnnotated));
+            Assert.Equal("Pair<System.Object?, System.String!>", type.ToTestDisplayString(includeNonNullable: true));
+            AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotAnnotated }, type.TypeArgumentNullableAnnotations);
+        }
+
         #region Script return values
 
         [ConditionalFact(typeof(DesktopOnly))]

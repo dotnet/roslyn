@@ -7291,6 +7291,9 @@ class C
     static void Main()
     {
         // this works
+        Test(()=>(()=>(short)1, 1));
+
+        // this does not
         Test(()=>(()=>(byte)1, 1));
 
         // this does not
@@ -7301,8 +7304,11 @@ class C
 
             CreateCompilation(source).VerifyDiagnostics(
                 // (23,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(Func<(Func<short>, int)>)' and 'C.Test(Func<(Func<byte>, int)>)'
+                //         Test(()=>(()=>(byte)1, 1));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("C.Test(System.Func<(System.Func<short>, int)>)", "C.Test(System.Func<(System.Func<byte>, int)>)").WithLocation(23, 9),
+                // (26,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(Func<(Func<short>, int)>)' and 'C.Test(Func<(Func<byte>, int)>)'
                 //         Test(()=>(()=>1, 1));
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("C.Test(System.Func<(System.Func<short>, int)>)", "C.Test(System.Func<(System.Func<byte>, int)>)").WithLocation(23, 9)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("C.Test(System.Func<(System.Func<short>, int)>)", "C.Test(System.Func<(System.Func<byte>, int)>)").WithLocation(26, 9)
             );
         }
 
@@ -16144,6 +16150,44 @@ class C
             Assert.Null(model.GetTypeInfo(n5).Type);
             Assert.Equal("System.Func<System.Int32>", model.GetTypeInfo(n5).ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.AnonymousFunction, model.GetConversion(n5).Kind);
+        }
+
+        [Fact]
+        [WorkItem(36185, "https://github.com/dotnet/roslyn/issues/36185")]
+        public void GetTypeInfo_03()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        M((1, ""hello""));
+        M((2, null));
+    }
+    public static void M((short, string) x) { }
+}
+" + trivial2uple + tupleattributes_cs;
+
+            var tree = Parse(source, options: TestOptions.Regular);
+            var comp = CreateCompilation(tree);
+            comp.VerifyDiagnostics();
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var n1 = nodes.OfType<TupleExpressionSyntax>().ElementAt(0);
+
+            Assert.Equal(@"(1, ""hello"")", n1.ToString());
+            Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(n1).Type.ToTestDisplayString());
+            Assert.Equal("(System.Int16, System.String)", model.GetTypeInfo(n1).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(n1).Kind);
+
+            var n2 = nodes.OfType<TupleExpressionSyntax>().ElementAt(1);
+
+            Assert.Equal(@"(2, null)", n2.ToString());
+            Assert.Null(model.GetTypeInfo(n2).Type);
+            Assert.Equal("(System.Int16, System.String)", model.GetTypeInfo(n2).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(n2).Kind);
         }
 
         [Fact]

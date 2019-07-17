@@ -177,6 +177,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return annotations;
         }
 
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull 
+            => GetDecodedWellKnownAttributeData()?.NotNullIfParameterNotNull ?? ImmutableHashSet<string>.Empty;
+
         internal bool HasEnumeratorCancellationAttribute
         {
             get
@@ -695,6 +698,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DoesNotReturnIfAttribute))
             {
                 arguments.GetOrCreateData<ParameterWellKnownAttributeData>().DoesNotReturnIfAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription.DoesNotReturnIfAttribute, attribute, arguments.Diagnostics);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullIfNotNullAttribute))
+            {
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().AddNotNullIfParameterNotNull(attribute.DecodeNotNullIfNotNullAttribute());
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.EnumeratorCancellationAttribute))
             {

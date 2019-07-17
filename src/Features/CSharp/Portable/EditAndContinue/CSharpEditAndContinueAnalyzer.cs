@@ -874,13 +874,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         internal override bool IsMethod(SyntaxNode declaration)
-        {
-            return SyntaxUtilities.IsMethod(declaration);
-        }
+            => SyntaxUtilities.IsMethod(declaration);
 
-        internal override SyntaxNode TryGetContainingTypeDeclaration(SyntaxNode memberDeclaration)
+        internal override bool IsInterfaceDeclaration(SyntaxNode node)
+            => node.IsKind(SyntaxKind.InterfaceDeclaration);
+
+        internal override SyntaxNode TryGetContainingTypeDeclaration(SyntaxNode node)
         {
-            return memberDeclaration.Parent.FirstAncestorOrSelf<TypeDeclarationSyntax>();
+            return node.Parent.FirstAncestorOrSelf<TypeDeclarationSyntax>();
         }
 
         internal override bool HasBackingField(SyntaxNode propertyOrIndexerDeclaration)
@@ -992,29 +993,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         internal override bool ContainsLambda(SyntaxNode declaration)
-        {
-            return declaration.DescendantNodes().Any(LambdaUtilities.IsLambda);
-        }
+            => declaration.DescendantNodes().Any(LambdaUtilities.IsLambda);
 
         internal override bool IsLambda(SyntaxNode node)
-        {
-            return LambdaUtilities.IsLambda(node);
-        }
+            => LambdaUtilities.IsLambda(node);
+
+        internal override bool IsLocalFunction(SyntaxNode node)
+            => node.IsKind(SyntaxKind.LocalFunctionStatement);
 
         internal override bool IsNestedFunction(SyntaxNode node)
-        {
-            return node is LambdaExpressionSyntax || node is LocalFunctionStatementSyntax;
-        }
+            => node is LambdaExpressionSyntax || node is LocalFunctionStatementSyntax;
 
         internal override bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode body1, out SyntaxNode body2)
-        {
-            return LambdaUtilities.TryGetLambdaBodies(node, out body1, out body2);
-        }
+            => LambdaUtilities.TryGetLambdaBodies(node, out body1, out body2);
 
         internal override SyntaxNode GetLambda(SyntaxNode lambdaBody)
-        {
-            return LambdaUtilities.GetLambda(lambdaBody);
-        }
+            => LambdaUtilities.GetLambda(lambdaBody);
 
         internal override IMethodSymbol GetLambdaExpressionSymbol(SemanticModel model, SyntaxNode lambdaExpression, CancellationToken cancellationToken)
         {
@@ -1921,13 +1915,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return;
 
                     case SyntaxKind.PropertyDeclaration:
+                        var propertyDeclaration = (PropertyDeclarationSyntax)node;
+                        ClassifyModifiedMemberInsert(propertyDeclaration, propertyDeclaration.Modifiers);
+                        return;
+
                     case SyntaxKind.EventDeclaration:
-                        ClassifyModifiedMemberInsert(((BasePropertyDeclarationSyntax)node).Modifiers);
+                        var eventDeclaration = (EventDeclarationSyntax)node;
+                        ClassifyModifiedMemberInsert(eventDeclaration, eventDeclaration.Modifiers);
                         return;
 
                     case SyntaxKind.IndexerDeclaration:
                         var indexerDeclaration = (IndexerDeclarationSyntax)node;
-                        ClassifyModifiedMemberInsert(indexerDeclaration.Modifiers);
+                        ClassifyModifiedMemberInsert(indexerDeclaration, indexerDeclaration.Modifiers);
                         return;
 
                     case SyntaxKind.ConversionOperatorDeclaration:
@@ -1955,7 +1954,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                             return;
                         }
 
-                        ClassifyModifiedMemberInsert(method.Modifiers);
+                        ClassifyModifiedMemberInsert(method, method.Modifiers);
                         return;
 
                     case SyntaxKind.GetAccessorDeclaration:
@@ -2000,7 +1999,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
             }
 
-            private bool ClassifyModifiedMemberInsert(SyntaxTokenList modifiers)
+            private bool ClassifyModifiedMemberInsert(MemberDeclarationSyntax declaration, SyntaxTokenList modifiers)
             {
                 if (modifiers.Any(SyntaxKind.ExternKeyword))
                 {
@@ -2008,9 +2007,26 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return false;
                 }
 
-                if (modifiers.Any(SyntaxKind.VirtualKeyword) || modifiers.Any(SyntaxKind.AbstractKeyword) || modifiers.Any(SyntaxKind.OverrideKeyword))
+                var isExplicitlyVirtual = modifiers.Any(SyntaxKind.VirtualKeyword) || modifiers.Any(SyntaxKind.AbstractKeyword) || modifiers.Any(SyntaxKind.OverrideKeyword);
+
+                var isInterfaceVirtual =
+                    declaration.Parent.IsKind(SyntaxKind.InterfaceDeclaration) &&
+                    !declaration.IsKind(SyntaxKind.EventFieldDeclaration) &&
+                    !declaration.IsKind(SyntaxKind.FieldDeclaration) &&
+                    !modifiers.Any(SyntaxKind.SealedKeyword) &&
+                    !modifiers.Any(SyntaxKind.StaticKeyword);
+
+                if (isExplicitlyVirtual || isInterfaceVirtual)
                 {
                     ReportError(RudeEditKind.InsertVirtual);
+                    return false;
+                }
+
+                // TODO: Adding a non-virtual member to an interface also fails at runtime
+                // https://github.com/dotnet/roslyn/issues/37128
+                if (declaration.Parent.IsKind(SyntaxKind.InterfaceDeclaration))
+                {
+                    ReportError(RudeEditKind.InsertIntoInterface);
                     return false;
                 }
 
@@ -2049,7 +2065,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyMethodInsert(MethodDeclarationSyntax method)
             {
-                ClassifyModifiedMemberInsert(method.Modifiers);
+                ClassifyModifiedMemberInsert(method, method.Modifiers);
 
                 if (method.Arity > 0)
                 {
@@ -2065,12 +2081,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             private void ClassifyAccessorInsert(AccessorDeclarationSyntax accessor)
             {
                 var baseProperty = (BasePropertyDeclarationSyntax)accessor.Parent.Parent;
-                ClassifyModifiedMemberInsert(baseProperty.Modifiers);
+                ClassifyModifiedMemberInsert(baseProperty, baseProperty.Modifiers);
             }
 
             private void ClassifyFieldInsert(BaseFieldDeclarationSyntax field)
             {
-                ClassifyModifiedMemberInsert(field.Modifiers);
+                ClassifyModifiedMemberInsert(field, field.Modifiers);
             }
 
             private void ClassifyFieldInsert(VariableDeclaratorSyntax fieldVariable)

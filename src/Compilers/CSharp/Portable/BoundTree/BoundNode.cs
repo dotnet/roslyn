@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly SyntaxNode Syntax;
 
         [Flags()]
-        private enum BoundNodeAttributes : byte
+        private enum BoundNodeAttributes : short
         {
             HasErrors = 1 << 0,
             CompilerGenerated = 1 << 1,
@@ -31,14 +31,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             TopLevelAnnotated = 1 << 5,
             TopLevelDisabled = TopLevelAnnotated | TopLevelNotAnnotated,
             TopLevelAnnotationMask = TopLevelDisabled,
-#if DEBUG
+
             /// <summary>
             /// Captures the fact that consumers of the node already checked the state of the WasCompilerGenerated bit.
             /// Allows to assert on attempts to set WasCompilerGenerated bit after that.
             /// </summary>
             WasCompilerGeneratedIsChecked = 1 << 6,
             WasTopLevelNullabilityChecked = 1 << 7,
-#endif
+
+            /// <summary>
+            /// Captures the fact that the node was either converted to some type, or converted to its natural
+            /// type.  This is used to check the fact that every rvalue must pass through one of the two,
+            /// so that expressions like tuple literals and switch expressions can reliably be rewritten once
+            /// the target type is known.
+            /// </summary>
+            WasConverted = 1 << 8,
+
+            AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted,
+        }
+
+        protected new BoundNode MemberwiseClone()
+        {
+            var result = (BoundNode)base.MemberwiseClone();
+            result._attributes &= BoundNodeAttributes.AttributesPreservedInClone;
+            return result;
         }
 
         protected BoundNode(BoundKind kind, SyntaxNode syntax)
@@ -99,6 +115,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return (_attributes & BoundNodeAttributes.HasErrors) != 0;
             }
+            private set
+            {
+                if (value)
+                {
+                    _attributes |= BoundNodeAttributes.HasErrors;
+                }
+                else
+                {
+                    Debug.Assert((_attributes & BoundNodeAttributes.HasErrors) == 0,
+                        "HasErrors flag should not be reset here");
+                }
+            }
         }
 
         public SyntaxTree SyntaxTree
@@ -115,6 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(original is BoundExpression || !original.IsSuppressed);
             this.IsSuppressed = original.IsSuppressed;
+            this.WasConverted = original.WasConverted;
         }
 
         /// <remarks>
@@ -259,6 +288,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// WasConverted flag is used for debugging purposes only (not to direct the behavior of semantic analysis).
+        /// It is used on BoundLocal and BoundParameter to check that every such rvalue that has not been converted to
+        /// some type has been converted to its natural type.
+        /// </summary>
+        public bool WasConverted
+        {
+            get
+            {
+#if DEBUG
+                return (_attributes & BoundNodeAttributes.WasConverted) != 0;
+#else
+                return true;
+#endif
+            }
+            protected set
+            {
+#if DEBUG
+                Debug.Assert((_attributes & BoundNodeAttributes.WasConverted) == 0, "WasConverted flag should not be set twice or reset");
+                if (value)
+                {
+                    _attributes |= BoundNodeAttributes.WasConverted;
+                }
+#endif
+            }
+        }
+
         public BoundKind Kind
         {
             get
@@ -270,6 +326,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode Accept(BoundTreeVisitor visitor)
         {
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Return a clone of the current node with the HasErrors flag set.
+        /// </summary>
+        internal BoundNode WithHasErrors()
+        {
+            if (this.HasErrors)
+                return this;
+
+            BoundNode clone = MemberwiseClone();
+            clone.HasErrors = true;
+            return clone;
         }
 
 #if DEBUG

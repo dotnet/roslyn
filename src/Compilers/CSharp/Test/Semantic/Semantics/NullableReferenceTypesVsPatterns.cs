@@ -1915,12 +1915,12 @@ public interface IOut<out T> { }
 ");
             c.VerifyTypes();
             c.VerifyDiagnostics(
-                // (33,13): error CS8506: No best type was found for the switch expression.
+                // (33,15): error CS8506: No best type was found for the switch expression.
                 //         _ = i switch { 1 => x, _ => y }/*T:!*/; // 1
-                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "i switch { 1 => x, _ => y }").WithLocation(33, 13),
-                // (34,13): error CS8506: No best type was found for the switch expression.
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(33, 15),
+                // (34,15): error CS8506: No best type was found for the switch expression.
                 //         _ = i switch { 1 => y, _ => x }/*T:!*/; // 2
-                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "i switch { 1 => y, _ => x }").WithLocation(34, 13),
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(34, 15),
                 // (39,37): warning CS8619: Nullability of reference types in value of type 'I<string?>' doesn't match target type 'I<string>'.
                 //         _ = i switch { 1 => x, _ => y }/*T:I<string!>!*/; // 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<string?>", "I<string>").WithLocation(39, 37),
