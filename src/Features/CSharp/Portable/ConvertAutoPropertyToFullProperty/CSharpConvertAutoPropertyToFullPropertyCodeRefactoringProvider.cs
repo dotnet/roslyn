@@ -63,21 +63,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             // C# might have trivia with the accessors that needs to be preserved.  
             // so we will update the existing accessors instead of creating new ones
             var accessorListSyntax = ((PropertyDeclarationSyntax)property).AccessorList;
-            var existingAccessors = GetExistingAccessors(accessorListSyntax);
+            var (getAccessor, setAccessor) = GetExistingAccessors(accessorListSyntax);
 
             var getAccessorStatement = generator.ReturnStatement(generator.IdentifierName(fieldName));
             var newGetter = GetUpdatedAccessor(
-                options, existingAccessors.getAccessor,
+                options, getAccessor,
                 getAccessorStatement, generator);
 
             SyntaxNode newSetter = null;
-            if (existingAccessors.setAccessor != null)
+            if (setAccessor != null)
             {
                 var setAccessorStatement = generator.ExpressionStatement(generator.AssignmentStatement(
                     generator.IdentifierName(fieldName),
                     generator.IdentifierName("value")));
                 newSetter = GetUpdatedAccessor(
-                    options, existingAccessors.setAccessor,
+                    options, setAccessor,
                     setAccessorStatement, generator);
             }
 
