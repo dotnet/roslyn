@@ -26,6 +26,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
                 (nameof(EditorConfigSeverityStrings.Warning), EditorConfigSeverityStrings.Warning),
                 (nameof(EditorConfigSeverityStrings.Error), EditorConfigSeverityStrings.Error));
 
+        private readonly bool _performExperimentCheck;
+
+        public ConfigureSeverityLevelCodeFixProvider()
+            : this(performExperimentCheck: true)
+        {
+        }
+
+        // Internal for test purpose.
+        internal ConfigureSeverityLevelCodeFixProvider(bool performExperimentCheck)
+        {
+            _performExperimentCheck = performExperimentCheck;
+        }
+
         // We only offer fix for configurable diagnostics.
         // Also skip suppressed diagnostics defensively, though the code fix engine should ideally never call us for suppressed diagnostics.
         public bool IsFixableDiagnostic(Diagnostic diagnostic)
@@ -35,15 +48,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
             => null;
 
         public Task<ImmutableArray<CodeFix>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
-            => Task.FromResult(GetConfigurations(document.Project, diagnostics, cancellationToken));
+            => Task.FromResult(GetConfigurations(document.Project, diagnostics, _performExperimentCheck, cancellationToken));
 
         public Task<ImmutableArray<CodeFix>> GetFixesAsync(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
-            => Task.FromResult(GetConfigurations(project, diagnostics, cancellationToken));
+            => Task.FromResult(GetConfigurations(project, diagnostics, _performExperimentCheck, cancellationToken));
 
-        private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, bool performExperimentCheck, CancellationToken cancellationToken)
         {
             // Bail out if NativeEditorConfigSupport experiment is not enabled.
-            if (!EditorConfigDocumentOptionsProviderFactory.ShouldUseNativeEditorConfigSupport(project.Solution.Workspace))
+            if (performExperimentCheck &&
+                !EditorConfigDocumentOptionsProviderFactory.ShouldUseNativeEditorConfigSupport(project.Solution.Workspace))
             {
                 return ImmutableArray<CodeFix>.Empty;
             }
