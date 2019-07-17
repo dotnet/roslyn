@@ -49,11 +49,9 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var cancellationToken = context.CancellationToken;
-            var document = context.Document;
-
+            var (document, textSpan, cancellationToken) = context;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(context.Span.Start);
+            var token = root.FindToken(textSpan.Start);
 
             var forStatement = token.Parent.GetAncestorOrThis<TForStatementSyntax>();
             if (forStatement == null)
@@ -61,10 +59,10 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 return;
             }
 
-            if (!context.Span.IsEmpty)
+            if (!textSpan.IsEmpty)
             {
                 // if there is a selection, it must match the 'for' span exactly.
-                if (context.Span != forStatement.GetFirstToken().Span)
+                if (textSpan != forStatement.GetFirstToken().Span)
                 {
                     return;
                 }
@@ -72,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             else
             {
                 // if there's no selection, defer to the language to decide if it's in an ok location.
-                if (!IsValidCursorPosition(forStatement, context.Span.Start))
+                if (!IsValidCursorPosition(forStatement, textSpan.Start))
                 {
                     return;
                 }
@@ -138,7 +136,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 return;
             }
 
-            var containingType = semanticModel.GetEnclosingNamedType(context.Span.Start, cancellationToken);
+            var containingType = semanticModel.GetEnclosingNamedType(textSpan.Start, cancellationToken);
             if (containingType == null)
             {
                 return;
