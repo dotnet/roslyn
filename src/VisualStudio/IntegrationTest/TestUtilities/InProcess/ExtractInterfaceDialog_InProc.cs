@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                     return listItems.Cast<ExtractInterfaceDialogViewModel.MemberSymbolViewModel>()
                         .Where(viewModel => viewModel.IsChecked)
-                        .Select(viewModel => viewModel.MemberName)
+                        .Select(viewModel => viewModel.SymbolName)
                         .ToArray();
                 });
             }
@@ -142,7 +142,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                     var memberSelectionList = dialog.GetTestAccessor().Members;
                     var items = memberSelectionList.Items.Cast<ExtractInterfaceDialogViewModel.MemberSymbolViewModel>().ToArray();
-                    var itemViewModel = items.Single(x => x.MemberName == item);
+                    var itemViewModel = items.Single(x => x.SymbolName == item);
                     itemViewModel.IsChecked = !itemViewModel.IsChecked;
 
                     // Wait for changes to propagate

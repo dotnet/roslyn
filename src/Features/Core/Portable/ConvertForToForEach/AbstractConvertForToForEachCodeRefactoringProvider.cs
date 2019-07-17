@@ -48,11 +48,8 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var cancellationToken = context.CancellationToken;
-            var document = context.Document;
-
-            var helperService = document.GetLanguageService<IRefactoringHelpersService>();
-            var forStatement = await helperService.TryGetSelectedNodeAsync<TForStatementSyntax>(context).ConfigureAwait(false);
+            var (document, textSpan, cancellationToken) = context;
+            var forStatement = await context.TryGetSelectedNodeAsync<TForStatementSyntax>().ConfigureAwait(false);
             if (forStatement == null)
             {
                 return;
@@ -118,7 +115,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 return;
             }
 
-            var containingType = semanticModel.GetEnclosingNamedType(context.Span.Start, cancellationToken);
+            var containingType = semanticModel.GetEnclosingNamedType(textSpan.Start, cancellationToken);
             if (containingType == null)
             {
                 return;

@@ -18,5 +18,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Public Overrides Function TryGetCorrespondingLambdaBody(previousLambdaSyntax As SyntaxNode, lambdaOrLambdaBodySyntax As SyntaxNode) As SyntaxNode
             Return LambdaUtilities.GetCorrespondingLambdaBody(lambdaOrLambdaBodySyntax, previousLambdaSyntax)
         End Function
+
+        Public Overrides Function GetDeclaratorPosition(node As SyntaxNode) As Integer
+            Return node.SpanStart
+        End Function
     End Class
 End Namespace

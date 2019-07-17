@@ -123,6 +123,11 @@ namespace Microsoft.CodeAnalysis
         INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments);
 
         /// <summary>
+        /// Returns a constructed type given its type arguments and type argument nullable annotations.
+        /// </summary>
+        INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations);
+
+        /// <summary>
         /// Returns an unbound generic type of this named type.
         /// </summary>
         INamedTypeSymbol ConstructUnboundGenericType();
