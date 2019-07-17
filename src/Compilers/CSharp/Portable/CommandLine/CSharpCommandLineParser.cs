@@ -1919,7 +1919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (string.Equals(id, "nullable", StringComparison.OrdinalIgnoreCase))
                 {
-                    foreach (var errorCode in ErrorFacts.NullableFlowAnalysisWarnings)
+                    foreach (var errorCode in ErrorFacts.NullableWarnings)
                     {
                         yield return errorCode;
                     }

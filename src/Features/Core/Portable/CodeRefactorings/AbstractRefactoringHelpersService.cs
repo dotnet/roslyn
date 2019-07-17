@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     }
 
                     leftNode = leftNode.Parent;
-                    if (leftNode == null || leftNode.Span.End != location)
+                    if (leftNode == null || leftNode.GetLastToken().Span.End != location)
                     {
                         break;
                     }

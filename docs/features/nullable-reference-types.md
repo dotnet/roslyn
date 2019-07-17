@@ -51,6 +51,7 @@ Invocation of methods annotated with the following attributes will also affect f
 - simple post-conditions: `[MaybeNull]` and `[NotNull]`
 - conditional post-conditions: `[MaybeNullWhen(bool)]` and `[NotNullWhen(bool)]`
 - `[DoesNotReturnIf(bool)]` (e.g. `[DoesNotReturnIf(false)]` for `Debug.Assert`) and `[DoesNotReturn]`
+- `[NotNullIfNotNull(string)]`
 See https://github.com/dotnet/csharplang/blob/master/meetings/2019/LDM-2019-05-15.md
 
 The `Interlocked.CompareExchange` methods have special handling in flow analysis instead of being annotated due to the complexity of their nullability semantics. The affected overloads include:

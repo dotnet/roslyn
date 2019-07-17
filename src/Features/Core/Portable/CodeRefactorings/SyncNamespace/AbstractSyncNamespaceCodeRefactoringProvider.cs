@@ -18,10 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, textSpan, cancellationToken) = context;
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles ||
                 document.IsGeneratedCode(cancellationToken))
             {

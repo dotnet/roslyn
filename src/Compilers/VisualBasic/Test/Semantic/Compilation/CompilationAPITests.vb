@@ -1720,6 +1720,30 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         End Function
 
         <Fact()>
+        <WorkItem(36046, "https://github.com/dotnet/roslyn/issues/36046")>
+        Public Sub ConstructWithNullability()
+            Dim source =
+"Class Pair(Of T, U)
+End Class"
+            Dim comp = DirectCast(CreateCompilation(source), Compilation)
+            Dim genericType = DirectCast(comp.GetMember("Pair"), INamedTypeSymbol)
+            Dim typeArguments = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
+
+            Assert.Throws(Of ArgumentException)(Function() genericType.Construct(New ImmutableArray(Of ITypeSymbol), New ImmutableArray(Of CodeAnalysis.NullableAnnotation)))
+            Assert.Throws(Of ArgumentException)(Function() genericType.Construct(typeArguments:=Nothing, typeArgumentNullableAnnotations:=Nothing))
+
+            Dim type = genericType.Construct(typeArguments, Nothing)
+            Assert.Equal("Pair(Of System.Object, System.String)", type.ToTestDisplayString())
+            AssertEx.Equal({CodeAnalysis.NullableAnnotation.NotApplicable, CodeAnalysis.NullableAnnotation.NotApplicable}, type.TypeArgumentNullableAnnotations)
+
+            Assert.Throws(Of ArgumentException)(Function() genericType.Construct(typeArguments, ImmutableArray(Of CodeAnalysis.NullableAnnotation).Empty))
+
+            type = genericType.Construct(typeArguments, ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotAnnotated))
+            Assert.Equal("Pair(Of System.Object, System.String)", type.ToTestDisplayString())
+            AssertEx.Equal({CodeAnalysis.NullableAnnotation.NotApplicable, CodeAnalysis.NullableAnnotation.NotApplicable}, type.TypeArgumentNullableAnnotations)
+        End Sub
+
+        <Fact()>
         Public Sub GetEntryPoint_Exe()
             Dim source = <compilation name="Name1">
                              <file name="a.vb"><![CDATA[

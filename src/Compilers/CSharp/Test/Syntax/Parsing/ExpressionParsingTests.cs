@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestAltInterpolatedVerbatimString_CSharp73()
         {
             UsingExpression(@"@$""hello""", TestOptions.Regular7_3,
-                // (1,1): error CS8401: To use '@$' instead of '$@' for an interpolated verbatim string, please use language version 'preview' or greater.
+                // (1,1): error CS8401: To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '8.0' or greater.
                 // @$"hello"
-                Diagnostic(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, @"@$""").WithArguments("preview").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, @"@$""").WithArguments("8.0").WithLocation(1, 1)
                 );
 
             N(SyntaxKind.InterpolatedStringExpression);
@@ -4008,9 +4008,9 @@ select t";
         public void NullCoalescingAssignmentCSharp7_3()
         {
             UsingExpression("a ??= b", TestOptions.Regular7_3,
-                // (1,3): error CS8652: The feature 'coalescing assignment' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,3): error CS8652: The feature 'coalescing assignment' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // a ??= b
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "??=").WithArguments("coalescing assignment").WithLocation(1, 3));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "??=").WithArguments("coalescing assignment", "8.0").WithLocation(1, 3));
 
             N(SyntaxKind.CoalesceAssignmentExpression);
             {

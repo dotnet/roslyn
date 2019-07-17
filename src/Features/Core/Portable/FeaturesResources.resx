@@ -396,6 +396,12 @@
   <data name="Adding_0_into_a_1_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Adding '{0}' into a '{1}' will prevent the debug session from continuing.</value>
   </data>
+  <data name="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Adding '{0}' into an interface will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Adding '{0}' into an interface method will prevent the debug session from continuing.</value>
+  </data>
   <data name="Adding_0_into_a_class_with_explicit_or_sequential_layout_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Adding '{0}' into a class with explicit or sequential layout will prevent the debug session from continuing.</value>
   </data>

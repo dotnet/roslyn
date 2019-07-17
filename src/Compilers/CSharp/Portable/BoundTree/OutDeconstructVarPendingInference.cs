@@ -23,8 +23,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return SetInferredTypeWithAnnotations(TypeWithAnnotations.Create(binder.CreateErrorType()), binder, success: false);
         }
-
-        protected override BoundExpression ShallowClone()
-            => throw ExceptionUtilities.Unreachable;
     }
 }
