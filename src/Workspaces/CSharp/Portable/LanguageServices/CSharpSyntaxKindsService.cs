@@ -20,5 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public override int LogicalAndExpression => (int)SyntaxKind.LogicalAndExpression;
         public override int LogicalOrExpression => (int)SyntaxKind.LogicalOrExpression;
+        public override int EndOfFileToken => (int)SyntaxKind.EndOfFileToken;
+
     }
 }
