@@ -110,16 +110,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 // check variable assumption. ordering of two pairs can't be changed
                 Contract.ThrowIfFalse(
-                    (tokens[TriviaLocation.BeforeBeginningOfSpan].RawKind == 0 /* && don't care */) ||
-                    (/* don't care && */ tokens[TriviaLocation.AfterEndOfSpan].RawKind == 0) ||
-                    (tokens[TriviaLocation.BeforeBeginningOfSpan].Span.End <= tokens[TriviaLocation.AfterEndOfSpan].SpanStart));
+                    tokens[TriviaLocation.BeforeBeginningOfSpan].RawKind == 0 /* && don't care */ ||
+                    /* don't care && */ tokens[TriviaLocation.AfterEndOfSpan].RawKind == 0 ||
+                    tokens[TriviaLocation.BeforeBeginningOfSpan].Span.End <= tokens[TriviaLocation.AfterEndOfSpan].SpanStart);
 
                 Contract.ThrowIfFalse(
-                    (tokens[TriviaLocation.AfterBeginningOfSpan].RawKind == 0 /* && don't care */) ||
-                    (/* don't care && */ tokens[TriviaLocation.BeforeEndOfSpan].RawKind == 0) ||
-                    (tokens[TriviaLocation.AfterBeginningOfSpan] == tokens[TriviaLocation.BeforeEndOfSpan]) ||
-                    (tokens[TriviaLocation.AfterBeginningOfSpan].GetPreviousToken(includeZeroWidth: true) == tokens[TriviaLocation.BeforeEndOfSpan]) ||
-                    (tokens[TriviaLocation.AfterBeginningOfSpan].Span.End <= tokens[TriviaLocation.BeforeEndOfSpan].SpanStart));
+                    tokens[TriviaLocation.AfterBeginningOfSpan].RawKind == 0 /* && don't care */ ||
+                    /* don't care && */ tokens[TriviaLocation.BeforeEndOfSpan].RawKind == 0 ||
+                    tokens[TriviaLocation.AfterBeginningOfSpan] == tokens[TriviaLocation.BeforeEndOfSpan] ||
+                    tokens[TriviaLocation.AfterBeginningOfSpan].GetPreviousToken(includeZeroWidth: true) == tokens[TriviaLocation.BeforeEndOfSpan] ||
+                    tokens[TriviaLocation.AfterBeginningOfSpan].Span.End <= tokens[TriviaLocation.BeforeEndOfSpan].SpanStart);
 
                 return tokens;
             }
