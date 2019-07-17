@@ -195,8 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
                 return false;
             }
 
-            var xmlText = documentationComment.Content[0] as XmlTextSyntax;
-            if (xmlText == null)
+            if (!(documentationComment.Content[0] is XmlTextSyntax xmlText))
             {
                 return false;
             }
@@ -259,8 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
                 return false;
             }
 
-            var xmlText = documentationComment.Content.LastOrDefault() as XmlTextSyntax;
-            if (xmlText == null)
+            if (!(documentationComment.Content.LastOrDefault() is XmlTextSyntax xmlText))
             {
                 return false;
             }

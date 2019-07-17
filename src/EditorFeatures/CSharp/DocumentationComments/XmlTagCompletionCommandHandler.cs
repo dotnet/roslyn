@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 
             if (token.IsKind(SyntaxKind.GreaterThanToken))
             {
-                var parentStartTag = token.Parent as XmlElementStartTagSyntax;
-                if (parentStartTag == null)
+                if (!(token.Parent is XmlElementStartTagSyntax parentStartTag))
                 {
                     return;
                 }
@@ -122,8 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
                 return false;
             }
 
-            var parentElement = parentStartTag.Parent as XmlElementSyntax;
-            if (parentElement == null)
+            if (!(parentStartTag.Parent is XmlElementSyntax parentElement))
             {
                 return false;
             }
