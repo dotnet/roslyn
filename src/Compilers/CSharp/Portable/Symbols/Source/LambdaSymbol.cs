@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var location = unboundLambda.ParameterLocation(p);
                 var locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create<Location>(location);
                 var parameter = new SourceSimpleParameterSymbol(this, type, p, refKind, name, locations);
-
+                ParameterHelpers.AddNullCheckingErrorsToParameter(diagnostics, parameter);
                 builder.Add(parameter);
             }
 

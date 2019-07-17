@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _factory.CurrentFunction = localFunction;
                 var visited = (BoundLocalFunctionStatement)base.VisitLocalFunctionStatement(node);
-                if (RewriteNullChecking(visited.Body) is BoundBlock newBody)
+                if (!localFunction.IsIterator && RewriteNullChecking(visited.Body) is BoundBlock newBody)
                 {
                     visited = visited.Update(localFunction, newBody, null);
                 }

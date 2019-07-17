@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-using System;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -24,16 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                          SyntheticBoundNodeFactory factory)
         {
             ArrayBuilder<BoundStatement> statementList = null;
-            foreach (ParameterSymbol x in parameters)
+            foreach (ParameterSymbol param in parameters)
             {
-                if (x is SourceParameterSymbolBase param
-                    && param.IsNullChecked)
+                if (param.IsNullChecked)
                 {
-                    if (param.Type.IsValueType && !param.Type.IsNullableTypeOrTypeParameter())
-                    {
-                        // PROTOTYPE : Warning or Error, see CodeGenNullCheckedParameterTests.TestNullCheckedSubstitution2
-                        continue;
-                    }
+                    Debug.Assert(!param.Type.IsValueType || param.Type.IsNullableTypeOrTypeParameter());
                     statementList ??= ArrayBuilder<BoundStatement>.GetInstance();
                     var constructedIf = ConstructIfStatementForParameter(param, factory);
                     statementList.Add(constructedIf);
@@ -49,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
-        private static BoundStatement ConstructIfStatementForParameter(SourceParameterSymbolBase parameter, SyntheticBoundNodeFactory factory)
+        private static BoundStatement ConstructIfStatementForParameter(ParameterSymbol parameter, SyntheticBoundNodeFactory factory)
         {
             BoundExpression paramIsNullCondition;
             var loweredLeft = factory.Parameter(parameter);
@@ -62,8 +56,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 paramIsNullCondition = factory.MakeNullCheck(loweredLeft.Syntax, loweredLeft, BinaryOperatorKind.Equal);
             }
-            // PROTOTYPE : Make ArgumentNullException
-            BoundThrowStatement throwArgNullStatement = factory.Throw(factory.New(factory.WellKnownType(WellKnownType.System_Exception)));
+
+            var argumentName = ImmutableArray.Create<BoundExpression>(factory.StringLiteral(parameter.Name));
+            BoundObjectCreationExpression ex = factory.New(factory.WellKnownMethod(WellKnownMember.System_ArgumentNullException__ctorString), argumentName);
+            BoundThrowStatement throwArgNullStatement = factory.Throw(ex);
 
             return factory.HiddenSequencePoint(factory.If(paramIsNullCondition, throwArgNullStatement));
         }

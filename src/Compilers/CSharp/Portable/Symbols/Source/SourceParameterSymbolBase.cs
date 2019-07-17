@@ -58,7 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract ConstantValue DefaultValueFromAttributes { get; }
 
-        internal abstract bool IsNullChecked { get; }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {

@@ -43,6 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckParameterModifiers(parameterSyntax, diagnostics);
 
                 var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword);
+                if (refKind != RefKind.None && parameterSyntax.ExclamationToken.Kind() != SyntaxKind.None)
+                {
+                    diagnostics.Add(ErrorCode.ERR_NullCheckingOnByRefParameter, parameterSyntax.ExclamationToken.GetLocation(), parameterSyntax.Identifier.ValueText);
+                }
                 if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
                 {
                     diagnostics.Add(ErrorCode.ERR_ThisInBadContext, thisKeyword.GetLocation());
@@ -599,6 +603,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return refKind;
+        }
+
+        internal static void AddNullCheckingErrorsToParameter(DiagnosticBag diagnostics, ParameterSymbol parameter)
+        {
+            if (!parameter.IsNullChecked)
+            {
+                return;
+            }
+            Location location = parameter.Locations.FirstOrNone();
+            if (Binder.GetWellKnownTypeMember(parameter.DeclaringCompilation, WellKnownMember.System_ArgumentNullException__ctorString, out DiagnosticInfo diag) is null)
+            {
+                diagnostics.Add(diag, location);
+            }
+            if (parameter.Type.IsValueType)
+            {
+                if (!parameter.Type.IsNullableTypeOrTypeParameter())
+                {
+                    diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, location, parameter);
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.WRN_NullCheckingOnNullableValueType, location, parameter);
+                }
+            }
         }
     }
 }

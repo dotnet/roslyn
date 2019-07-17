@@ -305,8 +305,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_SwitchExpressionException,
         System_Collections_Generic_IEqualityComparer_T,
 
+        System_ArgumentNullException,
         NextAvailable,
-
         // Remember to update the AllWellKnownTypes tests when making changes here
     }
 
@@ -605,6 +605,7 @@ namespace Microsoft.CodeAnalysis
             "System.InvalidOperationException",
             "System.Runtime.CompilerServices.SwitchExpressionException",
             "System.Collections.Generic.IEqualityComparer`1",
+            "System.ArgumentNullException",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

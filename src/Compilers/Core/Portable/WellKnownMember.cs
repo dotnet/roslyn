@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis
         System_Threading_CancellationTokenSource__CreateLinkedTokenSource,
         System_Threading_CancellationTokenSource__Token,
         System_Threading_CancellationTokenSource__Dispose,
-
+        System_ArgumentNullException__ctorString,
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

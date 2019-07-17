@@ -7639,6 +7639,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parameter &apos;{0}&apos; is a non-nullable value type and cannot be null-checked..
+        /// </summary>
+        internal static string ERR_NonNullableValueTypeIsNullChecked {
+            get {
+                return ResourceManager.GetString("ERR_NonNullableValueTypeIsNullChecked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A void or int returning entry point cannot be async.
         /// </summary>
         internal static string ERR_NonTaskMainCantBeAsync {
@@ -7851,6 +7860,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_NullableUnconstrainedTypeParameter {
             get {
                 return ResourceManager.GetString("ERR_NullableUnconstrainedTypeParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to By-reference parameter &apos;{0}&apos; cannot be null-checked..
+        /// </summary>
+        internal static string ERR_NullCheckingOnByRefParameter {
+            get {
+                return ResourceManager.GetString("ERR_NullCheckingOnByRefParameter", resourceCulture);
             }
         }
         
@@ -15706,6 +15724,42 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_NullAsNonNullable_Title {
             get {
                 return ResourceManager.GetString("WRN_NullAsNonNullable_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter &apos;{0}&apos; is null-checked but is null by default..
+        /// </summary>
+        internal static string WRN_NullCheckedHasDefaultNull {
+            get {
+                return ResourceManager.GetString("WRN_NullCheckedHasDefaultNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter is null-checked but is null by default..
+        /// </summary>
+        internal static string WRN_NullCheckedHasDefaultNull_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullCheckedHasDefaultNull_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullable value type &apos;{0}&apos; is null-checked and will throw if null..
+        /// </summary>
+        internal static string WRN_NullCheckingOnNullableValueType {
+            get {
+                return ResourceManager.GetString("WRN_NullCheckingOnNullableValueType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullable value type is null-checked and will throw if null..
+        /// </summary>
+        internal static string WRN_NullCheckingOnNullableValueType_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullCheckingOnNullableValueType_Title", resourceCulture);
             }
         }
         

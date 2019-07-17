@@ -227,6 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // in which case the declaring compilation is the wrong one.
         protected ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics, Binder binder)
         {
+            ParameterHelpers.AddNullCheckingErrorsToParameter(diagnostics, this);
             var parameterSyntax = this.CSharpSyntaxNode;
             if (parameterSyntax == null)
             {
@@ -278,6 +279,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     convertedExpression = binder.GenerateConversionForAssignment(parameterType.Type.GetNullableUnderlyingType(),
                         valueBeforeConversion, diagnostics, isDefaultParameter: true);
                 }
+            }
+
+            if (this.IsNullChecked && convertedExpression.ConstantValue?.IsNull == true)
+            {
+                diagnostics.Add(ErrorCode.WRN_NullCheckedHasDefaultNull, Locations.FirstOrNone(), this.Name);
             }
 
             if (parameterType.Type.IsReferenceType &&

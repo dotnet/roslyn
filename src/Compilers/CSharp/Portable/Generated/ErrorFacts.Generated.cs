@@ -229,6 +229,8 @@
                 case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                 case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
+                case ErrorCode.WRN_NullCheckedHasDefaultNull:
+                case ErrorCode.WRN_NullCheckingOnNullableValueType:
                     return true;
                 default:
                     return false;
