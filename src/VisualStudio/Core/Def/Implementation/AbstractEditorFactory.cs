@@ -68,10 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             pguidCmdUI = Guid.Empty;
             pgrfCDW = 0;
 
-            var physicalView = pszPhysicalView == null
-                ? "Code"
-                : pszPhysicalView;
-
+            var physicalView = pszPhysicalView ?? "Code";
             IVsTextBuffer textBuffer = null;
 
             // Is this document already open? If so, let's see if it's a IVsTextBuffer we should re-use. This allows us
