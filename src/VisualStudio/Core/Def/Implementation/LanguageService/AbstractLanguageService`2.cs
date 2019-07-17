@@ -348,10 +348,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var subjectBuffer = wpfTextView.TextBuffer;
             var snapshot = subjectBuffer.CurrentSnapshot;
             var tagger = outliningTaggerProvider.CreateTagger<IOutliningRegionTag>(subjectBuffer);
-            using (var disposable = tagger as IDisposable)
-            {
-                tagger.GetAllTags(new NormalizedSnapshotSpanCollection(snapshot.GetFullSpan()), CancellationToken.None);
-            }
+
+            using var disposable = tagger as IDisposable;
+            tagger.GetAllTags(new NormalizedSnapshotSpanCollection(snapshot.GetFullSpan()), CancellationToken.None);
         }
 
         private void InitializeLanguageDebugInfo()

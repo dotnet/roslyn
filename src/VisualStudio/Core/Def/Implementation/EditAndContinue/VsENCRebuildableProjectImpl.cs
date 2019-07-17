@@ -294,14 +294,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             Debug.Assert(filePath != null);
             Debug.Assert(PathUtilities.IsAbsolute(filePath));
 
-            using (var reader = new PEReader(FileUtilities.OpenRead(filePath)))
-            {
-                var metadataReader = reader.GetMetadataReader();
-                var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
-                var fileMvid = metadataReader.GetGuid(mvidHandle);
+            using var reader = new PEReader(FileUtilities.OpenRead(filePath));
+            var metadataReader = reader.GetMetadataReader();
+            var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
+            var fileMvid = metadataReader.GetGuid(mvidHandle);
 
-                return fileMvid;
-            }
+            return fileMvid;
         }
 
         public int StopDebuggingPE()

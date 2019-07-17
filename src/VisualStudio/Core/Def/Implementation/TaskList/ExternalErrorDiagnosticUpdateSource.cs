@@ -178,16 +178,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                 // we are about to update live analyzer data using one from build.
                 // pause live analyzer
-                using (var operation = _notificationService.Start("BuildDone"))
+                using var operation = _notificationService.Start("BuildDone");
+                if (_diagnosticService is DiagnosticAnalyzerService diagnosticService)
                 {
-                    if (_diagnosticService is DiagnosticAnalyzerService diagnosticService)
-                    {
-                        await CleanupAllLiveErrorsAsync(diagnosticService, inProgressState.GetProjectsWithoutErrors()).ConfigureAwait(false);
-                        await SyncBuildErrorsAndReportAsync(diagnosticService, inProgressState).ConfigureAwait(false);
-                    }
-
-                    inProgressState.Done();
+                    await CleanupAllLiveErrorsAsync(diagnosticService, inProgressState.GetProjectsWithoutErrors()).ConfigureAwait(false);
+                    await SyncBuildErrorsAndReportAsync(diagnosticService, inProgressState).ConfigureAwait(false);
                 }
+
+                inProgressState.Done();
             }).CompletesAsyncOperation(asyncToken);
         }
 

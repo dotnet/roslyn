@@ -319,11 +319,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             IOUtilities.PerformIO(() =>
             {
-                using (var textWriter = new StreamWriter(filePath, append: false, encoding: formattedText.Encoding))
-                {
-                    // We pass null here for cancellation, since cancelling in the middle of the file write would leave the file corrupted
-                    formattedText.Write(textWriter, cancellationToken: CancellationToken.None);
-                }
+                using var textWriter = new StreamWriter(filePath, append: false, encoding: formattedText.Encoding);
+                // We pass null here for cancellation, since cancelling in the middle of the file write would leave the file corrupted
+                formattedText.Write(textWriter, cancellationToken: CancellationToken.None);
             });
         }
     }

@@ -912,10 +912,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (initialText != null)
             {
-                using (var writer = new StreamWriter(filePath, append: false, encoding: initialText.Encoding ?? Encoding.UTF8))
-                {
-                    initialText.Write(writer);
-                }
+                using var writer = new StreamWriter(filePath, append: false, encoding: initialText.Encoding ?? Encoding.UTF8);
+                initialText.Write(writer);
             }
 
             // TODO: restore document ID hinting -- we previously ensured that the AddFromFile will introduce the document ID being used here.
@@ -1143,10 +1141,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 // The document wasn't open in a normal way, so invisible editor time
-                using (var invisibleEditor = OpenInvisibleEditor(documentId))
-                {
-                    TextEditApplication.UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
-                }
+                using var invisibleEditor = OpenInvisibleEditor(documentId);
+                TextEditApplication.UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
             }
         }
 

@@ -184,11 +184,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         {
             foreach (SpanChange child in Children.Changes)
             {
-                using (var edit = _buffer.CreateEdit())
-                {
-                    edit.Replace(child.GetSpan(), child.GetApplicableText());
-                    edit.ApplyAndLogExceptions();
-                }
+                using var edit = _buffer.CreateEdit();
+                edit.Replace(child.GetSpan(), child.GetApplicableText());
+                edit.ApplyAndLogExceptions();
             }
 
             return SourceText.From(_buffer.CurrentSnapshot.GetText(), _encoding);

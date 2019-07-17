@@ -106,17 +106,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             try
             {
-                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
-                using (var peReader = new PEReader(stream))
-                {
-                    var metadataReader = peReader.GetMetadataReader();
+                using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+                using var peReader = new PEReader(stream);
+                var metadataReader = peReader.GetMetadataReader();
 
-                    var mvid = ReadMvid(metadataReader);
-                    var identity = ReadAssemblyIdentity(metadataReader);
-                    var references = ReadReferences(metadataReader);
+                var mvid = ReadMvid(metadataReader);
+                var identity = ReadAssemblyIdentity(metadataReader);
+                var references = ReadReferences(metadataReader);
 
-                    return new AnalyzerInfo(filePath, identity, mvid, references);
-                }
+                return new AnalyzerInfo(filePath, identity, mvid, references);
             }
             catch { }
 
