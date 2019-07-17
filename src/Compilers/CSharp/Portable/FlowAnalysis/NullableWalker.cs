@@ -6036,7 +6036,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
         {
-            var receiverType = VisitRvalueWithState(node.Receiver);
+            BoundExpression receiver = node.Receiver;
+            var receiverType = VisitRvalueWithState(receiver);
+            // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
+            // after indices have been visited, and only if the receiver has not changed.
+            _ = CheckPossibleNullReceiver(receiver);
+
             VisitRvalue(node.Argument);
             var patternSymbol = node.PatternSymbol;
             if (!receiverType.HasNullType)
