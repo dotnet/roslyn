@@ -498,10 +498,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         private async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, CancellationToken cancellationToken)
         {
-            bool isDocumentDiagnostic(DiagnosticData d) => d.DataLocation != null && d.HasTextSpan;
-
             var builder = ImmutableDictionary.CreateBuilder<DocumentId, List<DiagnosticData>>();
-            foreach (var diagnosticData in diagnosticsToFix.Where(isDocumentDiagnostic))
+            foreach (var diagnosticData in diagnosticsToFix.Where(d => d.DataLocation != null && d.HasTextSpan))
             {
                 if (!builder.TryGetValue(diagnosticData.DocumentId, out var diagnosticsPerDocument))
                 {
