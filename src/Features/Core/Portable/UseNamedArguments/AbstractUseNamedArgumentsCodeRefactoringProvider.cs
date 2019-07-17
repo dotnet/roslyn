@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                 var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
 
                 var argument = await refactoringHelperService.TryGetSelectedNodeAsync<TSimpleArgumentSyntax>(document, textSpan, cancellationToken).ConfigureAwait(false);
-                if (argument == null && context.Span.IsEmpty)
+                if (argument == null && textSpan.IsEmpty)
                 {
                     // For arguments we want to enable cursor anywhere in the expressions (even deep within) as long as
                     // it is on the first line of said expression. Since the `TryGetSelectedNodeAsync` doesn't do such
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                     // The rationale for only first line is that arg. expressions can be arbitrarily large. 
                     // see: https://github.com/dotnet/roslyn/issues/18848
 
-                    var position = context.Span.Start;
+                    var position = textSpan.Start;
                     var token = root.FindToken(position);
 
                     argument = root.FindNode(token.Span).FirstAncestorOrSelfUntil<TBaseArgumentSyntax>(node => node is TArgumentListSyntax) as TSimpleArgumentSyntax;

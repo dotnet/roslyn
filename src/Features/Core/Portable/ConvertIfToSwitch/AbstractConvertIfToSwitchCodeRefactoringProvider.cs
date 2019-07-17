@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
                 // To prevent noisiness, only show this feature on the 'if' keyword of the if-statement.
                 var token = ifStatement.GetFirstToken();
-                if (!token.Span.Contains(context.Span))
+                if (!token.Span.Contains(textSpan))
                 {
                     return;
                 }

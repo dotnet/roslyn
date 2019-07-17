@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
 
-            var parameterNode = await refactoringHelperService.TryGetSelectedNodeAsync<TParameterSyntax>(document, context.Span, cancellationToken).ConfigureAwait(false);
+            var parameterNode = await refactoringHelperService.TryGetSelectedNodeAsync<TParameterSyntax>(document, textSpan, cancellationToken).ConfigureAwait(false);
             if (parameterNode == null)
             {
                 return;

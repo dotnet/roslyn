@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(textSpan.Start);
 
-            var foreachStatement = GetForEachStatement(context.Span, token);
+            var foreachStatement = GetForEachStatement(textSpan, token);
             if (foreachStatement == null)
             {
                 return;

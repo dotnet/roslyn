@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
             var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-            var lambda = await refactoringHelperService.TryGetSelectedNodeAsync<LambdaExpressionSyntax>(document, context.Span, cancellationToken).ConfigureAwait(false);
+            var lambda = await refactoringHelperService.TryGetSelectedNodeAsync<LambdaExpressionSyntax>(document, textSpan, cancellationToken).ConfigureAwait(false);
             if (lambda == null)
             {
                 return;

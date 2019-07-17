@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
-            var variableDeclarator = await refactoringHelperService.TryGetSelectedNodeAsync<VariableDeclaratorSyntax>(document, context.Span, cancellationToken).ConfigureAwait(false);
+            var variableDeclarator = await refactoringHelperService.TryGetSelectedNodeAsync<VariableDeclaratorSyntax>(document, textSpan, cancellationToken).ConfigureAwait(false);
             if (variableDeclarator == default)
             {
                 return;

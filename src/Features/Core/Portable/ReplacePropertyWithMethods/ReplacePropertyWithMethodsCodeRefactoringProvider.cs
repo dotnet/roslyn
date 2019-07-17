@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
             context.RegisterRefactoring(new ReplacePropertyWithMethodsCodeAction(
                 string.Format(resourceString, propertyName),
-                c => ReplacePropertyWithMethodsAsync(context.Document, propertySymbol, c),
+                c => ReplacePropertyWithMethodsAsync(document, propertySymbol, c),
                 propertyName));
         }
 
