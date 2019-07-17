@@ -172,19 +172,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             {
                 Debug.Assert(sessionReason == SessionReadOnlyReason.None);
 
-                switch (projectReason)
+                message = projectReason switch
                 {
-                    case ProjectReadOnlyReason.MetadataNotAvailable:
-                        message = ServicesVSResources.ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted;
-                        break;
-
-                    case ProjectReadOnlyReason.NotLoaded:
-                        message = ServicesVSResources.ChangesNotAllowedIFAssemblyHasNotBeenLoaded;
-                        break;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(projectReason);
-                }
+                    ProjectReadOnlyReason.MetadataNotAvailable => ServicesVSResources.ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted,
+                    ProjectReadOnlyReason.NotLoaded => ServicesVSResources.ChangesNotAllowedIFAssemblyHasNotBeenLoaded,
+                    _ => throw ExceptionUtilities.UnexpectedValue(projectReason),
+                };
             }
 
             _notifications.SendNotification(message, title: FeaturesResources.Edit_and_Continue1, severity: NotificationSeverity.Error);
@@ -634,16 +627,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         }
 
         private static string EncStateToString(ENC_BUILD_STATE state)
-        {
-            switch (state)
+            => state switch
             {
-                case ENC_BUILD_STATE.ENC_NOT_MODIFIED: return "ENC_NOT_MODIFIED";
-                case ENC_BUILD_STATE.ENC_NONCONTINUABLE_ERRORS: return "ENC_NONCONTINUABLE_ERRORS";
-                case ENC_BUILD_STATE.ENC_COMPILE_ERRORS: return "ENC_COMPILE_ERRORS";
-                case ENC_BUILD_STATE.ENC_APPLY_READY: return "ENC_APPLY_READY";
-                default: return state.ToString();
-            }
-        }
+                ENC_BUILD_STATE.ENC_NOT_MODIFIED => "ENC_NOT_MODIFIED",
+                ENC_BUILD_STATE.ENC_NONCONTINUABLE_ERRORS => "ENC_NONCONTINUABLE_ERRORS",
+                ENC_BUILD_STATE.ENC_COMPILE_ERRORS => "ENC_COMPILE_ERRORS",
+                ENC_BUILD_STATE.ENC_APPLY_READY => "ENC_APPLY_READY",
+                _ => state.ToString(),
+            };
 
         private ProjectAnalysisSummary GetProjectAnalysisSummary(Project project)
         {
