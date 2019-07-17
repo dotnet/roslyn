@@ -137,8 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 
                 try
                 {
-                    var lines = Marshal.GetObjectForIUnknown(bufferPtr) as IVsTextLines;
-                    if (lines == null)
+                    if (!(Marshal.GetObjectForIUnknown(bufferPtr) is IVsTextLines lines))
                     {
                         return false;
                     }
