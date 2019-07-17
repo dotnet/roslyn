@@ -640,9 +640,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // We are combining the spans and categories of the given set of suggested action sets
                     // to generate a result span containing the spans of individual suggested action sets and
                     // a result category which is the maximum severity category amongst the set
-                    int minStart = -1;
-                    int maxEnd = -1;
-                    string category = PredefinedSuggestedActionCategoryNames.CodeFix;
+                    var minStart = -1;
+                    var maxEnd = -1;
+                    var category = PredefinedSuggestedActionCategoryNames.CodeFix;
 
                     foreach (var set in sets)
                     {

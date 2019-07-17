@@ -702,7 +702,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             public int GetHashCode(DiagnosticData obj)
             {
-                int result =
+                var result =
                     Hash.Combine(obj.Id,
                     Hash.Combine(obj.Message,
                     Hash.Combine(obj.ProjectId,
