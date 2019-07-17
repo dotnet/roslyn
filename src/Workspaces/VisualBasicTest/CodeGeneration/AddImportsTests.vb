@@ -383,6 +383,26 @@ Public Class C
 End Class", safe, useSymbolAnnotations)
         End Function
 
+        <Theory(Skip:="AddImportService considers case when chancking if an import already exists"), MemberData(NameOf(TestAllData))>
+        Public Async Function TestDontAddImportWithExisitingImportDifferentCase(safe As Boolean, useSymbolAnnotations As Boolean) As Task
+            Await TestAsync(
+"Imports system.collections.generic
+
+Class C
+    Public F As System.Collections.Generic.List(Of Integer)
+End Class",
+"Imports system.collections.generic
+
+Class C
+    Public F As System.Collections.Generic.List(Of Integer)
+End Class",
+"Imports system.collections.generic
+
+Class C
+    Public F As List(Of Integer)
+End Class", safe, useSymbolAnnotations)
+        End Function
+
 #Region "AddImports Safe Tests"
 
         <Theory, InlineData(True), InlineData(False)>
