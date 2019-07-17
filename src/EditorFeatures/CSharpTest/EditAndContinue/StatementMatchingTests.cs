@@ -1638,7 +1638,7 @@ if (!(o1 is (var a, (var b, string c1)))) return;
 if (!(o7 is var (g, e, f))) return;
 if (!(o3 is (string k, int l2, int m))) return;
 ";
-            var match = GetMethodMatches(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), kind: MethodKind.Regular);
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
             var actual = ToMatchingPairs(match);
 
             var expected = new MatchingPairs {
@@ -1687,7 +1687,7 @@ _ => 4
 };
 ";
 
-            var match = GetMethodMatches(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), kind: MethodKind.Regular);
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
             var actual = ToMatchingPairs(match);
 
             var expected = new MatchingPairs {
@@ -1719,7 +1719,7 @@ if (obj is { Size: Size.M }) return 2;
 if (o is string { Length: 7 } s7) return 5;
 ";
 
-            var match = GetMethodMatches(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), kind: MethodKind.Regular);
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
             var actual = ToMatchingPairs(match);
 
             var expected = new MatchingPairs {
@@ -1764,7 +1764,7 @@ if (o is string { Length: 7 } s7) return 5;
 };
 ";
 
-            var match = GetMethodMatches(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), kind: MethodKind.Regular);
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
             var actual = ToMatchingPairs(match);
 
             var expected = new MatchingPairs {

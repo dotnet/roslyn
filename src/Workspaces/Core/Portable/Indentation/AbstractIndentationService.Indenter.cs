@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                                                   (tk.LeadingTrivia.Any(tr => tr.IsDirective) || tk.TrailingTrivia.Any(tr => tr.IsDirective));
 
             private readonly ISyntaxFactsService _syntaxFacts;
-            private readonly int TabSize;
+            private readonly int _tabSize;
 
             public Indenter(
                 AbstractIndentationService<TSyntaxRoot> service,
@@ -52,13 +52,13 @@ namespace Microsoft.CodeAnalysis.Indentation
                 this.OptionSet = optionSet;
                 this.Root = (TSyntaxRoot)document.Root;
                 this.LineToBeIndented = lineToBeIndented;
-                this.TabSize = this.OptionSet.GetOption(FormattingOptions.TabSize, Root.Language);
+                this._tabSize = this.OptionSet.GetOption(FormattingOptions.TabSize, Root.Language);
                 this.CancellationToken = cancellationToken;
 
                 this.Rules = rules;
                 this.Finder = new BottomUpBaseIndentationFinder(
                     new ChainedFormattingRules(this.Rules, OptionSet),
-                    this.TabSize,
+                    this._tabSize,
                     this.OptionSet.GetOption(FormattingOptions.IndentationSize, Root.Language),
                     tokenStream: null);
             }
