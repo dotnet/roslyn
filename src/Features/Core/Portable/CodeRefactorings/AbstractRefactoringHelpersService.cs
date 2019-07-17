@@ -22,15 +22,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             return (TSyntaxNode)await TryGetSelectedNodeAsync(
                 document,
                 selection, n => n is TSyntaxNode,
-                ExtractNodesSimple, ExtractNodesIfInHeader,
                 cancellationToken).ConfigureAwait(false);
         }
 
         protected async Task<SyntaxNode> TryGetSelectedNodeAsync(
             Document document, TextSpan selectionRaw,
             Func<SyntaxNode, bool> predicate,
-            Func<SyntaxNode, ISyntaxFactsService, IEnumerable<SyntaxNode>> extractNodes,
-            Func<SyntaxNode, int, ISyntaxFactsService, IEnumerable<SyntaxNode>> extracNodestIfInHeader,
             CancellationToken cancellationToken)
         {
             // Given selection is trimmed first to enable over-selection that spans multiple lines. Since trailing whitespace ends
@@ -70,41 +67,46 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // - Handles situations where:
             //  - Token with wanted Node as direct parent is selected (e.g. IdentifierToken for LocalFunctionStatement: `C [|Fun|]() {}`) 
             //  - Most/the whole wanted Node is selected (e.g. `C [|Fun() {}|]`
-            var selectionNode = root.FindNode(selectionTrimmed, getInnermostNodeForTie: true);
-            var prevNode = selectionNode;
-            do
-            {
-                var acceptedNode = extractNodes(selectionNode, syntaxFacts).FirstOrDefault(predicate);
-                if (acceptedNode != null)
-                {
-                    // For selections we need to handle an edge case where only AttributeLists are within selection (e.g. `Func([|[in][out]|] arg1);`).
-                    // In that case the smallest encompassing node is still the whole argument node but it's hard to justify showing refactorings for it
-                    // if user selected only its attributes.
+            // Note: Whether we have selection or location has to be checked against original selection because selecting just
+            // whitespace could collapse selectionTrimmed into and empty Location. But we don't want `[|   |]token`
+            // registering as `   [||]token`.
 
-                    // Selection contains only AttributeLists -> don't consider current Node
-                    var spanWithoutAttributes = GetSpanWithoutAttributes(acceptedNode, root, syntaxFacts);
-                    if (!selectionTrimmed.IntersectsWith(spanWithoutAttributes))
+            if (!selectionTrimmed.IsEmpty)
+            {
+                var selectionNode = root.FindNode(selectionTrimmed, getInnermostNodeForTie: true);
+                var prevNode = selectionNode;
+                do
+                {
+                    var acceptedNode = ExtractNodesSimple(selectionNode, syntaxFacts).FirstOrDefault(predicate);
+                    if (acceptedNode != null)
                     {
-                        break;
+                        // For selections we need to handle an edge case where only AttributeLists are within selection (e.g. `Func([|[in][out]|] arg1);`).
+                        // In that case the smallest encompassing node is still the whole argument node but it's hard to justify showing refactorings for it
+                        // if user selected only its attributes.
+
+                        // Selection contains only AttributeLists -> don't consider current Node
+                        var spanWithoutAttributes = GetSpanWithoutAttributes(acceptedNode, root, syntaxFacts);
+                        if (!selectionTrimmed.IntersectsWith(spanWithoutAttributes))
+                        {
+                            break;
+                        }
+
+                        return acceptedNode;
                     }
 
-                    return acceptedNode;
+                    prevNode = selectionNode;
+                    selectionNode = selectionNode.Parent;
                 }
+                while (selectionNode != null && prevNode.FullWidth() == selectionNode.FullWidth());
 
-                prevNode = selectionNode;
-                selectionNode = selectionNode.Parent;
+                return null;
             }
-            while (selectionNode != null && prevNode.FullWidth() == selectionNode.FullWidth());
 
             // Handle what current selection is touching:
             //
             // Consider touching only for empty selections. Otherwise `[|C|] methodName(){}` would be considered as 
             // touching the Method's Node (through the left edge, see below) which is something the user probably 
             // didn't want since they specifically selected only the return type.
-            //
-            // Whether we have selection of location has to be checked against original selection because selecting just
-            // whitespace could collapse selectionTrimmed into and empty Location. But we don't want `[|   |]token`
-            // registering as `   [||]token`.
             //
             // What the selection is touching is used in two ways. 
             // - Firstly, it is used to handle situation where it touches a Token whose direct ancestor is wanted Node.
@@ -120,10 +122,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // Note: left-edge climbing needs to handle AttributeLists explicitly, see below for more information. 
             // - Thirdly, if location isn't touching anything, we move the location to the token in whose trivia location is in.
             // more about that below.
-            if (!selectionRaw.IsEmpty)
-            {
-                return null;
-            }
 
             // get Token for current location
             var location = selectionTrimmed.Start;
@@ -184,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // First check if we're in a header of some higher-level node what would pass predicate & if we are -> return it
             // We can't check any sooner because the code above (that figures out tokenToLeft, ...) can change current 
             // `location`.
-            var acceptedHeaderNode = extracNodestIfInHeader(root, location, syntaxFacts).FirstOrDefault(predicate);
+            var acceptedHeaderNode = ExtractNodesIfInHeader(root, location, syntaxFacts).FirstOrDefault(predicate);
             if (acceptedHeaderNode != null)
             {
                 return acceptedHeaderNode;
@@ -199,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     // Consider either a Node that is:
                     // - Parent of touched Token (location can be within) 
                     // - Ancestor Node of such Token as long as their span starts on location (it's still on the edge)
-                    var acceptedNode = extractNodes(rightNode, syntaxFacts).FirstOrDefault(predicate);
+                    var acceptedNode = ExtractNodesSimple(rightNode, syntaxFacts).FirstOrDefault(predicate);
                     if (acceptedNode != null)
                     {
                         return acceptedNode;
@@ -237,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 {
                     // Consider either a Node that is:
                     // - Ancestor Node of such Token as long as their span ends on location (it's still on the edge)
-                    var acceptedNode = extractNodes(leftNode, syntaxFacts).FirstOrDefault(predicate);
+                    var acceptedNode = ExtractNodesSimple(leftNode, syntaxFacts).FirstOrDefault(predicate);
                     if (acceptedNode != null)
                     {
                         return acceptedNode;
@@ -280,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         }
 
         /// <summary>
-        /// Extractor function that retrieves all nodes that should be considered for <see cref="TryGetSelectedNodeAsync(Document, TextSpan, Func{SyntaxNode, bool}, Func{SyntaxNode, ISyntaxFactsService, IEnumerable{SyntaxNode}}, Func{SyntaxNode, int, ISyntaxFactsService, IEnumerable{SyntaxNode}}, CancellationToken)"/> 
+        /// Extractor function that retrieves all nodes that should be considered for <see cref="TryGetSelectedNodeAsync(Document, TextSpan, Func{SyntaxNode, bool}, CancellationToken)"/> 
         /// given current node. 
         /// <para>
         /// The rationale is that when user selects e.g. entire local declaration statement [|var a = b;|] it is reasonable
@@ -359,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         }
 
         /// <summary>
-        /// Extractor function that checks and retrieves all nodes current location is in a header of <see cref="TryGetSelectedNodeAsync(Document, TextSpan, Func{SyntaxNode, bool}, Func{SyntaxNode, ISyntaxFactsService, IEnumerable{SyntaxNode}}, Func{SyntaxNode, int, ISyntaxFactsService, IEnumerable{SyntaxNode}}, CancellationToken)"/>.
+        /// Extractor function that checks and retrieves all nodes current location is in a header of <see cref="TryGetSelectedNodeAsync(Document, TextSpan, Func{SyntaxNode, bool}, CancellationToken)"/>.
         /// </summary>
         protected virtual IEnumerable<SyntaxNode> ExtractNodesIfInHeader(SyntaxNode root, int location, ISyntaxFactsService syntaxFacts)
         {
