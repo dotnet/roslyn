@@ -51,9 +51,9 @@ public class Program
             comp2 = CreateCompilation(src2, parseOptions: TestOptions.Regular7_3,
                 references: new[] { comp1.ToMetadataReference() });
             comp2.VerifyDiagnostics(
-                // (11,11): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (11,11): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         s.GenericExtension();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "GenericExtension").WithArguments("unmanaged constructed types").WithLocation(11, 11));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "GenericExtension").WithArguments("unmanaged constructed types", "8.0").WithLocation(11, 11));
 
             var info = checkSymbolInfo(comp2);
             Assert.Null(info.Symbol);

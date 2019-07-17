@@ -131,12 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                FlowAnalysisAnnotations? annotations = TryGetExtraAttributeAnnotations();
-                if (annotations.HasValue)
-                {
-                    // https://github.com/dotnet/roslyn/issues/30078: Make sure this is covered by test
-                    return annotations.Value;
-                }
                 return DecodeFlowAnalysisAttributes(GetDecodedWellKnownAttributeData());
             }
         }
@@ -182,6 +176,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return annotations;
         }
+
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull 
+            => GetDecodedWellKnownAttributeData()?.NotNullIfParameterNotNull ?? ImmutableHashSet<string>.Empty;
 
         internal bool HasEnumeratorCancellationAttribute
         {
@@ -701,6 +698,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DoesNotReturnIfAttribute))
             {
                 arguments.GetOrCreateData<ParameterWellKnownAttributeData>().DoesNotReturnIfAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription.DoesNotReturnIfAttribute, attribute, arguments.Diagnostics);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullIfNotNullAttribute))
+            {
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().AddNotNullIfParameterNotNull(attribute.DecodeNotNullIfNotNullAttribute());
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.EnumeratorCancellationAttribute))
             {

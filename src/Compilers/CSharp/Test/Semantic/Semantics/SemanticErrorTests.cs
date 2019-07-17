@@ -2036,27 +2036,27 @@ interface I
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
-                // (4,30): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,30): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     event System.Action E1 { add; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(4, 30),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(4, 30),
                 // (4,33): error CS0073: An add or remove accessor must have a body
                 //     event System.Action E1 { add; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(4, 33),
-                // (5,30): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,30): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     event System.Action E2 { remove; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(5, 30),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "8.0").WithLocation(5, 30),
                 // (5,36): error CS0073: An add or remove accessor must have a body
                 //     event System.Action E2 { remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(5, 36),
-                // (6,30): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,30): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     event System.Action E3 { add; remove; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(6, 30),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(6, 30),
                 // (6,33): error CS0073: An add or remove accessor must have a body
                 //     event System.Action E3 { add; remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 33),
-                // (6,35): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,35): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     event System.Action E3 { add; remove; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(6, 35),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "8.0").WithLocation(6, 35),
                 // (6,41): error CS0073: An add or remove accessor must have a body
                 //     event System.Action E3 { add; remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 41),
@@ -4437,12 +4437,16 @@ class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (10,26): error CS0155: The type caught or thrown must be derived from System.Exception
-                Diagnostic(ErrorCode.ERR_BadExceptionType, "(string)null"),
-                // (11,26): error CS0155: The type caught or thrown must be derived from System.Exception
-                Diagnostic(ErrorCode.ERR_BadExceptionType, "s"),
-                // (12,26): error CS0155: The type caught or thrown must be derived from System.Exception
-                Diagnostic(ErrorCode.ERR_BadExceptionType, "T"));
+                // (10,26): error CS0029: Cannot implicitly convert type 'string' to 'System.Exception'
+                //         if (False) throw (string)null; //CS0155
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(string)null").WithArguments("string", "System.Exception").WithLocation(10, 26),
+                // (11,26): error CS0029: Cannot implicitly convert type 'string' to 'System.Exception'
+                //         if (False) throw s; //CS0155
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s").WithArguments("string", "System.Exception").WithLocation(11, 26),
+                // (12,26): error CS0029: Cannot implicitly convert type 'string' to 'System.Exception'
+                //         if (False) throw T; //CS0155
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "T").WithArguments("string", "System.Exception").WithLocation(12, 26)
+                );
         }
 
         [Fact]
@@ -4462,8 +4466,10 @@ class C
 class D : C { }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (8,26): error CS0155: The type caught or thrown must be derived from System.Exception
-                Diagnostic(ErrorCode.ERR_BadExceptionType, "new C() as D"));
+                // (8,26): error CS0029: Cannot implicitly convert type 'D' to 'System.Exception'
+                //         if (False) throw new C() as D; //CS0155, though always null
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new C() as D").WithArguments("D", "System.Exception").WithLocation(8, 26)
+                );
         }
 
         [Fact]
@@ -4488,12 +4494,16 @@ class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (11,26): error CS0155: The type caught or thrown must be derived from System.Exception
-                Diagnostic(ErrorCode.ERR_BadExceptionType, "default(T)"),
-                // (12,26): error CS0155: The type caught or thrown must be derived from System.Exception
-                Diagnostic(ErrorCode.ERR_BadExceptionType, "default(TC)"),
-                // (13,26): error CS0155: The type caught or thrown must be derived from System.Exception
-                Diagnostic(ErrorCode.ERR_BadExceptionType, "default(TS)"));
+                // (11,26): error CS0029: Cannot implicitly convert type 'T' to 'System.Exception'
+                //         if (False) throw default(T); //CS0155
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "default(T)").WithArguments("T", "System.Exception").WithLocation(11, 26),
+                // (12,26): error CS0029: Cannot implicitly convert type 'TC' to 'System.Exception'
+                //         if (False) throw default(TC); //CS0155
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "default(TC)").WithArguments("TC", "System.Exception").WithLocation(12, 26),
+                // (13,26): error CS0029: Cannot implicitly convert type 'TS' to 'System.Exception'
+                //         if (False) throw default(TS); //CS0155
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "default(TS)").WithArguments("TS", "System.Exception").WithLocation(13, 26)
+                );
         }
 
         [Fact()]
@@ -4515,7 +4525,7 @@ class C
 
 class Implicit
 {
-    public static explicit operator Exception(Implicit i)
+    public static implicit operator Exception(Implicit i)
     {
         return null;
     }
@@ -4529,11 +4539,17 @@ class Explicit
     }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (8,20): error CS0155: The type caught or thrown must be derived from System.Exception
                 Diagnostic(ErrorCode.ERR_BadExceptionType, "new Implicit()"),
                 // (8,20): error CS0155: The type caught or thrown must be derived from System.Exception
-                Diagnostic(ErrorCode.ERR_BadExceptionType, "new Explicit()"));
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "new Explicit()")
+                );
+            CreateCompilation(text).VerifyDiagnostics(
+                    // (9,26): error CS0266: Cannot implicitly convert type 'Explicit' to 'System.Exception'. An explicit conversion exists (are you missing a cast?)
+                    //         if (False) throw new Explicit(); //CS0155
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new Explicit()").WithArguments("Explicit", "System.Exception").WithLocation(9, 26)
+                );
         }
 
         [Fact]
@@ -4551,9 +4567,10 @@ class C
     }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (9,26): error CS0155: The type caught or thrown must be derived from System.Exception
                 Diagnostic(ErrorCode.ERR_BadExceptionType, "d"));
+            CreateCompilation(text).VerifyDiagnostics(); // dynamic conversion to Exception
         }
 
         [WorkItem(542995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542995")]

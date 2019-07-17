@@ -45,6 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
