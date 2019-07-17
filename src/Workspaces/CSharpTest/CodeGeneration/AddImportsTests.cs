@@ -1692,7 +1692,7 @@ class C
 
             var warning = nodeWithWarning.GetAnnotations(WarningAnnotation.Kind).Single();
 
-            Assert.Equal("Adding imports will bring an extension method into scope with the same name as M", WarningAnnotation.GetDescription(warning));
+            Assert.Equal("Adding imports will bring an extension method into scope with the same name as 'M'", WarningAnnotation.GetDescription(warning));
         }
         #endregion
     }

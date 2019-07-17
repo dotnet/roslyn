@@ -73,7 +73,6 @@ namespace Microsoft.CodeAnalysis.Editing
                 // Make Safe to add namespaces
                 document = document.WithSyntaxRoot(
                    MakeSafeToAddNamespaces(root, namespaceSymbols, model, document.Project.Solution.Workspace, cancellationToken));
-                document = document.WithSyntaxRoot(root.ReplaceNode(context, context.WithAdditionalAnnotations(annotation)));
                 root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
                 model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 

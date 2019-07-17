@@ -1420,7 +1420,7 @@ End Class", safe:=True, useSymbolAnnotations)
             Dim nodeWithWarning = root.GetAnnotatedNodes(WarningAnnotation.Kind).Single()
             Assert.Equal("42.M" & vbCrLf, nodeWithWarning.ToFullString())
             Dim warning = nodeWithWarning.GetAnnotations(WarningAnnotation.Kind).Single()
-            Assert.Equal("Adding imports will bring an extension method into scope with the same name as M", WarningAnnotation.GetDescription(warning))
+            Assert.Equal("Adding imports will bring an extension method into scope with the same name as 'M'", WarningAnnotation.GetDescription(warning))
         End Function
 
 #End Region

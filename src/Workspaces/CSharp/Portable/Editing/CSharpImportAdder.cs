@@ -184,12 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
                         continue;
                     }
 
-                    if (parent is MemberDeclarationSyntax && parent.ChildNodes().First() == current)
-                    {
-                        return true;
-                    }
-
-                    return false;
+                    return parent is MemberDeclarationSyntax && parent.ChildNodes().First() == current;
                 }
                 return false;
             }
