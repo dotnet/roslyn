@@ -5233,7 +5233,7 @@ namespace NS2
                 state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem(displayText:="Bar", isHardSelected:=True, inlineDescription:="NS2")
+                Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
                 state.SendTab()
                 Assert.Equal(expectedText, state.GetDocumentText())
             End Using
