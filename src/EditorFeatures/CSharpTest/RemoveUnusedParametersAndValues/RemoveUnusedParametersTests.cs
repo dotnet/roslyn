@@ -1306,6 +1306,35 @@ public sealed class C : IDisposable
 }", options);
         }
 
+        [WorkItem(37326, "https://github.com/dotnet/roslyn/issues/37326")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task RegressionTest_ShouldReportUnusedParameter_02()
+        {
+            var options = Option(CodeStyleOptions.UnusedParameters,
+                new CodeStyleOption<UnusedParametersPreference>((UnusedParametersPreference)2, NotificationOption.Suggestion));
+
+            await TestDiagnosticMissingAsync(
+@"using System;
+using System.Threading.Tasks;
+
+public interface IFoo { event Action Fooed; }
+
+public sealed class C : IDisposable
+{
+    private readonly Task<IFoo> foo;
+
+    public C(Task<IFoo> [|foo|])
+    {
+        this.foo = foo;
+        Task.Run(async () => (await foo).Fooed += fooed);
+    }
+
+    private void fooed() { }
+
+    public void Dispose() => foo.Result.Fooed -= fooed;
+}", options);
+        }
+
         [WorkItem(36817, "https://github.com/dotnet/roslyn/issues/36817")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task ParameterWithoutName_NoDiagnostic()
