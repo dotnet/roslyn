@@ -207,13 +207,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // interface in its base class list that contains a member ..."
             MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>.ValueSet set = containingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics[explicitInterfaceNamedType];
             int setCount = set.Count;
-            if (setCount == 0 || !set.Contains(explicitInterfaceNamedType, SymbolEqualityComparer.ObliviousNullableModifierMatchesAny))
+            if (setCount == 0 || !set.Contains(explicitInterfaceNamedType, TypeSymbol.EqualsObliviousNullableModifierMatchesAny))
             {
                 //we'd like to highlight just the type part of the name
                 var explicitInterfaceSyntax = explicitInterfaceSpecifierSyntax.Name;
                 var location = new SourceLocation(explicitInterfaceSyntax);
 
-                if (setCount > 0 && set.Contains(explicitInterfaceNamedType, SymbolEqualityComparer.IgnoringNullable))
+                if (setCount > 0 && set.Contains(explicitInterfaceNamedType, TypeSymbol.EqualsIgnoringNullableComparer))
                 {
                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface, location);
                 }
