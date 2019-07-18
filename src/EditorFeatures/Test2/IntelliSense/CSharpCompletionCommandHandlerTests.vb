@@ -5755,6 +5755,192 @@ class C
             End Using
         End Function
 
+        <WorkItem(35163, "https://github.com/dotnet/roslyn/issues/35163")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NonExpandedItemShouldAlwaysBePreferred_DisplayTextMatch(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+namespace NS1
+{
+    class C
+    {
+        public void Foo()
+        {
+            Bar$$
+        }
+    }
+
+    public class Bar<T>
+    {
+    } 
+}
+
+namespace NS2
+{
+    public class Bar
+    {
+    }
+}
+]]></Document>)
+
+                Dim expectedText = "
+namespace NS1
+{
+    class C
+    {
+        public void Foo()
+        {
+            Bar
+        }
+    }
+
+    public class Bar<T>
+    {
+    } 
+}
+
+namespace NS2
+{
+    public class Bar
+    {
+    }
+}
+"
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="Bar", displayTextSuffix:="<>")
+                state.SendTab()
+                Assert.Equal(expectedText, state.GetDocumentText())
+            End Using
+        End Function
+
+        <WorkItem(35163, "https://github.com/dotnet/roslyn/issues/35163")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NonExpandedItemShouldAlwaysBePreferred_FullDisplayTextMatch(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+namespace NS1
+{
+    class C
+    {
+        public void Foo()
+        {
+            Bar$$
+        }
+    }
+
+    public class Bar
+    {
+    } 
+}
+
+namespace NS2
+{
+    public class Bar
+    {
+    }
+}
+]]></Document>)
+
+                Dim expectedText = "
+namespace NS1
+{
+    class C
+    {
+        public void Foo()
+        {
+            Bar
+        }
+    }
+
+    public class Bar
+    {
+    } 
+}
+
+namespace NS2
+{
+    public class Bar
+    {
+    }
+}
+"
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="Bar")
+                state.SendTab()
+                Assert.Equal(expectedText, state.GetDocumentText())
+            End Using
+        End Function
+
+        <WorkItem(35163, "https://github.com/dotnet/roslyn/issues/35163")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NonExpandedItemShouldAlwaysBePreferred_ExpandedItemHasBetterMatch(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+namespace NS1
+{
+    class C
+    {
+        public void Foo()
+        {
+            bar$$
+        }
+    }
+
+    public class BitArrayReceiver
+    {
+    } 
+}
+
+namespace NS2
+{
+    public class Bar
+    {
+    }
+}
+]]></Document>)
+
+                Dim expectedText = "
+namespace NS1
+{
+    class C
+    {
+        public void Foo()
+        {
+            BitArrayReceiver
+        }
+    }
+
+    public class BitArrayReceiver
+    {
+    } 
+}
+
+namespace NS2
+{
+    public class Bar
+    {
+    }
+}
+"
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="BitArrayReceiver")
+                state.SendTab()
+                Assert.Equal(expectedText, state.GetDocumentText())
+            End Using
+        End Function
+
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 

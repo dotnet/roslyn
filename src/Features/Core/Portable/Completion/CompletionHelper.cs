@@ -188,7 +188,16 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
         {
-            // First see how the two items compare in a case insensitive fashion.  Matches that 
+            // Always prefer non-expanded item regardless of the pattern matching result.
+            // This currently means unimported types will be treated as "2nd tier" results,
+            // which forces users to be more explicit about selecting them.
+            var expandedDiff = CompareExpandedItem(item1, item2);
+            if (expandedDiff != 0)
+            {
+                return expandedDiff;
+            }
+
+            // Then see how the two items compare in a case insensitive fashion.  Matches that 
             // are strictly better (ignoring case) should prioritize the item.  i.e. if we have
             // a prefix match, that should always be better than a substring match.
             //
@@ -251,6 +260,20 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return 0;
+        }
+
+        private int CompareExpandedItem(CompletionItem item1, CompletionItem item2)
+        {
+            var isItem1Expanded = item1.Flags.IsExpanded();
+            var isItem2Expanded = item2.Flags.IsExpanded();
+
+            if (isItem1Expanded == isItem2Expanded)
+            {
+                return 0;
+            }
+
+            // Non-expanded item is better than expanded item
+            return isItem1Expanded ? 1 : -1;
         }
     }
 }
