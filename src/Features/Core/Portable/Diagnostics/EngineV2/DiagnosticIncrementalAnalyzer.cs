@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return stateSet.IsCompilationEndAnalyzer(project, compilation);
         }
 
-        public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
+        public bool ContainsDiagnostics(ProjectId projectId)
         {
             foreach (var stateSet in _stateManager.GetStateSets(projectId))
             {

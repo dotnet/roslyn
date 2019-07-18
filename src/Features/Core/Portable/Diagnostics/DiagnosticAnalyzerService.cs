@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (_map.TryGetValue(workspace, out var analyzer))
             {
-                return analyzer.ContainsDiagnostics(workspace, projectId);
+                return analyzer.ContainsDiagnostics(projectId);
             }
 
             return false;
