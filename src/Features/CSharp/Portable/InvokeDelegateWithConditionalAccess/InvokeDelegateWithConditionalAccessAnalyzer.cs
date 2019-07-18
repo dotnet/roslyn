@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             var expressionStatement = (ExpressionStatementSyntax)innerStatement;
 
             // Check that it's of the form: "if (a != null) { a(); }
-            if (!(((ExpressionStatementSyntax)innerStatement).Expression is InvocationExpressionSyntax invocationExpression))
+            if (!(expressionStatement.Expression is InvocationExpressionSyntax invocationExpression))
             {
                 return;
             }
