@@ -234,23 +234,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (destination != null)
             {
-                switch (destination.Kind())
+                return destination.Kind() switch
                 {
-                    case SyntaxKind.ClassDeclaration:
-                        return CodeGenerationDestination.ClassType;
-                    case SyntaxKind.CompilationUnit:
-                        return CodeGenerationDestination.CompilationUnit;
-                    case SyntaxKind.EnumDeclaration:
-                        return CodeGenerationDestination.EnumType;
-                    case SyntaxKind.InterfaceDeclaration:
-                        return CodeGenerationDestination.InterfaceType;
-                    case SyntaxKind.NamespaceDeclaration:
-                        return CodeGenerationDestination.Namespace;
-                    case SyntaxKind.StructDeclaration:
-                        return CodeGenerationDestination.StructType;
-                    default:
-                        return CodeGenerationDestination.Unspecified;
-                }
+                    SyntaxKind.ClassDeclaration => CodeGenerationDestination.ClassType,
+                    SyntaxKind.CompilationUnit => CodeGenerationDestination.CompilationUnit,
+                    SyntaxKind.EnumDeclaration => CodeGenerationDestination.EnumType,
+                    SyntaxKind.InterfaceDeclaration => CodeGenerationDestination.InterfaceType,
+                    SyntaxKind.NamespaceDeclaration => CodeGenerationDestination.Namespace,
+                    SyntaxKind.StructDeclaration => CodeGenerationDestination.StructType,
+                    _ => CodeGenerationDestination.Unspecified,
+                };
             }
 
             return CodeGenerationDestination.Unspecified;

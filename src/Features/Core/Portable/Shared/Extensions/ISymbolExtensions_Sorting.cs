@@ -27,15 +27,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static INamedTypeSymbol GetNamedType(ITypeSymbol type)
-        {
-            switch (type)
+            => type switch
             {
-                case INamedTypeSymbol namedType: return namedType;
-                case IArrayTypeSymbol arrayType: return GetNamedType(arrayType.ElementType);
-                case IPointerTypeSymbol pointerType: return GetNamedType(pointerType.PointedAtType);
-                default: return null;
-            }
-        }
+                INamedTypeSymbol namedType => namedType,
+                IArrayTypeSymbol arrayType => GetNamedType(arrayType.ElementType),
+                IPointerTypeSymbol pointerType => GetNamedType(pointerType.PointedAtType),
+                _ => null,
+            };
 
         private static int CompareParameters(
             ImmutableArray<IParameterSymbol> xParameters, string[] xTypeNames,

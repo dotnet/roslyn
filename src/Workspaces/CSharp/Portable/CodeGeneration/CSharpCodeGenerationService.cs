@@ -327,25 +327,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var attributeSyntaxList = AttributeGenerator.GenerateAttributeLists(attributes.ToImmutableArray(), options, target).ToArray();
 
-            switch (destination)
+            return destination switch
             {
-                case MemberDeclarationSyntax member:
-                    // Handle all members including types.
-                    return Cast<TDeclarationNode>(member.AddAttributeLists(attributeSyntaxList));
-                case AccessorDeclarationSyntax accessor:
-                    // Handle accessors
-                    return Cast<TDeclarationNode>(accessor.AddAttributeLists(attributeSyntaxList));
-                case CompilationUnitSyntax compilationUnit:
-                    // Handle global attributes
-                    return Cast<TDeclarationNode>(compilationUnit.AddAttributeLists(attributeSyntaxList));
-                case ParameterSyntax parameter:
-                    // Handle parameters
-                    return Cast<TDeclarationNode>(parameter.AddAttributeLists(attributeSyntaxList));
-                case TypeParameterSyntax typeParameter:
-                    return Cast<TDeclarationNode>(typeParameter.AddAttributeLists(attributeSyntaxList));
-            }
-
-            return destination;
+                MemberDeclarationSyntax member => Cast<TDeclarationNode>(member.AddAttributeLists(attributeSyntaxList)),
+                AccessorDeclarationSyntax accessor => Cast<TDeclarationNode>(accessor.AddAttributeLists(attributeSyntaxList)),
+                CompilationUnitSyntax compilationUnit => Cast<TDeclarationNode>(compilationUnit.AddAttributeLists(attributeSyntaxList)),
+                ParameterSyntax parameter => Cast<TDeclarationNode>(parameter.AddAttributeLists(attributeSyntaxList)),
+                TypeParameterSyntax typeParameter => Cast<TDeclarationNode>(typeParameter.AddAttributeLists(attributeSyntaxList)),
+                _ => destination,
+            };
         }
 
         protected override TDeclarationNode AddMembers<TDeclarationNode>(TDeclarationNode destination, IEnumerable<SyntaxNode> members)
@@ -637,25 +627,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static TDeclarationNode UpdateDeclarationModifiers<TDeclarationNode>(TDeclarationNode declaration, Func<SyntaxTokenList, SyntaxTokenList> computeNewModifiersList, CodeGenerationOptions options)
-        {
-            switch (declaration)
+            => declaration switch
             {
-                case BaseTypeDeclarationSyntax typeDeclaration:
-                    // Handle type declarations.
-                    return Cast<TDeclarationNode>(typeDeclaration.WithModifiers(computeNewModifiersList(typeDeclaration.Modifiers)));
-                case BaseFieldDeclarationSyntax fieldDeclaration:
-                    // Handle field declarations.
-                    return Cast<TDeclarationNode>(fieldDeclaration.WithModifiers(computeNewModifiersList(fieldDeclaration.Modifiers)));
-                case BaseMethodDeclarationSyntax methodDeclaration:
-                    // Handle method declarations.
-                    return Cast<TDeclarationNode>(methodDeclaration.WithModifiers(computeNewModifiersList(methodDeclaration.Modifiers)));
-                case BasePropertyDeclarationSyntax propertyDeclaration:
-                    // Handle properties.
-                    return Cast<TDeclarationNode>(propertyDeclaration.WithModifiers(computeNewModifiersList(propertyDeclaration.Modifiers)));
-            }
-
-            return declaration;
-        }
+                BaseTypeDeclarationSyntax typeDeclaration => Cast<TDeclarationNode>(typeDeclaration.WithModifiers(computeNewModifiersList(typeDeclaration.Modifiers))),
+                BaseFieldDeclarationSyntax fieldDeclaration => Cast<TDeclarationNode>(fieldDeclaration.WithModifiers(computeNewModifiersList(fieldDeclaration.Modifiers))),
+                BaseMethodDeclarationSyntax methodDeclaration => Cast<TDeclarationNode>(methodDeclaration.WithModifiers(computeNewModifiersList(methodDeclaration.Modifiers))),
+                BasePropertyDeclarationSyntax propertyDeclaration => Cast<TDeclarationNode>(propertyDeclaration.WithModifiers(computeNewModifiersList(propertyDeclaration.Modifiers))),
+                _ => declaration,
+            };
 
         public override TDeclarationNode UpdateDeclarationModifiers<TDeclarationNode>(TDeclarationNode declaration, IEnumerable<SyntaxToken> newModifiers, CodeGenerationOptions options, CancellationToken cancellationToken)
         {

@@ -232,16 +232,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             else if (token.Parent is VariableDeclaratorSyntax variableDeclarator && variableDeclarator.Identifier == token)
             {
                 var varDecl = variableDeclarator.Parent as VariableDeclarationSyntax;
-                switch (varDecl.Parent)
+                return varDecl.Parent switch
                 {
-                    case FieldDeclarationSyntax fieldDeclaration:
-                        return fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.FieldName;
-                    case LocalDeclarationStatementSyntax localDeclarationStatement:
-                        return localDeclarationStatement.IsConst ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.LocalName;
-                    case EventFieldDeclarationSyntax aventFieldDeclarationSyntax:
-                        return ClassificationTypeNames.EventName;
-                }
-                return ClassificationTypeNames.LocalName;
+                    FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.FieldName,
+                    LocalDeclarationStatementSyntax localDeclarationStatement => localDeclarationStatement.IsConst ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.LocalName,
+                    EventFieldDeclarationSyntax aventFieldDeclarationSyntax => ClassificationTypeNames.EventName,
+                    _ => ClassificationTypeNames.LocalName,
+                };
             }
             else if (token.Parent is SingleVariableDesignationSyntax singleVariableDesignation && singleVariableDesignation.Identifier == token)
             {
@@ -347,21 +344,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         private static string GetClassificationForTypeDeclarationIdentifier(SyntaxToken identifier)
-        {
-            switch (identifier.Parent.Kind())
+            => identifier.Parent.Kind() switch
             {
-                case SyntaxKind.ClassDeclaration:
-                    return ClassificationTypeNames.ClassName;
-                case SyntaxKind.EnumDeclaration:
-                    return ClassificationTypeNames.EnumName;
-                case SyntaxKind.StructDeclaration:
-                    return ClassificationTypeNames.StructName;
-                case SyntaxKind.InterfaceDeclaration:
-                    return ClassificationTypeNames.InterfaceName;
-                default:
-                    return null;
-            }
-        }
+                SyntaxKind.ClassDeclaration => ClassificationTypeNames.ClassName,
+                SyntaxKind.EnumDeclaration => ClassificationTypeNames.EnumName,
+                SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
+                SyntaxKind.InterfaceDeclaration => ClassificationTypeNames.InterfaceName,
+                _ => null,
+            };
 
         private static string GetClassificationForPunctuation(SyntaxToken token)
         {

@@ -148,19 +148,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             private TypeSyntax GetTypeSyntaxFromDeclaration(SyntaxNode declarationStatement)
-            {
-                switch (declarationStatement)
+                => declarationStatement switch
                 {
-                    case VariableDeclarationSyntax varDecl:
-                        return varDecl.Type;
-                    case ForEachStatementSyntax forEach:
-                        return forEach.Type;
-                    case DeclarationExpressionSyntax declExpr:
-                        return declExpr.Type;
-                }
-
-                return null;
-            }
+                    VariableDeclarationSyntax varDecl => varDecl.Type,
+                    ForEachStatementSyntax forEach => forEach.Type,
+                    DeclarationExpressionSyntax declExpr => declExpr.Type,
+                    _ => null,
+                };
 
             private UseVarPreference GetCurrentTypeStylePreferences(OptionSet optionSet)
             {

@@ -101,10 +101,9 @@ namespace Microsoft.CodeAnalysis
 
             // first see whether we can use native memory directly.
             var stream = _storage.ReadStream();
-            var supportNativeMemory = stream as ISupportDirectMemoryAccess;
             AssemblyMetadata metadata;
 
-            if (supportNativeMemory != null)
+            if (stream is ISupportDirectMemoryAccess supportNativeMemory)
             {
                 // this is unfortunate that if we give stream, compiler will just re-copy whole content to 
                 // native memory again. this is a way to get around the issue by we getting native memory ourselves and then
