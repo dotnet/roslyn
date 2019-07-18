@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
     internal interface IRequestHandler<RequestType, ResponseType> : IRequestHandler
     {
-        Task<ResponseType> HandleRequestAsync(Solution solution, RequestType request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken);
+        Task<ResponseType> HandleRequestAsync(Solution solution, RequestType request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken, bool keepThreadContext = false);
     }
 }
