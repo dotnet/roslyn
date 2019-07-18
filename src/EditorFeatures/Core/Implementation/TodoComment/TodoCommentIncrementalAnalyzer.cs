@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 }
             }
 
-            var tokens = _todoCommentTokens.GetTokens(document, cancellationToken);
+            var tokens = _todoCommentTokens.GetTokens(document);
             var comments = await GetTodoCommentsAsync(document, tokens, cancellationToken).ConfigureAwait(false);
             var items = await CreateItemsAsync(document, comments, cancellationToken).ConfigureAwait(false);
 
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             return existingData.Items;
         }
 
-        public IEnumerable<UpdatedEventArgs> GetTodoItemsUpdatedEventArgs(Workspace workspace, CancellationToken cancellationToken)
+        public IEnumerable<UpdatedEventArgs> GetTodoItemsUpdatedEventArgs(Workspace workspace)
         {
             foreach (var documentId in _state.GetDocumentIds())
             {
