@@ -60,18 +60,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         protected ITypeSymbol GetReturnType(ISymbol symbol)
-        {
-            switch (symbol.Kind)
+            => symbol.Kind switch
             {
-                case SymbolKind.Event:
-                    return ((IEventSymbol)symbol).Type;
-                case SymbolKind.Method:
-                    return ((IMethodSymbol)symbol).ReturnType;
-                case SymbolKind.Property:
-                    return ((IPropertySymbol)symbol).Type;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
-            }
-        }
+                SymbolKind.Event => ((IEventSymbol)symbol).Type,
+                SymbolKind.Method => ((IMethodSymbol)symbol).ReturnType,
+                SymbolKind.Property => ((IPropertySymbol)symbol).Type,
+                _ => throw ExceptionUtilities.UnexpectedValue(symbol.Kind),
+            };
     }
 }

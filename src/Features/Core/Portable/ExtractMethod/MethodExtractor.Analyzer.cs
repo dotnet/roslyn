@@ -606,19 +606,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             private ITypeSymbol GetSymbolType(SemanticModel model, ISymbol symbol)
-            {
-                switch (symbol)
+                => symbol switch
                 {
-                    case ILocalSymbol local:
-                        return local.Type;
-                    case IParameterSymbol parameter:
-                        return parameter.Type;
-                    case IRangeVariableSymbol rangeVariable:
-                        return GetRangeVariableType(model, rangeVariable);
-                }
-
-                return Contract.FailWithReturn<ITypeSymbol>("Shouldn't reach here");
-            }
+                    ILocalSymbol local => local.Type,
+                    IParameterSymbol parameter => parameter.Type,
+                    IRangeVariableSymbol rangeVariable => GetRangeVariableType(model, rangeVariable),
+                    _ => Contract.FailWithReturn<ITypeSymbol>("Shouldn't reach here"),
+                };
 
             protected VariableStyle AlwaysReturn(VariableStyle style)
             {
@@ -949,19 +943,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 VariableStyle style,
                 HashSet<int> nonNoisySyntaxKindSet) where T : SyntaxNode
             {
-                switch (symbol)
+                return symbol switch
                 {
-                    case ILocalSymbol local:
-                        return new VariableInfo(
-                            new LocalVariableSymbol<T>(compilation, local, type, nonNoisySyntaxKindSet),
-                            style);
-                    case IParameterSymbol parameter:
-                        return new VariableInfo(new ParameterVariableSymbol(compilation, parameter, type), style);
-                    case IRangeVariableSymbol rangeVariable:
-                        return new VariableInfo(new QueryVariableSymbol(compilation, rangeVariable, type), style);
-                }
-
-                return Contract.FailWithReturn<VariableInfo>(FeaturesResources.Unknown);
+                    ILocalSymbol local => new VariableInfo(
+                        new LocalVariableSymbol<T>(compilation, local, type, nonNoisySyntaxKindSet),
+                        style),
+                    IParameterSymbol parameter => new VariableInfo(new ParameterVariableSymbol(compilation, parameter, type), style),
+                    IRangeVariableSymbol rangeVariable => new VariableInfo(new QueryVariableSymbol(compilation, rangeVariable, type), style),
+                    _ => Contract.FailWithReturn<VariableInfo>(FeaturesResources.Unknown),
+                };
             }
         }
     }
