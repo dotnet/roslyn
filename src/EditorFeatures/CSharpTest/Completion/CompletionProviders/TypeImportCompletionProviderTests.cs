@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             workspace.Options = workspace.Options
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue);
+            AbstractTypeImportCompletionProvider.TimeoutInMilliseconds = -1;
         }
 
         protected override ExportProvider GetExportProvider()

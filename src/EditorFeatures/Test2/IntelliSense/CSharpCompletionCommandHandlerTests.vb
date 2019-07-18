@@ -5231,6 +5231,7 @@ namespace NS2
 "
 
                 state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                AbstractTypeImportCompletionProvider.TimeoutInMilliseconds = -1
 
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
