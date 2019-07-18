@@ -118,8 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
                 return false;
             }
 
-            var methodSymbol = semanticModel.GetSymbolInfo(memberName, cancellationToken).Symbol as IMethodSymbol;
-            if (methodSymbol == null)
+            if (!(semanticModel.GetSymbolInfo(memberName, cancellationToken).Symbol is IMethodSymbol methodSymbol))
             {
                 return false;
             }
@@ -265,9 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 
         public static bool IsPredefinedType(TypeSyntax type)
         {
-            var predefinedType = type as PredefinedTypeSyntax;
-
-            return predefinedType != null
+            return type is PredefinedTypeSyntax predefinedType
                 ? SyntaxFacts.IsPredefinedType(predefinedType.Keyword.Kind())
                 : false;
         }

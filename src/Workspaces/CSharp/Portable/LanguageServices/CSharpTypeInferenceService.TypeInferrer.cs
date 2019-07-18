@@ -418,9 +418,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             private IEnumerable<TypeInferenceInfo> InferTypeInObjectCreationExpression(ObjectCreationExpressionSyntax creation, int index, ArgumentSyntax argumentOpt = null)
             {
                 var info = SemanticModel.GetSymbolInfo(creation.Type, CancellationToken);
-                var type = info.Symbol as INamedTypeSymbol;
 
-                if (type == null)
+                if (!(info.Symbol is INamedTypeSymbol type))
                 {
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }

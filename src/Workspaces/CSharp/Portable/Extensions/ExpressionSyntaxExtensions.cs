@@ -338,9 +338,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsInOutContext(this ExpressionSyntax expression)
         {
-            var argument = expression?.Parent as ArgumentSyntax;
             return
-                argument != null &&
+                expression?.Parent is ArgumentSyntax argument &&
                 argument.Expression == expression &&
                 argument.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword;
         }
@@ -1069,8 +1068,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var nameOfInvocationExpr = expression.FirstAncestorOrSelf<InvocationExpressionSyntax>(
                 invocationExpr =>
                 {
-                    var identifierName = invocationExpr.Expression as IdentifierNameSyntax;
-                    return (identifierName != null) && (identifierName.Identifier.Text == "nameof") &&
+                    return (invocationExpr.Expression is IdentifierNameSyntax identifierName) && (identifierName.Identifier.Text == "nameof") &&
                         semanticModel.GetConstantValue(invocationExpr).HasValue &&
                         (semanticModel.GetTypeInfo(invocationExpr).Type.SpecialType == SpecialType.System_String);
                 });
@@ -1425,8 +1423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             foreach (var member in members)
             {
-                var childNamespace = member as NamespaceDeclarationSyntax;
-                if (childNamespace == null)
+                if (!(member is NamespaceDeclarationSyntax childNamespace))
                 {
                     continue;
                 }

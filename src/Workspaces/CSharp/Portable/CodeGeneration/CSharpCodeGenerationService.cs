@@ -278,8 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            var memberDeclaration = destinationMember as MemberDeclarationSyntax;
-            if (memberDeclaration == null)
+            if (!(destinationMember is MemberDeclarationSyntax memberDeclaration))
             {
                 return destinationMember;
             }
@@ -689,8 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override TDeclarationNode UpdateDeclarationType<TDeclarationNode>(TDeclarationNode declaration, ITypeSymbol newType, CodeGenerationOptions options, CancellationToken cancellationToken)
         {
-            var syntaxNode = declaration as CSharpSyntaxNode;
-            if (syntaxNode == null)
+            if (!(declaration is CSharpSyntaxNode syntaxNode))
             {
                 return declaration;
             }

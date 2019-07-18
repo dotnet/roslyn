@@ -360,9 +360,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsColonInLabeledStatement(this SyntaxToken token)
         {
-            var labeledStatement = token.Parent as LabeledStatementSyntax;
             return token.Kind() == SyntaxKind.ColonToken &&
-                labeledStatement != null &&
+                token.Parent is LabeledStatementSyntax labeledStatement &&
                 labeledStatement.ColonToken == token;
         }
 
@@ -386,9 +385,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsFirstFromKeywordInExpression(this SyntaxToken token)
         {
-            var queryExpression = token.Parent.Parent as QueryExpressionSyntax;
             return token.Kind() == SyntaxKind.FromKeyword &&
-                   queryExpression != null &&
+                   token.Parent.Parent is QueryExpressionSyntax queryExpression &&
                    queryExpression.GetFirstToken().Equals(token);
         }
 

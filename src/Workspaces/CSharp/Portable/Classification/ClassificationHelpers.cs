@@ -163,23 +163,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
                 case SyntaxKind.InterpolatedStringEndToken:
                     {
-                        var interpolatedString = token.Parent as InterpolatedStringExpressionSyntax;
-
-                        return interpolatedString != null
+                        return token.Parent is InterpolatedStringExpressionSyntax interpolatedString
                             && interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
                     }
 
                 case SyntaxKind.InterpolatedStringTextToken:
                     {
-                        var interpolatedStringText = token.Parent as InterpolatedStringTextSyntax;
-                        if (interpolatedStringText == null)
+                        if (!(token.Parent is InterpolatedStringTextSyntax interpolatedStringText))
                         {
                             return false;
                         }
 
-                        var interpolatedString = interpolatedStringText.Parent as InterpolatedStringExpressionSyntax;
 
-                        return interpolatedString != null
+                        return interpolatedStringText.Parent is InterpolatedStringExpressionSyntax interpolatedString
                             && interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
                     }
             }

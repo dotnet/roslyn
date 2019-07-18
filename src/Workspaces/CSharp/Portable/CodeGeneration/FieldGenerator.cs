@@ -92,9 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 }
             }
 
-            var initializerNode = CodeGenerationFieldInfo.GetInitializer(field) as ExpressionSyntax;
 
-            var initializer = initializerNode != null
+            var initializer = CodeGenerationFieldInfo.GetInitializer(field) is ExpressionSyntax initializerNode
                 ? SyntaxFactory.EqualsValueClause(initializerNode)
                 : GenerateEqualsValue(field);
 

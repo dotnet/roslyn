@@ -937,8 +937,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return false;
             }
 
-            var name = nameToken.Parent as NameSyntax;
-            if (name == null)
+            if (!(nameToken.Parent is NameSyntax name))
             {
                 return false;
             }
@@ -2187,9 +2186,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 // If the condition is simply a TypeSyntax that binds to a type, treat this as a nullable type.
                 var conditionalExpression = (ConditionalExpressionSyntax)token.Parent;
-                var type = conditionalExpression.Condition as TypeSyntax;
 
-                return type == null
+                return !(conditionalExpression.Condition is TypeSyntax type)
                     || !type.IsPotentialTypeName(semanticModelOpt, cancellationToken);
             }
 
@@ -2304,9 +2302,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                         token.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression))
                     {
                         var objectCreation = (ObjectCreationExpressionSyntax)token.Parent.Parent;
-                        var type = semanticModelOpt.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol as ITypeSymbol;
                         var containingSymbol = semanticModelOpt.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
-                        if (type != null && !type.CanSupportCollectionInitializer(containingSymbol))
+                        if (semanticModelOpt.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol is ITypeSymbol type && !type.CanSupportCollectionInitializer(containingSymbol))
                         {
                             return false;
                         }

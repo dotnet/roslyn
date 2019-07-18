@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             // Look for patterns that indicate that this could never be a partially written 
             // generic *Type* (although it could be a partially written generic method).
 
-            var identifierName = identifier.Parent as IdentifierNameSyntax;
-            if (identifierName == null)
+            if (!(identifier.Parent is IdentifierNameSyntax identifierName))
             {
                 // Definitely not a generic type if this isn't even an identifier name.
                 return false;
