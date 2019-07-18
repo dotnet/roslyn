@@ -143,10 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsSemicolonInForStatement(this SyntaxToken token)
         {
-            var forStatement = token.Parent as ForStatementSyntax;
             return
                 token.Kind() == SyntaxKind.SemicolonToken &&
-                forStatement != null &&
+                token.Parent is ForStatementSyntax forStatement &&
                 (forStatement.FirstSemicolonToken == token || forStatement.SecondSemicolonToken == token);
         }
 
@@ -349,9 +348,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsIdentifierInLabeledStatement(this SyntaxToken token)
         {
-            var labeledStatement = token.Parent as LabeledStatementSyntax;
             return token.Kind() == SyntaxKind.IdentifierToken &&
-                labeledStatement != null &&
+                token.Parent is LabeledStatementSyntax labeledStatement &&
                 labeledStatement.Identifier == token;
         }
 
@@ -381,9 +379,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsNestedQueryExpression(this SyntaxToken token)
         {
-            var fromClause = token.Parent as FromClauseSyntax;
             return token.Kind() == SyntaxKind.InKeyword &&
-                   fromClause != null &&
+                   token.Parent is FromClauseSyntax fromClause &&
                    fromClause.Expression is QueryExpressionSyntax;
         }
 

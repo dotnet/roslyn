@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// The default callback to pass to <see cref="TelemetrySessionExtensions.PostFault(TelemetrySession, string, string, Exception, Func{IFaultUtility, int})"/>.
         /// Returning "0" signals that we should send data to Watson; any other value will cancel the Watson report.
         /// </summary>
-        private static Func<IFaultUtility, int> s_defaultCallback = _ => 0;
+        private static readonly Func<IFaultUtility, int> s_defaultCallback = _ => 0;
 
         /// <summary>
         /// Set default telemetry session

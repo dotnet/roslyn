@@ -126,41 +126,39 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 if (stringsToAdd.Count > 0)
                 {
-                    using (var idToString = s_dictionaryPool.GetPooledObject())
+                    using var idToString = s_dictionaryPool.GetPooledObject();
+                    try
                     {
-                        try
-                        {
-                            connection.RunInTransaction(
-                                state =>
+                        connection.RunInTransaction(
+                            state =>
+                            {
+                                foreach (var value in state.stringsToAdd)
                                 {
-                                    foreach (var value in state.stringsToAdd)
-                                    {
-                                        var id = InsertStringIntoDatabase_MustRunInTransaction(state.connection, value);
-                                        state.idToString.Object.Add(id, value);
-                                    }
-                                },
-                                (stringsToAdd, connection, idToString));
-                        }
-                        catch (SqlException ex) when (ex.Result == Result.CONSTRAINT)
-                        {
-                            // Constraint exceptions are possible as we may be trying bulk insert 
-                            // strings while some other thread/process does the same.
-                            return false;
-                        }
-                        catch (Exception ex)
-                        {
-                            // Something failed. Log the issue, and let the caller know we should stop
-                            // with the bulk population.
-                            StorageDatabaseLogger.LogException(ex);
-                            return false;
-                        }
+                                    var id = InsertStringIntoDatabase_MustRunInTransaction(state.connection, value);
+                                    state.idToString.Object.Add(id, value);
+                                }
+                            },
+                            (stringsToAdd, connection, idToString));
+                    }
+                    catch (SqlException ex) when (ex.Result == Result.CONSTRAINT)
+                    {
+                        // Constraint exceptions are possible as we may be trying bulk insert 
+                        // strings while some other thread/process does the same.
+                        return false;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Something failed. Log the issue, and let the caller know we should stop
+                        // with the bulk population.
+                        StorageDatabaseLogger.LogException(ex);
+                        return false;
+                    }
 
-                        // We succeeded inserting all the strings.  Ensure our local cache has all the
-                        // values we added.
-                        foreach (var kvp in idToString.Object)
-                        {
-                            _stringToIdMap[kvp.Value] = kvp.Key;
-                        }
+                    // We succeeded inserting all the strings.  Ensure our local cache has all the
+                    // values we added.
+                    foreach (var kvp in idToString.Object)
+                    {
+                        _stringToIdMap[kvp.Value] = kvp.Key;
                     }
                 }
 

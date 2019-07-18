@@ -22,11 +22,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
 {
     internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
     {
-        private Document _document;
-        private INotificationService _notificationService;
-        private IProjectManagementService _projectManagementService;
-        private ISyntaxFactsService _syntaxFactsService;
-        private GenerateTypeDialogOptions _generateTypeDialogOptions;
+        private readonly Document _document;
+        private readonly INotificationService _notificationService;
+        private readonly IProjectManagementService _projectManagementService;
+        private readonly ISyntaxFactsService _syntaxFactsService;
+        private readonly GenerateTypeDialogOptions _generateTypeDialogOptions;
         private string _typeName;
         private bool _isNewFile;
 
@@ -37,11 +37,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         private List<string> _csharpTypeKindList;
         private List<string> _visualBasicTypeKindList;
 
-        private string _csharpExtension = ".cs";
-        private string _visualBasicExtension = ".vb";
+        private readonly string _csharpExtension = ".cs";
+        private readonly string _visualBasicExtension = ".vb";
 
         // reserved names that cannot be a folder name or filename
-        private string[] _reservedKeywords = new string[]
+        private readonly string[] _reservedKeywords = new string[]
                                                 {
                                                     "con", "prn", "aux", "nul",
                                                     "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9",
@@ -782,7 +782,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
 
         public class ProjectSelectItem
         {
-            private Project _project;
+            private readonly Project _project;
 
             public string Name
             {
@@ -808,7 +808,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
 
         public class DocumentSelectItem
         {
-            private Document _document;
+            private readonly Document _document;
             public Document Document
             {
                 get
@@ -817,7 +817,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 }
             }
 
-            private string _name;
+            private readonly string _name;
             public string Name
             {
                 get

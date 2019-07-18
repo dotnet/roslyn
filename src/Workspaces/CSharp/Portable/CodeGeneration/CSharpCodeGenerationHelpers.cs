@@ -210,9 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 ? contextLocation.SourceTree
                 : null;
 
-            return contextTree == null
-                ? null
-                : contextTree.GetRoot(cancellationToken).FindToken(contextLocation.SourceSpan.Start).Parent;
+            return contextTree?.GetRoot(cancellationToken).FindToken(contextLocation.SourceSpan.Start).Parent;
         }
 
         public static ExplicitInterfaceSpecifierSyntax GenerateExplicitInterfaceSpecifier(

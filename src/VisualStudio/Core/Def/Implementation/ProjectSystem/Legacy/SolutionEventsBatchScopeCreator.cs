@@ -68,9 +68,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         {
             AssertIsForeground();
 
-            foreach (var scope in _fullSolutionLoadScopes)
+            foreach (var (_, _, batchScope) in _fullSolutionLoadScopes)
             {
-                scope.batchScope.Dispose();
+                batchScope.Dispose();
             }
 
             _fullSolutionLoadScopes.Clear();

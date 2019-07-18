@@ -59,13 +59,11 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException($"{nameof(checksum)} must be equal or bigger than the hash size: {HashSize}", nameof(checksum));
             }
 
-            using (var pooled = SharedPools.ByteArray.GetPooledObject())
-            {
-                var bytes = pooled.Object;
-                checksum.CopyTo(sourceIndex: 0, bytes, destinationIndex: 0, length: HashSize);
+            using var pooled = SharedPools.ByteArray.GetPooledObject();
+            var bytes = pooled.Object;
+            checksum.CopyTo(sourceIndex: 0, bytes, destinationIndex: 0, length: HashSize);
 
-                return FromWorker(bytes);
-            }
+            return FromWorker(bytes);
         }
 
         public static Checksum FromSerialized(byte[] checksum)

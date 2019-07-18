@@ -134,132 +134,116 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async Task<bool> TryInvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            using (var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false))
+            using var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false);
+            if (connection == null)
             {
-                if (connection == null)
-                {
-                    return false;
-                }
-
-                await connection.Target.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
-                return true;
+                return false;
             }
+
+            await connection.Target.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
+            return true;
         }
 
         public async Task<T> TryInvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            using (var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false))
+            using var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false);
+            if (connection == null)
             {
-                if (connection == null)
-                {
-                    return default;
-                }
-
-                return await connection.Target.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
+                return default;
             }
+
+            return await connection.Target.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<bool> TryInvokeAsync(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            using (var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false))
+            using var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false);
+            if (connection == null)
             {
-                if (connection == null)
-                {
-                    return false;
-                }
-
-                await connection.Target.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken).ConfigureAwait(false);
-                return true;
+                return false;
             }
+
+            await connection.Target.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken).ConfigureAwait(false);
+            return true;
         }
 
         public async Task<T> TryInvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            using (var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false))
+            using var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false);
+            if (connection == null)
             {
-                if (connection == null)
-                {
-                    return default;
-                }
-
-                return await connection.Target.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken).ConfigureAwait(false);
+                return default;
             }
+
+            return await connection.Target.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<bool> TryInvokeAsync(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            using (var pooledObject = SharedPools.Default<List<object>>().GetPooledObject())
-            using (var scope = await solution.GetPinnedScopeAsync(cancellationToken).ConfigureAwait(false))
-            using (var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false))
+            using var pooledObject = SharedPools.Default<List<object>>().GetPooledObject();
+            using var scope = await solution.GetPinnedScopeAsync(cancellationToken).ConfigureAwait(false);
+            using var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false);
+            if (connection == null)
             {
-                if (connection == null)
-                {
-                    return false;
-                }
-
-                pooledObject.Object.Add(scope.SolutionInfo);
-                pooledObject.Object.AddRange(arguments);
-
-                await connection.Target.InvokeAsync(targetName, pooledObject.Object, cancellationToken).ConfigureAwait(false);
-                return true;
+                return false;
             }
+
+            pooledObject.Object.Add(scope.SolutionInfo);
+            pooledObject.Object.AddRange(arguments);
+
+            await connection.Target.InvokeAsync(targetName, pooledObject.Object, cancellationToken).ConfigureAwait(false);
+            return true;
         }
 
         public async Task<T> TryInvokeAsync<T>(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            using (var pooledObject = SharedPools.Default<List<object>>().GetPooledObject())
-            using (var scope = await solution.GetPinnedScopeAsync(cancellationToken).ConfigureAwait(false))
-            using (var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false))
+            using var pooledObject = SharedPools.Default<List<object>>().GetPooledObject();
+            using var scope = await solution.GetPinnedScopeAsync(cancellationToken).ConfigureAwait(false);
+            using var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false);
+            if (connection == null)
             {
-                if (connection == null)
-                {
-                    return default;
-                }
-
-                pooledObject.Object.Add(scope.SolutionInfo);
-                pooledObject.Object.AddRange(arguments);
-
-                return await connection.Target.InvokeAsync<T>(targetName, pooledObject.Object, cancellationToken).ConfigureAwait(false);
+                return default;
             }
+
+            pooledObject.Object.Add(scope.SolutionInfo);
+            pooledObject.Object.AddRange(arguments);
+
+            return await connection.Target.InvokeAsync<T>(targetName, pooledObject.Object, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<bool> TryInvokeAsync(
             string targetName, Solution solution, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            using (var pooledObject = SharedPools.Default<List<object>>().GetPooledObject())
-            using (var scope = await solution.GetPinnedScopeAsync(cancellationToken).ConfigureAwait(false))
-            using (var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false))
+            using var pooledObject = SharedPools.Default<List<object>>().GetPooledObject();
+            using var scope = await solution.GetPinnedScopeAsync(cancellationToken).ConfigureAwait(false);
+            using var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false);
+            if (connection == null)
             {
-                if (connection == null)
-                {
-                    return false;
-                }
-
-                pooledObject.Object.Add(scope.SolutionInfo);
-                pooledObject.Object.AddRange(arguments);
-
-                await connection.Target.InvokeAsync(targetName, pooledObject.Object, funcWithDirectStreamAsync, cancellationToken).ConfigureAwait(false);
-                return true;
+                return false;
             }
+
+            pooledObject.Object.Add(scope.SolutionInfo);
+            pooledObject.Object.AddRange(arguments);
+
+            await connection.Target.InvokeAsync(targetName, pooledObject.Object, funcWithDirectStreamAsync, cancellationToken).ConfigureAwait(false);
+            return true;
         }
 
         public async Task<T> TryInvokeAsync<T>(
             string targetName, Solution solution, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            using (var pooledObject = SharedPools.Default<List<object>>().GetPooledObject())
-            using (var scope = await solution.GetPinnedScopeAsync(cancellationToken).ConfigureAwait(false))
-            using (var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false))
+            using var pooledObject = SharedPools.Default<List<object>>().GetPooledObject();
+            using var scope = await solution.GetPinnedScopeAsync(cancellationToken).ConfigureAwait(false);
+            using var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false);
+            if (connection == null)
             {
-                if (connection == null)
-                {
-                    return default;
-                }
-
-                pooledObject.Object.Add(scope.SolutionInfo);
-                pooledObject.Object.AddRange(arguments);
-
-                return await connection.Target.InvokeAsync(targetName, pooledObject.Object, funcWithDirectStreamAsync, cancellationToken).ConfigureAwait(false);
+                return default;
             }
+
+            pooledObject.Object.Add(scope.SolutionInfo);
+            pooledObject.Object.AddRange(arguments);
+
+            return await connection.Target.InvokeAsync(targetName, pooledObject.Object, funcWithDirectStreamAsync, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<ReferenceCountedDisposable<RemoteHostClient.Connection>> TryGetConnectionAsync(CancellationToken cancellationToken)

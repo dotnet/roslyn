@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsMemberDeclarationContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             return semanticModel.SyntaxTree.IsMemberDeclarationContext(
-                position, semanticModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken), cancellationToken);
+                position, semanticModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken));
         }
 
         public bool IsPreProcessorDirectiveContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)

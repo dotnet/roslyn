@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             //    where T : Goo, |
             // note: 'new()' can't come after a 'struct' constraint.
 
-            if (context.SyntaxTree.IsTypeParameterConstraintStartContext(context.Position, context.LeftToken, cancellationToken))
+            if (context.SyntaxTree.IsTypeParameterConstraintStartContext(context.Position, context.LeftToken))
             {
                 return true;
             }

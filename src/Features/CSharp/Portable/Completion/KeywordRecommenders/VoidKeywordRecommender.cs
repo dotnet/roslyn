@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 IsMemberReturnTypeContext(position, context, cancellationToken) ||
                 context.IsGlobalStatementContext ||
                 context.IsTypeOfExpressionContext ||
-                syntaxTree.IsSizeOfExpressionContext(position, context.LeftToken, cancellationToken) ||
+                syntaxTree.IsSizeOfExpressionContext(position, context.LeftToken) ||
                 context.IsDelegateReturnTypeContext ||
                 IsUnsafeLocalVariableDeclarationContext(context) ||
                 IsUnsafeParameterTypeContext(context) ||
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return
                 context.TargetToken.IsUnsafeContext() &&
-                context.SyntaxTree.IsDefaultExpressionContext(context.Position, context.LeftToken, cancellationToken);
+                context.SyntaxTree.IsDefaultExpressionContext(context.Position, context.LeftToken);
         }
 
         private bool IsUnsafeCastTypeContext(CSharpSyntaxContext context)

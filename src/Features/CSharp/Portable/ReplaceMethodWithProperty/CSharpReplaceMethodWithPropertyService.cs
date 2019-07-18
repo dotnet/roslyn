@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
         // We use the callback form if "ReplaceNode" here because we want to see the
         // invocation expression after any rewrites we already did when rewriting previous
         // 'get' references.
-        private static Action<SyntaxEditor, InvocationExpressionSyntax, SimpleNameSyntax, SimpleNameSyntax> s_replaceGetReferenceInvocation =
+        private static readonly Action<SyntaxEditor, InvocationExpressionSyntax, SimpleNameSyntax, SimpleNameSyntax> s_replaceGetReferenceInvocation =
             (editor, invocation, nameNode, newName) => editor.ReplaceNode(invocation, (i, g) =>
             {
                 var currentInvocation = (InvocationExpressionSyntax)i;
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 return currentInvocation.Expression.ReplaceNode(currentName, newName);
             });
 
-        private static Action<SyntaxEditor, InvocationExpressionSyntax, SimpleNameSyntax, SimpleNameSyntax> s_replaceSetReferenceInvocation =
+        private static readonly Action<SyntaxEditor, InvocationExpressionSyntax, SimpleNameSyntax, SimpleNameSyntax> s_replaceSetReferenceInvocation =
             (editor, invocation, nameNode, newName) =>
             {
                 if (invocation.ArgumentList?.Arguments.Count != 1 ||

@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
         private readonly IComponentModel _componentModel;
         private readonly string _contentType;
 
-        private Lazy<IResetInteractiveCommand> _resetInteractiveCommand;
+        private readonly Lazy<IResetInteractiveCommand> _resetInteractiveCommand;
 
         private Lazy<IResetInteractiveCommand> ResetInteractiveCommand => _resetInteractiveCommand;
 
@@ -97,8 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
                     return false;
                 }
 
-                var hierarchy = Marshal.GetObjectForIUnknown(hierarchyPointer) as IVsHierarchy;
-                if (hierarchy == null)
+                if (!(Marshal.GetObjectForIUnknown(hierarchyPointer) is IVsHierarchy hierarchy))
                 {
                     return false;
                 }

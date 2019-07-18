@@ -93,13 +93,6 @@ namespace Microsoft.CodeAnalysis
             return SymbolKeyComparer.GetComparer(ignoreCase, ignoreAssemblyKeys);
         }
 
-        private static readonly Func<string, string> s_removeAssemblyKeys = (string data) =>
-        {
-            var reader = new RemoveAssemblySymbolKeysReader();
-            reader.Initialize(data);
-            return reader.RemoveAssemblySymbolKeys();
-        };
-
         /// <summary>
         /// Tries to resolve the provided <paramref name="symbolKey"/> in the given 
         /// <paramref name="compilation"/> to a matching symbol.  <paramref name="resolveLocations"/>
@@ -112,13 +105,11 @@ namespace Microsoft.CodeAnalysis
             bool ignoreAssemblyKey = false, bool resolveLocations = false,
             CancellationToken cancellationToken = default)
         {
-            using (var reader = SymbolKeyReader.GetReader(
-                symbolKey, compilation, ignoreAssemblyKey, resolveLocations, cancellationToken))
-            {
-                var result = reader.ReadFirstSymbolKey();
-                Debug.Assert(reader.Position == symbolKey.Length);
-                return result;
-            }
+            using var reader = SymbolKeyReader.GetReader(
+                symbolKey, compilation, ignoreAssemblyKey, resolveLocations, cancellationToken);
+            var result = reader.ReadFirstSymbolKey();
+            Debug.Assert(reader.Position == symbolKey.Length);
+            return result;
         }
 
         public static SymbolKey Create(ISymbol symbol, CancellationToken cancellationToken = default)
@@ -128,11 +119,9 @@ namespace Microsoft.CodeAnalysis
 
         public static string ToString(ISymbol symbol, CancellationToken cancellationToken = default)
         {
-            using (var writer = SymbolKeyWriter.GetWriter(cancellationToken))
-            {
-                writer.WriteFirstSymbolKey(symbol);
-                return writer.CreateKey();
-            }
+            using var writer = SymbolKeyWriter.GetWriter(cancellationToken);
+            writer.WriteFirstSymbolKey(symbol);
+            return writer.CreateKey();
         }
 
         public SymbolKeyResolution Resolve(
@@ -198,8 +187,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static IEnumerable<INamedTypeSymbol> InstantiateTypes(
-            Compilation compilation,
-            bool ignoreAssemblyKey,
             ImmutableArray<INamedTypeSymbol> types,
             int arity,
             ImmutableArray<SymbolKeyResolution> typeArgumentKeys)

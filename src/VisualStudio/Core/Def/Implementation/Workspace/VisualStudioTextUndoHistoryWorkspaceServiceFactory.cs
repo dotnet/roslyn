@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private class TextUndoHistoryWorkspaceService : ITextUndoHistoryWorkspaceService
         {
-            private ITextUndoHistoryRegistry _undoHistoryRegistry;
+            private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
 
             public TextUndoHistoryWorkspaceService(ITextUndoHistoryRegistry undoHistoryRegistry)
             {

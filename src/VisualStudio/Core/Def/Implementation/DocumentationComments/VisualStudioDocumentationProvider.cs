@@ -60,10 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DocumentationCo
         }
 
         public override bool Equals(object obj)
-        {
-            var other = obj as VisualStudioDocumentationProvider;
-            return other != null && string.Equals(_filePath, other._filePath, StringComparison.OrdinalIgnoreCase);
-        }
+            => obj is VisualStudioDocumentationProvider other &&
+               string.Equals(_filePath, other._filePath, StringComparison.OrdinalIgnoreCase);
 
         public override int GetHashCode()
         {

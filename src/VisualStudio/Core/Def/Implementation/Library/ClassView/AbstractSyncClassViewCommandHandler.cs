@@ -47,67 +47,65 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
 
             var snapshot = args.SubjectBuffer.CurrentSnapshot;
 
-            using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, string.Format(ServicesVSResources.Synchronizing_with_0, ClassView)))
+            using var waitScope = context.OperationContext.AddScope(allowCancellation: true, string.Format(ServicesVSResources.Synchronizing_with_0, ClassView));
+            var document = snapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
+            if (document == null)
             {
-                var document = snapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
-                    context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
-                if (document == null)
-                {
-                    return true;
-                }
-
-                var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-                if (syntaxFactsService == null)
-                {
-                    return true;
-                }
-
-                var libraryService = document.GetLanguageService<ILibraryService>();
-                if (libraryService == null)
-                {
-                    return true;
-                }
-
-                var userCancellationToken = context.OperationContext.UserCancellationToken;
-                var semanticModel = document
-                    .GetSemanticModelAsync(userCancellationToken)
-                    .WaitAndGetResult(userCancellationToken);
-
-                var root = semanticModel.SyntaxTree
-                    .GetRootAsync(userCancellationToken)
-                    .WaitAndGetResult(userCancellationToken);
-
-                var memberDeclaration = syntaxFactsService.GetContainingMemberDeclaration(root, caretPosition);
-
-                var symbol = memberDeclaration != null
-                    ? semanticModel.GetDeclaredSymbol(memberDeclaration, userCancellationToken)
-                    : null;
-
-                while (symbol != null && !IsValidSymbolToSynchronize(symbol))
-                {
-                    symbol = symbol.ContainingSymbol;
-                }
-
-                IVsNavInfo navInfo = null;
-                if (symbol != null)
-                {
-                    navInfo = libraryService.NavInfoFactory.CreateForSymbol(symbol, document.Project, semanticModel.Compilation, useExpandedHierarchy: true);
-                }
-
-                if (navInfo == null)
-                {
-                    navInfo = libraryService.NavInfoFactory.CreateForProject(document.Project);
-                }
-
-                if (navInfo == null)
-                {
-                    return true;
-                }
-
-                var navigationTool = _serviceProvider.GetService<SVsClassView, IVsNavigationTool>();
-                navigationTool.NavigateToNavInfo(navInfo);
                 return true;
             }
+
+            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            if (syntaxFactsService == null)
+            {
+                return true;
+            }
+
+            var libraryService = document.GetLanguageService<ILibraryService>();
+            if (libraryService == null)
+            {
+                return true;
+            }
+
+            var userCancellationToken = context.OperationContext.UserCancellationToken;
+            var semanticModel = document
+                .GetSemanticModelAsync(userCancellationToken)
+                .WaitAndGetResult(userCancellationToken);
+
+            var root = semanticModel.SyntaxTree
+                .GetRootAsync(userCancellationToken)
+                .WaitAndGetResult(userCancellationToken);
+
+            var memberDeclaration = syntaxFactsService.GetContainingMemberDeclaration(root, caretPosition);
+
+            var symbol = memberDeclaration != null
+                ? semanticModel.GetDeclaredSymbol(memberDeclaration, userCancellationToken)
+                : null;
+
+            while (symbol != null && !IsValidSymbolToSynchronize(symbol))
+            {
+                symbol = symbol.ContainingSymbol;
+            }
+
+            IVsNavInfo navInfo = null;
+            if (symbol != null)
+            {
+                navInfo = libraryService.NavInfoFactory.CreateForSymbol(symbol, document.Project, semanticModel.Compilation, useExpandedHierarchy: true);
+            }
+
+            if (navInfo == null)
+            {
+                navInfo = libraryService.NavInfoFactory.CreateForProject(document.Project);
+            }
+
+            if (navInfo == null)
+            {
+                return true;
+            }
+
+            var navigationTool = _serviceProvider.GetService<SVsClassView, IVsNavigationTool>();
+            navigationTool.NavigateToNavInfo(navInfo);
+            return true;
         }
 
         private static bool IsValidSymbolToSynchronize(ISymbol symbol) =>

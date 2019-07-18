@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static ISet<SyntaxKind> GetPrecedingModifiers(
             this SyntaxTree syntaxTree,
             int position,
-            SyntaxToken tokenOnLeftOfPosition,
-            CancellationToken cancellationToken)
+            SyntaxToken tokenOnLeftOfPosition)
             => syntaxTree.GetPrecedingModifiers(position, tokenOnLeftOfPosition, out var _);
 
         public static ISet<SyntaxKind> GetPrecedingModifiers(
@@ -157,12 +156,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return token.Kind() == SyntaxKind.NumericLiteralToken;
         }
 
-        public static bool IsPrimaryFunctionExpressionContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
+        public static bool IsPrimaryFunctionExpressionContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition)
         {
             return
-                syntaxTree.IsTypeOfExpressionContext(position, tokenOnLeftOfPosition, cancellationToken) ||
-                syntaxTree.IsDefaultExpressionContext(position, tokenOnLeftOfPosition, cancellationToken) ||
-                syntaxTree.IsSizeOfExpressionContext(position, tokenOnLeftOfPosition, cancellationToken);
+                syntaxTree.IsTypeOfExpressionContext(position, tokenOnLeftOfPosition) ||
+                syntaxTree.IsDefaultExpressionContext(position, tokenOnLeftOfPosition) ||
+                syntaxTree.IsSizeOfExpressionContext(position, tokenOnLeftOfPosition);
         }
 
         public static bool IsAfterKeyword(this SyntaxTree syntaxTree, int position, SyntaxKind kind, CancellationToken cancellationToken)

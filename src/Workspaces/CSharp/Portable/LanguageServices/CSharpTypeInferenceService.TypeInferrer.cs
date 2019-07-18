@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ArrowExpressionClauseSyntax arrowClause: return InferTypeInArrowExpressionClause(arrowClause);
                     case AssignmentExpressionSyntax assignmentExpression: return InferTypeInBinaryOrAssignmentExpression(assignmentExpression, assignmentExpression.OperatorToken, assignmentExpression.Left, assignmentExpression.Right, expression);
                     case AttributeArgumentSyntax attribute: return InferTypeInAttributeArgument(attribute);
-                    case AttributeSyntax attribute: return InferTypeInAttribute(attribute);
+                    case AttributeSyntax attribute: return InferTypeInAttribute();
                     case AwaitExpressionSyntax awaitExpression: return InferTypeInAwaitExpression(awaitExpression);
                     case BinaryExpressionSyntax binaryExpression: return InferTypeInBinaryOrAssignmentExpression(binaryExpression, binaryExpression.OperatorToken, binaryExpression.Left, binaryExpression.Right, expression);
                     case CastExpressionSyntax castExpression: return InferTypeInCastExpression(castExpression, expression);
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                   .Select(tupleType => new TypeInferenceInfo(tupleType.TupleElements[index].GetTypeWithAnnotatedNullability()));
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInAttributeArgument(AttributeArgumentSyntax argument, SyntaxToken? previousToken = null, ArgumentSyntax argumentOpt = null)
+            private IEnumerable<TypeInferenceInfo> InferTypeInAttributeArgument(AttributeArgumentSyntax argument, SyntaxToken? previousToken = null)
             {
                 if (previousToken.HasValue)
                 {
@@ -810,7 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return currentTypes;
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInAttribute(AttributeSyntax attribute)
+            private IEnumerable<TypeInferenceInfo> InferTypeInAttribute()
                 => CreateResult(this.Compilation.AttributeType());
 
             private IEnumerable<TypeInferenceInfo> InferTypeInAttributeDeclaration(AttributeListSyntax attributeDeclaration, SyntaxToken? previousToken)

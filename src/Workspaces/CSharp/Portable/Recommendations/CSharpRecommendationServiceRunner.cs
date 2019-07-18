@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
             else if (_context.IsAnyExpressionContext ||
                      _context.IsStatementContext ||
-                     _context.SyntaxTree.IsDefiniteCastTypeContext(_context.Position, _context.LeftToken, _cancellationToken))
+                     _context.SyntaxTree.IsDefiniteCastTypeContext(_context.Position, _context.LeftToken))
             {
                 // GitHub #717: With automatic brace completion active, typing '(i' produces "(i)", which gets parsed as
                 // as cast. The user might be trying to type a parenthesized expression, so even though a cast

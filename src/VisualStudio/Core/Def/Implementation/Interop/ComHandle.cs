@@ -104,9 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
                 throw new InvalidOperationException("Invalid cast.");
             }
 
-            var newObject = Object as TNewObject;
-
-            if (newObject == null)
+            if (!(Object is TNewObject newObject))
             {
                 throw new InvalidOperationException("Invalid cast.");
             }

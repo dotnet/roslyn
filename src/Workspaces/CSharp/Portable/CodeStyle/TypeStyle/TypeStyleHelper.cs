@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             var containingType = semanticModel.GetTypeInfo(containingTypeName, cancellationToken).Type;
 
             return IsPossibleCreationMethod(methodSymbol, typeInDeclaration, containingType)
-                || IsPossibleConversionMethod(methodSymbol, typeInDeclaration, containingType, semanticModel, cancellationToken);
+                || IsPossibleConversionMethod(methodSymbol, typeInDeclaration, containingType, semanticModel);
         }
 
         /// <summary>
@@ -173,8 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
         private static bool IsPossibleConversionMethod(IMethodSymbol methodSymbol,
             ITypeSymbol typeInDeclaration,
             ITypeSymbol containingType,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
+            SemanticModel semanticModel)
         {
             var returnType = methodSymbol.ReturnType;
             var returnTypeName = returnType.IsNullable()

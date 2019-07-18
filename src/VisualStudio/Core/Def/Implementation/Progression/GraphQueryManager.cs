@@ -163,22 +163,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         private static void ProcessGraphTasks(GraphBuilder[] graphBuilders, IGraphContext context)
         {
             // Perform the actual graph transaction 
-            using (var transaction = new GraphTransactionScope())
+            using var transaction = new GraphTransactionScope();
+            // Remove any links that may have been added by a previous population. We don't
+            // remove nodes to maintain node identity, matching the behavior of the old
+            // providers.
+            context.Graph.Links.Clear();
+
+            foreach (var graphBuilder in graphBuilders)
             {
-                // Remove any links that may have been added by a previous population. We don't
-                // remove nodes to maintain node identity, matching the behavior of the old
-                // providers.
-                context.Graph.Links.Clear();
+                graphBuilder.ApplyToGraph(context.Graph);
 
-                foreach (var graphBuilder in graphBuilders)
-                {
-                    graphBuilder.ApplyToGraph(context.Graph);
-
-                    context.OutputNodes.AddAll(graphBuilder.CreatedNodes);
-                }
-
-                transaction.Complete();
+                context.OutputNodes.AddAll(graphBuilder.CreatedNodes);
             }
+
+            transaction.Complete();
         }
     }
 }

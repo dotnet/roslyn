@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
         }
 
-        private static Func<SyntaxToken, SemanticModel, OptionSet, CancellationToken, SyntaxToken> s_simplifyIdentifierToken = SimplifyIdentifierToken;
+        private static readonly Func<SyntaxToken, SemanticModel, OptionSet, CancellationToken, SyntaxToken> s_simplifyIdentifierToken = SimplifyIdentifierToken;
 
         private static SyntaxToken SimplifyIdentifierToken(
             SyntaxToken token,
