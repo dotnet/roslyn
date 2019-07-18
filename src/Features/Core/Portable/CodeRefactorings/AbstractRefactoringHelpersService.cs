@@ -13,9 +13,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     internal abstract class AbstractRefactoringHelpersService : IRefactoringHelpersService
     {
-        public async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(CodeRefactoringContext context) where TSyntaxNode : SyntaxNode
-            => await TryGetSelectedNodeAsync<TSyntaxNode>(context.Document, context.Span, context.CancellationToken).ConfigureAwait(false);
-
         public async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
             Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {

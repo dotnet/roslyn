@@ -34,6 +34,5 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </para>
         /// </summary>
         Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
-        Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(CodeRefactoringContext context) where TSyntaxNode : SyntaxNode;
     }
 }
