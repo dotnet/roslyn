@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private void FreeDeclarationDataMap_NoLock(Dictionary<int, DeclarationAnalyzerStateData> declarationDataMapOpt)
             {
-                if (declarationDataMapOpt != null)
+                if (declarationDataMapOpt is object)
                 {
                     declarationDataMapOpt.Clear();
                     _currentlyAnalyzingDeclarationsMapPool.Free(declarationDataMapOpt);
