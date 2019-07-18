@@ -11,6 +11,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Commands
         /// <summary>
         /// Handles a specific command from a <see cref="Methods.WorkspaceExecuteCommandName"/> request.
         /// </summary>
-        Task<object> HandleRequestAsync(Solution solution, ExecuteCommandParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken);
+        Task<object> HandleRequestAsync(Solution solution, ExecuteCommandParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken, bool keepThreadContext = false);
     }
 }
