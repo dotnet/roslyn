@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             GetAndSetMethods getAndSetMethods,
             string propertyName, bool nameChanged)
         {
-            var getMethodDeclaration = getAndSetMethods.GetMethodDeclaration as MethodDeclarationSyntax;
-            if (getMethodDeclaration == null)
+            if (!(getAndSetMethods.GetMethodDeclaration is MethodDeclarationSyntax getMethodDeclaration))
             {
                 return;
             }
@@ -226,9 +225,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
         private static AccessorDeclarationSyntax CreateSetAccessorWorker(
             SemanticModel semanticModel, SyntaxGenerator generator, GetAndSetMethods getAndSetMethods)
         {
-            var setMethodDeclaration = getAndSetMethods.SetMethodDeclaration as MethodDeclarationSyntax;
             var setMethod = getAndSetMethods.SetMethod;
-            if (setMethodDeclaration == null || setMethod?.Parameters.Length != 1)
+            if (!(getAndSetMethods.SetMethodDeclaration is MethodDeclarationSyntax setMethodDeclaration) || setMethod?.Parameters.Length != 1)
             {
                 return null;
             }
@@ -352,8 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 return;
             }
 
-            var nameNode = nameToken.Parent as IdentifierNameSyntax;
-            if (nameNode == null)
+            if (!(nameToken.Parent is IdentifierNameSyntax nameNode))
             {
                 return;
             }

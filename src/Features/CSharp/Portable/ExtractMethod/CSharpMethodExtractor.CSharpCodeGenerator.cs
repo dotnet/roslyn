@@ -283,8 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 foreach (var statement in statements)
                 {
-                    var declStatement = statement as LocalDeclarationStatementSyntax;
-                    if (declStatement == null)
+                    if (!(statement is LocalDeclarationStatementSyntax declStatement))
                     {
                         // found one
                         return OperationStatus.Succeeded;
@@ -452,8 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                 // We don't have a good refactoring for this, so we just annotate the conflict
                                 // For instance, when a local declared by a pattern declaration (`3 is int i`) is
                                 // used outside the block we're trying to extract.
-                                var designation = pattern.Designation as SingleVariableDesignationSyntax;
-                                if (designation == null)
+                                if (!(pattern.Designation is SingleVariableDesignationSyntax designation))
                                 {
                                     break;
                                 }

@@ -111,8 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             issueSpan = default;
             diagnosticId = IDEDiagnosticIds.SimplifyNamesDiagnosticId;
 
-            var memberAccess = node as MemberAccessExpressionSyntax;
-            if (memberAccess != null && memberAccess.Expression.IsKind(SyntaxKind.ThisExpression))
+            if (node is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression.IsKind(SyntaxKind.ThisExpression))
             {
                 // don't bother analyzing "this.Goo" expressions.  They will be analyzed by
                 // the CSharpSimplifyThisOrMeDiagnosticAnalyzer.

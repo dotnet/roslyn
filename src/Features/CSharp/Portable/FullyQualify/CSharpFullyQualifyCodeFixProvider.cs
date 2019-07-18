@@ -56,8 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
 
         protected override bool CanFullyQualify(Diagnostic diagnostic, ref SyntaxNode node)
         {
-            var simpleName = node as SimpleNameSyntax;
-            if (simpleName == null)
+            if (!(node is SimpleNameSyntax simpleName))
             {
                 return false;
             }

@@ -68,8 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                 return null;
             }
 
-            var methodSymbol = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken).Symbol as IMethodSymbol;
-            if (methodSymbol == null)
+            if (!(semanticModel.GetSymbolInfo(invocationExpression, cancellationToken).Symbol is IMethodSymbol methodSymbol))
             {
                 return null;
             }
@@ -80,8 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                 return null;
             }
 
-            var methodDeclaration = (await methodReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false)) as MethodDeclarationSyntax;
-            if (methodDeclaration == null)
+            if (!((await methodReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false)) is MethodDeclarationSyntax methodDeclaration))
             {
                 return null;
             }

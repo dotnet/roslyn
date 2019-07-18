@@ -414,14 +414,12 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 {
                     foreach (var expression in objectCreationExpressionOpt.Initializer.Expressions)
                     {
-                        var simpleAssignmentExpression = expression as AssignmentExpressionSyntax;
-                        if (simpleAssignmentExpression == null)
+                        if (!(expression is AssignmentExpressionSyntax simpleAssignmentExpression))
                         {
                             continue;
                         }
 
-                        var name = simpleAssignmentExpression.Left as SimpleNameSyntax;
-                        if (name == null)
+                        if (!(simpleAssignmentExpression.Left is SimpleNameSyntax name))
                         {
                             continue;
                         }
@@ -648,8 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
         private NamespaceDeclarationSyntax GetDeclaringNamespace(List<string> containers, int indexDone, SyntaxNode localRoot)
         {
-            var namespaceDecl = localRoot as NamespaceDeclarationSyntax;
-            if (namespaceDecl == null || namespaceDecl.Name is AliasQualifiedNameSyntax)
+            if (!(localRoot is NamespaceDeclarationSyntax namespaceDecl) || namespaceDecl.Name is AliasQualifiedNameSyntax)
             {
                 return null;
             }
@@ -824,8 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 return false;
             }
 
-            var genericName = simpleName as GenericNameSyntax;
-            return genericName != null;
+            return simpleName is GenericNameSyntax genericName;
         }
 
         internal override bool IsSimpleName(ExpressionSyntax expression)
