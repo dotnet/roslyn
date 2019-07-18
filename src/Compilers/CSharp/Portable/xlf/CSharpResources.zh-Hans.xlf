@@ -1834,13 +1834,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' is uninitialized.</source>
-        <target state="translated">未初始化不可以为 null 的 {0}“{1}”。</target>
+        <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
+        <target state="needs-review-translation">未初始化不可以为 null 的 {0}“{1}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field is uninitialized.</source>
-        <target state="translated">未初始化不可以为 null 的字段。</target>
+        <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
+        <target state="needs-review-translation">未初始化不可以为 null 的字段。</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
