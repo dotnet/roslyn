@@ -13,12 +13,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void EditAndContinueInterfacesAreImplemented()
         {
-            using (var environment = new TestEnvironment())
-            using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", binOutputPath: null))
-            {
-                Assert.IsAssignableFrom<IVsENCRebuildableProjectCfg2>(project);
-                Assert.IsAssignableFrom<IVsENCRebuildableProjectCfg4>(project);
-            }
+            using var environment = new TestEnvironment();
+            using var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", binOutputPath: null);
+            Assert.IsAssignableFrom<IVsENCRebuildableProjectCfg2>(project);
+            Assert.IsAssignableFrom<IVsENCRebuildableProjectCfg4>(project);
         }
     }
 }

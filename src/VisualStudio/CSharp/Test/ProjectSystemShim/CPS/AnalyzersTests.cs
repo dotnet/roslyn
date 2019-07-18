@@ -23,21 +23,19 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
   <IncludeAll Action=""Error"" />
 </RuleSet>
 ");
-            using (var environment = new TestEnvironment())
-            using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
-            {
-                var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
-                var options = (CSharpCompilationOptions)workspaceProject.CompilationOptions;
+            using var environment = new TestEnvironment();
+            using var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test");
+            var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
+            var options = (CSharpCompilationOptions)workspaceProject.CompilationOptions;
 
-                Assert.Equal(expected: ReportDiagnostic.Default, actual: options.GeneralDiagnosticOption);
+            Assert.Equal(expected: ReportDiagnostic.Default, actual: options.GeneralDiagnosticOption);
 
-                project.SetOptions($"/ruleset:{ruleSetFile.Path}");
+            project.SetOptions($"/ruleset:{ruleSetFile.Path}");
 
-                workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
-                options = (CSharpCompilationOptions)workspaceProject.CompilationOptions;
+            workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
+            options = (CSharpCompilationOptions)workspaceProject.CompilationOptions;
 
-                Assert.Equal(expected: ReportDiagnostic.Error, actual: options.GeneralDiagnosticOption);
-            }
+            Assert.Equal(expected: ReportDiagnostic.Error, actual: options.GeneralDiagnosticOption);
         }
 
         [WpfFact]
@@ -54,17 +52,15 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 </RuleSet>
 ");
 
-            using (var environment = new TestEnvironment())
-            using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
-            {
-                // Verify SetRuleSetFile updates the ruleset.
-                project.SetOptions($"/ruleset:{ruleSetFile.Path}");
+            using var environment = new TestEnvironment();
+            using var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test");
+            // Verify SetRuleSetFile updates the ruleset.
+            project.SetOptions($"/ruleset:{ruleSetFile.Path}");
 
-                // We need to explicitly update the command line arguments so the new ruleset is used to update options.
-                project.SetOptions($"/ruleset:{ruleSetFile.Path}");
-                var ca1012DiagnosticOption = environment.Workspace.CurrentSolution.Projects.Single().CompilationOptions.SpecificDiagnosticOptions["CA1012"];
-                Assert.Equal(expected: ReportDiagnostic.Error, actual: ca1012DiagnosticOption);
-            }
+            // We need to explicitly update the command line arguments so the new ruleset is used to update options.
+            project.SetOptions($"/ruleset:{ruleSetFile.Path}");
+            var ca1012DiagnosticOption = environment.Workspace.CurrentSolution.Projects.Single().CompilationOptions.SpecificDiagnosticOptions["CA1012"];
+            Assert.Equal(expected: ReportDiagnostic.Error, actual: ca1012DiagnosticOption);
         }
 
         [WpfFact]
@@ -72,22 +68,20 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         public void RuleSet_PathCanBeFound()
         {
             var ruleSetFile = Temp.CreateFile();
-            using (var environment = new TestEnvironment())
+            using var environment = new TestEnvironment();
+            ProjectId projectId;
+
+            using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
             {
-                ProjectId projectId;
+                project.SetOptions($"/ruleset:{ruleSetFile.Path}");
 
-                using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
-                {
-                    project.SetOptions($"/ruleset:{ruleSetFile.Path}");
+                projectId = project.Id;
 
-                    projectId = project.Id;
-
-                    Assert.Equal(ruleSetFile.Path, environment.Workspace.TryGetRuleSetPathForProject(projectId));
-                }
-
-                // Ensure it's still not available after we disposed the project
-                Assert.Null(environment.Workspace.TryGetRuleSetPathForProject(projectId));
+                Assert.Equal(ruleSetFile.Path, environment.Workspace.TryGetRuleSetPathForProject(projectId));
             }
+
+            // Ensure it's still not available after we disposed the project
+            Assert.Null(environment.Workspace.TryGetRuleSetPathForProject(projectId));
         }
     }
 }

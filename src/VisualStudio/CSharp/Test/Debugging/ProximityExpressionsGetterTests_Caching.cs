@@ -18,38 +18,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
     {
         private async Task TestCachingAsync(string markup, params string[][] expectedArray)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(markup))
+            using var workspace = TestWorkspace.CreateCSharp(markup);
+            var testDocument = workspace.Documents.Single();
+            var spans = testDocument.AnnotatedSpans;
+            var snapshot = testDocument.TextBuffer.CurrentSnapshot;
+            var languageDebugInfo = new CachedProximityExpressionsGetter(new CSharpProximityExpressionsService());
+            var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+
+            for (var i = 0; i < expectedArray.Length; i++)
             {
-                var testDocument = workspace.Documents.Single();
-                var spans = testDocument.AnnotatedSpans;
-                var snapshot = testDocument.TextBuffer.CurrentSnapshot;
-                var languageDebugInfo = new CachedProximityExpressionsGetter(new CSharpProximityExpressionsService());
-                var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
-
-                for (var i = 0; i < expectedArray.Length; i++)
+                int position;
+                var key = spans.Keys.FirstOrDefault(k => k.StartsWith(i + "-", StringComparison.Ordinal));
+                if (key != null)
                 {
-                    int position;
-                    var key = spans.Keys.FirstOrDefault(k => k.StartsWith(i + "-", StringComparison.Ordinal));
-                    if (key != null)
+                    var parts = key.Split('-');
+                    if (parts[1] == "OnDebugModeChanged")
                     {
-                        var parts = key.Split('-');
-                        if (parts[1] == "OnDebugModeChanged")
-                        {
-                            languageDebugInfo.OnDebugModeChanged((DebugMode)Enum.Parse(typeof(DebugMode), parts[2]));
-                        }
-
-                        position = spans[key].First().Start;
-                    }
-                    else
-                    {
-                        position = spans[i.ToString()].First().Start;
+                        languageDebugInfo.OnDebugModeChanged((DebugMode)Enum.Parse(typeof(DebugMode), parts[2]));
                     }
 
-                    var expected = expectedArray[i];
-
-                    var result = await languageDebugInfo.DoAsync(document, position, string.Empty, CancellationToken.None);
-                    AssertEx.Equal(expectedArray[i], result);
+                    position = spans[key].First().Start;
                 }
+                else
+                {
+                    position = spans[i.ToString()].First().Start;
+                }
+
+                var expected = expectedArray[i];
+
+                var result = await languageDebugInfo.DoAsync(document, position, string.Empty, CancellationToken.None);
+                AssertEx.Equal(expectedArray[i], result);
             }
         }
 
