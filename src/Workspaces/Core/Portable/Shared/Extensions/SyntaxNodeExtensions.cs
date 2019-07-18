@@ -790,5 +790,24 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return default;
         }
+
+        public static TNode FirstAncestorOrSelfUntil<TNode>(this SyntaxNode node, Func<TNode, bool> predicate, Func<SyntaxNode, bool> traverseUntil)
+    where TNode : SyntaxNode
+        {
+            for (var current = node; current != null; current = current.GetParent(ascendOutOfTrivia: true))
+            {
+                if (current is TNode tnode && predicate(tnode))
+                {
+                    return tnode;
+                }
+
+                if (traverseUntil(current))
+                {
+                    break;
+                }
+            }
+
+            return default;
+        }
     }
 }

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NameTupleElement
 {
@@ -43,28 +44,22 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
                 return default;
             }
 
-            if (span.Length > 0)
-            {
-                return default;
-            }
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var position = span.Start;
-            var token = root.FindToken(position);
-            if (token.Span.Start == position &&
-                IsCloseParenOrComma(token))
-            {
-                token = token.GetPreviousToken();
-                if (token.Span.End != position)
-                {
-                    return default;
-                }
-            }
-
+            var helperService = document.GetLanguageService<IRefactoringHelpersService>();
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var argument = root.FindNode(token.Span)
-                .GetAncestorsOrThis<TArgumentSyntax>()
-                .FirstOrDefault(node => syntaxFacts.IsTupleExpression(node.Parent));
+
+            Func<SyntaxNode, bool> isTupleArgumentExpression = n => n.Parent != null && syntaxFacts.IsTupleExpression(n.Parent);
+            var argument = await helperService.TryGetSelectedNodeAsync<TArgumentSyntax>(document, span, isTupleArgumentExpression, cancellationToken).ConfigureAwait(false);
+            if (argument == null)
+            {
+                // Enable refactoring even if we're deep in a argument expression 
+                // -> traverse upwards only until we encounter TTupleExpressionSyntax
+                // -> might be a few TupleExpressions deep -> want to limit ourselves to the closest one
+                argument = await helperService.TryGetDeepInNodeAsync<TArgumentSyntax>(
+                    document, span,
+                    predicate: isTupleArgumentExpression,
+                    traverseUntil: n => n is TTupleExpressionSyntax,
+                    cancellationToken).ConfigureAwait(false);
+            }
 
             if (argument == null || !syntaxFacts.IsSimpleArgument(argument))
             {
@@ -94,6 +89,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
                 return default;
             }
 
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return (root, argument, element.Name);
         }
 
