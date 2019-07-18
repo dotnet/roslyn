@@ -162,10 +162,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         {
             while (stack.Count > 0)
             {
-                var current = stack.Pop();
-                var currentNodeOrToken = current.nodeOrToken;
-                var currentLeading = current.leading;
-                var currentTrailing = current.trailing;
+                var (nodeOrToken, leading, trailing) = stack.Pop();
+                var currentNodeOrToken = nodeOrToken;
+                var currentLeading = leading;
+                var currentTrailing = trailing;
 
                 if (currentNodeOrToken.IsToken)
                 {
