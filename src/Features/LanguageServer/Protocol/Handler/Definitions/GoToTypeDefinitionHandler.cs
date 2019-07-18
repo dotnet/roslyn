@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public async Task<LSP.Location[]> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
             LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken, bool keepThreadContext)
         {
-            return await GetDefinitionAsync(solution, request, true, keepThreadContext, cancellationToken).ConfigureAwait(keepThreadContext);
+            return await GetDefinitionAsync(solution, request, typeOnly: true, keepThreadContext, cancellationToken).ConfigureAwait(keepThreadContext);
         }
     }
 }
