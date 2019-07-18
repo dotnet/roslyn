@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (IsTupleTypeElement(token, semanticModel, position, cancellationToken, out var result)
                     || IsParameterDeclaration(token, semanticModel, position, cancellationToken, out result)
-                    || IsTypeParameterDeclaration(token, semanticModel, position, cancellationToken, out result)
+                    || IsTypeParameterDeclaration(token, semanticModel, position, out result)
                     || IsLocalFunctionDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsLocalVariableDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsEmbeddedVariableDeclaration(token, semanticModel, position, cancellationToken, out result)
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             private static bool IsTypeParameterDeclaration(SyntaxToken token, SemanticModel semanticModel,
-                int position, CancellationToken cancellationToken, out NameDeclarationInfo result)
+                int position, out NameDeclarationInfo result)
             {
                 if (token.IsKind(SyntaxKind.LessThanToken, SyntaxKind.CommaToken) &&
                     token.Parent.IsKind(SyntaxKind.TypeParameterList))

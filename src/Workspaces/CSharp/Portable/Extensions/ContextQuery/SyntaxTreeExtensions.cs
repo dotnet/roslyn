@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsParameterTypeContext(position, tokenOnLeftOfPosition) ||
                 syntaxTree.IsPossibleLambdaOrAnonymousMethodParameterTypeContext(position, tokenOnLeftOfPosition, cancellationToken) ||
                 syntaxTree.IsStatementContext(position, tokenOnLeftOfPosition, cancellationToken) ||
-                syntaxTree.IsTypeParameterConstraintContext(position, tokenOnLeftOfPosition, cancellationToken) ||
+                syntaxTree.IsTypeParameterConstraintContext(position, tokenOnLeftOfPosition) ||
                 syntaxTree.IsUsingAliasContext(position, cancellationToken) ||
                 syntaxTree.IsUsingStaticContext(position, cancellationToken) ||
                 syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        public static bool IsTypeParameterConstraintContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
+        public static bool IsTypeParameterConstraintContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition)
         {
             if (syntaxTree.IsTypeParameterConstraintStartContext(position, tokenOnLeftOfPosition))
             {

@@ -78,8 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
                             memberAccess = (MemberAccessExpressionSyntax)binaryExpression.Right;
 
                             var incrementor = forStatement.Incrementors[0];
-                            return TryGetStepValue(
-                                iterationVariable, incrementor, out stepValueExpressionOpt, cancellationToken);
+                            return TryGetStepValue(iterationVariable, incrementor, out stepValueExpressionOpt);
                         }
                     }
                 }
@@ -93,8 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
         }
 
         private static bool TryGetStepValue(
-            SyntaxToken iterationVariable, ExpressionSyntax incrementor,
-            out ExpressionSyntax stepValue, CancellationToken cancellationToken)
+            SyntaxToken iterationVariable, ExpressionSyntax incrementor, out ExpressionSyntax stepValue)
         {
             // support
             //  x++

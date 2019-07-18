@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         .GroupBy(d => d.ProjectId)
                         .OrderBy(g => _topologicallySortedProjects.IndexOf(g.Key));
 
-                    _replacementTextValid = IsIdentifierValid_Worker(baseSolution, _replacementText, documentsGroupedByTopologicallySortedProjectId.Select(g => g.Key), _cancellationToken);
+                    _replacementTextValid = IsIdentifierValid_Worker(baseSolution, _replacementText, documentsGroupedByTopologicallySortedProjectId.Select(g => g.Key));
                     var renamedSpansTracker = new RenamedSpansTracker();
                     var conflictResolution = new ConflictResolution(baseSolution, renamedSpansTracker, _replacementText, _replacementTextValid);
 

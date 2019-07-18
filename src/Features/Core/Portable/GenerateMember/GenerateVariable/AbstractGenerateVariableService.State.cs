@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
 
                 if (!service.ValidateTypeToGenerateIn(
-                    document.Project.Solution, TypeToGenerateIn, IsStatic, ClassInterfaceModuleStructTypes, cancellationToken))
+                        document.Project.Solution, TypeToGenerateIn, IsStatic, ClassInterfaceModuleStructTypes))
                 {
                     return false;
                 }

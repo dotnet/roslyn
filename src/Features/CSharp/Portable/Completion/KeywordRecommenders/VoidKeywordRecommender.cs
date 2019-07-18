@@ -44,12 +44,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 IsUnsafeLocalVariableDeclarationContext(context) ||
                 IsUnsafeParameterTypeContext(context) ||
                 IsUnsafeCastTypeContext(context) ||
-                IsUnsafeDefaultExpressionContext(context, cancellationToken) ||
+                IsUnsafeDefaultExpressionContext(context) ||
                 context.IsFixedVariableDeclarationContext ||
                 context.SyntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken);
         }
 
-        private bool IsUnsafeDefaultExpressionContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private bool IsUnsafeDefaultExpressionContext(CSharpSyntaxContext context)
         {
             return
                 context.TargetToken.IsUnsafeContext() &&

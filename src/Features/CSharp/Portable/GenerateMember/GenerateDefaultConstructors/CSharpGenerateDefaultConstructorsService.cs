@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateDefaultConstructo
             if (syntaxFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, out _))
             {
                 classType = AbstractGenerateFromMembersCodeRefactoringProvider.GetEnclosingNamedType(
-                    semanticDocument.SemanticModel, semanticDocument.Root, textSpan.Start, cancellationToken);
+                    semanticDocument.SemanticModel, semanticDocument.Root, textSpan.Start);
                 return classType?.TypeKind == TypeKind.Class;
             }
 

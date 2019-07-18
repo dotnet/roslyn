@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 expressions.Add(factory.ReferenceNotEqualsExpression(localNameExpression, factory.NullLiteralExpression()));
             }
 
-            if (!containingType.IsValueType && HasExistingBaseEqualsMethod(containingType, cancellationToken))
+            if (!containingType.IsValueType && HasExistingBaseEqualsMethod(containingType))
             {
                 // If we're overriding something that also provided an overridden 'Equals',
                 // then ensure the base type thinks it is equals as well.
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 //
                 //      other != null
                 expressions.Add(factory.ReferenceNotEqualsExpression(otherNameExpression, factory.NullLiteralExpression()));
-                if (HasExistingBaseEqualsMethod(containingType, cancellationToken))
+                if (HasExistingBaseEqualsMethod(containingType))
                 {
                     // If we're overriding something that also provided an overridden 'Equals',
                     // then ensure the base type thinks it is equals as well.
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        private static bool HasExistingBaseEqualsMethod(INamedTypeSymbol containingType, CancellationToken cancellationToken)
+        private static bool HasExistingBaseEqualsMethod(INamedTypeSymbol containingType)
         {
             // Check if any of our base types override Equals.  If so, first check with them.
             var existingMethods =

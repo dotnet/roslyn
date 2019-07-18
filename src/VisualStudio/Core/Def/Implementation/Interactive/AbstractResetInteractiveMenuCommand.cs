@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
                 .SingleOrDefault();
         }
 
-        internal async Task InitializeResetInteractiveFromProjectCommandAsync(CancellationToken cancellationToken)
+        internal async Task InitializeResetInteractiveFromProjectCommandAsync()
         {
             var resetInteractiveFromProjectCommand = new OleMenuCommand(
                 (sender, args) =>

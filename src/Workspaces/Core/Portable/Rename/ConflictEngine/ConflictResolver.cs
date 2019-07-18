@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return isConflict;
         }
 
-        private static bool IsIdentifierValid_Worker(Solution solution, string replacementText, IEnumerable<ProjectId> projectIds, CancellationToken cancellationToken)
+        private static bool IsIdentifierValid_Worker(Solution solution, string replacementText, IEnumerable<ProjectId> projectIds)
         {
             foreach (var language in projectIds.Select(p => solution.GetProject(p).Language).Distinct())
             {

@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Create a host/VS specific diagnostic with the given descriptor and message arguments for the given project.
         /// Note that diagnostic created through this API cannot be suppressed with in-source suppression due to performance reasons (see the PERF remark below for details).
         /// </summary>
-        public static bool TryCreate(DiagnosticDescriptor descriptor, string[] messageArguments, ProjectId projectId, Workspace workspace, out DiagnosticData diagnosticData, CancellationToken cancellationToken = default)
+        public static bool TryCreate(DiagnosticDescriptor descriptor, string[] messageArguments, ProjectId projectId, Workspace workspace, out DiagnosticData diagnosticData)
         {
             diagnosticData = null;
             var project = workspace.CurrentSolution.GetProject(projectId);

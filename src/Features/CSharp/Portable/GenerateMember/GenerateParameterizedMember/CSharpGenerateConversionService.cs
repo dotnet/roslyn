@@ -159,8 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
                     document.Project.Solution,
                     typeToGenerateIn,
                     true,
-                    classInterfaceModuleStructTypes,
-                    cancellationToken))
+                    classInterfaceModuleStructTypes))
             {
                 typeToGenerateIn = parameterSymbol;
             }
@@ -189,8 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
                     document.Project.Solution,
                     typeToGenerateIn,
                     true,
-                    classInterfaceModuleStructTypes,
-                    cancellationToken))
+                    classInterfaceModuleStructTypes))
             {
                 typeToGenerateIn = parameterSymbol;
             }

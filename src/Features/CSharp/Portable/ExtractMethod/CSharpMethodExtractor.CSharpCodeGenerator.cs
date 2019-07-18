@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     refKind: RefKind.None,
                     explicitInterfaceImplementations: default,
                     name: _methodName.ToString(),
-                    typeParameters: CreateMethodTypeParameters(cancellationToken),
+                    typeParameters: CreateMethodTypeParameters(),
                     parameters: CreateMethodParameters(),
                     statements: result.Data);
 
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 statements = postProcessor.MergeDeclarationStatements(statements);
                 statements = AddAssignmentStatementToCallSite(statements, cancellationToken);
                 statements = await AddInvocationAtCallSiteAsync(statements, cancellationToken).ConfigureAwait(false);
-                statements = AddReturnIfUnreachable(statements, cancellationToken);
+                statements = AddReturnIfUnreachable(statements);
 
                 return statements;
             }
