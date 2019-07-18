@@ -28,12 +28,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 
         protected async Task CheckResultAsync(string initial, string final, bool specialCaseSystem, CSharpParseOptions options = null)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(initial))
-            {
-                var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-                var newRoot = await (await OrganizingService.OrganizeAsync(document)).GetSyntaxRootAsync();
-                Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
-            }
+            using var workspace = TestWorkspace.CreateCSharp(initial);
+            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+            var newRoot = await (await OrganizingService.OrganizeAsync(document)).GetSyntaxRootAsync();
+            Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
         }
 
         protected Task CheckResultAsync(string initial, string final, CSharpParseOptions options = null)

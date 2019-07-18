@@ -26,50 +26,48 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     string x = @""/// <summary>$$
 /// </summary>"";
 }";
-            using (var workspace = TestWorkspace.CreateCSharp(code))
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var document = workspace.Documents.First();
+            var subjectBuffer = document.TextBuffer;
+            var checkpoint = new Checkpoint();
+            var tagComputer = new SyntacticClassificationTaggerProvider.TagComputer(
+                subjectBuffer,
+                workspace.GetService<IForegroundNotificationService>(),
+                AsynchronousOperationListenerProvider.NullListener,
+                null,
+                new SyntacticClassificationTaggerProvider(workspace.ExportProvider.GetExportedValue<IThreadingContext>(), null, null, null));
+
+            // Capture the expected value before the await, in case it changes.
+            var expectedLength = subjectBuffer.CurrentSnapshot.Length;
+            int? actualVersionNumber = null;
+            int? actualLength = null;
+            var callstacks = new List<string>();
+            tagComputer.TagsChanged += (s, e) =>
             {
-                var document = workspace.Documents.First();
-                var subjectBuffer = document.TextBuffer;
-                var checkpoint = new Checkpoint();
-                var tagComputer = new SyntacticClassificationTaggerProvider.TagComputer(
-                    subjectBuffer,
-                    workspace.GetService<IForegroundNotificationService>(),
-                    AsynchronousOperationListenerProvider.NullListener,
-                    null,
-                    new SyntacticClassificationTaggerProvider(workspace.ExportProvider.GetExportedValue<IThreadingContext>(), null, null, null));
+                actualVersionNumber = e.Span.Snapshot.Version.VersionNumber;
+                actualLength = e.Span.Length;
+                callstacks.Add(new StackTrace().ToString());
+                checkpoint.Release();
+            };
 
-                // Capture the expected value before the await, in case it changes.
-                var expectedLength = subjectBuffer.CurrentSnapshot.Length;
-                int? actualVersionNumber = null;
-                int? actualLength = null;
-                var callstacks = new List<string>();
-                tagComputer.TagsChanged += (s, e) =>
-                {
-                    actualVersionNumber = e.Span.Snapshot.Version.VersionNumber;
-                    actualLength = e.Span.Length;
-                    callstacks.Add(new StackTrace().ToString());
-                    checkpoint.Release();
-                };
+            await checkpoint.Task;
+            Assert.Equal(1, actualVersionNumber);
+            Assert.Equal(expectedLength, actualLength);
+            Assert.Equal(1, callstacks.Count);
 
-                await checkpoint.Task;
-                Assert.Equal(1, actualVersionNumber);
-                Assert.Equal(expectedLength, actualLength);
-                Assert.Equal(1, callstacks.Count);
+            checkpoint = new Checkpoint();
 
-                checkpoint = new Checkpoint();
+            // Now apply an edit that require us to reclassify more that just the current line
+            var snapshot = subjectBuffer.Insert(document.CursorPosition.Value, "\"");
+            expectedLength = snapshot.Length;
 
-                // Now apply an edit that require us to reclassify more that just the current line
-                var snapshot = subjectBuffer.Insert(document.CursorPosition.Value, "\"");
-                expectedLength = snapshot.Length;
-
-                // NOTE: TagsChanged is raised on the UI thread, so there is no race between
-                // assigning expected here and verifying in the event handler, because the
-                // event handler can't run until we await.
-                await checkpoint.Task;
-                Assert.Equal(2, actualVersionNumber);
-                Assert.Equal(expectedLength, actualLength);
-                Assert.Equal(2, callstacks.Count);
-            }
+            // NOTE: TagsChanged is raised on the UI thread, so there is no race between
+            // assigning expected here and verifying in the event handler, because the
+            // event handler can't run until we await.
+            await checkpoint.Task;
+            Assert.Equal(2, actualVersionNumber);
+            Assert.Equal(expectedLength, actualLength);
+            Assert.Equal(2, callstacks.Count);
         }
     }
 }

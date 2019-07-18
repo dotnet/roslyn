@@ -19,12 +19,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     {
         protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions: options))
-            {
-                var document = workspace.CurrentSolution.Projects.First().Documents.First();
+            using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: options);
+            var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
-                return GetSyntacticClassificationsAsync(document, span);
-            }
+            return GetSyntacticClassificationsAsync(document, span);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]

@@ -570,19 +570,17 @@ class D
     }
 }";
 
-            using (var workspace = TestWorkspace.CreateCSharp(markup))
-            {
-                var hostDocument = workspace.Documents.Single();
-                var position = hostDocument.CursorPosition.Value;
-                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
+            using var workspace = TestWorkspace.CreateCSharp(markup);
+            var hostDocument = workspace.Documents.Single();
+            var position = hostDocument.CursorPosition.Value;
+            var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+            var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
 
-                var service = GetCompletionService(workspace);
-                var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
-                var item = completionList.Items.First();
+            var service = GetCompletionService(workspace);
+            var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
+            var item = completionList.Items.First();
 
-                Assert.False(CommitManager.SendEnterThroughToEditor(service.GetRules(), item, string.Empty), "Expected false from SendEnterThroughToEditor()");
-            }
+            Assert.False(CommitManager.SendEnterThroughToEditor(service.GetRules(), item, string.Empty), "Expected false from SendEnterThroughToEditor()");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1140,20 +1138,18 @@ class Program
 
         private async Task VerifyExclusiveAsync(string markup, bool exclusive)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(markup))
+            using var workspace = TestWorkspace.CreateCSharp(markup);
+            var hostDocument = workspace.Documents.Single();
+            var position = hostDocument.CursorPosition.Value;
+            var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+            var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
+
+            var service = GetCompletionService(workspace);
+            var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
+
+            if (completionList != null)
             {
-                var hostDocument = workspace.Documents.Single();
-                var position = hostDocument.CursorPosition.Value;
-                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
-
-                var service = GetCompletionService(workspace);
-                var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
-
-                if (completionList != null)
-                {
-                    Assert.True(exclusive == completionList.GetTestAccessor().IsExclusive, "group.IsExclusive == " + completionList.GetTestAccessor().IsExclusive);
-                }
+                Assert.True(exclusive == completionList.GetTestAccessor().IsExclusive, "group.IsExclusive == " + completionList.GetTestAccessor().IsExclusive);
             }
         }
     }

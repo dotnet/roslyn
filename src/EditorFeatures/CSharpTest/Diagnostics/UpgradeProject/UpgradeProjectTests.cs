@@ -55,13 +55,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpgradeProj
             int index = 0)
         {
             var parameters = new TestParameters(parseOptions: parseOptions, index: index);
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
-            {
-                var (actions, actionsToInvoke) = await GetCodeActionsAsync(workspace, parameters);
+            using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
+            var (actions, actionsToInvoke) = await GetCodeActionsAsync(workspace, parameters);
 
-                Assert.Empty(actions);
-                Assert.Null(actionsToInvoke);
-            }
+            Assert.Empty(actions);
+            Assert.Null(actionsToInvoke);
         }
 
         [Fact]
