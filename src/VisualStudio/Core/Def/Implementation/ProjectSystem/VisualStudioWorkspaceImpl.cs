@@ -1516,6 +1516,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 _projectToHierarchyMap = _projectToHierarchyMap.Remove(projectId);
                 _projectToGuidMap = _projectToGuidMap.Remove(projectId);
+                _projectToMaxSupportedLangVersionMap.Remove(projectId);
                 _projectToRuleSetFilePath.Remove(projectId);
                 _projectCompilationOutputs.Remove(projectId);
 
@@ -1885,6 +1886,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(optionsProvider);
                 }
+            }
+        }
+
+        internal void SetMaxLanguageVersion(ProjectId projectId, string maxLangVer)
+        {
+            lock (_gate)
+            {
+                _projectToMaxSupportedLangVersionMap[projectId] = maxLangVer;
             }
         }
     }
