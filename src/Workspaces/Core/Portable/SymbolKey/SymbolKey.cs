@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis
         public override string ToString()
             => _symbolKeyData;
 
-        private static SymbolKeyResolution CreateSymbolInfo<TSymbol>(PooledArrayBuilder<TSymbol> symbols)
+        private static SymbolKeyResolution CreateResolution<TSymbol>(PooledArrayBuilder<TSymbol> symbols)
             where TSymbol : class, ISymbol
         {
 #if DEBUG

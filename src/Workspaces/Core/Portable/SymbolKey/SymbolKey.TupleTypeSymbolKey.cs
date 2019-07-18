@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis
                                 namedType, elementNames, elementLocations));
                         }
 
-                        return CreateSymbolInfo(result);
+                        return CreateResolution(result);
                     }
                     catch (ArgumentException)
                     {

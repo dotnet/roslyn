@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                return CreateSymbolInfo(result);
+                return CreateResolution(result);
             }
         }
     }
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                return CreateSymbolInfo(result);
+                return CreateResolution(result);
             }
         }
     }
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis
                     reader.PopMethod(methodOpt: null);
                 }
 
-                return CreateSymbolInfo(result);
+                return CreateResolution(result);
             }
 
             private static IMethodSymbol Resolve(

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis
                         reader, container: null, name, arity, typeArgumentsArray));
                 }
 
-                return CreateSymbolInfo(result);
+                return CreateResolution(result);
             }
 
             private static INamedTypeSymbol Construct(SymbolKeyReader reader, INamespaceOrTypeSymbol container, string name, int arity, ITypeSymbol[] typeArguments)

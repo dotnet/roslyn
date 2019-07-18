@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
                     result.AddIfNotNull(reader.Compilation.CreatePointerTypeSymbol(typeSymbol));
                 }
 
-                return CreateSymbolInfo(result);
+                return CreateResolution(result);
             }
         }
     }

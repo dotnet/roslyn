@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
                         isUnboundGenericType, typeArgumentArray);
                 }
 
-                return CreateSymbolInfo(result);
+                return CreateResolution(result);
             }
 
             private static void Resolve(

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
                 var containingTypeResolution = reader.ReadSymbolKey();
 
                 using var result = GetMembersOfNamedType<IEventSymbol>(containingTypeResolution, metadataName);
-                return CreateSymbolInfo(result);
+                return CreateResolution(result);
             }
         }
     }

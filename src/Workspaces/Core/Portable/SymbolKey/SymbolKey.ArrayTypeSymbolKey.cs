@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
                     result.AddIfNotNull(reader.Compilation.CreateArrayTypeSymbol(typeSymbol, rank));
                 }
 
-                return CreateSymbolInfo(result);
+                return CreateResolution(result);
             }
         }
     }

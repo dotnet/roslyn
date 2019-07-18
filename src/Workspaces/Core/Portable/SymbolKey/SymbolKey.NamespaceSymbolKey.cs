@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                return CreateSymbolInfo(result);
+                return CreateResolution(result);
             }
         }
     }

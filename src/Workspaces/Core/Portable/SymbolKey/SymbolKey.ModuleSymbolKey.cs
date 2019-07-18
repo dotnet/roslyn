@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
                     result.AddValuesIfNotNull(assembly.Modules);
                 }
 
-                return CreateSymbolInfo(result);
+                return CreateResolution(result);
             }
         }
     }
