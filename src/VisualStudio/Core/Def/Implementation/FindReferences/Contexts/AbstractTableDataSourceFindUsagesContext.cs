@@ -418,8 +418,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         foreach (var customColumnName in customData.Keys)
                         {
                             // Get the matching custom column.
-                            var customColumnDefinition = columnDefinitionManager.GetColumnDefinition(customColumnName) as AbstractFindUsagesCustomColumnDefinition;
-                            if (customColumnDefinition == null)
+                            if (!(columnDefinitionManager.GetColumnDefinition(customColumnName) is AbstractFindUsagesCustomColumnDefinition customColumnDefinition))
                             {
                                 Debug.Fail($"{nameof(SourceReferenceItem.ReferenceInfo)} has a key '{customColumnName}', but there is no exported '{nameof(AbstractFindUsagesCustomColumnDefinition)}' with this name.");
                                 continue;

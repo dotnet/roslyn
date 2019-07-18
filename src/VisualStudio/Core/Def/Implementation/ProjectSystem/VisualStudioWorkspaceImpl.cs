@@ -1075,8 +1075,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // OpenDocumentViaProject itself relies upon this QI working, so it should be OK to
                 // use here.
 
-                var vsProject = hierarchy as IVsProject;
-                return vsProject != null &&
+                return hierarchy is IVsProject vsProject &&
                     ErrorHandler.Succeeded(vsProject.OpenItem(itemId, VSConstants.LOGVIEWID.TextView_guid, s_docDataExisting_Unknown, out frame));
             }
         }

@@ -63,8 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
 
                 var textContainer = document.GetTextSynchronously(CancellationToken.None).Container;
-                var buffer = textContainer.TryGetTextBuffer() as IProjectionBuffer;
-                if (buffer == null)
+                if (!(textContainer.TryGetTextBuffer() is IProjectionBuffer buffer))
                 {
                     return NoOpFormattingRule.Instance;
                 }

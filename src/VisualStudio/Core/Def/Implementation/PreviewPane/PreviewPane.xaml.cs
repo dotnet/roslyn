@@ -329,8 +329,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             BrowserHelper.StartBrowser(e.Uri);
             e.Handled = true;
 
-            var hyperlink = sender as Hyperlink;
-            if (hyperlink == null)
+            if (!(sender is Hyperlink hyperlink))
             {
                 return;
             }
