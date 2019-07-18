@@ -85,8 +85,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         string fullTypeName,
         bool isInterface,
         string[] taintedProperties,
-        IEnumerable<(string Method, IsInvocationTaintedWithPointsToAnalysis)> taintedMethodsNeedPointsToAnalysis,
-        IEnumerable<(string Method, IsInvocationTaintedWithValueContentAnalysis)> taintedMethodsNeedsValueContentAnalysis,
+        IEnumerable<(string Method, IsInvocationTaintedWithPointsToAnalysis pointsToCheck)> taintedMethodsNeedPointsToAnalysis,
+        IEnumerable<(string Method, IsInvocationTaintedWithValueContentAnalysis valueContentCheck)> taintedMethodsNeedsValueContentAnalysis,
         bool taintConstantArray = false)
         {
             SourceInfo metadata = new SourceInfo(
@@ -96,12 +96,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ?? ImmutableHashSet<string>.Empty,
                 taintedMethodsNeedPointsToAnalysis:
                     taintedMethodsNeedPointsToAnalysis
-                        ?.Select(o => new KeyValuePair<string, IsInvocationTaintedWithPointsToAnalysis>(o.Method, o.Item2))
+                        ?.Select(o => new KeyValuePair<string, IsInvocationTaintedWithPointsToAnalysis>(o.Method, o.pointsToCheck))
                         ?.ToImmutableDictionary(StringComparer.Ordinal)
                     ?? ImmutableDictionary<string, IsInvocationTaintedWithPointsToAnalysis>.Empty,
                 taintedMethodsNeedsValueContentAnalysis:
                     taintedMethodsNeedsValueContentAnalysis
-                        ?.Select(o => new KeyValuePair<string, IsInvocationTaintedWithValueContentAnalysis>(o.Method, o.Item2))
+                        ?.Select(o => new KeyValuePair<string, IsInvocationTaintedWithValueContentAnalysis>(o.Method, o.valueContentCheck))
                         ?.ToImmutableDictionary(StringComparer.Ordinal)
                     ?? ImmutableDictionary<string, IsInvocationTaintedWithValueContentAnalysis>.Empty,
                 taintConstantArray: taintConstantArray);

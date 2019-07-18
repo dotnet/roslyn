@@ -226,38 +226,33 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ProcessTaintedDataEnteringInvocationOrCreation(method, taintedArguments, originalOperation);
                 }
 
-                if (this.IsSanitizingMethod(method))
+                PooledHashSet<IsInvocationTaintedWithPointsToAnalysis> evaluateWithPointsToAnalysis = null;
+                PooledHashSet<IsInvocationTaintedWithValueContentAnalysis> evaluateWithValueContentAnalysis = null;
+                try
                 {
-                    return TaintedDataAbstractValue.NotTainted;
-                }
-                else if (this.DataFlowAnalysisContext.SourceInfos.IsSourceMethod(
-                    method,
-                    out PooledHashSet<IsInvocationTaintedWithPointsToAnalysis> evaluateWithPointsToAnalysis,
-                    out PooledHashSet<IsInvocationTaintedWithValueContentAnalysis> evaluateWithValueContentAnalysis))
-                {
-                    ImmutableArray<IArgumentOperation> argumentOperation = (originalOperation as IInvocationOperation).Arguments;
-                    if (evaluateWithPointsToAnalysis != null)
+                    if (this.IsSanitizingMethod(method))
                     {
-                        IEnumerable<PointsToAbstractValue> pointsToAnalysisResultOpt = argumentOperation.Select(o => GetPointsToAbstractValue(o.Value));
-                        try
+                        return TaintedDataAbstractValue.NotTainted;
+                    }
+                    else if (this.DataFlowAnalysisContext.SourceInfos.IsSourceMethod(
+                        method,
+                        out evaluateWithPointsToAnalysis,
+                        out evaluateWithValueContentAnalysis))
+                    {
+                        ImmutableArray<IArgumentOperation> argumentOperation = (originalOperation as IInvocationOperation).Arguments;
+                        if (evaluateWithPointsToAnalysis != null)
                         {
+                            IEnumerable<PointsToAbstractValue> pointsToAnalysisResultOpt = argumentOperation.Select(o => GetPointsToAbstractValue(o.Value));
                             if (pointsToAnalysisResultOpt == null
                                 || !evaluateWithPointsToAnalysis.Any(o => o(pointsToAnalysisResultOpt)))
                             {
                                 return TaintedDataAbstractValue.NotTainted;
                             }
                         }
-                        finally
+                        else if (evaluateWithValueContentAnalysis != null)
                         {
-                            evaluateWithPointsToAnalysis.Free();
-                        }
-                    }
-                    else if (evaluateWithValueContentAnalysis != null)
-                    {
-                        IEnumerable<PointsToAbstractValue> pointsToAnalysisResultOpt = argumentOperation.Select(o => GetPointsToAbstractValue(o.Value));
-                        IEnumerable<ValueContentAbstractValue> valueContentAnalysisResultOpt = argumentOperation.Select(o => GetValueContentAbstractValue(o.Value));
-                        try
-                        {
+                            IEnumerable<PointsToAbstractValue> pointsToAnalysisResultOpt = argumentOperation.Select(o => GetPointsToAbstractValue(o.Value));
+                            IEnumerable<ValueContentAbstractValue> valueContentAnalysisResultOpt = argumentOperation.Select(o => GetValueContentAbstractValue(o.Value));
                             if (valueContentAnalysisResultOpt == null
                                 || pointsToAnalysisResultOpt == null
                                 || !evaluateWithValueContentAnalysis.Any(o => o(pointsToAnalysisResultOpt, valueContentAnalysisResultOpt)))
@@ -265,26 +260,34 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                                 return TaintedDataAbstractValue.NotTainted;
                             }
                         }
-                        finally
+                        else
                         {
-                            evaluateWithValueContentAnalysis.Free();
+                            return TaintedDataAbstractValue.NotTainted;
                         }
+
+                        return TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
                     }
-                    else
+                    else if (visitedInstance != null && this.IsSanitizingInstanceMethod(method))
                     {
+                        if (AnalysisEntityFactory.TryCreate(visitedInstance, out AnalysisEntity analysisEntity))
+                        {
+                            this.CurrentAnalysisData.SetAbstractValue(analysisEntity, TaintedDataAbstractValue.NotTainted);
+                        }
+
                         return TaintedDataAbstractValue.NotTainted;
                     }
-
-                    return TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
                 }
-                else if (visitedInstance != null && this.IsSanitizingInstanceMethod(method))
+                finally
                 {
-                    if (AnalysisEntityFactory.TryCreate(visitedInstance, out AnalysisEntity analysisEntity))
+                    if (evaluateWithPointsToAnalysis != null)
                     {
-                        this.CurrentAnalysisData.SetAbstractValue(analysisEntity, TaintedDataAbstractValue.NotTainted);
+                        evaluateWithPointsToAnalysis.Free();
                     }
 
-                    return TaintedDataAbstractValue.NotTainted;
+                    if (evaluateWithValueContentAnalysis != null)
+                    {
+                        evaluateWithValueContentAnalysis.Free();
+                    }
                 }
 
                 return baseVisit;
