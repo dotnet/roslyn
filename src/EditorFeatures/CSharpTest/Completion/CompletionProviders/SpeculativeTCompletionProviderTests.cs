@@ -164,6 +164,20 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(37224, "https://github.com/dotnet/roslyn/issues/37224")]
+        public async Task InRef()
+        {
+            var markup = @"
+using System;
+class C
+{
+    ref $$
+}";
+
+            await VerifyItemExistsAsync(markup, "T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37224, "https://github.com/dotnet/roslyn/issues/37224")]
         public async Task InRefGeneric()
         {
             var markup = @"
