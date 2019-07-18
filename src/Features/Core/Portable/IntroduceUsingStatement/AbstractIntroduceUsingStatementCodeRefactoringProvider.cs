@@ -33,10 +33,8 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var span = context.Span;
-
-            var declarationSyntax = await FindDisposableLocalDeclaration(document, span, context.CancellationToken).ConfigureAwait(false);
+            var (document, span, cancellationToken) = context;
+            var declarationSyntax = await FindDisposableLocalDeclaration(document, span, cancellationToken).ConfigureAwait(false);
 
             if (declarationSyntax != null)
             {
@@ -48,11 +46,8 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
 
         private async Task<TLocalDeclarationSyntax> FindDisposableLocalDeclaration(Document document, TextSpan selection, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var declarationSyntax =
-                root.FindNode(selection)?.GetAncestorOrThis<TLocalDeclarationSyntax>()
-                ?? root.FindTokenOnLeftOfPosition(selection.End).GetAncestor<TLocalDeclarationSyntax>();
+            var refactoringHelperService = document.GetLanguageService<IRefactoringHelpersService>();
+            var declarationSyntax = await refactoringHelperService.TryGetSelectedNodeAsync<TLocalDeclarationSyntax>(document, selection, cancellationToken).ConfigureAwait(false);
 
             if (declarationSyntax is null || !CanRefactorToContainBlockStatements(declarationSyntax.Parent))
             {
@@ -91,20 +86,6 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
 
             // Initializer kind is invalid when incomplete declaration syntax ends in an equals token.
             if (initializer is null || initializer.Kind == OperationKind.Invalid)
-            {
-                return default;
-            }
-
-            // Infer the intent of the selection. Offer the refactoring only if the selection
-            // appears to be aimed at the declaration statement but not at its initializer expression.
-            var isValidSelection = await CodeRefactoringHelpers.RefactoringSelectionIsValidAsync(
-                document,
-                selection,
-                node: declarationSyntax,
-                holes: ImmutableArray.Create(initializer.Syntax),
-                cancellationToken).ConfigureAwait(false);
-
-            if (!isValidSelection)
             {
                 return default;
             }

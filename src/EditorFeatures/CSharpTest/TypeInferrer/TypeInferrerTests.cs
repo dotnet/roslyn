@@ -3007,7 +3007,7 @@ class C
 @"(int i, _) =  [||]", "(global::System.Int32 i, global::System.Object _)", testNode: false);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36047"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestDeconstructionWithNullableElement()
         {
             await TestInMethodAsync(

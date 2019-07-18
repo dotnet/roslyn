@@ -1562,12 +1562,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // ref |
             // ref readonly |
+            // for ( ref |
+            // foreach ( ref | x
             if (token.IsKind(SyntaxKind.RefKeyword, SyntaxKind.ReadOnlyKeyword) &&
-                token.Parent.IsKind(SyntaxKind.RefType) &&
-                token.Parent.IsParentKind(SyntaxKind.VariableDeclaration) &&
-                token.Parent.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement))
+                token.Parent.IsKind(SyntaxKind.RefType))
             {
-                return true;
+                var refType = token.Parent;
+
+                if (refType.IsParentKind(SyntaxKind.VariableDeclaration) &&
+                    refType.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement))
+                {
+                    return true;
+                }
+
+                if (refType.IsParentKind(SyntaxKind.ForEachStatement))
+                {
+                    return true;
+                }
             }
 
             // out |
