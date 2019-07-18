@@ -35,11 +35,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </para>
         /// </summary>
         Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
-        Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(Document document, TextSpan selection, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
+        Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(Document document, TextSpan selection, Func<TSyntaxNode, bool> predicate, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
 
         Task<TSyntaxNode> TryGetDeepInNodeAsync<TSyntaxNode>(
             Document document, TextSpan selectionRaw,
-            Func<SyntaxNode, bool> predicate,
+            Func<TSyntaxNode, bool> predicate,
             Func<SyntaxNode, bool> traverseUntil,
             CancellationToken cancellationToken)
             where TSyntaxNode : SyntaxNode;

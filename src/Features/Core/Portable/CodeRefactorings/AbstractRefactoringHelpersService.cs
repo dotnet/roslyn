@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
@@ -18,29 +19,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             TextSpan selection,
             CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
-            return (TSyntaxNode)await TryGetSelectedNodeAsync(
+            return await TryGetSelectedNodeAsync<TSyntaxNode>(
                 document,
-                selection, n => n is TSyntaxNode,
+                selection, Functions<TSyntaxNode>.True,
                 cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
-            Document document,
-            TextSpan selection,
-            Func<SyntaxNode, bool> predicate,
-            CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
-        {
-            return (TSyntaxNode)await TryGetSelectedNodeAsync(
-                document,
-                selection, n => n is TSyntaxNode && predicate(n),
-                cancellationToken).ConfigureAwait(false);
-        }
-
-
-        protected async Task<SyntaxNode> TryGetSelectedNodeAsync(
             Document document, TextSpan selectionRaw,
-            Func<SyntaxNode, bool> predicate,
-            CancellationToken cancellationToken)
+            Func<TSyntaxNode, bool> predicate,
+            CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
             // Given selection is trimmed first to enable over-selection that spans multiple lines. Since trailing whitespace ends
             // at newline boundary over-selection to e.g. a line after LocalFunctionStatement would cause FindNode to find enclosing
@@ -89,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 var prevNode = selectionNode;
                 do
                 {
-                    var acceptedNode = ExtractNodesSimple(selectionNode, syntaxFacts).FirstOrDefault(predicate);
+                    var acceptedNode = ExtractNodesSimple(selectionNode, syntaxFacts).OfType<TSyntaxNode>().FirstOrDefault(predicate);
                     if (acceptedNode != null)
                     {
                         // For selections we need to handle an edge case where only AttributeLists are within selection (e.g. `Func([|[in][out]|] arg1);`).
@@ -194,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // First check if we're in a header of some higher-level node what would pass predicate & if we are -> return it
             // We can't check any sooner because the code above (that figures out tokenToLeft, ...) can change current 
             // `location`.
-            var acceptedHeaderNode = ExtractNodesIfInHeader(root, location, syntaxFacts).FirstOrDefault(predicate);
+            var acceptedHeaderNode = ExtractNodesIfInHeader(root, location, syntaxFacts).OfType<TSyntaxNode>().FirstOrDefault(predicate);
             if (acceptedHeaderNode != null)
             {
                 return acceptedHeaderNode;
@@ -209,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     // Consider either a Node that is:
                     // - Parent of touched Token (location can be within) 
                     // - Ancestor Node of such Token as long as their span starts on location (it's still on the edge)
-                    var acceptedNode = ExtractNodesSimple(rightNode, syntaxFacts).FirstOrDefault(predicate);
+                    var acceptedNode = ExtractNodesSimple(rightNode, syntaxFacts).OfType<TSyntaxNode>().FirstOrDefault(predicate);
                     if (acceptedNode != null)
                     {
                         return acceptedNode;
@@ -247,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 {
                     // Consider either a Node that is:
                     // - Ancestor Node of such Token as long as their span ends on location (it's still on the edge)
-                    var acceptedNode = ExtractNodesSimple(leftNode, syntaxFacts).FirstOrDefault(predicate);
+                    var acceptedNode = ExtractNodesSimple(leftNode, syntaxFacts).OfType<TSyntaxNode>().FirstOrDefault(predicate);
                     if (acceptedNode != null)
                     {
                         return acceptedNode;
@@ -290,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         }
 
         /// <summary>
-        /// Extractor function that retrieves all nodes that should be considered for <see cref="TryGetSelectedNodeAsync(Document, TextSpan, Func{SyntaxNode, bool}, CancellationToken)"/> 
+        /// Extractor function that retrieves all nodes that should be considered for <see cref="TryGetSelectedNodeAsync{TSyntaxNode}(Document, TextSpan, Func{TSyntaxNode, bool}, CancellationToken)"/>
         /// given current node. 
         /// <para>
         /// The rationale is that when user selects e.g. entire local declaration statement [|var a = b;|] it is reasonable
@@ -369,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         }
 
         /// <summary>
-        /// Extractor function that checks and retrieves all nodes current location is in a header of <see cref="TryGetSelectedNodeAsync(Document, TextSpan, Func{SyntaxNode, bool}, CancellationToken)"/>.
+        /// Extractor function that checks and retrieves all nodes current location is in a header of <see cref="TryGetSelectedNodeAsync{TSyntaxNode}(Document, TextSpan, Func{TSyntaxNode, bool}, CancellationToken)"/>.
         /// </summary>
         protected virtual IEnumerable<SyntaxNode> ExtractNodesIfInHeader(SyntaxNode root, int location, ISyntaxFactsService syntaxFacts)
         {
@@ -416,11 +404,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        public virtual async Task<TNode> TryGetDeepInNodeAsync<TNode>(
+        public virtual async Task<TSyntaxNode> TryGetDeepInNodeAsync<TSyntaxNode>(
             Document document, TextSpan selectionRaw,
-            Func<SyntaxNode, bool> predicate,
+            Func<TSyntaxNode, bool> predicate,
             Func<SyntaxNode, bool> traverseUntil,
-            CancellationToken cancellationToken) where TNode : SyntaxNode
+            CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
             // Traversing up from deep inside is applicable only for empty selections 
             // If user selected something he wanted something very specific -> not arbitrary traversing up
@@ -435,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var token = root.FindToken(location);
-            var expression = token.Parent?.FirstAncestorOrSelfUntil<TNode>(predicate, traverseUntil);
+            var expression = token.Parent?.FirstAncestorOrSelfUntil<TSyntaxNode>(predicate, traverseUntil);
 
             if (expression == null)
             {

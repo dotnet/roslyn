@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         }
 
         internal static Task<TSyntaxNode> TryGetDeepInNodeAsync<TSyntaxNode>(this CodeRefactoringContext context) where TSyntaxNode : SyntaxNode
-            => TryGetDeepInNodeAsync<TSyntaxNode>(context, Functions<SyntaxNode>.True, Functions<SyntaxNode>.False);
+            => TryGetDeepInNodeAsync<TSyntaxNode>(context, Functions<TSyntaxNode>.True, Functions<SyntaxNode>.False);
 
-        internal static Task<TSyntaxNode> TryGetDeepInNodeAsync<TSyntaxNode>(this CodeRefactoringContext context, Func<SyntaxNode, bool> predicate, Func<SyntaxNode, bool> traverseUntil)
+        internal static Task<TSyntaxNode> TryGetDeepInNodeAsync<TSyntaxNode>(this CodeRefactoringContext context, Func<TSyntaxNode, bool> predicate, Func<SyntaxNode, bool> traverseUntil)
             where TSyntaxNode : SyntaxNode
         {
             var document = context.Document;
