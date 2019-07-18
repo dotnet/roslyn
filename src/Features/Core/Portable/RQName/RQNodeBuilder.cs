@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName
             {
                 var namedTypeSymbol = symbol as INamedTypeSymbol;
 
-                var definingType = namedTypeSymbol.ConstructedFrom != null ? namedTypeSymbol.ConstructedFrom : namedTypeSymbol;
+                var definingType = namedTypeSymbol.ConstructedFrom ?? namedTypeSymbol;
 
                 var typeChain = new List<INamedTypeSymbol>();
                 var type = namedTypeSymbol;
