@@ -88,9 +88,12 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 document, expression, newLocalName, document, oldBody, allOccurrences, cancellationToken);
 
 
-            var newBody = document.SemanticModel.GetTypeInfo(oldLambda, cancellationToken).ConvertedType is INamedTypeSymbol delegateType && delegateType.DelegateInvokeMethod != null && delegateType.DelegateInvokeMethod.ReturnsVoid
-                ? SyntaxFactory.Block(declarationStatement)
-                : SyntaxFactory.Block(declarationStatement, SyntaxFactory.ReturnStatement(rewrittenBody));
+            var newBody =
+                document.SemanticModel.GetTypeInfo(oldLambda, cancellationToken).ConvertedType is INamedTypeSymbol delegateType
+                && delegateType.DelegateInvokeMethod != null
+                && delegateType.DelegateInvokeMethod.ReturnsVoid
+                    ? SyntaxFactory.Block(declarationStatement)
+                    : SyntaxFactory.Block(declarationStatement, SyntaxFactory.ReturnStatement(rewrittenBody));
 
             // Add an elastic newline so that the formatter will place this new lambda body across multiple lines.
             newBody = newBody.WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed))
