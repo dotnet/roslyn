@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddAwait
     /// This refactoring complements the AddAwait fixer. It allows adding `await` and `await ... .ConfigureAwait(false)` even there is no compiler error to trigger the fixer.
     /// </summary>
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.AddAwait), Shared]
-    internal partial class CSharpAddAwaitCodeRefactoringProvider : AbstractAddAwaitCodeRefactoringProvider<ExpressionSyntax, InvocationExpressionSyntax>
+    internal partial class CSharpAddAwaitCodeRefactoringProvider : AbstractAddAwaitCodeRefactoringProvider<InvocationExpressionSyntax>
     {
         [ImportingConstructor]
         public CSharpAddAwaitCodeRefactoringProvider()

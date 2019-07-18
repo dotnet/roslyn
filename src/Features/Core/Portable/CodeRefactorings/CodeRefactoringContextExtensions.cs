@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
@@ -32,6 +34,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             var helpers = document.GetLanguageService<IRefactoringHelpersService>();
 
             return helpers.TryGetSelectedNodeAsync<TSyntaxNode>(document, context.Span, context.CancellationToken);
+        }
+
+        internal static Task<TSyntaxNode> TryGetDeepInNodeAsync<TSyntaxNode>(this CodeRefactoringContext context) where TSyntaxNode : SyntaxNode
+            => TryGetDeepInNodeAsync<TSyntaxNode>(context, Functions<SyntaxNode>.True, Functions<SyntaxNode>.False);
+
+        internal static Task<TSyntaxNode> TryGetDeepInNodeAsync<TSyntaxNode>(this CodeRefactoringContext context, Func<SyntaxNode, bool> predicate, Func<SyntaxNode, bool> traverseUntil)
+            where TSyntaxNode : SyntaxNode
+        {
+            var document = context.Document;
+            var helpers = document.GetLanguageService<IRefactoringHelpersService>();
+
+            return helpers.TryGetDeepInNodeAsync<TSyntaxNode>(document, context.Span, predicate, traverseUntil, context.CancellationToken);
         }
     }
 }

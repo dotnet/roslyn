@@ -14,13 +14,28 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     internal abstract class AbstractRefactoringHelpersService : IRefactoringHelpersService
     {
         public async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
-            Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+            Document document,
+            TextSpan selection,
+            CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
             return (TSyntaxNode)await TryGetSelectedNodeAsync(
                 document,
                 selection, n => n is TSyntaxNode,
                 cancellationToken).ConfigureAwait(false);
         }
+
+        public async Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(
+            Document document,
+            TextSpan selection,
+            Func<SyntaxNode, bool> predicate,
+            CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+        {
+            return (TSyntaxNode)await TryGetSelectedNodeAsync(
+                document,
+                selection, n => n is TSyntaxNode && predicate(n),
+                cancellationToken).ConfigureAwait(false);
+        }
+
 
         protected async Task<SyntaxNode> TryGetSelectedNodeAsync(
             Document document, TextSpan selectionRaw,
@@ -399,6 +414,45 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             {
                 yield return foreachStatement;
             }
+        }
+
+        public virtual async Task<TNode> TryGetDeepInNodeAsync<TNode>(
+            Document document, TextSpan selectionRaw,
+            Func<SyntaxNode, bool> predicate,
+            Func<SyntaxNode, bool> traverseUntil,
+            CancellationToken cancellationToken) where TNode : SyntaxNode
+        {
+            // Traversing up from deep inside is applicable only for empty selections 
+            // If user selected something he wanted something very specific -> not arbitrary traversing up
+            if (!selectionRaw.IsEmpty)
+            {
+                return null;
+            }
+
+            // If we're deep inside we don't have to deal with being on edges (that gets dealt by TryGetSelectedNodeAsync)
+            // -> can simply FindToken -> proceed with its ancestors.
+            var location = selectionRaw.Start;
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var token = root.FindToken(location);
+            var expression = token.Parent?.FirstAncestorOrSelfUntil<TNode>(predicate, traverseUntil);
+
+            if (expression == null)
+            {
+                return null;
+            }
+
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            var argumentStartLine = sourceText.Lines.GetLineFromPosition(expression.Span.Start).LineNumber;
+            var caretLine = sourceText.Lines.GetLineFromPosition(location).LineNumber;
+
+            if (argumentStartLine != caretLine)
+            {
+                return null;
+            }
+
+            return expression;
         }
     }
 }

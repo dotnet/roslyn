@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -34,5 +35,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </para>
         /// </summary>
         Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
+        Task<TSyntaxNode> TryGetSelectedNodeAsync<TSyntaxNode>(Document document, TextSpan selection, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
+
+        Task<TSyntaxNode> TryGetDeepInNodeAsync<TSyntaxNode>(
+            Document document, TextSpan selectionRaw,
+            Func<SyntaxNode, bool> predicate,
+            Func<SyntaxNode, bool> traverseUntil,
+            CancellationToken cancellationToken)
+            where TSyntaxNode : SyntaxNode;
     }
 }
