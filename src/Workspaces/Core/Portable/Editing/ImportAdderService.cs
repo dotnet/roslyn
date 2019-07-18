@@ -230,13 +230,13 @@ namespace Microsoft.CodeAnalysis.Editing
                     foreach (var namedType in SymbolAnnotation.GetSymbols(annotation, model.Compilation).OfType<INamedTypeSymbol>())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        if (namedType.IsSpecialType())
+                        if (namedType.OriginalDefinition.IsSpecialType() || namedType.IsNullable())
                         {
                             continue;
                         }
 
                         var namespaceSymbol = namedType.ContainingNamespace;
-                        if (namespaceSymbol?.IsGlobalNamespace != false)
+                        if (namespaceSymbol is null || namespaceSymbol.IsGlobalNamespace)
                         {
                             continue;
                         }
