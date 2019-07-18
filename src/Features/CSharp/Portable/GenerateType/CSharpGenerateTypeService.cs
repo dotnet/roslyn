@@ -815,19 +815,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         }
 
         internal override bool IsGenericName(SimpleNameSyntax simpleName)
-        {
-            if (simpleName == null)
-            {
-                return false;
-            }
-
-            return simpleName is GenericNameSyntax genericName;
-        }
+            => simpleName is GenericNameSyntax;
 
         internal override bool IsSimpleName(ExpressionSyntax expression)
-        {
-            return expression is SimpleNameSyntax;
-        }
+            => expression is SimpleNameSyntax;
 
         internal override async Task<Solution> TryAddUsingsOrImportToDocumentAsync(Solution updatedSolution, SyntaxNode modifiedRoot, Document document, SimpleNameSyntax simpleName, string includeUsingsOrImports, CancellationToken cancellationToken)
         {
