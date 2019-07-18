@@ -186,8 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 return null;
             }
 
-            var applyOperation = operationsList.Single() as ApplyChangesOperation;
-            if (applyOperation == null)
+            if (!(operationsList.Single() is ApplyChangesOperation applyOperation))
             {
                 return null;
             }

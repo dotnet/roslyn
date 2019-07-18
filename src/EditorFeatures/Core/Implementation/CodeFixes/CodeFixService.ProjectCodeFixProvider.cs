@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
 
                 // otherwise, see whether we can pick it up from reference itself
-                var analyzerFileReference = _reference as AnalyzerFileReference;
-                if (analyzerFileReference == null)
+                if (!(_reference is AnalyzerFileReference analyzerFileReference))
                 {
                     return ImmutableArray<CodeFixProvider>.Empty;
                 }
