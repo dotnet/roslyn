@@ -885,7 +885,9 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundLocalFunctionStatement.WasCompilerGenerated;
-            return new CSharpLazyLocalFunctionOperation(this, boundLocalFunctionStatement, symbol, _semanticModel, syntax, type, constantValue, isImplicit);
+
+            ImmutableArray<ConditionalOperation> nullChecksToPrepend = GenerateNullChecksForParameters(boundLocalFunctionStatement.Symbol.Parameters, syntax);
+            return new CSharpLazyLocalFunctionOperation(this, boundLocalFunctionStatement, symbol, _semanticModel, syntax, type, nullChecksToPrepend, constantValue, isImplicit);
         }
 
         private IOperation CreateBoundConversionOperation(BoundConversion boundConversion)
@@ -1414,102 +1416,113 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundBlock.WasCompilerGenerated;
-            var compilation = (CSharpCompilation)_semanticModel.Compilation;
-            ArrayBuilder<ConditionalOperation> ifList = null;
+            var nullChecksToPrepend = ImmutableArray<ConditionalOperation>.Empty;
 
             if (_semanticModel is MemberSemanticModel memberModel
                 && memberModel.ContainsNullCheckedParameter
                 && _semanticModel.Root.ChildNodes().Contains(boundBlock.Syntax))
             {
-                foreach (var param in memberModel.MemberSymbol.GetParameters())
-                {
-                    if (LocalRewriter.GetParameterIsNullChecked(param))
-                    {
-                        IOperation conditionOp;
-                        ifList ??= ArrayBuilder<ConditionalOperation>.GetInstance();
-                        if (param.Type.IsNullableType())
-                        {
-                            conditionOp = new UnaryOperation(
-                                UnaryOperatorKind.Not,
-                                new InvocationOperation(
-                                    targetMethod: ((IMethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_HasValue)).Construct(param.Type),
-                                    instance: new ParameterReferenceOperation(param, _semanticModel, syntax, param.Type, constantValue, isImplicit: true),
-                                    isVirtual: false,
-                                    arguments: ImmutableArray<IArgumentOperation>.Empty,
-                                    _semanticModel,
-                                    syntax,
-                                    compilation.GetSpecialType(SpecialType.System_Boolean),
-                                    constantValue,
-                                    isImplicit: true),
-                                isLifted: false,
-                                isChecked: false,
-                                operatorMethod: null,
-                                _semanticModel,
-                                syntax,
-                                compilation.GetSpecialType(SpecialType.System_Boolean),
-                                constantValue,
-                                isImplicit: true);
-                        }
-                        else
-                        {
-                            conditionOp = new BinaryOperation(BinaryOperatorKind.Equals,
-                                new ParameterReferenceOperation(param, _semanticModel, syntax, param.Type, constantValue, isImplicit: true),
-                                new LiteralOperation(_semanticModel, syntax, param.Type, ConstantValue.Null, isImplicit: true),
-                                isLifted: false,
-                                isChecked: false,
-                                isCompareText: false,
-                                operatorMethod: null,
-                                unaryOperatorMethod: null,
-                                _semanticModel,
-                                syntax,
-                                compilation.GetSpecialType(SpecialType.System_Boolean),
-                                constantValue,
-                                isImplicit: true);
-                        }
+                nullChecksToPrepend = GenerateNullChecksForParameters(memberModel.MemberSymbol.GetParameters(), syntax);
+            }
+            return new CSharpLazyBlockOperation(this, boundBlock, locals, nullChecksToPrepend, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
 
-                        var argumentNullExceptionMethodSymbol = (IMethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_ArgumentNullException__ctorString);
-                        IOperation whenTrue = new ExpressionStatementOperation(
-                            new ThrowOperation(
-                                new ObjectCreationOperation(
-                                    constructor: argumentNullExceptionMethodSymbol,
-                                    initializer: new ObjectOrCollectionInitializerOperation(
-                                            initializers: ImmutableArray<IOperation>.Empty,
-                                            _semanticModel,
-                                            syntax,
-                                            compilation.GetWellKnownType(WellKnownType.System_ArgumentNullException),
-                                            constantValue,
-                                            isImplicit: true),
-                                    ImmutableArray.Create<IArgumentOperation>(
-                                        new ArgumentOperation(
-                                            new LiteralOperation(_semanticModel, syntax, compilation.GetSpecialType(SpecialType.System_String), param.Name, isImplicit: true),
-                                            ArgumentKind.Explicit,
-                                            parameter: argumentNullExceptionMethodSymbol.Parameters[0],
-                                            inConversionOpt: null,
-                                            outConversionOpt: null,
-                                            _semanticModel,
-                                            syntax,
-                                            isImplicit: true)),
-                                    _semanticModel,
-                                    syntax,
-                                    type: compilation.GetWellKnownType(WellKnownType.System_ArgumentNullException),
-                                    constantValue,
-                                    isImplicit: true),
+        private ImmutableArray<ConditionalOperation> GenerateNullChecksForParameters(ImmutableArray<ParameterSymbol> parameters, SyntaxNode syntax)
+        {
+            Optional<object> constantValue = default(Optional<object>);
+            var compilation = (CSharpCompilation)_semanticModel.Compilation;
+            ArrayBuilder<ConditionalOperation> ifList = null;
+            foreach (var param in parameters)
+            {
+                if (LocalRewriter.GetParameterIsNullChecked(param))
+                {
+                    IOperation conditionOp;
+                    ifList ??= ArrayBuilder<ConditionalOperation>.GetInstance();
+                    if (param.Type.IsNullableType())
+                    {
+                        conditionOp = new UnaryOperation(
+                            UnaryOperatorKind.Not,
+                            new InvocationOperation(
+                                targetMethod: ((IMethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_HasValue)).Construct(param.Type),
+                                instance: new ParameterReferenceOperation(param, _semanticModel, syntax, param.Type, constantValue, isImplicit: true),
+                                isVirtual: false,
+                                arguments: ImmutableArray<IArgumentOperation>.Empty,
                                 _semanticModel,
                                 syntax,
-                                type,
+                                compilation.GetSpecialType(SpecialType.System_Boolean),
                                 constantValue,
                                 isImplicit: true),
+                            isLifted: false,
+                            isChecked: false,
+                            operatorMethod: null,
                             _semanticModel,
                             syntax,
-                            compilation.GetSpecialType(SpecialType.System_Void),
+                            compilation.GetSpecialType(SpecialType.System_Boolean),
                             constantValue,
                             isImplicit: true);
-                        ConditionalOperation newIf = new ConditionalOperation(conditionOp, whenTrue, null, isRef: false, _semanticModel, syntax, type, constantValue, isImplicit: true);
-                        ifList.Add(newIf);
                     }
+                    else
+                    {
+                        conditionOp = new BinaryOperation(BinaryOperatorKind.Equals,
+                            new ParameterReferenceOperation(param, _semanticModel, syntax, param.Type, constantValue, isImplicit: true),
+                            new LiteralOperation(_semanticModel, syntax, param.Type, ConstantValue.Null, isImplicit: true),
+                            isLifted: false,
+                            isChecked: false,
+                            isCompareText: false,
+                            operatorMethod: null,
+                            unaryOperatorMethod: null,
+                            _semanticModel,
+                            syntax,
+                            compilation.GetSpecialType(SpecialType.System_Boolean),
+                            constantValue,
+                            isImplicit: true);
+                    }
+
+                    var argumentNullExceptionMethodSymbol = (IMethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_ArgumentNullException__ctorString);
+                    var argumentNullExceptionType = compilation.GetWellKnownType(WellKnownType.System_ArgumentNullException);
+                    var argumentNullExceptionObject = new ObjectCreationOperation(
+                                constructor: argumentNullExceptionMethodSymbol,
+                                initializer: new ObjectOrCollectionInitializerOperation(
+                                        initializers: ImmutableArray<IOperation>.Empty,
+                                        _semanticModel,
+                                        syntax,
+                                        compilation.GetWellKnownType(WellKnownType.System_ArgumentNullException),
+                                        constantValue,
+                                        isImplicit: true),
+                                ImmutableArray.Create<IArgumentOperation>(
+                                    new ArgumentOperation(
+                                        new LiteralOperation(_semanticModel, syntax, compilation.GetSpecialType(SpecialType.System_String), param.Name, isImplicit: true),
+                                        ArgumentKind.Explicit,
+                                        parameter: argumentNullExceptionMethodSymbol.Parameters[0],
+                                        inConversionOpt: null,
+                                        outConversionOpt: null,
+                                        _semanticModel,
+                                        syntax,
+                                        isImplicit: true)),
+                                _semanticModel,
+                                syntax,
+                                type: argumentNullExceptionType,
+                                constantValue,
+                                isImplicit: true);
+
+                    IOperation whenTrue = new ExpressionStatementOperation(
+                        new ThrowOperation(
+                            argumentNullExceptionObject,
+                            _semanticModel,
+                            syntax,
+                            type: argumentNullExceptionType,
+                            constantValue,
+                            isImplicit: true),
+                        _semanticModel,
+                        syntax,
+                        compilation.GetSpecialType(SpecialType.System_Void),
+                        constantValue,
+                        isImplicit: true);
+                    var newIf = new ConditionalOperation(conditionOp, whenTrue, null, isRef: false, _semanticModel, syntax, compilation.GetSpecialType(SpecialType.System_Boolean), constantValue, isImplicit: true);
+                    ifList.Add(newIf);
                 }
             }
-            return new CSharpLazyBlockOperation(this, boundBlock, locals, ifList?.ToImmutableAndFree() ?? ImmutableArray<ConditionalOperation>.Empty, _semanticModel, syntax, type, constantValue, isImplicit);
+            return ifList?.ToImmutableAndFree() ?? ImmutableArray<ConditionalOperation>.Empty;
         }
 
         private IBranchOperation CreateBoundContinueStatementOperation(BoundContinueStatement boundContinueStatement)

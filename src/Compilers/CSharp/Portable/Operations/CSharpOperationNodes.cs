@@ -1470,24 +1470,52 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundLocalFunctionStatement _localFunctionStatement;
+        private readonly ImmutableArray<ConditionalOperation> _nullChecksToPrepend;
 
-        internal CSharpLazyLocalFunctionOperation(CSharpOperationFactory operationFactory, BoundLocalFunctionStatement localFunctionStatement, IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        internal CSharpLazyLocalFunctionOperation(CSharpOperationFactory operationFactory, BoundLocalFunctionStatement localFunctionStatement, IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ImmutableArray<ConditionalOperation> nullChecksToPrepend, Optional<object> constantValue, bool isImplicit) :
             base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _operationFactory = operationFactory;
             _localFunctionStatement = localFunctionStatement;
+            _nullChecksToPrepend = nullChecksToPrepend;
         }
 
         protected override IBlockOperation CreateBody()
         {
-            return (IBlockOperation)_operationFactory.Create(_localFunctionStatement.Body);
+            var constructed = _operationFactory.CreateFromArray<BoundStatement, IOperation>(_localFunctionStatement.Body.Statements).InsertRange(0, _nullChecksToPrepend);
+            return new BlockOperation(
+                constructed,
+                _localFunctionStatement.Body.Locals.CastArray<ILocalSymbol>(),
+                this.OwningSemanticModel,
+                this.Syntax,
+                this.Type,
+                this.ConstantValue,
+                isImplicit: true);
         }
 
         protected override IBlockOperation CreateIgnoredBody()
         {
-            return _localFunctionStatement.BlockBody != null && _localFunctionStatement.ExpressionBody != null ?
-                        (IBlockOperation)_operationFactory.Create(_localFunctionStatement.ExpressionBody) :
-                        null;
+            ImmutableArray<IOperation> constructed;
+            ImmutableArray<ILocalSymbol> locals;
+            if (_localFunctionStatement.BlockBody != null && _localFunctionStatement.ExpressionBody != null)
+            {
+                locals = _localFunctionStatement.ExpressionBody.Locals.CastArray<ILocalSymbol>();
+                constructed = _operationFactory.CreateFromArray<BoundStatement, IOperation>(_localFunctionStatement.Body.Statements);
+            }
+            else
+            {
+                locals = ImmutableArray<ILocalSymbol>.Empty;
+                constructed = ImmutableArray<IOperation>.Empty;
+            }
+
+            return new BlockOperation(
+                constructed,
+                locals,
+                this.OwningSemanticModel,
+                this.Syntax,
+                this.Type,
+                this.ConstantValue,
+                isImplicit: true);
         }
     }
 
