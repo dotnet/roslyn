@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         // Telemetry shows that the average processing time with cache warmed up for 99th percentile is ~700ms.
         // Therefore we set the timeout to 1s to ensure it only applies to the case that cache is cold.
-        internal int TimeoutInMilliseconds => 1000;
+        internal static int TimeoutInMilliseconds { get; set; } = 1000;
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
