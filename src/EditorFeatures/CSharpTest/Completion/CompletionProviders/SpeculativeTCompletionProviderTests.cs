@@ -163,6 +163,63 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37224, "https://github.com/dotnet/roslyn/issues/37224")]
+        public async Task InRefGeneric()
+        {
+            var markup = @"
+using System;
+class C
+{
+    ref Func<$$
+}";
+
+            await VerifyItemExistsAsync(markup, "T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37224, "https://github.com/dotnet/roslyn/issues/37224")]
+        public async Task InRefReadonlyGeneric()
+        {
+            var markup = @"
+using System;
+class C
+{
+    ref readonly Func<$$
+}";
+
+            await VerifyItemExistsAsync(markup, "T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37268, "https://github.com/dotnet/roslyn/issues/37268")]
+        public async Task InQualifiedGeneric()
+        {
+            var markup = @"
+using System;
+class C
+{
+    System.Func<$$
+}";
+
+            await VerifyItemExistsAsync(markup, "T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37224, "https://github.com/dotnet/roslyn/issues/37224")]
+        [WorkItem(37268, "https://github.com/dotnet/roslyn/issues/37268")]
+        public async Task InRefAndQualifiedGeneric()
+        {
+            var markup = @"
+using System;
+class C
+{
+    ref System.Func<$$
+}";
+
+            await VerifyItemExistsAsync(markup, "T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InNestedGeneric1()
         {
             var markup = @"
