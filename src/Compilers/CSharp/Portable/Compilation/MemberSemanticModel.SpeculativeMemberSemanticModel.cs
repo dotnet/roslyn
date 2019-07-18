@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _parentSnapshotManagerOpt;
             }
 
-            protected override BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots, out NullableWalker.SnapshotManager snapshotManager)
+            protected override BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots, out NullableWalker.SnapshotManager snapshotManager, out ImmutableDictionary<Symbol, TypeWithAnnotations> analyzedVariableTypes)
             {
                 Debug.Assert(boundRoot.Syntax is TypeSyntax);
-                return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol as MethodSymbol, boundRoot, binder, diagnostics, createSnapshots: false, out snapshotManager);
+                return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol as MethodSymbol, boundRoot, binder, diagnostics, createSnapshots: false, out snapshotManager, out analyzedVariableTypes);
             }
 
             internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)

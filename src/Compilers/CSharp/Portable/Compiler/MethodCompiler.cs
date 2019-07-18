@@ -925,7 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // initializers that have been analyzed but not yet lowered.
                 BoundStatementList analyzedInitializers = null;
-                (SyntaxNode Syntax, BoundNode Body, ExecutableCodeBinder Binder, NullableWalker.SnapshotManager SnapshotManager) forSemanticModel = default;
+                MethodBodySemanticModel.InitialState forSemanticModel = default;
                 ImportChain importChain = null;
                 var hasTrailingExpression = false;
 
@@ -1049,25 +1049,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (body != null)
                     {
-                        (SyntaxNode Syntax, BoundNode Body, ExecutableCodeBinder Binder, NullableWalker.SnapshotManager SnapshotManager) forSemanticModelToUseInLambda = forSemanticModel;
+                        MethodBodySemanticModel.InitialState forSemanticModelToUseInLambda = forSemanticModel;
 
                         lazySemanticModel = new Lazy<SemanticModel>(() =>
                         {
                             var syntax = body.Syntax;
                             var semanticModel = (SyntaxTreeSemanticModel)_compilation.GetSemanticModel(syntax.SyntaxTree);
 
-                            if (forSemanticModelToUseInLambda.Syntax != null)
+                            if (forSemanticModelToUseInLambda.Syntax is { } semanticModelSyntax)
                             {
-                                semanticModel.GetOrAddModel((CSharpSyntaxNode)forSemanticModelToUseInLambda.Syntax,
+                                semanticModel.GetOrAddModel(semanticModelSyntax,
                                                             (rootSyntax) =>
                                                             {
                                                                 Debug.Assert(rootSyntax == forSemanticModelToUseInLambda.Syntax);
                                                                 return MethodBodySemanticModel.Create(semanticModel,
                                                                                                       methodSymbol,
-                                                                                                      forSemanticModelToUseInLambda.Binder,
-                                                                                                      rootSyntax,
-                                                                                                      forSemanticModelToUseInLambda.Body,
-                                                                                                      forSemanticModelToUseInLambda.SnapshotManager);
+                                                                                                      forSemanticModelToUseInLambda);
                                                             });
                             }
 
@@ -1605,14 +1602,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         // NOTE: can return null if the method has no body.
         private static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics,
                                                  out ImportChain importChain, out bool originalBodyNested,
-                                                 out (SyntaxNode Syntax, BoundNode Body, ExecutableCodeBinder Binder, NullableWalker.SnapshotManager snapshotManager) forSemanticModel)
+                                                 out MethodBodySemanticModel.InitialState forSemanticModel)
         {
             originalBodyNested = false;
             importChain = null;
             forSemanticModel = default;
 
             BoundBlock body;
-            NullableWalker.SnapshotManager snapshotManager = null;
 
             var sourceMethod = method as SourceMemberMethodSymbol;
             if ((object)sourceMethod != null)
@@ -1656,15 +1652,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics);
                     BoundNode methodBodyForSemanticModel = methodBody;
+                    NullableWalker.SnapshotManager snapshotManager = null;
+                    ImmutableDictionary<Symbol, TypeWithAnnotations> analyzedVariables = null;
                     if (bodyBinder.Compilation.NullableSemanticAnalysisEnabled)
                     {
                         // Currently, we're passing an empty DiagnosticBag here because the flow analysis pass later will
                         // also run the nullable walker, and issue duplicate warnings. We should try to only run the pass
                         // once.
                         // https://github.com/dotnet/roslyn/issues/35041
-                        methodBodyForSemanticModel = NullableWalker.AnalyzeAndRewrite(bodyBinder.Compilation, method, methodBody, bodyBinder, new DiagnosticBag(), createSnapshots: true, out snapshotManager);
+                        methodBodyForSemanticModel = NullableWalker.AnalyzeAndRewrite(bodyBinder.Compilation, method, methodBody, bodyBinder, new DiagnosticBag(), createSnapshots: true, out snapshotManager, out analyzedVariables);
                     }
-                    forSemanticModel = (syntaxNode, methodBodyForSemanticModel, bodyBinder, snapshotManager);
+                    forSemanticModel = new MethodBodySemanticModel.InitialState(syntaxNode, methodBodyForSemanticModel, bodyBinder, snapshotManager, analyzedVariables);
 
                     switch (methodBody.Kind)
                     {

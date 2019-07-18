@@ -9,6 +9,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class MethodBodySemanticModel : MemberSemanticModel
     {
+#nullable enable
+        internal readonly struct InitialState
+        {
+            internal readonly CSharpSyntaxNode Syntax;
+            internal readonly BoundNode? Body;
+            internal readonly ExecutableCodeBinder? Binder;
+            internal readonly NullableWalker.SnapshotManager? SnapshotManager;
+            internal readonly ImmutableDictionary<Symbol, TypeWithAnnotations>? AnalyzedVariableDeclarations;
+
+            internal InitialState(CSharpSyntaxNode syntax, BoundNode? bodyOpt = null, ExecutableCodeBinder? binder = null, NullableWalker.SnapshotManager? snapshotManager = null, ImmutableDictionary<Symbol, TypeWithAnnotations>? analyzedVariableDeclarations = null)
+            {
+                Syntax = syntax;
+                Body = bodyOpt;
+                Binder = binder;
+                SnapshotManager = snapshotManager;
+                AnalyzedVariableDeclarations = analyzedVariableDeclarations;
+            }
+        }
+#nullable restore
+
         private MethodBodySemanticModel(
             Symbol owner,
             Binder rootBinder,
@@ -28,15 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a SemanticModel for the method.
         /// </summary>
-        internal static MethodBodySemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, MethodSymbol owner, ExecutableCodeBinder executableCodeBinder,
-                                                       CSharpSyntaxNode syntax, BoundNode boundNode = null, NullableWalker.SnapshotManager snapshotManager = null)
+        internal static MethodBodySemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, MethodSymbol owner, InitialState initialState)
         {
             Debug.Assert(containingSemanticModel != null);
-            var result = new MethodBodySemanticModel(owner, executableCodeBinder, syntax, containingSemanticModel);
+            var result = new MethodBodySemanticModel(owner, initialState.Binder, initialState.Syntax, containingSemanticModel);
 
-            if (boundNode != null)
+            if (initialState.Body != null)
             {
-                result.UnguardedAddBoundTreeForStandaloneSyntax(syntax, boundNode, snapshotManager);
+                result.UnguardedAddBoundTreeForStandaloneSyntax(initialState.Syntax, initialState.Body, initialState.SnapshotManager, initialState.AnalyzedVariableDeclarations is { } variables ? GetUpdatedLocalSymbols(variables) : null);
             }
 
             return result;
@@ -208,9 +227,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        protected override BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots, out NullableWalker.SnapshotManager snapshotManager)
+        protected override BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots, out NullableWalker.SnapshotManager snapshotManager, out ImmutableDictionary<Symbol, TypeWithAnnotations> analyzedVariableTypes)
         {
-            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots, out snapshotManager);
+            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots, out snapshotManager, out analyzedVariableTypes);
         }
     }
 }

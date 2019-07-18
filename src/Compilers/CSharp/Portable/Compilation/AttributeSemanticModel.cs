@@ -98,9 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots, out NullableWalker.SnapshotManager snapshotManager)
+        protected override BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots, out NullableWalker.SnapshotManager snapshotManager, out ImmutableDictionary<Symbol, TypeWithAnnotations> analyzedVariableTypes)
         {
-            return NullableWalker.AnalyzeAndRewrite(Compilation, symbol: null, boundRoot, binder, diagnostics, createSnapshots, out snapshotManager);
+            return NullableWalker.AnalyzeAndRewrite(Compilation, symbol: null, boundRoot, binder, diagnostics, createSnapshots, out snapshotManager, out analyzedVariableTypes);
         }
 
         internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
