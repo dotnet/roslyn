@@ -43,13 +43,11 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, textSpan, cancellationToken) = context;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(context.Span.Start);
+            var token = root.FindToken(textSpan.Start);
 
-            var foreachStatement = GetForEachStatement(context.Span, token);
+            var foreachStatement = GetForEachStatement(textSpan, token);
             if (foreachStatement == null)
             {
                 return;

@@ -28,16 +28,13 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var span = context.Span;
+            var (document, span, cancellationToken) = context;
             if (!span.IsEmpty)
             {
                 return;
             }
 
             var position = span.Start;
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
 
