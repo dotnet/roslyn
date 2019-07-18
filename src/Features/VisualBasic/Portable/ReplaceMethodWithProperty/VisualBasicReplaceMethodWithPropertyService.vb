@@ -1,15 +1,15 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
 Imports System.Composition
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
-Imports System.Threading
+Imports Microsoft.CodeAnalysis.ReplaceMethodWithProperty
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithProperty
     <ExportLanguageService(GetType(IReplaceMethodWithPropertyService), LanguageNames.VisualBasic), [Shared]>
@@ -209,8 +209,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 End Function)
         End Sub
 
-        Private Function IReplaceMethodWithPropertyService_GetMethodDeclarationAsync(document As Document, span As TextSpan, cancellationToken As CancellationToken) As Task(Of SyntaxNode) Implements IReplaceMethodWithPropertyService.GetMethodDeclarationAsync
-            Return GetMethodDeclarationAsync(document, span, cancellationToken)
+        Private Function IReplaceMethodWithPropertyService_GetMethodDeclarationAsync(context As CodeRefactoringContext) As Task(Of SyntaxNode) Implements IReplaceMethodWithPropertyService.GetMethodDeclarationAsync
+            Return GetMethodDeclarationAsync(context)
         End Function
     End Class
 End Namespace

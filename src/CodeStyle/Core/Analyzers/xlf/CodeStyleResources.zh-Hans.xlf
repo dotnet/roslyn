@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Fix_formatting">
         <source>Fix formatting</source>
-        <target state="translated">固定格式</target>
+        <target state="translated">修正格式</target>
         <note />
       </trans-unit>
       <trans-unit id="Indentation_and_spacing">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="None">
         <source>None</source>
-        <target state="translated">没有</target>
+        <target state="translated">无</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">

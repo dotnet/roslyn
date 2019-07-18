@@ -101,6 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
+        public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
         public override ImmutableArray<ParameterSymbol> Parameters
         {
             get { return _parameters; }

@@ -2,6 +2,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 {
     internal interface IReplaceMethodWithPropertyService : ILanguageService
     {
-        Task<SyntaxNode> GetMethodDeclarationAsync(Document document, TextSpan span, CancellationToken cancellationToken);
+        Task<SyntaxNode> GetMethodDeclarationAsync(CodeRefactoringContext context);
 
         void ReplaceGetReference(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged);
         void ReplaceSetReference(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged);

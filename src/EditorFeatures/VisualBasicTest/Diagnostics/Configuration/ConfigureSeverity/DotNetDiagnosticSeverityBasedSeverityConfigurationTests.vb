@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Config
         End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(ByVal workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New CustomDiagnosticAnalyzer(), New ConfigureSeverityLevelCodeFixProvider())
+            Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New CustomDiagnosticAnalyzer(), New ConfigureSeverityLevelCodeFixProvider(performExperimentCheck:=False))
         End Function
 
         Public Class NoneConfigurationTests

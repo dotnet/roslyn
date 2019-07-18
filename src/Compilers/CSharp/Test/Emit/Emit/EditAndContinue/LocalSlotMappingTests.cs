@@ -3801,42 +3801,38 @@ class C
 
             diff1.VerifyIL("C.F", @"
 {
-  // Code size       52 (0x34)
+  // Code size       47 (0x2f)
   .maxstack  2
   .locals init (bool V_0,
                 [int] V_1,
-                [int] V_2,
-                int V_3,
-                int V_4)
+                int V_2)
  -IL_0000:  nop
  -IL_0001:  ldarg.0
   IL_0002:  isinst     ""bool""
-  IL_0007:  brtrue.s   IL_0021
+  IL_0007:  brtrue.s   IL_001f
   IL_0009:  ldarg.0
   IL_000a:  isinst     ""int""
-  IL_000f:  brfalse.s  IL_001e
+  IL_000f:  brfalse.s  IL_001c
   IL_0011:  ldarg.0
   IL_0012:  unbox.any  ""int""
-  IL_0017:  stloc.3
-  IL_0018:  ldloc.3
-  IL_0019:  ldc.i4.0
-  IL_001a:  ceq
-  IL_001c:  br.s       IL_001f
-  IL_001e:  ldc.i4.0
-  IL_001f:  br.s       IL_0022
-  IL_0021:  ldc.i4.1
-  IL_0022:  stloc.0
- ~IL_0023:  ldloc.0
-  IL_0024:  brfalse.s  IL_002c
- -IL_0026:  nop
- -IL_0027:  ldc.i4.0
-  IL_0028:  stloc.s    V_4
-  IL_002a:  br.s       IL_0031
- -IL_002c:  ldc.i4.1
-  IL_002d:  stloc.s    V_4
-  IL_002f:  br.s       IL_0031
- -IL_0031:  ldloc.s    V_4
-  IL_0033:  ret
+  IL_0017:  ldc.i4.0
+  IL_0018:  ceq
+  IL_001a:  br.s       IL_001d
+  IL_001c:  ldc.i4.0
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldc.i4.1
+  IL_0020:  stloc.0
+ ~IL_0021:  ldloc.0
+  IL_0022:  brfalse.s  IL_0029
+ -IL_0024:  nop
+ -IL_0025:  ldc.i4.0
+  IL_0026:  stloc.2
+  IL_0027:  br.s       IL_002d
+ -IL_0029:  ldc.i4.1
+  IL_002a:  stloc.2
+  IL_002b:  br.s       IL_002d
+ -IL_002d:  ldloc.2
+  IL_002e:  ret
 }", methodToken: diff1.UpdatedMethods.Single());
         }
 

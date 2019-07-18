@@ -15,5 +15,11 @@ namespace Microsoft.CodeAnalysis.Emit
         /// JoinClause1.GetCorrespondingLambdaBody(JoinClause2.RightExpression) returns JoinClause1.RightExpression.
         /// </summary>
         public abstract SyntaxNode TryGetCorrespondingLambdaBody(SyntaxNode previousLambdaSyntax, SyntaxNode lambdaOrLambdaBodySyntax);
+
+        /// <summary>
+        /// Given a node that represents a variable declaration, lambda or a closure scope return the position to be used to calculate 
+        /// the node's syntax offset with respect to its containing member.
+        /// </summary>
+        public abstract int GetDeclaratorPosition(SyntaxNode node);
     }
 }

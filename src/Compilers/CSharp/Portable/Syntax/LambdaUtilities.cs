@@ -460,6 +460,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        /// <summary>
+        /// Given a node that represents a variable declaration, lambda or a closure scope return the position to be used to calculate 
+        /// the node's syntax offset with respect to its containing member.
+        /// </summary>
+        internal static int GetDeclaratorPosition(SyntaxNode node)
+        {
+            // To differentiate between nested switch expressions that start at the same offset, use the offset of the `switch` keyword.
+            return (node is SwitchExpressionSyntax switchExpression) ? switchExpression.SwitchKeyword.SpanStart : node.SpanStart;
+        }
+
         private static SyntaxNode GetLocalFunctionBody(LocalFunctionStatementSyntax localFunctionStatementSyntax)
         {
             return (SyntaxNode)localFunctionStatementSyntax.Body ?? localFunctionStatementSyntax.ExpressionBody?.Expression;

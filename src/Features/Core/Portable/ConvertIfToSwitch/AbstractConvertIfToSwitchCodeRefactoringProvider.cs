@@ -63,11 +63,10 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             public async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
             {
-                var document = context.Document;
-                var cancellationToken = context.CancellationToken;
+                var (document, textSpan, cancellationToken) = context;
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var ifStatement = root.FindNode(context.Span).FirstAncestorOrSelf<TIfStatementSyntax>();
+                var ifStatement = root.FindNode(textSpan).FirstAncestorOrSelf<TIfStatementSyntax>();
                 if (ifStatement == null)
                 {
                     return;
@@ -80,7 +79,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
                 // To prevent noisiness, only show this feature on the 'if' keyword of the if-statement.
                 var token = ifStatement.GetFirstToken();
-                if (!token.Span.Contains(context.Span))
+                if (!token.Span.Contains(textSpan))
                 {
                     return;
                 }

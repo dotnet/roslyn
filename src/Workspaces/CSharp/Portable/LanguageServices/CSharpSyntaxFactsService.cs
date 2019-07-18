@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxTrivia ElasticCarriageReturnLineFeed
             => SyntaxFactory.ElasticCarriageReturnLineFeed;
 
-        public ISyntaxKindsService SyntaxKinds { get; } = CSharpSyntaxKindsService.Instance;
+        public override ISyntaxKindsService SyntaxKinds { get; } = CSharpSyntaxKindsService.Instance;
 
         protected override IDocumentationCommentService DocumentationCommentService
             => CSharpDocumentationCommentService.Instance;
@@ -1770,69 +1770,79 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public bool IsOnTypeHeader(SyntaxNode root, int position)
+        public bool IsOnTypeHeader(SyntaxNode root, int position, out SyntaxNode typeDeclaration)
         {
-            var token = root.FindToken(position);
-            if (token.Kind() == SyntaxKind.EndOfFileToken)
-            {
-                token = token.GetPreviousToken();
-            }
-
-            var typeDecl = token.GetAncestor<BaseTypeDeclarationSyntax>();
-            if (typeDecl == null)
+            var node = TryGetAncestorForLocation<BaseTypeDeclarationSyntax>(position, root);
+            typeDeclaration = node;
+            if (node == null)
             {
                 return false;
             }
 
-            var start = GetStartOfNodeExcludingAttributes(typeDecl);
-            var end = typeDecl.GetTypeParameterList()?.GetLastToken().FullSpan.End ??
-                        typeDecl.Identifier.FullSpan.End;
-
-            return position >= start && position <= end;
+            return IsOnHeader(position, node, node.Identifier);
         }
 
-        public bool IsInPropertyDeclarationHeader(SyntaxNode node)
+        public bool IsOnPropertyDeclarationHeader(SyntaxNode root, int position, out SyntaxNode propertyDeclaration)
         {
-            var propertyDeclaration = node.GetAncestorOrThis<PropertyDeclarationSyntax>();
+            var node = TryGetAncestorForLocation<PropertyDeclarationSyntax>(position, root);
+            propertyDeclaration = node;
             if (propertyDeclaration == null)
             {
                 return false;
             }
 
-            return IsInHeader(node, propertyDeclaration, propertyDeclaration.Identifier);
+            return IsOnHeader(position, node, node.Identifier);
         }
 
-        public bool IsInParameterHeader(SyntaxNode node)
+        public bool IsOnParameterHeader(SyntaxNode root, int position, out SyntaxNode parameter)
         {
-            var parameter = node.GetAncestorOrThis<ParameterSyntax>();
+            var node = TryGetAncestorForLocation<ParameterSyntax>(position, root);
+            parameter = node;
             if (parameter == null)
             {
                 return false;
             }
 
-            return IsInHeader(node, parameter, parameter.Identifier);
+            return IsOnHeader(position, node, node);
         }
 
-        public bool IsInMethodHeader(SyntaxNode node)
+        public bool IsOnMethodHeader(SyntaxNode root, int position, out SyntaxNode method)
         {
-            var containingMethod = node.GetAncestorOrThis<MethodDeclarationSyntax>();
-            if (containingMethod == null)
+            var node = TryGetAncestorForLocation<MethodDeclarationSyntax>(position, root);
+            method = node;
+            if (method == null)
             {
                 return false;
             }
 
-            return IsInHeader(node, containingMethod, containingMethod.ParameterList);
+            return IsOnHeader(position, node, node.ParameterList);
         }
 
-        public bool IsInLocalFunctionHeader(SyntaxNode node)
+        public bool IsOnLocalFunctionHeader(SyntaxNode root, int position, out SyntaxNode localFunction)
         {
-            var containingLocalFunction = node.GetAncestorOrThis<LocalFunctionStatementSyntax>();
-            if (containingLocalFunction == null)
+            var node = TryGetAncestorForLocation<LocalFunctionStatementSyntax>(position, root);
+            localFunction = node;
+            if (localFunction == null)
             {
                 return false;
             }
 
-            return IsInHeader(node, containingLocalFunction, containingLocalFunction.ParameterList);
+            return IsOnHeader(position, node, node.ParameterList);
+        }
+
+        public bool IsOnLocalDeclarationHeader(SyntaxNode root, int position, out SyntaxNode localDeclaration)
+        {
+            var node = TryGetAncestorForLocation<LocalDeclarationStatementSyntax>(position, root);
+            localDeclaration = node;
+            if (localDeclaration == null)
+            {
+                return false;
+            }
+
+            var initializersExpressions = node.Declaration.Variables
+                .Where(v => v.Initializer != null)
+                .SelectAsArray(initializedV => initializedV.Initializer.Value);
+            return IsOnHeader(position, node, node, holes: initializersExpressions);
         }
 
         public bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position)

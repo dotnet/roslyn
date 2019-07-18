@@ -19,5 +19,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Overrides ReadOnly Property LogicalAndExpression As Integer = SyntaxKind.AndAlsoExpression
         Public Overrides ReadOnly Property LogicalOrExpression As Integer = SyntaxKind.OrElseExpression
+        Public Overrides ReadOnly Property EndOfFileToken As Integer = SyntaxKind.EndOfFileToken
     End Class
 End Namespace
