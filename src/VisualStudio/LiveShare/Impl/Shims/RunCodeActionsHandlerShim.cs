@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             {
                 // Code actions must be applied from the UI thread in the VS context.
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                return await base.HandleAsync(request, requestContext, cancellationToken).ConfigureAwait(true);
+                return await base.HandleAsyncPreserveThreadContext(request, requestContext, cancellationToken).ConfigureAwait(false);
             }
             catch (ArgumentException ex)
             {
