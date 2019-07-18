@@ -16,6 +16,7 @@ namespace Analyzer.Utilities
         public const string SystemIDisposable = "System.IDisposable";
         public const string SystemThreadingMonitor = "System.Threading.Monitor";
         public const string SystemThreadingTasksTask = "System.Threading.Tasks.Task";
+        public const string SystemThreadingTasksGenericTask = "System.Threading.Tasks.Task`1";
         public const string SystemCollectionsICollection = "System.Collections.ICollection";
         public const string SystemRuntimeSerializationSerializationInfo = "System.Runtime.Serialization.SerializationInfo";
         public const string SystemIEquatable1 = "System.IEquatable`1";
@@ -320,5 +321,6 @@ namespace Analyzer.Utilities
         public const string SystemIOFileStream = "System.IO.FileStream";
         public const string SystemIOPath = "System.IO.Path";
         public const string SystemString = "System.String";
+        public const string NewtonsoftJsonTypeNameHandling = "Newtonsoft.Json.TypeNameHandling";
     }
 }
