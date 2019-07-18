@@ -253,8 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 // Note: For generic, it's ok(it's even a good idea) to exclude type variables,
                 // because the name is only used as a prefix for the method name.
 
-
-                return syntaxFactsService.GetContainingTypeDeclaration(
+                var typeDeclaration = syntaxFactsService.GetContainingTypeDeclaration(
                     semanticModel.SyntaxTree.GetRoot(),
                     plusEqualsToken.SpanStart) as BaseTypeDeclarationSyntax;
 
