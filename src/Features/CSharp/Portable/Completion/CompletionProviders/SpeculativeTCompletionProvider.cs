@@ -58,12 +58,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return false;
             }
 
-            // If we're in a generic type argument context, use the start of the generic type name
-            // as the position for the rest of the context checks.
-            var testPosition = position;
             var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
             var semanticModel = await document.GetSemanticModelForNodeAsync(leftToken.Parent, cancellationToken).ConfigureAwait(false);
+
+            // If we're in a ref type or a generic type argument context, use the start of the ref/generic type
+            // as the position for the rest of the context checks.
+            var testPosition = position;
+            var prevToken = leftToken.GetPreviousTokenIfTouchingWord(position);
+            var isRefType = false;
+
             if (syntaxTree.IsGenericTypeArgumentContext(position, leftToken, cancellationToken, semanticModel))
             {
                 // Walk out until we find the start of the partial written generic
@@ -76,19 +80,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // and the generic won't be "partially written".
                 if (testPosition == position)
                 {
-                    var typeArgumentList = leftToken.GetAncestor<TypeArgumentListSyntax>();
-                    if (typeArgumentList != null)
-                    {
-                        if (typeArgumentList.LessThanToken != default && typeArgumentList.GreaterThanToken != default)
-                        {
-                            testPosition = typeArgumentList.LessThanToken.SpanStart;
-                        }
-                    }
+                    testPosition = leftToken.GetAncestor<GenericNameSyntax>()?.SpanStart ?? testPosition;
                 }
+
+                var tokenLeftOfType = syntaxTree.FindTokenOnLeftOfPosition(testPosition, cancellationToken);
+                if (tokenLeftOfType.IsKind(SyntaxKind.DotToken) && tokenLeftOfType.Parent.IsKind(SyntaxKind.QualifiedName))
+                {
+                    testPosition = tokenLeftOfType.Parent.SpanStart;
+                    tokenLeftOfType = syntaxTree.FindTokenOnLeftOfPosition(testPosition, cancellationToken);
+                }
+                isRefType = TryMoveTestPositionIfRefType(tokenLeftOfType, ref testPosition);
+            }
+            else
+            {
+                isRefType = TryMoveTestPositionIfRefType(prevToken, ref testPosition);
             }
 
-            if ((!leftToken.GetPreviousTokenIfTouchingWord(position).IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword) &&
-                syntaxTree.IsMemberDeclarationContext(testPosition, contextOpt: null, validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken)) ||
+            var notAsync = isRefType || !prevToken.IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword);
+
+            if ((notAsync && syntaxTree.IsMemberDeclarationContext(testPosition, contextOpt: null, validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken)) ||
                 syntaxTree.IsStatementContext(testPosition, leftToken, cancellationToken) ||
                 syntaxTree.IsGlobalMemberDeclarationContext(testPosition, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 syntaxTree.IsGlobalStatementContext(testPosition, cancellationToken) ||
@@ -98,6 +108,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return false;
+
+            static bool TryMoveTestPositionIfRefType(SyntaxToken tokenLeftOfType, ref int testPosition)
+            {
+                if (tokenLeftOfType.IsKind(SyntaxKind.RefKeyword, SyntaxKind.ReadOnlyKeyword) && tokenLeftOfType.Parent.IsKind(SyntaxKind.RefType))
+                {
+                    testPosition = tokenLeftOfType.Parent.SpanStart;
+
+                    return true;
+                }
+
+                return false;
+            }
         }
     }
 }
