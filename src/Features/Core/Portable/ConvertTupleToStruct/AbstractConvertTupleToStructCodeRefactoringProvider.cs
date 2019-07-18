@@ -567,8 +567,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             var changed = false;
             foreach (var childCreation in childCreationNodes)
             {
-                var childType = semanticModel.GetTypeInfo(childCreation, cancellationToken).Type as INamedTypeSymbol;
-                if (childType == null)
+                if (!(semanticModel.GetTypeInfo(childCreation, cancellationToken).Type is INamedTypeSymbol childType))
                 {
                     Debug.Fail("We should always be able to get an tuple type for any tuple expression node.");
                     continue;
@@ -676,8 +675,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             var changed = false;
             foreach (var childTupleType in childTupleNodes)
             {
-                var childType = semanticModel.GetTypeInfo(childTupleType, cancellationToken).Type as INamedTypeSymbol;
-                if (childType == null)
+                if (!(semanticModel.GetTypeInfo(childTupleType, cancellationToken).Type is INamedTypeSymbol childType))
                 {
                     Debug.Fail("We should always be able to get an tuple type for any tuple type syntax node.");
                     continue;

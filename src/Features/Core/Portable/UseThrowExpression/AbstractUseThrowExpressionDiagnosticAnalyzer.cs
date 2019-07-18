@@ -106,8 +106,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            var containingBlock = semanticModel.GetOperation(ifOperation.Syntax.Parent, cancellationToken) as IBlockOperation;
-            if (containingBlock == null)
+            if (!(semanticModel.GetOperation(ifOperation.Syntax.Parent, cancellationToken) is IBlockOperation containingBlock))
             {
                 return;
             }

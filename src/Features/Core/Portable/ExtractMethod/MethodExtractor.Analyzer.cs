@@ -647,8 +647,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private bool IsParameterUsedOutside(ISymbol localOrParameter)
             {
-                var parameter = localOrParameter as IParameterSymbol;
-                if (parameter == null)
+                if (!(localOrParameter is IParameterSymbol parameter))
                 {
                     return false;
                 }
@@ -659,8 +658,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private bool IsParameterAssigned(ISymbol localOrParameter)
             {
                 // hack for now.
-                var parameter = localOrParameter as IParameterSymbol;
-                if (parameter == null)
+                if (!(localOrParameter is IParameterSymbol parameter))
                 {
                     return false;
                 }
@@ -670,8 +668,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private bool IsThisParameter(ISymbol localOrParameter)
             {
-                var parameter = localOrParameter as IParameterSymbol;
-                if (parameter == null)
+                if (!(localOrParameter is IParameterSymbol parameter))
                 {
                     return false;
                 }
@@ -681,8 +678,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private bool IsInteractiveSynthesizedParameter(ISymbol localOrParameter)
             {
-                var parameter = localOrParameter as IParameterSymbol;
-                if (parameter == null)
+                if (!(localOrParameter is IParameterSymbol parameter))
                 {
                     return false;
                 }
@@ -851,8 +847,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
                 }
 
-                var constructedType = type as INamedTypeSymbol;
-                if (constructedType == null)
+                if (!(type is INamedTypeSymbol constructedType))
                 {
                     return SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
                 }
@@ -882,8 +877,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         continue;
                     }
 
-                    var candidate = arguments[i] as INamedTypeSymbol;
-                    if (candidate == null)
+                    if (!(arguments[i] is INamedTypeSymbol candidate))
                     {
                         continue;
                     }

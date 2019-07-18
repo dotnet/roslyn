@@ -304,8 +304,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ITypeSymbol InferAwaitableReturnType(this ISymbol symbol, SemanticModel semanticModel, int position)
         {
-            var methodSymbol = symbol as IMethodSymbol;
-            if (methodSymbol == null)
+            if (!(symbol is IMethodSymbol methodSymbol))
             {
                 return null;
             }

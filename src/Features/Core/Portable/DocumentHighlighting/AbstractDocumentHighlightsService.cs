@@ -314,11 +314,9 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     return !((INamedTypeSymbol)symbol).IsScriptClass;
 
                 case SymbolKind.Parameter:
-
                     // If it's an indexer parameter, we will have also cascaded to the accessor
                     // one that actually receives the references
-                    var containingProperty = symbol.ContainingSymbol as IPropertySymbol;
-                    if (containingProperty != null && containingProperty.IsIndexer)
+                    if (symbol.ContainingSymbol is IPropertySymbol containingProperty && containingProperty.IsIndexer)
                     {
                         return false;
                     }

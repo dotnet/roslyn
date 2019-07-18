@@ -93,8 +93,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                         model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
                     }
 
-                    var definedType = model.GetDeclaredSymbol(typeNode, cancellationToken) as INamedTypeSymbol;
-                    if (definedType == null)
+                    if (!(model.GetDeclaredSymbol(typeNode, cancellationToken) is INamedTypeSymbol definedType))
                     {
                         continue;
                     }
