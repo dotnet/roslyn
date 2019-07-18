@@ -32,14 +32,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return _specializedIndentationRule
         End Function
 
-        Protected Overrides Function GetIndenter(document As SyntacticDocument,
-                                                 lineToBeIndented As TextLine,
-                                                 formattingRules As IEnumerable(Of AbstractFormattingRule),
-                                                 optionSet As OptionSet,
-                                                 cancellationToken As CancellationToken) As AbstractIndenter
-            Return New Indenter(document, formattingRules, optionSet, lineToBeIndented, cancellationToken)
-        End Function
-
         Public Overloads Shared Function ShouldUseSmartTokenFormatterInsteadOfIndenter(
                 formattingRules As IEnumerable(Of AbstractFormattingRule),
                 root As CompilationUnitSyntax,

@@ -57,5 +57,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             _registerRefactoring(action);
         }
+
+        internal void Deconstruct(out Document document, out TextSpan span, out CancellationToken cancellationToken)
+        {
+            document = Document;
+            span = Span;
+            cancellationToken = CancellationToken;
+        }
     }
 }

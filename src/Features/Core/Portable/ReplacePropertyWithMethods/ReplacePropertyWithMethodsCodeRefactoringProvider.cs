@@ -34,16 +34,14 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
+            var (document, textSpan, cancellationToken) = context;
             var service = document.GetLanguageService<IReplacePropertyWithMethodsService>();
             if (service == null)
             {
                 return;
             }
 
-            var cancellationToken = context.CancellationToken;
-
-            var propertyDeclaration = await service.GetPropertyDeclarationAsync(document, context.Span, cancellationToken).ConfigureAwait(false);
+            var propertyDeclaration = await service.GetPropertyDeclarationAsync(context).ConfigureAwait(false);
             if (propertyDeclaration == null)
             {
                 return;
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
             context.RegisterRefactoring(new ReplacePropertyWithMethodsCodeAction(
                 string.Format(resourceString, propertyName),
-                c => ReplacePropertyWithMethodsAsync(context.Document, propertySymbol, c),
+                c => ReplacePropertyWithMethodsAsync(document, propertySymbol, c),
                 propertyName));
         }
 

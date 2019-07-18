@@ -24,15 +24,13 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var cancellationToken = context.CancellationToken;
-            var document = context.Document;
-
-            if (!context.Span.IsEmpty)
+            var (document, span, cancellationToken) = context;
+            if (!span.IsEmpty)
             {
                 return;
             }
 
-            var position = context.Span.Start;
+            var position = span.Start;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var firstToken = root.GetFirstToken();
