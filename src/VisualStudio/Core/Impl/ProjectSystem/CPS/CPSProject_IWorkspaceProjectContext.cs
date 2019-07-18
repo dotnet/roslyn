@@ -165,6 +165,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 // (e.g. through a <defaultnamespace> msbuild property)
                 DefaultNamespace = value;
             }
+            else if (name == AdditionalPropertyNames.MaxSupportedLangVersion)
+            {
+                _visualStudioProject.SetMaxLangVersion(value);
+            }
         }
 
         public void AddMetadataReference(string referencePath, MetadataReferenceProperties properties)

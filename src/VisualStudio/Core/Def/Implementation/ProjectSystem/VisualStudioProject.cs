@@ -314,6 +314,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                        w => w.OnDefaultNamespaceChanged(Id, value));
         }
 
+        internal void SetMaxLangVersion(string version) => _workspace.SetMaxLanguageVersion(Id, version);
+
 
         #region Batching
 
