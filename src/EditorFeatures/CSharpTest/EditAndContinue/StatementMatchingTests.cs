@@ -831,7 +831,7 @@ F(a =>
             var src1 = "var x = new int[F(a => 1)];";
             var src2 = "var x = new int[F(a => 2)];";
 
-            var match = GetMethodMatch(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var match = GetMethodMatch(src1, src2);
             var actual = ToMatchingPairs(match);
 
             var expected = new MatchingPairs
@@ -851,7 +851,7 @@ F(a =>
             var src1 = "var x = new int[] { F(a => 1) };";
             var src2 = "var x = new int[] { F(a => 2) };";
 
-            var match = GetMethodMatch(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var match = GetMethodMatch(src1, src2);
             var actual = ToMatchingPairs(match);
 
             var expected = new MatchingPairs
@@ -871,7 +871,7 @@ F(a =>
             var src1 = "var x = stackalloc int[F(a => 1)];";
             var src2 = "var x = stackalloc int[F(a => 2)];";
 
-            var match = GetMethodMatch(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var match = GetMethodMatch(src1, src2);
             var actual = ToMatchingPairs(match);
 
             var expected = new MatchingPairs
@@ -891,7 +891,7 @@ F(a =>
             var src1 = "var x = stackalloc[] { F(a => 1) };";
             var src2 = "var x = stackalloc[] { F(a => 2) };";
 
-            var match = GetMethodMatch(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var match = GetMethodMatch(src1, src2);
             var actual = ToMatchingPairs(match);
 
             var expected = new MatchingPairs

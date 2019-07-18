@@ -508,6 +508,9 @@
     <value>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</value>
     <comment>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</comment>
   </data>
+  <data name="Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</value>
+  </data>
   <data name="Modifying_a_generic_method_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Modifying a generic method will prevent the debug session from continuing.</value>
   </data>

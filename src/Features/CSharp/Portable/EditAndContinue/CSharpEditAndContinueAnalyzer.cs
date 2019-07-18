@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         public CSharpEditAndContinueAnalyzer()
         {
         }
+
         #region Syntax Analysis
 
         private enum ConstructorPart
@@ -117,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             if (node.IsKind(SyntaxKind.VariableDeclarator))
             {
-                return (((VariableDeclaratorSyntax)node).Initializer)?.Value;
+                return ((VariableDeclaratorSyntax)node).Initializer?.Value;
             }
 
             return SyntaxUtilities.TryGetMethodDeclarationBody(node);
@@ -873,9 +875,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return DeclareSameIdentifiers(oldTokens.ToArray(), newTokens.ToArray());
         }
 
-        internal override bool IsMethod(SyntaxNode declaration)
-            => SyntaxUtilities.IsMethod(declaration);
-
         internal override bool IsInterfaceDeclaration(SyntaxNode node)
             => node.IsKind(SyntaxKind.InterfaceDeclaration);
 
@@ -1082,7 +1081,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     RudeEditKind.SwitchBetweenLambdaAndLocalFunction,
                     GetDiagnosticSpan(newLambda, EditKind.Update),
                     newLambda,
-                    new[] { GetLambdaDisplayName(newLambda) }));
+                    new[] { GetDisplayName(newLambda) }));
                 hasErrors = true;
             }
         }
@@ -1138,27 +1137,26 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override SymbolDisplayFormat ErrorDisplayFormat => SymbolDisplayFormat.CSharpErrorMessageFormat;
 
-        protected override TextSpan GetDiagnosticSpan(SyntaxNode node, EditKind editKind)
-        {
-            return GetDiagnosticSpanImpl(node, editKind);
-        }
+        protected override TextSpan? TryGetDiagnosticSpan(SyntaxNode node, EditKind editKind)
+            => TryGetDiagnosticSpanImpl(node, editKind);
 
-        private static TextSpan GetDiagnosticSpanImpl(SyntaxNode node, EditKind editKind)
-        {
-            return GetDiagnosticSpanImpl(node.Kind(), node, editKind);
-        }
+        internal static new TextSpan GetDiagnosticSpan(SyntaxNode node, EditKind editKind)
+            => TryGetDiagnosticSpanImpl(node, editKind) ?? node.Span;
+
+        private static TextSpan? TryGetDiagnosticSpanImpl(SyntaxNode node, EditKind editKind)
+            => TryGetDiagnosticSpanImpl(node.Kind(), node, editKind);
 
         // internal for testing; kind is passed explicitly for testing as well
-        internal static TextSpan GetDiagnosticSpanImpl(SyntaxKind kind, SyntaxNode node, EditKind editKind)
+        internal static TextSpan? TryGetDiagnosticSpanImpl(SyntaxKind kind, SyntaxNode node, EditKind editKind)
         {
             switch (kind)
             {
                 case SyntaxKind.CompilationUnit:
-                    return default;
+                    return default(TextSpan);
 
                 case SyntaxKind.GlobalStatement:
                     // TODO:
-                    return default;
+                    return node.Span;
 
                 case SyntaxKind.ExternAliasDirective:
                 case SyntaxKind.UsingDirective:
@@ -1192,7 +1190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return GetDiagnosticSpan(eventFieldDeclaration.Modifiers, eventFieldDeclaration.EventKeyword, eventFieldDeclaration.Declaration);
 
                 case SyntaxKind.VariableDeclaration:
-                    return GetDiagnosticSpanImpl(node.Parent, editKind);
+                    return TryGetDiagnosticSpanImpl(node.Parent, editKind);
 
                 case SyntaxKind.VariableDeclarator:
                     return node.Span;
@@ -1254,7 +1252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.BracketedParameterList:
                     if (editKind == EditKind.Delete)
                     {
-                        return GetDiagnosticSpanImpl(node.Parent, editKind);
+                        return TryGetDiagnosticSpanImpl(node.Parent, editKind);
                     }
                     else
                     {
@@ -1279,8 +1277,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
 
                 case SyntaxKind.Attribute:
-                case SyntaxKind.ArrowExpressionClause:
                     return node.Span;
+
+                case SyntaxKind.ArrowExpressionClause:
+                    return TryGetDiagnosticSpanImpl(node.Parent, editKind);
 
                 // We only need a diagnostic span if reporting an error for a child statement.
                 // The following statements may have child statements.
@@ -1397,7 +1397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.QueryBody:
                     var queryBody = (QueryBodySyntax)node;
-                    return GetDiagnosticSpanImpl(queryBody.Clauses.FirstOrDefault() ?? queryBody.Parent, editKind);
+                    return TryGetDiagnosticSpanImpl(queryBody.Clauses.FirstOrDefault() ?? queryBody.Parent, editKind);
 
                 case SyntaxKind.QueryContinuation:
                     return ((QueryContinuationSyntax)node).IntoKeyword.Span;
@@ -1447,14 +1447,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return ((SwitchExpressionSyntax)node).SwitchKeyword.Span;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
+                    return default;
             }
         }
 
         private static TextSpan GetDiagnosticSpan(SyntaxTokenList modifiers, SyntaxNodeOrToken start, SyntaxNodeOrToken end)
-        {
-            return TextSpan.FromBounds((modifiers.Count != 0) ? modifiers.First().SpanStart : start.SpanStart, end.Span.End);
-        }
+            => TextSpan.FromBounds((modifiers.Count != 0) ? modifiers.First().SpanStart : start.SpanStart, end.Span.End);
 
         internal override TextSpan GetLambdaParameterDiagnosticSpan(SyntaxNode lambda, int ordinal)
         {
@@ -1475,26 +1473,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        protected override string GetTopLevelDisplayName(SyntaxNode node, EditKind editKind)
-        {
-            return GetTopLevelDisplayNameImpl(node, editKind);
-        }
+        protected override string TryGetDisplayName(SyntaxNode node, EditKind editKind)
+            => TryGetDisplayNameImpl(node, editKind);
 
-        protected override string GetStatementDisplayName(SyntaxNode node, EditKind editKind)
-        {
-            return GetStatementDisplayNameImpl(node);
-        }
+        internal static new string GetDisplayName(SyntaxNode node, EditKind editKind)
+            => TryGetDisplayNameImpl(node, editKind) ?? throw ExceptionUtilities.UnexpectedValue(node.Kind());
 
-        protected override string GetLambdaDisplayName(SyntaxNode lambda)
-        {
-            return GetStatementDisplayNameImpl(lambda);
-        }
-
-        // internal for testing
-        internal static string GetTopLevelDisplayNameImpl(SyntaxNode node, EditKind editKind)
+        internal static string TryGetDisplayNameImpl(SyntaxNode node, EditKind editKind)
         {
             switch (node.Kind())
             {
+                // top-level
+
                 case SyntaxKind.GlobalStatement:
                     return CSharpFeaturesResources.global_statement;
 
@@ -1533,7 +1523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.VariableDeclaration:
                 case SyntaxKind.VariableDeclarator:
-                    return GetTopLevelDisplayNameImpl(node.Parent, editKind);
+                    return TryGetDisplayNameImpl(node.Parent, editKind);
 
                 case SyntaxKind.MethodDeclaration:
                     return FeaturesResources.method;
@@ -1604,19 +1594,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.Attribute:
                     return FeaturesResources.attribute;
 
-                case SyntaxKind.LocalFunctionStatement:
-                    return FeaturesResources.local_function;
+                // statement:
 
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
-            }
-        }
-
-        // internal for testing
-        internal static string GetStatementDisplayNameImpl(SyntaxNode node)
-        {
-            switch (node.Kind())
-            {
                 case SyntaxKind.TryStatement:
                     return CSharpFeaturesResources.try_block;
 
@@ -1725,7 +1704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return CSharpFeaturesResources.v7_switch;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
+                    return null;
             }
         }
 
@@ -1763,16 +1742,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ReportError(RudeEditKind kind, SyntaxNode spanNode = null, SyntaxNode displayNode = null)
             {
-                var span = (spanNode != null) ? GetDiagnosticSpanImpl(spanNode, _kind) : GetSpan();
+                var span = (spanNode != null) ? GetDiagnosticSpan(spanNode, _kind) : GetSpan();
                 var node = displayNode ?? _newNode ?? _oldNode;
-                var displayName = (displayNode != null) ? GetTopLevelDisplayNameImpl(displayNode, _kind) : GetDisplayName();
+                var displayName = GetDisplayName(node, _kind);
 
                 _diagnostics.Add(new RudeEditDiagnostic(kind, span, node, arguments: new[] { displayName }));
-            }
-
-            private string GetDisplayName()
-            {
-                return GetTopLevelDisplayNameImpl(_newNode ?? _oldNode, _kind);
             }
 
             private TextSpan GetSpan()
@@ -1788,7 +1762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
                 else
                 {
-                    return GetDiagnosticSpanImpl(_newNode, _kind);
+                    return GetDiagnosticSpan(_newNode, _kind);
                 }
             }
 
@@ -2505,6 +2479,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private bool ClassifyMethodModifierUpdate(SyntaxTokenList oldModifiers, SyntaxTokenList newModifiers)
             {
+                // Ignore async keyword when matching modifiers.
+                // async checks are done in ComputeBodyMatch.
+
                 var oldAsyncIndex = oldModifiers.IndexOf(SyntaxKind.AsyncKeyword);
                 var newAsyncIndex = newModifiers.IndexOf(SyntaxKind.AsyncKeyword);
 
@@ -2516,12 +2493,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 if (newAsyncIndex >= 0)
                 {
                     newModifiers = newModifiers.RemoveAt(newAsyncIndex);
-                }
-
-                // 'async' keyword is allowed to add, but not to remove.
-                if (oldAsyncIndex >= 0 && newAsyncIndex < 0)
-                {
-                    return false;
                 }
 
                 return SyntaxFactory.AreEquivalent(oldModifiers, newModifiers);
@@ -3029,14 +3000,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         #region State Machines
 
         internal override bool IsStateMachineMethod(SyntaxNode declaration)
-        {
-            return SyntaxUtilities.IsAsyncMethodOrLambda(declaration) ||
-                   SyntaxUtilities.IsIteratorMethod(declaration);
-        }
+            => SyntaxUtilities.IsAsyncDeclaration(declaration) ||
+               SyntaxUtilities.IsIteratorDeclaration(declaration);
 
         protected override void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKind kind)
         {
-            if (SyntaxUtilities.IsAsyncMethodOrLambda(body.Parent))
+            if (SyntaxUtilities.IsAsyncDeclaration(body.Parent))
             {
                 suspensionPoints = SyntaxUtilities.GetAwaitExpressions(body);
                 kind = StateMachineKind.Async;
@@ -3061,7 +3030,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     RudeEditKind.Update,
                     newNode.Span,
                     newNode,
-                    new[] { GetStatementDisplayName(newNode, EditKind.Update) }));
+                    new[] { GetDisplayName(newNode, EditKind.Update) }));
             }
             else if (newNode.IsKind(SyntaxKind.AwaitExpression))
             {

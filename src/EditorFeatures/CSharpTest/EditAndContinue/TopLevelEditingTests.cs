@@ -2989,7 +2989,6 @@ class Test
 {
     public async Task<int> WaitAsync()
     {
-        await Task.Delay(1000);
         return 1;
     }
 }";
@@ -2998,14 +2997,12 @@ class Test
 {
     public Task<int> WaitAsync()
     {
-        await Task.Delay(1000);
-        return 1;
+        return Task.FromResult(1);
     }
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "await", CSharpFeaturesResources.await_expression),
-                Diagnostic(RudeEditKind.ModifiersUpdate, "public Task<int> WaitAsync()", FeaturesResources.method));
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "public Task<int> WaitAsync()", FeaturesResources.method));
         }
 
         [Fact]
@@ -3579,7 +3576,7 @@ class C
 {
     static int F(int a) => a switch { 0 => 0, _ => 2 };
 }";
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.method));
@@ -3635,7 +3632,7 @@ class C
             var src1 = "class C { void M() { F(1, a => a switch { 0 => 0, _ => 2 }); } }";
             var src2 = "class C { void M() { F(2, a => a switch { 0 => 0, _ => 2 }); } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics();
         }
@@ -3646,7 +3643,7 @@ class C
             var src1 = "class C { void M() { F(1, a => a switch { 0 => 0, _ => 2 }); } }";
             var src2 = "class C { void M() { F(2, a => a switch { 0 => 0, _ => 2 }); } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics();
         }
@@ -3657,7 +3654,7 @@ class C
             var src1 = "class C { void M() { F(1, delegate(int a) { return a switch { 0 => 0, _ => 2 }; }); } }";
             var src2 = "class C { void M() { F(2, delegate(int a) { return a switch { 0 => 0, _ => 2 }; }); } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics();
         }
@@ -3668,7 +3665,7 @@ class C
             var src1 = "class C { void M() { int f(int a) => a switch { 0 => 0, _ => 2 }; f(1); } }";
             var src2 = "class C { void M() { int f(int a) => a switch { 0 => 0, _ => 2 }; f(2); } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics();
         }
@@ -3679,7 +3676,7 @@ class C
             var src1 = "class C { void M() { var x = from z in new[] { 1, 2, 3 } where z switch { 0 => true, _ => false } select z + 1; } }";
             var src2 = "class C { void M() { var x = from z in new[] { 1, 2, 3 } where z switch { 0 => true, _ => false } select z + 2; } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics();
         }
@@ -5944,7 +5941,7 @@ public class C
             var src1 = "class C { int a = 1; public C() { var b = a switch { 0 => 0, _ => 1 }; } }";
             var src2 = "class C { int a = 2; public C() { var b = a switch { 0 => 0, _ => 1 }; } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.constructor));
@@ -5994,7 +5991,7 @@ public class C
             var src1 = "class C { int a { get; } = 1; public C() { var b = a switch { 0 => 0, _ => 1 }; } }";
             var src2 = "class C { int a { get; } = 2; public C() { var b = a switch { 0 => 0, _ => 1 }; } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.constructor));
@@ -6007,7 +6004,7 @@ public class C
             var src1 = "class C { int a { get; } = 1; public C() : this(1) { var b = a switch { 0 => 0, _ => 1 }; } public C(int a) { } }";
             var src2 = "class C { int a { get; } = 2; public C() : this(1) { var b = a switch { 0 => 0, _ => 1 }; } public C(int a) { } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics();
         }
@@ -6019,7 +6016,7 @@ public class C
             var src1 = "class C { int a { get; } = 1; public C() { } public C(int b) { var b = a switch { 0 => 0, _ => 1 }; } }";
             var src2 = "class C { int a { get; } = 2; public C() { } public C(int b) { var b = a switch { 0 => 0, _ => 1 }; } }";
 
-            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.constructor));

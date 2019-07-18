@@ -875,10 +875,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                    DirectCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax).Names.Count > 1
         End Function
 
-        Friend Overrides Function IsMethod(declaration As SyntaxNode) As Boolean
-            Return SyntaxUtilities.IsMethod(declaration)
-        End Function
-
         Friend Overrides Function IsInterfaceDeclaration(node As SyntaxNode) As Boolean
             Return node.IsKind(SyntaxKind.InterfaceBlock)
         End Function
@@ -1140,19 +1136,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Get
         End Property
 
-        Protected Overrides Function GetDiagnosticSpan(node As SyntaxNode, editKind As EditKind) As TextSpan
-            Return GetDiagnosticSpanImpl(node, editKind)
+        Protected Overrides Function TryGetDiagnosticSpan(node As SyntaxNode, editKind As EditKind) As TextSpan?
+            Return TryGetDiagnosticSpanImpl(node, editKind)
         End Function
 
-        Private Shared Function GetDiagnosticSpanImpl(node As SyntaxNode, editKind As EditKind) As TextSpan
-            Return GetDiagnosticSpanImpl(node.Kind, node, editKind)
+        Protected Overloads Shared Function GetDiagnosticSpan(node As SyntaxNode, editKind As EditKind) As TextSpan
+            Return If(TryGetDiagnosticSpanImpl(node, editKind), node.Span)
+        End Function
+
+        Private Shared Function TryGetDiagnosticSpanImpl(node As SyntaxNode, editKind As EditKind) As TextSpan?
+            Return TryGetDiagnosticSpanImpl(node.Kind, node, editKind)
         End Function
 
         ' internal for testing; kind is passed explicitly for testing as well
-        Friend Shared Function GetDiagnosticSpanImpl(kind As SyntaxKind, node As SyntaxNode, editKind As EditKind) As TextSpan
+        Friend Shared Function TryGetDiagnosticSpanImpl(kind As SyntaxKind, node As SyntaxNode, editKind As EditKind) As TextSpan?
             Select Case kind
                 Case SyntaxKind.CompilationUnit
-                    Return Nothing
+                    Return New TextSpan()
 
                 Case SyntaxKind.OptionStatement,
                      SyntaxKind.ImportsStatement
@@ -1177,7 +1177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return GetDiagnosticSpan(DirectCast(node, TypeStatementSyntax))
 
                 Case SyntaxKind.EnumBlock
-                    Return GetDiagnosticSpanImpl(DirectCast(node, EnumBlockSyntax).EnumStatement, editKind)
+                    Return TryGetDiagnosticSpanImpl(DirectCast(node, EnumBlockSyntax).EnumStatement, editKind)
 
                 Case SyntaxKind.EnumStatement
                     Dim enumStatement = DirectCast(node, EnumStatementSyntax)
@@ -1240,7 +1240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      SyntaxKind.AttributeList,
                      SyntaxKind.SimpleAsClause
                     If editKind = EditKind.Delete Then
-                        Return GetDiagnosticSpanImpl(node.Parent, editKind)
+                        Return TryGetDiagnosticSpanImpl(node.Parent, editKind)
                     Else
                         Return node.Span
                     End If
@@ -1321,7 +1321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return DirectCast(node, LambdaExpressionSyntax).SubOrFunctionHeader.Span
 
                 Case SyntaxKind.QueryExpression
-                    Return GetDiagnosticSpanImpl(DirectCast(node, QueryExpressionSyntax).Clauses.First(), editKind)
+                    Return TryGetDiagnosticSpanImpl(DirectCast(node, QueryExpressionSyntax).Clauses.First(), editKind)
 
                 Case SyntaxKind.WhereClause
                     Return DirectCast(node, WhereClauseSyntax).WhereKeyword.Span
@@ -1353,7 +1353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.CollectionRangeVariable,
                      SyntaxKind.ExpressionRangeVariable
-                    Return GetDiagnosticSpanImpl(node.Parent, editKind)
+                    Return TryGetDiagnosticSpanImpl(node.Parent, editKind)
 
                 Case SyntaxKind.TakeWhileClause,
                      SyntaxKind.SkipWhileClause
@@ -1368,7 +1368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return DirectCast(node, JoinConditionSyntax).EqualsKeyword.Span
 
                 Case Else
-                    Return node.Span
+                    Return Nothing
             End Select
         End Function
 
@@ -1482,21 +1482,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Select
         End Function
 
-        Protected Overrides Function GetTopLevelDisplayName(node As SyntaxNode, editKind As EditKind) As String
-            Return GetTopLevelDisplayNameImpl(node)
+        Protected Overrides Function TryGetDisplayName(node As SyntaxNode, editKind As EditKind) As String
+            Return TryGetDisplayNameImpl(node, editKind)
         End Function
 
-        Protected Overrides Function GetStatementDisplayName(node As SyntaxNode, editKind As EditKind) As String
-            Return GetStatementDisplayNameImpl(node, editKind)
+        Protected Overloads Shared Function GetDisplayName(node As SyntaxNode, editKind As EditKind) As String
+            Dim result = TryGetDisplayNameImpl(node, editKind)
+
+            If result Is Nothing Then
+                Throw ExceptionUtilities.UnexpectedValue(node.Kind)
+            End If
+
+            Return result
         End Function
 
-        Protected Overrides Function GetLambdaDisplayName(lambda As SyntaxNode) As String
-            Return GetStatementDisplayNameImpl(lambda, EditKind.Update)
-        End Function
-
-        ' internal for testing
-        Friend Shared Function GetTopLevelDisplayNameImpl(node As SyntaxNode) As String
+        Private Shared Function TryGetDisplayNameImpl(node As SyntaxNode, editKind As EditKind) As String
             Select Case node.Kind
+                ' top-level
+
                 Case SyntaxKind.OptionStatement
                     Return VBFeaturesResources.option_
 
@@ -1538,7 +1541,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.VariableDeclarator,
                      SyntaxKind.ModifiedIdentifier
-                    Return GetTopLevelDisplayNameImpl(node.Parent)
+                    Return TryGetDisplayNameImpl(node.Parent, editKind)
 
                 Case SyntaxKind.SubBlock,
                      SyntaxKind.FunctionBlock,
@@ -1616,14 +1619,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Case SyntaxKind.Attribute
                     Return FeaturesResources.attribute
 
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(node.Kind())
-            End Select
-        End Function
+                ' statement-level
 
-        ' internal for testing
-        Friend Shared Function GetStatementDisplayNameImpl(node As SyntaxNode, kind As EditKind) As String
-            Select Case node.Kind
                 Case SyntaxKind.TryBlock
                     Return VBFeaturesResources.Try_block
 
@@ -1634,16 +1631,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return VBFeaturesResources.Finally_clause
 
                 Case SyntaxKind.UsingBlock
-                    Return If(kind = EditKind.Update, VBFeaturesResources.Using_statement, VBFeaturesResources.Using_block)
+                    Return If(editKind = EditKind.Update, VBFeaturesResources.Using_statement, VBFeaturesResources.Using_block)
 
                 Case SyntaxKind.WithBlock
-                    Return If(kind = EditKind.Update, VBFeaturesResources.With_statement, VBFeaturesResources.With_block)
+                    Return If(editKind = EditKind.Update, VBFeaturesResources.With_statement, VBFeaturesResources.With_block)
 
                 Case SyntaxKind.SyncLockBlock
-                    Return If(kind = EditKind.Update, VBFeaturesResources.SyncLock_statement, VBFeaturesResources.SyncLock_block)
+                    Return If(editKind = EditKind.Update, VBFeaturesResources.SyncLock_statement, VBFeaturesResources.SyncLock_block)
 
                 Case SyntaxKind.ForEachBlock
-                    Return If(kind = EditKind.Update, VBFeaturesResources.For_Each_statement, VBFeaturesResources.For_Each_block)
+                    Return If(editKind = EditKind.Update, VBFeaturesResources.For_Each_statement, VBFeaturesResources.For_Each_block)
 
                 Case SyntaxKind.OnErrorGoToMinusOneStatement,
                      SyntaxKind.OnErrorGoToZeroStatement,
@@ -1697,7 +1694,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.CollectionRangeVariable,
                      SyntaxKind.ExpressionRangeVariable
-                    Return GetStatementDisplayNameImpl(node.Parent, kind)
+                    Return TryGetDisplayNameImpl(node.Parent, editKind)
 
                 Case SyntaxKind.TakeWhileClause
                     Return VBFeaturesResources.Take_While_clause
@@ -1713,7 +1710,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return VBFeaturesResources.Join_condition
 
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(node.Kind())
+                    Return Nothing
             End Select
         End Function
 
@@ -1738,17 +1735,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                            Optional match As Match(Of SyntaxNode) = Nothing,
                            Optional span As TextSpan? = Nothing)
 
-                Me._analyzer = analyzer
-                Me._diagnostics = diagnostics
-                Me._oldNode = oldNode
-                Me._newNode = newNode
-                Me._kind = kind
-                Me._span = span
-                Me._match = match
+                _analyzer = analyzer
+                _diagnostics = diagnostics
+                _oldNode = oldNode
+                _newNode = newNode
+                _kind = kind
+                _span = span
+                _match = match
             End Sub
 
             Private Sub ReportError(kind As RudeEditKind)
-                ReportError(kind, {GetDisplayName()})
+                ReportError(kind, {GetDisplayName(If(_newNode, _oldNode), EditKind.Update)})
             End Sub
 
             Private Sub ReportError(kind As RudeEditKind, args As String())
@@ -1756,7 +1753,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Sub
 
             Private Sub ReportError(kind As RudeEditKind, spanNode As SyntaxNode, displayNode As SyntaxNode)
-                _diagnostics.Add(New RudeEditDiagnostic(kind, GetDiagnosticSpanImpl(spanNode, Me._kind), displayNode, {GetTopLevelDisplayNameImpl(displayNode)}))
+                _diagnostics.Add(New RudeEditDiagnostic(kind, GetDiagnosticSpan(spanNode, _kind), displayNode, {GetDisplayName(displayNode, EditKind.Update)}))
             End Sub
 
             Private Function GetSpan() As TextSpan
@@ -1767,12 +1764,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 If _newNode Is Nothing Then
                     Return _analyzer.GetDeletedNodeDiagnosticSpan(_match.Matches, _oldNode)
                 Else
-                    Return GetDiagnosticSpanImpl(_newNode, _kind)
+                    Return GetDiagnosticSpan(_newNode, _kind)
                 End If
-            End Function
-
-            Private Function GetDisplayName() As String
-                Return GetTopLevelDisplayNameImpl(If(_newNode, _oldNode))
             End Function
 
             Public Sub ClassifyEdit()

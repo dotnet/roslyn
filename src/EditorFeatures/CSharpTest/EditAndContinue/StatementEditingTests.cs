@@ -6872,22 +6872,19 @@ interface I
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37054")]
+        [Fact]
+        [WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
         public void LocalFunction_AddAsync()
         {
-            var src1 = @"class Test { void M() { int local() { throw null; } } }";
-            var src2 = @"class Test { void M() { async int local() { throw null; } } }";
+            var src1 = @"class Test { void M() { Task<int> local() => throw null; } }";
+            var src2 = @"class Test { void M() { async Task<int> local() => throw null; } }";
 
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifyEdits(
-                "Update [void M() { int local() { throw null; } }]@13 -> [void M() { async int local() { throw null; } }]@13");
-
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "async int local() ", FeaturesResources.method));
+            edits.VerifyRudeDiagnostics();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37054")]
+        [Fact]
+        [WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
         public void LocalFunction_RemoveAsync()
         {
             var src1 = @"class Test { void M() { async int local() { throw null; } } }";
@@ -6895,11 +6892,8 @@ interface I
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Update [void M() { async int local() { throw null; } }]@13 -> [void M() { int local() { throw null; } }]@13");
-
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "int local() ", FeaturesResources.method));
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "local", FeaturesResources.local_function));
         }
 
         #endregion
@@ -8629,14 +8623,13 @@ class C
             var src2 = @"
 class C
 {
-    static Task<int> F() => F(1);
+    static async Task<int> F() => F(1);
 }
 ";
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
-                Diagnostic(RudeEditKind.Delete, "=> F(1)", CSharpFeaturesResources.await_expression),
-                Diagnostic(RudeEditKind.ModifiersUpdate, "static Task<int> F()", FeaturesResources.method));
+                Diagnostic(RudeEditKind.Delete, "=> F(1)", CSharpFeaturesResources.await_expression));
         }
 
         [Fact]
@@ -8657,7 +8650,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "static void F()", FeaturesResources.method));
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "static void F()", FeaturesResources.method));
         }
 
         [Fact]
@@ -9058,65 +9051,32 @@ if (o3 is (string k, int l2, int m)) return;
         [Fact]
         public void PositionalPattern_Update1()
         {
-            var src1 = @"var r = (x, y, z) switch {
-(0, var b, int c) when c > 1 => 2,
-_ => 4
-};
-";
-
-            var src2 = @"var r = ((x, y, z)) switch {
-(_, int b1, double c1) when c1 > 2 => c1,
-_ => 4
-};
-";
+            var src1 = @"var r = (x, y, z) switch { (0, var b, int c) when c > 1 => 2, _ => 4 };";
+            var src2 = @"var r = ((x, y, z)) switch { (_, int b1, double c1) when c1 > 2 => c1, _ => 4 };";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                @"Update [r = (x, y, z) switch {
-(0, var b, int c) when c > 1 => 2,
-_ => 4
-}]@6 -> [r = ((x, y, z)) switch {
-(_, int b1, double c1) when c1 > 2 => c1,
-_ => 4
-}]@6",
-                "Reorder [c]@45 -> @40",
-                "Update [c]@45 -> [b1]@40",
-                "Update [b]@38 -> [c1]@51",
-                "Update [when c > 1]@48 -> [when c1 > 2]@55");
+                "Update [r = (x, y, z) switch { (0, var b, int c) when c > 1 => 2, _ => 4 }]@6 -> [r = ((x, y, z)) switch { (_, int b1, double c1) when c1 > 2 => c1, _ => 4 }]@6",
+                "Reorder [c]@44 -> @39",
+                "Update [c]@44 -> [b1]@39",
+                "Update [b]@37 -> [c1]@50",
+                "Update [when c > 1]@47 -> [when c1 > 2]@54");
         }
 
         [Fact]
         public void PositionalPattern_Update2()
         {
-            var src1 = @"var r = (x, y, z) switch {
-(var a, 3, 4) => a,
-(1, 1, Point { X: 0 } p) => 3,
-_ => 4
-};
-";
+            var src1 = @"var r = (x, y, z) switch { (var a, 3, 4) => a, (1, 1, Point { X: 0 } p) => 3, _ => 4 };";
 
-            var src2 = @"var r = ((x, y, z)) switch {
-(var a1, 3, 4) => a1 * 2,
-(1, 1, Point { Y: 0 } p1) => 3,
-_ => 4
-};
-";
+            var src2 = @"var r = ((x, y, z)) switch { (var a1, 3, 4) => a1 * 2, (1, 1, Point { Y: 0 } p1) => 3, _ => 4 };";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                @"Update [r = (x, y, z) switch {
-(var a, 3, 4) => a,
-(1, 1, Point { X: 0 } p) => 3,
-_ => 4
-}]@6 -> [r = ((x, y, z)) switch {
-(var a1, 3, 4) => a1 * 2,
-(1, 1, Point { Y: 0 } p1) => 3,
-_ => 4
-}]@6",
-                "Update [a]@35 -> [a1]@37",
-                "Update [p]@73 -> [p1]@81");
+                "Update [r = (x, y, z) switch { (var a, 3, 4) => a, (1, 1, Point { X: 0 } p) => 3, _ => 4 }]@6 -> [r = ((x, y, z)) switch { (var a1, 3, 4) => a1 * 2, (1, 1, Point { Y: 0 } p1) => 3, _ => 4 }]@6",
+                "Update [a]@34 -> [a1]@36",
+                "Update [p]@71 -> [p1]@79");
         }
 
         [Fact]
