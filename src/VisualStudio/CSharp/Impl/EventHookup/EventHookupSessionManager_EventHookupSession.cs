@@ -191,8 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             private IEventSymbol GetEventSymbol(SemanticModel semanticModel, SyntaxToken plusEqualsToken, CancellationToken cancellationToken)
             {
                 AssertIsBackground();
-                var parentToken = plusEqualsToken.Parent as AssignmentExpressionSyntax;
-                if (parentToken == null)
+                if (!(plusEqualsToken.Parent is AssignmentExpressionSyntax parentToken))
                 {
                     return null;
                 }
@@ -254,7 +253,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 // Note: For generic, it's ok(it's even a good idea) to exclude type variables,
                 // because the name is only used as a prefix for the method name.
 
-                var typeDeclaration = syntaxFactsService.GetContainingTypeDeclaration(
+
+                return syntaxFactsService.GetContainingTypeDeclaration(
                     semanticModel.SyntaxTree.GetRoot(),
                     plusEqualsToken.SpanStart) as BaseTypeDeclarationSyntax;
 
