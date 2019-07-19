@@ -67,16 +67,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxFactory.ParseToken(text, startStatement:=True)
         End Function
 
-        Public Function IsAwaitKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsAwaitKeyword
-            Return token.Kind = SyntaxKind.AwaitKeyword
+        Private Function ISyntaxFactsService_IsAwaitKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsAwaitKeyword
+            Return IsAwaitKeyword(token)
         End Function
 
-        Public Function IsIdentifier(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsIdentifier
-            Return token.Kind = SyntaxKind.IdentifierToken
+        Private Function ISyntaxFactsService_IsIdentifier(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsIdentifier
+            Return IsIdentifier(token)
         End Function
 
-        Public Function IsGlobalNamespaceKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsGlobalNamespaceKeyword
-            Return token.Kind = SyntaxKind.GlobalKeyword
+        Private Function ISyntaxFactsService_IsGlobalNamespaceKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsGlobalNamespaceKeyword
+            Return IsGlobalNamespaceKeyword(token)
         End Function
 
         Public Function IsVerbatimIdentifier(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsVerbatimIdentifier
@@ -100,8 +100,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return token.IsPreprocessorKeyword()
         End Function
 
-        Public Function IsHashToken(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsHashToken
-            Return token.Kind = SyntaxKind.HashToken
+        Public Function ISyntaxFactsService_IsHashToken(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsHashToken
+            Return IsHashToken(token)
         End Function
 
         Public Function TryGetCorrespondingOpenBrace(token As SyntaxToken, ByRef openBrace As SyntaxToken) As Boolean Implements ISyntaxFactsService.TryGetCorrespondingOpenBrace
@@ -224,8 +224,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is SkippedTokensTriviaSyntax
         End Function
 
-        Public Function HasIncompleteParentMember(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.HasIncompleteParentMember
-            Return node.IsParentKind(SyntaxKind.IncompleteMember)
+        Public Function ISyntaxFactsService_HasIncompleteParentMember(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.HasIncompleteParentMember
+            Return HasIncompleteParentMember(node)
         End Function
 
         Public Function GetIdentifierOfGenericName(genericName As SyntaxNode) As SyntaxToken Implements ISyntaxFactsService.GetIdentifierOfGenericName
@@ -254,12 +254,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is SyncLockStatementSyntax
         End Function
 
-        Public Function IsUsingStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsUsingStatement
-            Return node.Kind() = SyntaxKind.UsingStatement
+        Private Function ISyntaxFactsService_IsUsingStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsUsingStatement
+            Return IsUsingStatement(node)
         End Function
 
-        Public Function IsReturnStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsReturnStatement
-            Return node.Kind() = SyntaxKind.ReturnStatement
+        Private Function ISyntaxFactsService_IsReturnStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsReturnStatement
+            Return IsReturnStatement(node)
         End Function
 
         Public Function IsStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsStatement
