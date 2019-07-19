@@ -22,7 +22,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageServerClient
     {
         private readonly PrimaryWorkspace _primaryWorkspace = null;
         private readonly Shell.IAsyncServiceProvider _asyncServiceProvider;
-        private readonly JoinableTaskContext _joinableTaskContext;
 
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
@@ -56,12 +55,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageServerClient
         [ImportingConstructor]
         public CSharpLanguageServerClient(
             PrimaryWorkspace primaryWorkspace,
-            [Import(typeof(SAsyncServiceProvider))]Shell.IAsyncServiceProvider asyncServiceProvider,
-            JoinableTaskContext joinableTaskContext)
+            [Import(typeof(SAsyncServiceProvider))]Shell.IAsyncServiceProvider asyncServiceProvider)
         {
             _primaryWorkspace = primaryWorkspace;
             _asyncServiceProvider = asyncServiceProvider;
-            _joinableTaskContext = joinableTaskContext;
         }
 
         public async Task<Connection> ActivateAsync(CancellationToken token)
@@ -104,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageServerClient
             // LSP client doesn't currently support retrying load after the first attempt
             // so it's up to us to start listening for a compatible solution load if one
             // isn't open yet.
-            await SubscribeToSolutionEventsOnUIThreadAsync().ConfigureAwait(false);
+            await SubscribeToSolutionEvents().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -123,12 +120,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageServerClient
             return Task.CompletedTask;
         }
 
-        private async Task SubscribeToSolutionEventsOnUIThreadAsync()
+        private async Task SubscribeToSolutionEvents()
         {
-            // Explicit JTF switch to mitigate deadlock-risk from COM RPC in IVsSolution should our caller
-            // block the UI thread on us.
-            await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
-
             if (await _asyncServiceProvider.GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true) is IVsSolution solution)
             {
                 SolutionEvents.OnAfterOpenSolution += OnAfterOpenSolution;
