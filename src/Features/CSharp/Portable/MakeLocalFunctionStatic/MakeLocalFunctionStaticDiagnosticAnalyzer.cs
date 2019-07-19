@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class MakeLocalFunctionStaticDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
+
         public MakeLocalFunctionStaticDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.MakeLocalFunctionStaticDiagnosticId,
                    CSharpCodeStyleOptions.PreferStaticLocalFunction,
