@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RefactoringHelpers
@@ -958,6 +959,61 @@ class C
 
         #endregion
 
+        #region Test predicate
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingPredicate()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        N([||]2+3);
+    }
+
+    void N(int a)
+    {
+    }
+}";
+            await TestMissingAsync<ArgumentSyntax>(testText, n => n.Parent is TupleExpressionSyntax);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestArgument()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        N({|result:[||]2+3|});
+    }
+
+    void N(int a)
+    {
+    }
+}";
+            await TestAsync<ArgumentSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestPredicate()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        var a = ({|result:[||]2 + 3|}, 2 + 3);
+    }
+}";
+            await TestAsync<ArgumentSyntax>(testText, n => n.Parent is TupleExpressionSyntax);
+        }
+        #endregion
+
         #region Test arguments
         [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
@@ -1338,58 +1394,102 @@ class C
 
         #endregion
 
-        #region Test predicate
+        #region Test TryGetDeepInNodeAsync
         [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        public async Task TestMissingPredicate()
+        public async Task TestDeepIn()
         {
             var testText = @"
 class C
 {
     void M()
     {
-        N([||]2+3);
+        N({|result:2+[||]3+4|});
     }
 
     void N(int a)
     {
     }
 }";
-            await TestMissingAsync<ArgumentSyntax>(testText, n => n.Parent is TupleExpressionSyntax);
+            await TestGetDeepInNodeAsync<ArgumentSyntax>(testText, Functions<ArgumentSyntax>.True, Functions<SyntaxNode>.False);
         }
 
         [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        public async Task TestArgument()
+        public async Task TestMissingDeepInSecondRow()
         {
             var testText = @"
 class C
 {
     void M()
     {
-        N({|result:[||]2+3|});
+        N(2
+            +[||]3+4);
     }
 
     void N(int a)
     {
     }
 }";
-            await TestAsync<ArgumentSyntax>(testText);
+            await TestMissingGetDeepInNodeAsync<ArgumentSyntax>(testText, predicate: Functions<ArgumentSyntax>.True, traverseUntil: Functions<SyntaxNode>.False);
         }
 
         [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        public async Task TestPredicate()
+        public async Task TestDeepInPredicate()
         {
             var testText = @"
 class C
 {
     void M()
     {
-        var a = ({|result:[||]2 + 3|}, 2 + 3);
+        var b = ({|result:N(2[||])|}, 0);
+    }
+
+    int N(int a)
+    {
+        return a;
     }
 }";
-            await TestAsync<ArgumentSyntax>(testText, n => n.Parent is TupleExpressionSyntax);
+            await TestGetDeepInNodeAsync<ArgumentSyntax>(testText, predicate: n => n.Parent is TupleExpressionSyntax, traverseUntil: Functions<SyntaxNode>.False);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingTraverseUntil()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        N(0, N(0, [||], 0)); 
+    }
+
+    int N(int a, int b, int c)
+    {
+    }
+}";
+            await TestMissingGetDeepInNodeAsync<ArgumentSyntax>(testText, predicate: Functions<ArgumentSyntax>.True, traverseUntil: n => n is ArgumentListSyntax);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestTraverseUntilFirst()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        N(0, N(0, {|result:0[||]+0|}, 0)); 
+    }
+
+    int N(int a, int b, int c)
+    {
+    }
+}";
+            await TestGetDeepInNodeAsync<ArgumentSyntax>(testText, predicate: Functions<ArgumentSyntax>.True, traverseUntil: n => n is ArgumentListSyntax);
         }
         #endregion
     }

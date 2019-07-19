@@ -34,27 +34,45 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
             base.Dispose();
         }
 
+        protected async Task TestGetDeepInNodeAsync<TNode>(string text, Func<TNode, bool> predicate, Func<SyntaxNode, bool> traverseUntil) where TNode : SyntaxNode
+        {
+            text = GetSelectionAndResultSpans(text, out var selection, out var result);
+            var resultNode = await GetNodeForSelectionDeepIn<TNode>(text, selection, predicate, traverseUntil).ConfigureAwait(false);
+
+            Assert.NotNull(resultNode);
+            Assert.Equal(result, resultNode.Span);
+        }
+
+        protected async Task TestMissingGetDeepInNodeAsync<TNode>(string text, Func<TNode, bool> predicate, Func<SyntaxNode, bool> traverseUntil) where TNode : SyntaxNode
+        {
+            text = GetSelectionSpan(text, out var selection);
+            var resultNode = await GetNodeForSelectionDeepIn<TNode>(text, selection, predicate, traverseUntil).ConfigureAwait(false);
+
+            Assert.Null(resultNode);
+        }
+
         protected Task TestAsync<TNode>(string text) where TNode : SyntaxNode => TestAsync<TNode>(text, Functions<TNode>.True);
 
         protected async Task TestAsync<TNode>(string text, Func<TNode, bool> predicate) where TNode : SyntaxNode
         {
-            MarkupTestFile.GetSpans(text.NormalizeLineEndings(), out text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
-
-            if (spans.Count != 2 ||
-                !spans.TryGetValue(string.Empty, out var selections) || selections.Length != 1 ||
-                !spans.TryGetValue("result", out var result) || result.Length != 1)
-            {
-                throw new ArgumentException("Invalid test format: both `[|...|]` (selection) and `{|result:...|}` (retrieved node span) selections are required for a test.");
-            }
-
-            var resultNode = await GetNodeForSelection<TNode>(text, selections.First(), predicate);
+            text = GetSelectionAndResultSpans(text, out var selection, out var result);
+            var resultNode = await GetNodeForSelection<TNode>(text, selection, predicate).ConfigureAwait(false);
 
             Assert.NotNull(resultNode);
-            Assert.Equal(resultNode.Span, result.First());
+            Assert.Equal(result, resultNode.Span);
         }
+
 
         protected Task TestMissingAsync<TNode>(string text) where TNode : SyntaxNode => TestMissingAsync<TNode>(text, Functions<TNode>.True);
         protected async Task TestMissingAsync<TNode>(string text, Func<TNode, bool> predicate) where TNode : SyntaxNode
+        {
+            text = GetSelectionSpan(text, out var selection);
+
+            var resultNode = await GetNodeForSelection<TNode>(text, selection, predicate).ConfigureAwait(false);
+            Assert.Null(resultNode);
+        }
+
+        private static string GetSelectionSpan(string text, out TextSpan selection)
         {
             MarkupTestFile.GetSpans(text.NormalizeLineEndings(), out text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
@@ -64,8 +82,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
                 throw new ArgumentException("Invalid missing test format: only `[|...|]` (selection) should be present.");
             }
 
-            var resultNode = await GetNodeForSelection<TNode>(text, selections.First(), predicate);
-            Assert.Null(resultNode);
+            selection = selections.Single();
+            return text;
+        }
+
+        private static string GetSelectionAndResultSpans(string text, out TextSpan selection, out TextSpan result)
+        {
+            MarkupTestFile.GetSpans(text.NormalizeLineEndings(), out text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
+
+            if (spans.Count != 2 ||
+                !spans.TryGetValue(string.Empty, out var selections) || selections.Length != 1 ||
+                !spans.TryGetValue("result", out var results) || results.Length != 1)
+            {
+                throw new ArgumentException("Invalid test format: both `[|...|]` (selection) and `{|result:...|}` (retrieved node span) selections are required for a test.");
+            }
+
+            selection = selections.Single();
+            result = results.Single();
+
+            return text;
         }
 
         private async Task<TNode> GetNodeForSelection<TNode>(string text, TextSpan selection, Func<TNode, bool> predicate) where TNode : SyntaxNode
@@ -77,5 +112,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
             return resultNode;
         }
 
+        private async Task<TNode> GetNodeForSelectionDeepIn<TNode>(string text, TextSpan selection, Func<TNode, bool> predicate, Func<SyntaxNode, bool> traverseUntil) where TNode : SyntaxNode
+        {
+            var document = fixture.UpdateDocument(text, SourceCodeKind.Regular);
+            var service = document.GetLanguageService<IRefactoringHelpersService>();
+
+            var resultNode = await service.TryGetDeepInNodeAsync<TNode>(document, selection, predicate, traverseUntil, CancellationToken.None).ConfigureAwait(false);
+            return resultNode;
+        }
     }
 }
