@@ -110,5 +110,10 @@ namespace Microsoft.CodeAnalysis
 
         public static ITypeSymbol GetTypeWithAnnotatedNullability(this ILocalSymbol localSymbol)
             => localSymbol.Type.WithNullability(localSymbol.NullableAnnotation);
+
+        public static INamedTypeSymbol ConstructWithNullability(this INamedTypeSymbol typeSymbol, params ITypeSymbol[] typeArguments)
+        {
+            return typeSymbol.Construct(typeArguments.SelectAsArray(t => t.WithoutNullability()), typeArguments.SelectAsArray(t => t.GetNullability()));
+        }
     }
 }

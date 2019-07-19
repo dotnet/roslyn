@@ -1798,13 +1798,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' is uninitialized.</source>
-        <target state="translated">Не инициализировано {0} "{1}", не допускающее значение NULL.</target>
+        <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
+        <target state="needs-review-translation">Не инициализировано {0} "{1}", не допускающее значение NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field is uninitialized.</source>
-        <target state="translated">Не инициализировано поле, не допускающее значение NULL.</target>
+        <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
+        <target state="needs-review-translation">Не инициализировано поле, не допускающее значение NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">

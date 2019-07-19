@@ -558,10 +558,10 @@ public class C
             VerifyAcrossCompilations(
                 source,
                 new[] { 
-                    // (8,20): warning CS8618: Non-nullable event 'D1' is uninitialized.
+                    // (8,20): warning CS8618: Non-nullable event 'D1' is uninitialized. Consider declaring the event as nullable.
                     //     public event D D1;
                     Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "D1").WithArguments("event", "D1").WithLocation(8, 20),
-                    // (13,19): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                    // (13,19): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                     //     public event D? D4;
                     Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 19)
                 },
