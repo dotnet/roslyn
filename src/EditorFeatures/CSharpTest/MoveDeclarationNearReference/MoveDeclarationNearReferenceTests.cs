@@ -295,7 +295,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
         public async Task TestMissingInHiddenBlock1()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
+@"#line default
+class Program
 {
     void Main()
     {
@@ -312,7 +313,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
         public async Task TestMissingInHiddenBlock2()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
+@"#line default
+class Program
 {
     void Main()
     {
@@ -360,7 +362,8 @@ class Program
         public async Task TestAvailableInNonHiddenBlock2()
         {
             await TestInRegularAndScriptAsync(
-@"class Program
+@"#line default
+class Program
 {
     void Main()
     {
@@ -373,7 +376,8 @@ class Program
         Bar(x);
     }
 }",
-@"class Program
+@"#line default
+class Program
 {
     void Main()
     {
