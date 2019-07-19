@@ -77,8 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 var prevNode = selectionNode;
                 do
                 {
-                    var acceptedNode = ExtractNodesSimple(selectionNode, syntaxFacts).OfType<TSyntaxNode>().FirstOrDefault(predicate);
-                    if (acceptedNode != null)
+                    if (TryGetAcceptedNode(ExtractNodesSimple(selectionNode, syntaxFacts), predicate, out var acceptedNode, cancellationToken))
                     {
                         // For selections we need to handle an edge case where only AttributeLists are within selection (e.g. `Func([|[in][out]|] arg1);`).
                         // In that case the smallest encompassing node is still the whole argument node but it's hard to justify showing refactorings for it
@@ -182,8 +181,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // First check if we're in a header of some higher-level node what would pass predicate & if we are -> return it
             // We can't check any sooner because the code above (that figures out tokenToLeft, ...) can change current 
             // `location`.
-            var acceptedHeaderNode = ExtractNodesIfInHeader(root, location, syntaxFacts).OfType<TSyntaxNode>().FirstOrDefault(predicate);
-            if (acceptedHeaderNode != null)
+            if (TryGetAcceptedNode(ExtractNodesIfInHeader(root, location, syntaxFacts), predicate, out var acceptedHeaderNode, cancellationToken))
             {
                 return acceptedHeaderNode;
             }
@@ -197,8 +195,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     // Consider either a Node that is:
                     // - Parent of touched Token (location can be within) 
                     // - Ancestor Node of such Token as long as their span starts on location (it's still on the edge)
-                    var acceptedNode = ExtractNodesSimple(rightNode, syntaxFacts).OfType<TSyntaxNode>().FirstOrDefault(predicate);
-                    if (acceptedNode != null)
+                    if (TryGetAcceptedNode(ExtractNodesSimple(rightNode, syntaxFacts), predicate, out var acceptedNode, cancellationToken))
                     {
                         return acceptedNode;
                     }
@@ -235,8 +232,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 {
                     // Consider either a Node that is:
                     // - Ancestor Node of such Token as long as their span ends on location (it's still on the edge)
-                    var acceptedNode = ExtractNodesSimple(leftNode, syntaxFacts).OfType<TSyntaxNode>().FirstOrDefault(predicate);
-                    if (acceptedNode != null)
+                    if (TryGetAcceptedNode(ExtractNodesSimple(leftNode, syntaxFacts), predicate, out var acceptedNode, cancellationToken))
                     {
                         return acceptedNode;
                     }
@@ -251,8 +247,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
 
             // nothing found -> return null
-
             return null;
+
+            static bool TryGetAcceptedNode(IEnumerable<SyntaxNode> extractedNodes, Func<TSyntaxNode, bool> predicate, out TSyntaxNode acceptedNode, CancellationToken cancellationToken)
+            {
+                acceptedNode = extractedNodes.OfType<TSyntaxNode>().FirstOrDefault(predicate);
+                return acceptedNode != null && !acceptedNode.OverlapsHiddenPosition(cancellationToken);
+            }
         }
 
         private static TextSpan GetSpanWithoutAttributes(SyntaxNode node, SyntaxNode root, ISyntaxFactsService syntaxFacts)
