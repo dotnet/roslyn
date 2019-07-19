@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
@@ -576,8 +577,9 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
-        public async Task WrongCaretPosition1()
+        public async Task TestCaretBefore()
         {
             var text = @"
 class Test
@@ -585,17 +587,30 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        [||] foreach (var a in array)
+        [||] foreach(var a in array)
         {
         }
     }
 }
 ";
-            await TestMissingInRegularAndScriptAsync(text);
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var array = new int[] { 1, 3, 4 };
+        for (int {|Rename:i|} = 0; i < array.Length; i++)
+        {
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
-        public async Task WrongCaretPosition2()
+        public async Task TestCaretAfter()
         {
             var text = @"
 class Test
@@ -603,13 +618,56 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        foreach (var a in array) [||] 
+        foreach(var a in array) [||]
         {
         }
     }
 }
 ";
-            await TestMissingInRegularAndScriptAsync(text);
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var array = new int[] { 1, 3, 4 };
+        for (int {|Rename:i|} = 0; i < array.Length; i++) 
+        {
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        public async Task TestSelection()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var array = new int[] { 1, 3, 4 };
+        [|foreach(var a in array)
+        {
+        }|]
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var array = new int[] { 1, 3, 4 };
+        for (int {|Rename:i|} = 0; i < array.Length; i++)
+        {
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]

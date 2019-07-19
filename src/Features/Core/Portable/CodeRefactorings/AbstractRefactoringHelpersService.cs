@@ -389,6 +389,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             {
                 yield return localDeclaration;
             }
+
+            // Header: `if(...)`{ };
+            if (syntaxFacts.IsOnIfStatementHeader(root, location, out var ifStatement))
+            {
+                yield return ifStatement;
+            }
+
+            // Header: `foreach (var a in b)` { }
+            if (syntaxFacts.IsOnForeachHeader(root, location, out var foreachStatement))
+            {
+                yield return foreachStatement;
+            }
         }
     }
 }
