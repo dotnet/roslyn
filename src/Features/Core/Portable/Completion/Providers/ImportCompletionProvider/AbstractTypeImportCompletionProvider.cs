@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
@@ -35,6 +34,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             SyntaxNode location,
             SemanticModel semanticModel,
             CancellationToken cancellationToken);
+
+        protected abstract Task<bool> IsInImportsDirectiveAsync(Document document, int position, CancellationToken cancellationToken);
 
         // Telemetry shows that the average processing time with cache warmed up for 99th percentile is ~700ms.
         // Therefore we set the timeout to 1s to ensure it only applies to the case that cache is cold.
@@ -307,8 +308,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 //      }
                 //
                 // Here we will always choose to qualify the unimported type, just to be consistent and keeps things simple.
-                var syntaxContext = await CreateContextAsync(document, completionListSpan.Start, cancellationToken).ConfigureAwait(false);
-                return syntaxContext.IsInImportsDirective;
+                return await IsInImportsDirectiveAsync(document, completionListSpan.Start, cancellationToken).ConfigureAwait(false);
             }
         }
 

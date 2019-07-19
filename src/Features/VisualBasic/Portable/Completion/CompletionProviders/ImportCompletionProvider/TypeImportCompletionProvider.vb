@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
@@ -41,6 +42,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Next
 
             Return builder.ToImmutableAndFree()
+        End Function
+
+        Protected Overrides Async Function IsInImportsDirectiveAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of Boolean)
+            Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+            Dim leftToken = SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
+            Return leftToken.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing
         End Function
     End Class
 End Namespace
