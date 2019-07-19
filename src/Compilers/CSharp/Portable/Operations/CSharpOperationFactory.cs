@@ -1416,15 +1416,8 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundBlock.WasCompilerGenerated;
-            var nullChecksToPrepend = ImmutableArray<ConditionalOperation>.Empty;
-            bool blockInModel = _semanticModel.Root.ChildNodes().Contains(syntax) || _semanticModel.Root.Parent?.ChildNodes().Contains(syntax) == true;
-
-            if (_semanticModel is MemberSemanticModel memberModel
-                && memberModel.MemberSymbol.GetParameters().Any(x => x.IsNullChecked)
-                && blockInModel)
-            {
-                nullChecksToPrepend = GenerateNullChecksForParameters(memberModel.MemberSymbol.GetParameters(), syntax);
-            }
+            var parameters = (_semanticModel as MemberSemanticModel)?.MemberSymbol.GetParameters() ?? ImmutableArray<ParameterSymbol>.Empty;
+            var nullChecksToPrepend = GenerateNullChecksForParameters(parameters, syntax);
             return new CSharpLazyBlockOperation(this, boundBlock, locals, nullChecksToPrepend, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
