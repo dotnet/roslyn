@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var ifNode = await context.TryGetSelectedNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
-
-            if (ifNode == null || ifNode.OverlapsHiddenPosition(cancellationToken))
+            if (ifNode == null)
             {
                 return;
             }

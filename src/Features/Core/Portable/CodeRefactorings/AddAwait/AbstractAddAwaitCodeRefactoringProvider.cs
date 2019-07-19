@@ -49,11 +49,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindTokenOnLeftOfPosition(textSpan.Start);
 
-            if (awaitable.OverlapsHiddenPosition(cancellationToken))
-            {
-                return;
-            }
-
             context.RegisterRefactoring(
                 new MyCodeAction(
                     GetTitle(),
