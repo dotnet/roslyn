@@ -601,12 +601,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool Equals(ISymbol other)
         {
-            return this.Equals(other, SymbolEqualityComparer.Default);
+            return this.Equals(other, SymbolEqualityComparer.Default.CompareKind);
         }
 
         public bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
         {
             return equalityComparer.Equals(this, other);
+        }
+
+        // By default we don't consider the compareKind. This can be overridden.
+        public virtual bool Equals(ISymbol other, TypeCompareKind compareKind)
+        {
+            return this.Equals((object)other);
         }
 
         // By default, we do reference equality. This can be overridden.

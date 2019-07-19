@@ -18,7 +18,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend MustInherit Class TypeSymbol
         Inherits NamespaceOrTypeSymbol
         Implements ITypeSymbol
-        Implements ITypeComparable
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version of Symbol.
@@ -337,7 +336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return left.IsSameType(right, comparison)
         End Function
 
-        Public Overloads Function Equals(other As ISymbol, comparison As TypeCompareKind) As Boolean Implements ITypeComparable.Equals
+        Public Overloads Function Equals(other As ISymbol, comparison As TypeCompareKind) As Boolean
             Dim typeSymbol As TypeSymbol = TryCast(other, TypeSymbol)
             If typeSymbol Is Nothing Then
                 Return False

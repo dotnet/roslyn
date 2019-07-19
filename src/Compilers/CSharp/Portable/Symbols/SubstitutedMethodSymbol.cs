@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     // C<X> is a ConstructedTypeSymbol.
     // C<X>.M<> is a SubstitutedMethodSymbol. It has parameters of types X and U.
     // C<X>.M<Y> is a ConstructedMethodSymbol.
-    internal class SubstitutedMethodSymbol : WrappedMethodSymbol, ITypeComparable
+    internal class SubstitutedMethodSymbol : WrappedMethodSymbol
     {
         private readonly NamedTypeSymbol _containingType;
         private readonly MethodSymbol _underlyingMethod;
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return SymbolEqualityComparer.Default.Equals(this, obj as SubstitutedMethodSymbol);
         }
 
-        bool ITypeComparable.Equals(ISymbol obj, TypeCompareKind compareKind)
+        public override bool Equals(ISymbol obj, TypeCompareKind compareKind)
         {
             SubstitutedMethodSymbol other = obj as SubstitutedMethodSymbol;
             if ((object)other == null) return false;

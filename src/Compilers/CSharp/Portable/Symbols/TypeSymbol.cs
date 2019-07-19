@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// A TypeSymbol is a base class for all the symbols that represent a type
     /// in C#.
     /// </summary>
-    internal abstract partial class TypeSymbol : NamespaceOrTypeSymbol, ITypeSymbol, ITypeComparable
+    internal abstract partial class TypeSymbol : NamespaceOrTypeSymbol, ITypeSymbol
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version.
@@ -313,10 +313,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var t2 = obj as TypeSymbol;
             if ((object)t2 == null) return false;
-            return this.Equals(t2, SymbolEqualityComparer.Default);
+            return this.Equals(t2, SymbolEqualityComparer.Default.CompareKind, isValueTypeOverrideOpt: null);
         }
 
-        bool ITypeComparable.Equals(ISymbol other, TypeCompareKind compareKind)
+        public override bool Equals(ISymbol other, TypeCompareKind compareKind)
         {
             var t2 = other as TypeSymbol;
             if (t2 is null)

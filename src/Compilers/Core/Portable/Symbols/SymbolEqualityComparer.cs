@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -23,11 +24,11 @@ namespace Microsoft.CodeAnalysis
         // Internal only comparisons:
         internal readonly static SymbolEqualityComparer ConsiderEverything = new SymbolEqualityComparer(TypeCompareKind.ConsiderEverything);
 
-        private readonly TypeCompareKind _compareKind;
+        internal TypeCompareKind CompareKind { get; }
 
         private SymbolEqualityComparer(TypeCompareKind compareKind)
         {
-            _compareKind = compareKind;
+            CompareKind = compareKind;
         }
 
         /// <summary>
@@ -46,9 +47,9 @@ namespace Microsoft.CodeAnalysis
             {
                 return true;
             }
-            else if (x is ITypeComparable tx)
+            else if (x is ISymbolInternal sx)
             {
-                return tx.Equals(y, _compareKind);
+                return sx.Equals(y, CompareKind);
             }
             else
             {
