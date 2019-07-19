@@ -1436,7 +1436,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ArrayBuilder<ConditionalOperation> ifList = null;
             foreach (var param in parameters)
             {
-                if (LocalRewriter.GetParameterIsNullChecked(param))
+                if (param.IsNullChecked)
                 {
                     IOperation conditionOp;
                     ifList ??= ArrayBuilder<ConditionalOperation>.GetInstance();

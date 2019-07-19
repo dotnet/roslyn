@@ -40,18 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             statementList.AddRange(existingStatements);
             return statementList.ToImmutableAndFree();
-
-        }
-
-        internal static bool GetParameterIsNullChecked(ParameterSymbol x)
-        {
-            if (x is SourceParameterSymbolBase param && param.IsNullChecked)
-                return true;
-
-            else if (x is SynthesizedParameterSymbolBase synthedParam && synthedParam.IsNullChecked)
-                return true;
-
-            return false;
         }
 
         private static BoundStatement ConstructIfStatementForParameter(ParameterSymbol parameter, SyntheticBoundNodeFactory factory)
