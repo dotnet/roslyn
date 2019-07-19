@@ -88,11 +88,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     testPosition = tokenLeftOfType.Parent.SpanStart;
                     tokenLeftOfType = syntaxTree.FindTokenOnLeftOfPosition(testPosition, cancellationToken);
                 }
-                MoveTestPositionIfRefType(tokenLeftOfType, ref testPosition);
+                testPosition = GetTestPositionForRefType(tokenLeftOfType, testPosition);
             }
             else
             {
-                MoveTestPositionIfRefType(prevToken, ref testPosition);
+                testPosition = GetTestPositionForRefType(prevToken, testPosition);
             }
 
             if ((!prevToken.IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword) &&
@@ -107,12 +107,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             return false;
 
-            static void MoveTestPositionIfRefType(SyntaxToken tokenLeftOfType, ref int testPosition)
+            static int GetTestPositionForRefType(SyntaxToken tokenLeftOfType, int testPosition)
             {
                 if (tokenLeftOfType.IsKind(SyntaxKind.RefKeyword, SyntaxKind.ReadOnlyKeyword) && tokenLeftOfType.Parent.IsKind(SyntaxKind.RefType))
                 {
-                    testPosition = tokenLeftOfType.Parent.SpanStart;
+                    return tokenLeftOfType.Parent.SpanStart;
                 }
+
+                return testPosition;
             }
         }
     }

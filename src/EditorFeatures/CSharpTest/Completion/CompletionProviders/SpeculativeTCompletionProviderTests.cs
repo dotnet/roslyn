@@ -351,6 +351,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37361"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
         public async Task InTuple0()
         {
             var markup = @"
@@ -364,6 +365,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
         public async Task InTupleNot0()
         {
             var markup = @"
@@ -377,6 +379,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37361"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
         public async Task InTuple1()
         {
             var markup = @"
@@ -390,6 +393,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
         public async Task InTupleNot1()
         {
             var markup = @"
@@ -403,6 +407,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37361"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
         public async Task InTupleGeneric0()
         {
             var markup = @"
@@ -416,6 +421,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37361"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
         public async Task InTupleGeneric1()
         {
             var markup = @"
@@ -429,6 +435,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37361"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
         public async Task InTupleGeneric2()
         {
             var markup = @"
@@ -442,6 +449,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37361"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
         public async Task InGenericTuple0()
         {
             var markup = @"
@@ -455,6 +463,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37361"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
         public async Task InGenericTuple1()
         {
             var markup = @"
@@ -468,6 +477,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
         public async Task InGenericTuple1Not()
         {
             var markup = @"
@@ -481,6 +491,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37361"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
         public async Task InGenericTuple2()
         {
             var markup = @"
@@ -494,6 +505,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
         public async Task InGenericTuple2Not()
         {
             var markup = @"
@@ -507,6 +519,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37361"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
         public async Task InGenericTuple3()
         {
             var markup = @"
@@ -520,6 +533,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
         public async Task InGenericTuple3Not()
         {
             var markup = @"
@@ -533,6 +547,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37361"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
         public async Task InRefTupleQualifiedNestedGeneric0()
         {
             var markup = @"
@@ -546,6 +561,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37361"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
         public async Task InRefTupleQualifiedNestedGeneric1()
         {
             var markup = @"
@@ -559,6 +575,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37361"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
         public async Task InRefTupleQualifiedNestedGeneric2()
         {
             var markup = @"
@@ -572,6 +589,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37361"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
         public async Task InRefTupleQualifiedNestedGeneric3()
         {
             var markup = @"
@@ -585,6 +603,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37361"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
         public async Task InRefTupleQualifiedNestedGeneric4()
         {
             var markup = @"
@@ -598,6 +617,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37361"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37361, "https://github.com/dotnet/roslyn/issues/37361")]
         public async Task InRefTupleQualifiedNestedGeneric5()
         {
             var markup = @"
