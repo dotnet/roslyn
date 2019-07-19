@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // that were found to be relevant for refactorings that were moved to `TryGetSelectedNodeAsync`.
             // Feel free to extend it / refine current heuristics. 
 
-            // `var a = b`;
+            // `var a = b;`
             if (syntaxFacts.IsLocalDeclarationStatement(node))
             {
                 // Check if there's only one variable being declared, otherwise following transformation
