@@ -43,27 +43,25 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 return null;
             }
 
-            using (var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, searchCap, cancellationToken))
+            using var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, searchCap, cancellationToken);
+            try
             {
-                try
-                {
-                    await SymbolFinder.FindReferencesAsync(symbol, solution, progress, null,
-                        progress.CancellationToken).ConfigureAwait(false);
+                await SymbolFinder.FindReferencesAsync(symbol, solution, progress, null,
+                    progress.CancellationToken).ConfigureAwait(false);
 
-                    return await onResults(progress).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
+                return await onResults(progress).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                if (onCapped != null && progress.SearchCapReached)
                 {
-                    if (onCapped != null && progress.SearchCapReached)
-                    {
-                        // search was cancelled, and it was cancelled by us because a cap was reached.
-                        return await onCapped(progress).ConfigureAwait(false);
-                    }
-
-                    // search was cancelled, but not because of cap.
-                    // this always throws.
-                    throw;
+                    // search was cancelled, and it was cancelled by us because a cap was reached.
+                    return await onCapped(progress).ConfigureAwait(false);
                 }
+
+                // search was cancelled, but not because of cap.
+                // this always throws.
+                throw;
             }
         }
 

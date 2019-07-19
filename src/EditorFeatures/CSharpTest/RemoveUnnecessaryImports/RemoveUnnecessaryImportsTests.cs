@@ -178,11 +178,9 @@ class Program
         List<int> d;
     }}
 }}|]";
-            using (var workspace = CreateWorkspaceFromOptions(markup, parameters: default))
-            {
-                var diagnostics = await GetDiagnosticsAsync(workspace, parameters: default);
-                Assert.Equal(diagnosticCount, diagnostics.Count(diagnostic => diagnostic.Id.Equals(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId)));
-            }
+            using var workspace = CreateWorkspaceFromOptions(markup, parameters: default);
+            var diagnostics = await GetDiagnosticsAsync(workspace, parameters: default);
+            Assert.Equal(diagnosticCount, diagnostics.Count(diagnostic => diagnostic.Id.Equals(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]

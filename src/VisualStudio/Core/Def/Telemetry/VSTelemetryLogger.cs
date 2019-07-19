@@ -29,8 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         public void Log(FunctionId functionId, LogMessage logMessage)
         {
-            var kvLogMessage = logMessage as KeyValueLogMessage;
-            if (kvLogMessage == null)
+            if (!(logMessage is KeyValueLogMessage kvLogMessage))
             {
                 return;
             }
@@ -54,8 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int blockId, CancellationToken cancellationToken)
         {
-            var kvLogMessage = logMessage as KeyValueLogMessage;
-            if (kvLogMessage == null)
+            if (!(logMessage is KeyValueLogMessage kvLogMessage))
             {
                 return;
             }
@@ -72,8 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int blockId, int delta, CancellationToken cancellationToken)
         {
-            var kvLogMessage = logMessage as KeyValueLogMessage;
-            if (kvLogMessage == null)
+            if (!(logMessage is KeyValueLogMessage kvLogMessage))
             {
                 return;
             }

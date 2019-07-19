@@ -53,47 +53,43 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 
         private static void TestHandled(string inputMarkup, string expectedOutputMarkup)
         {
-            using (var workspace = CreateTestWorkspace(inputMarkup))
-            {
-                var (quoteCharSnapshotText, quoteCharCaretPosition) = TypeQuoteChar(workspace);
-                var view = workspace.Documents.Single().GetTextView();
+            using var workspace = CreateTestWorkspace(inputMarkup);
+            var (quoteCharSnapshotText, quoteCharCaretPosition) = TypeQuoteChar(workspace);
+            var view = workspace.Documents.Single().GetTextView();
 
-                MarkupTestFile.GetSpans(expectedOutputMarkup,
-                    out var expectedOutput, out ImmutableArray<TextSpan> expectedSpans);
+            MarkupTestFile.GetSpans(expectedOutputMarkup,
+                out var expectedOutput, out ImmutableArray<TextSpan> expectedSpans);
 
-                Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.GetText());
-                Assert.Equal(expectedSpans.Single().Start, view.Caret.Position.BufferPosition.Position);
+            Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedSpans.Single().Start, view.Caret.Position.BufferPosition.Position);
 
-                var history = workspace.GetService<ITextUndoHistoryRegistry>().GetHistory(view.TextBuffer);
-                history.Undo(count: 1);
+            var history = workspace.GetService<ITextUndoHistoryRegistry>().GetHistory(view.TextBuffer);
+            history.Undo(count: 1);
 
-                // Ensure that after undo, the ordering fix is undone but the quote remains inserted
-                Assert.Equal(quoteCharSnapshotText, view.TextBuffer.CurrentSnapshot.GetText());
-                Assert.Equal(quoteCharCaretPosition, view.Caret.Position.BufferPosition.Position);
-            }
+            // Ensure that after undo, the ordering fix is undone but the quote remains inserted
+            Assert.Equal(quoteCharSnapshotText, view.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(quoteCharCaretPosition, view.Caret.Position.BufferPosition.Position);
         }
 
         private static void TestNotHandled(string inputMarkup)
         {
-            using (var workspace = CreateTestWorkspace(inputMarkup))
-            {
-                var originalView = workspace.Documents.Single().GetTextView();
-                var originalSnapshotText = originalView.TextBuffer.CurrentSnapshot.GetText();
-                var originalCaretPosition = originalView.Caret.Position.BufferPosition.Position;
+            using var workspace = CreateTestWorkspace(inputMarkup);
+            var originalView = workspace.Documents.Single().GetTextView();
+            var originalSnapshotText = originalView.TextBuffer.CurrentSnapshot.GetText();
+            var originalCaretPosition = originalView.Caret.Position.BufferPosition.Position;
 
-                var (quoteCharSnapshotText, quoteCharCaretPosition) = TypeQuoteChar(workspace);
-                var view = workspace.Documents.Single().GetTextView();
+            var (quoteCharSnapshotText, quoteCharCaretPosition) = TypeQuoteChar(workspace);
+            var view = workspace.Documents.Single().GetTextView();
 
-                Assert.Equal(quoteCharSnapshotText, view.TextBuffer.CurrentSnapshot.GetText());
-                Assert.Equal(quoteCharCaretPosition, view.Caret.Position.BufferPosition.Position);
+            Assert.Equal(quoteCharSnapshotText, view.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(quoteCharCaretPosition, view.Caret.Position.BufferPosition.Position);
 
-                var history = workspace.GetService<ITextUndoHistoryRegistry>().GetHistory(view.TextBuffer);
-                history.Undo(count: 1);
+            var history = workspace.GetService<ITextUndoHistoryRegistry>().GetHistory(view.TextBuffer);
+            history.Undo(count: 1);
 
-                // Ensure that after undo, the quote is removed because the command made no changes
-                Assert.Equal(originalSnapshotText, view.TextBuffer.CurrentSnapshot.GetText());
-                Assert.Equal(originalCaretPosition, view.Caret.Position.BufferPosition.Position);
-            }
+            // Ensure that after undo, the quote is removed because the command made no changes
+            Assert.Equal(originalSnapshotText, view.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(originalCaretPosition, view.Caret.Position.BufferPosition.Position);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]

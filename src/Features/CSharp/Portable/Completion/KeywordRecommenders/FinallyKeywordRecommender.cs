@@ -13,9 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         }
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            var syntaxTree = context.SyntaxTree;
-            return syntaxTree.IsCatchOrFinallyContext(position, context.LeftToken, cancellationToken);
-        }
+            => context.SyntaxTree.IsCatchOrFinallyContext(position, context.LeftToken);
     }
 }

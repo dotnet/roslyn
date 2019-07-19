@@ -30,8 +30,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static string GetExceptionMessage(Exception exception)
         {
-            var fileNotFoundException = exception as FileNotFoundException;
-            if (fileNotFoundException == null)
+            if (!(exception is FileNotFoundException fileNotFoundException))
             {
                 return exception.ToString();
             }

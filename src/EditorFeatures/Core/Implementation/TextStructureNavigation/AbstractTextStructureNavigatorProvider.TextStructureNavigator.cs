@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                     return new TextExtent(new SnapshotSpan(line.End, line.EndIncludingLineBreak - line.End), isSignificant: false);
                 }
 
-                var document = GetDocument(position, cancellationToken);
+                var document = GetDocument(position);
                 if (document != null)
                 {
                     var root = document.GetSyntaxRootSynchronously(cancellationToken);
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 return node == null ? activeSpan : node.Value.Span.ToSnapshotSpan(activeSpan.Snapshot);
             }
 
-            private Document GetDocument(SnapshotPoint point, CancellationToken cancellationToken)
+            private Document GetDocument(SnapshotPoint point)
             {
                 var textLength = point.Snapshot.Length;
                 if (textLength == 0)
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
             /// </summary>
             private bool TryFindLeafToken(SnapshotPoint point, out SyntaxToken token, CancellationToken cancellationToken)
             {
-                var syntaxTree = GetDocument(point, cancellationToken).GetSyntaxTreeSynchronously(cancellationToken);
+                var syntaxTree = GetDocument(point).GetSyntaxTreeSynchronously(cancellationToken);
                 if (syntaxTree != null)
                 {
                     token = syntaxTree.GetRoot(cancellationToken).FindToken(point, true);

@@ -68,13 +68,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         public SourceText CreateText(TextReader reader, Encoding encoding, CancellationToken cancellationToken = default)
         {
             // this API is for a case where user just wants to create a source text with explicit encoding.
-            var buffer = CreateTextBuffer(reader, cancellationToken);
+            var buffer = CreateTextBuffer(reader);
 
             // use the given encoding as it is.
             return buffer.CurrentSnapshot.AsRoslynText(_textBufferCloneService, encoding);
         }
 
-        private ITextBuffer CreateTextBuffer(TextReader reader, CancellationToken cancellationToken = default)
+        private ITextBuffer CreateTextBuffer(TextReader reader)
         {
             return _textBufferFactory.CreateTextBuffer(reader, _unknownContentType);
         }
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 
             using var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true);
 
-            var buffer = CreateTextBuffer(reader, cancellationToken);
+            var buffer = CreateTextBuffer(reader);
             return buffer.CurrentSnapshot.AsRoslynText(_textBufferCloneService, reader.CurrentEncoding ?? Encoding.UTF8);
         }
     }

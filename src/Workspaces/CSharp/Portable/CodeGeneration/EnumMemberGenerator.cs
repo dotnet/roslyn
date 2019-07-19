@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             var namedType = enumMember.Type as INamedTypeSymbol;
-            var underlyingType = namedType != null ? namedType.EnumUnderlyingType : null;
+            var underlyingType = namedType?.EnumUnderlyingType;
 
             return ExpressionGenerator.GenerateNonEnumValueExpression(
                 underlyingType,

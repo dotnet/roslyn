@@ -185,8 +185,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public override bool Equals(object obj)
             {
-                var other = obj as HostArgsId;
-                if (other == null)
+                if (!(obj is HostArgsId other))
                 {
                     return false;
                 }

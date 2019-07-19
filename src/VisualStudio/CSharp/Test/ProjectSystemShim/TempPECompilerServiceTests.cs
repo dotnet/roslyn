@@ -16,24 +16,22 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
         {
             var tempPEService = new TempPECompilerService(new TrivialMetadataService());
 
-            using (var tempRoot = new TempRoot())
-            {
-                var directory = tempRoot.CreateDirectory();
+            using var tempRoot = new TempRoot();
+            var directory = tempRoot.CreateDirectory();
 
-                // This should not crash. Visual inspection of the Dev12 codebase implied we might return
-                // S_FALSE in this case, but it wasn't very clear. In any case, it's not expected to throw,m
-                // so S_FALSE seems fine.
-                var hr = tempPEService.CompileTempPE(
-                    pszOutputFileName: Path.Combine(directory.Path, "Output.dll"),
-                    sourceCount: 0,
-                    fileNames: Array.Empty<string>(),
-                    fileContents: Array.Empty<string>(),
-                    optionCount: 1,
-                    optionNames: new[] { "r" },
-                    optionValues: new[] { Path.Combine(directory.Path, "MissingReference.dll") });
+            // This should not crash. Visual inspection of the Dev12 codebase implied we might return
+            // S_FALSE in this case, but it wasn't very clear. In any case, it's not expected to throw,m
+            // so S_FALSE seems fine.
+            var hr = tempPEService.CompileTempPE(
+                pszOutputFileName: Path.Combine(directory.Path, "Output.dll"),
+                sourceCount: 0,
+                fileNames: Array.Empty<string>(),
+                fileContents: Array.Empty<string>(),
+                optionCount: 1,
+                optionNames: new[] { "r" },
+                optionValues: new[] { Path.Combine(directory.Path, "MissingReference.dll") });
 
-                Assert.Equal(VSConstants.S_FALSE, hr);
-            }
+            Assert.Equal(VSConstants.S_FALSE, hr);
         }
 
         private class TrivialMetadataService : IMetadataService

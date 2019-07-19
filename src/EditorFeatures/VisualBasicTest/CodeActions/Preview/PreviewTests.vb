@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             End Function
 
             Private Class MyCodeAction : Inherits CodeAction
-                Private _oldDocument As Document
+                Private ReadOnly _oldDocument As Document
 
                 Public Sub New(oldDocument As Document)
                     Me._oldDocument = oldDocument

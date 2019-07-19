@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
         private TokenInfo _lastTokenInfo;
 
-        public ImmutableArray<TodoCommentDescriptor> GetTokens(Document document, CancellationToken cancellationToken)
+        public ImmutableArray<TodoCommentDescriptor> GetTokens(Document document)
         {
             var optionText = document.Project.Solution.Options.GetOption(TodoCommentOptions.TokenList);
 

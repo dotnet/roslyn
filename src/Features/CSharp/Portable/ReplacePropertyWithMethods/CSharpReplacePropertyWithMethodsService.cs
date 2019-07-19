@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             string desiredSetMethodName,
             CancellationToken cancellationToken)
         {
-            var propertyDeclaration = propertyDeclarationNode as PropertyDeclarationSyntax;
-            if (propertyDeclaration == null)
+            if (!(propertyDeclarationNode is PropertyDeclarationSyntax propertyDeclaration))
             {
                 return SpecializedCollections.EmptyList<SyntaxNode>();
             }

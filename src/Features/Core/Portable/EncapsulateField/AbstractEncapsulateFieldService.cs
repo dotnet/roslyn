@@ -118,10 +118,9 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var compilation = semanticModel.Compilation;
-                var currentField = field.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as IFieldSymbol;
 
                 // We couldn't resolve this field. skip it
-                if (currentField == null)
+                if (!(field.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol is IFieldSymbol currentField))
                 {
                     failedFieldSymbols.Add(field);
                     continue;

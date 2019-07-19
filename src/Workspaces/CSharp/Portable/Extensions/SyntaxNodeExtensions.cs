@@ -521,9 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static SyntaxNode GetParent(this SyntaxNode node)
-        {
-            return node != null ? node.Parent : null;
-        }
+            => node?.Parent;
 
         public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetParentheses(this SyntaxNode node)
         {

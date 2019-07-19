@@ -34,45 +34,43 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             bool verifyUndo = true,
             IndentStyle indentStyle = IndentStyle.Smart)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(inputMarkup))
+            using var workspace = TestWorkspace.CreateCSharp(inputMarkup);
+            workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
+
+            var document = workspace.Documents.Single();
+            var view = document.GetTextView();
+
+            var originalSnapshot = view.TextBuffer.CurrentSnapshot;
+            var originalSelection = document.SelectedSpans.Single();
+            view.SetSelection(originalSelection.ToSnapshotSpan(originalSnapshot));
+
+            var undoHistoryRegistry = workspace.GetService<ITextUndoHistoryRegistry>();
+            var commandHandler = new SplitStringLiteralCommandHandler(
+                undoHistoryRegistry,
+                workspace.GetService<IEditorOperationsFactoryService>());
+
+            if (!commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create()))
             {
-                workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
+                callback();
+            }
 
-                var document = workspace.Documents.Single();
-                var view = document.GetTextView();
+            if (expectedOutputMarkup != null)
+            {
+                MarkupTestFile.GetSpans(expectedOutputMarkup,
+                    out var expectedOutput, out ImmutableArray<TextSpan> expectedSpans);
 
-                var originalSnapshot = view.TextBuffer.CurrentSnapshot;
-                var originalSelection = document.SelectedSpans.Single();
-                view.SetSelection(originalSelection.ToSnapshotSpan(originalSnapshot));
+                Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.AsText().ToString());
+                Assert.Equal(expectedSpans.Single().Start, view.Caret.Position.BufferPosition.Position);
 
-                var undoHistoryRegistry = workspace.GetService<ITextUndoHistoryRegistry>();
-                var commandHandler = new SplitStringLiteralCommandHandler(
-                    undoHistoryRegistry,
-                    workspace.GetService<IEditorOperationsFactoryService>());
-
-                if (!commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create()))
+                if (verifyUndo)
                 {
-                    callback();
-                }
+                    // Ensure that after undo we go back to where we were to begin with.
+                    var history = undoHistoryRegistry.GetHistory(document.TextBuffer);
+                    history.Undo(count: 1);
 
-                if (expectedOutputMarkup != null)
-                {
-                    MarkupTestFile.GetSpans(expectedOutputMarkup,
-                        out var expectedOutput, out ImmutableArray<TextSpan> expectedSpans);
-
-                    Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.AsText().ToString());
-                    Assert.Equal(expectedSpans.Single().Start, view.Caret.Position.BufferPosition.Position);
-
-                    if (verifyUndo)
-                    {
-                        // Ensure that after undo we go back to where we were to begin with.
-                        var history = undoHistoryRegistry.GetHistory(document.TextBuffer);
-                        history.Undo(count: 1);
-
-                        var currentSnapshot = document.TextBuffer.CurrentSnapshot;
-                        Assert.Equal(originalSnapshot.GetText(), currentSnapshot.GetText());
-                        Assert.Equal(originalSelection.Start, view.Caret.Position.BufferPosition.Position);
-                    }
+                    var currentSnapshot = document.TextBuffer.CurrentSnapshot;
+                    Assert.Equal(originalSnapshot.GetText(), currentSnapshot.GetText());
+                    Assert.Equal(originalSelection.Start, view.Caret.Position.BufferPosition.Position);
                 }
             }
         }

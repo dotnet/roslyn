@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Only supported on classes/structs.
-            var containingType = GetEnclosingNamedType(semanticModel, root, textSpan.Start, cancellationToken);
+            var containingType = GetEnclosingNamedType(semanticModel, root, textSpan.Start);
             if (containingType?.TypeKind != TypeKind.Class && containingType?.TypeKind != TypeKind.Struct)
             {
                 return;

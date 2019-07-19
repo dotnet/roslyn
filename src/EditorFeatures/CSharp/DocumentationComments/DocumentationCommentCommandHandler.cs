@@ -103,11 +103,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 
         protected override List<string> GetDocumentationCommentStubLines(MemberDeclarationSyntax member)
         {
-            var list = new List<string>();
-
-            list.Add("/// <summary>");
-            list.Add("/// ");
-            list.Add("/// </summary>");
+            var list = new List<string>
+            {
+                "/// <summary>",
+                "/// ",
+                "/// </summary>"
+            };
 
             var typeParameterList = member.GetTypeParameterList();
             if (typeParameterList != null)
@@ -194,8 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
                 return false;
             }
 
-            var xmlText = documentationComment.Content[0] as XmlTextSyntax;
-            if (xmlText == null)
+            if (!(documentationComment.Content[0] is XmlTextSyntax xmlText))
             {
                 return false;
             }
@@ -258,8 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
                 return false;
             }
 
-            var xmlText = documentationComment.Content.LastOrDefault() as XmlTextSyntax;
-            if (xmlText == null)
+            if (!(documentationComment.Content.LastOrDefault() is XmlTextSyntax xmlText))
             {
                 return false;
             }

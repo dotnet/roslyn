@@ -57,9 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             private void AddOrRemoveDropdown(bool enabled)
             {
-                var dropdownManager = _codeWindow as IVsDropdownBarManager;
-
-                if (dropdownManager == null)
+                if (!(_codeWindow is IVsDropdownBarManager dropdownManager))
                 {
                     return;
                 }

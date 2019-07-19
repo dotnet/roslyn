@@ -91,9 +91,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var semanticModel = context.SemanticModel;
 
-            var containingSymbol = declaredSymbol.ContainingSymbol as INamespaceOrTypeSymbol;
 
-            if (containingSymbol == null)
+            if (!(declaredSymbol.ContainingSymbol is INamespaceOrTypeSymbol containingSymbol))
             {
                 return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
             }

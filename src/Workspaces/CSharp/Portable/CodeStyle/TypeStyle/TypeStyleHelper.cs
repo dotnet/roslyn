@@ -118,8 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
                 return false;
             }
 
-            var methodSymbol = semanticModel.GetSymbolInfo(memberName, cancellationToken).Symbol as IMethodSymbol;
-            if (methodSymbol == null)
+            if (!(semanticModel.GetSymbolInfo(memberName, cancellationToken).Symbol is IMethodSymbol methodSymbol))
             {
                 return false;
             }
@@ -147,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             var containingType = semanticModel.GetTypeInfo(containingTypeName, cancellationToken).Type;
 
             return IsPossibleCreationMethod(methodSymbol, typeInDeclaration, containingType)
-                || IsPossibleConversionMethod(methodSymbol, typeInDeclaration, containingType, semanticModel, cancellationToken);
+                || IsPossibleConversionMethod(methodSymbol, typeInDeclaration, containingType, semanticModel);
         }
 
         /// <summary>
@@ -173,8 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
         private static bool IsPossibleConversionMethod(IMethodSymbol methodSymbol,
             ITypeSymbol typeInDeclaration,
             ITypeSymbol containingType,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
+            SemanticModel semanticModel)
         {
             var returnType = methodSymbol.ReturnType;
             var returnTypeName = returnType.IsNullable()
@@ -266,9 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 
         public static bool IsPredefinedType(TypeSyntax type)
         {
-            var predefinedType = type as PredefinedTypeSyntax;
-
-            return predefinedType != null
+            return type is PredefinedTypeSyntax predefinedType
                 ? SyntaxFacts.IsPredefinedType(predefinedType.Keyword.Kind())
                 : false;
         }

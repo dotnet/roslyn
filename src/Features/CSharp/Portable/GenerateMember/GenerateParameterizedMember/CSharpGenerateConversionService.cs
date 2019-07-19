@@ -148,8 +148,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
         {
             methodSymbol = null;
             typeToGenerateIn = document.SemanticModel.GetTypeInfo(castExpression.Type, cancellationToken).Type as INamedTypeSymbol;
-            var parameterSymbol = document.SemanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type as INamedTypeSymbol;
-            if (typeToGenerateIn == null || parameterSymbol == null || typeToGenerateIn.IsErrorType() || parameterSymbol.IsErrorType())
+            if (typeToGenerateIn == null
+                || !(document.SemanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type is INamedTypeSymbol parameterSymbol)
+                || typeToGenerateIn.IsErrorType()
+                || parameterSymbol.IsErrorType())
             {
                 return false;
             }
@@ -160,8 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
                     document.Project.Solution,
                     typeToGenerateIn,
                     true,
-                    classInterfaceModuleStructTypes,
-                    cancellationToken))
+                    classInterfaceModuleStructTypes))
             {
                 typeToGenerateIn = parameterSymbol;
             }
@@ -179,8 +180,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
         {
             methodSymbol = null;
             typeToGenerateIn = document.SemanticModel.GetTypeInfo(expression, cancellationToken).ConvertedType as INamedTypeSymbol;
-            var parameterSymbol = document.SemanticModel.GetTypeInfo(expression, cancellationToken).Type as INamedTypeSymbol;
-            if (typeToGenerateIn == null || parameterSymbol == null || typeToGenerateIn.IsErrorType() || parameterSymbol.IsErrorType())
+            if (typeToGenerateIn == null
+                || !(document.SemanticModel.GetTypeInfo(expression, cancellationToken).Type is INamedTypeSymbol parameterSymbol)
+                || typeToGenerateIn.IsErrorType()
+                || parameterSymbol.IsErrorType())
             {
                 return false;
             }
@@ -191,8 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
                     document.Project.Solution,
                     typeToGenerateIn,
                     true,
-                    classInterfaceModuleStructTypes,
-                    cancellationToken))
+                    classInterfaceModuleStructTypes))
             {
                 typeToGenerateIn = parameterSymbol;
             }

@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             foreach (var (_, items) in groupedItems)
             {
                 TItem firstItem = null;
-                bool hasSingle = true;
+                var hasSingle = true;
 
                 foreach (var item in items)
                 {

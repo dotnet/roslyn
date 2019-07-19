@@ -33,14 +33,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     if (root != null)
                     {
-                        using (var key = root.OpenSubKey("Performance"))
+                        using var key = root.OpenSubKey("Performance");
+                        const string name = "SustainedLowLatencyDuration";
+                        if (key != null && key.GetValue(name) != null && key.GetValueKind(name) == Microsoft.Win32.RegistryValueKind.DWord)
                         {
-                            const string name = "SustainedLowLatencyDuration";
-                            if (key != null && key.GetValue(name) != null && key.GetValueKind(name) == Microsoft.Win32.RegistryValueKind.DWord)
-                            {
-                                s_delayMilliseconds = (int)key.GetValue(name, s_delayMilliseconds);
-                                return;
-                            }
+                            s_delayMilliseconds = (int)key.GetValue(name, s_delayMilliseconds);
+                            return;
                         }
                     }
                 }

@@ -1101,18 +1101,16 @@ class MyClass
             var exportProviderWithoutOptionsService = ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(typeof(IMoveToNamespaceOptionsService)));
 
-            using (var workspace = CreateWorkspaceFromFile(code, new TestParameters(), exportProviderWithoutOptionsService))
-            using (var testState = new TestState(workspace))
-            {
-                Assert.Null(testState.TestMoveToNamespaceOptionsService);
+            using var workspace = CreateWorkspaceFromFile(code, new TestParameters(), exportProviderWithoutOptionsService);
+            using var testState = new TestState(workspace);
+            Assert.Null(testState.TestMoveToNamespaceOptionsService);
 
-                var actions = await testState.MoveToNamespaceService.GetCodeActionsAsync(
-                    testState.InvocationDocument,
-                    testState.TestInvocationDocument.SelectedSpans.Single(),
-                    CancellationToken.None);
+            var actions = await testState.MoveToNamespaceService.GetCodeActionsAsync(
+                testState.InvocationDocument,
+                testState.TestInvocationDocument.SelectedSpans.Single(),
+                CancellationToken.None);
 
-                Assert.Empty(actions);
-            }
+            Assert.Empty(actions);
         }
     }
 }

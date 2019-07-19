@@ -102,13 +102,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // later in this call chain, do not await them.
                 SourceProvider.WaitIndicator.Wait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true, action: waitContext =>
                 {
-                    using (var combinedCancellationToken = cancellationToken.CombineWith(waitContext.CancellationToken))
+                    using var combinedCancellationToken = cancellationToken.CombineWith(waitContext.CancellationToken);
+                    InnerInvoke(waitContext.ProgressTracker, combinedCancellationToken.Token);
+                    foreach (var actionCallback in SourceProvider.ActionCallbacks)
                     {
-                        InnerInvoke(waitContext.ProgressTracker, combinedCancellationToken.Token);
-                        foreach (var actionCallback in SourceProvider.ActionCallbacks)
-                        {
-                            actionCallback.Value.OnSuggestedActionExecuted(this);
-                        }
+                        actionCallback.Value.OnSuggestedActionExecuted(this);
                     }
                 });
             }

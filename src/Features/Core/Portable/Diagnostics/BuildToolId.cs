@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public override bool Equals(object obj)
             {
-                var other = obj as Base<T>;
-                if (other == null)
+                if (!(obj is Base<T> other))
                 {
                     return false;
                 }
@@ -48,8 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public override bool Equals(object obj)
             {
-                var other = obj as Base<T1, T2>;
-                if (other == null)
+                if (!(obj is Base<T1, T2> other))
                 {
                     return false;
                 }

@@ -13,21 +13,19 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         public static string ExtractXMLFragment(string input, string docCommentPrefix)
         {
-            using (var reader = new StringReader(input))
-            using (var list = s_pool.GetPooledObject())
+            using var reader = new StringReader(input);
+            using var list = s_pool.GetPooledObject();
+            while (reader.ReadLine() is string str)
             {
-                while (reader.ReadLine() is string str)
+                if (str.StartsWith(docCommentPrefix, StringComparison.Ordinal))
                 {
-                    if (str.StartsWith(docCommentPrefix, StringComparison.Ordinal))
-                    {
-                        str = str.Substring(docCommentPrefix.Length);
-                    }
-
-                    list.Object.Add(str);
+                    str = str.Substring(docCommentPrefix.Length);
                 }
 
-                return string.Join("\r\n", list.Object);
+                list.Object.Add(str);
             }
+
+            return string.Join("\r\n", list.Object);
         }
     }
 }

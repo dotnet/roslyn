@@ -80,11 +80,10 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using (var writer = new ObjectWriter(stream))
                 {
-                    var info = DiagnosticResultSerializer.Serialize(writer, result, cancellationToken);
+                    var (diagnostics, telemetry, exceptions) = DiagnosticResultSerializer.Serialize(writer, result, cancellationToken);
 
                     // save log for debugging
-                    Log(TraceEventType.Information, $"diagnostics: {info.diagnostics}, telemetry: {info.telemetry}, exceptions: {info.exceptions}");
-
+                    Log(TraceEventType.Information, $"diagnostics: {diagnostics}, telemetry: {telemetry}, exceptions: {exceptions}");
                 }
 
                 await stream.FlushAsync(cancellationToken).ConfigureAwait(false);

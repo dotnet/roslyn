@@ -912,10 +912,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (initialText != null)
             {
-                using (var writer = new StreamWriter(filePath, append: false, encoding: initialText.Encoding ?? Encoding.UTF8))
-                {
-                    initialText.Write(writer);
-                }
+                using var writer = new StreamWriter(filePath, append: false, encoding: initialText.Encoding ?? Encoding.UTF8);
+                initialText.Write(writer);
             }
 
             // TODO: restore document ID hinting -- we previously ensured that the AddFromFile will introduce the document ID being used here.
@@ -1077,8 +1075,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // OpenDocumentViaProject itself relies upon this QI working, so it should be OK to
                 // use here.
 
-                var vsProject = hierarchy as IVsProject;
-                return vsProject != null &&
+                return hierarchy is IVsProject vsProject &&
                     ErrorHandler.Succeeded(vsProject.OpenItem(itemId, VSConstants.LOGVIEWID.TextView_guid, s_docDataExisting_Unknown, out frame));
             }
         }
@@ -1143,10 +1140,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 // The document wasn't open in a normal way, so invisible editor time
-                using (var invisibleEditor = OpenInvisibleEditor(documentId))
-                {
-                    TextEditApplication.UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
-                }
+                using var invisibleEditor = OpenInvisibleEditor(documentId);
+                TextEditApplication.UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
             }
         }
 
@@ -1231,19 +1226,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string GetPreferredExtension(DocumentId documentId, SourceCodeKind sourceCodeKind)
         {
             // No extension was provided.  Pick a good one based on the type of host project.
-            switch (CurrentSolution.GetProject(documentId.ProjectId).Language)
+            return CurrentSolution.GetProject(documentId.ProjectId).Language switch
             {
-                case LanguageNames.CSharp:
-                    // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
-                    //return sourceCodeKind == SourceCodeKind.Regular ? ".cs" : ".csx";
-                    return ".cs";
-                case LanguageNames.VisualBasic:
-                    // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
-                    //return sourceCodeKind == SourceCodeKind.Regular ? ".vb" : ".vbx";
-                    return ".vb";
-                default:
-                    throw new InvalidOperationException();
-            }
+                // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
+                //return sourceCodeKind == SourceCodeKind.Regular ? ".cs" : ".csx";
+                LanguageNames.CSharp => ".cs",
+
+                // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
+                //return sourceCodeKind == SourceCodeKind.Regular ? ".vb" : ".vbx";
+                LanguageNames.VisualBasic => ".vb",
+                _ => throw new InvalidOperationException(),
+            };
         }
 
         public override IVsHierarchy GetHierarchy(ProjectId projectId)
@@ -1488,7 +1481,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new Dictionary<ProjectId, ProjectReferenceInformation>();
+        private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new Dictionary<ProjectId, ProjectReferenceInformation>();
 
         private ProjectReferenceInformation GetReferenceInfo_NoLock(ProjectId projectId)
         {

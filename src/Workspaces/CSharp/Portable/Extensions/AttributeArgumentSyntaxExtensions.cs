@@ -34,8 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return null;
             }
 
-            var invocableExpression = argumentList.Parent as AttributeSyntax;
-            if (invocableExpression == null)
+            if (!(argumentList.Parent is AttributeSyntax invocableExpression))
             {
                 return null;
             }
