@@ -38,27 +38,11 @@ namespace Microsoft.CodeAnalysis.InvertIf
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            if (!textSpan.IsEmpty)
-            {
-                return;
-            }
-
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(textSpan.Start);
 
-            var ifNode = token.GetAncestor<TIfStatementSyntax>();
-            if (ifNode == null)
-            {
-                return;
-            }
+            var ifNode = await context.TryGetSelectedNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
 
-            if (ifNode.OverlapsHiddenPosition(cancellationToken))
-            {
-                return;
-            }
-
-            var headerSpan = GetHeaderSpan(ifNode);
-            if (!headerSpan.IntersectsWith(textSpan))
+            if (ifNode == null || ifNode.OverlapsHiddenPosition(cancellationToken))
             {
                 return;
             }
@@ -415,7 +399,6 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
         protected abstract StatementRange GetIfBodyStatementRange(TIfStatementSyntax ifNode);
         protected abstract SyntaxNode GetCondition(TIfStatementSyntax ifNode);
-        protected abstract TextSpan GetHeaderSpan(TIfStatementSyntax ifNode);
 
         protected abstract IEnumerable<TStatementSyntax> UnwrapBlock(TEmbeddedStatement ifBody);
         protected abstract TEmbeddedStatement GetIfBody(TIfStatementSyntax ifNode);

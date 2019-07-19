@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.ConvertForEachToFor
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
@@ -20,24 +19,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
 
         Protected Overrides ReadOnly Property Title As String = VBFeaturesResources.Convert_to_For
 
-        Protected Overrides Function GetForEachStatement(selection As TextSpan, token As SyntaxToken) As ForEachBlockSyntax
-            Dim forEachBlock = token.Parent.FirstAncestorOrSelf(Of ForEachBlockSyntax)()
-            If forEachBlock Is Nothing Then
-                Return Nothing
-            End If
-
-            ' support refactoring only if caret Is on for each statement
-            Dim scope = forEachBlock.ForEachStatement.Span
-            If Not scope.IntersectsWith(selection) Then
-                Return Nothing
-            End If
-
+        Protected Overrides Function IsValid(foreachNode As ForEachBlockSyntax) As Boolean
             ' we don't support colon separated statements
-            If forEachBlock.DescendantTrivia().Any(Function(t) t.IsKind(SyntaxKind.ColonTrivia)) Then
-                Return Nothing
-            End If
-
-            Return forEachBlock
+            Return Not foreachNode.DescendantTrivia().Any(Function(t) t.IsKind(SyntaxKind.ColonTrivia))
         End Function
 
         Protected Overrides Function ValidLocation(foreachInfo As ForEachInfo) As Boolean
