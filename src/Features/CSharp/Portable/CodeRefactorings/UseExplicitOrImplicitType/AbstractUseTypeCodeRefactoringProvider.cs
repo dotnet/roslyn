@@ -26,11 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            if (!textSpan.IsEmpty)
-            {
-                return;
-            }
-
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
@@ -51,12 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
                 return;
             }
 
-            if (declaredType.OverlapsHiddenPosition(cancellationToken))
-            {
-                return;
-            }
-
-            if (!declaredType.Span.IntersectsWith(textSpan.Start))
+            // only allow the refactoring is selection/location intersects with the type node
+            if (!declaredType.Span.IntersectsWith(textSpan))
             {
                 return;
             }
