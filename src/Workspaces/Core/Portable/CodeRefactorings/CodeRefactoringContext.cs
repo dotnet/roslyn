@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     /// <summary>
     /// Context for code refactorings provided by a <see cref="CodeRefactoringProvider"/>.
     /// </summary>
-    public struct CodeRefactoringContext
+    public struct CodeRefactoringContext : ITypeScriptCodeRefactoringContext
     {
         /// <summary>
         /// Document corresponding to the <see cref="CodeRefactoringContext.Span"/> to refactor.
@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
-        [Obsolete("This is a hack to support TypeScript; please do not use it.")]
-        internal bool IsBlocking { get; }
+        private readonly bool _isBlocking;
+        bool ITypeScriptCodeRefactoringContext.IsBlocking => _isBlocking;
 
         private readonly Action<CodeAction> _registerRefactoring;
 
@@ -40,13 +40,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             TextSpan span,
             Action<CodeAction> registerRefactoring,
             CancellationToken cancellationToken)
-#pragma warning disable CS0618 // Type or member is obsolete
             : this(document, span, registerRefactoring, isBlocking: false, cancellationToken)
-#pragma warning restore CS0618 // Type or member is obsolete
         {
         }
 
-        [Obsolete("This is a hack to support TypeScript; please do not use it.")]
         internal CodeRefactoringContext(
             Document document,
             TextSpan span,
@@ -57,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Document = document ?? throw new ArgumentNullException(nameof(document));
             Span = span;
             _registerRefactoring = registerRefactoring ?? throw new ArgumentNullException(nameof(registerRefactoring));
-            IsBlocking = isBlocking;
+            _isBlocking = isBlocking;
             CancellationToken = cancellationToken;
         }
 
@@ -74,5 +71,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             _registerRefactoring(action);
         }
+    }
+
+    internal interface ITypeScriptCodeRefactoringContext
+    {
+        bool IsBlocking { get; }
     }
 }

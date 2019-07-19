@@ -94,9 +94,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             TextSpan state,
             CancellationToken cancellationToken)
         {
-#pragma warning disable CS0618 // Type or member is obsolete
             return ((ICodeRefactoringService)this).GetRefactoringsAsync(document, state, isBlocking: false, cancellationToken);
-#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         async Task<ImmutableArray<CodeRefactoring>> ICodeRefactoringService.GetRefactoringsAsync(
@@ -138,7 +136,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             try
             {
                 var actions = ArrayBuilder<CodeAction>.GetInstance();
-#pragma warning disable CS0618 // Type or member is obsolete
                 var context = new CodeRefactoringContext(document, state,
 
                     // TODO: Can we share code between similar lambdas that we pass to this API in BatchFixAllProvider.cs, CodeFixService.cs and CodeRefactoringService.cs?
@@ -152,7 +149,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     },
                     isBlocking,
                     cancellationToken);
-#pragma warning restore CS0618 // Type or member is obsolete
 
                 var task = provider.ComputeRefactoringsAsync(context) ?? Task.CompletedTask;
                 await task.ConfigureAwait(false);

@@ -141,9 +141,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(Document document, TextSpan range, bool includeConfigurationFixes, CancellationToken cancellationToken)
         {
-#pragma warning disable CS0618 // Type or member is obsolete
             return ((ICodeFixService)this).GetFixesAsync(document, range, includeConfigurationFixes, isBlocking: false, cancellationToken);
-#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         async Task<ImmutableArray<CodeFixCollection>> ICodeFixService.GetFixesAsync(Document document, TextSpan range, bool includeConfigurationFixes, bool isBlocking, CancellationToken cancellationToken)
@@ -336,7 +334,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             var fixes = ArrayBuilder<CodeFix>.GetInstance();
-#pragma warning disable CS0618 // Type or member is obsolete
             var context = new CodeFixContext(document, span, diagnostics,
                 // TODO: Can we share code between similar lambdas that we pass to this API in BatchFixAllProvider.cs, CodeFixService.cs and CodeRefactoringService.cs?
                 (action, applicableDiagnostics) =>
@@ -350,7 +347,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 verifyArguments: false,
                 isBlocking,
                 cancellationToken: cancellationToken);
-#pragma warning restore CS0618 // Type or member is obsolete
 
             var task = fixer.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
             await task.ConfigureAwait(false);

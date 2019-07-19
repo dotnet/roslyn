@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// Context for code fixes provided by a <see cref="CodeFixProvider"/>.
     /// </summary>
-    public struct CodeFixContext
+    public struct CodeFixContext : ITypeScriptCodeFixContext
     {
         private readonly Document _document;
         private readonly Project _project;
@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
-        [Obsolete("This is a hack to support TypeScript; please do not use it.")]
-        internal bool IsBlocking { get; }
+        private readonly bool _isBlocking;
+        bool ITypeScriptCodeFixContext.IsBlocking => _isBlocking;
 
         /// <summary>
         /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
@@ -109,7 +109,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
         }
 
-        [Obsolete("This is a hack to support TypeScript; please do not use it.")]
         internal CodeFixContext(
             Document document,
             TextSpan span,
@@ -163,9 +162,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _registerCodeFix = registerCodeFix;
             _cancellationToken = cancellationToken;
 
-#pragma warning disable CS0618 // Type or member is obsolete
-            IsBlocking = isBlocking;
-#pragma warning restore CS0618 // Type or member is obsolete
+            _isBlocking = isBlocking;
         }
 
         internal CodeFixContext(
@@ -257,5 +254,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 throw new ArgumentException(string.Format(WorkspacesResources.Diagnostic_must_have_span_0, span.ToString()), nameof(diagnostics));
             }
         }
+    }
+
+    internal interface ITypeScriptCodeFixContext
+    {
+        bool IsBlocking { get; }
     }
 }
