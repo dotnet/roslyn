@@ -378,7 +378,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
             if (token.IsKind(SyntaxKind.QuestionToken)
-                && (token.Parent.IsKind(SyntaxKind.ConditionalExpression) || token.Parent is TypeSyntax))
+                && (token.Parent.IsKind(SyntaxKind.ConditionalExpression) || token.Parent is TypeSyntax)
+                && !token.Parent.Parent.IsKind(SyntaxKind.TypeArgumentList))
             {
                 return true;
             }
