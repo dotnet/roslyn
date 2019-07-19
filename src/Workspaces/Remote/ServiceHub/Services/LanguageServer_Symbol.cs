@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -14,30 +13,26 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class LanguageServer
     {
-        private int searchIds;
-
         private static IImmutableSet<string> KindsProvided { get; } = ImmutableHashSet.Create(
-           NavigateToItemKind.Class,
-           NavigateToItemKind.Constant,
-           NavigateToItemKind.Delegate,
-           NavigateToItemKind.Enum,
-           NavigateToItemKind.EnumItem,
-           NavigateToItemKind.Event,
-           NavigateToItemKind.Field,
-           NavigateToItemKind.Interface,
-           NavigateToItemKind.Method,
-           NavigateToItemKind.Module,
-           NavigateToItemKind.Property,
-           NavigateToItemKind.Structure);
+            NavigateToItemKind.Class,
+            NavigateToItemKind.Constant,
+            NavigateToItemKind.Delegate,
+            NavigateToItemKind.Enum,
+            NavigateToItemKind.EnumItem,
+            NavigateToItemKind.Event,
+            NavigateToItemKind.Field,
+            NavigateToItemKind.Interface,
+            NavigateToItemKind.Method,
+            NavigateToItemKind.Module,
+            NavigateToItemKind.Property,
+            NavigateToItemKind.Structure);
 
-
-        [JsonRpcMethod(MSLSPMethods.WorkspaceBeginSymbolName)]
-        public MSLSPBeginSymbolParams WorkspaceBeginSymbol(string query, CancellationToken cancellationToken)
+        [JsonRpcMethod(VSSymbolMethods.WorkspaceBeginSymbolName)]
+        public async Task<VSBeginSymbolParams> WorkspaceBeginSymbolAsync(string query, int searchId, CancellationToken cancellationToken)
         {
-            int searchId = searchIds++;
-            // Fire and forget
-            SearchAsync(query, searchId, cancellationToken).ConfigureAwait(false);
-            return new MSLSPBeginSymbolParams() { SearchId = searchId };
+            await SearchAsync(query, searchId, cancellationToken).ConfigureAwait(false);
+
+            return new VSBeginSymbolParams();
         }
 
         private async Task SearchAsync(string query, int searchId, CancellationToken cancellationToken)
@@ -62,15 +57,11 @@ namespace Microsoft.CodeAnalysis.Remote
                     VSSymbolInformation[] convertedResults = await Convert(result, cancellationToken).ConfigureAwait(false);
 
                     await InvokeAsync(
-                        MSLSPMethods.WorkspacePublishSymbolName,
-                        new object[] { new MSLSPPublishSymbolParams() { SearchId = searchId, Symbols = convertedResults } },
+                        VSSymbolMethods.WorkspacePublishSymbolName,
+                        new object[] { new VSPublishSymbolParams() { SearchId = searchId, Symbols = convertedResults } },
                         cancellationToken).ConfigureAwait(false);
                 }
             }
-
-            await InvokeAsync(MSLSPMethods.WorkspaceCompleteSymbolName,
-                new object[] { new MSLSPCompleteSymbolParams() { SearchId = searchId } },
-                cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<VSSymbolInformation[]> Convert(ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken)

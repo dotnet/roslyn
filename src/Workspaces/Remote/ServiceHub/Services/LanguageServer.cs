@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return new InitializeResult()
             {
-                Capabilities = new MSLSPServerCapabilities()
+                Capabilities = new VSServerCapabilities()
                 {
                     WorkspaceStreamingSymbolProvider = true
                 }
