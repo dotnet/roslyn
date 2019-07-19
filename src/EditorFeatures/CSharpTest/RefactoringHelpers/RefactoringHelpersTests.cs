@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -886,6 +887,77 @@ class C
         }
         #endregion
 
+        #region TestHidden
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestNextToHidden()
+        {
+            var testText = @"
+#line default
+class C
+{
+    void M()
+    {
+#line hidden
+        var a = b;
+#line default
+        {|result:C [||]LocalFunction(C c)
+        {
+            return null;
+        }|}
+    }
+}";
+            await TestAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestNextToHidden2()
+        {
+            var testText = @"
+#line default
+class C
+{
+    void M()
+    {
+#line hidden
+        var a = b;
+#line default
+        {|result:C [||]LocalFunction(C c)
+        {
+            return null;
+        }|}
+#line hidden
+        var a = b;
+#line default
+    }
+}";
+            await TestAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingHidden()
+        {
+            var testText = @"
+#line default
+class C
+{
+    void M()
+    {
+#line hidden
+        C LocalFunction(C c)
+#line default
+        {
+            return null;
+        }[||]
+    }
+}";
+            await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        #endregion
+
         #region Test arguments
         [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
@@ -1264,6 +1336,61 @@ class C
 }");
         }
 
+        #endregion
+
+        #region Test predicate
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingPredicate()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        N([||]2+3);
+    }
+
+    void N(int a)
+    {
+    }
+}";
+            await TestMissingAsync<ArgumentSyntax>(testText, n => n.Parent is TupleExpressionSyntax);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestArgument()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        N({|result:[||]2+3|});
+    }
+
+    void N(int a)
+    {
+    }
+}";
+            await TestAsync<ArgumentSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestPredicate()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        var a = ({|result:[||]2 + 3|}, 2 + 3);
+    }
+}";
+            await TestAsync<ArgumentSyntax>(testText, n => n.Parent is TupleExpressionSyntax);
+        }
         #endregion
     }
 }
