@@ -34,18 +34,18 @@ public class A
             var member1 = comp.GetMember("A.field1");
             var member2 = comp.GetMember("A.field2");
 
-            Assert.Equal(true, member1.Equals(member1));
-            Assert.Equal(true, member2.Equals(member2));
-            Assert.Equal(false, member1.Equals(member2));
-            Assert.Equal(false, member2.Equals(member1));
+            Assert.True(member1.Equals(member1));
+            Assert.True(member2.Equals(member2));
+            Assert.False(member1.Equals(member2));
+            Assert.False(member2.Equals(member1));
 
-            var field1 = member1 as FieldSymbol;
-            var field2 = member2 as FieldSymbol;
+            var field1 = (FieldSymbol)member1;
+            var field2 = (FieldSymbol)member2;
 
-            Assert.Equal(true, field1.Equals(field1));
-            Assert.Equal(true, field2.Equals(field2));
-            Assert.Equal(false, field1.Equals(field2));
-            Assert.Equal(false, field2.Equals(field1));
+            Assert.True(field1.Equals(field1));
+            Assert.True(field2.Equals(field2));
+            Assert.False(field1.Equals(field2));
+            Assert.False(field2.Equals(field1));
         }
 
         [Fact]
@@ -62,8 +62,8 @@ public class A
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var type1 = (comp.GetMember("A.field1") as FieldSymbol).Type;
-            var type2 = (comp.GetMember("A.field2") as FieldSymbol).Type;
+            var type1 = ((FieldSymbol)comp.GetMember("A.field1")).Type;
+            var type2 = ((FieldSymbol)comp.GetMember("A.field2")).Type;
 
             VerifyEquality(type1, type2,
                 expectedDefault: true,
@@ -86,8 +86,8 @@ public class A
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var type1 = (comp.GetMember("A.field1") as FieldSymbol).Type;
-            var type2 = (comp.GetMember("A.field2") as FieldSymbol).Type;
+            var type1 = ((FieldSymbol)comp.GetMember("A.field1")).Type;
+            var type2 = ((FieldSymbol)comp.GetMember("A.field2")).Type;
 
             VerifyEquality(type1, type2,
                 expectedDefault: true,
@@ -111,8 +111,8 @@ public class A<T>
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var type1 = (comp.GetMember("A.field1") as FieldSymbol).Type;
-            var type2 = (comp.GetMember("A.field2") as FieldSymbol).Type;
+            var type1 = ((FieldSymbol)comp.GetMember("A.field1")).Type;
+            var type2 = ((FieldSymbol)comp.GetMember("A.field2")).Type;
 
             VerifyEquality(type1, type2,
                 expectedDefault: true,
@@ -136,8 +136,8 @@ public class A<T>
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var type1 = (comp.GetMember("A.field1") as FieldSymbol).Type;
-            var type2 = (comp.GetMember("A.field2") as FieldSymbol).Type;
+            var type1 = ((FieldSymbol)comp.GetMember("A.field1")).Type;
+            var type2 = ((FieldSymbol)comp.GetMember("A.field2")).Type;
 
             VerifyEquality(type1, type2,
                 expectedDefault: true,
@@ -171,9 +171,9 @@ public class B
             comp2.VerifyDiagnostics();
 
 
-            var type1comp1 = (comp1.GetMember("A.field1") as FieldSymbol).Type;
-            var type1comp2 = (comp2.GetMember("A.field1") as FieldSymbol).Type;
-            var type2 = (comp2.GetMember("B.field2") as FieldSymbol).Type;
+            var type1comp1 = ((FieldSymbol)comp1.GetMember("A.field1")).Type;
+            var type1comp2 = ((FieldSymbol)comp2.GetMember("A.field1")).Type;
+            var type2 = ((FieldSymbol)comp2.GetMember("B.field2")).Type;
 
             VerifyEquality(type1comp1, type1comp2,
                 expectedDefault: true,
@@ -220,8 +220,8 @@ public class A
             Assert.Equal(false, member1.Equals(member2));
             Assert.Equal(false, member2.Equals(member1));
 
-            var field1 = member1 as FieldSymbol;
-            var field2 = member2 as FieldSymbol;
+            var field1 = (FieldSymbol)member1;
+            var field2 = (FieldSymbol)member2;
 
             Assert.Equal(true, field1.Equals(field1));
             Assert.Equal(true, field2.Equals(field2));
@@ -250,8 +250,8 @@ public class A
 
             var model = comp.GetSemanticModel(syntaxTree);
 
-            var type1 = (model.GetDeclaredSymbol(member1Syntax.Declaration.Variables[0]) as IFieldSymbol).Type;
-            var type2 = (model.GetDeclaredSymbol(member2Syntax.Declaration.Variables[0]) as IFieldSymbol).Type;
+            var type1 = ((IFieldSymbol)model.GetDeclaredSymbol(member1Syntax.Declaration.Variables[0])).Type;
+            var type2 = ((IFieldSymbol)model.GetDeclaredSymbol(member2Syntax.Declaration.Variables[0])).Type;
 
             VerifyEquality(type1, type2,
                 expectedDefault: true,
@@ -281,8 +281,8 @@ public class A
 
             var model = comp.GetSemanticModel(syntaxTree);
 
-            var type1 = (model.GetDeclaredSymbol(member1Syntax.Declaration.Variables[0]) as IFieldSymbol).Type;
-            var type2 = (model.GetDeclaredSymbol(member2Syntax.Declaration.Variables[0]) as IFieldSymbol).Type;
+            var type1 = ((IFieldSymbol)model.GetDeclaredSymbol(member1Syntax.Declaration.Variables[0])).Type;
+            var type2 = ((IFieldSymbol)model.GetDeclaredSymbol(member2Syntax.Declaration.Variables[0])).Type;
 
             VerifyEquality(type1, type2,
                 expectedDefault: true,
@@ -313,8 +313,8 @@ public class A<T>
 
             var model = comp.GetSemanticModel(syntaxTree);
 
-            var type1 = (model.GetDeclaredSymbol(member1Syntax.Declaration.Variables[0]) as IFieldSymbol).Type;
-            var type2 = (model.GetDeclaredSymbol(member2Syntax.Declaration.Variables[0]) as IFieldSymbol).Type;
+            var type1 = ((IFieldSymbol)model.GetDeclaredSymbol(member1Syntax.Declaration.Variables[0])).Type;
+            var type2 = ((IFieldSymbol)model.GetDeclaredSymbol(member2Syntax.Declaration.Variables[0])).Type;
 
             VerifyEquality(type1, type2,
                 expectedDefault: true,
@@ -345,8 +345,8 @@ public class A<T>
 
             var model = comp.GetSemanticModel(syntaxTree);
 
-            var type1 = (model.GetDeclaredSymbol(member1Syntax.Declaration.Variables[0]) as IFieldSymbol).Type;
-            var type2 = (model.GetDeclaredSymbol(member2Syntax.Declaration.Variables[0]) as IFieldSymbol).Type;
+            var type1 = ((IFieldSymbol)model.GetDeclaredSymbol(member1Syntax.Declaration.Variables[0])).Type;
+            var type2 = ((IFieldSymbol)model.GetDeclaredSymbol(member2Syntax.Declaration.Variables[0])).Type;
 
             VerifyEquality(type1, type2,
                 expectedDefault: true,

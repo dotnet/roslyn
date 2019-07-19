@@ -8,7 +8,6 @@ namespace Roslyn.Utilities
 {
     internal static partial class SpecializedCollections
     {
-
         public static PooledHashSet<ISymbol> GetPooledSymbolHashSetInstance<TSymbol>() where TSymbol : ISymbol
         {
             var instance = PooledSymbolHashSet<TSymbol>.s_poolInstance.Allocate();

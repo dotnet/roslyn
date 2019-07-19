@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Allows for the comparison of two <see cref="ISymbol"/> instance based on certain criteria TODO
+    /// Allows for the comparison of two <see cref="ISymbol"/> instances
     /// </summary>
     public sealed class SymbolEqualityComparer : IEqualityComparer<ISymbol>
     {
