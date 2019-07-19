@@ -202,8 +202,8 @@ namespace Microsoft.CodeAnalysis
                 _stringBuilder.Append(' ');
             }
 
-            internal void WriteFormatVersion()
-                => WriteIntegerRaw_DoNotCallDirectly(FormatVersion);
+            internal void WriteFormatVersion(int version)
+                => WriteIntegerRaw_DoNotCallDirectly(version);
 
             internal void WriteInteger(int value)
             {

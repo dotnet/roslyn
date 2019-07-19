@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis
         /// out a SymbolKey from a previous version of Roslyn and then attempt to use it in a 
         /// newer version where the encoding has changed.
         /// </summary>
-        private const int FormatVersion = 1;
+        internal const int FormatVersion = 1;
 
         private readonly string _symbolKeyData;
 
@@ -143,9 +143,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal static string CreateString(ISymbol symbol, CancellationToken cancellationToken = default)
+            => CreateStringWorker(FormatVersion, symbol, cancellationToken);
+
+        // Internal for testing purposes.
+        internal static string CreateStringWorker(int version, ISymbol symbol, CancellationToken cancellationToken = default)
         {
             using var writer = SymbolKeyWriter.GetWriter(cancellationToken);
-            writer.WriteFormatVersion();
+            writer.WriteFormatVersion(version);
             writer.WriteSymbolKey(symbol);
             return writer.CreateKey();
         }
