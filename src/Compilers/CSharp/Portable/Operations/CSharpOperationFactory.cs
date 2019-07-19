@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1421,7 +1420,7 @@ namespace Microsoft.CodeAnalysis.Operations
             bool blockInModel = _semanticModel.Root.ChildNodes().Contains(syntax) || _semanticModel.Root.Parent?.ChildNodes().Contains(syntax) == true;
 
             if (_semanticModel is MemberSemanticModel memberModel
-                && memberModel.ContainsNullCheckedParameter
+                && memberModel.MemberSymbol.GetParameters().Any(x => x.IsNullChecked)
                 && blockInModel)
             {
                 nullChecksToPrepend = GenerateNullChecksForParameters(memberModel.MemberSymbol.GetParameters(), syntax);
