@@ -297,8 +297,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             candidates.Push((root, firstTime: true));
             while (candidates.Count != 0)
             {
-                var (node, firstTime) = candidates.Pop();
-                var currentNode = node;
+                var (currentNode, firstTime) = candidates.Pop();
                 if (currentNode != null)
                 {
                     if (firstTime)
