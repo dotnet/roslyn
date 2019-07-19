@@ -860,17 +860,33 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundNode _body;
+        private readonly ImmutableArray<ConditionalOperation> _nullChecksToPrepend;
 
-        internal CSharpLazyAnonymousFunctionOperation(CSharpOperationFactory operationFactory, BoundNode body, IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        internal CSharpLazyAnonymousFunctionOperation(CSharpOperationFactory operationFactory, BoundNode body, IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ImmutableArray<ConditionalOperation> nullChecksToPrepend, Optional<object> constantValue, bool isImplicit) :
             base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _operationFactory = operationFactory;
             _body = body;
+            _nullChecksToPrepend = nullChecksToPrepend;
         }
 
         protected override IBlockOperation CreateBody()
         {
-            return (IBlockOperation)_operationFactory.Create(_body);
+            if (_nullChecksToPrepend.IsDefaultOrEmpty)
+            {
+                return (IBlockOperation)_operationFactory.Create(_body);
+            }
+            var bodyBlock = (_body as BoundBlock);
+            var constructed = _operationFactory.CreateFromArray<BoundStatement, IOperation>(bodyBlock.Statements)
+                                               .InsertRange(0, _nullChecksToPrepend);
+            return (IBlockOperation)new BlockOperation(
+                constructed,
+                bodyBlock.Locals.CastArray<ILocalSymbol>(),
+                this.OwningSemanticModel,
+                this.Syntax,
+                this.Type,
+                this.ConstantValue,
+                isImplicit: true);
         }
     }
 
@@ -1482,6 +1498,11 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override IBlockOperation CreateBody()
         {
+            if (_nullChecksToPrepend.IsDefaultOrEmpty)
+            {
+                return (IBlockOperation)_operationFactory.Create(_localFunctionStatement.Body);
+            }
+
             var constructed = _operationFactory.CreateFromArray<BoundStatement, IOperation>(_localFunctionStatement.Body.Statements).InsertRange(0, _nullChecksToPrepend);
             return new BlockOperation(
                 constructed,
@@ -1495,27 +1516,9 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override IBlockOperation CreateIgnoredBody()
         {
-            ImmutableArray<IOperation> constructed;
-            ImmutableArray<ILocalSymbol> locals;
-            if (_localFunctionStatement.BlockBody != null && _localFunctionStatement.ExpressionBody != null)
-            {
-                locals = _localFunctionStatement.ExpressionBody.Locals.CastArray<ILocalSymbol>();
-                constructed = _operationFactory.CreateFromArray<BoundStatement, IOperation>(_localFunctionStatement.Body.Statements);
-            }
-            else
-            {
-                locals = ImmutableArray<ILocalSymbol>.Empty;
-                constructed = ImmutableArray<IOperation>.Empty;
-            }
-
-            return new BlockOperation(
-                constructed,
-                locals,
-                this.OwningSemanticModel,
-                this.Syntax,
-                this.Type,
-                this.ConstantValue,
-                isImplicit: true);
+            return _localFunctionStatement.BlockBody != null && _localFunctionStatement.ExpressionBody != null ?
+                        (IBlockOperation)_operationFactory.Create(_localFunctionStatement.ExpressionBody) :
+                        null;
         }
     }
 

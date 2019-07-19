@@ -875,7 +875,8 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = ConvertToOptional(boundLambda.ConstantValue);
             bool isImplicit = boundLambda.WasCompilerGenerated;
-            return new CSharpLazyAnonymousFunctionOperation(this, body, symbol, _semanticModel, syntax, type, constantValue, isImplicit);
+            ImmutableArray<ConditionalOperation> nullChecksToPrepend = GenerateNullChecksForParameters(boundLambda.Symbol.Parameters, syntax);
+            return new CSharpLazyAnonymousFunctionOperation(this, body, symbol, _semanticModel, syntax, type, nullChecksToPrepend, constantValue, isImplicit);
         }
 
         private ILocalFunctionOperation CreateBoundLocalFunctionStatementOperation(BoundLocalFunctionStatement boundLocalFunctionStatement)
@@ -1417,10 +1418,11 @@ namespace Microsoft.CodeAnalysis.Operations
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundBlock.WasCompilerGenerated;
             var nullChecksToPrepend = ImmutableArray<ConditionalOperation>.Empty;
+            bool blockInModel = _semanticModel.Root.ChildNodes().Contains(syntax) || _semanticModel.Root.Parent?.ChildNodes().Contains(syntax) == true;
 
             if (_semanticModel is MemberSemanticModel memberModel
                 && memberModel.ContainsNullCheckedParameter
-                && _semanticModel.Root.ChildNodes().Contains(boundBlock.Syntax))
+                && blockInModel)
             {
                 nullChecksToPrepend = GenerateNullChecksForParameters(memberModel.MemberSymbol.GetParameters(), syntax);
             }
