@@ -449,8 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedNullabilityMapOpt: null,
                 updatedMethodSymbolMapOpt: null,
                 snapshotBuilderOpt: null,
-                returnTypesOpt: null,
-                out _);
+                returnTypesOpt: null);
         }
 
         internal static BoundNode AnalyzeAndRewrite(
@@ -460,8 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder,
             DiagnosticBag diagnostics,
             bool createSnapshots,
-            out SnapshotManager snapshotManager,
-            out ImmutableDictionary<Symbol, TypeWithAnnotations> variableTypes)
+            out SnapshotManager snapshotManager)
         {
             var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>(EqualityComparer<BoundExpression>.Default, NullabilityInfoTypeComparer.Instance);
             var updatedMethodSymbols = ImmutableDictionary.CreateBuilder<BoundCall, MethodSymbol>(EqualityComparer<BoundCall>.Default, SymbolEqualityComparer.ConsiderEverything);
@@ -483,8 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedNullabilities,
                 updatedMethodSymbols,
                 snapshotBuilder,
-                returnTypesOpt: null,
-                out variableTypes);
+                returnTypesOpt: null);
 
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
             var updatedMethodSymbolsMap = updatedMethodSymbols.ToImmutable();
@@ -506,14 +503,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder,
             SnapshotManager originalSnapshots,
             bool takeNewSnapshots,
-            out SnapshotManager newSnapshots,
-            out ImmutableDictionary<Symbol, TypeWithAnnotations> variableTypes)
+            out SnapshotManager newSnapshots)
         {
             var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>(EqualityComparer<BoundExpression>.Default, NullabilityInfoTypeComparer.Instance);
             var updatedMethodSymbols = ImmutableDictionary.CreateBuilder<BoundCall, MethodSymbol>();
             var newSnapshotBuilder = takeNewSnapshots ? new SnapshotManager.Builder() : null;
             var (walker, initialState, symbol) = originalSnapshots.RestoreWalkerToAnalyzeNewNode(position, node, binder, analyzedNullabilities, updatedMethodSymbols, newSnapshotBuilder);
-            Analyze(walker, symbol, diagnostics: null, initialState, snapshotBuilderOpt: newSnapshotBuilder, out variableTypes);
+            Analyze(walker, symbol, diagnostics: null, initialState, snapshotBuilderOpt: newSnapshotBuilder);
+            walker.Free();
 
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
             var updatedMethodSymbolsMap = updatedMethodSymbols.ToImmutable();
@@ -553,8 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedNullabilityMapOpt: null,
                 updatedMethodSymbolMapOpt: null,
                 snapshotBuilderOpt: null,
-                returnTypesOpt: null,
-                out _);
+                returnTypesOpt: null);
         }
 
         internal static void Analyze(
@@ -582,8 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedNullabilityMapOpt,
                 updatedMethodSymbolMapOpt,
                 snapshotBuilderOpt,
-                returnTypesOpt,
-                out _);
+                returnTypesOpt);
         }
 
         private static void Analyze(
@@ -599,8 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMapOpt,
             ImmutableDictionary<BoundCall, MethodSymbol>.Builder updatedMethodSymbolMapOpt,
             SnapshotManager.Builder snapshotBuilderOpt,
-            ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt,
-            out ImmutableDictionary<Symbol, TypeWithAnnotations> variableTypes)
+            ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt)
         {
             Debug.Assert(diagnostics != null);
             var walker = new NullableWalker(compilation,
@@ -616,7 +610,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     updatedMethodSymbolMapOpt,
                                                     snapshotBuilderOpt);
 
-            Analyze(walker, symbol, diagnostics, initialState, snapshotBuilderOpt, out variableTypes);
+            Analyze(walker, symbol, diagnostics, initialState, snapshotBuilderOpt);
+            walker.Free();
         }
 
         private static void Analyze(
@@ -624,8 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol symbol,
             DiagnosticBag diagnostics,
             VariableState initialState,
-            SnapshotManager.Builder snapshotBuilderOpt,
-            out ImmutableDictionary<Symbol, TypeWithAnnotations> variableTypes)
+            SnapshotManager.Builder snapshotBuilderOpt)
         {
             try
             {
@@ -635,17 +629,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<PendingBranch> returns = walker.Analyze(ref badRegion, initialLocalState);
                 snapshotBuilderOpt?.ExitWalker(walker.SaveSharedState(), previousSlot);
                 diagnostics?.AddRange(walker.Diagnostics);
-                variableTypes = walker._variableTypes.ToImmutableDictionary();
                 Debug.Assert(!badRegion);
             }
             catch (CancelledByStackGuardException ex) when (diagnostics != null)
             {
                 ex.AddAnError(diagnostics);
-                variableTypes = ImmutableDictionary<Symbol, TypeWithAnnotations>.Empty;
-            }
-            finally
-            {
-                walker.Free();
             }
         }
 
@@ -5422,8 +5410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         analyzedNullabilityMap,
                         updatedMethodSymbolMap,
                         snapshotBuilder,
-                        returnTypesOpt: null,
-                        out _);
+                        returnTypesOpt: null);
             }
             SetInvalidResult();
             return null;

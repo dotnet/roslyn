@@ -982,7 +982,10 @@ class C
             void verifyCompilation(CSharpCompilation compilation)
             {
                 var members = memberFunc(compilation);
-                AssertEx.Equal(expectedNullabilities, members.Select(nullabilityFunc));
+                for (int i = 0; i < expectedNullabilities.Length; i++)
+                {
+                    Assert.Equal(expectedNullabilities[i], nullabilityFunc(members[i]));
+                }
             }
         }
 
@@ -1787,20 +1790,24 @@ class C
         {
             var source = @"
 using System;
-class C : IDisposable
+using System.Threading.Tasks;
+class C : IDisposable, IAsyncDisposable
 {
     public void Dispose() => throw null!;
-    void M(C? c1)
+    public ValueTask DisposeAsync() => throw null!;
+    async void M(C? c1)
     {
         using var c2 = c1;
         using var c3 = c1 ?? new C();
         using (var c4 = c1) {}
         using (var c5 = c1 ?? new C()) {}
+        await using (var c6 = c1) {}
+        await using (var c6 = c1 ?? new C()) {}
     }
 }
 ";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -1813,6 +1820,8 @@ class C : IDisposable
             assertAnnotation(declarations[1], PublicNullableAnnotation.NotAnnotated);
             assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[3], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[4], PublicNullableAnnotation.Annotated);
+            assertAnnotation(declarations[5], PublicNullableAnnotation.NotAnnotated);
 
             void assertAnnotation(VariableDeclaratorSyntax variable, PublicNullableAnnotation expectedAnnotation)
             {
@@ -1956,6 +1965,48 @@ class C
             assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
 
             void assertAnnotation(SingleVariableDesignationSyntax variable, PublicNullableAnnotation expectedAnnotation)
+            {
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
+                Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
+            }
+        }
+
+        [Fact]
+        public void GetDeclaredSymbol_InLambda()
+        {
+            var source = @"
+using System;
+class C
+{
+    void M(object? o)
+    {
+        Action a1 = () =>
+        {
+            var o1 = o;
+        };
+
+        if (o == null) return;
+
+        Action a2 = () =>
+        {
+            var o1 = o;
+        };
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var declarations = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().ToList();
+
+            assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
+            assertAnnotation(declarations[3], PublicNullableAnnotation.NotAnnotated);
+
+            void assertAnnotation(VariableDeclaratorSyntax variable, PublicNullableAnnotation expectedAnnotation)
             {
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
                 Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);

@@ -16,15 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal readonly BoundNode? Body;
             internal readonly ExecutableCodeBinder? Binder;
             internal readonly NullableWalker.SnapshotManager? SnapshotManager;
-            internal readonly ImmutableDictionary<Symbol, TypeWithAnnotations>? AnalyzedVariableDeclarations;
 
-            internal InitialState(CSharpSyntaxNode syntax, BoundNode? bodyOpt = null, ExecutableCodeBinder? binder = null, NullableWalker.SnapshotManager? snapshotManager = null, ImmutableDictionary<Symbol, TypeWithAnnotations>? analyzedVariableDeclarations = null)
+            internal InitialState(CSharpSyntaxNode syntax, BoundNode? bodyOpt = null, ExecutableCodeBinder? binder = null, NullableWalker.SnapshotManager? snapshotManager = null)
             {
                 Syntax = syntax;
                 Body = bodyOpt;
                 Binder = binder;
                 SnapshotManager = snapshotManager;
-                AnalyzedVariableDeclarations = analyzedVariableDeclarations;
             }
         }
 #nullable restore
@@ -55,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (initialState.Body != null)
             {
-                result.UnguardedAddBoundTreeForStandaloneSyntax(initialState.Syntax, initialState.Body, initialState.SnapshotManager, initialState.AnalyzedVariableDeclarations is { } variables ? GetUpdatedLocalSymbols(variables) : null);
+                result.UnguardedAddBoundTreeForStandaloneSyntax(initialState.Syntax, initialState.Body, initialState.SnapshotManager);
             }
 
             return result;
@@ -227,9 +225,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        protected override BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots, out NullableWalker.SnapshotManager snapshotManager, out ImmutableDictionary<Symbol, TypeWithAnnotations> analyzedVariableTypes)
+        protected override BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots, out NullableWalker.SnapshotManager snapshotManager)
         {
-            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots, out snapshotManager, out analyzedVariableTypes);
+            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots, out snapshotManager);
         }
     }
 }

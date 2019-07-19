@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ReverseArrayRankSpecifiers = 1 << 5,
 
-        //  https://github.com/dotnet/roslyn/issues/26198 Should this option be made public?
         /// <summary>
         /// Append '!' to non-nullable reference types.
         /// Note this causes SymbolDisplay to pull on IsNullable and therefore NonNullTypes,

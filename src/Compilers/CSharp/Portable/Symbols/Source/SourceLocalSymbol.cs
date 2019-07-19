@@ -404,6 +404,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal LocalSymbol WithAnalyzedType(TypeWithAnnotations analyzedType)
         {
             Debug.Assert(analyzedType.Equals(TypeWithAnnotations, TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreTupleNames));
+            if (analyzedType.Equals(TypeWithAnnotations, TypeCompareKind.ConsiderEverything))
+            {
+                return this;
+            }
+
             var cloned = CloneWithoutType();
             cloned.SetTypeWithAnnotations(analyzedType);
             return cloned;
