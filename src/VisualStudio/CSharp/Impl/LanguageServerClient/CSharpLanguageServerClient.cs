@@ -89,9 +89,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageServerClient
         /// </summary>
         public async Task OnLoadedAsync()
         {
-            // VS-specific LSP code search protocol attempts to load a language server
-            // when VS Search is focused the first time. Ensure a solution is open
-            // before starting up.
+            // VS LSP client attempts to load a language server when VS Search is
+            // focused the first time. Ensure a solution is open before starting up.
             if (_primaryWorkspace.Workspace != null)
             {
                 await StartAsync.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
