@@ -220,6 +220,20 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(37224, "https://github.com/dotnet/roslyn/issues/37224")]
+        public async Task InRefGeneric3()
+        {
+            var markup = @"
+using System;
+class C
+{
+    ref Func<int, $$
+}";
+
+            await VerifyItemExistsAsync(markup, "T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37224, "https://github.com/dotnet/roslyn/issues/37224")]
         public async Task InRefReadonlyGeneric()
         {
             var markup = @"
@@ -270,7 +284,7 @@ class C
 using System;
 class C
 {
-    ref System.Func<int,$$
+    internal ref System.Func<int,$$
 }";
 
             await VerifyItemExistsAsync(markup, "T");
@@ -285,7 +299,7 @@ class C
 using System;
 class C
 {
-    ref System.Func<Func<$$
+    partial ref System.Func<Func<$$
 }";
 
             await VerifyItemExistsAsync(markup, "T");
@@ -300,7 +314,37 @@ class C
 using System;
 class C
 {
-    ref Func<System.Func<int,$$
+    private ref Func<System.Func<int,$$
+}";
+
+            await VerifyItemExistsAsync(markup, "T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37224, "https://github.com/dotnet/roslyn/issues/37224")]
+        [WorkItem(37268, "https://github.com/dotnet/roslyn/issues/37268")]
+        public async Task InRefAndQualifiedNestedGeneric2()
+        {
+            var markup = @"
+using System;
+class C
+{
+    public ref Func<int, System.Func<int,$$
+}";
+
+            await VerifyItemExistsAsync(markup, "T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37224, "https://github.com/dotnet/roslyn/issues/37224")]
+        [WorkItem(37268, "https://github.com/dotnet/roslyn/issues/37268")]
+        public async Task InRefAndQualifiedNestedGeneric3()
+        {
+            var markup = @"
+using System;
+class C
+{
+    private protected ref Func<int, System.Func<$$
 }";
 
             await VerifyItemExistsAsync(markup, "T");

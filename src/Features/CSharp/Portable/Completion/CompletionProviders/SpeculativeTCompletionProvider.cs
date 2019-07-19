@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             if ((!prevToken.IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword) &&
-                syntaxTree.IsMemberDeclarationContext(testPosition, contextOpt: null, validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken)) ||
+                syntaxTree.IsMemberDeclarationContext(testPosition, contextOpt: null, validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: true, cancellationToken: cancellationToken)) ||
                 syntaxTree.IsStatementContext(testPosition, leftToken, cancellationToken) ||
                 syntaxTree.IsGlobalMemberDeclarationContext(testPosition, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 syntaxTree.IsGlobalStatementContext(testPosition, cancellationToken) ||
