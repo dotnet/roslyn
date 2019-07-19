@@ -171,7 +171,7 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
-        protected const string NotNullIfNotNulltAttributeDefinition = @"
+        protected const string NotNullIfNotNullAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, AllowMultiple = true, Inherited = false)]
