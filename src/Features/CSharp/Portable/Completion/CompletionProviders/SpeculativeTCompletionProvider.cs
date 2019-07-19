@@ -66,7 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // as the position for the rest of the context checks.
             var testPosition = position;
             var prevToken = leftToken.GetPreviousTokenIfTouchingWord(position);
-            var isRefType = false;
 
             if (syntaxTree.IsGenericTypeArgumentContext(position, leftToken, cancellationToken, semanticModel))
             {
@@ -89,16 +88,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     testPosition = tokenLeftOfType.Parent.SpanStart;
                     tokenLeftOfType = syntaxTree.FindTokenOnLeftOfPosition(testPosition, cancellationToken);
                 }
-                isRefType = TryMoveTestPositionIfRefType(tokenLeftOfType, ref testPosition);
+                MoveTestPositionIfRefType(tokenLeftOfType, ref testPosition);
             }
             else
             {
-                isRefType = TryMoveTestPositionIfRefType(prevToken, ref testPosition);
+                MoveTestPositionIfRefType(prevToken, ref testPosition);
             }
 
-            var notAsync = isRefType || !prevToken.IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword);
-
-            if ((notAsync && syntaxTree.IsMemberDeclarationContext(testPosition, contextOpt: null, validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken)) ||
+            if ((!prevToken.IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword) &&
+                syntaxTree.IsMemberDeclarationContext(testPosition, contextOpt: null, validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken)) ||
                 syntaxTree.IsStatementContext(testPosition, leftToken, cancellationToken) ||
                 syntaxTree.IsGlobalMemberDeclarationContext(testPosition, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 syntaxTree.IsGlobalStatementContext(testPosition, cancellationToken) ||
@@ -109,16 +107,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             return false;
 
-            static bool TryMoveTestPositionIfRefType(SyntaxToken tokenLeftOfType, ref int testPosition)
+            static void MoveTestPositionIfRefType(SyntaxToken tokenLeftOfType, ref int testPosition)
             {
                 if (tokenLeftOfType.IsKind(SyntaxKind.RefKeyword, SyntaxKind.ReadOnlyKeyword) && tokenLeftOfType.Parent.IsKind(SyntaxKind.RefType))
                 {
                     testPosition = tokenLeftOfType.Parent.SpanStart;
-
-                    return true;
                 }
-
-                return false;
             }
         }
     }

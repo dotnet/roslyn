@@ -178,13 +178,41 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(37224, "https://github.com/dotnet/roslyn/issues/37224")]
-        public async Task InRefGeneric()
+        public async Task InRefGeneric0()
         {
             var markup = @"
 using System;
 class C
 {
     ref Func<$$
+}";
+
+            await VerifyItemExistsAsync(markup, "T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37224, "https://github.com/dotnet/roslyn/issues/37224")]
+        public async Task InRefGeneric1()
+        {
+            var markup = @"
+using System;
+class C
+{
+    ref Func<$$>
+}";
+
+            await VerifyItemExistsAsync(markup, "T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37224, "https://github.com/dotnet/roslyn/issues/37224")]
+        public async Task InRefGeneric2()
+        {
+            var markup = @"
+using System;
+class C
+{
+    ref Func<T$$>
 }";
 
             await VerifyItemExistsAsync(markup, "T");
@@ -221,13 +249,58 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(37224, "https://github.com/dotnet/roslyn/issues/37224")]
         [WorkItem(37268, "https://github.com/dotnet/roslyn/issues/37268")]
-        public async Task InRefAndQualifiedGeneric()
+        public async Task InRefAndQualifiedGeneric0()
         {
             var markup = @"
 using System;
 class C
 {
     ref System.Func<$$
+}";
+
+            await VerifyItemExistsAsync(markup, "T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37224, "https://github.com/dotnet/roslyn/issues/37224")]
+        [WorkItem(37268, "https://github.com/dotnet/roslyn/issues/37268")]
+        public async Task InRefAndQualifiedGeneric1()
+        {
+            var markup = @"
+using System;
+class C
+{
+    ref System.Func<int,$$
+}";
+
+            await VerifyItemExistsAsync(markup, "T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37224, "https://github.com/dotnet/roslyn/issues/37224")]
+        [WorkItem(37268, "https://github.com/dotnet/roslyn/issues/37268")]
+        public async Task InRefAndQualifiedNestedGeneric0()
+        {
+            var markup = @"
+using System;
+class C
+{
+    ref System.Func<Func<$$
+}";
+
+            await VerifyItemExistsAsync(markup, "T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(37224, "https://github.com/dotnet/roslyn/issues/37224")]
+        [WorkItem(37268, "https://github.com/dotnet/roslyn/issues/37268")]
+        public async Task InRefAndQualifiedNestedGeneric1()
+        {
+            var markup = @"
+using System;
+class C
+{
+    ref Func<System.Func<int,$$
 }";
 
             await VerifyItemExistsAsync(markup, "T");
