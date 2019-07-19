@@ -43,9 +43,9 @@ class C
 }";
             var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                    // (15,14): warning CS8618: Non-nullable event 'E1' is uninitialized.
-                    //     internal C()
-                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("event", "E1").WithLocation(15, 14));
+                // (15,14): warning CS8618: Non-nullable event 'E1' is uninitialized. Consider declaring the event as nullable.
+                //     internal C()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("event", "E1").WithLocation(15, 14));
         }
 
         [Fact]
@@ -76,7 +76,7 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (3,16): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                // (3,16): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
                 //     internal T F1;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F1").WithArguments("field", "F1").WithLocation(3, 16),
                 // (3,16): warning CS0649: Field 'C<T>.F1' is never assigned to, and will always have its default value 
@@ -105,10 +105,10 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (5,20): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                // (5,20): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
                 //     private object F1;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F1").WithArguments("field", "F1").WithLocation(5, 20),
-                // (7,24): warning CS8618: Non-nullable field 'F3' is uninitialized.
+                // (7,24): warning CS8618: Non-nullable field 'F3' is uninitialized. Consider declaring the field as nullable.
                 //     internal object?[] F3;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F3").WithArguments("field", "F3").WithLocation(7, 24));
         }
@@ -139,16 +139,16 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (7,14): warning CS8618: Non-nullable field 'F3' is uninitialized.
+                // (7,14): warning CS8618: Non-nullable field 'F3' is uninitialized. Consider declaring the field as nullable.
                 //     internal C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(7, 14),
-                // (7,14): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                // (7,14): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
                 //     internal C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(7, 14),
-                // (15,14): warning CS8618: Non-nullable field 'F3' is uninitialized.
+                // (15,14): warning CS8618: Non-nullable field 'F3' is uninitialized. Consider declaring the field as nullable.
                 //     internal C(object x, object y)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(15, 14),
-                // (15,14): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                // (15,14): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
                 //     internal C(object x, object y)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(15, 14));
         }
@@ -168,10 +168,10 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (5,29): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                // (5,29): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
                 //     private readonly object F1;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F1").WithArguments("field", "F1").WithLocation(5, 29),
-                // (7,33): warning CS8618: Non-nullable field 'F3' is uninitialized.
+                // (7,33): warning CS8618: Non-nullable field 'F3' is uninitialized. Consider declaring the field as nullable.
                 //     internal readonly object?[] F3;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F3").WithArguments("field", "F3").WithLocation(7, 33));
         }
@@ -202,16 +202,16 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (7,14): warning CS8618: Non-nullable field 'F3' is uninitialized.
+                // (7,14): warning CS8618: Non-nullable field 'F3' is uninitialized. Consider declaring the field as nullable.
                 //     internal C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(7, 14),
-                // (7,14): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                // (7,14): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
                 //     internal C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(7, 14),
-                // (15,14): warning CS8618: Non-nullable field 'F3' is uninitialized.
+                // (15,14): warning CS8618: Non-nullable field 'F3' is uninitialized. Consider declaring the field as nullable.
                 //     internal C(object x, object y)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(15, 14),
-                // (15,14): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                // (15,14): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
                 //     internal C(object x, object y)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(15, 14));
         }
@@ -247,10 +247,10 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
-            //// (8,12): warning CS8618: Non-nullable field 'F3' is uninitialized.
+            //// (8,12): warning CS8618: Non-nullable field 'F3' is uninitialized. Consider declaring the field as nullable.
             ////     static C()
             //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(8, 12),
-            //// (8,12): warning CS8618: Non-nullable field 'F1' is uninitialized.
+            //// (8,12): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
             ////     static C()
             //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(8, 12));
         }
@@ -276,10 +276,10 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
-            //// (8,12): warning CS8618: Non-nullable field 'F3' is uninitialized.
+            //// (8,12): warning CS8618: Non-nullable field 'F3' is uninitialized. Consider declaring the field as nullable.
             ////     static C()
             //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(8, 12),
-            //// (8,12): warning CS8618: Non-nullable field 'F1' is uninitialized.
+            //// (8,12): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
             ////     static C()
             //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(8, 12));
         }
@@ -318,16 +318,16 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (7,13): warning CS8618: Non-nullable field 'F2' is uninitialized.
+                // (7,13): warning CS8618: Non-nullable field 'F2' is uninitialized. Consider declaring the field as nullable.
                 //     private C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F2").WithLocation(7, 13),
-                // (7,13): warning CS8618: Non-nullable field 'F3' is uninitialized.
+                // (7,13): warning CS8618: Non-nullable field 'F3' is uninitialized. Consider declaring the field as nullable.
                 //     private C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(7, 13),
-                // (23,14): warning CS8618: Non-nullable field 'F2' is uninitialized.
+                // (23,14): warning CS8618: Non-nullable field 'F2' is uninitialized. Consider declaring the field as nullable.
                 //     internal C(object x, object y, string z) : base()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F2").WithLocation(23, 14),
-                // (23,14): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                // (23,14): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
                 //     internal C(object x, object y, string z) : base()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(23, 14));
         }
@@ -358,16 +358,16 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (7,14): warning CS8618: Non-nullable property 'P3' is uninitialized.
+                // (7,14): warning CS8618: Non-nullable property 'P3' is uninitialized. Consider declaring the property as nullable.
                 //     internal C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P3").WithLocation(7, 14),
-                // (7,14): warning CS8618: Non-nullable property 'P1' is uninitialized.
+                // (7,14): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
                 //     internal C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P1").WithLocation(7, 14),
-                // (15,14): warning CS8618: Non-nullable property 'P3' is uninitialized.
+                // (15,14): warning CS8618: Non-nullable property 'P3' is uninitialized. Consider declaring the property as nullable.
                 //     internal C(object x, object y)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P3").WithLocation(15, 14),
-                // (15,14): warning CS8618: Non-nullable property 'P1' is uninitialized.
+                // (15,14): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
                 //     internal C(object x, object y)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P1").WithLocation(15, 14));
         }
@@ -398,16 +398,16 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (7,14): warning CS8618: Non-nullable property 'P3' is uninitialized.
+                // (7,14): warning CS8618: Non-nullable property 'P3' is uninitialized. Consider declaring the property as nullable.
                 //     internal C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P3").WithLocation(7, 14),
-                // (7,14): warning CS8618: Non-nullable property 'P1' is uninitialized.
+                // (7,14): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
                 //     internal C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P1").WithLocation(7, 14),
-                // (15,14): warning CS8618: Non-nullable property 'P3' is uninitialized.
+                // (15,14): warning CS8618: Non-nullable property 'P3' is uninitialized. Consider declaring the property as nullable.
                 //     internal C(object x, object y)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P3").WithLocation(15, 14),
-                // (15,14): warning CS8618: Non-nullable property 'P1' is uninitialized.
+                // (15,14): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
                 //     internal C(object x, object y)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P1").WithLocation(15, 14));
         }
@@ -485,13 +485,13 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (10,13): warning CS8618: Non-nullable field 'F2' is uninitialized.
+                // (10,13): warning CS8618: Non-nullable field 'F2' is uninitialized. Consider declaring the field as nullable.
                 //     private C(T t)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F2").WithLocation(10, 13),
-                // (10,13): warning CS8618: Non-nullable property 'P2' is uninitialized.
+                // (10,13): warning CS8618: Non-nullable property 'P2' is uninitialized. Consider declaring the property as nullable.
                 //     private C(T t)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P2").WithLocation(10, 13),
-                // (10,13): warning CS8618: Non-nullable property 'P3' is uninitialized.
+                // (10,13): warning CS8618: Non-nullable property 'P3' is uninitialized. Consider declaring the property as nullable.
                 //     private C(T t)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P3").WithLocation(10, 13));
         }
@@ -515,13 +515,13 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (10,13): warning CS8618: Non-nullable property 'P1' is uninitialized.
+                // (10,13): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
                 //     private C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P1").WithLocation(10, 13),
-                // (10,13): warning CS8618: Non-nullable property 'P4' is uninitialized.
+                // (10,13): warning CS8618: Non-nullable property 'P4' is uninitialized. Consider declaring the property as nullable.
                 //     private C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P4").WithLocation(10, 13),
-                // (10,13): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                // (10,13): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
                 //     private C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(10, 13));
         }
@@ -571,10 +571,10 @@ class C<T> where T : struct
             // [NonNullTypes(true)]
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (11,5): warning CS8618: Non-nullable field 'F2' is uninitialized.
+                // (11,5): warning CS8618: Non-nullable field 'F2' is uninitialized. Consider declaring the field as nullable.
                 //     B() { }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "B").WithArguments("field", "F2").WithLocation(11, 5),
-                // (5,5): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                // (5,5): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
                 //     A() { }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F1").WithLocation(5, 5));
 
@@ -638,28 +638,28 @@ class C5<T, U> where T : A where U : T
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,7): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                // (6,7): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
                 //     T F1;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F1").WithArguments("field", "F1").WithLocation(6, 7),
-                // (7,7): warning CS8618: Non-nullable field 'G1' is uninitialized.
+                // (7,7): warning CS8618: Non-nullable field 'G1' is uninitialized. Consider declaring the field as nullable.
                 //     U G1;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "G1").WithArguments("field", "G1").WithLocation(7, 7),
-                // (15,7): warning CS8618: Non-nullable field 'F3' is uninitialized.
+                // (15,7): warning CS8618: Non-nullable field 'F3' is uninitialized. Consider declaring the field as nullable.
                 //     T F3;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F3").WithArguments("field", "F3").WithLocation(15, 7),
-                // (16,7): warning CS8618: Non-nullable field 'G3' is uninitialized.
+                // (16,7): warning CS8618: Non-nullable field 'G3' is uninitialized. Consider declaring the field as nullable.
                 //     U G3;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "G3").WithArguments("field", "G3").WithLocation(16, 7),
-                // (20,7): warning CS8618: Non-nullable field 'F4' is uninitialized.
+                // (20,7): warning CS8618: Non-nullable field 'F4' is uninitialized. Consider declaring the field as nullable.
                 //     T F4;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F4").WithArguments("field", "F4").WithLocation(20, 7),
-                // (21,7): warning CS8618: Non-nullable field 'G4' is uninitialized.
+                // (21,7): warning CS8618: Non-nullable field 'G4' is uninitialized. Consider declaring the field as nullable.
                 //     U G4;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "G4").WithArguments("field", "G4").WithLocation(21, 7),
-                // (25,7): warning CS8618: Non-nullable field 'F5' is uninitialized.
+                // (25,7): warning CS8618: Non-nullable field 'F5' is uninitialized. Consider declaring the field as nullable.
                 //     T F5;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F5").WithArguments("field", "F5").WithLocation(25, 7),
-                // (26,7): warning CS8618: Non-nullable field 'G5' is uninitialized.
+                // (26,7): warning CS8618: Non-nullable field 'G5' is uninitialized. Consider declaring the field as nullable.
                 //     U G5;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "G5").WithArguments("field", "G5").WithLocation(26, 7));
         }
@@ -699,10 +699,10 @@ class C5<T, U> where T : A where U : T
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,14): warning CS8618: Non-nullable property 'P' is uninitialized.
+                // (6,14): warning CS8618: Non-nullable property 'P' is uninitialized. Consider declaring the property as nullable.
                 //     internal C(string s)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P").WithLocation(6, 14),
-                // (6,14): warning CS8618: Non-nullable field 'F' is uninitialized.
+                // (6,14): warning CS8618: Non-nullable field 'F' is uninitialized. Consider declaring the field as nullable.
                 //     internal C(string s)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F").WithLocation(6, 14));
         }
@@ -825,7 +825,7 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,5): warning CS8618: Non-nullable field 'G' is uninitialized.
+                // (6,5): warning CS8618: Non-nullable field 'G' is uninitialized. Consider declaring the field as nullable.
                 //     C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "G").WithLocation(6, 5));
         }
@@ -871,16 +871,16 @@ class C
                 // (5,20): warning CS0169: The field 'C._f' is never used
                 //     private object _f;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "_f").WithArguments("C._f").WithLocation(5, 20),
-                // (11,14): warning CS8618: Non-nullable field '_f' is uninitialized.
+                // (11,14): warning CS8618: Non-nullable field '_f' is uninitialized. Consider declaring the field as nullable.
                 //     internal C(object o) { }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_f").WithLocation(11, 14),
-                // (13,14): warning CS8618: Non-nullable field '_f' is uninitialized.
+                // (13,14): warning CS8618: Non-nullable field '_f' is uninitialized. Consider declaring the field as nullable.
                 //     internal C(string s)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_f").WithLocation(13, 14),
-                // (19,14): warning CS8618: Non-nullable field '_f' is uninitialized.
+                // (19,14): warning CS8618: Non-nullable field '_f' is uninitialized. Consider declaring the field as nullable.
                 //     internal C(int x)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_f").WithLocation(19, 14),
-                // (28,14): warning CS8618: Non-nullable field '_f' is uninitialized.
+                // (28,14): warning CS8618: Non-nullable field '_f' is uninitialized. Consider declaring the field as nullable.
                 //     internal C(char c)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_f").WithLocation(28, 14));
         }
