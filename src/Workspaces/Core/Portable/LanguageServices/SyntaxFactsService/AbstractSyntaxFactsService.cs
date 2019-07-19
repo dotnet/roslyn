@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -162,11 +161,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         {
             while (stack.Count > 0)
             {
-                var (nodeOrToken, leading, trailing) = stack.Pop();
-                var currentNodeOrToken = nodeOrToken;
-                var currentLeading = leading;
-                var currentTrailing = trailing;
-
+                var (currentNodeOrToken, currentLeading, currentTrailing) = stack.Pop();
                 if (currentNodeOrToken.IsToken)
                 {
                     // If this token isn't on a single line, then the original node definitely
