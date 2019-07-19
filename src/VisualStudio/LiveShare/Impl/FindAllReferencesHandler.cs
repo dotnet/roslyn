@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -55,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
             await findUsagesService.FindReferencesAsync(document, position, context).ConfigureAwait(false);
 
-            if (requestContext?.ClientCapabilities?.HasVisualStudioLspCapability() == true)
+            if (requestContext?.ClientCapabilities?.ToObject<ClientCapabilities>()?.HasVisualStudioLspCapability() == true)
             {
                 return await GetReferenceGroupsAsync(request, context, cancellationToken).ConfigureAwait(false);
             }

@@ -7,7 +7,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer;
-using LiveShareCodeAction = Microsoft.VisualStudio.LiveShare.LanguageServices.Protocol.CodeAction;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
+using LiveShareCodeAction = Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol.CodeAction;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.CodeActions
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.CodeActions
                 Range = ProtocolConversions.TextSpanToRange(span, text)
             };
 
-            var commands = await lspClient.RequestAsync(LSP.Methods.TextDocumentCodeAction, codeActionParams, cancellationToken).ConfigureAwait(false);
+            var commands = await lspClient.RequestAsync(LSP.Methods.TextDocumentCodeAction.ToLSRequest(), codeActionParams, cancellationToken).ConfigureAwait(false);
             if (commands == null)
             {
                 return;

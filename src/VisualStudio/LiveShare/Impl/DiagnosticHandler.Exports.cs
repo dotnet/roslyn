@@ -3,12 +3,11 @@
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
-using Microsoft.VisualStudio.LiveShare.LanguageServices.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
     [Export(LiveShareConstants.RoslynContractName, typeof(ILspNotificationProvider))]
-    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.GetDocumentDiagnosticsName)]
+    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Protocol.CustomMethods.GetDocumentDiagnosticsName)]
     internal class RoslynDiagnosticsHandler : DiagnosticsHandler
     {
         [ImportingConstructor]
@@ -19,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     }
 
     [Export(LiveShareConstants.RoslynLSPSDKContractName, typeof(ILspNotificationProvider))]
-    [ExportLspRequestHandler(LiveShareConstants.RoslynLSPSDKContractName, Methods.GetDocumentDiagnosticsName)]
+    [ExportLspRequestHandler(LiveShareConstants.RoslynLSPSDKContractName, Protocol.CustomMethods.GetDocumentDiagnosticsName)]
     internal class RoslynLSPSDKDiagnosticsHandler : DiagnosticsHandler
     {
         [ImportingConstructor]

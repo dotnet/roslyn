@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
-using LiveShareCodeAction = Microsoft.VisualStudio.LiveShare.LanguageServices.Protocol.CodeAction;
+using LiveShareCodeAction = Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol.CodeAction;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {

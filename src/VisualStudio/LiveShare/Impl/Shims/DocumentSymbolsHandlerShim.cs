@@ -24,15 +24,16 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         public override async Task<SymbolInformation[]> HandleAsync(DocumentSymbolParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            var hierarchicalSupport = requestContext.ClientCapabilities?.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport;
+            var clientCapabilities = requestContext.ClientCapabilities?.ToObject<ClientCapabilities>();
+            var hierarchicalSupport = clientCapabilities?.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport;
             if (hierarchicalSupport == true)
             {
                 // If the value is true, set it to false.  Liveshare does not support hierarchical document symbols.
-                requestContext.ClientCapabilities.TextDocument.DocumentSymbol.HierarchicalDocumentSymbolSupport = false;
+                clientCapabilities.TextDocument.DocumentSymbol.HierarchicalDocumentSymbolSupport = false;
             }
 
             var handler = (IRequestHandler<DocumentSymbolParams, object[]>)LazyRequestHandler.Value;
-            var response = await handler.HandleRequestAsync(requestContext.Context, param, requestContext.ClientCapabilities, cancellationToken).ConfigureAwait(false);
+            var response = await handler.HandleRequestAsync(requestContext.Context, param, clientCapabilities, cancellationToken).ConfigureAwait(false);
 
             // Since hierarchicalSupport will never be true, it is safe to cast the response to SymbolInformation[]
             return response?.Select(obj => (SymbolInformation)obj).ToArray();
