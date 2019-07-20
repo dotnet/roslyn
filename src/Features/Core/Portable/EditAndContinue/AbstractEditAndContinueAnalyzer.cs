@@ -194,6 +194,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected abstract bool StatementLabelEquals(SyntaxNode node1, SyntaxNode node2);
 
         /// <summary>
+        /// True if both nodes represent the same kind of suspension point 
+        /// (await expression, await foreach statement, await using declarator, yield return, yield break).
+        /// </summary>
+        protected virtual bool StateMachineSuspensionPointKindEquals(SyntaxNode suspensionPoint1, SyntaxNode suspensionPoint2)
+            => suspensionPoint1.RawKind == suspensionPoint2.RawKind;
+
+        /// <summary>
         /// Determines if two syntax nodes are the same, disregarding trivia differences.
         /// </summary>
         protected abstract bool AreEquivalent(SyntaxNode left, SyntaxNode right);
@@ -278,7 +285,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         protected abstract SymbolDisplayFormat ErrorDisplayFormat { get; }
         protected abstract List<SyntaxNode> GetExceptionHandlingAncestors(SyntaxNode node, bool isNonLeaf);
-        protected abstract void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKind kind);
+        protected abstract void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKinds kinds);
         protected abstract TextSpan GetExceptionHandlingRegion(SyntaxNode node, out bool coversAllChildren);
 
         internal abstract void ReportSyntacticRudeEdits(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap);
@@ -1347,8 +1354,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             List<KeyValuePair<SyntaxNode, SyntaxNode>> lazyKnownMatches = null;
             List<SequenceEdit> lazyRudeEdits = null;
-            GetStateMachineInfo(oldBody, out var oldStateMachineSuspensionPoints, out var oldStateMachineKind);
-            GetStateMachineInfo(newBody, out var newStateMachineSuspensionPoints, out var newStateMachineKind);
+            GetStateMachineInfo(oldBody, out var oldStateMachineSuspensionPoints, out var oldStateMachineKinds);
+            GetStateMachineInfo(newBody, out var newStateMachineSuspensionPoints, out var newStateMachineKinds);
 
             AddMatchingActiveNodes(ref lazyKnownMatches, activeNodes);
 
@@ -1382,24 +1389,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (rudeEdit.Kind == EditKind.Delete)
                     {
                         var deletedNode = oldStateMachineSuspensionPoints[rudeEdit.OldIndex];
-
-                        diagnostics.Add(new RudeEditDiagnostic(
-                            RudeEditKind.Delete,
-                            GetDeletedNodeDiagnosticSpan(match.Matches, deletedNode),
-                            deletedNode,
-                            new[] { GetDisplayName(deletedNode, EditKind.Delete) }));
+                        ReportStateMachineSuspensionPointDeletedRudeEdit(diagnostics, match, deletedNode);
                     }
                     else
                     {
                         Debug.Assert(rudeEdit.Kind == EditKind.Insert);
 
                         var insertedNode = newStateMachineSuspensionPoints[rudeEdit.NewIndex];
-
-                        diagnostics.Add(new RudeEditDiagnostic(
-                            creatingStateMachineAroundActiveStatement ? RudeEditKind.InsertAroundActiveStatement : RudeEditKind.Insert,
-                            GetDiagnosticSpan(insertedNode, EditKind.Insert),
-                            insertedNode,
-                            new[] { GetDisplayName(insertedNode, EditKind.Insert) }));
+                        ReportStateMachineSuspensionPointInsertedRudeEdit(diagnostics, match, insertedNode, creatingStateMachineAroundActiveStatement);
                     }
                 }
             }
@@ -1409,7 +1406,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 for (var i = 0; i < oldStateMachineSuspensionPoints.Length; i++)
                 {
-                    ReportStateMachineSuspensionPointRudeEdits(diagnostics, oldStateMachineSuspensionPoints[i], newStateMachineSuspensionPoints[i]);
+                    var oldNode = oldStateMachineSuspensionPoints[i];
+                    var newNode = newStateMachineSuspensionPoints[i];
+
+                    // changing yield return to yield break, await to await foreach, yield to await, etc.
+                    if (StateMachineSuspensionPointKindEquals(oldNode, newNode))
+                    {
+                        Debug.Assert(StatementLabelEquals(oldNode, newNode));
+                    }
+                    else
+                    {
+                        diagnostics.Add(new RudeEditDiagnostic(
+                            RudeEditKind.Changing,
+                            newNode.Span,
+                            newNode,
+                            new[] { GetDisplayName(oldNode, EditKind.Update), GetDisplayName(newNode, EditKind.Update) }));
+                    }
+
+                    ReportStateMachineSuspensionPointRudeEdits(diagnostics, oldNode, newNode);
                 }
             }
             else if (activeNodes.Length > 0)
@@ -1417,7 +1431,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // It is allowed to update a regular method to an async method or an iterator.
                 // The only restriction is a presence of an active statement in the method body
                 // since the debugger does not support remapping active statements to a different method.
-                if (oldStateMachineKind == StateMachineKind.None && newStateMachineKind != StateMachineKind.None)
+                if (oldStateMachineKinds != newStateMachineKinds)
                 {
                     diagnostics.Add(new RudeEditDiagnostic(
                         RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
@@ -1425,7 +1439,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            if (oldStateMachineKind == StateMachineKind.Async && newStateMachineKind != StateMachineKind.Async)
+            // report removing async as rude; iterator to non-iterator transition is only possible via removing yeild, which is already reported above:
+            if ((oldStateMachineKinds & StateMachineKinds.Async) != 0 && (newStateMachineKinds & StateMachineKinds.Async) == 0)
             {
                 diagnostics.Add(new RudeEditDiagnostic(
                     RudeEditKind.ChangingFromAsynchronousToSynchronous,
@@ -1435,6 +1450,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             return match;
+        }
+
+        internal virtual void ReportStateMachineSuspensionPointDeletedRudeEdit(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode deletedSuspensionPoint)
+        {
+            diagnostics.Add(new RudeEditDiagnostic(
+                RudeEditKind.Delete,
+                GetDeletedNodeDiagnosticSpan(match.Matches, deletedSuspensionPoint),
+                deletedSuspensionPoint,
+                new[] { GetDisplayName(deletedSuspensionPoint, EditKind.Delete) }));
+        }
+
+        internal virtual void ReportStateMachineSuspensionPointInsertedRudeEdit(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode insertedSuspensionPoint, bool aroundActiveStatement)
+        {
+            diagnostics.Add(new RudeEditDiagnostic(
+                aroundActiveStatement ? RudeEditKind.InsertAroundActiveStatement : RudeEditKind.Insert,
+                GetDiagnosticSpan(insertedSuspensionPoint, EditKind.Insert),
+                insertedSuspensionPoint,
+                new[] { GetDisplayName(insertedSuspensionPoint, EditKind.Insert) }));
         }
 
         private static void AddMatchingActiveNodes(ref List<KeyValuePair<SyntaxNode, SyntaxNode>> lazyKnownMatches, IEnumerable<ActiveNode> activeNodes)
@@ -1460,20 +1493,29 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<SyntaxNode> oldStateMachineSuspensionPoints,
             ImmutableArray<SyntaxNode> newStateMachineSuspensionPoints)
         {
-            // State machine suspension points (yield statements and await expressions) determine the structure of the generated state machine.
+            // State machine suspension points (yield statements, await expressions, await foreach loops, await using declarations) 
+            // determine the structure of the generated state machine.
             // Change of the SM structure is far more significant then changes of the value (arguments) of these nodes.
             // Hence we build the match such that these nodes are fixed.
 
-            if (lazyKnownMatches == null)
+            lazyKnownMatches ??= new List<KeyValuePair<SyntaxNode, SyntaxNode>>();
+
+            void AddMatch(ref List<KeyValuePair<SyntaxNode, SyntaxNode>> lazyKnownMatches, int oldIndex, int newIndex)
             {
-                lazyKnownMatches = new List<KeyValuePair<SyntaxNode, SyntaxNode>>();
+                var oldNode = oldStateMachineSuspensionPoints[oldIndex];
+                var newNode = newStateMachineSuspensionPoints[newIndex];
+
+                if (StatementLabelEquals(oldNode, newNode))
+                {
+                    lazyKnownMatches.Add(KeyValuePairUtil.Create(oldNode, newNode));
+                }
             }
 
             if (oldStateMachineSuspensionPoints.Length == newStateMachineSuspensionPoints.Length)
             {
                 for (var i = 0; i < oldStateMachineSuspensionPoints.Length; i++)
                 {
-                    lazyKnownMatches.Add(KeyValuePairUtil.Create(oldStateMachineSuspensionPoints[i], newStateMachineSuspensionPoints[i]));
+                    AddMatch(ref lazyKnownMatches, i, i);
                 }
             }
             else
@@ -1487,15 +1529,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (editKind == EditKind.Update)
                     {
-                        lazyKnownMatches.Add(KeyValuePairUtil.Create(oldStateMachineSuspensionPoints[edit.OldIndex], newStateMachineSuspensionPoints[edit.NewIndex]));
+                        AddMatch(ref lazyKnownMatches, edit.OldIndex, edit.NewIndex);
                     }
                     else
                     {
-                        if (lazyRudeEdits == null)
-                        {
-                            lazyRudeEdits = new List<SequenceEdit>();
-                        }
-
+                        lazyRudeEdits ??= new List<SequenceEdit>();
                         lazyRudeEdits.Add(edit);
                     }
                 }
@@ -3850,6 +3888,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #endregion
 
+        #region Testing
+
         internal TestAccessor GetTestAccessor()
             => new TestAccessor(this);
 
@@ -3940,5 +3980,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 _abstractEditAndContinueAnalyzer.AnalyzeSemantics(editScript, editMap, oldText, oldActiveStatements, triviaEdits, updatedMembers, oldModel, newModel, semanticEdits, diagnostics, out firstDeclarationErrorOpt, cancellationToken);
             }
         }
+
+        #endregion
     }
 }

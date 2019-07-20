@@ -2989,17 +2989,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                    SyntaxUtilities.IsIteratorMethodOrLambda(declaration)
         End Function
 
-        Protected Overrides Sub GetStateMachineInfo(body As SyntaxNode, ByRef suspensionPoints As ImmutableArray(Of SyntaxNode), ByRef kind As StateMachineKind)
+        Protected Overrides Sub GetStateMachineInfo(body As SyntaxNode, ByRef suspensionPoints As ImmutableArray(Of SyntaxNode), ByRef kind As StateMachineKinds)
             ' In VB declaration and body are represented by the same node for both lambdas and methods (unlike C#)
             If SyntaxUtilities.IsAsyncMethodOrLambda(body) Then
                 suspensionPoints = SyntaxUtilities.GetAwaitExpressions(body)
-                kind = StateMachineKind.Async
+                kind = StateMachineKinds.Async
             ElseIf SyntaxUtilities.IsIteratorMethodOrLambda(body) Then
                 suspensionPoints = SyntaxUtilities.GetYieldStatements(body)
-                kind = StateMachineKind.Iterator
+                kind = StateMachineKinds.Iterator
             Else
                 suspensionPoints = ImmutableArray(Of SyntaxNode).Empty
-                kind = StateMachineKind.None
+                kind = StateMachineKinds.None
             End If
         End Sub
 

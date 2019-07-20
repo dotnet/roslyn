@@ -277,47 +277,41 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             };
         }
 
-        public static ImmutableArray<SyntaxNode> GetAwaitExpressions(SyntaxNode body)
-        {
-            // skip lambda bodies:
-            return ImmutableArray.CreateRange(body.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda).Where(n => n.IsKind(SyntaxKind.AwaitExpression)));
-        }
+        /// <summary>
+        /// Returns a list of all await expressions, await foreach statements, await using declarations and yield statements in the given body,
+        /// in the order in which they occur.
+        /// </summary>
+        /// <returns>
+        /// <see cref="AwaitExpressionSyntax"/> for await expressions,
+        /// <see cref="YieldStatementSyntax"/> for yield break and yield return statements,
+        /// <see cref="CommonForEachStatementSyntax"/> for await foreach statements,
+        /// <see cref="VariableDeclaratorSyntax"/> for await using declarators.
+        /// </returns>
+        public static IEnumerable<SyntaxNode> GetSuspensionPoints(SyntaxNode body)
+            => body.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda).Where(IsSuspensionPoint);
 
-        public static ImmutableArray<SyntaxNode> GetYieldStatements(SyntaxNode body)
+        public static bool IsSuspensionPoint(SyntaxNode node)
         {
-            // lambdas and expression-bodied methods can't be iterators:
-            if (!body.Parent.IsKind(SyntaxKind.MethodDeclaration) &&
-                !body.Parent.IsKind(SyntaxKind.LocalFunctionStatement))
+            if (node.IsKind(SyntaxKind.AwaitExpression) || node.IsKind(SyntaxKind.YieldBreakStatement) || node.IsKind(SyntaxKind.YieldReturnStatement))
             {
-                return ImmutableArray<SyntaxNode>.Empty;
+                return true;
             }
 
-            // enumerate statements:
-            return EnumerateYieldStatements(body).ToImmutableArray();
-        }
-
-        public static bool IsIteratorDeclaration(SyntaxNode declaration)
-        {
-            // lambdas and expression-bodied methods/functions can't be iterators:
-            var blockBody = declaration switch
+            // await foreach statement translates to two suspension points: await MoveNextAsync and await DisposeAsync
+            if (node is CommonForEachStatementSyntax foreachStatement && foreachStatement.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword))
             {
-                MethodDeclarationSyntax method => method.Body,
-                LocalFunctionStatementSyntax localFunction => localFunction.Body,
-                _ => null
-            };
-
-            return blockBody != null && EnumerateYieldStatements(blockBody).Any();
-        }
-
-        private static IEnumerable<SyntaxNode> EnumerateYieldStatements(SyntaxNode body)
-        {
-            foreach (var descendant in body.DescendantNodes(n => !(n is ExpressionSyntax) && !n.IsKind(SyntaxKind.LocalFunctionStatement)))
-            {
-                if (descendant.IsKind(SyntaxKind.YieldBreakStatement) || descendant.IsKind(SyntaxKind.YieldReturnStatement))
-                {
-                    yield return descendant;
-                }
+                return true;
             }
+
+            // each declarator in the declaration translates to a suspension point: await DisposeAsync
+            if (node.IsKind(SyntaxKind.VariableDeclarator) &&
+                node.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement) &&
+                ((LocalDeclarationStatementSyntax)node.Parent.Parent).AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

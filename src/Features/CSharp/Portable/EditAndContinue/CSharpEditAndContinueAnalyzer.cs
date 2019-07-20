@@ -616,6 +616,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return false;
         }
 
+        protected override bool StateMachineSuspensionPointKindEquals(SyntaxNode suspensionPoint1, SyntaxNode suspensionPoint2)
+            => (suspensionPoint1 is CommonForEachStatementSyntax) ? suspensionPoint2 is CommonForEachStatementSyntax : suspensionPoint1.RawKind == suspensionPoint2.RawKind;
+
         protected override bool StatementLabelEquals(SyntaxNode node1, SyntaxNode node2)
         {
             return StatementSyntaxComparer.GetLabelImpl(node1) == StatementSyntaxComparer.GetLabelImpl(node2);
@@ -1348,7 +1351,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ForEachStatement:
                 case SyntaxKind.ForEachVariableStatement:
                     var commonForEachStatement = (CommonForEachStatementSyntax)node;
-                    return TextSpan.FromBounds(commonForEachStatement.ForEachKeyword.SpanStart, commonForEachStatement.CloseParenToken.Span.End);
+                    return TextSpan.FromBounds(
+                        (commonForEachStatement.AwaitKeyword.Span.Length > 0) ? commonForEachStatement.AwaitKeyword.SpanStart : commonForEachStatement.ForEachKeyword.SpanStart,
+                        commonForEachStatement.CloseParenToken.Span.End);
 
                 case SyntaxKind.LabeledStatement:
                     return ((LabeledStatementSyntax)node).Identifier.Span;
@@ -1369,13 +1374,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ReturnStatement:
                 case SyntaxKind.ThrowStatement:
                 case SyntaxKind.ExpressionStatement:
-                case SyntaxKind.LocalDeclarationStatement:
                 case SyntaxKind.GotoStatement:
                 case SyntaxKind.GotoCaseStatement:
                 case SyntaxKind.GotoDefaultStatement:
                 case SyntaxKind.BreakStatement:
                 case SyntaxKind.ContinueStatement:
                     return node.Span;
+
+                case SyntaxKind.LocalDeclarationStatement:
+                    var localDeclarationStatement = (LocalDeclarationStatementSyntax)node;
+                    return CombineSpans(localDeclarationStatement.AwaitKeyword.Span, localDeclarationStatement.UsingKeyword.Span, node.Span);
 
                 case SyntaxKind.AwaitExpression:
                     return ((AwaitExpressionSyntax)node).AwaitKeyword.Span;
@@ -1453,6 +1461,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static TextSpan GetDiagnosticSpan(SyntaxTokenList modifiers, SyntaxNodeOrToken start, SyntaxNodeOrToken end)
             => TextSpan.FromBounds((modifiers.Count != 0) ? modifiers.First().SpanStart : start.SpanStart, end.Span.End);
+
+        private static TextSpan CombineSpans(TextSpan first, TextSpan second, TextSpan defaultSpan)
+           => (first.Length > 0 && second.Length > 0) ? TextSpan.FromBounds(first.Start, second.End) : (first.Length > 0) ? first : (second.Length > 0) ? second : defaultSpan;
 
         internal override TextSpan GetLambdaParameterDiagnosticSpan(SyntaxNode lambda, int ordinal)
         {
@@ -1629,8 +1640,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return CSharpFeaturesResources.unchecked_statement;
 
                 case SyntaxKind.YieldBreakStatement:
+                    return CSharpFeaturesResources.yield_break_statement;
+
                 case SyntaxKind.YieldReturnStatement:
-                    return CSharpFeaturesResources.yield_statement;
+                    return CSharpFeaturesResources.yield_return_statement;
 
                 case SyntaxKind.AwaitExpression:
                     return CSharpFeaturesResources.await_expression;
@@ -1702,6 +1715,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.SwitchStatement:
                 case SyntaxKind.DeclarationPattern:
                     return CSharpFeaturesResources.v7_switch;
+
+                case SyntaxKind.LocalDeclarationStatement:
+                    if (((LocalDeclarationStatementSyntax)node).UsingKeyword.IsKind(SyntaxKind.UsingKeyword))
+                    {
+                        return CSharpFeaturesResources.using_declaration;
+                    }
+
+                    return CSharpFeaturesResources.local_variable_declaration;
 
                 default:
                     return null;
@@ -3000,20 +3021,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         #region State Machines
 
         internal override bool IsStateMachineMethod(SyntaxNode declaration)
-            => SyntaxUtilities.IsAsyncDeclaration(declaration) ||
-               SyntaxUtilities.IsIteratorDeclaration(declaration);
+            => SyntaxUtilities.IsAsyncDeclaration(declaration) || SyntaxUtilities.GetSuspensionPoints(declaration).Any();
 
-        protected override void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKind kind)
+        protected override void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKinds kinds)
         {
+            suspensionPoints = SyntaxUtilities.GetSuspensionPoints(body).ToImmutableArray();
+
+            kinds = StateMachineKinds.None;
+
+            if (suspensionPoints.Any(n => n.IsKind(SyntaxKind.YieldBreakStatement) || n.IsKind(SyntaxKind.YieldReturnStatement)))
+            {
+                kinds |= StateMachineKinds.Iterator;
+            }
+
             if (SyntaxUtilities.IsAsyncDeclaration(body.Parent))
             {
-                suspensionPoints = SyntaxUtilities.GetAwaitExpressions(body);
-                kind = StateMachineKind.Async;
-            }
-            else
-            {
-                suspensionPoints = SyntaxUtilities.GetYieldStatements(body);
-                kind = suspensionPoints.IsEmpty ? StateMachineKind.None : StateMachineKind.Iterator;
+                kinds |= StateMachineKinds.Async;
             }
         }
 
@@ -3021,18 +3044,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             // TODO: changes around suspension points (foreach, lock, using, etc.)
 
-            if (oldNode.RawKind != newNode.RawKind)
-            {
-                Debug.Assert(oldNode is YieldStatementSyntax && newNode is YieldStatementSyntax);
-
-                // changing yield return to yield break
-                diagnostics.Add(new RudeEditDiagnostic(
-                    RudeEditKind.Update,
-                    newNode.Span,
-                    newNode,
-                    new[] { GetDisplayName(newNode, EditKind.Update) }));
-            }
-            else if (newNode.IsKind(SyntaxKind.AwaitExpression))
+            if (newNode.IsKind(SyntaxKind.AwaitExpression))
             {
                 var oldContainingStatementPart = FindContainingStatementPart(oldNode);
                 var newContainingStatementPart = FindContainingStatementPart(newNode);
@@ -3044,6 +3056,76 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.AwaitStatementUpdate, newContainingStatementPart.Span));
                 }
             }
+        }
+
+        internal override void ReportStateMachineSuspensionPointDeletedRudeEdit(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode deletedSuspensionPoint)
+        {
+            // Handle deletion of await keyword from await foreach statement.
+            if (deletedSuspensionPoint is CommonForEachStatementSyntax deletedForeachStatement &&
+                match.Matches.TryGetValue(deletedSuspensionPoint, out var newForEachStatement) &&
+                newForEachStatement is CommonForEachStatementSyntax &&
+                deletedForeachStatement.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword))
+            {
+                diagnostics.Add(new RudeEditDiagnostic(
+                    RudeEditKind.ChangingFromAsynchronousToSynchronous,
+                    GetDiagnosticSpan(newForEachStatement, EditKind.Update),
+                    newForEachStatement,
+                    new[] { GetDisplayName(newForEachStatement, EditKind.Update) }));
+
+                return;
+            }
+
+            // Handle deletion of await keyword from await using declaration.
+            if (deletedSuspensionPoint.IsKind(SyntaxKind.VariableDeclarator) &&
+                match.Matches.TryGetValue(deletedSuspensionPoint.Parent.Parent, out var newLocalDeclaration) &&
+                !((LocalDeclarationStatementSyntax)newLocalDeclaration).AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword))
+            {
+                diagnostics.Add(new RudeEditDiagnostic(
+                        RudeEditKind.ChangingFromAsynchronousToSynchronous,
+                        GetDiagnosticSpan(newLocalDeclaration, EditKind.Update),
+                        newLocalDeclaration,
+                        new[] { GetDisplayName(newLocalDeclaration, EditKind.Update) }));
+
+                return;
+            }
+
+            base.ReportStateMachineSuspensionPointDeletedRudeEdit(diagnostics, match, deletedSuspensionPoint);
+        }
+
+        internal override void ReportStateMachineSuspensionPointInsertedRudeEdit(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode insertedSuspensionPoint, bool aroundActiveStatement)
+        {
+            // Handle addition of await keyword to foreach statement.
+            if (insertedSuspensionPoint is CommonForEachStatementSyntax insertedForEachStatement &&
+                match.ReverseMatches.TryGetValue(insertedSuspensionPoint, out var oldNode) &&
+                oldNode is CommonForEachStatementSyntax oldForEachStatement &&
+                !oldForEachStatement.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword))
+            {
+                diagnostics.Add(new RudeEditDiagnostic(
+                    RudeEditKind.Insert,
+                    insertedForEachStatement.AwaitKeyword.Span,
+                    insertedForEachStatement,
+                    new[] { insertedForEachStatement.AwaitKeyword.ToString() }));
+
+                return;
+            }
+
+            // Handle addition of using keyword to using declaration.
+            if (insertedSuspensionPoint.IsKind(SyntaxKind.VariableDeclarator) &&
+                match.ReverseMatches.TryGetValue(insertedSuspensionPoint.Parent.Parent, out var oldLocalDeclaration) &&
+                !((LocalDeclarationStatementSyntax)oldLocalDeclaration).AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword))
+            {
+                var newLocalDeclaration = (LocalDeclarationStatementSyntax)insertedSuspensionPoint.Parent.Parent;
+
+                diagnostics.Add(new RudeEditDiagnostic(
+                    RudeEditKind.Insert,
+                    newLocalDeclaration.AwaitKeyword.Span,
+                    newLocalDeclaration,
+                    new[] { newLocalDeclaration.AwaitKeyword.ToString() }));
+
+                return;
+            }
+
+            base.ReportStateMachineSuspensionPointInsertedRudeEdit(diagnostics, match, insertedSuspensionPoint, aroundActiveStatement);
         }
 
         private static SyntaxNode FindContainingStatementPart(SyntaxNode node)

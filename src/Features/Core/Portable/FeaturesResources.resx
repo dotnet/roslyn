@@ -351,6 +351,9 @@
   <data name="Updating_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Updating '{0}' will prevent the debug session from continuing.</value>
   </data>
+  <data name="Changing_0_to_1_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Changing '{0}' to '{1}' will prevent the debug session from continuing.</value>
+  </data>
   <data name="Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Updating a complex statement containing an await expression will prevent the debug session from continuing.</value>
   </data>

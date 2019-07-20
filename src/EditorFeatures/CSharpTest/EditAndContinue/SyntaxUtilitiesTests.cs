@@ -154,44 +154,12 @@ class C
         }
 
         [Fact]
-        public void IsIteratorDeclaration()
-        {
-            var tree = SyntaxFactory.ParseSyntaxTree(@"
-class C
-{
-    IEnumerable<int> X = new[] { 1, 2, 3 };
-
-    IEnumerable<int> M1() { yield return 1; }
-    
-    void M2() 
-    {
-        IEnumerable<int> f() { yield return 1; }
-    }
-}
-");
-
-            var x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single(m => m.Identifier.ValueText == "X");
-            var m1 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.ValueText == "M1");
-            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.ValueText == "M2");
-            var f = m2.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single(m => m.Identifier.ValueText == "f");
-
-            Assert.False(SyntaxUtilities.IsIteratorDeclaration(x));
-            Assert.True(SyntaxUtilities.IsIteratorDeclaration(m1));
-            Assert.False(SyntaxUtilities.IsIteratorDeclaration(m2));
-            Assert.True(SyntaxUtilities.IsIteratorDeclaration(f));
-
-            Assert.Equal(0, SyntaxUtilities.GetYieldStatements(x.Initializer).Length);
-            Assert.Equal(1, SyntaxUtilities.GetYieldStatements(m1.Body).Length);
-            Assert.Equal(0, SyntaxUtilities.GetYieldStatements(m2.Body).Length);
-            Assert.Equal(1, SyntaxUtilities.GetYieldStatements(f.Body).Length);
-        }
-
-        [Fact]
         public void IsAsyncDeclaration()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(@"
 class C
 {
+    async Task<int> M0() => 1;
     async Task<int> M1() => await Task.FromResult(1);
     async Task<int> M2() { return await Task.FromResult(1); }
 
@@ -208,6 +176,7 @@ class C
 }
 ");
 
+            var m0 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.ValueText == "M0");
             var m1 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.ValueText == "M1");
             var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.ValueText == "M2");
             var m3 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.ValueText == "M3");
@@ -224,6 +193,7 @@ class C
             var l3 = m3.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single(m => m.Identifier.ValueText == "l3").Initializer.
                 DescendantNodes().OfType<AnonymousFunctionExpressionSyntax>().Single();
 
+            Assert.True(SyntaxUtilities.IsAsyncDeclaration(m0.ExpressionBody));
             Assert.True(SyntaxUtilities.IsAsyncDeclaration(m1.ExpressionBody));
             Assert.True(SyntaxUtilities.IsAsyncDeclaration(m2));
             Assert.False(SyntaxUtilities.IsAsyncDeclaration(m3));
@@ -233,14 +203,67 @@ class C
             Assert.True(SyntaxUtilities.IsAsyncDeclaration(l2));
             Assert.True(SyntaxUtilities.IsAsyncDeclaration(l3));
 
-            Assert.Equal(1, SyntaxUtilities.GetAwaitExpressions(m1.ExpressionBody).Length);
-            Assert.Equal(1, SyntaxUtilities.GetAwaitExpressions(m2.Body).Length);
-            Assert.Equal(0, SyntaxUtilities.GetAwaitExpressions(m3.Body).Length);
-            Assert.Equal(1, SyntaxUtilities.GetAwaitExpressions(f1.ExpressionBody).Length);
-            Assert.Equal(1, SyntaxUtilities.GetAwaitExpressions(f2.Body).Length);
-            Assert.Equal(1, SyntaxUtilities.GetAwaitExpressions(l1.Body).Length);
-            Assert.Equal(1, SyntaxUtilities.GetAwaitExpressions(l2.Body).Length);
-            Assert.Equal(1, SyntaxUtilities.GetAwaitExpressions(l3.Body).Length);
+            Assert.Equal(0, SyntaxUtilities.GetSuspensionPoints(m0.ExpressionBody).Count());
+            Assert.Equal(1, SyntaxUtilities.GetSuspensionPoints(m1.ExpressionBody).Count());
+            Assert.Equal(1, SyntaxUtilities.GetSuspensionPoints(m2.Body).Count());
+            Assert.Equal(0, SyntaxUtilities.GetSuspensionPoints(m3.Body).Count());
+            Assert.Equal(1, SyntaxUtilities.GetSuspensionPoints(f1.ExpressionBody).Count());
+            Assert.Equal(1, SyntaxUtilities.GetSuspensionPoints(f2.Body).Count());
+            Assert.Equal(1, SyntaxUtilities.GetSuspensionPoints(l1.Body).Count());
+            Assert.Equal(1, SyntaxUtilities.GetSuspensionPoints(l2.Body).Count());
+            Assert.Equal(1, SyntaxUtilities.GetSuspensionPoints(l3.Body).Count());
+        }
+
+        [Fact]
+        public void GetSuspensionPoints()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    IEnumerable<int> X = new[] { 1, 2, 3 };
+
+    IEnumerable<int> M1() { yield return 1; }
+    
+    void M2() 
+    {
+        IAsyncEnumerable<int> f() 
+        {
+            yield return 1;
+
+            yield break;
+
+            await Task.FromResult(1);
+
+            await foreach (var x in F()) { }
+
+            await foreach (var (x, y) in F()) { }
+
+            await using T x1 = F1(), x2 = F2(), x3 = F3();
+        }
+    }
+}
+");
+
+            var x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single(m => m.Identifier.ValueText == "X");
+            var m1 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.ValueText == "M1");
+            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.ValueText == "M2");
+            var f = m2.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single(m => m.Identifier.ValueText == "f");
+
+            AssertEx.Empty(SyntaxUtilities.GetSuspensionPoints(x.Initializer));
+            AssertEx.Equal(new[] { "yield return 1;" }, SyntaxUtilities.GetSuspensionPoints(m1.Body).Select(n => n.ToString()));
+            AssertEx.Empty(SyntaxUtilities.GetSuspensionPoints(m2.Body));
+
+            AssertEx.Equal(new[]
+            {
+                "yield return 1;",
+                "yield break;",
+                "await Task.FromResult(1)",
+                "await foreach (var x in F()) { }",
+                "await foreach (var (x, y) in F()) { }",
+                "x1 = F1()",
+                "x2 = F2()",
+                "x3 = F3()",
+            }, SyntaxUtilities.GetSuspensionPoints(f.Body).Select(n => n.ToString()));
         }
     }
 }

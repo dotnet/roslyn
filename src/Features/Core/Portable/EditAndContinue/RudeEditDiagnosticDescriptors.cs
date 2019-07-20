@@ -86,6 +86,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             { GetDescriptorPair(RudeEditKind.InternalError,                             FeaturesResources.Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error) },
             { GetDescriptorPair(RudeEditKind.SwitchExpressionUpdate,                    FeaturesResources.Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing) },
             { GetDescriptorPair(RudeEditKind.ChangingFromAsynchronousToSynchronous,     FeaturesResources.Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing) },
+            { GetDescriptorPair(RudeEditKind.Changing,                                  FeaturesResources.Changing_0_to_1_will_prevent_the_debug_session_from_continuing) },
             { GetDescriptorPair(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION,        FeaturesResources.Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_will_prevent_the_debug_session_from_continuing) },
 
             // VB specific,

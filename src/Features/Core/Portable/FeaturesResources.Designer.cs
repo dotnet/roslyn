@@ -835,6 +835,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Changing &apos;{0}&apos; to &apos;{1}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Changing_0_to_1_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Changing_0_to_1_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changing the constraint from &apos;{0}&apos; to &apos;{1}&apos; will prevent the debug session from continuing..
         /// </summary>
         internal static string Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing {
