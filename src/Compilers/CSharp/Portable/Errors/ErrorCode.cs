@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialWrongTypeParams = 264,
         ERR_PartialWrongConstraints = 265,
         ERR_NoImplicitConvCast = 266, // Requires SymbolDistinguisher.
-        ERR_PartialMisplaced = 267,
+        // ERR_PartialMisplaced = 267, // We now give BadMemberFlag since the order is relaxed
         ERR_ImportedCircularBase = 268,
         ERR_UseDefViolationOut = 269,
         ERR_ArraySizeInDeclaration = 270,

@@ -8341,15 +8341,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;partial&apos; modifier can only appear immediately before &apos;class&apos;, &apos;struct&apos;, &apos;interface&apos;, or &apos;void&apos;.
-        /// </summary>
-        internal static string ERR_PartialMisplaced {
-            get {
-                return ResourceManager.GetString("ERR_PartialMisplaced", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Partial declarations of &apos;{0}&apos; have conflicting accessibility modifiers.
         /// </summary>
         internal static string ERR_PartialModifierConflict {
@@ -11740,6 +11731,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureRefLocalsReturns {
             get {
                 return ResourceManager.GetString("IDS_FeatureRefLocalsReturns", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ref and partial modifier ordering.
+        /// </summary>
+        internal static string IDS_FeatureRefPartialModOrdering {
+            get {
+                return ResourceManager.GetString("IDS_FeatureRefPartialModOrdering", resourceCulture);
             }
         }
         

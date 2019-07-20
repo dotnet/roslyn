@@ -1089,9 +1089,6 @@
   <data name="ERR_NoImplicitConvCast" xml:space="preserve">
     <value>Cannot implicitly convert type '{0}' to '{1}'. An explicit conversion exists (are you missing a cast?)</value>
   </data>
-  <data name="ERR_PartialMisplaced" xml:space="preserve">
-    <value>The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'</value>
-  </data>
   <data name="ERR_ImportedCircularBase" xml:space="preserve">
     <value>Imported type '{0}' is invalid. It contains a circular base class dependency.</value>
   </data>
@@ -5932,5 +5929,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_InternalError" xml:space="preserve">
     <value>Internal error in the C# compiler.</value>
+  </data>
+  <data name="IDS_FeatureRefPartialModOrdering" xml:space="preserve">
+    <value>ref and partial modifier ordering</value>
   </data>
 </root>

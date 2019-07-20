@@ -76,21 +76,18 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
-                // (4,9): error CS1031: Type expected
+                // (4,15): error CS0106: The modifier 'ref' is not valid for this item
                 //     ref class S1{}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "class"),
-                // (6,16): error CS1031: Type expected
-                //     public ref unsafe struct S2{}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "unsafe"),
-                // (8,9): error CS1031: Type expected
-                //     ref interface I1{};
-                Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(8, 9),
-                // (10,16): error CS1031: Type expected
-                //     public ref delegate ref int D1();
-                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(10, 16),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "S1").WithArguments("ref").WithLocation(4, 15),
                 // (6,30): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 //     public ref unsafe struct S2{}
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "S2")
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "S2").WithLocation(6, 30),
+                // (8,19): error CS0106: The modifier 'ref' is not valid for this item
+                //     ref interface I1{};
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I1").WithArguments("ref").WithLocation(8, 19),
+                // (10,33): error CS0106: The modifier 'ref' is not valid for this item
+                //     public ref delegate ref int D1();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "D1").WithArguments("ref").WithLocation(10, 33)
             );
         }
 
@@ -105,16 +102,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(text);
-            comp.VerifyDiagnostics(
-                // (4,13): error CS1585: Member modifier 'ref' must precede the member type and name
-                //     partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 13),
-                // (5,13): error CS1585: Member modifier 'ref' must precede the member type and name
-                //     partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13),
-                // (5,24): error CS0102: The type 'Program' already contains a definition for 'S'
-                //     partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("Program", "S").WithLocation(5, 24));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -138,20 +126,11 @@ class C
     ref partial readonly struct S {}
     ref partial readonly struct S {}
 }");
-            comp.VerifyDiagnostics(
-                // (4,17): error CS1585: Member modifier 'readonly' must precede the member type and name
-                //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(4, 17),
-                // (5,17): error CS1585: Member modifier 'readonly' must precede the member type and name
-                //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(5, 17),
-                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
-                //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
-        public void RefReadonlyPartialStruct()
+        public void PartialRefReadonlyStruct()
         {
             var comp = CreateCompilation(@"
 class C
@@ -159,22 +138,7 @@ class C
     partial ref readonly struct S {}
     partial ref readonly struct S {}
 }");
-            comp.VerifyDiagnostics(
-                // (4,13): error CS1585: Member modifier 'ref' must precede the member type and name
-                //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 13),
-                // (4,26): error CS1031: Type expected
-                //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(4, 26),
-                // (5,13): error CS1585: Member modifier 'ref' must precede the member type and name
-                //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13),
-                // (5,26): error CS1031: Type expected
-                //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(5, 26),
-                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
-                //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -186,16 +150,7 @@ class C
     readonly partial ref struct S {}
     readonly partial ref struct S {}
 }");
-            comp.VerifyDiagnostics(
-                // (4,22): error CS1585: Member modifier 'ref' must precede the member type and name
-                //     readonly partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 22),
-                // (5,22): error CS1585: Member modifier 'ref' must precede the member type and name
-                //     readonly partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 22),
-                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
-                //     readonly partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

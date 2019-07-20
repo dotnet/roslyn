@@ -42,13 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 DeclarationModifiers oneError = errorModifiers & ~(errorModifiers - 1);
                 Debug.Assert(oneError != DeclarationModifiers.None);
-                errorModifiers = errorModifiers & ~oneError;
+                errorModifiers &= ~oneError;
 
                 switch (oneError)
                 {
-                    case DeclarationModifiers.Partial:
-                        // Provide a specialized error message in the case of partial.
-                        ReportPartialError(errorLocation, diagnostics, modifierTokens);
+                    case DeclarationModifiers.Partial when TryReportOnPartialToken(diagnostics, modifierTokens):
                         break;
 
                     default:
@@ -74,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private static void ReportPartialError(Location errorLocation, DiagnosticBag diagnostics, SyntaxTokenList? modifierTokens)
+        private static bool TryReportOnPartialToken(DiagnosticBag diagnostics, SyntaxTokenList? modifierTokens)
         {
             // If we can find the 'partial' token, report it on that.
             if (modifierTokens != null)
@@ -82,12 +80,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var partialToken = modifierTokens.Value.FirstOrDefault(SyntaxKind.PartialKeyword);
                 if (partialToken != default)
                 {
-                    diagnostics.Add(ErrorCode.ERR_PartialMisplaced, partialToken.GetLocation());
-                    return;
+                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, partialToken.GetLocation(), partialToken.Text);
+                    return true;
                 }
             }
 
-            diagnostics.Add(ErrorCode.ERR_PartialMisplaced, errorLocation);
+            return false;
         }
 
         internal static void ReportDefaultInterfaceImplementationModifiers(

@@ -1428,7 +1428,7 @@ class C
 {
     async partial int operator
 ");
-            Check(SyntaxKind.IncompleteMember);
+            Check(SyntaxKind.OperatorDeclaration);
 
             // ... 'async' <typename> <membername> ...
             UsingTree(@"

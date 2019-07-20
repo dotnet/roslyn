@@ -35,5 +35,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         AsyncStreams,
         NullableReferenceTypes,
         DefaultInterfaceImplementation,
+        RefPartialModOrdering,
     }
 }
