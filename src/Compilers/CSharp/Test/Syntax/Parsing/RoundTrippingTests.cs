@@ -400,7 +400,7 @@ partial class partial
         public void TestNegBug876575()
         {
             var text = @"partial enum E{}";
-            ParseAndRoundTripping(text, errorCount: 1);
+            ParseAndRoundTripping(text, errorCount: 0);
         }
 
         [Fact]
@@ -508,7 +508,7 @@ partial class PartialPartial
     }
 }
 ";
-            ParseAndRoundTripping(text, -1);
+            ParseAndRoundTripping(text, 0);
         }
 
         [Fact]

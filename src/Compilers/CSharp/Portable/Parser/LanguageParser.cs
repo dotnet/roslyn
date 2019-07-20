@@ -576,27 +576,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.NamespaceKeyword:
                     return true;
                 case SyntaxKind.IdentifierToken:
-                    return IsPartialInNamespaceMemberDeclaration();
+                    return IsCurrentTokenPartialKeywordOfPartialMethodOrType();
                 default:
                     return IsPossibleStartOfTypeDeclaration(this.CurrentToken.Kind);
             }
-        }
-
-        private bool IsPartialInNamespaceMemberDeclaration()
-        {
-            if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
-            {
-                if (this.IsPartialType())
-                {
-                    return true;
-                }
-                else if (this.PeekToken(1).Kind == SyntaxKind.NamespaceKeyword)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         public bool IsEndOfNamespace()
@@ -1039,71 +1022,63 @@ tryAgain:
         {
             while (true)
             {
-                var newMod = GetModifier(this.CurrentToken);
-                if (newMod == DeclarationModifiers.None)
-                {
-                    break;
-                }
-
                 SyntaxToken modTok;
-                switch (newMod)
+                switch (GetModifier(this.CurrentToken))
                 {
                     case DeclarationModifiers.Partial:
-                        var nextToken = PeekToken(1);
-                        var isPartialType = this.IsPartialType();
-                        var isPartialMember = this.IsPartialMember();
-                        if (isPartialType || isPartialMember)
                         {
-                            // Standard legal cases.
-                            modTok = ConvertToKeyword(this.EatToken());
-                            modTok = CheckFeatureAvailability(modTok,
-                                isPartialType ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod);
-                        }
-                        else if (nextToken.Kind == SyntaxKind.NamespaceKeyword)
-                        {
-                            // Error reported in binding
-                            modTok = ConvertToKeyword(this.EatToken());
-                        }
-                        else if (
-                            nextToken.Kind == SyntaxKind.EnumKeyword ||
-                            nextToken.Kind == SyntaxKind.DelegateKeyword ||
-                            (IsPossibleStartOfTypeDeclaration(nextToken.Kind) && GetModifier(nextToken) != DeclarationModifiers.None))
-                        {
-                            // Misplaced partial
-                            // TODO(https://github.com/dotnet/roslyn/issues/22439):
-                            // We should consider moving this check into binding, but avoid holding on to trees
-                            modTok = AddError(ConvertToKeyword(this.EatToken()), ErrorCode.ERR_PartialMisplaced);
-                        }
-                        else
-                        {
-                            return;
-                        }
+                            var flags = ScanPartialTypeOrMember();
+                            if (flags == ScanPartialFlags.NotModifier)
+                            {
+                                // This can't be a modifier.
+                                return;
+                            }
 
-                        break;
+                            modTok = ConvertToKeyword(this.EatToken());
+                            if (flags == ScanPartialFlags.TreatAsModifier)
+                            {
+                                // Not a partial type or member but we will parse it
+                                // to report better diagnostics later in binding
+                                break;
+                            }
+
+                            modTok = CheckFeatureAvailability(modTok,
+                                flags switch
+                                {
+                                    ScanPartialFlags.PartialType => MessageID.IDS_FeatureRefPartialModOrdering,
+                                    ScanPartialFlags.PartialTypeV8 => MessageID.IDS_FeaturePartialTypes,
+                                    ScanPartialFlags.PartialMember => MessageID.IDS_FeatureRefPartialModOrdering,
+                                    ScanPartialFlags.PartialMemberV8 => MessageID.IDS_FeaturePartialMethod,
+                                    _ => throw ExceptionUtilities.UnexpectedValue(flags)
+                                });
+
+                            break;
+                        }
 
                     case DeclarationModifiers.Ref:
-                        // 'ref' is only a modifier if used on a ref struct
-                        // it must be either immediately before the 'struct'
-                        // keyword, or immediately before 'partial struct' if
-                        // this is a partial ref struct declaration
                         {
-                            var next = PeekToken(1);
-                            if (next.Kind == SyntaxKind.StructKeyword ||
-                                (next.ContextualKind == SyntaxKind.PartialKeyword &&
-                                 PeekToken(2).Kind == SyntaxKind.StructKeyword))
-                            {
-                                modTok = this.EatToken();
-                                modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureRefStructs);
-                            }
-                            else if (forAccessors && this.IsPossibleAccessorModifier())
-                            {
-                                // Accept ref as a modifier for properties and event accessors, to produce an error later during binding.
-                                modTok = this.EatToken();
-                            }
-                            else
+                            var flags = ScanRefStruct(forAccessors);
+                            if (flags == ScanRefStructFlags.NotModifier)
                             {
                                 return;
                             }
+
+                            modTok = this.EatToken();
+                            if (flags == ScanRefStructFlags.TreatAsModifier)
+                            {
+                                // Not a ref struct but we will parse it
+                                // to report better diagnostics later in binding
+                                break;
+                            }
+
+                            modTok = CheckFeatureAvailability(modTok,
+                                flags switch
+                                {
+                                    ScanRefStructFlags.RefStruct => MessageID.IDS_FeatureRefPartialModOrdering,
+                                    ScanRefStructFlags.RefStructV8 => MessageID.IDS_FeatureRefStructs,
+                                    _ => throw ExceptionUtilities.UnexpectedValue(flags)
+                                });
+
                             break;
                         }
 
@@ -1116,6 +1091,10 @@ tryAgain:
                         modTok = ConvertToKeyword(this.EatToken());
                         modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureAsync);
                         break;
+
+                    case DeclarationModifiers.None:
+                        return;
+
                     default:
                         modTok = this.EatToken();
                         break;
@@ -1123,6 +1102,191 @@ tryAgain:
 
                 tokens.Add(modTok);
             }
+        }
+
+        private static bool IsContextualModifier(SyntaxToken token)
+        {
+            switch (token.ContextualKind)
+            {
+                case SyntaxKind.PartialKeyword:
+                case SyntaxKind.AsyncKeyword:
+                    return true;
+            }
+
+            return false;
+        }
+
+        // Returns true if the current token is probably a modifier.
+        // To avoid further lookahead, caller is responsible to disambiguate some edge cases.
+        // For instance, we return true for both of these:
+        //
+        //    partial partial<T>()
+        //    partial partial<T> partial()
+        //
+        // While, in fact, 'partial' is only a modifier on the second method.
+        private bool IsPossibleModifier()
+        {
+            if (!IsAnyModifier(this.CurrentToken))
+            {
+                return false;
+            }
+
+            if (IsContextualModifier(this.CurrentToken))
+            {
+                var tk = this.PeekToken(1);
+                return tk.Kind == SyntaxKind.IdentifierToken ||
+                    IsPredefinedType(tk.Kind) ||
+                    IsTypeDeclarationStart(tk.Kind) ||
+                    IsAnyModifier(tk);
+            }
+
+            return true;
+        }
+
+        private enum ScanRefStructFlags
+        {
+            /// <summary>
+            /// Definitely a ref struct.
+            /// </summary>
+            RefStruct,
+            /// <summary>
+            /// Definitely a ref struct (C# 8.0)
+            /// </summary>
+            RefStructV8,
+            /// <summary>
+            /// Treat as modifier for better diagnostics to be reported during binding.
+            /// </summary>
+            TreatAsModifier,
+            /// <summary>
+            /// Not a modifier.
+            /// </summary>
+            NotModifier,
+        }
+
+        private ScanRefStructFlags ScanRefStruct(bool forAccessors)
+        {
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.RefKeyword);
+            for (int peekIndex = 1; ; peekIndex++)
+            {
+                var currentToken = this.PeekToken(peekIndex);
+                if (!IsAnyModifier(currentToken))
+                {
+                    SyntaxToken prevToken;
+                    return currentToken.Kind == SyntaxKind.StructKeyword
+                        ? (prevToken = this.PeekToken(peekIndex - 1)).Kind == SyntaxKind.RefKeyword ||
+                           (this.PeekToken(peekIndex - 2).Kind == SyntaxKind.RefKeyword && prevToken.ContextualKind == SyntaxKind.PartialKeyword)
+                            ? ScanRefStructFlags.RefStructV8
+                            : ScanRefStructFlags.RefStruct
+                        : IsPossibleStartOfTypeDeclaration(currentToken.Kind) || (forAccessors && this.IsPossibleAccessorModifier())
+                            ? ScanRefStructFlags.TreatAsModifier
+                            : ScanRefStructFlags.NotModifier;
+                }
+            }
+        }
+
+        /// <summary>
+        ///  Possible results from scanning for a partial member or type.
+        /// </summary>
+        private enum ScanPartialFlags
+        {
+            /// <summary>
+            /// Definitely a partial type.
+            /// </summary>
+            PartialType,
+            /// <summary>
+            /// Definitely a partial type (C# 8.0)
+            /// </summary>
+            PartialTypeV8,
+            /// <summary>
+            /// Definitely a partial member.
+            /// </summary>
+            PartialMember,
+            /// <summary>
+            /// Definitely a partial member (C# 8.0)
+            /// </summary>
+            PartialMemberV8,
+            /// <summary>
+            /// Treat as modifier for better diagnostics to be reported during binding.
+            /// </summary>
+            TreatAsModifier,
+            /// <summary>
+            /// Not a modifier.
+            /// </summary>
+            NotModifier
+        }
+
+        private ScanPartialFlags ScanPartialTypeOrMember()
+        {
+            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
+            var point = this.GetResetPoint();
+            try
+            {
+                SyntaxToken lastMod = EatToken();
+                bool anyAdditionalModifiers = false;
+                // Skip over additional modifiers
+                if (IsPossibleModifier())
+                {
+                    anyAdditionalModifiers = true;
+                    do
+                    {
+                        lastMod = EatToken();
+                    }
+                    while (IsPossibleModifier());
+                }
+
+                switch (this.CurrentToken.Kind)
+                {
+                    case SyntaxKind.NamespaceKeyword:
+                    case SyntaxKind.DelegateKeyword:
+                    case SyntaxKind.EnumKeyword:
+                        // Just treat as a modifier in erroneous cases.
+                        // We'll report an error later during binding.
+                        return ScanPartialFlags.TreatAsModifier;
+                    case SyntaxKind.ClassKeyword:
+                    case SyntaxKind.InterfaceKeyword:
+                    case SyntaxKind.StructKeyword:
+                        return lastMod.ContextualKind == SyntaxKind.PartialKeyword
+                            ? ScanPartialFlags.PartialTypeV8
+                            : ScanPartialFlags.PartialType;
+                }
+
+                // Scan for the return type or possibly the member name. See the next comment.
+                if (this.ScanType() != ScanTypeFlags.NotType)
+                {
+                    // If the last additional modifier was a contextual keyword, it could actually
+                    // be the return type of the member, in which case we have scanned for the member
+                    // name above, and therefore IsPossiblePartialMemberStart returns false.
+                    if (IsPossiblePartialMemberStart() || (anyAdditionalModifiers && IsContextualModifier(lastMod)))
+                    {
+                        return lastMod.ContextualKind == SyntaxKind.PartialKeyword
+                            ? ScanPartialFlags.PartialMemberV8
+                            : ScanPartialFlags.PartialMember;
+                    }
+                }
+
+                return ScanPartialFlags.NotModifier;
+            }
+            finally
+            {
+                this.Reset(ref point);
+                this.Release(ref point);
+            }
+        }
+
+        private bool IsPossiblePartialMemberStart()
+        {
+            switch (this.CurrentToken.Kind)
+            {
+                case SyntaxKind.IdentifierToken:
+                case SyntaxKind.ThisKeyword:
+                case SyntaxKind.ImplicitKeyword:
+                case SyntaxKind.ExplicitKeyword:
+                case SyntaxKind.OperatorKeyword:
+                case SyntaxKind.EventKeyword:
+                    return true;
+            }
+
+            return false;
         }
 
         private bool ShouldAsyncBeTreatedAsModifier(bool parsingStatementNotDeclaration)
@@ -1248,59 +1412,24 @@ tryAgain:
 
         private static bool IsNonContextualModifier(SyntaxToken nextToken)
         {
-            return GetModifier(nextToken) != DeclarationModifiers.None && !SyntaxFacts.IsContextualKeyword(nextToken.ContextualKind);
+            return GetModifier(nextToken.Kind, contextualKind: SyntaxKind.None) != DeclarationModifiers.None;
         }
 
-        private bool IsPartialType()
+        private static bool IsAnyModifier(SyntaxToken nextToken)
         {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-            switch (this.PeekToken(1).Kind)
-            {
-                case SyntaxKind.StructKeyword:
-                case SyntaxKind.ClassKeyword:
-                case SyntaxKind.InterfaceKeyword:
-                    return true;
-            }
-
-            return false;
+            return GetModifier(nextToken) != DeclarationModifiers.None;
         }
 
-        private bool IsPartialMember()
+        private bool IsTypeDeclaration(out SyntaxToken typeDeclarationStart)
         {
-            // note(cyrusn): this could have been written like so:
-            //
-            //  return
-            //    this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword &&
-            //    this.PeekToken(1).Kind == SyntaxKind.VoidKeyword;
-            //
-            // However, we want to be lenient and allow the user to write 
-            // 'partial' in most modifier lists.  We will then provide them with
-            // a more specific message later in binding that they are doing 
-            // something wrong.
-            //
-            // Some might argue that the simple check would suffice.
-            // However, we'd like to maintain behavior with 
-            // previously shipped versions, and so we're keeping this code.
-
-            // Here we check for:
-            //   partial ReturnType MemberName
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-            var point = this.GetResetPoint();
-            try
+            for (var peekIndex = 1; ; peekIndex++)
             {
-                this.EatToken(); // partial
-
-                if (this.ScanType() == ScanTypeFlags.NotType)
+                var currentToken = this.PeekToken(peekIndex);
+                if (!IsAnyModifier(currentToken))
                 {
-                    return false;
+                    typeDeclarationStart = currentToken;
+                    return IsTypeDeclarationStart(typeDeclarationStart.Kind);
                 }
-
-                return IsPossibleMemberName();
-            }
-            finally
-            {
-                this.Reset(ref point);
-                this.Release(ref point);
             }
         }
 
@@ -1854,9 +1983,9 @@ tryAgain:
             }
         }
 
-        private bool IsTypeDeclarationStart()
+        private static bool IsTypeDeclarationStart(SyntaxKind kind)
         {
-            switch (this.CurrentToken.Kind)
+            switch (kind)
             {
                 case SyntaxKind.ClassKeyword:
                 case SyntaxKind.DelegateKeyword:
@@ -1867,6 +1996,11 @@ tryAgain:
                 default:
                     return false;
             }
+        }
+
+        private bool IsTypeDeclarationStart()
+        {
+            return IsTypeDeclarationStart(this.CurrentToken.Kind);
         }
 
         private static bool CanReuseMemberDeclaration(SyntaxKind kind)
@@ -3015,7 +3149,7 @@ parse_member_name:;
             }
 
             var peekIndex = 1;
-            while (GetModifier(this.PeekToken(peekIndex)) != DeclarationModifiers.None)
+            while (IsAnyModifier(this.PeekToken(peekIndex)))
             {
                 peekIndex++;
             }
@@ -4768,7 +4902,7 @@ tryAgain:
         {
             if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
             {
-                if (this.IsPartialType() || this.IsPartialMember())
+                if (ScanPartialTypeOrMember() != ScanPartialFlags.NotModifier)
                 {
                     return true;
                 }

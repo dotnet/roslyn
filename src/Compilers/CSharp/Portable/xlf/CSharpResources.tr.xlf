@@ -974,6 +974,11 @@
         <target state="translated">ref foreach yineleme değişkenleri</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRefPartialModOrdering">
+        <source>ref and partial modifier ordering</source>
+        <target state="new">ref and partial modifier ordering</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRefReassignment">
         <source>ref reassignment</source>
         <target state="translated">ref yeniden ataması</target>
@@ -3177,11 +3182,6 @@
       <trans-unit id="ERR_NoImplicitConvCast">
         <source>Cannot implicitly convert type '{0}' to '{1}'. An explicit conversion exists (are you missing a cast?)</source>
         <target state="translated">{0}' türü örtülü olarak '{1}' türüne dönüştürülemez. Açık bir dönüştürme var (eksik atamanız mı var?)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'</source>
-        <target state="translated">partial' değiştiricisi yalnızca 'class', 'struct', 'interface' veya 'void' sözcüklerinden hemen önce gelebilir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">

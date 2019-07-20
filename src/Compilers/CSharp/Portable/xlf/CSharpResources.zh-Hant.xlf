@@ -974,6 +974,11 @@
         <target state="translated">參考 foreach 反覆運算變數</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRefPartialModOrdering">
+        <source>ref and partial modifier ordering</source>
+        <target state="new">ref and partial modifier ordering</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRefReassignment">
         <source>ref reassignment</source>
         <target state="translated">參考重新指派</target>
@@ -3177,11 +3182,6 @@
       <trans-unit id="ERR_NoImplicitConvCast">
         <source>Cannot implicitly convert type '{0}' to '{1}'. An explicit conversion exists (are you missing a cast?)</source>
         <target state="translated">無法將類型 '{0}' 隱含轉換成 '{1}'。已存在明確轉換 (是否漏了轉型?)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'</source>
-        <target state="translated">partial' 修飾元只可緊接在 'class'、'struct'、'interface' 或 'void' 之前。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">

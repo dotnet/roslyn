@@ -6884,9 +6884,10 @@ partial class C
 ";
             var edits = GetTopEdits(src1, src2);
             edits.VerifySemanticDiagnostics(
-                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (4,5): error CS0106: The modifier 'partial' is not valid for this item
                 //     partial int P => 1;
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "partial").WithArguments("partial").WithLocation(4, 5)
+                );
         }
 
         #endregion

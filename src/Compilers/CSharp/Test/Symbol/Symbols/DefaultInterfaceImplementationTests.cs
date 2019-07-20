@@ -9438,7 +9438,7 @@ public partial interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
             compilation1.VerifyDiagnostics(
@@ -9447,10 +9447,7 @@ public partial interface I1
                 Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M1").WithArguments("I1.M1()").WithLocation(9, 27),
                 // (10,27): error CS0762: Cannot create delegate from method 'I1.M2()' because it is a partial method without an implementing declaration
                 //         new System.Action(M2).Invoke();
-                Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M2").WithArguments("I1.M2()").WithLocation(10, 27),
-                // (13,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
-                //     partial static void M4();
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(13, 5)
+                Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M2").WithArguments("I1.M2()").WithLocation(10, 27)
                 );
         }
 
@@ -38709,12 +38706,12 @@ interface I19
                 // (62,20): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual static I13() => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I13").WithArguments("virtual").WithLocation(62, 20),
-                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (66,13): error CS1585: Member modifier 'static' must precede the member type and name
                 //     partial static I14();
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(66, 5),
-                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "static").WithArguments("static").WithLocation(66, 13),
+                // (66,20): error CS0501: 'I14.I14()' must declare a body because it is not marked abstract, extern, or partial
                 //     partial static I14();
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(66, 5),
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "I14").WithArguments("I14.I14()").WithLocation(66, 20),
                 // (70,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
                 //     static partial I15();
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(70, 12),
@@ -38724,12 +38721,9 @@ interface I19
                 // (70,20): error CS0542: 'I15': member names cannot be the same as their enclosing type
                 //     static partial I15();
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I15").WithArguments("I15").WithLocation(70, 20),
-                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (74,13): error CS1585: Member modifier 'static' must precede the member type and name
                 //     partial static I16() {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(74, 5),
-                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
-                //     partial static I16() {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(74, 5),
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "static").WithArguments("static").WithLocation(74, 13),
                 // (78,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
                 //     static partial I17() => throw null;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(78, 12),

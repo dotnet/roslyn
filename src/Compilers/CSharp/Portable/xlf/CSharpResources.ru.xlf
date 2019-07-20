@@ -974,6 +974,11 @@
         <target state="translated">переменные итерации foreach для ссылки</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRefPartialModOrdering">
+        <source>ref and partial modifier ordering</source>
+        <target state="new">ref and partial modifier ordering</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRefReassignment">
         <source>ref reassignment</source>
         <target state="translated">повторное назначение по ссылке</target>
@@ -3177,11 +3182,6 @@
       <trans-unit id="ERR_NoImplicitConvCast">
         <source>Cannot implicitly convert type '{0}' to '{1}'. An explicit conversion exists (are you missing a cast?)</source>
         <target state="translated">Не удается неявно преобразовать тип "{0}" в "{1}". Существует явное преобразование (возможно, пропущено приведение типов).</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'</source>
-        <target state="translated">Модификатор "partial" может использоваться только перед "class", "struct", "interface" или "void".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
