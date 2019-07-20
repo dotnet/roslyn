@@ -1,7 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System
 Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Remote
 Imports Microsoft.VisualStudio.LanguageServer.Client
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
@@ -19,6 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageClient
         Inherits AbstractLanguageServerClient
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(workspace As VisualStudioWorkspace)
             MyBase.New(workspace,
                        WellKnownServiceHubServices.VisualBasicLanguageServer,

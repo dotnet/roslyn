@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -19,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageClient
     internal class CSharpLanguageServerClient : AbstractLanguageServerClient
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpLanguageServerClient(VisualStudioWorkspace workspace)
             : base(workspace,
                    WellKnownServiceHubServices.CSharpLanguageServer,
