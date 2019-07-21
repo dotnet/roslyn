@@ -1160,7 +1160,8 @@ tryAgain:
                 {
                     SyntaxToken prevToken;
                     return currentToken.Kind == SyntaxKind.StructKeyword
-                        ? (prevToken = this.PeekToken(peekIndex - 1)).Kind == SyntaxKind.RefKeyword || prevToken.ContextualKind == SyntaxKind.PartialKeyword
+                        ? (prevToken = this.PeekToken(peekIndex - 1)).Kind == SyntaxKind.RefKeyword ||
+                           (this.PeekToken(peekIndex - 2).Kind == SyntaxKind.RefKeyword && prevToken.ContextualKind == SyntaxKind.PartialKeyword)
                             ? ScanRefStructFlags.RefStructV8
                             : ScanRefStructFlags.RefStruct
                         : IsPossibleStartOfTypeDeclaration(currentToken.Kind) || (forAccessors && this.IsPossibleAccessorModifier())
@@ -1210,10 +1211,14 @@ tryAgain:
                 SyntaxToken lastMod = EatToken();
                 bool anyAdditionalModifiers = false;
                 // Skip over additional modifiers
-                while (IsPossibleModifier())
+                if (IsPossibleModifier())
                 {
-                    lastMod = EatToken();
                     anyAdditionalModifiers = true;
+                    do
+                    {
+                        lastMod = EatToken();
+                    }
+                    while (IsPossibleModifier());
                 }
 
                 switch (this.CurrentToken.Kind)
