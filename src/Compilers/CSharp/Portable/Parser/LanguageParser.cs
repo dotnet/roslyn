@@ -1207,12 +1207,13 @@ tryAgain:
             var point = this.GetResetPoint();
             try
             {
-                SyntaxToken firstMod = EatToken();
-                SyntaxToken lastMod = firstMod;
+                SyntaxToken lastMod = EatToken();
+                bool anyAdditionalModifiers = false;
                 // Skip over additional modifiers
                 while (IsPossibleModifier())
                 {
                     lastMod = EatToken();
+                    anyAdditionalModifiers = true;
                 }
 
                 switch (this.CurrentToken.Kind)
@@ -1235,9 +1236,9 @@ tryAgain:
                 if (this.ScanType() != ScanTypeFlags.NotType)
                 {
                     // If the last additional modifier was a contextual keyword, it could actually
-                    // be the return type of a generic method, in which case we have scanned for
-                    // the member name above, and therefore IsPossiblePartialMemberStart returns false.
-                    if (IsPossiblePartialMemberStart() || ((object)firstMod != (object)lastMod && IsContextualModifier(lastMod)))
+                    // be the return type of the member, in which case we have scanned for the member
+                    // name above, and therefore IsPossiblePartialMemberStart returns false.
+                    if (IsPossiblePartialMemberStart() || (anyAdditionalModifiers && IsContextualModifier(lastMod)))
                     {
                         return lastMod.ContextualKind == SyntaxKind.PartialKeyword
                             ? ScanPartialFlags.PartialMemberV8
