@@ -1029,6 +1029,7 @@ tryAgain:
                                 break;
                             }
 
+                            Debug.Assert(flags == ScanPartialFlags.PartialType || flags == ScanPartialFlags.PartialMember);
                             modTok = CheckFeatureAvailability(modTok,
                                 flags == ScanPartialFlags.PartialType
                                     ? IsTypeDeclarationStart(this.CurrentToken.Kind) // pre-8.0 requirement.
@@ -1043,34 +1044,25 @@ tryAgain:
 
                     case DeclarationModifiers.Ref:
                         {
-                            bool isTypeDecl;
-
-                            var nextToken = PeekToken(1);
-
-                            // In the previous version of the language, we required 'ref' to
-                            // appear immediately before 'struct' or 'partial struct'.
-                            var isRefFollowedByStructOrPartialStruct = nextToken.Kind == SyntaxKind.StructKeyword ||
-                                (nextToken.ContextualKind == SyntaxKind.PartialKeyword && this.PeekToken(2).Kind == SyntaxKind.StructKeyword);
-
-                            if (isRefFollowedByStructOrPartialStruct ||
-                                ((isTypeDecl = IsTypeDeclaration(out SyntaxToken typeDeclStart)) && typeDeclStart.Kind == SyntaxKind.StructKeyword))
-                            {
-                                modTok = this.EatToken();
-                                modTok = CheckFeatureAvailability(modTok,
-                                    isRefFollowedByStructOrPartialStruct
-                                        ? MessageID.IDS_FeatureRefStructs
-                                        : MessageID.IDS_FeatureRefPartialModOrdering);
-                            }
-                            else if (isTypeDecl || (forAccessors && this.IsPossibleAccessorModifier()))
-                            {
-                                // Accept ref as a modifier for properties, type declarations
-                                // and event accessors, to produce an error later during binding.
-                                modTok = this.EatToken();
-                            }
-                            else
+                            var flags = ScanRefStruct(forAccessors);
+                            if (flags == ScanRefStructFlags.NotModifier)
                             {
                                 return;
                             }
+
+                            modTok = this.EatToken();
+                            if (flags == ScanRefStructFlags.TreatAsModifier)
+                            {
+                                // Not a ref struct but we will parse it
+                                // to report better diagnostics later in binding
+                                break;
+                            }
+
+                            Debug.Assert(flags == ScanRefStructFlags.RefStruct);
+                            modTok = CheckFeatureAvailability(modTok,
+                                this.CurrentToken.Kind == SyntaxKind.StructKeyword || this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword // pre-8.0 requirement.
+                                    ? MessageID.IDS_FeatureRefStructs
+                                    : MessageID.IDS_FeatureRefPartialModOrdering);
 
                             break;
                         }
@@ -1136,6 +1128,39 @@ tryAgain:
             return true;
         }
 
+        private enum ScanRefStructFlags
+        {
+            /// <summary>
+            /// Definitly a ref struct.
+            /// </summary>
+            RefStruct,
+            /// <summary>
+            /// Treat as modifier for better diagnostics to be reported during binding.
+            /// </summary>
+            TreatAsModifier,
+            /// <summary>
+            /// Not a modifier.
+            /// </summary>
+            NotModifier,
+        }
+
+        private ScanRefStructFlags ScanRefStruct(bool forAccessors)
+        {
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.RefKeyword);
+            for (var peekIndex = 1; ; peekIndex++)
+            {
+                var currentToken = this.PeekToken(peekIndex);
+                if (!IsAnyModifier(currentToken))
+                {
+                    return currentToken.Kind == SyntaxKind.StructKeyword
+                        ? ScanRefStructFlags.RefStruct
+                        : IsPossibleStartOfTypeDeclaration(currentToken.Kind) || (forAccessors && this.IsPossibleAccessorModifier())
+                            ? ScanRefStructFlags.TreatAsModifier
+                            : ScanRefStructFlags.NotModifier;
+                }
+            }
+        }
+
         /// <summary>
         ///  Possible results from scanning for a partial member or type.
         /// </summary>
@@ -1162,15 +1187,12 @@ tryAgain:
         private ScanPartialFlags ScanPartialTypeOrMember()
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-
             var point = this.GetResetPoint();
-
             try
             {
                 EatToken(); // partial
 
                 SyntaxToken lastModOpt = null;
-
                 // Skip over additional modifiers
                 while (IsPossibleModifier())
                 {

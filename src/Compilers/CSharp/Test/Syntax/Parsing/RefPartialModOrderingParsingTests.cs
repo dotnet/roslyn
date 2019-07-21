@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         {
             var text = @"
 ref partial struct S {}
+ref partial public struct S {}
 partial ref struct S {}
 ";
 
@@ -26,12 +27,18 @@ partial ref struct S {}
                 // (2,1): error CS8107: Feature 'ref structs' is not available in C# 7.0. Please use language version 7.2 or greater.
                 // ref partial struct S {}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "ref").WithArguments("ref structs", "7.2").WithLocation(2, 1),
-                // (3,1): error CS8107: Feature 'ref and partial modifier ordering' is not available in C# 7.0. Please use language version 7.3 or greater.
+                // (3,1): error CS8107: Feature 'ref structs' is not available in C# 7.0. Please use language version 7.2 or greater.
+                // ref partial public struct S {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "ref").WithArguments("ref structs", "7.2").WithLocation(3, 1),
+                // (3,5): error CS8107: Feature 'ref and partial modifier ordering' is not available in C# 7.0. Please use language version 7.3 or greater.
+                // ref partial public struct S {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "partial").WithArguments("ref and partial modifier ordering", "7.3").WithLocation(3, 5),
+                // (4,1): error CS8107: Feature 'ref and partial modifier ordering' is not available in C# 7.0. Please use language version 7.3 or greater.
                 // partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "partial").WithArguments("ref and partial modifier ordering", "7.3").WithLocation(3, 1),
-                // (3,9): error CS8107: Feature 'ref structs' is not available in C# 7.0. Please use language version 7.2 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "partial").WithArguments("ref and partial modifier ordering", "7.3").WithLocation(4, 1),
+                // (4,9): error CS8107: Feature 'ref structs' is not available in C# 7.0. Please use language version 7.2 or greater.
                 // partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "ref").WithArguments("ref structs", "7.2").WithLocation(3, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "ref").WithArguments("ref structs", "7.2").WithLocation(4, 9)
                 );
         }
 
