@@ -38736,6 +38736,12 @@ interface I19
                 // (62,20): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual static I13() => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I13").WithArguments("virtual").WithLocation(62, 20),
+                // (66,13): error CS1585: Member modifier 'static' must precede the member type and name
+                //     partial static I14();
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "static").WithArguments("static").WithLocation(66, 13),
+                // (66,20): error CS0501: 'I14.I14()' must declare a body because it is not marked abstract, extern, or partial
+                //     partial static I14();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "I14").WithArguments("I14.I14()").WithLocation(66, 20),
                 // (70,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
                 //     static partial I15();
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(70, 12),
@@ -38745,6 +38751,9 @@ interface I19
                 // (70,20): error CS0542: 'I15': member names cannot be the same as their enclosing type
                 //     static partial I15();
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I15").WithArguments("I15").WithLocation(70, 20),
+                // (74,13): error CS1585: Member modifier 'static' must precede the member type and name
+                //     partial static I16() {}
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "static").WithArguments("static").WithLocation(74, 13),
                 // (78,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
                 //     static partial I17() => throw null;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(78, 12),

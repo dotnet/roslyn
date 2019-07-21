@@ -1029,15 +1029,15 @@ tryAgain:
                                 break;
                             }
 
-                            Debug.Assert(flags == ScanPartialFlags.PartialType || flags == ScanPartialFlags.PartialMember);
                             modTok = CheckFeatureAvailability(modTok,
-                                flags == ScanPartialFlags.PartialType
-                                    ? IsTypeDeclarationStart(this.CurrentToken.Kind) // pre-8.0 requirement.
-                                        ? MessageID.IDS_FeaturePartialTypes
-                                        : MessageID.IDS_FeatureRefPartialModOrdering
-                                    : this.CurrentToken.Kind == SyntaxKind.VoidKeyword // pre-8.0 requirement.
-                                        ? MessageID.IDS_FeaturePartialMethod
-                                        : MessageID.IDS_FeatureRefPartialModOrdering);
+                                flags switch
+                                {
+                                    ScanPartialFlags.PartialType => MessageID.IDS_FeatureRefPartialModOrdering,
+                                    ScanPartialFlags.PartialTypeV8 => MessageID.IDS_FeaturePartialTypes,
+                                    ScanPartialFlags.PartialMember => MessageID.IDS_FeatureRefPartialModOrdering,
+                                    ScanPartialFlags.PartialMemberV8 => MessageID.IDS_FeaturePartialMethod,
+                                    _ => throw ExceptionUtilities.UnexpectedValue(flags)
+                                });
 
                             break;
                         }
@@ -1058,11 +1058,13 @@ tryAgain:
                                 break;
                             }
 
-                            Debug.Assert(flags == ScanRefStructFlags.RefStruct);
                             modTok = CheckFeatureAvailability(modTok,
-                                this.CurrentToken.Kind == SyntaxKind.StructKeyword || this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword // pre-8.0 requirement.
-                                    ? MessageID.IDS_FeatureRefStructs
-                                    : MessageID.IDS_FeatureRefPartialModOrdering);
+                                flags switch
+                                {
+                                    ScanRefStructFlags.RefStruct => MessageID.IDS_FeatureRefPartialModOrdering,
+                                    ScanRefStructFlags.RefStructV8 => MessageID.IDS_FeatureRefStructs,
+                                    _ => throw ExceptionUtilities.UnexpectedValue(flags)
+                                });
 
                             break;
                         }
@@ -1135,6 +1137,10 @@ tryAgain:
             /// </summary>
             RefStruct,
             /// <summary>
+            /// Definitly a ref struct (C# 8.0)
+            /// </summary>
+            RefStructV8,
+            /// <summary>
             /// Treat as modifier for better diagnostics to be reported during binding.
             /// </summary>
             TreatAsModifier,
@@ -1147,13 +1153,16 @@ tryAgain:
         private ScanRefStructFlags ScanRefStruct(bool forAccessors)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.RefKeyword);
-            for (var peekIndex = 1; ; peekIndex++)
+            for (int peekIndex = 1; ; peekIndex++)
             {
                 var currentToken = this.PeekToken(peekIndex);
                 if (!IsAnyModifier(currentToken))
                 {
+                    SyntaxToken prevToken;
                     return currentToken.Kind == SyntaxKind.StructKeyword
-                        ? ScanRefStructFlags.RefStruct
+                        ? (prevToken = this.PeekToken(peekIndex - 1)).Kind == SyntaxKind.RefKeyword || prevToken.ContextualKind == SyntaxKind.PartialKeyword
+                            ? ScanRefStructFlags.RefStructV8
+                            : ScanRefStructFlags.RefStruct
                         : IsPossibleStartOfTypeDeclaration(currentToken.Kind) || (forAccessors && this.IsPossibleAccessorModifier())
                             ? ScanRefStructFlags.TreatAsModifier
                             : ScanRefStructFlags.NotModifier;
@@ -1171,9 +1180,17 @@ tryAgain:
             /// </summary>
             PartialType,
             /// <summary>
+            /// Definitly a partial type (C# 8.0)
+            /// </summary>
+            PartialTypeV8,
+            /// <summary>
             /// Definitly a partial member.
             /// </summary>
             PartialMember,
+            /// <summary>
+            /// Definitly a partial member (C# 8.0)
+            /// </summary>
+            PartialMemberV8,
             /// <summary>
             /// Treat as modifier for better diagnostics to be reported during binding.
             /// </summary>
@@ -1190,13 +1207,12 @@ tryAgain:
             var point = this.GetResetPoint();
             try
             {
-                EatToken(); // partial
-
-                SyntaxToken lastModOpt = null;
+                SyntaxToken firstMod = EatToken();
+                SyntaxToken lastMod = firstMod;
                 // Skip over additional modifiers
                 while (IsPossibleModifier())
                 {
-                    lastModOpt = EatToken();
+                    lastMod = EatToken();
                 }
 
                 switch (this.CurrentToken.Kind)
@@ -1210,7 +1226,9 @@ tryAgain:
                     case SyntaxKind.ClassKeyword:
                     case SyntaxKind.InterfaceKeyword:
                     case SyntaxKind.StructKeyword:
-                        return ScanPartialFlags.PartialType;
+                        return lastMod.ContextualKind == SyntaxKind.PartialKeyword
+                            ? ScanPartialFlags.PartialTypeV8
+                            : ScanPartialFlags.PartialType;
                 }
 
                 // Scan for the return type or possibly the member name. See the next comment.
@@ -1219,9 +1237,11 @@ tryAgain:
                     // If the last additional modifier was a contextual keyword, it could actually
                     // be the return type of a generic method, in which case we have scanned for
                     // the member name above, and therefore IsPossiblePartialMemberStart returns false.
-                    if (IsPossiblePartialMemberStart() || (lastModOpt != null && IsContextualModifier(lastModOpt)))
+                    if (IsPossiblePartialMemberStart() || ((object)firstMod != (object)lastMod && IsContextualModifier(lastMod)))
                     {
-                        return ScanPartialFlags.PartialMember;
+                        return lastMod.ContextualKind == SyntaxKind.PartialKeyword
+                            ? ScanPartialFlags.PartialMemberV8
+                            : ScanPartialFlags.PartialMember;
                     }
                 }
 
