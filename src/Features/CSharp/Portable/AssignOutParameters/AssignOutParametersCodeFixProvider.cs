@@ -112,7 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
                                             .Where(p => p?.RefKind == RefKind.Out)
                                             .ToImmutableArray();
 
-                foreach (var (_, exprOrStatement) in group)
+                var distinctExprsOrStatements = group.Select(t => t.exprOrStatement).Distinct();
+                foreach (var exprOrStatement in distinctExprsOrStatements)
                 {
                     var dataFlow = semanticModel.AnalyzeDataFlow(exprOrStatement);
                     var definitelAssignedOnExit = dataFlow.DefinitelyAssignedOnEntry.AddRange(dataFlow.AlwaysAssigned);
