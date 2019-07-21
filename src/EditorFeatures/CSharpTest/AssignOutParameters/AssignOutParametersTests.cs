@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
 {
     char M(out int i)
     {
-        [|return '';|]
+        [|return 'a';|]
     }
 }",
 @"class C
@@ -31,7 +31,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
     char M(out int i)
     {
         i = 0;
-        return '';
+        return 'a';
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        public async Task TestForSwitchSectionReturn()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    char M(out int i)
+    {
+        switch (0)
+        {
+            default:
+                [|return 'a';|]
+        }
+    }
+}",
+@"class C
+{
+    char M(out int i)
+    {
+        switch (0)
+        {
+            default:
+                i = 0;
+                return 'a';
+        }
     }
 }");
         }
@@ -45,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
     char M(out int i)
     {
         i = 0;
-        [|return '';|]
+        [|return 'a';|]
     }
 }");
         }
@@ -61,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         if (b)
             i = 1;
         
-        [|return '';|]
+        [|return 'a';|]
     }
 }",
 @"class C
@@ -71,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         if (b)
             i = 1;
         i = 0;
-        return '';
+        return 'a';
     }
 }");
         }
@@ -122,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         else
             i = 2;
         
-        [|return '';|]
+        [|return 'a';|]
     }
 }");
         }
@@ -135,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
 {
     char M(out int i, out string s)
     {
-        [|return '';|]
+        [|return 'a';|]
     }
 }",
 @"class C
@@ -144,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
     {
         i = 0;
         s = null;
-        return '';
+        return 'a';
     }
 }");
         }
@@ -201,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
     {
         if (true)
         {
-            [|return '';|]
+            [|return 'a';|]
         }
     }
 }",
@@ -212,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         if (true)
         {
             i = 0;
-            return '';
+            return 'a';
         }
     }
 }");
@@ -227,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
     char M(out int i)
     {
         if (true)
-            [|return '';|]
+            [|return 'a';|]
     }
 }",
 @"class C
@@ -237,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         if (true)
         {
             i = 0;
-            return '';
+            return 'a';
         }
     }
 }");
@@ -253,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
     {
         if (b)
         {
-            [|return '';|]
+            [|return 'a';|]
         }
 
         i = 1;
@@ -266,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         if (b)
         {
             i = 0;
-            return '';
+            return 'a';
         }
 
         i = 1;
@@ -280,14 +309,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    char M(out int i) => [|'';|]
+    char M(out int i) => [|'a';|]
 }",
 @"class C
 {
     char M(out int i)
     {
         i = 0;
-        return '';
+        return 'a';
     }
 }");
         }
@@ -301,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
     delegate char D(out int i);
     void X()
     {
-        D d = (out int i) => [|'';|]
+        D d = (out int i) => [|'a';|]
     }
 }",
 @"class C
@@ -309,7 +338,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
     delegate char D(out int i);
     void X()
     {
-        D d = (out int i) => { i = 0; return ''; };
+        D d = (out int i) => { i = 0; return 'a'; };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        public async Task TestMissingForLocalFunctionExpressionBody()
+        {
+            // Note desirable.  Happens because error is not reported on expr-body
+            // like for lambdas.
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void X()
+    {
+        char D(out int i) => [|'a';|]
+        D(out _);
     }
 }");
         }
@@ -325,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
     {
         D d = (out int i) =>
         {
-            return [|'';|]
+            [|return 'a';|]
         }
     }
 }",
@@ -337,8 +382,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         D d = (out int i) =>
         {
             i = 0;
-            return '';
+            return 'a';
         }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        public async Task TestForLocalFunctionBlockBody()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void X()
+    {
+        char D(out int i)
+        {
+            [|return 'a';|]
+        }
+
+        D(out _);
+    }
+}",
+@"class C
+{
+    void X()
+    {
+        char D(out int i)
+        {
+            i = 0;
+            return 'a';
+        }
+
+        D(out _);
     }
 }");
         }
@@ -353,11 +429,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
     {
         if (b)
         {
-            {|FixAllInDocument:return '';|}
+            {|FixAllInDocument:return 'a';|}
         }
         else
         {
-            return '';
+            return 'a';
         }
     }
 }",
@@ -369,13 +445,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         {
             i = 0;
             j = 0;
-            return '';
+            return 'a';
         }
         else
         {
             i = 0;
             j = 0;
-            return '';
+            return 'a';
         }
     }
 }");
@@ -390,9 +466,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
     char M(bool b, out int i, out int j)
     {
         if (b)
-            {|FixAllInDocument:return '';|}
+            {|FixAllInDocument:return 'a';|}
         else
-            return '';
+            return 'a';
     }
 }",
 @"class C
@@ -403,13 +479,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         {
             i = 0;
             j = 0;
-            return '';
+            return 'a';
         }
         else
         {
             i = 0;
             j = 0;
-            return '';
+            return 'a';
         }
     }
 }");
@@ -426,12 +502,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         if (b)
         {
             i = 0;
-            {|FixAllInDocument:return '';|}
+            {|FixAllInDocument:return 'a';|}
         }
         else
         {
             j = 0;
-            return '';
+            return 'a';
         }
     }
 }",
@@ -443,13 +519,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         {
             i = 0;
             j = 0;
-            return '';
+            return 'a';
         }
         else
         {
             j = 0;
             i = 0;
-            return '';
+            return 'a';
         }
     }
 }");
