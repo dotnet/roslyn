@@ -70,7 +70,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
     {
         if (b)
             i = 1;
-
         i = 0;
         return '';
     }
@@ -248,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    char M(out int i) => [|"";|]
+    char M(out int i) => [|'';|]
 }",
 @"class C
 {
@@ -256,6 +255,57 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
     {
         i = 0;
         return '';
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        public async Task TestForLambdaExpressionBody()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    delegate char D(out int i);
+    void X()
+    {
+        D d = (out int i) => [|'';|]
+    }
+}",
+@"class C
+{
+    delegate char D(out int i);
+    void X()
+    {
+        D d = (out int i) => { i = 0; return ''; }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
+        public async Task TestForLambdaBlockBody()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    delegate char D(out int i);
+    void X()
+    {
+        D d = (out int i) =>
+        {
+            return [|'';|]
+        }
+    }
+}",
+@"class C
+{
+    delegate char D(out int i);
+    void X()
+    {
+        D d = (out int i) =>
+        {
+            i = 0;
+            return '';
+        }
     }
 }");
         }

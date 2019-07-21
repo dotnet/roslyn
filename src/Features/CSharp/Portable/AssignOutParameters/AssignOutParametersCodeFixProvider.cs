@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -129,34 +130,51 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             SyntaxEditor editor, SyntaxNode exprOrStatement, ImmutableArray<IParameterSymbol> unassignedParameters)
         {
             var generator = editor.Generator;
-            var statements = ArrayBuilder<StatementSyntax>.GetInstance();
+            var statements = ArrayBuilder<SyntaxNode>.GetInstance();
 
             foreach (var parameter in unassignedParameters)
             {
-                statements.Add((StatementSyntax)generator.ExpressionStatement(generator.AssignmentStatement(
+                statements.Add(generator.ExpressionStatement(generator.AssignmentStatement(
                     generator.IdentifierName(parameter.Name),
                     ExpressionGenerator.GenerateExpression(parameter.Type, value: null, canUseFieldReference: false))));
             }
 
-            if (exprOrStatement is StatementSyntax statement)
+            var parent = exprOrStatement.Parent;
+            if (parent.IsEmbeddedStatementOwner())
             {
-                if (exprOrStatement.Parent.IsEmbeddedStatementOwner())
-                {
-                    statements.Add(statement);
-                    editor.ReplaceNode(
-                        statement,
-                        SyntaxFactory.Block(statements));
-                    editor.ReplaceNode(
-                        statement.Parent,
-                        (c, _) => c.WithAdditionalAnnotations(Formatter.Annotation));
-                }
-                else
-                {
-                    editor.InsertBefore(exprOrStatement, statements);
-                }
+                statements.Add(exprOrStatement);
+                ReplaceWithBlock(editor, exprOrStatement, statements);
+            }
+            else if (parent is BlockSyntax || parent is SwitchSectionSyntax)
+            {
+                editor.InsertBefore(exprOrStatement, statements);
+            }
+            else if (parent is ArrowExpressionClauseSyntax)
+            {
+                statements.Add(generator.ReturnStatement(exprOrStatement));
+                editor.ReplaceNode(
+                    parent.Parent,
+                    generator.WithStatements(parent.Parent, statements));
+            }
+            else
+            {
+                Debug.Assert(parent is LambdaExpressionSyntax);
+                statements.Add(generator.ReturnStatement(exprOrStatement));
+                ReplaceWithBlock(editor, exprOrStatement, statements);
             }
 
             statements.Free();
+        }
+
+        private static void ReplaceWithBlock(
+            SyntaxEditor editor, SyntaxNode exprOrStatement, ArrayBuilder<SyntaxNode> statements)
+        {
+            editor.ReplaceNode(
+                exprOrStatement,
+                editor.Generator.ScopeBlock(statements));
+            editor.ReplaceNode(
+                exprOrStatement.Parent,
+                (c, _) => c.WithAdditionalAnnotations(Formatter.Annotation));
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
