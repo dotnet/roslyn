@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
     delegate char D(out int i);
     void X()
     {
-        D d = (out int i) => { i = 0; return ''; }
+        D d = (out int i) => { i = 0; return ''; };
     }
 }");
         }
