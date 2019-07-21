@@ -82,16 +82,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                var variable = variableBySlot[slot];
-                if (variable.Exists)
+                if (variableBySlot[slot].Symbol is { } symbol &&
+                    symbol.Kind != SymbolKind.Field)
                 {
-                    var symbol = variable.Symbol;
-                    if (symbol.Kind != SymbolKind.Field)
-                    {
-                        {
-                            _definitelyAssignedOnEntry.Add(variable.Symbol);
-                        }
-                    }
+                    _definitelyAssignedOnEntry.Add(symbol);
                 }
             }
         }
