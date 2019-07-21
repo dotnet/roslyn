@@ -2531,6 +2531,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return EventDeclaration(attributeLists, modifiers, eventKeyword, type, explicitInterfaceSpecifier, identifier, accessorList: null, semicolonToken);
         }
 
+        /// <summary>Creates a new SwitchStatementSyntax instance.</summary>
+        public static SwitchStatementSyntax SwitchStatement(ExpressionSyntax expression, SyntaxList<SwitchSectionSyntax> sections)
+        {
+            bool needsParens = !(expression is TupleExpressionSyntax);
+            var openParen = needsParens ? SyntaxFactory.Token(SyntaxKind.OpenParenToken) : default;
+            var closeParen = needsParens ? SyntaxFactory.Token(SyntaxKind.CloseParenToken) : default;
+            return SyntaxFactory.SwitchStatement(
+                SyntaxFactory.Token(SyntaxKind.SwitchKeyword),
+                openParen,
+                expression,
+                closeParen,
+                SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
+                sections,
+                SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+        }
+
+        /// <summary>Creates a new SwitchStatementSyntax instance.</summary>
+        public static SwitchStatementSyntax SwitchStatement(ExpressionSyntax expression)
+        {
+            return SyntaxFactory.SwitchStatement(expression, default(SyntaxList<SwitchSectionSyntax>));
+        }
+
         // BACK COMPAT OVERLOAD DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static SyntaxTree ParseSyntaxTree(

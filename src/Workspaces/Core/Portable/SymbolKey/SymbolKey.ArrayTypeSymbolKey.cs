@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
-using Roslyn.Utilities;
-
 namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
@@ -20,8 +17,13 @@ namespace Microsoft.CodeAnalysis
                 var elementTypeResolution = reader.ReadSymbolKey();
                 var rank = reader.ReadInteger();
 
-                return CreateSymbolInfo(GetAllSymbols<ITypeSymbol>(elementTypeResolution)
-                            .Select(s => reader.Compilation.CreateArrayTypeSymbol(s, rank)));
+                using var result = PooledArrayBuilder<IArrayTypeSymbol>.GetInstance(elementTypeResolution.SymbolCount);
+                foreach (var typeSymbol in elementTypeResolution.OfType<ITypeSymbol>())
+                {
+                    result.AddIfNotNull(reader.Compilation.CreateArrayTypeSymbol(typeSymbol, rank));
+                }
+
+                return CreateResolution(result);
             }
         }
     }

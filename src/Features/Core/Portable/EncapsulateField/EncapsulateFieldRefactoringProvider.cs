@@ -18,8 +18,9 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var service = context.Document.GetLanguageService<AbstractEncapsulateFieldService>();
-            var actions = await service.GetEncapsulateFieldCodeActionsAsync(context.Document, context.Span, context.CancellationToken).ConfigureAwait(false);
+            var (document, textSpan, cancellationToken) = context;
+            var service = document.GetLanguageService<AbstractEncapsulateFieldService>();
+            var actions = await service.GetEncapsulateFieldCodeActionsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }
     }

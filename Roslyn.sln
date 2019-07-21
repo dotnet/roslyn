@@ -420,6 +420,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Exte
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem", "src\Tools\ExternalAccess\ProjectSystem\Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem.csproj", "{620EA38F-F039-41B9-9003-5EBF5EC19D85}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.LiveShare", "src\VisualStudio\LiveShare\Impl\Microsoft.VisualStudio.LanguageServices.LiveShare.csproj", "{453C8E28-81D4-431E-BFB0-F3D413346E51}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests", "src\VisualStudio\LiveShare\Test\Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests.csproj", "{CE7F7553-DB2D-4839-92E3-F042E4261B4E}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdeBenchmarks", "src\Tools\IdeBenchmarks\IdeBenchmarks.csproj", "{FF38E9C9-7A25-44F0-B2C4-24C9BFD6A8F6}"
 EndProject
 Global
@@ -1119,6 +1123,14 @@ Global
 		{620EA38F-F039-41B9-9003-5EBF5EC19D85}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{620EA38F-F039-41B9-9003-5EBF5EC19D85}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{620EA38F-F039-41B9-9003-5EBF5EC19D85}.Release|Any CPU.Build.0 = Release|Any CPU
+		{453C8E28-81D4-431E-BFB0-F3D413346E51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{453C8E28-81D4-431E-BFB0-F3D413346E51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{453C8E28-81D4-431E-BFB0-F3D413346E51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{453C8E28-81D4-431E-BFB0-F3D413346E51}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE7F7553-DB2D-4839-92E3-F042E4261B4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE7F7553-DB2D-4839-92E3-F042E4261B4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE7F7553-DB2D-4839-92E3-F042E4261B4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE7F7553-DB2D-4839-92E3-F042E4261B4E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FF38E9C9-7A25-44F0-B2C4-24C9BFD6A8F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FF38E9C9-7A25-44F0-B2C4-24C9BFD6A8F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF38E9C9-7A25-44F0-B2C4-24C9BFD6A8F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1320,6 +1332,8 @@ Global
 		{BDB3414C-35F8-4E2D-8603-DE9CF259540F} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{D3AA159B-5DC6-420A-BD9B-1BB6BCD3DDB2} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{620EA38F-F039-41B9-9003-5EBF5EC19D85} = {8977A560-45C2-4EC2-A849-97335B382C74}
+		{453C8E28-81D4-431E-BFB0-F3D413346E51} = {8DBA5174-B0AA-4561-82B1-A46607697753}
+		{CE7F7553-DB2D-4839-92E3-F042E4261B4E} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{FF38E9C9-7A25-44F0-B2C4-24C9BFD6A8F6} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution

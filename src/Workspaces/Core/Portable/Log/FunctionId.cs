@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CompilationService_GetCompilationAsync,
         SolutionCreator_AssetDifferences,
         Extension_InfoBar,
-        Experiment_ABTesting,
+        FxCopAnalyzersInstall,
         AssetStorage_ForceGC,
         RemoteHost_Bitness,
         Intellisense_Completion,

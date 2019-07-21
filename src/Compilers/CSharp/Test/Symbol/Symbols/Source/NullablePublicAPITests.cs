@@ -117,18 +117,18 @@ public class C
                 },
                 new DiagnosticDescription[]
                 {
-                    // (5,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (5,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     // #nullable enable
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(5, 2),
-                    // (7,13): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(5, 2),
+                    // (7,13): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     //     public C? c2 = null;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(7, 13),
-                    // (11,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(7, 13),
+                    // (11,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     // #nullable disable
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(11, 2),
-                    // (13,13): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(11, 2),
+                    // (13,13): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     //     public C? c4 = null;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(13, 13)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(13, 13)
                 },
                 comp =>
                 {
@@ -178,18 +178,18 @@ public class C
                 },
                 new[]
                 {
-                    // (5,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (5,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     // #nullable enable
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(5, 2),
-                    // (7,13): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(5, 2),
+                    // (7,13): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     //     public C? C2 { get; set; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(7, 13),
-                    // (11,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(7, 13),
+                    // (11,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     // #nullable disable
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(11, 2),
-                    // (13,13): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(11, 2),
+                    // (13,13): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     //     public C? C4 { get; set; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(13, 13)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(13, 13)
                 },
                 comp =>
                 {
@@ -240,24 +240,24 @@ public class C
                 },
                 new[]
                 {
-                    // (5,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (5,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     // #nullable enable
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(5, 2),
-                    // (7,18): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(5, 2),
+                    // (7,18): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     //     public string? M1() => null;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(7, 18),
-                    // (8,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(7, 18),
+                    // (8,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     // #nullable disable
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(8, 2),
-                    // (10,18): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(8, 2),
+                    // (10,18): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     //     public string? M3() => null; // 1
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(10, 18),
-                    // (12,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(10, 18),
+                    // (12,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     // #nullable enable
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(12, 2),
-                    // (15,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(12, 2),
+                    // (15,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     // #nullable disable
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(15, 2)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(15, 2)
                 },
                 compilation =>
                 {
@@ -312,36 +312,36 @@ public class C
                     Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 10)
                 },
                 new[] {
-                    // (6,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (6,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     // #nullable enable
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(6, 2),
-                    // (8,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(6, 2),
+                    // (8,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     // #nullable disable
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(8, 2),
-                    // (10,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(8, 2),
+                    // (10,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     // #nullable enable
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(10, 2),
-                    // (11,10): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(10, 2),
+                    // (11,10): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     //         C? c3,
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(11, 10),
-                    // (12,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(11, 10),
+                    // (12,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     // #nullable disable
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(12, 2),
-                    // (13,10): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(12, 2),
+                    // (13,10): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     //         C? c4,
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(13, 10),
-                    // (14,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(13, 10),
+                    // (14,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     // #nullable enable
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(14, 2),
-                    // (16,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(14, 2),
+                    // (16,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     // #nullable disable
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(16, 2),
-                    // (18,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(16, 2),
+                    // (18,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     // #nullable enable
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(18, 2),
-                    // (20,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(18, 2),
+                    // (20,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     // #nullable disable
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(20, 2)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(20, 2)
                 },
                 compilation =>
                 {
@@ -403,24 +403,24 @@ public static class CExt
 
             var comp3 = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
             comp3.VerifyDiagnostics(
-                // (4,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // #nullable enable
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(4, 2),
-                // (8,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(4, 2),
+                // (8,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // #nullable disable
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(8, 2),
-                // (14,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(8, 2),
+                // (14,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // #nullable enable
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(14, 2),
-                // (16,33): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(14, 2),
+                // (16,33): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static void M6(this C? c) {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(16, 33),
-                // (18,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(16, 33),
+                // (18,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // #nullable disable
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(18, 2),
-                // (20,33): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(18, 2),
+                // (20,33): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static void M8(this C? c) {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(20, 33));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(20, 33));
             verifyCompilation(comp3);
 
             var comp1Emit = comp1.EmitToImageReference();
@@ -496,24 +496,24 @@ public class C
                     Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 17)
                 },
                 new[] {
-                    // (8,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (8,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     // #nullable enable
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(8, 2),
-                    // (10,10): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(8, 2),
+                    // (10,10): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     //         C? LM2(C? c) => null;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(10, 10),
-                    // (10,17): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(10, 10),
+                    // (10,17): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     //         C? LM2(C? c) => null;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(10, 17),
-                    // (13,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(10, 17),
+                    // (13,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     // #nullable disable
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(13, 2),
-                    // (15,10): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(13, 2),
+                    // (15,10): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     //         C? LM6(C? c) => null;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(15, 10),
-                    // (15,17): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(15, 10),
+                    // (15,17): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     //         C? LM6(C? c) => null;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(15, 17)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(15, 17)
                 },
                 comp =>
                 {
@@ -558,26 +558,26 @@ public class C
             VerifyAcrossCompilations(
                 source,
                 new[] { 
-                    // (8,20): warning CS8618: Non-nullable event 'D1' is uninitialized.
+                    // (8,20): warning CS8618: Non-nullable event 'D1' is uninitialized. Consider declaring the event as nullable.
                     //     public event D D1;
                     Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "D1").WithArguments("event", "D1").WithLocation(8, 20),
-                    // (13,19): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                    // (13,19): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                     //     public event D? D4;
                     Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 19)
                 },
                 new[] { 
-                    // (7,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (7,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     // #nullable enable
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(7, 2),
-                    // (9,19): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(7, 2),
+                    // (9,19): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     //     public event D? D2;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(9, 19),
-                    // (11,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(9, 19),
+                    // (11,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     // #nullable disable
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(11, 2),
-                    // (13,19): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(11, 2),
+                    // (13,19): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                     //     public event D? D4;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(13, 19)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(13, 19)
                 },
                 compilation =>
                 {

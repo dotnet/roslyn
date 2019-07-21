@@ -479,6 +479,123 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestMultiline_IfElseIfElseSelection1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class A
+{
+    void Goo()
+    {
+        [|if (a)
+        {
+            a();
+        }
+        else if (b)
+        {
+            b();
+        }
+        else
+        {
+            c();
+        }|]
+    }
+}",
+@"class A
+{
+    void Goo()
+    {
+        if (!a)
+        {
+            if (b)
+            {
+                b();
+            }
+            else
+            {
+                c();
+            }
+        }
+        else
+        {
+            a();
+        }
+    }
+}");
+        }
+
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestMultiline_IfElseIfElseSelection2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class A
+{
+    void Goo()
+    {
+        [|if (a)
+        {
+            a();
+        }|]
+        else if (b)
+        {
+            b();
+        }
+        else
+        {
+            c();
+        }
+    }
+}",
+@"class A
+{
+    void Goo()
+    {
+        if (!a)
+        {
+            if (b)
+            {
+                b();
+            }
+            else
+            {
+                c();
+            }
+        }
+        else
+        {
+            a();
+        }
+    }
+}");
+        }
+
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestMultilineMissing_IfElseIfElseSubSelection()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class A
+{
+    void Goo()
+    {
+        if (a)
+        {
+            a();
+        }
+        [|else if (b)
+        {
+            b();
+        }
+        else
+        {
+            c();
+        }|]
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestMultiline_IfElse()
         {
@@ -598,26 +715,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
             /*6*/
         } /*7*/
         /*20*/
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestMissingOnNonEmptySpan()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void F()
-    {
-        [|if (a)
-        {
-            a();
-        }
-        else
-        {
-            b();
-        }|]
     }
 }");
         }

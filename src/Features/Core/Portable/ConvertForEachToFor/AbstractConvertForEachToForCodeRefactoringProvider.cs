@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertForEachToFor
@@ -35,22 +34,17 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             ImmutableArray.Create(typeof(IList<>).FullName, typeof(IReadOnlyList<>).FullName, typeof(IList).FullName);
 
         protected abstract string Title { get; }
-        protected abstract TForEachStatement GetForEachStatement(TextSpan selelction, SyntaxToken token);
         protected abstract bool ValidLocation(ForEachInfo foreachInfo);
         protected abstract (SyntaxNode start, SyntaxNode end) GetForEachBody(TForEachStatement foreachStatement);
         protected abstract void ConvertToForStatement(
             SemanticModel model, ForEachInfo info, SyntaxEditor editor, CancellationToken cancellationToken);
+        protected abstract bool IsValid(TForEachStatement foreachNode);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(context.Span.Start);
-
-            var foreachStatement = GetForEachStatement(context.Span, token);
-            if (foreachStatement == null)
+            var (document, textSpan, cancellationToken) = context;
+            var foreachStatement = await context.TryGetSelectedNodeAsync<TForEachStatement>().ConfigureAwait(false);
+            if (foreachStatement == null || !IsValid(foreachStatement))
             {
                 return;
             }
@@ -60,12 +54,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             var semanticFact = document.GetLanguageService<ISemanticFactsService>();
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var foreachInfo = GetForeachInfo(semanticFact, options, model, foreachStatement, cancellationToken);
-            if (foreachInfo == null)
-            {
-                return;
-            }
-
-            if (!ValidLocation(foreachInfo))
+            if (foreachInfo == null || !ValidLocation(foreachInfo))
             {
                 return;
             }

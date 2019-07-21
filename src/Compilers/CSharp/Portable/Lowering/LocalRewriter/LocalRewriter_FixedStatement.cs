@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (needNullCheck)
             {
-                currentConditionalAccessID = _currentConditionalAccessID++;
+                currentConditionalAccessID = ++_currentConditionalAccessID;
                 callReceiver = new BoundConditionalReceiver(
                     initializerSyntax,
                     currentConditionalAccessID,

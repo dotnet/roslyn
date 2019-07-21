@@ -54,10 +54,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, textSpan, cancellationToken) = context;
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
@@ -75,9 +72,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
         private async Task HandleNonSelectionAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
+            var (document, textSpan, cancellationToken) = context;
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -85,7 +80,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             // We offer the refactoring when the user is either on the header of a class/struct,
             // or if they're between any members of a class/struct and are on a blank line.
-            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start) &&
+            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start, out _) &&
                 !syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start))
             {
                 return;

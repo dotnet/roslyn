@@ -67,24 +67,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // No NullableAttribute applied to the target symbol, or flags do not line-up, return unchanged metadataType.
             return metadataType;
         }
-
-        // https://github.com/dotnet/roslyn/issues/29821 external annotations should be removed or fully designed/productized
-        internal static TypeWithAnnotations TransformType(
-            TypeWithAnnotations metadataType,
-            EntityHandle targetSymbolToken,
-            PEModuleSymbol containingModule,
-            Symbol accessSymbol,
-            Symbol nullableContext,
-            ImmutableArray<byte> extraAnnotations)
-        {
-            if (extraAnnotations.IsDefault)
-            {
-                return NullableTypeDecoder.TransformType(metadataType, targetSymbolToken, containingModule, accessSymbol, nullableContext);
-            }
-            else
-            {
-                return NullableTypeDecoder.TransformType(metadataType, defaultTransformFlag: 0, extraAnnotations);
-            }
-        }
     }
 }
