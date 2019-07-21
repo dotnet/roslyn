@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // It's not definitely assigned if it's not assigned through both 
                 // when-true and when-false paths.
-                if (state2opt != null && !state2opt.IsAssigned(slot))
+                if (state2opt?.IsAssigned(slot) == false)
                 {
                     continue;
                 }
