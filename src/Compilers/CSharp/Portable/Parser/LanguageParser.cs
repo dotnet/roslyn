@@ -1031,10 +1031,12 @@ tryAgain:
 
                             modTok = CheckFeatureAvailability(modTok,
                                 flags == ScanPartialFlags.PartialType
-                                    ? IsTypeDeclarationStart(this.CurrentToken.Kind) // pre-7.3 requirement.
+                                    ? IsTypeDeclarationStart(this.CurrentToken.Kind) // pre-8.0 requirement.
                                         ? MessageID.IDS_FeaturePartialTypes
                                         : MessageID.IDS_FeatureRefPartialModOrdering
-                                    : MessageID.IDS_FeaturePartialMethod);
+                                    : this.CurrentToken.Kind == SyntaxKind.VoidKeyword // pre-8.0 requirement.
+                                        ? MessageID.IDS_FeaturePartialMethod
+                                        : MessageID.IDS_FeatureRefPartialModOrdering);
 
                             break;
                         }
