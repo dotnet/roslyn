@@ -9,10 +9,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Wrapping;
 
 namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
 {
@@ -38,8 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
                 context.RegisterCodeFix(new MyCodeAction(
                     c => FixAsync(document, context.Diagnostics[0], c)), context.Diagnostics);
             }
-
-            return;
         }
 
         private static (SyntaxNode container, SyntaxNode exprOrStatement) GetContainer(SyntaxNode root, TextSpan span)
@@ -61,7 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
         {
             if (location is StatementSyntax)
             {
-                return location.Parent is BlockSyntax || location.Parent is SwitchSectionSyntax;
+                return location.Parent is BlockSyntax
+                    || location.Parent is SwitchSectionSyntax
+                    || location.Parent.IsEmbeddedStatementOwner();
             }
 
             if (location is ExpressionSyntax)
@@ -125,18 +129,31 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             SyntaxEditor editor, SyntaxNode exprOrStatement, ImmutableArray<IParameterSymbol> unassignedParameters)
         {
             var generator = editor.Generator;
-            var statements = ArrayBuilder<SyntaxNode>.GetInstance();
+            var statements = ArrayBuilder<StatementSyntax>.GetInstance();
 
             foreach (var parameter in unassignedParameters)
             {
-                statements.Add(generator.ExpressionStatement(generator.AssignmentStatement(
+                statements.Add((StatementSyntax)generator.ExpressionStatement(generator.AssignmentStatement(
                     generator.IdentifierName(parameter.Name),
                     ExpressionGenerator.GenerateExpression(parameter.Type, value: null, canUseFieldReference: false))));
             }
 
-            if (exprOrStatement is StatementSyntax)
+            if (exprOrStatement is StatementSyntax statement)
             {
-                editor.InsertBefore(exprOrStatement, statements);
+                if (exprOrStatement.Parent.IsEmbeddedStatementOwner())
+                {
+                    statements.Add(statement);
+                    editor.ReplaceNode(
+                        statement,
+                        SyntaxFactory.Block(statements));
+                    editor.ReplaceNode(
+                        statement.Parent,
+                        (c, _) => c.WithAdditionalAnnotations(Formatter.Annotation));
+                }
+                else
+                {
+                    editor.InsertBefore(exprOrStatement, statements);
+                }
             }
 
             statements.Free();
