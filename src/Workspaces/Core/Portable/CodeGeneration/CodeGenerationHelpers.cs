@@ -109,8 +109,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <see cref="MaybeNullAttribute"/> or
         /// <see cref="MaybeNullWhenAttribute"/>.
         /// </summary>
-        public static bool IsAllowNullOrMaybeNullAttribute(AttributeData attribute) =>
-            IsFlowAnalysisNamespace(attribute.AttributeClass.ContainingNamespace) &&
+        public static bool IsAllowNullOrMaybeNullAttribute(AttributeData attribute)
+            => IsFlowAnalysisNamespace(attribute.AttributeClass.ContainingNamespace) &&
                 attribute.AttributeClass.Name switch
                 {
                     nameof(AllowNullAttribute) => true,
@@ -126,8 +126,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <see cref="NotNullWhenAttribute"/> or
         /// <see cref="NotNullIfNotNullAttribute"/>.
         /// </summary>
-        public static bool IsDisallowNullOrNotNullAttribute(AttributeData attribute) =>
-            IsFlowAnalysisNamespace(attribute.AttributeClass.ContainingNamespace) &&
+        public static bool IsDisallowNullOrNotNullAttribute(AttributeData attribute)
+            => IsFlowAnalysisNamespace(attribute.AttributeClass.ContainingNamespace) &&
                 attribute.AttributeClass.Name switch
                 {
                     nameof(DisallowNullAttribute) => true,
@@ -137,8 +137,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                     _ => false
                 };
 
-        public static bool IsNullableFlowAnalysisAttribute(AttributeData attribute) =>
-            IsFlowAnalysisNamespace(attribute.AttributeClass.ContainingNamespace) &&
+        public static bool IsNullableFlowAnalysisAttribute(AttributeData attribute)
+            => IsFlowAnalysisNamespace(attribute.AttributeClass.ContainingNamespace) &&
                 attribute.AttributeClass.Name switch
                 {
                     nameof(AllowNullAttribute) => true,
@@ -151,11 +151,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                     _ => false
                 };
 
-        private static bool IsFlowAnalysisNamespace(INamespaceSymbol namespaceSymbol) =>
-            namespaceSymbol.Name == nameof(System.Diagnostics.CodeAnalysis) &&
-            namespaceSymbol.ContainingNamespace?.Name == nameof(System.Diagnostics) &&
-            namespaceSymbol.ContainingNamespace.ContainingNamespace?.Name == nameof(System) &&
-            namespaceSymbol.ContainingNamespace.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
+        private static bool IsFlowAnalysisNamespace(INamespaceSymbol namespaceSymbol)
+            => namespaceSymbol.Name == nameof(System.Diagnostics.CodeAnalysis) &&
+               namespaceSymbol.ContainingNamespace?.Name == nameof(System.Diagnostics) &&
+               namespaceSymbol.ContainingNamespace.ContainingNamespace?.Name == nameof(System) &&
+               namespaceSymbol.ContainingNamespace.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
 
         public static int GetPreferredIndex(int index, IList<bool> availableIndices, bool forward)
         {
