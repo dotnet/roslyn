@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(CS0177);
 
+        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
@@ -108,8 +110,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
                 foreach (var (_, exprOrStatement) in group)
                 {
                     var dataFlow = semanticModel.AnalyzeDataFlow(exprOrStatement);
-                    var unassignedParameters = outParameters.WhereAsArray(p => dataFlow.Unassigned.Contains(p));
+                    var definitelAssignedOnExit = dataFlow.DefinitelyAssignedOnEntry.AddRange(dataFlow.AlwaysAssigned);
 
+                    var unassignedParameters = outParameters.WhereAsArray(p => !definitelAssignedOnExit.Contains(p));
                     if (unassignedParameters.Length > 0)
                     {
                         AssignOutParameters(editor, exprOrStatement, unassignedParameters);

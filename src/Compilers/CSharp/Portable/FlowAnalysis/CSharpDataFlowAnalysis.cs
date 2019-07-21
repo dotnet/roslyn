@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private HashSet<Symbol> _unassignedVariables;
         private ImmutableArray<ISymbol> _dataFlowsIn;
         private ImmutableArray<ISymbol> _dataFlowsOut;
+        private ImmutableArray<ISymbol> _definitelyAssignedOnEntry;
         private ImmutableArray<ISymbol> _alwaysAssigned;
         private ImmutableArray<ISymbol> _readInside;
         private ImmutableArray<ISymbol> _writtenInside;
@@ -97,6 +98,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return _dataFlowsIn;
+            }
+        }
+
+        /// <summary>
+        /// The set of local variables which are definitely assigned a value when a region
+        /// is entered.
+        /// 
+        /// The set of variables that are definitely assigned a value when a region is exited is
+        /// the union of <see cref="DefinitelyAssignedOnEntry"/> and <see cref="AlwaysAssigned"/>.
+        /// </summary>
+        public override ImmutableArray<ISymbol> DefinitelyAssignedOnEntry
+        {
+            get
+            {
+                if (_definitelyAssignedOnEntry.IsDefault)
+                {
+                    _succeeded = !_context.Failed;
+                    var result = _context.Failed
+                        ? ImmutableArray<ISymbol>.Empty
+                        : Normalize(DefinitelyAssignedOnEntryWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, out _succeeded));
+                    ImmutableInterlocked.InterlockedInitialize(ref _definitelyAssignedOnEntry, result);
+                }
+
+                return _definitelyAssignedOnEntry;
             }
         }
 
