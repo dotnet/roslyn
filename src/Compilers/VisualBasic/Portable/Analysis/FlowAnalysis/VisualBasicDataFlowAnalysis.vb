@@ -27,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _dataFlowsIn As ImmutableArray(Of ISymbol)
         Private _dataFlowsOut As ImmutableArray(Of ISymbol)
         Private _alwaysAssigned As ImmutableArray(Of ISymbol)
-        Private _unassigned As ImmutableArray(Of ISymbol)
         Private _readInside As ImmutableArray(Of ISymbol)
         Private _writtenInside As ImmutableArray(Of ISymbol)
         Private _readOutside As ImmutableArray(Of ISymbol)
@@ -54,17 +53,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ImmutableInterlocked.InterlockedCompareExchange(_variablesDeclared, result, Nothing)
                 End If
                 Return _variablesDeclared
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property Unassigned As ImmutableArray(Of ISymbol)
-            Get
-                If _unassigned.IsDefault Then
-                    Dim result = ImmutableArray.ToImmutableArray(Of ISymbol)(UnassignedVariables)
-                    ImmutableInterlocked.InterlockedCompareExchange(_unassigned, result, Nothing)
-                End If
-
-                Return _unassigned
             End Get
         End Property
 

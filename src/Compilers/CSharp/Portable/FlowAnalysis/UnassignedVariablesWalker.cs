@@ -12,18 +12,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// An analysis that computes the set of variables that may be used
     /// before being assigned anywhere within a method.
     /// </summary>
-    internal class UnassignedVariablesWalker : AbstractRegionDataFlowPass
+    internal class UnassignedVariablesWalker : DefiniteAssignmentPass
     {
-        private UnassignedVariablesWalker(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
-            : base(compilation, member, node, firstInRegion, lastInRegion)
+        private UnassignedVariablesWalker(CSharpCompilation compilation, Symbol member, BoundNode node)
+            : base(compilation, member, node, EmptyStructTypeCache.CreateNeverEmpty())
         {
         }
 
         internal static HashSet<Symbol> Analyze(CSharpCompilation compilation, Symbol member, BoundNode node,
-                                                BoundNode firstInRegion, BoundNode lastInRegion,
                                                 bool convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = false)
         {
-            var walker = new UnassignedVariablesWalker(compilation, member, node, firstInRegion, lastInRegion);
+            var walker = new UnassignedVariablesWalker(compilation, member, node);
 
             if (convertInsufficientExecutionStackExceptionToCancelledByStackGuardException)
             {

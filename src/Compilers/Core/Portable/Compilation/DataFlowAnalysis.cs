@@ -39,12 +39,6 @@ namespace Microsoft.CodeAnalysis
         public abstract ImmutableArray<ISymbol> AlwaysAssigned { get; }
 
         /// <summary>
-        /// The set of local variables that are unassigned inside
-        /// a region.
-        /// </summary>
-        public abstract ImmutableArray<ISymbol> Unassigned { get; }
-
-        /// <summary>
         /// The set of local variables that are read inside a region.
         /// </summary>
         public abstract ImmutableArray<ISymbol> ReadInside { get; }
